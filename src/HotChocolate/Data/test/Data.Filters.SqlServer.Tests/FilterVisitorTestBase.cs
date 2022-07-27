@@ -45,7 +45,7 @@ public class FilterVisitorTestBase
         TEntity[] entities,
         FilterConvention? convention = null,
         bool withPaging = false,
-        Action<ISchemaBuilder>? configure = null,
+        Action<IRequestExecutorBuilder>? configure = null,
         Action<ModelBuilder>? onModelCreating = null)
         where TEntity : class
         where T : FilterInputType<TEntity>
@@ -55,7 +55,8 @@ public class FilterVisitorTestBase
         var resolver =
             BuildResolver(onModelCreating, entities);
 
-        var builder = SchemaBuilder.New()
+        var builder = new ServiceCollection()
+            .AddGraphQL()
             .AddConvention<IFilterConvention>(convention)
             .AddFiltering()
             .AddQueryType(
@@ -75,12 +76,7 @@ public class FilterVisitorTestBase
 
         configure?.Invoke(builder);
 
-        var schema = builder.Create();
-
-        return new ServiceCollection()
-            .Configure<RequestExecutorSetup>(
-                Schema.DefaultName,
-                o => o.Schema = schema)
+        return builder
             .AddGraphQL()
             .UseRequest(
                 next => async context =>

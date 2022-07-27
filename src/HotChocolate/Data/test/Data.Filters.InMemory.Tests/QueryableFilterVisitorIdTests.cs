@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types.Relay;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data.Filters;
 

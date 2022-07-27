@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data.Filters;
 
@@ -25,7 +27,7 @@ public class FilterVisitorTestBase
         TEntity[] entities,
         FilterConvention? convention = null,
         bool withPaging = false,
-        Action<ISchemaBuilder>? configure = null)
+        Action<IRequestExecutorBuilder>? configure = null)
         where TEntity : class
         where T : FilterInputType<TEntity>
     {
@@ -36,9 +38,10 @@ public class FilterVisitorTestBase
 
         var resolver = BuildResolver(entities);
 
-        var builder = SchemaBuilder.New()
+        var builder = new ServiceCollection()
+            .AddGraphQL()
             .AddConvention<IFilterConvention>(convention)
-            .AddQueryableFiltering()
+            .AddQueryableFiltering(x => x.AddCaseInsensitiveContains())
             .AddQueryType(
                 c =>
                 {
@@ -69,8 +72,6 @@ public class FilterVisitorTestBase
 
         configure?.Invoke(builder);
 
-        var schema = builder.Create();
-
-        return schema.MakeExecutable();
+        return builder.BuildRequestExecutorAsync().GetAwaiter().GetResult();
     }
 }

@@ -2,8 +2,10 @@ using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data.Filters;
 
@@ -64,7 +66,7 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
 
     }
 
-    private static void Configure(ISchemaBuilder builder)
+    private static void Configure(IRequestExecutorBuilder builder)
         => builder
             .AddObjectType<InterfaceImpl1>(x => x.Implements<InterfaceType<Test>>())
             .AddObjectType<InterfaceImpl2>(x => x.Implements<InterfaceType<Test>>())

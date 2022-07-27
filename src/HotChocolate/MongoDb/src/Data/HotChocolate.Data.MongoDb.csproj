@@ -8,14 +8,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj"/>
-    <ProjectReference Include="..\..\..\Core\src\Types.OffsetPagination\HotChocolate.Types.OffsetPagination.csproj"/>
-    <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj"/>
-    <ProjectReference Include="..\Types\HotChocolate.Types.MongoDb.csproj"/>
+    <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types.OffsetPagination\HotChocolate.Types.OffsetPagination.csproj" />
+    <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj" />
+    <ProjectReference Include="..\Types\HotChocolate.Types.MongoDb.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MongoDB.Driver" Version="2.14.0"/>
+    <PackageReference Include="MongoDB.Driver" Version="2.14.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,6 +28,10 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>MongoDbResources.resx</DependentUpon>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Filters\Configuration" />
   </ItemGroup>
 
 </Project>

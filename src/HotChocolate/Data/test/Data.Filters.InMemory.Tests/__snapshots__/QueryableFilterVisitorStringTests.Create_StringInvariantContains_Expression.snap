@@ -1,4 +1,32 @@
-﻿{
+a
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testatest"
+      }
+    ]
+  }
+}
+---------------
+
+b
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testbtest"
+      }
+    ]
+  }
+}
+---------------
+
+null
+---------------
+{
   "errors": [
     {
       "message": "The provided value for filter \u0060icontains\u0060 of type StringOperationFilterInput is invalid. Null values are not supported.",
@@ -22,3 +50,4 @@
     "root": []
   }
 }
+---------------

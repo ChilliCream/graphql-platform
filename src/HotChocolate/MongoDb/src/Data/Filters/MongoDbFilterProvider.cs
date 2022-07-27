@@ -1,9 +1,6 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
 using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Filters;
@@ -31,7 +28,9 @@ public class MongoDbFilterProvider : FilterProvider<MongoDbFilterVisitorContext>
     /// </summary>
     protected virtual FilterVisitor<MongoDbFilterVisitorContext, MongoDbFilterDefinition>
         Visitor
-    { get; } = new(new MongoDbFilterCombinator());
+    {
+        get;
+    } = new(new MongoDbFilterCombinator());
 
     /// <inheritdoc />
     public override FieldMiddleware CreateExecutor<TEntityType>(string argumentName)

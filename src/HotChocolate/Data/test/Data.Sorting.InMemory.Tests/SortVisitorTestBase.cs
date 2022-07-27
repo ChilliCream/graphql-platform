@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data.Sorting;
 
@@ -21,7 +23,7 @@ public class SortVisitorTestBase
     protected IRequestExecutor CreateSchema<TEntity, T>(
         TEntity?[] entities,
         SortConvention? convention = null,
-        Action<ISchemaBuilder>? configure = null)
+        Action<IRequestExecutorBuilder>? configure = null)
         where TEntity : class
         where T : SortInputType<TEntity>
     {
@@ -29,8 +31,10 @@ public class SortVisitorTestBase
 
         var resolver = BuildResolver(entities!);
 
-        var builder = SchemaBuilder.New()
+        var builder = new ServiceCollection()
+            .AddGraphQL()
             .AddConvention<ISortConvention>(convention)
+            .AddQueryableSorting()
             .AddSorting()
             .AddQueryType(
                 c =>
@@ -50,8 +54,6 @@ public class SortVisitorTestBase
 
         configure?.Invoke(builder);
 
-        var schema = builder.Create();
-
-        return schema.MakeExecutable();
+        return builder.BuildRequestExecutorAsync().GetAwaiter().GetResult();
     }
 }

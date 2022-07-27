@@ -46,7 +46,8 @@ public class SortVisitorTestBase
 
         var resolver = BuildResolver(entities);
 
-        var builder = SchemaBuilder.New()
+        var builder = new ServiceCollection()
+            .AddGraphQL()
             .AddConvention<ISortConvention>(convention)
             .AddSorting()
             .AddQueryType(
@@ -64,12 +65,8 @@ public class SortVisitorTestBase
                         false);
                 });
 
-        var schema = builder.Create();
 
-        return new ServiceCollection()
-            .Configure<RequestExecutorSetup>(
-                Schema.DefaultName,
-                o => o.Schema = schema)
+        return builder
             .AddGraphQL()
             .UseRequest(
                 next => async context =>

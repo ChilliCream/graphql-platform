@@ -36,7 +36,8 @@ public class FilterVisitorTestBase
         return new ServiceCollection()
             .AddGraphQL()
             .AddObjectIdConverters()
-            .AddFiltering(x => x.BindRuntimeType<TEntity, T>().AddMongoDbDefaults())
+            .AddMongoDbFiltering(
+                configure: x => x.AddCaseInsensitiveContains().BindRuntimeType<TEntity, T>())
             .AddQueryType(
                 c => c
                     .Name("Query")

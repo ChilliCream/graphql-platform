@@ -186,6 +186,37 @@ public class MongoDbFilterVisitorStringTests
     }
 
     [Fact]
+    public async Task Create_StringInvariantContains_Expression()
+    {
+        // arrange
+        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+
+        // act
+        // assert
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+            .SetQuery("{ root(where: { bar: { icontains: \"A\" }}){ bar}}")
+            .Create());
+
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+            .SetQuery("{ root(where: { bar: { icontains: \"B\" }}){ bar}}")
+            .Create());
+
+        var res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+            .SetQuery("{ root(where: { bar: { icontains: null }}){ bar}}")
+            .Create());
+
+        await Snapshot
+            .Create()
+            .Add(res1, "a")
+            .Add(res2, "b")
+            .Add(res3, "null")
+            .MatchAsync();
+    }
+
+    [Fact]
     public async Task Create_StringNoContains_Expression()
     {
         // arrange

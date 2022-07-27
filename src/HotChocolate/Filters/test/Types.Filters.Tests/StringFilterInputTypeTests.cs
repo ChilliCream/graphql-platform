@@ -1,7 +1,5 @@
-using System;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.Filters;
 

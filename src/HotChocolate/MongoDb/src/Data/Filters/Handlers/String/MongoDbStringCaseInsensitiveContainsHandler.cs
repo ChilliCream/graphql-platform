@@ -6,17 +6,26 @@ using MongoDB.Bson;
 
 namespace HotChocolate.Data.MongoDb.Filters;
 
-public class MongoDbStringContainsHandler
+/// <summary>
+/// Handler for MongoDb contains operation that do not work case insensitive
+/// </summary>
+public class MongoDbStringCaseInsensitiveContainsHandler
     : MongoDbStringOperationHandler
 {
-    public MongoDbStringContainsHandler(InputParser inputParser)
+    /// <summary>
+    /// Creates a new instance of <see cref="MongoDbStringCaseInsensitiveContainsHandler"/>
+    /// </summary>
+    /// <param name="inputParser"></param>
+    public MongoDbStringCaseInsensitiveContainsHandler(InputParser inputParser)
         : base(inputParser)
     {
         CanBeNull = false;
     }
 
-    protected override int Operation => DefaultFilterOperations.Contains;
+    /// <inheritdoc />
+    protected override int Operation => DefaultFilterOperations.CaseInsensitiveContains;
 
+    /// <inheritdoc />
     public override MongoDbFilterDefinition HandleOperation(
         MongoDbFilterVisitorContext context,
         IFilterOperationField field,
@@ -27,7 +36,7 @@ public class MongoDbStringContainsHandler
         {
             var doc = new MongoDbFilterOperation(
                 "$regex",
-                new BsonRegularExpression($"/{Regex.Escape(str)}/"));
+                new BsonRegularExpression($"/{Regex.Escape(str)}/i"));
 
             return new MongoDbFilterOperation(context.GetMongoFilterScope().GetPath(), doc);
         }

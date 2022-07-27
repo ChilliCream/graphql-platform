@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,7 +19,7 @@ public class SchemaCache
         bool usePaging = false,
         bool useOffsetPaging = false,
         INamedType? objectType = null,
-        Action<ISchemaBuilder>? configure = null,
+        Action<IRequestExecutorBuilder>? configure = null,
         Type? schemaType = null)
         where T : class
     {

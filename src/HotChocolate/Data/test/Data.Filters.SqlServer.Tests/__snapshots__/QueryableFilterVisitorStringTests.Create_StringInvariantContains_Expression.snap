@@ -1,0 +1,71 @@
+a
+---------------
+{
+  "errors": [
+    {
+      "message": "The specified input object field \u0060icontains\u0060 does not exist.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 24
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "field": "icontains",
+        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Input-Object-Field-Names"
+      }
+    }
+  ]
+}
+---------------
+
+b
+---------------
+{
+  "errors": [
+    {
+      "message": "The specified input object field \u0060icontains\u0060 does not exist.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 24
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "field": "icontains",
+        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Input-Object-Field-Names"
+      }
+    }
+  ]
+}
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The specified input object field \u0060icontains\u0060 does not exist.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 24
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "field": "icontains",
+        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Input-Object-Field-Names"
+      }
+    }
+  ]
+}
+---------------

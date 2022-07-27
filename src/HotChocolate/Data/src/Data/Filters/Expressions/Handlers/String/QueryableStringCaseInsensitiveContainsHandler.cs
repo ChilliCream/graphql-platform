@@ -8,7 +8,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Data.Filters.Expressions;
 
 public class QueryableStringCaseInsensitiveContainsHandler : QueryableStringOperationHandler
-{ 
+{
     private static readonly ConstantExpression _sNull =
         Expression.Constant(null, typeof(object));
 

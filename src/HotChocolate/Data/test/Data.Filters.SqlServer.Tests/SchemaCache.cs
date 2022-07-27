@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotChocolate.Data.Filters;
@@ -14,7 +15,7 @@ public class SchemaCache
     public IRequestExecutor CreateSchema<T, TType>(
         T[] entities,
         bool withPaging = false,
-        Action<ISchemaBuilder>? configure = null,
+        Action<IRequestExecutorBuilder>? configure = null,
         Action<ModelBuilder>? onModelCreating = null)
         where T : class
         where TType : FilterInputType<T>

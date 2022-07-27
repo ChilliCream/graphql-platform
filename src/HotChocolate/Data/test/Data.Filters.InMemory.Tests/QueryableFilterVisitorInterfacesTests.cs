@@ -1,6 +1,8 @@
 using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data.Filters.Expressions;
 
@@ -60,7 +62,7 @@ public class QueryableFilterVisitorInterfacesTests
             .MatchAsync();
     }
 
-    private static void Configure(ISchemaBuilder builder)
+    private static void Configure(IRequestExecutorBuilder builder)
     {
         builder.AddObjectType<InterfaceImpl1>();
         builder.AddObjectType<InterfaceImpl2>();

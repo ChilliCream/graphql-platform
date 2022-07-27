@@ -49,7 +49,7 @@ public class ProjectionVisitorTestBase
         bool usePaging = false,
         bool useOffsetPaging = false,
         INamedType? objectType = null,
-        Action<ISchemaBuilder>? configure = null,
+        Action<IRequestExecutorBuilder>? configure = null,
         Type? schemaType = null)
         where TEntity : class
     {
@@ -59,7 +59,7 @@ public class ProjectionVisitorTestBase
         var resolver =
             BuildResolver(onModelCreating, entities);
 
-        ISchemaBuilder builder = SchemaBuilder.New();
+        var builder = new ServiceCollection().AddGraphQL();
 
         if (objectType is not null)
         {
@@ -70,9 +70,9 @@ public class ProjectionVisitorTestBase
 
         builder
             .AddConvention<IProjectionConvention>(convention)
-            .AddProjections()
-            .AddFiltering()
-            .AddSorting()
+            .AddQueryableProjections()
+            .AddQueryableFiltering()
+            .AddQueryableSorting()
             .AddQueryType(
                 new ObjectType<StubObject<TEntity>>(
                     c =>
@@ -95,11 +95,7 @@ public class ProjectionVisitorTestBase
 
         builder.ModifyOptions(o => o.ValidatePipelineOrder = false);
 
-        var schema = builder.Create();
-
-        return new ServiceCollection()
-            .Configure<RequestExecutorSetup>(Schema.DefaultName, o => o.Schema = schema)
-            .AddGraphQL()
+        return builder
             .UseRequest(
                 next => async context =>
                 {

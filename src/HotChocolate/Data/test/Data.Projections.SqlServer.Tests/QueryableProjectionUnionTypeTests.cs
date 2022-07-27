@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Data.Projections.ProjectionVisitorTestBase;
 
 namespace HotChocolate.Data.Projections;
@@ -94,7 +96,7 @@ public class QueryableProjectionUnionTypeTests
                                 y.Field(z => z.Root).UsePaging<UnionType<AbstractType>>();
                             });
 
-                    x.AddType(typeExtension);
+                    x.AddTypeExtension(typeExtension);
                 });
 
         // act
@@ -226,7 +228,7 @@ public class QueryableProjectionUnionTypeTests
             .HasValue<Foo>("foo");
     }
 
-    private static void ConfigureSchema(ISchemaBuilder schemaBuilder)
+    private static void ConfigureSchema(IRequestExecutorBuilder schemaBuilder)
     {
         schemaBuilder
             .AddType(new ObjectType<Foo>())

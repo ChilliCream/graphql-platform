@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 
 namespace HotChocolate.Data.Sorting;
 
@@ -10,7 +11,7 @@ public class SchemaCache : SortVisitorTestBase, IDisposable
 
     public IRequestExecutor CreateSchema<T, TType>(
         T?[] entities,
-        Action<ISchemaBuilder>? configure = null)
+        Action<IRequestExecutorBuilder>? configure = null)
         where T : class
         where TType : SortInputType<T>
     {

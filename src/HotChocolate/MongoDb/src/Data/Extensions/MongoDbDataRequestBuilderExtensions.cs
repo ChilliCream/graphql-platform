@@ -1,9 +1,10 @@
-using System;
 using HotChocolate.Data.MongoDb;
+using HotChocolate.Data.MongoDb.Filters;
 using HotChocolate.Data.MongoDb.Paging;
+using HotChocolate.Data.MongoDb.Projections;
+using HotChocolate.Data.MongoDb.Sorting;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
-using HotChocolate.Types.Pagination;
 using MongoDB.Bson;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -19,6 +20,9 @@ public static class MongoDbDataRequestBuilderExtensions
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
+    /// <param name="configure">
+    /// The configuration of the filter convention
+    /// </param>
     /// <param name="name"></param>
     /// <param name="compatabilityMode">Uses the old behaviour of naming the filters</param>
     /// <returns>
@@ -27,8 +31,9 @@ public static class MongoDbDataRequestBuilderExtensions
     public static IRequestExecutorBuilder AddMongoDbFiltering(
         this IRequestExecutorBuilder builder,
         string? name = null,
+        Action<IMongoDbFilterConventionDescriptor>? configure = null,
         bool compatabilityMode = false) =>
-        builder.ConfigureSchema(s => s.AddMongoDbFiltering(name, compatabilityMode));
+        builder.ConfigureSchema(s => s.AddMongoDbFiltering(configure, name, compatabilityMode));
 
     /// <summary>
     /// Adds sorting support.
@@ -37,13 +42,17 @@ public static class MongoDbDataRequestBuilderExtensions
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
     /// <param name="name"></param>
+    /// <param name="configure">
+    /// The configuration of the sort convention
+    /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/>.
     /// </returns>
     public static IRequestExecutorBuilder AddMongoDbSorting(
         this IRequestExecutorBuilder builder,
-        string? name = null) =>
-        builder.ConfigureSchema(s => s.AddMongoDbSorting(name));
+        string? name = null,
+        Action<IMongoSortConventionDescriptor>? configure = null) =>
+        builder.ConfigureSchema(s => s.AddMongoDbSorting(configure, name));
 
     /// <summary>
     /// Adds projections support.
@@ -51,14 +60,18 @@ public static class MongoDbDataRequestBuilderExtensions
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
+    /// <param name="configure">
+    /// The configuration of the projection convention
+    /// </param>
     /// <param name="name"></param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/>.
     /// </returns>
     public static IRequestExecutorBuilder AddMongoDbProjections(
         this IRequestExecutorBuilder builder,
-        string? name = null) =>
-        builder.ConfigureSchema(s => s.AddMongoDbProjections(name));
+        string? name = null,
+        Action<IMongoProjectionConventionDescriptor>? configure = null) =>
+        builder.ConfigureSchema(s => s.AddMongoDbProjections(configure, name));
 
     /// <summary>
     /// Adds converter

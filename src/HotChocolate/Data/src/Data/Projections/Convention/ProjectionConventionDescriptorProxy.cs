@@ -2,7 +2,7 @@ using System;
 
 namespace HotChocolate.Data.Projections;
 
-internal class ProjectionConventionDescriptorProxy
+public class ProjectionConventionDescriptorProxy
     : IProjectionConventionDescriptor
 {
     private readonly IProjectionConventionDescriptor _descriptor;
