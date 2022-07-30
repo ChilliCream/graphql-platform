@@ -181,7 +181,7 @@ In this section we will perform a simple fetch with our `ConferenceClient` and o
 
 1. Head over to `Program.cs`.
 
-2. Add the following code to you main method to execute the `GetSessions` query.
+2. Add the following code to your main method to execute the `GetSessions` query.
 
 ```csharp
 static async Task Main(string[] args)

@@ -6,7 +6,14 @@ import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/e
 
 In this section, we will cover how you can easily integrate a REST API into your GraphQL API.
 
+If you want to have an outlook into the upcoming native REST integration with Hot Chocolate 13 you can head over to YouTube and have a look.
+
+<iframe width="560" height="315"
+src="https://www.youtube.com/embed/l2QsFlKYqhk"frameborder="0"
+allowfullscreen></iframe>
+
 GraphQL has a strongly-typed type system and therefore also has to know the dotnet runtime types of the data it returns in advance.
+
 The easiest way to integrate a REST API is, to define an OpenAPI specification for it.
 OpenAPI describes what data a REST endpoint returns.
 You can automatically generate a dotnet client for this API and integrate it into your schema.
