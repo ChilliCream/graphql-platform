@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Data.Neo4J.Paging;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +18,7 @@ public static class Neo4JDataRequestBuilderExtensions
     /// <param name="name">
     /// The filtering convention name.
     /// </param>
+    /// <param name="compatabilityMode">Uses the old behaviour of naming the filters</param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/>.
     /// </returns>
