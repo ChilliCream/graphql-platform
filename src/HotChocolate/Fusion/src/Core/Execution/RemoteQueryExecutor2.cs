@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using HotChocolate.Execution.Processing;
@@ -8,6 +9,7 @@ using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using IType = HotChocolate.Fusion.Metadata.IType;
 using ObjectType = HotChocolate.Fusion.Metadata.ObjectType;
 
 namespace HotChocolate.Fusion.Execution;
@@ -81,8 +83,7 @@ internal sealed class RemoteQueryExecutor2
                     selectionResult.Single,
                     nullable);
             }
-
-            if (selection.Type.IsEnumType() || namedType.IsEnumType())
+            else if (selection.Type.IsEnumType() || namedType.IsEnumType())
             {
                 // we might need to map the enum value!
                 selectionSetResult.SetValueUnsafe(
@@ -93,54 +94,122 @@ internal sealed class RemoteQueryExecutor2
             }
             else if (selection.Type.IsCompositeType())
             {
-                if (selectionResult.IsNull())
-                {
-                    selectionSetResult.SetValueUnsafe(i, selection.ResponseName, null, nullable);
-                    continue;
-                }
-
-                var typeInfo = selectionResult.GetTypeInfo();
-                var typeMetadata = _schema.GetType<ObjectType>(typeInfo);
-                var type = context.Schema.GetType<Types.ObjectType>(typeMetadata.Name);
-                var selectionSet = context.Operation.GetSelectionSet(selection, type);
-                var result = context.Result.RentObject(selectionSet.Selections.Count);
-                selectionSetResult.SetValueUnsafe(i, selection.ResponseName, result, nullable);
-
-                if (context.RequiresFetch.Contains(selectionSet))
-                {
-                    var fetchArguments = CreateArguments(
-                        context,
-                        selection,
-                        selectionResult,
-                        typeMetadata);
-
-                    var fetchWorkItem = new WorkItem(fetchArguments, selectionSet, variables, result);
-                    context.Fetch.Add(fetchWorkItem);
-                }
-                else
-                {
-                    var childSelectionResults = CreateSelectionResults(
-                        context,
-                        selection,
-                        selectionResult,
-                        typeMetadata);
-
-                    var childVariables = CreateVariables(
-                        context,
-                        selection,
-                        selectionResult,
-                        typeMetadata,
-                        variables);
-
-                    ComposeResult(
-                        context,
-                        selectionSet.Selections,
-                        childSelectionResults,
-                        result,
-                        childVariables);
-                }
+                selectionSetResult.SetValueUnsafe(
+                    i,
+                    selection.ResponseName,
+                    ComposeObject(context, selection, selectionResult, variables));
+            }
+            else
+            {
+                selectionSetResult.SetValueUnsafe(
+                    i,
+                    selection.ResponseName,
+                    ComposeList(context, selection, selectionResult, variables, selection.Type));
             }
         }
+    }
+
+    private ListResult? ComposeList(
+        ExecutorContext context,
+        ISelection selection,
+        SelectionResult selectionResult,
+        ArgumentContext variables,
+        Types.IType type)
+    {
+        if (selectionResult.IsNull())
+        {
+            return null;
+        }
+
+        var json = selectionResult.Single.Single;
+        var schemaName = selectionResult.Single.SchemaName;
+        Debug.Assert(selectionResult.Multiple is null, "selectionResult.Multiple is null");
+        Debug.Assert(json.ValueKind is JsonValueKind.Array, "json.ValueKind is JsonValueKind.Array");
+
+        var elementType = type.ElementType();
+        var result = context.Result.RentList(json.GetArrayLength());
+
+        if (elementType.IsListType())
+        {
+            foreach (var item in json.EnumerateArray())
+            {
+                result.AddUnsafe(
+                    ComposeList(
+                        context,
+                        selection,
+                        new SelectionResult(new JsonResult(schemaName, item)),
+                        variables,
+                        elementType));
+            }
+        }
+        else
+        {
+            foreach (var item in json.EnumerateArray())
+            {
+                result.AddUnsafe(
+                    ComposeObject(
+                        context,
+                        selection,
+                        new SelectionResult(new JsonResult(schemaName, item)),
+                        variables));
+            }
+        }
+
+        return result;
+    }
+
+    private ObjectResult? ComposeObject(
+        ExecutorContext context,
+        ISelection selection,
+        SelectionResult selectionResult,
+        ArgumentContext variables)
+    {
+        if (selectionResult.IsNull())
+        {
+            return null;
+        }
+
+        var typeInfo = selectionResult.GetTypeInfo();
+        var typeMetadata = _schema.GetType<ObjectType>(typeInfo);
+        var type = context.Schema.GetType<Types.ObjectType>(typeMetadata.Name);
+        var selectionSet = context.Operation.GetSelectionSet(selection, type);
+        var result = context.Result.RentObject(selectionSet.Selections.Count);
+
+        if (context.RequiresFetch.Contains(selectionSet))
+        {
+            var fetchArguments = CreateArguments(
+                context,
+                selection,
+                selectionResult,
+                typeMetadata);
+
+            var fetchWorkItem = new WorkItem(fetchArguments, selectionSet, variables, result);
+            context.Fetch.Add(fetchWorkItem);
+        }
+        else
+        {
+            var childSelectionResults = CreateSelectionResults(
+                context,
+                selection,
+                selectionResult,
+                typeMetadata);
+
+            var childVariables = CreateVariables(
+                context,
+                selection,
+                selectionResult,
+                typeMetadata,
+                variables);
+
+            ComposeResult(
+                context,
+                selectionSet.Selections,
+                childSelectionResults,
+                result,
+                childVariables);
+        }
+
+        return result;
     }
 
     private IReadOnlyList<Argument> CreateArguments(
