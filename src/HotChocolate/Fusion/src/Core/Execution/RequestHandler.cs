@@ -50,8 +50,9 @@ internal sealed class RequestHandler
                     fields[i] = field;
                 }
             }
+        }
 
-            fields ??= new ObjectFieldNode[fieldSize];
+        fields ??= new ObjectFieldNode[fieldSize];
 
             foreach (var requirement in _requires)
             {

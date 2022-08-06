@@ -14,5 +14,6 @@ internal class QueryPlan
 
     public IReadOnlyList<ExecutionNode> ExecutionNodes { get; }
 
-    public IEnumerable<RequestNode> GetRequestNodes(ISelectionSet selectionSet);
+    public IEnumerable<RequestNode> GetRequestNodes(ISelectionSet selectionSet)
+        => new List<RequestNode>();
 }
