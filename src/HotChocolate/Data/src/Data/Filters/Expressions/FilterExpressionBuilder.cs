@@ -133,7 +133,7 @@ public static class FilterExpressionBuilder
         Expression body,
         params ParameterExpression[] parameterExpression)
     {
-        LambdaExpression lambda = Expression.Lambda(body, parameterExpression);
+        var lambda = Expression.Lambda(body, parameterExpression);
         return Any(type, property, lambda);
     }
 

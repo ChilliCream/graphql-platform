@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Configuration;
@@ -23,7 +22,7 @@ internal sealed class FactoryTypeReferenceHandler : ITypeRegistrarHandler
 
         if (_handled.Add(typeRef.Name))
         {
-            TypeSystemObjectBase obj = typeRef.Factory!(_context);
+            var obj = typeRef.Factory!(_context);
             typeRegistrar.Register(obj, typeRef.Scope, configure: AddTypeRef);
         }
 

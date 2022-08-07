@@ -1,4 +1,18 @@
-﻿{
+Query
+---------------
+{
+  hero {
+    name
+    friends(a: "foo", b: 123456, c: null, d: true) {
+      name
+    }
+  }
+}
+---------------
+
+AST
+---------------
+{
   "Kind": "Document",
   "Location": {
     "Start": 0,
@@ -267,3 +281,4 @@
     }
   ]
 }
+---------------

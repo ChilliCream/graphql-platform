@@ -28,7 +28,7 @@ public class IPv4Type : RegexType
     /// Initializes a new instance of the <see cref="IPv4Type"/> class.
     /// </summary>
     public IPv4Type(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(

@@ -22,7 +22,7 @@ public class NonEmptyStringType : StringType
     /// Initializes a new instance of the <see cref="NonEmptyStringType"/> class.
     /// </summary>
     public NonEmptyStringType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, description, bind)

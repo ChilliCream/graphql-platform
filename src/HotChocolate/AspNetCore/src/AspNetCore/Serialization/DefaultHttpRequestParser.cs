@@ -46,9 +46,9 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
     public GraphQLRequest ReadParamsRequest(IQueryCollection parameters)
     {
         // next we deserialize the GET request with the query request builder ...
-        string query = parameters[_queryIdentifier];
-        string queryId = parameters[_queryIdIdentifier];
-        string operationName = parameters[_operationNameIdentifier];
+        string? query = parameters[_queryIdentifier];
+        string? queryId = parameters[_queryIdIdentifier];
+        string? operationName = parameters[_operationNameIdentifier];
         IReadOnlyDictionary<string, object?>? extensions = null;
 
         // if we have no query or query id we cannot execute anything.
@@ -57,7 +57,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             // so, if we do not find a top-level query or top-level id we will try to parse
             // the extensions and look in the extensions for Apollo`s active persisted
             // query extensions.
-            if ((string)parameters[_extensionsIdentifier] is { Length: > 0 } se)
+            if ((string?)parameters[_extensionsIdentifier] is { Length: > 0 } se)
             {
                 extensions = ParseJsonObject(se);
             }
@@ -83,7 +83,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 
             if (query is { Length: > 0 })
             {
-                byte[] buffer = Encoding.UTF8.GetBytes(query);
+                var buffer = Encoding.UTF8.GetBytes(query);
                 document = Utf8GraphQLParser.Parse(buffer);
                 queryHash = _documentHashProvider.ComputeHash(buffer);
             }
@@ -91,13 +91,13 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             IReadOnlyDictionary<string, object?>? variables = null;
 
             // if we find variables we do need to parse them
-            if ((string)parameters[_variablesIdentifier] is { Length: > 0 } sv)
+            if ((string?)parameters[_variablesIdentifier] is { Length: > 0 } sv)
             {
                 variables = ParseVariables(sv);
             }
 
             if (extensions is null &&
-                (string)parameters[_extensionsIdentifier] is { Length: > 0 } se)
+                (string?)parameters[_extensionsIdentifier] is { Length: > 0 } se)
             {
                 extensions = ParseJsonObject(se);
             }
@@ -187,7 +187,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         var requestParser = new Utf8GraphQLParser(graphQLData, _parserOptions);
 
         var queryHash = _documentHashProvider.ComputeHash(graphQLData);
-        DocumentNode document = requestParser.Parse();
+        var document = requestParser.Parse();
 
         return new[] { new GraphQLRequest(document, queryHash) };
     }

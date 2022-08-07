@@ -27,7 +27,7 @@ namespace HotChocolate.ConferencePlanner.Tracks
             SessionByIdDataLoader sessionById,
             CancellationToken cancellationToken)
         {
-            int[] sessionIds = await dbContext.Sessions
+            var sessionIds = await dbContext.Sessions
                 .Where(s => s.Id == track.Id)
                 .Select(s => s.Id)
                 .ToArrayAsync(cancellationToken);

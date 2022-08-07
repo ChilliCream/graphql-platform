@@ -11,7 +11,7 @@ public abstract class FloatTypeBase<TRuntimeType>
     where TRuntimeType : IComparable
 {
     protected FloatTypeBase(
-        NameString name,
+        string name,
         TRuntimeType min,
         TRuntimeType max,
         BindingBehavior bind = BindingBehavior.Explicit)
@@ -198,21 +198,17 @@ public abstract class FloatTypeBase<TRuntimeType>
     }
 
     /// <summary>
-    /// Creates the exception that will be thrown when <see cref="ParseLiteral"/> encountered an
-    /// invalid <see cref="IValueNode "/>
+    /// Creates the exception that will be thrown when <see cref="ParseValue"/>
+    /// encountered a invalid runtime value.
     /// </summary>
-    /// <param name="valueSyntax">
-    /// The value syntax that should be parsed
+    /// <param name="runtimeValue">
+    /// The runtime value.
     /// </param>
     /// <returns>
     /// The created exception that should be thrown
     /// </returns>
     protected virtual SerializationException CreateParseValueError(object runtimeValue)
-    {
-        return new(
-            TypeResourceHelper.Scalar_Cannot_ParseResult(Name, runtimeValue.GetType()),
-            this);
-    }
+        => new(TypeResourceHelper.Scalar_Cannot_ParseResult(Name, runtimeValue.GetType()), this);
 
     /// <summary>
     /// Creates the exception that will be thrown when <see cref="ParseLiteral"/> encountered an
@@ -225,11 +221,7 @@ public abstract class FloatTypeBase<TRuntimeType>
     /// The created exception that should be thrown
     /// </returns>
     protected virtual SerializationException CreateParseLiteralError(IValueNode valueSyntax)
-    {
-        return new(
-            TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
-            this);
-    }
+        => new(TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()), this);
 
     /// <summary>
     /// Creates the exception that will be thrown when <see cref="ParseResult"/> encountered an
@@ -242,9 +234,5 @@ public abstract class FloatTypeBase<TRuntimeType>
     /// The created exception that should be thrown
     /// </returns>
     protected virtual SerializationException CreateParseResultError(object runtimeValue)
-    {
-        return new(
-            TypeResourceHelper.Scalar_Cannot_ParseResult(Name, runtimeValue.GetType()),
-            this);
-    }
+        => new(TypeResourceHelper.Scalar_Cannot_ParseResult(Name, runtimeValue.GetType()), this);
 }

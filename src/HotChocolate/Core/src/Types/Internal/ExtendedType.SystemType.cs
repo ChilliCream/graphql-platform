@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Properties;
 
 #nullable enable
 
@@ -19,7 +18,7 @@ internal sealed partial class ExtendedType
 
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
             {
-                Type inner = type.GetGenericArguments()[0];
+                var inner = type.GetGenericArguments()[0];
 
                 return new ExtendedType(
                     inner,
@@ -29,12 +28,12 @@ internal sealed partial class ExtendedType
                     isNullable: true);
             }
 
-            ExtendedType? elementType =
+            var elementType =
                 Helper.GetInnerListType(type) is { } e
                     ? FromType(e, cache)
                     : null;
 
-            IReadOnlyList<ExtendedType> typeArguments =
+            var typeArguments =
                 type.IsArray && elementType is not null
                     ? new[] { elementType }
                     : GetGenericArguments(type, cache);
@@ -55,8 +54,8 @@ internal sealed partial class ExtendedType
         {
             if (type.IsGenericType)
             {
-                Type[] arguments = type.GetGenericArguments();
-                ExtendedType[] extendedArguments = new ExtendedType[arguments.Length];
+                var arguments = type.GetGenericArguments();
+                var extendedArguments = new ExtendedType[arguments.Length];
 
                 for (var i = 0; i < arguments.Length; i++)
                 {

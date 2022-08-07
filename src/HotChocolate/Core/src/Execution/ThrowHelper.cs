@@ -18,7 +18,7 @@ internal static class ThrowHelper
                     variableDefinition.Variable.Name.Value)
                 .SetCode(ErrorCodes.Execution.MustBeInputType)
                 .SetExtension("variable", variableDefinition.Variable.Name.Value)
-                .SetExtension("type", variableDefinition.Type.ToString()!)
+                .SetExtension("type", variableDefinition.Type.ToString())
                 .AddLocation(variableDefinition)
                 .Build());
     }
@@ -45,7 +45,7 @@ internal static class ThrowHelper
             ? serializationException.Message
             : null;
 
-        IErrorBuilder errorBuilder = ErrorBuilder.New()
+        var errorBuilder = ErrorBuilder.New()
             .SetMessage(
                 ThrowHelper_VariableValueInvalidType_Message,
                 variableDefinition.Variable.Name.Value)
@@ -95,7 +95,7 @@ internal static class ThrowHelper
         new(ThrowHelper_QueryTypeNotSupported_Message);
 
     public static GraphQLException VariableNotFound(
-        NameString variableName) =>
+        string variableName) =>
         new(ErrorBuilder.New()
             .SetMessage(
                 ThrowHelper_VariableNotFound_Message,
@@ -103,7 +103,7 @@ internal static class ThrowHelper
             .Build());
 
     public static GraphQLException VariableNotOfType(
-        NameString variableName,
+        string variableName,
         Type type) =>
         new(ErrorBuilder.New()
             .SetMessage(
@@ -134,7 +134,7 @@ internal static class ThrowHelper
             .Build());
 
     public static GraphQLException ResolverContext_LiteralsNotSupported(
-        FieldNode field, Path path, NameString argumentName, Type requestedType) =>
+        FieldNode field, Path path, string argumentName, Type requestedType) =>
         new(ErrorBuilder.New()
             .SetMessage(ThrowHelper_ResolverContext_LiteralsNotSupported_Message)
             .SetPath(path)
@@ -145,7 +145,7 @@ internal static class ThrowHelper
             .Build());
 
     public static GraphQLException ResolverContext_CannotConvertArgument(
-        FieldNode field, Path path, NameString argumentName, Type requestedType) =>
+        FieldNode field, Path path, string argumentName, Type requestedType) =>
         new(ErrorBuilder.New()
             .SetMessage(
                 ThrowHelper_ResolverContext_CannotConvertArgument_Message,
@@ -159,7 +159,7 @@ internal static class ThrowHelper
             .Build());
 
     public static GraphQLException ResolverContext_LiteralNotCompatible(
-        FieldNode field, Path path, NameString argumentName,
+        FieldNode field, Path path, string argumentName,
         Type requestedType, Type actualType) =>
         new(ErrorBuilder.New()
             .SetMessage(
@@ -175,7 +175,7 @@ internal static class ThrowHelper
             .Build());
 
     public static GraphQLException ResolverContext_ArgumentDoesNotExist(
-        FieldNode field, Path path, NameString argumentName) =>
+        FieldNode field, Path path, string argumentName) =>
         new(ErrorBuilder.New()
             .SetMessage(
                 ThrowHelper_ResolverContext_ArgumentDoesNotExist_Message,
@@ -188,7 +188,7 @@ internal static class ThrowHelper
             .Build());
 
     public static InvalidOperationException RequestExecutorResolver_SchemaNameDoesNotMatch(
-        NameString configurationSchemaName, NameString schemaName) =>
+        string configurationSchemaName, string schemaName) =>
         new("The schema name must align with the schema name expected by the configuration.");
 
     public static GraphQLException OperationResolverHelper_NoOperationFound(
@@ -312,8 +312,17 @@ internal static class ThrowHelper
     public static GraphQLException OneOfFieldMustBeNonNull(
         FieldCoordinate field)
         => new(ErrorBuilder.New()
-            .SetMessage($"Value for oneof field {field.FieldName} must be non-null.")
+            .SetMessage(string.Format(ThrowHelper_OneOfFieldMustBeNonNull, field.FieldName))
             .SetCode(ErrorCodes.Execution.OneOfFieldMustBeNonNull)
             .SetExtension(nameof(field), field.ToString())
             .Build());
+
+    public static ArgumentException SelectionSet_TypeContextInvalid(IObjectType typeContext)
+        => new(string.Format(SelectionVariants_TypeContextInvalid, typeContext.Name));
+
+    public static InvalidOperationException SelectionSet_TypeAlreadyAdded(IObjectType typeContext)
+        => new(string.Format(ThrowHelper_SelectionSet_TypeAlreadyAdded, typeContext.Name));
+
+    public static ArgumentException Operation_NoSelectionSet()
+        => new("The specified selection does not have a selection set.");
 }

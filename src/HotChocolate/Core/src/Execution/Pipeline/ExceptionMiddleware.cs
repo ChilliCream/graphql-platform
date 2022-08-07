@@ -33,7 +33,7 @@ internal sealed class ExceptionMiddleware
         catch (Exception ex)
         {
             context.Exception = ex;
-            IError error = _errorHandler.CreateUnexpectedError(ex).Build();
+            var error = _errorHandler.CreateUnexpectedError(ex).Build();
             context.Result = QueryResultBuilder.CreateError(_errorHandler.Handle(error));
         }
     }

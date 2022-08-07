@@ -1,7 +1,4 @@
-﻿using System;
-using System.Diagnostics.Tracing;
-using HotChocolate.Subscriptions;
-using HotChocolate.StarWars.Data;
+﻿using HotChocolate.StarWars.Data;
 using HotChocolate.StarWars.Models;
 
 namespace HotChocolate.StarWars

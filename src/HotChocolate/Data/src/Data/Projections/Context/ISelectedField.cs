@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -9,7 +10,7 @@ namespace HotChocolate.Data.Projections.Context;
 /// <summary>
 /// Represents a field that is selected in a query in the context of an operation.
 /// <remarks>
-/// The difference between <see cref="ISelectedField"/> and <see cref="IFieldSelection"/> is that
+/// The difference between <see cref="ISelectedField"/> and <see cref="ISelection"/> is that
 /// <see cref="ISelectedField"/> is specific to the current request/operation and not cached. This
 /// makes it possible to recursively iterate through the selected fields by calling
 /// <see cref="ISelectedField.GetFields"/>.
@@ -38,7 +39,7 @@ public interface ISelectedField
     /// Gets the field selection for which a field resolver is
     /// being executed.
     /// </summary>
-    IFieldSelection Selection { get; }
+    ISelection Selection { get; }
 
     /// <summary>
     /// Gets the field on which the field resolver is being executed.
@@ -101,5 +102,5 @@ public interface ISelectedField
     /// <returns>
     /// Returns true if the field is selected, false if the field is not selected
     /// </returns>
-    bool IsSelected(NameString fieldName, ObjectType? type = null, bool allowInternals = true);
+    bool IsSelected(string fieldName, ObjectType? type = null, bool allowInternals = true);
 }

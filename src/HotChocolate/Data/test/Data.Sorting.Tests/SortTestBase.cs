@@ -8,7 +8,7 @@ public abstract class SortTestBase
 {
     public ISchema CreateSchema(Action<ISchemaBuilder> configure)
     {
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddSorting()
             .AddQueryType(c =>
                 c.Name("Query")
@@ -25,7 +25,7 @@ public abstract class SortTestBase
         Action<ISortInputTypeDescriptor<T>> configure,
         Action<ISchemaBuilder>? configureSchema = null)
     {
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddSorting()
             .ModifyOptions(x => x.RemoveUnreachableTypes = true)
             .AddQueryType(c =>

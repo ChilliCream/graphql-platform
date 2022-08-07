@@ -1,8 +1,0 @@
-input Foo {
-  bar: String
-  baz: Bar
-}
-
-input Bar {
-  baz: String
-}

@@ -70,7 +70,7 @@ public interface ISyntaxNavigator
     bool TryPeek(int count, [NotNullWhen(true)] out ISyntaxNode? node);
 
     /// <summary>
-    /// Returns the first ancestor of the provided <see cref="TNode" /> type.
+    /// Returns the first ancestor of the provided <typeparamref name="TNode" /> type.
     /// </summary>
     /// <typeparam name="TNode">The type of syntax node to be returned.</typeparam>
     /// <returns>The matching first ancestor or null if no match is found.</returns>
@@ -78,10 +78,10 @@ public interface ISyntaxNavigator
         where TNode : ISyntaxNode;
 
     /// <summary>
-    /// Returns all ancestors of the provided <see cref="TNode" /> type.
+    /// Returns all ancestors of the provided <typeparamref name="TNode" /> type.
     /// </summary>
     /// <typeparam name="TNode">The type of syntax nodes to be returned.</typeparam>
-    /// <returns>A collection of Syntax Nodes of type <see cref="TNode" /></returns>
+    /// <returns>A collection of Syntax Nodes of type <typeparamref name="TNode" /></returns>
     IEnumerable<TNode> GetAncestors<TNode>()
         where TNode : ISyntaxNode;
 

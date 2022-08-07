@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Mvc;

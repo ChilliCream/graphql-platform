@@ -51,7 +51,7 @@ public class Property : Expression
 
     public static Property Create(INamed parentContainer, params string[] names)
     {
-        SymbolicName requiredSymbolicName = ExtractRequiredSymbolicName(parentContainer);
+        var requiredSymbolicName = ExtractRequiredSymbolicName(parentContainer);
         return new Property(parentContainer,
             requiredSymbolicName,
             CreateListOfChainedNames(names));
@@ -65,7 +65,7 @@ public class Property : Expression
 
     public static Property Create(INamed parentContainer, Expression lookup)
     {
-        SymbolicName requiredSymbolicName = ExtractRequiredSymbolicName(parentContainer);
+        var requiredSymbolicName = ExtractRequiredSymbolicName(parentContainer);
         return new Property(
             parentContainer,
             requiredSymbolicName,

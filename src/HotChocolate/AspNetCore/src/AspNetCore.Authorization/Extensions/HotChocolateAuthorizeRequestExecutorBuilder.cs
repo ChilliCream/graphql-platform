@@ -2,7 +2,6 @@ using System;
 using HotChocolate;
 using HotChocolate.AspNetCore.Authorization;
 using HotChocolate.Execution.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection;

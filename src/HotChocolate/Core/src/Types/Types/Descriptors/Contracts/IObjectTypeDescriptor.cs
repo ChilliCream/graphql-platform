@@ -33,7 +33,7 @@ public interface IObjectTypeDescriptor
     /// <paramref name="value"/> is <c>null</c> or
     /// <see cref="string.Empty"/>.
     /// </exception>
-    IObjectTypeDescriptor Name(NameString value);
+    IObjectTypeDescriptor Name(string value);
 
     /// <summary>
     /// Adds explanatory text to the <see cref="ObjectType"/>
@@ -110,7 +110,7 @@ public interface IObjectTypeDescriptor
     /// <param name="name">
     /// The name that the field shall have.
     /// </param>
-    IObjectFieldDescriptor Field(NameString name);
+    IObjectFieldDescriptor Field(string name);
 
     /// <summary>
     /// Specifies an object type field which is bound to a resolver type.
@@ -138,7 +138,7 @@ public interface IObjectTypeDescriptor
         where T : class, new();
 
     IObjectTypeDescriptor Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments);
 
     /// <summary>

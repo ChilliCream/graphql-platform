@@ -14,12 +14,12 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
         objectType.ContextData.ContainsKey(AlwaysProjectedFieldsKey);
 
     public Selection RewriteSelection(
-        SelectionOptimizerContext context,
+        SelectionSetOptimizerContext context,
         Selection selection)
     {
         if (!(context.Type is ObjectType type &&
-            type.ContextData.TryGetValue(AlwaysProjectedFieldsKey, out object? fieldsObj) &&
-            fieldsObj is string[] fields))
+                type.ContextData.TryGetValue(AlwaysProjectedFieldsKey, out var fieldsObj) &&
+                fieldsObj is string[] fields))
         {
             return selection;
         }
@@ -29,14 +29,14 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
             var alias = "__projection_alias_" + i;
 
             // if the field is already in the selection set we do not need to project it
-            if (context.Fields.TryGetValue(fields[i], out Selection? field) &&
+            if (context.Selections.TryGetValue(fields[i], out var field) &&
                 field.Field.Name == fields[i])
             {
                 continue;
             }
 
             // if the field is already added as an alias we do not need to add it
-            if (context.Fields.TryGetValue(alias, out field) &&
+            if (context.Selections.TryGetValue(alias, out field) &&
                 field.Field.Name == fields[i])
             {
                 continue;
@@ -52,19 +52,20 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
                 Array.Empty<ArgumentNode>(),
                 null);
 
-            FieldDelegate nodesPipeline =
-                context.CompileResolverPipeline(nodesField, nodesFieldNode);
+            var nodesPipeline = context.CompileResolverPipeline(nodesField, nodesFieldNode);
 
             var compiledSelection = new Selection(
-                context.GetNextId(),
+                context.GetNextSelectionId(),
                 context.Type,
                 nodesField,
+                nodesField.Type,
                 nodesFieldNode,
-                nodesPipeline,
+                alias,
+                resolverPipeline: nodesPipeline,
                 arguments: selection.Arguments,
-                internalSelection: true);
+                isInternal: true);
 
-            context.Fields[alias] = compiledSelection;
+            context.AddSelection(alias, compiledSelection);
         }
 
         return selection;

@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Processing;
 using static HotChocolate.Execution.Pipeline.PipelineTools;
 
 namespace HotChocolate.Execution.Pipeline;
@@ -45,9 +44,9 @@ internal sealed class OperationCacheMiddleware
                 context.OperationId = operationId;
             }
 
-            string cacheId = context.CreateCacheId(operationId);
+            var cacheId = context.CreateCacheId(operationId);
 
-            if (_operationCache.TryGetOperation(cacheId, out IPreparedOperation? operation))
+            if (_operationCache.TryGetOperation(cacheId, out var operation))
             {
                 context.Operation = operation;
                 addToCache = false;

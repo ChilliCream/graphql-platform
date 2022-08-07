@@ -63,10 +63,7 @@ public class InputFormatter
         }
     }
 
-    private ObjectValueNode FormatValueObject(
-        object runtimeValue,
-        InputObjectType type,
-        Path path)
+    private ObjectValueNode FormatValueObject(object runtimeValue, InputObjectType type, Path path)
     {
         var fields = new List<ObjectFieldNode>();
         var fieldValues = new object?[type.Fields.Count];
@@ -74,13 +71,13 @@ public class InputFormatter
 
         for (var i = 0; i < fieldValues.Length; i++)
         {
-            InputField field = type.Fields[i];
+            var field = type.Fields[i];
             var fieldValue = fieldValues[i];
             Path fieldPath = PathFactory.Instance.Append(path, field.Name);
 
             if (field.IsOptional)
             {
-                IOptional optional = (IOptional)fieldValue!;
+                var optional = (IOptional)fieldValue!;
                 if (optional.HasValue)
                 {
                     AddField(optional.Value, field.Name, field.Type, fieldPath);
@@ -94,13 +91,9 @@ public class InputFormatter
 
         return new ObjectValueNode(fields);
 
-        void AddField(
-            object? fieldValue,
-            NameString fieldName,
-            IInputType fieldType,
-            Path fieldPath)
+        void AddField(object? fieldValue, string fieldName, IInputType fieldType, Path fieldPath)
         {
-            IValueNode value = FormatValueInternal(fieldValue, fieldType, fieldPath);
+            var value = FormatValueInternal(fieldValue, fieldType, fieldPath);
             fields.Add(new ObjectFieldNode(fieldName, value));
         }
     }
@@ -208,11 +201,11 @@ public class InputFormatter
             var fields = new List<ObjectFieldNode>();
             var processed = 0;
 
-            foreach (InputField? field in type.Fields)
+            foreach (var field in type.Fields)
             {
                 if (map.TryGetValue(field.Name, out var fieldValue))
                 {
-                    IValueNode value = FormatResultInternal(fieldValue, field.Type, path);
+                    var value = FormatResultInternal(fieldValue, field.Type, path);
                     fields.Add(new ObjectFieldNode(field.Name, value));
                     processed++;
                 }
@@ -222,7 +215,7 @@ public class InputFormatter
             {
                 var invalidFieldNames = new List<string>();
 
-                foreach (KeyValuePair<string, object?> item in map)
+                foreach (var item in map)
                 {
                     if (!type.Fields.ContainsField(item.Key))
                     {

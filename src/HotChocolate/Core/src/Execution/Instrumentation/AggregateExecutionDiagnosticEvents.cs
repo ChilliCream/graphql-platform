@@ -144,13 +144,13 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         return new AggregateActivityScope(scopes);
     }
 
-    public IDisposable ExecuteStream(IRequestContext context)
+    public IDisposable ExecuteStream(IOperation operation)
     {
         var scopes = new IDisposable[_listeners.Length];
 
         for (var i = 0; i < _listeners.Length; i++)
         {
-            scopes[i] = _listeners[i].ExecuteStream(context);
+            scopes[i] = _listeners[i].ExecuteStream(operation);
         }
 
         return new AggregateActivityScope(scopes);
@@ -190,6 +190,14 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         for (var i = 0; i < _listeners.Length; i++)
         {
             _listeners[i].ResolverError(context, error);
+        }
+    }
+
+    public void ResolverError(IOperation operation, ISelection selection, IError error)
+    {
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            _listeners[i].ResolverError(operation, selection, error);
         }
     }
 

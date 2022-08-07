@@ -139,57 +139,59 @@
                       "Value": "OK"
                     }
                   ],
-                  "event": []
-                },
-                {
-                  "OperationName": "ExecuteStream",
-                  "DisplayName": "ExecuteStream",
-                  "Status": "Unset",
-                  "tags": [],
-                  "event": []
+                  "event": [],
+                  "activities": [
+                    {
+                      "OperationName": "ResolveFieldValue",
+                      "DisplayName": "/hero/id",
+                      "Status": "Ok",
+                      "tags": [
+                        {
+                          "Key": "graphql.selection.name",
+                          "Value": "id"
+                        },
+                        {
+                          "Key": "graphql.selection.type",
+                          "Value": "ID!"
+                        },
+                        {
+                          "Key": "graphql.selection.path",
+                          "Value": "/hero/id"
+                        },
+                        {
+                          "Key": "graphql.selection.hierarchy",
+                          "Value": "/hero/id"
+                        },
+                        {
+                          "Key": "graphql.selection.field.name",
+                          "Value": "id"
+                        },
+                        {
+                          "Key": "graphql.selection.field.coordinate",
+                          "Value": "Droid.id"
+                        },
+                        {
+                          "Key": "graphql.selection.field.declaringType",
+                          "Value": "Droid"
+                        },
+                        {
+                          "Key": "otel.status_code",
+                          "Value": "OK"
+                        }
+                      ],
+                      "event": []
+                    }
+                  ]
                 }
               ]
             }
           ]
         },
         {
-          "OperationName": "ResolveFieldValue",
-          "DisplayName": "/hero/id",
-          "Status": "Ok",
-          "tags": [
-            {
-              "Key": "graphql.selection.name",
-              "Value": "id"
-            },
-            {
-              "Key": "graphql.selection.type",
-              "Value": "ID!"
-            },
-            {
-              "Key": "graphql.selection.path",
-              "Value": "/hero/id"
-            },
-            {
-              "Key": "graphql.selection.hierarchy",
-              "Value": "/hero/id"
-            },
-            {
-              "Key": "graphql.selection.field.name",
-              "Value": "id"
-            },
-            {
-              "Key": "graphql.selection.field.coordinate",
-              "Value": "Droid.id"
-            },
-            {
-              "Key": "graphql.selection.field.declaringType",
-              "Value": "Droid"
-            },
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
-            }
-          ],
+          "OperationName": "ExecuteStream",
+          "DisplayName": "ExecuteStream",
+          "Status": "Unset",
+          "tags": [],
           "event": []
         }
       ]

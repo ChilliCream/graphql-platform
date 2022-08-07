@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
@@ -13,7 +12,7 @@ public static class ListExtensions
     public static T Pop<T>(this IList<T> list)
     {
         var lastIndex = list.Count - 1;
-        T p = list[lastIndex];
+        var p = list[lastIndex];
         list.RemoveAt(lastIndex);
         return p;
     }

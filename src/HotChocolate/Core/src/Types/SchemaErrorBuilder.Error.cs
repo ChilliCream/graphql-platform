@@ -72,7 +72,7 @@ public partial class SchemaErrorBuilder
 
             if (TypeSystemObject is INamedType namedType)
             {
-                writer.WriteString("type", namedType.Name.Value);
+                writer.WriteString("type", namedType.Name);
             }
 
             if (Path is { })
@@ -80,7 +80,7 @@ public partial class SchemaErrorBuilder
                 writer.WritePropertyName("path");
                 writer.WriteStartArray();
 
-                foreach (string segment in Path.Select(t => t.ToString()!))
+                foreach (var segment in Path.Select(t => t.ToString()!))
                 {
                     writer.WriteStringValue(segment);
                 }
@@ -88,39 +88,34 @@ public partial class SchemaErrorBuilder
                 writer.WriteEndArray();
             }
 
-            if (Extensions is not null)
+            writer.WritePropertyName("extensions");
+            writer.WriteStartObject();
+
+            foreach (var item in Extensions.OrderBy(t => t.Key))
             {
-                writer.WritePropertyName("extensions");
-                writer.WriteStartObject();
+                writer.WritePropertyName(item.Key);
 
-                foreach (KeyValuePair<string, object> item in Extensions.OrderBy(t => t.Key))
+                if (item.Value is null)
                 {
-                    writer.WritePropertyName(item.Key);
-
-                    if (item.Value is null)
-                    {
-                        writer.WriteNullValue();
-                    }
-                    else if (item.Value is IField f)
-                    {
-                        writer.WriteStringValue(f.Name.Value);
-                    }
-                    else if (item.Value is INamedType n)
-                    {
-                        writer.WriteStringValue(n.Name.HasValue
-                            ? n.Name.Value
-                            : n.GetType().FullName);
-                    }
-                    else
-                    {
-                        writer.WriteStringValue(item.Value.ToString());
-                    }
+                    writer.WriteNullValue();
                 }
-
-                writer.WriteEndObject();
+                else if (item.Value is IField f)
+                {
+                    writer.WriteStringValue(f.Name);
+                }
+                else if (item.Value is INamedType n)
+                {
+                    writer.WriteStringValue(n.Name ?? n.GetType().FullName);
+                }
+                else
+                {
+                    writer.WriteStringValue(item.Value.ToString());
+                }
             }
 
-            if (Exception is { })
+            writer.WriteEndObject();
+
+            if (Exception is not null)
             {
                 writer.WritePropertyName("exception");
                 writer.WriteStringValue(Exception.Message);

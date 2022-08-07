@@ -1,8 +1,5 @@
 ﻿{
-  "Kind": "SingleResult",
-  "Label": null,
-  "Path": null,
-  "Data": {
+  "data": {
     "items": [
       {
         "bar": 2
@@ -11,9 +8,5 @@
         "bar": 1
       }
     ]
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null,
-  "HasNext": null
+  }
 }

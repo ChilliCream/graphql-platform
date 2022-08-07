@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using CookieCrumble;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data;
 
@@ -21,13 +20,13 @@ public class TypeValidationTests
                 .AddSorting()
                 .Create();
 
-        SchemaException exception = Assert.Throws<SchemaException>(Action);
+        var exception = Assert.Throws<SchemaException>(Action);
 
         Assert.Collection(
             exception.Errors,
             error => Assert.Equal("HC0050", error.Code));
 
-        exception.Message.MatchSnapshot();
+        exception.MatchSnapshot();
     }
 
     [Fact]
@@ -41,7 +40,7 @@ public class TypeValidationTests
                 .AddSorting()
                 .Create();
 
-        SchemaException exception = Assert.Throws<SchemaException>(Action);
+        var exception = Assert.Throws<SchemaException>(Action);
 
         Assert.Collection(
             exception.Errors,
@@ -61,7 +60,7 @@ public class TypeValidationTests
                 .AddSorting()
                 .Create();
 
-        SchemaException exception = Assert.Throws<SchemaException>(Action);
+        var exception = Assert.Throws<SchemaException>(Action);
 
         Assert.Collection(
             exception.Errors,

@@ -5,20 +5,20 @@ using System.Threading.Tasks;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using static HotChocolate.Execution.Processing.OperationCompiler;
+using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Pipeline;
 
 internal sealed class OperationResolverMiddleware
 {
     private readonly RequestDelegate _next;
-    private readonly IReadOnlyList<ISelectionOptimizer>? _optimizers;
-    private readonly InputParser _inputParser;
+    private readonly ObjectPool<OperationCompiler> _operationCompilerPool;
+    private readonly IReadOnlyList<IOperationCompilerOptimizer>? _optimizers;
 
     public OperationResolverMiddleware(
         RequestDelegate next,
-        InputParser inputParser,
-        IEnumerable<ISelectionOptimizer> optimizers)
+        ObjectPool<OperationCompiler> operationCompilerPool,
+        IEnumerable<IOperationCompilerOptimizer> optimizers)
     {
         if (optimizers is null)
         {
@@ -26,7 +26,7 @@ internal sealed class OperationResolverMiddleware
         }
 
         _next = next ?? throw new ArgumentNullException(nameof(next));
-        _inputParser = inputParser ?? throw new ArgumentNullException(nameof(inputParser));
+        _operationCompilerPool = operationCompilerPool;
         _optimizers = optimizers.ToArray();
     }
 
@@ -40,25 +40,20 @@ internal sealed class OperationResolverMiddleware
         {
             using (context.DiagnosticEvents.CompileOperation(context))
             {
-                OperationDefinitionNode operation =
-                    context.Document.GetOperation(context.Request.OperationName);
+                var operationDef = context.Document.GetOperation(context.Request.OperationName);
+                var operationType = ResolveOperationType(operationDef.Operation, context.Schema);
 
-                ObjectType? rootType = ResolveRootType(operation.Operation, context.Schema);
-
-                if (rootType is null)
+                if (operationType is null)
                 {
-                    context.Result = ErrorHelper.RootTypeNotFound(operation.Operation);
+                    context.Result = ErrorHelper.RootTypeNotFound(operationDef.Operation);
                     return;
                 }
 
-                context.Operation = Compile(
+                context.Operation = CompileOperation(
+                    context,
                     context.OperationId ?? Guid.NewGuid().ToString("N"),
-                    context.Document,
-                    operation,
-                    context.Schema,
-                    rootType,
-                    _inputParser,
-                    _optimizers);
+                    operationDef,
+                    operationType);
                 context.OperationId = context.Operation.Id;
             }
 
@@ -70,9 +65,28 @@ internal sealed class OperationResolverMiddleware
         }
     }
 
-    private static ObjectType? ResolveRootType(
-        OperationType operationType, ISchema schema) =>
-        operationType switch
+    private IOperation CompileOperation(
+        IRequestContext context,
+        string operationId,
+        OperationDefinitionNode operationDefinition,
+        ObjectType operationType)
+    {
+        var compiler = _operationCompilerPool.Get();
+        var operation = compiler.Compile(
+            operationId,
+            operationDefinition,
+            operationType,
+            context.Document!,
+            context.Schema,
+            _optimizers);
+        _operationCompilerPool.Return(compiler);
+        return operation;
+    }
+
+    private static ObjectType? ResolveOperationType(
+        OperationType operationType,
+        ISchema schema)
+        => operationType switch
         {
             OperationType.Query => schema.QueryType,
             OperationType.Mutation => schema.MutationType,

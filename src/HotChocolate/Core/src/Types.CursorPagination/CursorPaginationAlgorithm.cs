@@ -1,8 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -73,7 +71,7 @@ public abstract class CursorPaginationAlgorithm<TQuery, TEntity> where TQuery : 
             executeCount = _ => new(count);
         }
 
-        CursorPagingRange range = SliceRange(arguments, maxElementCount);
+        var range = SliceRange(arguments, maxElementCount);
 
         var skip = range.Start;
         var take = range.Count();
@@ -84,7 +82,7 @@ public abstract class CursorPaginationAlgorithm<TQuery, TEntity> where TQuery : 
             take++;
         }
 
-        TQuery slicedSource = query;
+        var slicedSource = query;
         if (skip != 0)
         {
             slicedSource = ApplySkip(query, skip);
@@ -95,7 +93,7 @@ public abstract class CursorPaginationAlgorithm<TQuery, TEntity> where TQuery : 
             slicedSource = ApplyTake(slicedSource, take);
         }
 
-        IReadOnlyList<Edge<TEntity>> selectedEdges =
+        var selectedEdges =
             await ExecuteAsync(slicedSource, skip, cancellationToken);
 
         var moreItemsReturnedThanRequested = selectedEdges.Count > range.Count();
@@ -105,7 +103,7 @@ public abstract class CursorPaginationAlgorithm<TQuery, TEntity> where TQuery : 
             selectedEdges,
             moreItemsReturnedThanRequested);
 
-        ConnectionPageInfo pageInfo =
+        var pageInfo =
             CreatePageInfo(isSequenceFromStart, moreItemsReturnedThanRequested, selectedEdges);
 
         return new Connection<TEntity>(selectedEdges, pageInfo, executeCount);

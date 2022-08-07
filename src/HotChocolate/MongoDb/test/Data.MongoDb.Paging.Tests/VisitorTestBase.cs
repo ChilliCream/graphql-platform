@@ -23,7 +23,7 @@ public class FilterVisitorTestBase
             throw new InvalidOperationException();
         }
 
-        IMongoCollection<TResult> collection =
+        var collection =
             mongoResource.CreateCollection<TResult>("data_" + Guid.NewGuid().ToString("N"));
 
         collection.InsertMany(results);
@@ -38,7 +38,7 @@ public class FilterVisitorTestBase
         where TEntity : class
         where T : FilterInputType<TEntity>
     {
-        Func<IResolverContext, IExecutable<TEntity>> resolver = BuildResolver(
+        var resolver = BuildResolver(
             mongoResource,
             entities);
 

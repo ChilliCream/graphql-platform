@@ -7,7 +7,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 public sealed class InputObjectTypeDescriptor : INamedTypeDescriptor
 {
     public InputObjectTypeDescriptor(
-        NameString name,
+        string name,
         RuntimeTypeInfo runtimeType,
         string? documentation)
     {
@@ -19,7 +19,7 @@ public sealed class InputObjectTypeDescriptor : INamedTypeDescriptor
     /// <summary>
     /// Gets the GraphQL type name.
     /// </summary>
-    public NameString Name { get; }
+    public string Name { get; }
 
     /// <summary>
     /// Gets the type kind.

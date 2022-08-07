@@ -118,7 +118,7 @@ internal sealed partial class TypeInfo
 
     public static TypeInfo Create(IExtendedType type, TypeCache cache)
     {
-        if (TryCreate(type, cache, out TypeInfo? typeInfo))
+        if (TryCreate(type, cache, out var typeInfo))
         {
             return typeInfo;
         }
@@ -153,7 +153,7 @@ internal sealed partial class TypeInfo
         if (SchemaType.TryCreateTypeInfo(
             type,
             originalType,
-            out TypeInfo? typeInfo))
+            out var typeInfo))
         {
             return typeInfo;
         }

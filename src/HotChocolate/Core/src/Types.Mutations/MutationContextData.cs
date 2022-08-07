@@ -26,7 +26,7 @@ internal class MutationContextData
         Enabled = enabled;
     }
 
-    public NameString Name => Definition.Name;
+    public string Name => Definition.Name;
 
     public ObjectFieldDefinition Definition { get; }
 

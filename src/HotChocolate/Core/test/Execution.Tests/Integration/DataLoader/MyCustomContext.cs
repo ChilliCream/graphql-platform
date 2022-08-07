@@ -1,7 +1,6 @@
-﻿namespace HotChocolate.Execution.Integration.DataLoader
+﻿namespace HotChocolate.Execution.Integration.DataLoader;
+
+public class MyCustomContext
 {
-    public class MyCustomContext
-    {
-        public int Count { get; set; }
-    }
+    public int Count { get; set; }
 }

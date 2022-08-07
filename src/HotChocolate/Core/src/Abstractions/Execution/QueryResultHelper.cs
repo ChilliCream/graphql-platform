@@ -40,7 +40,7 @@ internal static class QueryResultHelper
     {
         var formattedErrors = new List<object>();
 
-        foreach (IError error in errors)
+        foreach (var error in errors)
         {
             var formattedError = new OrderedDictionary { [_message] = error.Message };
 
@@ -72,7 +72,7 @@ internal static class QueryResultHelper
 
         for (var i = 0; i < locations.Count; i++)
         {
-            Location location = locations[i];
+            var location = locations[i];
             serializedLocations[i] = new OrderedDictionary<string, int>
                 {
                     { _line, location.Line },

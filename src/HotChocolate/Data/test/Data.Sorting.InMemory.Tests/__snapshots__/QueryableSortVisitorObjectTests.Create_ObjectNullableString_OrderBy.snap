@@ -1,0 +1,67 @@
+ASC
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": null
+      },
+      null,
+      {
+        "foo": {
+          "barString": "testatest"
+        }
+      },
+      {
+        "foo": {
+          "barString": "testbtest"
+        }
+      },
+      {
+        "foo": {
+          "barString": "testctest"
+        }
+      },
+      {
+        "foo": {
+          "barString": "testdtest"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+DESC
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barString": "testdtest"
+        }
+      },
+      {
+        "foo": {
+          "barString": "testctest"
+        }
+      },
+      {
+        "foo": {
+          "barString": "testbtest"
+        }
+      },
+      {
+        "foo": {
+          "barString": "testatest"
+        }
+      },
+      {
+        "foo": null
+      },
+      null
+    ]
+  }
+}
+---------------

@@ -1,0 +1,39 @@
+ASC
+---------------
+{
+  "ContentType": "application/json; charset=utf-8",
+  "StatusCode": "OK",
+  "Data": {
+    "root": [
+      {
+        "bar": false
+      },
+      {
+        "bar": true
+      }
+    ]
+  },
+  "Errors": null,
+  "Extensions": null
+}
+---------------
+
+DESC
+---------------
+{
+  "ContentType": "application/json; charset=utf-8",
+  "StatusCode": "OK",
+  "Data": {
+    "root": [
+      {
+        "bar": true
+      },
+      {
+        "bar": false
+      }
+    ]
+  },
+  "Errors": null,
+  "Extensions": null
+}
+---------------

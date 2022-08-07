@@ -1,1 +1,1 @@
-﻿Filtering needs a expression with exactly one parameter of type HotChocolate.Data.Filters.QueryableFilterVisitorExpressionTests+Foo! Check the expression on field lastName.
+Filtering needs a expression with exactly one parameter of type HotChocolate.Data.Filters.QueryableFilterVisitorExpressionTests+Foo! Check the expression on field lastName.

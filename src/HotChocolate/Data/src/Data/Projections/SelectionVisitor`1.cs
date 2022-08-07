@@ -1,8 +1,4 @@
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Language;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.Projections;
@@ -15,8 +11,8 @@ public class SelectionVisitor<TContext>
         IOutputField field,
         TContext context)
     {
-        TContext? localContext = OnBeforeEnter(field, context);
-        ISelectionVisitorAction? result = Enter(field, localContext);
+        var localContext = OnBeforeEnter(field, context);
+        var result = Enter(field, localContext);
         localContext = OnAfterEnter(field, localContext, result);
 
         if (result.Kind == SelectionVisitorActionKind.Continue)
@@ -64,8 +60,8 @@ public class SelectionVisitor<TContext>
         ISelection selection,
         TContext context)
     {
-        TContext? localContext = OnBeforeEnter(selection, context);
-        ISelectionVisitorAction result = Enter(selection, localContext);
+        var localContext = OnBeforeEnter(selection, context);
+        var result = Enter(selection, localContext);
         localContext = OnAfterEnter(selection, localContext, result);
 
         if (result.Kind == SelectionVisitorActionKind.Continue)
@@ -109,24 +105,19 @@ public class SelectionVisitor<TContext>
         TContext context) =>
         context;
 
-    protected virtual ISelectionVisitorAction VisitChildren(
-        IOutputField field,
-        TContext context)
+    protected virtual ISelectionVisitorAction VisitChildren(IOutputField field, TContext context)
     {
-        IOutputType type = field.Type;
-        SelectionSetNode? selectionSet =
-            context.SelectionSetNodes.Peek();
+        var type = field.Type;
+        var selection = context.Selection.Peek();
 
-        INamedType namedType = type.NamedType();
+        var namedType = type.NamedType();
         if (namedType.IsAbstractType())
         {
-            IReadOnlyList<ObjectType> possibleTypes =
-                context.Context.Schema.GetPossibleTypes(field.Type.NamedType());
+            var possibleTypes = context.Context.Schema.GetPossibleTypes(field.Type.NamedType());
 
-            foreach (ObjectType? possibleType in possibleTypes)
+            foreach (var possibleType in possibleTypes)
             {
-                ISelectionVisitorAction result =
-                    VisitObjectType(field, possibleType, selectionSet, context);
+                var result = VisitObjectType(field, possibleType, selection, context);
 
                 if (result != Continue)
                 {
@@ -136,7 +127,7 @@ public class SelectionVisitor<TContext>
         }
         else if (namedType is ObjectType a)
         {
-            return VisitObjectType(field, a, selectionSet, context);
+            return VisitObjectType(field, a, selection, context);
         }
 
         return DefaultAction;
@@ -145,24 +136,21 @@ public class SelectionVisitor<TContext>
     protected virtual ISelectionVisitorAction VisitObjectType(
         IOutputField field,
         ObjectType objectType,
-        SelectionSetNode? selectionSet,
+        ISelection selection,
         TContext context)
     {
         context.ResolvedType.Push(field.Type.NamedType().IsAbstractType() ? objectType : null);
 
         try
         {
-            IReadOnlyList<IFieldSelection> selections =
-                context.Context.GetSelections(objectType, selectionSet, true);
+            var selections = context.Context.GetSelections(objectType, selection, true);
 
             for (var i = 0; i < selections.Count; i++)
             {
-                if (selections[i] is ISelection selection)
+                var result = Visit((ISelection)selections[i], context);
+                if (result.Kind is SelectionVisitorActionKind.Break)
                 {
-                    if (Visit(selection, context).Kind == SelectionVisitorActionKind.Break)
-                    {
-                        return Break;
-                    }
+                    return Break;
                 }
             }
         }
@@ -178,7 +166,7 @@ public class SelectionVisitor<TContext>
         ISelection selection,
         TContext context)
     {
-        IObjectField field = selection.Field;
+        var field = selection.Field;
         return Visit(field, context);
     }
 
@@ -197,7 +185,6 @@ public class SelectionVisitor<TContext>
         TContext context)
     {
         context.Selection.Push(selection);
-        context.SelectionSetNodes.Push(selection.SelectionSet);
         return DefaultAction;
     }
 
@@ -206,7 +193,6 @@ public class SelectionVisitor<TContext>
         TContext context)
     {
         context.Selection.Pop();
-        context.SelectionSetNodes.Pop();
         return DefaultAction;
     }
 }

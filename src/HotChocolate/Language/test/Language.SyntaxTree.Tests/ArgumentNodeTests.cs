@@ -66,10 +66,10 @@ public sealed class ArgumentNodeTests
         var value = new StringValueNode("bar");
 
         // act
-        Action action = () => new ArgumentNode(null, null, value);
+        void Action() => new ArgumentNode(null, null!, value);
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<ArgumentNullException>(Action);
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public sealed class ArgumentNodeTests
         var name = new NameNode("foo");
 
         // act
-        Action action = () => new ArgumentNode(null, name, null);
+        Action action = () => new ArgumentNode(null, name, null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);

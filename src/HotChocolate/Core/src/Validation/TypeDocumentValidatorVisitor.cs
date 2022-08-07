@@ -49,7 +49,7 @@ public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
 
         if (context.Schema.TryGetType<INamedOutputType>(
             node.TypeCondition.Name.Value,
-            out INamedOutputType? type))
+            out var type))
         {
             context.Types.Push(type);
             return Continue;
@@ -65,7 +65,7 @@ public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
     {
         if (context.Schema.TryGetType<INamedOutputType>(
             node.TypeCondition.Name.Value,
-            out INamedOutputType? namedOutputType))
+            out var namedOutputType))
         {
             context.Types.Push(namedOutputType);
             return Continue;

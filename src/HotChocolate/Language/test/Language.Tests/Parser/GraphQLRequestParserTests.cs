@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-using ChilliCream.Testing;
+using CookieCrumble;
 using Newtonsoft.Json;
-using Snapshooter;
-using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Language;
@@ -21,24 +19,22 @@ public class GraphQLRequestParserTests
             JsonConvert.SerializeObject(
                 new GraphQLRequestDto
                 {
-                    Query = FileResource.Open("kitchen-sink.graphql")
-                        .NormalizeLineBreaks()
+                    Query = FileResource.Open("kitchen-sink.graphql").NormalizeLineBreaks()
                 }).NormalizeLineBreaks());
 
         // act
-        IReadOnlyList<GraphQLRequest> batch =
-            Utf8GraphQLRequestParser.Parse(source);
+        var batch = Utf8GraphQLRequestParser.Parse(source);
 
         // assert
-        Assert.Collection(batch,
+        Assert.Collection(
+            batch,
             r =>
             {
                 Assert.Null(r.OperationName);
                 Assert.Null(r.QueryId);
                 Assert.Null(r.Variables);
                 Assert.Null(r.Extensions);
-
-                r.Query!.ToString(true).MatchSnapshot();
+                r.Query.MatchSnapshot();
             });
     }
 
@@ -55,7 +51,7 @@ public class GraphQLRequestParserTests
                 }).NormalizeLineBreaks());
 
         // act
-        object obj = Utf8GraphQLRequestParser.ParseJson(source);
+        var obj = Utf8GraphQLRequestParser.ParseJson(source);
 
         // assert
         obj.MatchSnapshot();
@@ -72,7 +68,7 @@ public class GraphQLRequestParserTests
             }).NormalizeLineBreaks();
 
         // act
-        object obj = Utf8GraphQLRequestParser.ParseJson(json);
+        var obj = Utf8GraphQLRequestParser.ParseJson(json);
 
         // assert
         obj.MatchSnapshot();
@@ -91,7 +87,7 @@ public class GraphQLRequestParserTests
                 }).NormalizeLineBreaks());
 
         // act
-        IReadOnlyDictionary<string, object> obj =
+        var obj =
             Utf8GraphQLRequestParser.ParseJsonObject(source);
 
         // assert
@@ -110,7 +106,7 @@ public class GraphQLRequestParserTests
             }).NormalizeLineBreaks();
 
         // act
-        IReadOnlyDictionary<string, object> obj =
+        var obj =
             Utf8GraphQLRequestParser.ParseJsonObject(json);
 
         // assert
@@ -133,7 +129,7 @@ public class GraphQLRequestParserTests
         var parserOptions = new ParserOptions();
         var requestParser = new Utf8GraphQLRequestParser(
             source, parserOptions);
-        IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
+        var batch = requestParser.Parse();
 
         // assert
         Assert.Collection(batch,
@@ -143,8 +139,7 @@ public class GraphQLRequestParserTests
                 Assert.Null(r.QueryId);
                 Assert.Null(r.Variables);
                 Assert.Null(r.Extensions);
-
-                r.Query!.ToString(true).MatchSnapshot();
+                r.Query.MatchSnapshot();
             });
     }
 
@@ -163,7 +158,7 @@ public class GraphQLRequestParserTests
         var parserOptions = new ParserOptions();
         var requestParser = new Utf8GraphQLRequestParser(
             source, parserOptions);
-        IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
+        var batch = requestParser.Parse();
 
         // assert
         Assert.Collection(batch,
@@ -174,7 +169,7 @@ public class GraphQLRequestParserTests
                 Assert.Null(r.Variables);
                 Assert.Null(r.Extensions);
 
-                r.Query!.ToString(true).MatchSnapshot();
+                r.Query.MatchSnapshot();
             });
     }
 
@@ -190,7 +185,7 @@ public class GraphQLRequestParserTests
         var parserOptions = new ParserOptions();
         var requestParser = new Utf8GraphQLRequestParser(
             source, parserOptions);
-        IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
+        var batch = requestParser.Parse();
 
         // assert
         Assert.Collection(batch,
@@ -201,7 +196,7 @@ public class GraphQLRequestParserTests
                 Assert.Null(r.Variables);
                 Assert.Null(r.Extensions);
 
-                r.Query!.ToString(true).MatchSnapshot();
+                r.Query.MatchSnapshot();
             });
     }
 
@@ -231,7 +226,7 @@ public class GraphQLRequestParserTests
             cache,
             new Sha1DocumentHashProvider());
 
-        IReadOnlyList<GraphQLRequest> first = requestParser.Parse();
+        var first = requestParser.Parse();
 
         cache.TryAddDocument(first[0].QueryId, first[0].Query);
 
@@ -242,7 +237,7 @@ public class GraphQLRequestParserTests
             cache,
             new Sha1DocumentHashProvider());
 
-        IReadOnlyList<GraphQLRequest> second = requestParser.Parse();
+        var second = requestParser.Parse();
 
         // assert
         Assert.Equal(first[0].Query, second[0].Query);
@@ -254,7 +249,7 @@ public class GraphQLRequestParserTests
                 Assert.Null(r.Extensions);
 
                 Assert.Equal(expectedHash, r.QueryId);
-                r.Query!.ToString(true).MatchSnapshot();
+                r.Query.MatchSnapshot();
             });
     }
 
@@ -286,7 +281,7 @@ public class GraphQLRequestParserTests
             new Sha1DocumentHashProvider());
 
         // act
-        IReadOnlyList<GraphQLRequest> result = requestParser.Parse();
+        var result = requestParser.Parse();
 
         // assert
         Assert.Collection(result,
@@ -297,7 +292,7 @@ public class GraphQLRequestParserTests
                 Assert.Null(r.Extensions);
 
                 Assert.Equal(expectedHash, r.QueryId);
-                r.Query!.ToString(true).MatchSnapshot();
+                r.Query.MatchSnapshot();
             });
     }
 
@@ -329,7 +324,7 @@ public class GraphQLRequestParserTests
             new Sha1DocumentHashProvider());
 
         // act
-        IReadOnlyList<GraphQLRequest> result = requestParser.Parse();
+        var result = requestParser.Parse();
 
         // assert
         Assert.Collection(result,
@@ -341,7 +336,7 @@ public class GraphQLRequestParserTests
 
                 Assert.Equal("FooBar", r.QueryId);
                 Assert.Equal(expectedHash, r.QueryHash);
-                r.Query!.ToString(true).MatchSnapshot();
+                r.Query.MatchSnapshot();
             });
     }
 
@@ -400,22 +395,21 @@ public class GraphQLRequestParserTests
         var parserOptions = new ParserOptions();
         var requestParser = new Utf8GraphQLRequestParser(
             source, parserOptions);
-        IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
+        var batch = requestParser.Parse();
 
         // assert
+        var snapshot = new Snapshot();
         Assert.Collection(batch,
             r =>
             {
                 Assert.Equal("ABC", r.QueryId);
                 Assert.Equal("DEF", r.OperationName);
 
-                r.Variables.MatchSnapshot(
-                    new SnapshotNameExtension("Variables"));
-                r.Extensions.MatchSnapshot(
-                    new SnapshotNameExtension("Extensions"));
-                r.Query!.ToString(true).MatchSnapshot(
-                    new SnapshotNameExtension("Query"));
+                snapshot.Add(r.Variables, "Variables:");
+                snapshot.Add(r.Extensions, "Extensions:");
+                snapshot.Add(r.Query, "Query:");
             });
+        snapshot.Match();
     }
 
     [Fact]
@@ -517,7 +511,7 @@ public class GraphQLRequestParserTests
                 }).NormalizeLineBreaks());
 
         // act
-        GraphQLSocketMessage message =
+        var message =
             Utf8GraphQLRequestParser.ParseMessage(source);
 
         // assert
@@ -544,7 +538,7 @@ public class GraphQLRequestParserTests
             parserOptions,
             new DocumentCache(),
             new Sha256DocumentHashProvider());
-        IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
+        var batch = requestParser.Parse();
 
         // assert
         Assert.Collection(batch,
@@ -574,7 +568,7 @@ public class GraphQLRequestParserTests
             parserOptions,
             new DocumentCache(),
             new Sha256DocumentHashProvider());
-        IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
+        var batch = requestParser.Parse();
 
         // assert
         Assert.Collection(batch,
@@ -604,7 +598,7 @@ public class GraphQLRequestParserTests
             parserOptions,
             new DocumentCache(),
             new Sha256DocumentHashProvider(HashFormat.Hex));
-        IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
+        var batch = requestParser.Parse();
 
         // assert
         Assert.Collection(batch,

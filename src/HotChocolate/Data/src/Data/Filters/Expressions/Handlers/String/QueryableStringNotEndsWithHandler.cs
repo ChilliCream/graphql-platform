@@ -20,7 +20,7 @@ public class QueryableStringNotEndsWithHandler : QueryableStringOperationHandler
         IValueNode value,
         object? parsedValue)
     {
-        Expression property = context.GetInstance();
+        var property = context.GetInstance();
 
         if (parsedValue is null)
         {

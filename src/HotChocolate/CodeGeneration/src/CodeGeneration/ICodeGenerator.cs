@@ -1,7 +1,6 @@
-namespace HotChocolate.CodeGeneration
+namespace HotChocolate.CodeGeneration;
+
+public interface ICodeGenerator
 {
-    public interface ICodeGenerator
-    {
-        CodeGenerationResult Generate(CodeGeneratorContext context);
-    }
+    CodeGenerationResult Generate(CodeGeneratorContext context);
 }

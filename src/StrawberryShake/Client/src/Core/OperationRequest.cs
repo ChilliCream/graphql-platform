@@ -245,7 +245,7 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
                 Name.GetHashCode() * 397 ^
                 Document.GetHashCode() * 397;
 
-            foreach (KeyValuePair<string, object?> variable in Variables)
+            foreach (var variable in Variables)
             {
                 if (variable.Value is IEnumerable inner)
                 {

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Language;
@@ -84,7 +83,7 @@ public static class SyntaxNodeExtensions
 
     public static NamedTypeNode NamedType(this ITypeNode type)
     {
-        ITypeNode innerType = InnerTypeInternal(type);
+        var innerType = InnerTypeInternal(type);
 
         if (innerType.Kind is SyntaxKind.NamedType)
         {

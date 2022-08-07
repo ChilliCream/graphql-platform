@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
@@ -17,7 +16,7 @@ public class CatchBlockBuilder : ICode
         return this;
     }
 
-    public CatchBlockBuilder SetExceptionVariable(NameString name)
+    public CatchBlockBuilder SetExceptionVariable(string name)
     {
         if (_exception is null)
         {

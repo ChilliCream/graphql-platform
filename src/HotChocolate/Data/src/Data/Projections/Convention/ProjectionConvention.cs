@@ -74,7 +74,7 @@ public class ProjectionConvention
 
         if (_provider is IProjectionProviderConvention init)
         {
-            IReadOnlyList<IProjectionProviderExtension> extensions =
+            var extensions =
                 CollectExtensions(context.Services, Definition);
             init.Initialize(context);
             MergeExtensions(context, init, extensions);
@@ -85,7 +85,7 @@ public class ProjectionConvention
     public FieldMiddleware CreateExecutor<TEntityType>() =>
         _provider.CreateExecutor<TEntityType>();
 
-    public ISelectionOptimizer CreateOptimizer() =>
+    public ISelectionSetOptimizer CreateOptimizer() =>
         new ProjectionOptimizer(_provider);
 
     private static IReadOnlyList<IProjectionProviderExtension> CollectExtensions(
@@ -94,11 +94,11 @@ public class ProjectionConvention
     {
         List<IProjectionProviderExtension> extensions = new();
         extensions.AddRange(definition.ProviderExtensions);
-        foreach (Type? extensionType in definition.ProviderExtensionsTypes)
+        foreach (var extensionType in definition.ProviderExtensionsTypes)
         {
             if (serviceProvider.TryGetOrCreateService<IProjectionProviderExtension>(
                 extensionType,
-                out IProjectionProviderExtension? createdExtension))
+                out var createdExtension))
             {
                 extensions.Add(createdExtension);
             }

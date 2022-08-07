@@ -1,43 +1,41 @@
-using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Tests;
-using HotChocolate.Types;
 using Xunit;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+public class SchemaFirstTests
 {
-    public class SchemaFirstTests
+    [Fact]
+    public async Task BindObjectTypeImplicit()
     {
-        [Fact]
-        public async Task BindObjectTypeImplicit()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddDocumentFromString(
-                    @"type Query {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddDocumentFromString(
+                @"type Query {
                         test: String
                         testProp: String
                     }")
-                .AddResolver<Query>()
-                .Create();
+            .AddResolver<Query>()
+            .Create();
 
-            // act
-            IExecutionResult result =
-                await schema.MakeExecutable().ExecuteAsync(
-                    "{ test testProp }");
+        // act
+        var result =
+            await schema.MakeExecutable().ExecuteAsync(
+                "{ test testProp }");
 
-            // assert
-            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
-            result.MatchSnapshot();
-        }
+        // assert
+        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task BindInputTypeImplicit()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddDocumentFromString(
-                    @"schema {
+    [Fact]
+    public async Task BindInputTypeImplicit()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddDocumentFromString(
+                @"schema {
                     query: FooQuery
                 }
 
@@ -49,27 +47,27 @@ namespace HotChocolate.Execution
                 {
                     baz: String
                 }")
-                .AddResolver<FooQuery>()
-                .AddResolver<Bar>()
-                .Create();
+            .AddResolver<FooQuery>()
+            .AddResolver<Bar>()
+            .Create();
 
-            // act
-            IExecutionResult result =
-                await schema.MakeExecutable().ExecuteAsync(
-                    "{ foo(bar: { baz: \"hello\"}) }");
+        // act
+        var result =
+            await schema.MakeExecutable().ExecuteAsync(
+                "{ foo(bar: { baz: \"hello\"}) }");
 
-            // assert
-            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
-            result.MatchSnapshot();
-        }
+        // assert
+        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task EnumAsOutputType()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddDocumentFromString(
-                    @"type Query {
+    [Fact]
+    public async Task EnumAsOutputType()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddDocumentFromString(
+                @"type Query {
                         enumValue: FooEnum
                     }
 
@@ -77,26 +75,26 @@ namespace HotChocolate.Execution
                         BAR
                         BAZ
                     }")
-                .AddResolver<EnumQuery>("Query")
-                .Create();
+            .AddResolver<EnumQuery>("Query")
+            .Create();
 
-            // act
-            IExecutionResult result =
-                await schema.MakeExecutable().ExecuteAsync(
-                    "{ enumValue }");
+        // act
+        var result =
+            await schema.MakeExecutable().ExecuteAsync(
+                "{ enumValue }");
 
-            // assert
-            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
-            result.MatchSnapshot();
-        }
+        // assert
+        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task EnumAsInputType()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddDocumentFromString(
-                    @"type Query {
+    [Fact]
+    public async Task EnumAsInputType()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddDocumentFromString(
+                @"type Query {
                         setEnumValue(value:FooEnum) : String
                     }
 
@@ -104,26 +102,26 @@ namespace HotChocolate.Execution
                         BAR
                         BAZ_BAR
                     }")
-                .AddResolver<EnumQuery>("Query")
-                .Create();
+            .AddResolver<EnumQuery>("Query")
+            .Create();
 
-            // act
-            IExecutionResult result =
-                await schema.MakeExecutable().ExecuteAsync(
-                    "{ setEnumValue(value:BAZ_BAR) }");
+        // act
+        var result =
+            await schema.MakeExecutable().ExecuteAsync(
+                "{ setEnumValue(value:BAZ_BAR) }");
 
-            // assert
-            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
-            result.MatchSnapshot();
-        }
+        // assert
+        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task InputObjectWithEnum()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddDocumentFromString(
-                    @"type Query {
+    [Fact]
+    public async Task InputObjectWithEnum()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddDocumentFromString(
+                @"type Query {
                         enumInInputObject(payload:Payload) : String
                     }
 
@@ -135,71 +133,70 @@ namespace HotChocolate.Execution
                         BAR
                         BAZ
                     }")
-                .AddResolver<EnumQuery>("Query")
-                .AddResolver<Payload>()
-                .Create();
+            .AddResolver<EnumQuery>("Query")
+            .AddResolver<Payload>()
+            .Create();
 
-            // act
-            IExecutionResult result =
-                await schema.MakeExecutable().ExecuteAsync(
-                    "{ enumInInputObject(payload: { value:BAZ } ) }");
+        // act
+        var result =
+            await schema.MakeExecutable().ExecuteAsync(
+                "{ enumInInputObject(payload: { value:BAZ } ) }");
 
-            // assert
-            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
-            result.MatchSnapshot();
-        }
+        // assert
+        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        result.MatchSnapshot();
+    }
 
-        public class Query
+    public class Query
+    {
+        public string GetTest()
         {
-            public string GetTest()
-            {
-                return "Hello World 1!";
-            }
-
-            public string TestProp => "Hello World 2!";
+            return "Hello World 1!";
         }
 
-        public class FooQuery
+        public string TestProp => "Hello World 2!";
+    }
+
+    public class FooQuery
+    {
+        public string GetFoo(Bar bar)
         {
-            public string GetFoo(Bar bar)
-            {
-                return bar.Baz;
-            }
+            return bar.Baz;
         }
+    }
 
-        public class Bar
+    public class Bar
+    {
+        public string Baz { get; set; }
+    }
+
+    public class EnumQuery
+    {
+        public FooEnum GetEnumValue()
         {
-            public string Baz { get; set; }
+            return FooEnum.Bar;
         }
 
-        public class EnumQuery
+        public string SetEnumValue(FooEnum value)
         {
-            public FooEnum GetEnumValue()
-            {
-                return FooEnum.Bar;
-            }
-
-            public string SetEnumValue(FooEnum value)
-            {
-                return value.ToString();
-            }
-
-            public string EnumInInputObject(Payload payload)
-            {
-                return payload.Value.ToString();
-            }
+            return value.ToString();
         }
 
-        public class Payload
+        public string EnumInInputObject(Payload payload)
         {
-            public FooEnum Value { get; set; }
+            return payload.Value.ToString();
         }
+    }
 
-        public enum FooEnum
-        {
-            Bar,
-            Baz,
-            BazBar
-        }
+    public class Payload
+    {
+        public FooEnum Value { get; set; }
+    }
+
+    public enum FooEnum
+    {
+        Bar,
+        Baz,
+        BazBar
     }
 }

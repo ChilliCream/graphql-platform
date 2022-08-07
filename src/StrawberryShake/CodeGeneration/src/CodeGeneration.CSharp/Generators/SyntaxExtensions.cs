@@ -110,7 +110,7 @@ public static class SyntaxExtensions
     {
         var version = typeof(SyntaxExtensions).Assembly.GetName().Version!.ToString();
 
-        AttributeSyntax attribute =
+        var attribute =
             Attribute(
                     QualifiedName(
                         QualifiedName(
@@ -191,7 +191,7 @@ public static class SyntaxExtensions
         string? description)
         where T : TypeDeclarationSyntax
     {
-        PropertyDeclarationSyntax propertyDeclaration =
+        var propertyDeclaration =
             PropertyDeclaration(typeSyntax, name);
 
         if (type is not InterfaceDeclarationSyntax)
@@ -272,7 +272,7 @@ public static class SyntaxExtensions
         string parameterName,
         bool assertNotNull = false)
     {
-        BinaryExpressionSyntax assertNotNullExpression =
+        var assertNotNullExpression =
             BinaryExpression(
                 SyntaxKind.CoalesceExpression,
                 IdentifierName(parameterName),
@@ -289,7 +289,7 @@ public static class SyntaxExtensions
                                                         parameterName)))))))))));
 
 
-        AssignmentExpressionSyntax assignmentExpression =
+        var assignmentExpression =
             AssignmentExpression(
                 SyntaxKind.SimpleAssignmentExpression,
                 IdentifierName(propertyName),

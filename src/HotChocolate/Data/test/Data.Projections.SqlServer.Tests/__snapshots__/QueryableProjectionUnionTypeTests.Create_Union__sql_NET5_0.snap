@@ -1,2 +1,0 @@
-﻿SELECT "d"."d" = 'bar', "d"."BarProp", "d"."d" = 'foo', "d"."FooProp"
-FROM "Data" AS "d"

@@ -17,14 +17,14 @@ public static class TestDataHelper
         string queryResource, 
         string schemaResource)
     {
-        ISchema schema = SchemaHelper.Load(
+        var schema = SchemaHelper.Load(
             new GraphQLFile[] 
             {
                 new(Utf8GraphQLParser.Parse(Open(schemaResource))),
                 new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")"))
             });
 
-        DocumentNode document = Utf8GraphQLParser.Parse(Open(queryResource));
+        var document = Utf8GraphQLParser.Parse(Open(queryResource));
 
         return DocumentAnalyzer
             .New()
@@ -35,7 +35,7 @@ public static class TestDataHelper
 
     public static async Task<ClientModel> CreateClientModelAsync(string query)
     {
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddStarWarsRepositories()
                 .AddGraphQL()
@@ -49,7 +49,7 @@ public static class TestDataHelper
                 new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")"))
             });
 
-        DocumentNode document = Utf8GraphQLParser.Parse(query);
+        var document = Utf8GraphQLParser.Parse(query);
 
         return DocumentAnalyzer
             .New()

@@ -32,7 +32,7 @@ public class DecimalType : FloatTypeBase<decimal>
     /// Initializes a new instance of the <see cref="DecimalType"/> class.
     /// </summary>
     public DecimalType(
-        NameString name,
+        string name,
         string? description = null,
         decimal min = decimal.MinValue,
         decimal max = decimal.MaxValue,

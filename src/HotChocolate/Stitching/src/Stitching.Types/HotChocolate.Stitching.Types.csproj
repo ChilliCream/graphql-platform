@@ -5,7 +5,6 @@
     <AssemblyName>HotChocolate.Stitching.Types</AssemblyName>
     <RootNamespace>HotChocolate.Stitching.Types</RootNamespace>
     <Description>Contains the type merge logic for schema merging.</Description>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
   
   <ItemGroup>

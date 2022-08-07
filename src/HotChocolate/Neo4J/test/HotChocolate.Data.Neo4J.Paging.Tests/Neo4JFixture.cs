@@ -28,8 +28,8 @@ public class Neo4JFixture : Neo4jResource<Neo4JConfig>
     private async Task<IRequestExecutor> CreateSchema<TEntity>(string cypher)
         where TEntity : class
     {
-        IAsyncSession session = GetAsyncSession();
-        IResultCursor cursor = await session.RunAsync(cypher);
+        var session = GetAsyncSession();
+        var cursor = await session.RunAsync(cypher);
         await cursor.ConsumeAsync();
 
         return await new ServiceCollection()

@@ -28,10 +28,10 @@ namespace HotChocolate.ConferencePlanner.DataLoader
             IReadOnlyList<int> keys,
             CancellationToken cancellationToken)
         {
-            await using ApplicationDbContext dbContext =
+            await using var dbContext =
                 _dbContextFactory.CreateDbContext();
 
-            List<SessionSpeaker> list = await dbContext.Sessions
+            var list = await dbContext.Sessions
                 .Where(s => keys.Contains(s.Id))
                 .Include(s => s.SessionSpeakers)
                 .SelectMany(s => s.SessionSpeakers)

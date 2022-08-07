@@ -3,6 +3,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>

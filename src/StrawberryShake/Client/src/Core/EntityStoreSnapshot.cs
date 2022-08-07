@@ -56,7 +56,7 @@ internal sealed class EntityStoreSnapshot : IEntityStoreSnapshot
     {
         var list = new List<TEntity>();
 
-        foreach (EntityId id in ids)
+        foreach (var id in ids)
         {
             if (TryGetEntity(id, out TEntity? entity))
             {

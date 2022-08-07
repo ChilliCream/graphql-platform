@@ -47,7 +47,7 @@ public class ResolverServiceTests
     {
         Snapshot.FullName();
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddSingleton<SayHelloService>()
                 .AddGraphQL()
@@ -64,7 +64,7 @@ public class ResolverServiceTests
     {
         Snapshot.FullName();
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddSingleton<SayHelloService>()
                 .AddGraphQL()
