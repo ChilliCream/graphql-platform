@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
@@ -12,12 +11,11 @@ public class QueryableCombinator
         QueryableFilterContext context,
         Queue<Expression> operations,
         FilterCombinator combinator,
-        [NotNullWhen(true)] out Expression combined)
+        [NotNullWhen(true)] out Expression? combined)
     {
         if (operations.Count == 0)
         {
-            // very hard to make the override method signature happy with NRTs here.
-            combined = default!;
+            combined = default;
             return false;
         }
 

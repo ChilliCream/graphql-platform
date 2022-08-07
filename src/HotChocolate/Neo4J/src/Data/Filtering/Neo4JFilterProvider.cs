@@ -46,8 +46,7 @@ public class Neo4JFilterProvider : FilterProvider<Neo4JFilterVisitorContext>
 
                 Visitor.Visit(filter, visitorContext);
 
-                if (!visitorContext.TryCreateQuery(out var whereQuery) ||
-                    visitorContext.Errors.Count > 0)
+                if (visitorContext.Errors.Count > 0)
                 {
                     context.Result = Array.Empty<TEntityType>();
                     foreach (var error in visitorContext.Errors)
@@ -57,14 +56,15 @@ public class Neo4JFilterProvider : FilterProvider<Neo4JFilterVisitorContext>
                 }
                 else
                 {
-                    context.LocalContextData =
-                        context.LocalContextData.SetItem("Filter", whereQuery);
+                    var query = visitorContext.CreateQuery();
+
+                    context.LocalContextData = context.LocalContextData.SetItem("Filter", query);
 
                     await next(context).ConfigureAwait(false);
 
                     if (context.Result is INeo4JExecutable executable)
                     {
-                        context.Result = executable.WithFiltering(whereQuery);
+                        context.Result = executable.WithFiltering(query);
                     }
                 }
             }

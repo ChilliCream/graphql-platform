@@ -23,7 +23,7 @@ public abstract class FilterOperationCombinator<TContext, T>
         TContext context,
         Queue<T> operations,
         FilterCombinator combinator,
-        [NotNullWhen(true)] out T combined);
+        [NotNullWhen(true)] out T? combined);
 
     /// <inheritdoc />
     public override bool TryCombineOperations<TVisitorContext, TOperation>(

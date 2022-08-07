@@ -27,7 +27,7 @@ public abstract class FilterVisitorBase<TContext, T>
         TContext context,
         Queue<T> operations,
         FilterCombinator combinator,
-        [NotNullWhen(true)] out T combined);
+        [NotNullWhen(true)] out T? combined);
 
     protected override ISyntaxVisitorAction Leave(
         ObjectValueNode node,

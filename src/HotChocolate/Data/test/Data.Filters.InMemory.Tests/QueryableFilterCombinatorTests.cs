@@ -4,7 +4,7 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Filters;
 
-public class FilteringAndPaging
+public class QueryableFilterCombinatorTests
 {
     private static readonly Foo[] _fooEntities =
     {
@@ -15,27 +15,21 @@ public class FilteringAndPaging
     private readonly SchemaCache _cache = new();
 
     [Fact]
-    public async Task Create_BooleanEqual_Expression()
+    public async Task Create_Empty_Expression()
     {
         // arrange
-        var snapshot = new Snapshot();
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities, true);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
+        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: true}}){ nodes { bar } }}")
+                .SetQuery("{ root(where: { }){ bar }}")
                 .Create());
-        snapshot.Add(res1, "true");
 
-        var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: false}}){ nodes { bar }}}")
-                .Create());
-        snapshot.Add(res2, "true");
-
-        // assert
-        await snapshot.MatchAsync();
+        await Snapshot.Create()
+            .Add(res1)
+            .MatchAsync();
     }
 
     public class Foo
