@@ -11,8 +11,7 @@ public static class MongoFilterVisitorContextExtensions
     /// <param name="context">The context</param>
     /// <returns>The current scope</returns>
     public static MongoDbFilterScope GetMongoFilterScope(this MongoDbFilterVisitorContext context)
-        =>
-            (MongoDbFilterScope)context.GetScope();
+        => (MongoDbFilterScope)context.GetScope();
 
     /// <summary>
     /// Tries to build the query based on the items that are stored on the scope
