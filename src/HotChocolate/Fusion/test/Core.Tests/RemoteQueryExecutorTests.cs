@@ -94,9 +94,11 @@ public class RemoteQueryExecutorTests
             Parse(
                 @"query GetPersonById {
                     personById(id: 1) {
-                        id
                         name
-                        bio
+                        friends {
+                            name
+                            bio
+                        }
                     }
                 }");
 

@@ -14,7 +14,6 @@ namespace HotChocolate.Fusion.Execution;
 
 internal sealed class RemoteQueryExecutor2
 {
-    private readonly object _sync = new();
     private readonly Metadata.ServiceConfiguration _serviceConfiguration;
     private readonly RemoteRequestExecutorFactory _executorFactory;
 
@@ -72,6 +71,8 @@ internal sealed class RemoteQueryExecutor2
             composeWorkItem.SelectionResults = selectionResult;
             context.Compose.Enqueue(composeWorkItem);
         }
+
+        context.Fetch.Clear();
     }
 
     private void ExtractSelectionResults(
@@ -247,24 +248,24 @@ internal sealed class RemoteQueryExecutor2
         else
         {
             var childSelectionResults = CreateSelectionResults(
-                context,
-                selection,
                 selectionResult,
-                typeMetadata);
+                selectionSet.Selections);
 
+            /*
             var childVariables = CreateVariables(
                 context,
                 selection,
                 selectionResult,
                 typeMetadata,
                 variables);
+                */
 
             ComposeResult(
                 context,
                 selectionSet.Selections,
                 childSelectionResults,
                 result,
-                childVariables);
+                variables);
         }
 
         return result;
@@ -275,7 +276,9 @@ internal sealed class RemoteQueryExecutor2
         ISelection selection,
         SelectionResult selectionResult,
         ObjectType typeMetadata)
-        => throw new NotImplementedException();
+    {
+        return new List<Argument>();
+    }
 
     private ArgumentContext CreateVariables(
         RemoteExecutorContext context,
@@ -286,11 +289,51 @@ internal sealed class RemoteQueryExecutor2
         => throw new NotImplementedException();
 
     private IReadOnlyList<SelectionResult> CreateSelectionResults(
-        RemoteExecutorContext context,
-        ISelection selection,
         SelectionResult selectionResult,
-        ObjectType typeMetadata)
-        => throw new NotImplementedException();
+        IReadOnlyList<ISelection> selections)
+    {
+        var selectionResults = new SelectionResult[selections.Count];
+
+        if (selectionResult.Multiple is null)
+        {
+            var schemaName = selectionResult.Single.SchemaName;
+            var data = selectionResult.Single.Element;
+
+            for (var i = 0; i < selections.Count; i++)
+            {
+                if (data.TryGetProperty(selections[i].ResponseName, out var property))
+                {
+                    var current = selectionResults[i];
+
+                    selectionResults[i] = selectionResult.HasValue
+                        ? current.AddResult(new JsonResult(schemaName, property))
+                        : new SelectionResult(new JsonResult(schemaName, property));
+                }
+            }
+        }
+        else
+        {
+            foreach (var result in selectionResult.Multiple)
+            {
+                var schemaName = result.SchemaName;
+                var data = result.Element;
+
+                for (var i = 0; i < selections.Count; i++)
+                {
+                    if (data.TryGetProperty(selections[i].ResponseName, out var property))
+                    {
+                        var current = selectionResults[i];
+
+                        selectionResults[i] = selectionResult.HasValue
+                            ? current.AddResult(new JsonResult(schemaName, property))
+                            : new SelectionResult(new JsonResult(schemaName, property));
+                    }
+                }
+            }
+        }
+
+        return selectionResults;
+    }
 }
 
 
