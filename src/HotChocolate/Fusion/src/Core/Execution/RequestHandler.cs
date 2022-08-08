@@ -37,8 +37,36 @@ internal sealed class RequestHandler
     /// </summary>
     public IReadOnlyList<RequiredState> Requires { get; }
 
-    public Request CreateRequest(IReadOnlyList<Argument> argumentValues)
-        => throw new NotImplementedException();
+    public Request CreateRequest(IReadOnlyDictionary<string, IValueNode> variableValues)
+    {
+        ObjectValueNode? vars = null;
+
+        if (Requires.Count > 0)
+        {
+            var fields = new List<ObjectFieldNode>();
+
+            foreach (var required in Requires)
+            {
+                if (variableValues.TryGetValue(required.VariableName, out var value))
+                {
+                    fields.Add(new ObjectFieldNode(required.VariableName, value));
+                }
+                else if (!required.IsOptional)
+                {
+                    // TODO : error helper
+                    throw new ArgumentException(
+                        $"The variable value `{required.VariableName}` was not provided " +
+                        "but is required.",
+                        nameof(variableValues));
+
+                }
+            }
+
+            vars ??= new ObjectValueNode(fields);
+        }
+
+        return new Request(SchemaName, Document, vars, null);
+    }
 }
 
 internal readonly struct RequiredState

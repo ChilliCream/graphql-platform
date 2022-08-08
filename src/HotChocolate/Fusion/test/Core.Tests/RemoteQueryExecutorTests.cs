@@ -155,7 +155,7 @@ public class RemoteQueryExecutorTests
                 new ResultPool(new ObjectResultPool(32, 32), new ListResultPool(32, 32))),
             operation,
             queryPlan,
-            new HashSet<ISelectionSet>());
+            new HashSet<ISelectionSet>(queryPlan.ExecutionNodes.OfType<RequestNode>().Select(t => t.Handler.SelectionSet)));
 
 
         await executor.ExecuteAsync(context);

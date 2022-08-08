@@ -47,7 +47,8 @@ internal sealed class RemoteQueryExecutor2
     {
         foreach (var workItem in context.Fetch)
         {
-            var arguments = workItem.Arguments;
+            // todo: this is not really efficient
+            var arguments = workItem.Arguments.ToDictionary(static t => t.Name, static t => t.Value);
             var selectionResult = new SelectionResult[workItem.SelectionSet.Selections.Count];
 
             foreach (var requestNode in context.Plan.GetRequestNodes(workItem.SelectionSet))
@@ -67,7 +68,9 @@ internal sealed class RemoteQueryExecutor2
                 // todo: how do we treat errors
             }
 
-            context.Compose.Enqueue(workItem);
+            var composeWorkItem = workItem;
+            composeWorkItem.SelectionResults = selectionResult;
+            context.Compose.Enqueue(composeWorkItem);
         }
     }
 
@@ -212,9 +215,21 @@ internal sealed class RemoteQueryExecutor2
             return null;
         }
 
-        var typeInfo = selectionResult.GetTypeInfo();
-        var typeMetadata = _serviceConfiguration.GetType<ObjectType>(typeInfo);
-        var type = context.Schema.GetType<Types.ObjectType>(typeMetadata.Name);
+        ObjectType typeMetadata;
+        Types.ObjectType type;
+
+        if (selection.Type.IsObjectType())
+        {
+            type = (Types.ObjectType)selection.Type.NamedType();
+            typeMetadata = _serviceConfiguration.GetType<ObjectType>(type.Name);
+        }
+        else
+        {
+            var typeInfo = selectionResult.GetTypeInfo();
+            typeMetadata = _serviceConfiguration.GetType<ObjectType>(typeInfo);
+            type = context.Schema.GetType<Types.ObjectType>(typeMetadata.Name);
+        }
+
         var selectionSet = context.Operation.GetSelectionSet(selection, type);
         var result = context.Result.RentObject(selectionSet.Selections.Count);
 
