@@ -7,7 +7,7 @@ namespace HotChocolate.Fusion.Execution;
 
 internal sealed class JsonRequestFormatter
 {
-    private readonly JsonWriterOptions _options = new JsonWriterOptions
+    private readonly JsonWriterOptions _options = new()
     {
         Indented = true,
         Encoder = JavaScriptEncoder.Default

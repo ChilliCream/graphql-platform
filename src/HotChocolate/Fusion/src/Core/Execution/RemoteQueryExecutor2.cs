@@ -4,9 +4,7 @@ using System.Diagnostics;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;
-using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using IType = HotChocolate.Fusion.Metadata.IType;
@@ -28,25 +26,77 @@ internal sealed class RemoteQueryExecutor2
         _executorFactory = executorFactory;
     }
 
-    public Task ExecuteAsync(OperationContext context, QueryPlan plan, IExecutionState state)
+    public Task ExecuteAsync(OperationContext context, QueryPlan plan, IExecutionState state, CancellationToken cancellationToken)
     {
         var rootSelectionSet = context.Operation.RootSelectionSet;
         var rootResult = context.Result.RentObject(rootSelectionSet.Selections.Count);
         var rootWorkItem = new WorkItem(rootSelectionSet, new ArgumentContext(), rootResult);
         var internalContext = new ExecutorContext();
         internalContext.Fetch.Add(rootWorkItem);
-        return ExecuteAsync(internalContext);
+        return ExecuteAsync(internalContext, cancellationToken);
     }
 
-    private async Task ExecuteAsync(ExecutorContext context)
+    private async Task ExecuteAsync(ExecutorContext context, CancellationToken ct)
     {
         while (context.Fetch.Count > 0)
         {
-            // fetch
+            await FetchAsync(context, ct).ConfigureAwait(false);
 
             while (context.Compose.TryDequeue(out var current))
             {
                 ComposeResult(context, current);
+            }
+        }
+    }
+
+    // note: this is inefficient and we want to group here, for now we just want to get it working.
+    private async Task FetchAsync(ExecutorContext context, CancellationToken ct)
+    {
+        foreach (var workItem in context.Fetch)
+        {
+            var arguments = workItem.Arguments;
+            var selectionResult = new SelectionResult[workItem.SelectionSet.Selections.Count];
+
+            foreach (var requestNode in context.Plan.GetRequestNodes(workItem.SelectionSet))
+            {
+                var request = requestNode.Handler.CreateRequest(arguments);
+                var executor = _executorFactory.Create(requestNode.Handler.SchemaName);
+                var result = await executor.ExecuteAsync(request, ct).ConfigureAwait(false);
+
+                // extract arguments
+
+                ExtractSelectionResults(
+                    workItem.SelectionSet.Selections,
+                    request.SchemaName,
+                    result.Data!.Value, // this is wrong, we need a way to correctly extract the result
+                    selectionResult);
+
+                // todo: how do we treat errors
+            }
+
+            context.Compose.Enqueue(workItem);
+        }
+    }
+
+    private void ExtractSelectionResults(
+        IReadOnlyList<ISelection> selections,
+        string schemaName,
+        JsonElement data,
+        SelectionResult[] selectionResults)
+    {
+        for (var i = 0; i < selections.Count; i++)
+        {
+            if (data.TryGetProperty(selections[i].ResponseName, out var property))
+            {
+                var selectionResult = selectionResults[i];
+                if (selectionResult.HasValue)
+                {
+                    selectionResults[i] = selectionResult.AddResult(new(schemaName, property));
+                }
+                else
+                {
+                    selectionResults[i] = new SelectionResult(new JsonResult(schemaName, property));
+                }
             }
         }
     }
@@ -121,7 +171,7 @@ internal sealed class RemoteQueryExecutor2
             return null;
         }
 
-        var json = selectionResult.Single.Single;
+        var json = selectionResult.Single.Element;
         var schemaName = selectionResult.Single.SchemaName;
         Debug.Assert(selectionResult.Multiple is null, "selectionResult.Multiple is null");
         Debug.Assert(json.ValueKind is JsonValueKind.Array, "json.ValueKind is JsonValueKind.Array");
@@ -313,50 +363,6 @@ internal sealed class RemoteQueryExecutor2
         }
     }
 
-    private readonly struct SelectionResult
-    {
-        public SelectionResult(JsonResult single)
-        {
-            Single = single;
-            Multiple = null;
-        }
-
-        public SelectionResult(IReadOnlyList<JsonResult> multiple)
-        {
-            Single = default;
-            Multiple = multiple;
-        }
-
-
-        public JsonResult Single { get; }
-
-        public IReadOnlyList<JsonResult>? Multiple { get; }
-
-        public TypeInfo GetTypeInfo()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool IsNull()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    private readonly struct JsonResult
-    {
-        public JsonResult(string schemaName, JsonElement single)
-        {
-            SchemaName = schemaName;
-            Single = single;
-        }
-
-        public string SchemaName { get; }
-
-        public JsonElement Single { get; }
-    }
-
-
     private struct WorkItem
     {
         public WorkItem(
@@ -387,18 +393,5 @@ internal sealed class RemoteQueryExecutor2
         public ArgumentContext Variables { get; set; }
 
         public ObjectResult Result { get; }
-    }
-
-    private readonly struct Argument
-    {
-        public Argument(string name, IValueNode value)
-        {
-            Name = name;
-            Value = value;
-        }
-
-        public string Name { get; }
-
-        public IValueNode Value { get; }
     }
 }

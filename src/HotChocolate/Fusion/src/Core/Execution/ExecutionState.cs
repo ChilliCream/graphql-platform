@@ -1,8 +1,8 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Text.Json;
+using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
-using static HotChocolate.Fusion.Execution.JsonValueToGraphQLValueConverter;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -57,7 +57,7 @@ internal sealed class ExecutionState : IExecutionState
 
     public void AddState(string key, JsonElement value, ITypeNode type)
     {
-        var literal = Convert(value);
+        var literal = JsonValueToGraphQLValueConverter.Convert(value);
 
         if (_store.ContainsKey(key))
         {

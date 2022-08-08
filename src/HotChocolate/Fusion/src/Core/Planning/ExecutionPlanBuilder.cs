@@ -47,8 +47,7 @@ internal sealed class ExecutionPlanBuilder
         var requestHandler = new RequestHandler(
             executionStep.SchemaName,
             requestDocument,
-            Array.Empty<RequiredState>(),
-            Array.Empty<ProvidedState>());
+            Array.Empty<RequiredState>());
         return new RequestNode(requestHandler);
     }
 
