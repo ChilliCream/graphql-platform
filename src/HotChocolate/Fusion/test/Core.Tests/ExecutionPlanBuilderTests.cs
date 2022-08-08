@@ -61,7 +61,7 @@ public class ExecutionPlanBuilderTests
             .UseField(n => n)
             .BuildSchemaAsync();
 
-        var serviceConfig = Metadata.Schema.Load(serviceDefinition);
+        var serviceConfig = Metadata.ServiceConfiguration.Load(serviceDefinition);
 
         var request =
             Parse(
@@ -85,7 +85,7 @@ public class ExecutionPlanBuilderTests
         var queryPlanContext = new QueryPlanContext(operation);
         var requestPlaner = new RequestPlaner(serviceConfig);
         var requirementsPlaner = new RequirementsPlaner();
-        var executionPlanBuilder = new ExecutionPlanBuilder(serviceConfig);
+        var executionPlanBuilder = new ExecutionPlanBuilder(serviceConfig, schema);
 
         requestPlaner.Plan(queryPlanContext);
         requirementsPlaner.Plan(queryPlanContext);
@@ -157,7 +157,7 @@ public class ExecutionPlanBuilderTests
             .UseField(n => n)
             .BuildSchemaAsync();
 
-        var serviceConfig = Metadata.Schema.Load(serviceDefinition);
+        var serviceConfig = Metadata.ServiceConfiguration.Load(serviceDefinition);
 
         var request =
             Parse(
@@ -180,7 +180,7 @@ public class ExecutionPlanBuilderTests
         var queryPlanContext = new QueryPlanContext(operation);
         var requestPlaner = new RequestPlaner(serviceConfig);
         var requirementsPlaner = new RequirementsPlaner();
-        var executionPlanBuilder = new ExecutionPlanBuilder(serviceConfig);
+        var executionPlanBuilder = new ExecutionPlanBuilder(serviceConfig, schema);
 
         requestPlaner.Plan(queryPlanContext);
         requirementsPlaner.Plan(queryPlanContext);
@@ -256,7 +256,7 @@ public class ExecutionPlanBuilderTests
             .UseField(n => n)
             .BuildSchemaAsync();
 
-        var serviceConfig = Metadata.Schema.Load(serviceDefinition);
+        var serviceConfig = Metadata.ServiceConfiguration.Load(serviceDefinition);
 
         var request =
             Parse(
@@ -281,7 +281,7 @@ public class ExecutionPlanBuilderTests
         var queryPlanContext = new QueryPlanContext(operation);
         var requestPlaner = new RequestPlaner(serviceConfig);
         var requirementsPlaner = new RequirementsPlaner();
-        var executionPlanBuilder = new ExecutionPlanBuilder(serviceConfig);
+        var executionPlanBuilder = new ExecutionPlanBuilder(serviceConfig, schema);
 
         requestPlaner.Plan(queryPlanContext);
         requirementsPlaner.Plan(queryPlanContext);

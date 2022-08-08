@@ -10,17 +10,17 @@ namespace HotChocolate.Fusion.Planning;
 /// </summary>
 internal sealed class RequestPlaner
 {
-    private readonly Metadata.Schema _schema;
+    private readonly ServiceConfiguration _serviceConfig;
     private readonly Queue<BacklogItem> _backlog = new(); // TODO: we should get rid of this, maybe put it on the context?
 
-    public RequestPlaner(Metadata.Schema schema)
+    public RequestPlaner(ServiceConfiguration serviceConfig)
     {
-        _schema = schema;
+        _serviceConfig = serviceConfig ?? throw new ArgumentNullException(nameof(serviceConfig));
     }
 
     public void Plan(QueryPlanContext context)
     {
-        var declaringType = _schema.GetType<ObjectType>(context.Operation.RootType.Name);
+        var declaringType = _serviceConfig.GetType<ObjectType>(context.Operation.RootType.Name);
         var selections = context.Operation.RootSelectionSet.Selections;
 
         Plan(context, declaringType, selections, null);
@@ -112,7 +112,7 @@ internal sealed class RequestPlaner
     {
         foreach (var possibleType in operation.GetPossibleTypes(parentSelection))
         {
-            var declaringType = _schema.GetType<ObjectType>(possibleType.Name);
+            var declaringType = _serviceConfig.GetType<ObjectType>(possibleType.Name);
             var selectionSet = operation.GetSelectionSet(parentSelection, possibleType);
             List<ISelection>? leftovers = null;
 
@@ -150,9 +150,9 @@ internal sealed class RequestPlaner
         ObjectType typeContext)
     {
         var bestScore = 0;
-        var bestSchema = _schema.Bindings[0];
+        var bestSchema = _serviceConfig.Bindings[0];
 
-        foreach (var schemaName in _schema.Bindings)
+        foreach (var schemaName in _serviceConfig.Bindings)
         {
             var score = CalculateSchemaScore(operation, selections, typeContext, schemaName);
 
@@ -184,7 +184,7 @@ internal sealed class RequestPlaner
                 {
                     foreach (var possibleType in operation.GetPossibleTypes(selection))
                     {
-                        var type = _schema.GetType<ObjectType>(possibleType.Name);
+                        var type = _serviceConfig.GetType<ObjectType>(possibleType.Name);
                         var selectionSet = operation.GetSelectionSet(selection, possibleType);
                         score += CalculateSchemaScore(
                             operation,
@@ -275,7 +275,7 @@ internal sealed class RequestPlaner
 
         if (parent is not null)
         {
-            var parentDeclaringType = _schema.GetType<ObjectType>(parent.DeclaringType.Name);
+            var parentDeclaringType = _serviceConfig.GetType<ObjectType>(parent.DeclaringType.Name);
             var parentField = parentDeclaringType.Fields[parent.Field.Name];
 
             foreach (var variable in parentField.Variables)
@@ -304,7 +304,7 @@ internal sealed class RequestPlaner
     {
         variablesInContext.Clear();
 
-        var parentDeclaringType = _schema.GetType<ObjectType>(parent.DeclaringType.Name);
+        var parentDeclaringType = _serviceConfig.GetType<ObjectType>(parent.DeclaringType.Name);
         var parentField = parentDeclaringType.Fields[parent.Field.Name];
 
         foreach (var variable in parentField.Variables)
@@ -330,7 +330,7 @@ internal sealed class RequestPlaner
 
         if (parent is not null)
         {
-            var parentDeclaringType = _schema.GetType<ObjectType>(parent.DeclaringType.Name);
+            var parentDeclaringType = _serviceConfig.GetType<ObjectType>(parent.DeclaringType.Name);
             var parentField = parentDeclaringType.Fields[parent.Field.Name];
             inContext = inContext.Concat(parentField.Variables.Select(t => t.Name));
         }
@@ -346,7 +346,7 @@ internal sealed class RequestPlaner
         FetchDefinition resolver,
         HashSet<string> requirements)
     {
-        var parentDeclaringType = _schema.GetType<ObjectType>(parent.DeclaringType.Name);
+        var parentDeclaringType = _serviceConfig.GetType<ObjectType>(parent.DeclaringType.Name);
         var parentField = parentDeclaringType.Fields[parent.Field.Name];
 
         foreach (var requirement in

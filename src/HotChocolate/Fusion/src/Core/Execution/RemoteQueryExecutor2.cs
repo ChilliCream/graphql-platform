@@ -15,32 +15,25 @@ namespace HotChocolate.Fusion.Execution;
 internal sealed class RemoteQueryExecutor2
 {
     private readonly object _sync = new();
-    private Metadata.Schema _schema;
+    private readonly Metadata.ServiceConfiguration _serviceConfiguration;
     private readonly RemoteRequestExecutorFactory _executorFactory;
-    private readonly List<ExecutionNode> _completed = new();
-    private readonly List<Response> _responses = new();
-    private int _completedCount;
 
-    public RemoteQueryExecutor2(RemoteRequestExecutorFactory executorFactory)
+    public RemoteQueryExecutor2(Metadata.ServiceConfiguration serviceConfiguration, RemoteRequestExecutorFactory executorFactory)
     {
+        _serviceConfiguration = serviceConfiguration;
         _executorFactory = executorFactory;
     }
 
-    public Task ExecuteAsync(OperationContext context, QueryPlan plan, IExecutionState state, CancellationToken cancellationToken)
+    public async Task ExecuteAsync(RemoteExecutorContext context, CancellationToken cancellationToken = default)
     {
         var rootSelectionSet = context.Operation.RootSelectionSet;
         var rootResult = context.Result.RentObject(rootSelectionSet.Selections.Count);
         var rootWorkItem = new WorkItem(rootSelectionSet, new ArgumentContext(), rootResult);
-        var internalContext = new ExecutorContext();
-        internalContext.Fetch.Add(rootWorkItem);
-        return ExecuteAsync(internalContext, cancellationToken);
-    }
+        context.Fetch.Add(rootWorkItem);
 
-    private async Task ExecuteAsync(ExecutorContext context, CancellationToken ct)
-    {
         while (context.Fetch.Count > 0)
         {
-            await FetchAsync(context, ct).ConfigureAwait(false);
+            await FetchAsync(context, cancellationToken).ConfigureAwait(false);
 
             while (context.Compose.TryDequeue(out var current))
             {
@@ -50,7 +43,7 @@ internal sealed class RemoteQueryExecutor2
     }
 
     // note: this is inefficient and we want to group here, for now we just want to get it working.
-    private async Task FetchAsync(ExecutorContext context, CancellationToken ct)
+    private async Task FetchAsync(RemoteExecutorContext context, CancellationToken ct)
     {
         foreach (var workItem in context.Fetch)
         {
@@ -102,7 +95,7 @@ internal sealed class RemoteQueryExecutor2
     }
 
     private void ComposeResult(
-        ExecutorContext context,
+        RemoteExecutorContext context,
         WorkItem workItem)
         => ComposeResult(
             context,
@@ -112,7 +105,7 @@ internal sealed class RemoteQueryExecutor2
             workItem.Variables);
 
     private void ComposeResult(
-        ExecutorContext context,
+        RemoteExecutorContext context,
         IReadOnlyList<ISelection> selections,
         IReadOnlyList<SelectionResult> selectionResults,
         ObjectResult selectionSetResult,
@@ -160,7 +153,7 @@ internal sealed class RemoteQueryExecutor2
     }
 
     private ListResult? ComposeList(
-        ExecutorContext context,
+        RemoteExecutorContext context,
         ISelection selection,
         SelectionResult selectionResult,
         ArgumentContext variables,
@@ -209,7 +202,7 @@ internal sealed class RemoteQueryExecutor2
     }
 
     private ObjectResult? ComposeObject(
-        ExecutorContext context,
+        RemoteExecutorContext context,
         ISelection selection,
         SelectionResult selectionResult,
         ArgumentContext variables)
@@ -220,7 +213,7 @@ internal sealed class RemoteQueryExecutor2
         }
 
         var typeInfo = selectionResult.GetTypeInfo();
-        var typeMetadata = _schema.GetType<ObjectType>(typeInfo);
+        var typeMetadata = _serviceConfiguration.GetType<ObjectType>(typeInfo);
         var type = context.Schema.GetType<Types.ObjectType>(typeMetadata.Name);
         var selectionSet = context.Operation.GetSelectionSet(selection, type);
         var result = context.Result.RentObject(selectionSet.Selections.Count);
@@ -263,14 +256,14 @@ internal sealed class RemoteQueryExecutor2
     }
 
     private IReadOnlyList<Argument> CreateArguments(
-        ExecutorContext context,
+        RemoteExecutorContext context,
         ISelection selection,
         SelectionResult selectionResult,
         ObjectType typeMetadata)
         => throw new NotImplementedException();
 
     private ArgumentContext CreateVariables(
-        ExecutorContext context,
+        RemoteExecutorContext context,
         ISelection selection,
         SelectionResult selectionResult,
         ObjectType typeMetadata,
@@ -278,120 +271,135 @@ internal sealed class RemoteQueryExecutor2
         => throw new NotImplementedException();
 
     private IReadOnlyList<SelectionResult> CreateSelectionResults(
-        ExecutorContext context,
+        RemoteExecutorContext context,
         ISelection selection,
         SelectionResult selectionResult,
         ObjectType typeMetadata)
         => throw new NotImplementedException();
+}
 
-    private sealed class ExecutorContext
+
+internal sealed class RemoteExecutorContext
+{
+    public RemoteExecutorContext(
+        ISchema schema,
+        ResultBuilder result,
+        IOperation operation,
+        QueryPlan plan,
+        IReadOnlySet<ISelectionSet> requiresFetch)
     {
-        public ISchema Schema { get; }
-
-        public ResultBuilder Result { get; }
-
-        public IOperation Operation { get; }
-
-        public QueryPlan Plan { get; }
-
-        public IReadOnlySet<ISelectionSet> RequiresFetch { get; }
-
-        public List<WorkItem> Fetch { get; } = new();
-
-        public Queue<WorkItem> Compose { get; } = new();
+        Schema = schema;
+        Result = result;
+        Operation = operation;
+        Plan = plan;
+        RequiresFetch = requiresFetch;
     }
 
-    private readonly struct ArgumentContext
-    {
-        private readonly List<Item> _items;
+    public ISchema Schema { get; }
 
-        private ArgumentContext(List<Item> items)
+    public ResultBuilder Result { get; }
+
+    public IOperation Operation { get; }
+
+    public QueryPlan Plan { get; }
+
+    public IReadOnlySet<ISelectionSet> RequiresFetch { get; }
+
+    public List<WorkItem> Fetch { get; } = new();
+
+    public Queue<WorkItem> Compose { get; } = new();
+}
+
+internal struct WorkItem
+{
+    public WorkItem(
+        ISelectionSet selectionSet,
+        ArgumentContext variables,
+        ObjectResult result)
+        : this(Array.Empty<Argument>(), selectionSet, variables, result) { }
+
+    public WorkItem(
+        IReadOnlyList<Argument> arguments,
+        ISelectionSet selectionSet,
+        ArgumentContext variables,
+        ObjectResult result)
+    {
+        Arguments = arguments;
+        SelectionSet = selectionSet;
+        SelectionResults = Array.Empty<SelectionResult>();
+        Variables = variables;
+        Result = result;
+    }
+
+    public IReadOnlyList<Argument> Arguments { get; }
+
+    public ISelectionSet SelectionSet { get; }
+
+    public IReadOnlyList<SelectionResult> SelectionResults { get; set; }
+
+    public ArgumentContext Variables { get; set; }
+
+    public ObjectResult Result { get; }
+}
+
+internal readonly struct ArgumentContext
+{
+    private readonly List<Item> _items;
+
+    private ArgumentContext(List<Item> items)
+    {
+        _items = items;
+    }
+
+    public ArgumentContext Push(IReadOnlyList<Argument> arguments)
+    {
+        var items = new List<Item>();
+
+        foreach (var argument in arguments)
         {
-            _items = items;
+            items.Add(new Item(0, argument));
         }
 
-        public ArgumentContext Push(IReadOnlyList<Argument> arguments)
+        if (_items is not null)
         {
-            var items = new List<Item>();
-
-            foreach (var argument in arguments)
+            foreach (var currentItem in _items)
             {
-                items.Add(new Item(0, argument));
-            }
-
-            if (_items is not null)
-            {
-                foreach (var currentItem in _items)
+                if (currentItem.Level > 0)
                 {
-                    if (currentItem.Level > 0)
-                    {
-                        continue;
-                    }
+                    continue;
+                }
 
-                    var add = true;
+                var add = true;
 
-                    foreach (var newItem in items)
+                foreach (var newItem in items)
+                {
+                    if (currentItem.Argument.Name.EqualsOrdinal(newItem.Argument.Name))
                     {
-                        if (currentItem.Argument.Name.EqualsOrdinal(newItem.Argument.Name))
-                        {
-                            add = false;
-                            break;
-                        }
-                    }
-
-                    if (add)
-                    {
-                        items.Add(new Item(currentItem.Level + 1, currentItem.Argument));
+                        add = false;
+                        break;
                     }
                 }
-            }
 
-            return new ArgumentContext(items);
+                if (add)
+                {
+                    items.Add(new Item(currentItem.Level + 1, currentItem.Argument));
+                }
+            }
         }
 
-        private readonly struct Item
-        {
-            public Item(int level, Argument argument)
-            {
-                Level = level;
-                Argument = argument;
-            }
-
-            public int Level { get; }
-
-            public Argument Argument { get; }
-        }
+        return new ArgumentContext(items);
     }
 
-    private struct WorkItem
+    private readonly struct Item
     {
-        public WorkItem(
-            ISelectionSet selectionSet,
-            ArgumentContext variables,
-            ObjectResult result)
-            : this(Array.Empty<Argument>(), selectionSet, variables, result) { }
-
-        public WorkItem(
-            IReadOnlyList<Argument> arguments,
-            ISelectionSet selectionSet,
-            ArgumentContext variables,
-            ObjectResult result)
+        public Item(int level, Argument argument)
         {
-            Arguments = arguments;
-            SelectionSet = selectionSet;
-            SelectionResults = Array.Empty<SelectionResult>();
-            Variables = variables;
-            Result = result;
+            Level = level;
+            Argument = argument;
         }
 
-        public IReadOnlyList<Argument> Arguments { get; }
+        public int Level { get; }
 
-        public ISelectionSet SelectionSet { get; }
-
-        public IReadOnlyList<SelectionResult> SelectionResults { get; set; }
-
-        public ArgumentContext Variables { get; set; }
-
-        public ObjectResult Result { get; }
+        public Argument Argument { get; }
     }
 }

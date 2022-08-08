@@ -7,11 +7,13 @@ namespace HotChocolate.Fusion.Planning;
 
 internal sealed class ExecutionPlanBuilder
 {
-    private readonly Metadata.Schema _schema;
+    private readonly ServiceConfiguration _serviceConfig;
+    private readonly ISchema _schema;
 
-    public ExecutionPlanBuilder(Metadata.Schema schema)
+    public ExecutionPlanBuilder(ServiceConfiguration serviceConfig, ISchema schema)
     {
-        _schema = schema;
+        _serviceConfig = serviceConfig ?? throw new ArgumentNullException(nameof(serviceConfig));
+        _schema = schema ?? throw new ArgumentNullException(nameof(schema));
     }
 
     public QueryPlan Build(QueryPlanContext context)
@@ -43,10 +45,17 @@ internal sealed class ExecutionPlanBuilder
         QueryPlanContext context,
         SelectionExecutionStep executionStep)
     {
+        var selectionSet = executionStep.ParentSelection is null
+            ? context.Operation.RootSelectionSet
+            : context.Operation.GetSelectionSet(
+                executionStep.ParentSelection,
+                _schema.GetType<Types.ObjectType>(executionStep.DeclaringType.Name));
+
         var requestDocument = CreateRequestDocument(context, executionStep);
         var requestHandler = new RequestHandler(
             executionStep.SchemaName,
             requestDocument,
+            selectionSet,
             Array.Empty<RequiredState>());
         return new RequestNode(requestHandler);
     }
@@ -182,7 +191,7 @@ internal sealed class ExecutionPlanBuilder
 
         foreach (var possibleType in possibleTypes)
         {
-            var typeContext = _schema.GetType<ObjectType>(possibleType.Name);
+            var typeContext = _serviceConfig.GetType<ObjectType>(possibleType.Name);
             var selectionSet = context.Operation.GetSelectionSet(parentSelection, possibleType);
 
             foreach (var selection in selectionSet.Selections)
@@ -218,7 +227,7 @@ internal sealed class ExecutionPlanBuilder
     {
         context.VariableValues.Clear();
 
-        var parentDeclaringType = _schema.GetType<ObjectType>(parent.DeclaringType.Name);
+        var parentDeclaringType = _serviceConfig.GetType<ObjectType>(parent.DeclaringType.Name);
         var parentField = parentDeclaringType.Fields[parent.Field.Name];
 
         foreach (var variable in parentField.Variables)
@@ -263,7 +272,7 @@ internal sealed class ExecutionPlanBuilder
 
         if (parent is not null)
         {
-            var parentDeclaringType = _schema.GetType<ObjectType>(parent.DeclaringType.Name);
+            var parentDeclaringType = _serviceConfig.GetType<ObjectType>(parent.DeclaringType.Name);
             var parentField = parentDeclaringType.Fields[parent.Field.Name];
 
             foreach (var variable in parentField.Variables)

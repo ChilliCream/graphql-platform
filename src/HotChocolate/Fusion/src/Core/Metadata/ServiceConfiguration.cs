@@ -1,4 +1,3 @@
-using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Utilities;
@@ -7,14 +6,13 @@ using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 
 namespace HotChocolate.Fusion.Metadata;
 
-// TODO : Name .... RemoteService?
-internal sealed class Schema
+internal sealed class ServiceConfiguration
 {
     private readonly string[] _bindings;
     private readonly Dictionary<string, IType> _types;
     private readonly Dictionary<(string, string), string> _typeNameLookup = new();
 
-    public Schema(IEnumerable<string> bindings, IEnumerable<IType> types)
+    public ServiceConfiguration(IEnumerable<string> bindings, IEnumerable<IType> types)
     {
         _bindings = bindings.ToArray();
         _types = types.ToDictionary(t => t.Name, StringComparer.Ordinal);
@@ -67,7 +65,7 @@ internal sealed class Schema
         throw new NotImplementedException();
     }
 
-    public static Schema Load(string sourceText)
+    public static ServiceConfiguration Load(string sourceText)
         => new SchemaReader().Read(sourceText);
 }
 
@@ -75,10 +73,10 @@ internal sealed class SchemaReader
 {
     private readonly HashSet<string> _assert = new();
 
-    public Schema Read(string sourceText)
+    public ServiceConfiguration Read(string sourceText)
         => ReadServiceDefinition(Utf8GraphQLParser.Parse(sourceText));
 
-    private Schema ReadServiceDefinition(DocumentNode documentNode)
+    private ServiceConfiguration ReadServiceDefinition(DocumentNode documentNode)
     {
         var types = new List<IType>();
         IReadOnlyList<HttpClientConfig>? httpClientConfigs = null;
@@ -110,7 +108,7 @@ internal sealed class SchemaReader
         }
 
 
-        return new Schema(
+        return new ServiceConfiguration(
             httpClientConfigs.Select(t => t.SchemaName),
             types);
     }

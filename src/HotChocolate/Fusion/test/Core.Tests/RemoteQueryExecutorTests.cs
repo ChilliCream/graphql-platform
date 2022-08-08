@@ -88,7 +88,7 @@ public class RemoteQueryExecutorTests
             .UseField(n => n)
             .BuildSchemaAsync();
 
-        var serviceConfig = Metadata.Schema.Load(serviceDefinition);
+        var serviceConfig = Metadata.ServiceConfiguration.Load(serviceDefinition);
 
         var request =
             Parse(
@@ -112,7 +112,7 @@ public class RemoteQueryExecutorTests
         var queryPlanContext = new QueryPlanContext(operation);
         var requestPlaner = new RequestPlaner(serviceConfig);
         var requirementsPlaner = new RequirementsPlaner();
-        var executionPlanBuilder = new ExecutionPlanBuilder(serviceConfig);
+        var executionPlanBuilder = new ExecutionPlanBuilder(serviceConfig, schema);
 
         requestPlaner.Plan(queryPlanContext);
         requirementsPlaner.Plan(queryPlanContext);
@@ -148,10 +148,17 @@ public class RemoteQueryExecutorTests
         var executorFactory = new RemoteRequestExecutorFactory(new[] { executor1, executor2 });
 
         var state = new ExecutionState();
-        var executor = new RemoteQueryExecutor(executorFactory);
+        var executor = new RemoteQueryExecutor2(serviceConfig, executorFactory);
+        var context = new RemoteExecutorContext(
+            schema,
+            new ResultBuilder(
+                new ResultPool(new ObjectResultPool(32, 32), new ListResultPool(32, 32))),
+            operation,
+            queryPlan,
+            new HashSet<ISelectionSet>());
 
-        await executor.ExecuteAsync(queryPlan, state);
 
+        await executor.ExecuteAsync(context);
 
         // assert
 

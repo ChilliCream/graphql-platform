@@ -8,10 +8,12 @@ internal sealed class RequestHandler
     internal RequestHandler(
         string schemaName,
         DocumentNode document,
+        ISelectionSet selectionSet,
         IReadOnlyList<RequiredState> requires)
     {
         SchemaName = schemaName;
         Document = document;
+        SelectionSet = selectionSet;
         Requires = requires;
     }
 
