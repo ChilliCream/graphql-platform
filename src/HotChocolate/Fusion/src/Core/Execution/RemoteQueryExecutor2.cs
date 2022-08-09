@@ -179,7 +179,19 @@ internal sealed class RemoteQueryExecutor2
         var elementType = type.ElementType();
         var result = context.Result.RentList(json.GetArrayLength());
 
-        if (elementType.IsListType())
+        if (!elementType.IsListType())
+        {
+            foreach (var item in json.EnumerateArray())
+            {
+                result.AddUnsafe(
+                    ComposeObject(
+                        context,
+                        selection,
+                        new SelectionResult(new JsonResult(schemaName, item)),
+                        variables));
+            }
+        }
+        else
         {
             foreach (var item in json.EnumerateArray())
             {
@@ -190,18 +202,6 @@ internal sealed class RemoteQueryExecutor2
                         new SelectionResult(new JsonResult(schemaName, item)),
                         variables,
                         elementType));
-            }
-        }
-        else
-        {
-            foreach (var item in json.EnumerateArray())
-            {
-                result.AddUnsafe(
-                    ComposeObject(
-                        context,
-                        selection,
-                        new SelectionResult(new JsonResult(schemaName, item)),
-                        variables));
             }
         }
 
@@ -222,10 +222,10 @@ internal sealed class RemoteQueryExecutor2
         ObjectType typeMetadata;
         Types.ObjectType type;
 
-        if (selection.Type.IsObjectType())
+        if (selection.Type.NamedType() is Types.ObjectType ot)
         {
-            type = (Types.ObjectType)selection.Type.NamedType();
-            typeMetadata = _serviceConfiguration.GetType<ObjectType>(type.Name);
+            type = ot;
+            typeMetadata = _serviceConfiguration.GetType<ObjectType>(ot.Name);
         }
         else
         {
