@@ -28,7 +28,7 @@ public class SnapshotTests
     [Fact]
     public void OneSnapshot_Post_Fix()
     {
-        Snapshot.Match(new MyClass(), "ABC:");
+        Snapshot.Match(new MyClass(), "ABC");
     }
 
     [Fact]
