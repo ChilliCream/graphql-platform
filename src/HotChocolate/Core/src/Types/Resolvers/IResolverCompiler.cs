@@ -35,7 +35,7 @@ public interface IResolverCompiler : IDisposable
     FieldResolverDelegates CompileResolve<TResolver>(
         Expression<Func<TResolver, object?>> propertyOrMethod,
         Type? sourceType = null,
-        IParameterExpressionBuilder[]? parameterExpressionBuilders = null);
+        IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders = null);
 
     /// <summary>
     /// Compiles a resolver from a member selector.
@@ -79,7 +79,7 @@ public interface IResolverCompiler : IDisposable
         MemberInfo member,
         Type? sourceType = null,
         Type? resolverType = null,
-        IParameterExpressionBuilder[]? parameterExpressionBuilders = null);
+        IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders = null);
 
     /// <summary>
     /// Compiles a subscribe resolver from a member.
@@ -116,7 +116,7 @@ public interface IResolverCompiler : IDisposable
     /// </returns>
     IEnumerable<ParameterInfo> GetArgumentParameters(
         ParameterInfo[] parameters,
-        IParameterExpressionBuilder[]? parameterExpressionBuilders = null);
+        IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders = null);
 
     /// <summary>
     /// Applies filed configuration dependencies for the specified parameters.

@@ -22,7 +22,7 @@ namespace HotChocolate.Resolvers;
 /// </summary>
 internal sealed class DefaultResolverCompiler : IResolverCompiler
 {
-    private static readonly IParameterExpressionBuilder[] _empty =
+    private static readonly IReadOnlyList<IParameterExpressionBuilder> _empty =
         Array.Empty<IParameterExpressionBuilder>();
     private static readonly ParameterExpression _context =
         Parameter(typeof(IResolverContext), "context");
@@ -137,7 +137,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
     public FieldResolverDelegates CompileResolve<TResolver>(
         Expression<Func<TResolver, object?>> propertyOrMethod,
         Type? sourceType = null,
-        IParameterExpressionBuilder[]? parameterExpressionBuilders = null)
+        IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders = null)
     {
         if (propertyOrMethod is null)
         {
@@ -182,7 +182,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         MemberInfo member,
         Type? sourceType = null,
         Type? resolverType = null,
-        IParameterExpressionBuilder[]? parameterExpressionBuilders = null)
+        IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders = null)
     {
         if (member is null)
         {
@@ -249,7 +249,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
     /// <inheritdoc />
     public IEnumerable<ParameterInfo> GetArgumentParameters(
         ParameterInfo[] parameters,
-        IParameterExpressionBuilder[]? parameterExpressionBuilders = null)
+        IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders = null)
     {
         if (parameters is null)
         {
@@ -295,7 +295,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
 
     private FieldResolverDelegate CompileStaticResolver(
         MethodInfo method,
-        IParameterExpressionBuilder[] fieldParameterExpressionBuilders)
+        IReadOnlyList<IParameterExpressionBuilder> fieldParameterExpressionBuilders)
     {
         var parameters = CreateParameters(
             _context,
@@ -310,7 +310,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         MemberInfo member,
         Type source,
         Type resolverType,
-        IParameterExpressionBuilder[] fieldParameterExpressionBuilders)
+        IReadOnlyList<IParameterExpressionBuilder> fieldParameterExpressionBuilders)
     {
         if (member is PropertyInfo property)
         {
@@ -341,7 +341,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         MemberInfo member,
         Type source,
         Type resolver,
-        IParameterExpressionBuilder[] fieldParameterExpressionBuilders)
+        IReadOnlyList<IParameterExpressionBuilder> fieldParameterExpressionBuilders)
     {
         if (member is PropertyInfo property && IsPureResolverResult(property.PropertyType))
         {
@@ -384,7 +384,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
     private bool IsPureResolver(
         MethodInfo method,
         ParameterInfo[] parameters,
-        IParameterExpressionBuilder[] fieldParameterExpressionBuilders)
+        IReadOnlyList<IParameterExpressionBuilder> fieldParameterExpressionBuilders)
     {
         if (!IsPureResolverResult(method.ReturnType))
         {
@@ -447,7 +447,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
     private Expression[] CreateParameters(
         ParameterExpression context,
         ParameterInfo[] parameters,
-        IParameterExpressionBuilder[] fieldParameterExpressionBuilders)
+        IReadOnlyList<IParameterExpressionBuilder> fieldParameterExpressionBuilders)
     {
         var parameterResolvers = new Expression[parameters.Length];
 
@@ -466,15 +466,15 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
 
     private IParameterExpressionBuilder GetParameterExpressionBuilder(
         ParameterInfo parameter,
-        IParameterExpressionBuilder[] fieldParameterExpressionBuilders)
+        IReadOnlyList<IParameterExpressionBuilder> fieldParameterExpressionBuilders)
     {
-        if (fieldParameterExpressionBuilders.Length == 0 &&
+        if (fieldParameterExpressionBuilders.Count == 0 &&
             _cache.TryGetValue(parameter, out var cached))
         {
             return cached;
         }
 
-        if (fieldParameterExpressionBuilders.Length > 0)
+        if (fieldParameterExpressionBuilders.Count > 0)
         {
             foreach (var builder in fieldParameterExpressionBuilders)
             {
@@ -503,7 +503,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
             }
         }
 
-        if (fieldParameterExpressionBuilders.Length > 0)
+        if (fieldParameterExpressionBuilders.Count > 0)
         {
             foreach (var builder in fieldParameterExpressionBuilders)
             {

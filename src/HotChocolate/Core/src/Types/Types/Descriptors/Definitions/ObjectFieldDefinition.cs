@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 
@@ -18,6 +19,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
 {
     private List<FieldMiddlewareDefinition>? _middlewareDefinitions;
     private List<ResultConverterDefinition>? _resultConverters;
+    private List<IParameterExpressionBuilder>? _expressionBuilders;
     private List<object>? _customSettings;
     private bool _middlewareDefinitionsCleaned;
     private bool _resultConvertersCleaned;
@@ -137,7 +139,19 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     }
 
     /// <summary>
-    /// A list of custom settings objects that can be user in the type interceptors.
+    /// A list of parameter expression builders that shall be applied when compiling
+    /// the resolver or when arguments are inferred from a method.
+    /// </summary>
+    public IList<IParameterExpressionBuilder> ParameterExpressionBuilders
+    {
+        get
+        {
+            return _expressionBuilders ??= new List<IParameterExpressionBuilder>();
+        }
+    }
+
+    /// <summary>
+    /// A list of custom settings objects that can be used in the type interceptors.
     /// Custom settings are not copied to the actual type system object.
     /// </summary>
     public IList<object> CustomSettings
@@ -232,6 +246,20 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     }
 
     /// <summary>
+    /// A list of parameter expression builders that shall be applied when compiling
+    /// the resolver or when arguments are inferred from a method.
+    /// </summary>
+    internal IReadOnlyList<IParameterExpressionBuilder> GetParameterExpressionBuilders()
+    {
+        if (_expressionBuilders is null)
+        {
+            return Array.Empty<IParameterExpressionBuilder>();
+        }
+
+        return _expressionBuilders;
+    }
+
+    /// <summary>
     /// A list of custom settings objects that can be user in the type interceptors.
     /// Custom settings are not copied to the actual type system object.
     /// </summary>
@@ -262,6 +290,11 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
         {
             target._resultConverters = new(_resultConverters);
             _resultConvertersCleaned = false;
+        }
+
+        if (_expressionBuilders is { Count: > 0 })
+        {
+            target._expressionBuilders = new(_expressionBuilders);
         }
 
         if (_customSettings is { Count: > 0 })
@@ -300,6 +333,12 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
             target._resultConverters ??= new List<ResultConverterDefinition>();
             target._resultConverters.AddRange(_resultConverters);
             _resultConvertersCleaned = false;
+        }
+
+        if (_expressionBuilders is { Count: > 0 })
+        {
+            target._expressionBuilders ??= new List<IParameterExpressionBuilder>();
+            target._expressionBuilders.AddRange(_expressionBuilders);
         }
 
         if (_customSettings is { Count: > 0 })
