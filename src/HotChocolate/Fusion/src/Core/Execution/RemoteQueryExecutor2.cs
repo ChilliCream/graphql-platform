@@ -51,7 +51,20 @@ internal sealed class RemoteQueryExecutor2
         {
             // todo: this is not really efficient
             var arguments = workItem.Arguments.ToDictionary(static t => t.Name, static t => t.Value);
-            var selectionResult = new SelectionResult[workItem.SelectionSet.Selections.Count];
+            var selectionResult = workItem.SelectionResults;
+            var partialResult = selectionResult[0];
+
+            // if there was a partial result stored on the selection set then we will first unwrap
+            // it before starting to fetch.
+            if (partialResult.HasValue)
+            {
+                // first we need to erase the partial result from the array so that its not
+                // combined into the result creation.
+                selectionResult[0] = default;
+
+                // next we will unwrap the results.
+                CreateSelectionResults(partialResult, workItem.SelectionSet.Selections);
+            }
 
             foreach (var requestNode in context.Plan.GetRequestNodes(workItem.SelectionSet))
             {
@@ -70,9 +83,7 @@ internal sealed class RemoteQueryExecutor2
                 // todo: how do we treat errors
             }
 
-            var composeWorkItem = workItem;
-            composeWorkItem.SelectionResults = selectionResult;
-            context.Compose.Enqueue(composeWorkItem);
+            context.Compose.Enqueue(workItem);
         }
 
         context.Fetch.Clear();
@@ -245,8 +256,11 @@ internal sealed class RemoteQueryExecutor2
                 selectionResult,
                 typeMetadata);
 
-            var fetchWorkItem = new WorkItem(fetchArguments, selectionSet, variables, result);
-            context.Fetch.Add(fetchWorkItem);
+            context.Fetch.Add(
+                new WorkItem(fetchArguments, selectionSet, variables, result)
+                {
+                    SelectionResults = { [0] = selectionResult }
+                });
         }
         else
         {

@@ -21,13 +21,14 @@ internal struct WorkItem
         SelectionResults = Array.Empty<SelectionResult>();
         Variables = variables;
         Result = result;
+        SelectionResults = new SelectionResult[selectionSet.Selections.Count];
     }
 
     public IReadOnlyList<Argument> Arguments { get; }
 
     public ISelectionSet SelectionSet { get; }
 
-    public IReadOnlyList<SelectionResult> SelectionResults { get; set; }
+    public SelectionResult[] SelectionResults { get; }
 
     public ArgumentContext Variables { get; set; }
 
