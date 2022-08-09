@@ -3,10 +3,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Fusion.Planning;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 using IType = HotChocolate.Fusion.Metadata.IType;
 using ObjectType = HotChocolate.Fusion.Metadata.ObjectType;
 
@@ -23,7 +22,9 @@ internal sealed class RemoteQueryExecutor2
         _executorFactory = executorFactory;
     }
 
-    public async Task ExecuteAsync(RemoteExecutorContext context, CancellationToken cancellationToken = default)
+    public async Task<IExecutionResult> ExecuteAsync(
+        RemoteExecutorContext context,
+        CancellationToken cancellationToken = default)
     {
         var rootSelectionSet = context.Operation.RootSelectionSet;
         var rootResult = context.Result.RentObject(rootSelectionSet.Selections.Count);
@@ -39,6 +40,8 @@ internal sealed class RemoteQueryExecutor2
                 ComposeResult(context, current);
             }
         }
+
+        return QueryResultBuilder.New().SetData(rootResult).Create();
     }
 
     // note: this is inefficient and we want to group here, for now we just want to get it working.
@@ -127,7 +130,7 @@ internal sealed class RemoteQueryExecutor2
                 selectionSetResult.SetValueUnsafe(
                     i,
                     selection.ResponseName,
-                    selectionResult.Single,
+                    selectionResult.Single.Element,
                     nullable);
             }
             else if (selection.Type.IsEnumType() || namedType.IsEnumType())
@@ -136,7 +139,7 @@ internal sealed class RemoteQueryExecutor2
                 selectionSetResult.SetValueUnsafe(
                     i,
                     selection.ResponseName,
-                    selectionResult.Single,
+                    selectionResult.Single.Element,
                     nullable);
             }
             else if (selection.Type.IsCompositeType())
@@ -305,7 +308,7 @@ internal sealed class RemoteQueryExecutor2
                 {
                     var current = selectionResults[i];
 
-                    selectionResults[i] = selectionResult.HasValue
+                    selectionResults[i] = current.HasValue
                         ? current.AddResult(new JsonResult(schemaName, property))
                         : new SelectionResult(new JsonResult(schemaName, property));
                 }
@@ -324,7 +327,7 @@ internal sealed class RemoteQueryExecutor2
                     {
                         var current = selectionResults[i];
 
-                        selectionResults[i] = selectionResult.HasValue
+                        selectionResults[i] = current.HasValue
                             ? current.AddResult(new JsonResult(schemaName, property))
                             : new SelectionResult(new JsonResult(schemaName, property));
                     }
@@ -333,131 +336,5 @@ internal sealed class RemoteQueryExecutor2
         }
 
         return selectionResults;
-    }
-}
-
-
-internal sealed class RemoteExecutorContext
-{
-    public RemoteExecutorContext(
-        ISchema schema,
-        ResultBuilder result,
-        IOperation operation,
-        QueryPlan plan,
-        IReadOnlySet<ISelectionSet> requiresFetch)
-    {
-        Schema = schema;
-        Result = result;
-        Operation = operation;
-        Plan = plan;
-        RequiresFetch = requiresFetch;
-    }
-
-    public ISchema Schema { get; }
-
-    public ResultBuilder Result { get; }
-
-    public IOperation Operation { get; }
-
-    public QueryPlan Plan { get; }
-
-    public IReadOnlySet<ISelectionSet> RequiresFetch { get; }
-
-    public List<WorkItem> Fetch { get; } = new();
-
-    public Queue<WorkItem> Compose { get; } = new();
-}
-
-internal struct WorkItem
-{
-    public WorkItem(
-        ISelectionSet selectionSet,
-        ArgumentContext variables,
-        ObjectResult result)
-        : this(Array.Empty<Argument>(), selectionSet, variables, result) { }
-
-    public WorkItem(
-        IReadOnlyList<Argument> arguments,
-        ISelectionSet selectionSet,
-        ArgumentContext variables,
-        ObjectResult result)
-    {
-        Arguments = arguments;
-        SelectionSet = selectionSet;
-        SelectionResults = Array.Empty<SelectionResult>();
-        Variables = variables;
-        Result = result;
-    }
-
-    public IReadOnlyList<Argument> Arguments { get; }
-
-    public ISelectionSet SelectionSet { get; }
-
-    public IReadOnlyList<SelectionResult> SelectionResults { get; set; }
-
-    public ArgumentContext Variables { get; set; }
-
-    public ObjectResult Result { get; }
-}
-
-internal readonly struct ArgumentContext
-{
-    private readonly List<Item> _items;
-
-    private ArgumentContext(List<Item> items)
-    {
-        _items = items;
-    }
-
-    public ArgumentContext Push(IReadOnlyList<Argument> arguments)
-    {
-        var items = new List<Item>();
-
-        foreach (var argument in arguments)
-        {
-            items.Add(new Item(0, argument));
-        }
-
-        if (_items is not null)
-        {
-            foreach (var currentItem in _items)
-            {
-                if (currentItem.Level > 0)
-                {
-                    continue;
-                }
-
-                var add = true;
-
-                foreach (var newItem in items)
-                {
-                    if (currentItem.Argument.Name.EqualsOrdinal(newItem.Argument.Name))
-                    {
-                        add = false;
-                        break;
-                    }
-                }
-
-                if (add)
-                {
-                    items.Add(new Item(currentItem.Level + 1, currentItem.Argument));
-                }
-            }
-        }
-
-        return new ArgumentContext(items);
-    }
-
-    private readonly struct Item
-    {
-        public Item(int level, Argument argument)
-        {
-            Level = level;
-            Argument = argument;
-        }
-
-        public int Level { get; }
-
-        public Argument Argument { get; }
     }
 }

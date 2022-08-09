@@ -93,7 +93,7 @@ public class RemoteQueryExecutorTests
         var request =
             Parse(
                 @"query GetPersonById {
-                    personById(id: 1) {
+                    personById(id: 4) {
                         name
                         friends {
                             name
@@ -149,18 +149,19 @@ public class RemoteQueryExecutorTests
 
         var executorFactory = new RemoteRequestExecutorFactory(new[] { executor1, executor2 });
 
-        var state = new ExecutionState();
         var executor = new RemoteQueryExecutor2(serviceConfig, executorFactory);
         var context = new RemoteExecutorContext(
             schema,
             new ResultBuilder(
-                new ResultPool(new ObjectResultPool(32, 32), new ListResultPool(32, 32))),
+                new ResultPool(
+                    new ObjectResultPool(32, 32),
+                    new ListResultPool(32, 32))),
             operation,
             queryPlan,
             new HashSet<ISelectionSet>(queryPlan.ExecutionNodes.OfType<RequestNode>().Select(t => t.Handler.SelectionSet)));
 
 
-        await executor.ExecuteAsync(context);
+        var result = await executor.ExecuteAsync(context);
 
         // assert
 
