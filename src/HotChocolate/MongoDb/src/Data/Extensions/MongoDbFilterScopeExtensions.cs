@@ -1,8 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using MongoDB.Bson;
-using MongoDB.Driver;
-
 namespace HotChocolate.Data.MongoDb.Filters;
 
 public static class MongoDbFilterScopeExtensions
@@ -10,19 +5,13 @@ public static class MongoDbFilterScopeExtensions
     public static string GetPath(this MongoDbFilterScope scope) =>
         string.Join(".", scope.Path.Reverse());
 
-    public static bool TryCreateQuery(
-        this MongoDbFilterScope scope,
-        [NotNullWhen(true)] out MongoDbFilterDefinition? query)
+    public static MongoDbFilterDefinition CreateQuery(this MongoDbFilterScope scope)
     {
-        query = null;
-
         if (scope.Level.Peek().Count == 0)
         {
-            return false;
+            return MongoDbFilterDefinition.Empty;
         }
 
-        query = new AndFilterDefinition(scope.Level.Peek().ToArray());
-
-        return true;
+        return new AndFilterDefinition(scope.Level.Peek().ToArray());
     }
 }

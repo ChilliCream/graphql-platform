@@ -76,8 +76,7 @@ public abstract class Neo4JListOperationHandlerBase
     {
         context.RuntimeTypes.Pop();
 
-        if (context.TryCreateQuery(out var query) &&
-            context.Scopes.Pop() is Neo4JFilterScope scope)
+        if (context.Scopes.Pop() is Neo4JFilterScope scope)
         {
             var path = context.GetNeo4JFilterScope().GetPath();
 
