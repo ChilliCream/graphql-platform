@@ -31,6 +31,7 @@ internal sealed partial class ResultBuilder
         _nonNullViolations.Clear();
         _extensions.Clear();
         _contextData.Clear();
+        _cleanupTasks.Clear();
 
         InitializeResult();
 

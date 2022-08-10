@@ -8,6 +8,10 @@ In this section we will learn about the Hot Chocolate execution engine.
 src="https://www.youtube.com/embed/Ut33sSTYmgw"frameborder="0"
 allowfullscreen></iframe>
 
+<iframe width="560" height="315"
+src="https://www.youtube.com/embed/WU553aF-AWQ"frameborder="0"
+allowfullscreen></iframe>
+
 # Request Middleware
 
 The GraphQL execution is abstracted into a request pipeline composed of many request middleware. Each request middleware represents one part of executing a GraphQL request, like the parsing of the GraphQL request document or the semantical validation of the GraphQL request document.
