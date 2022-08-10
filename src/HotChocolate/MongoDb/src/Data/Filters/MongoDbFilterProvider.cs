@@ -52,8 +52,7 @@ namespace HotChocolate.Data.MongoDb.Filters
 
                     Visitor.Visit(filter, visitorContext);
 
-                    if (!visitorContext.TryCreateQuery(out MongoDbFilterDefinition? whereQuery) ||
-                        visitorContext.Errors.Count > 0)
+                    if (visitorContext.Errors.Count > 0)
                     {
                         context.Result = Array.Empty<TEntityType>();
                         foreach (IError error in visitorContext.Errors)
@@ -61,12 +60,10 @@ namespace HotChocolate.Data.MongoDb.Filters
                             context.ReportError(error.WithPath(context.Path));
                         }
                     }
-                    else
+                    else if (visitorContext.TryCreateQuery(out MongoDbFilterDefinition? whereQuery))
                     {
-                        context.LocalContextData =
-                            context.LocalContextData.SetItem(
-                                nameof(FilterDefinition<TEntityType>),
-                                whereQuery);
+                        context.LocalContextData = context.LocalContextData
+                            .SetItem(nameof(FilterDefinition<TEntityType>), whereQuery);
 
                         await next(context).ConfigureAwait(false);
 

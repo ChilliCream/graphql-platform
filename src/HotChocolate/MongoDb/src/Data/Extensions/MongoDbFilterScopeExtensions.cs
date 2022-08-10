@@ -1,7 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using MongoDB.Bson;
-using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Filters
 {
@@ -18,7 +16,8 @@ namespace HotChocolate.Data.MongoDb.Filters
 
             if (scope.Level.Peek().Count == 0)
             {
-                return false;
+                query = MongoDbFilterDefinition.Empty;
+                return true;
             }
 
             query = new AndFilterDefinition(scope.Level.Peek().ToArray());

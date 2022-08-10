@@ -17,7 +17,8 @@ namespace HotChocolate.Data.Neo4J.Filtering
 
             if (scope.Level.Peek().Count == 0)
             {
-                return false;
+                query = new CompoundCondition(null);
+                return true;
             }
 
             var conditions = new CompoundCondition(Operator.And);

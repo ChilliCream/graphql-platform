@@ -1,0 +1,1 @@
+﻿MATCH (fooBool:FooBool) RETURN fooBool {.Bar}

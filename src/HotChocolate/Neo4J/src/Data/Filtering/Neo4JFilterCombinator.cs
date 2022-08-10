@@ -18,7 +18,8 @@ namespace HotChocolate.Data.Neo4J.Filtering
         {
             if (operations.Count == 0)
             {
-                throw ThrowHelper.Filtering_Neo4JFilterCombinator_QueueEmpty(this);
+                combined = default!;
+                return false;
             }
 
             combined = combinator switch

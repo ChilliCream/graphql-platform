@@ -16,7 +16,8 @@ public class QueryableCombinator
     {
         if (operations.Count == 0)
         {
-            throw ThrowHelper.Filtering_QueryableCombinator_QueueEmpty(this);
+             combined = default!;
+             return false;
         }
 
         combined = operations.Dequeue();
