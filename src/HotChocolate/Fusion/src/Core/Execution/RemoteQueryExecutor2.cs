@@ -75,21 +75,13 @@ internal sealed class RemoteQueryExecutor2
 
             foreach (var requestNode in context.Plan.GetRequestNodes(workItem.SelectionSet))
             {
-                var request = requestNode.Handler.CreateRequest(variableValues);
                 var executor = _executorFactory.Create(requestNode.Handler.SchemaName);
+                var request = requestNode.Handler.CreateRequest(variableValues);
                 var result = await executor.ExecuteAsync(request, ct).ConfigureAwait(false);
+                var data = requestNode.Handler.UnwrapResult(result);
 
-                // extract arguments
-
-                ExtractSelectionResults(
-                    selections,
-                    request.SchemaName,
-                    result.Data!.Value, // this is wrong, we need a way to correctly extract the result
-                    selectionResults);
-
-                ExtractVariables(result.Data!.Value, exportKeys, variableValues);
-
-                // todo: how do we treat errors
+                ExtractSelectionResults(selections, request.SchemaName, data, selectionResults);
+                ExtractVariables(data, exportKeys, variableValues);
             }
 
             context.Compose.Enqueue(workItem);
@@ -363,15 +355,18 @@ internal sealed class RemoteQueryExecutor2
         IReadOnlyList<string> exportKeys,
         Dictionary<string, IValueNode> variableValues)
     {
-        if (parent.Multiple is null)
+        if (exportKeys.Count > 0)
         {
-            ExtractVariables(parent.Single.Element, exportKeys, variableValues);
-        }
-        else
-        {
-            foreach (var result in parent.Multiple)
+            if (parent.Multiple is null)
             {
-                ExtractVariables(result.Element, exportKeys, variableValues);
+                ExtractVariables(parent.Single.Element, exportKeys, variableValues);
+            }
+            else
+            {
+                foreach (var result in parent.Multiple)
+                {
+                    ExtractVariables(result.Element, exportKeys, variableValues);
+                }
             }
         }
     }
@@ -381,13 +376,18 @@ internal sealed class RemoteQueryExecutor2
         IReadOnlyList<string> exportKeys,
         Dictionary<string, IValueNode> variableValues)
     {
-        for (var i = 0; i < exportKeys.Count; i++)
+        if (exportKeys.Count > 0 &&
+            parent.ValueKind is not JsonValueKind.Null and not JsonValueKind.Undefined)
         {
-            var key = exportKeys[i];
-            if (!variableValues.ContainsKey(key) &&
-                parent.TryGetProperty(key, out var property))
+            for (var i = 0; i < exportKeys.Count; i++)
             {
-                variableValues.TryAdd(key, Convert(property));
+                var key = exportKeys[i];
+
+                if (!variableValues.ContainsKey(key) &&
+                    parent.TryGetProperty(key, out var property))
+                {
+                    variableValues.TryAdd(key, Convert(property));
+                }
             }
         }
     }

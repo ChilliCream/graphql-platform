@@ -3,6 +3,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
+using HotChocolate.Types.Relay;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Language.Utf8GraphQLParser;
@@ -58,8 +59,8 @@ public class RemoteQueryExecutorTests
             }
 
             type Person
-              @variable(name: ""personId"", select: ""id"" from: ""a"" type: ""ID!"")
-              @variable(name: ""personId"", select: ""id"" from: ""b"" type: ""ID!"")
+              @variable(name: ""personId"", select: ""id"" from: ""a"" type: ""Int!"")
+              @variable(name: ""personId"", select: ""id"" from: ""b"" type: ""Int!"")
               @fetch(from: ""a"", select: ""personById(id: $personId) { ... Person }"")
               @fetch(from: ""b"", select: ""personById(id: $personId) { ... Person }"") {
 

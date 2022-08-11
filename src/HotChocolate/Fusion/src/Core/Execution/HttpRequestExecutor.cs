@@ -26,6 +26,7 @@ public sealed class HttpRequestExecutor : IRemoteRequestExecutor
         using var client = _httpClientFactory.CreateClient(SchemaName);
         using var requestMessage = CreateRequestMessage(writer, request);
         using var responseMessage = await client.SendAsync(requestMessage, cancellationToken);
+        var s = await responseMessage.Content.ReadAsStringAsync(cancellationToken);
         responseMessage.EnsureSuccessStatusCode(); // TODO : remove for production
 
         await using var contentStream = await responseMessage.Content.ReadAsStreamAsync(cancellationToken);

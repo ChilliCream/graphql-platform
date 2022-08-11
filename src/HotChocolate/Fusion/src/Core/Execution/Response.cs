@@ -16,7 +16,7 @@ public sealed class Response : IDisposable
         }
     }
 
-    public JsonElement? Data { get; }
+    public JsonElement Data { get; }
 
     public void Dispose()
     {

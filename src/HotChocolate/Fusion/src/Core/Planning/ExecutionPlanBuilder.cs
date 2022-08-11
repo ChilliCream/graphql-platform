@@ -60,7 +60,8 @@ internal sealed class ExecutionPlanBuilder
             // do we need the type?
             executionStep.Variables.Values
                 .Select(t => new RequiredState(t, null!, false))
-                .ToArray());
+                .ToArray(),
+            Array.Empty<string>());
 
         return new RequestNode(requestHandler);
     }

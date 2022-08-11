@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 
@@ -5,16 +6,20 @@ namespace HotChocolate.Fusion.Execution;
 
 internal sealed class RequestHandler
 {
+    private readonly IReadOnlyList<string> _path;
+
     internal RequestHandler(
         string schemaName,
         DocumentNode document,
         ISelectionSet selectionSet,
-        IReadOnlyList<RequiredState> requires)
+        IReadOnlyList<RequiredState> requires,
+        IReadOnlyList<string> path)
     {
         SchemaName = schemaName;
         Document = document;
         SelectionSet = selectionSet;
         Requires = requires;
+        _path = path;
     }
 
     /// <summary>
@@ -65,6 +70,34 @@ internal sealed class RequestHandler
         }
 
         return new Request(SchemaName, Document, vars, null);
+    }
+
+    public JsonElement UnwrapResult(Response response)
+    {
+        if (_path.Count == 0)
+        {
+            return response.Data;
+        }
+
+        if (response.Data.ValueKind is not JsonValueKind.Undefined and not JsonValueKind.Null)
+        {
+            var current = response.Data;
+
+            for (var i = 0; i < _path.Count; i++)
+            {
+                if (current.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+                {
+                    return current;
+                }
+
+                current.TryGetProperty(_path[i], out var propertyValue);
+                current = propertyValue;
+            }
+
+            return current;
+        }
+
+        return response.Data;
     }
 }
 
