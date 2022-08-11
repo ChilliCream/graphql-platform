@@ -319,7 +319,7 @@ public class Subscription
 
 # Without provider
 
-Especially when including HotChocolate in existing project, there might already be a mechanism in place which serves the same purpose as `ITopicEventSender` and `ITopicEventReceiver`. One solution might be to register custom implementations of these interfaces. However, this can get quite cumbersome when the mechanism in place does not support topic names. Under `ISourceStream` there is an `IAsyncEnumerable` and as such subscriber method can generally work with `IAsyncEnumerable` directly. Subscriber method can filter out streamed events based on it's parameters.
+Especially when including HotChocolate in existing project, there might already be a mechanism in place which serves the same purpose as `ITopicEventSender` and `ITopicEventReceiver`. One solution might be to register custom implementations of these interfaces. However, this can get quite cumbersome when the mechanism in place does not support topic names. Under `ISourceStream` there is an `IAsyncEnumerable` and as such subscriber method can generally work with `IAsyncEnumerable` directly. Subscriber method can filter out streamed events based on it's parameters to achieve topic-like behavior.
 
 ```csharp
 {
