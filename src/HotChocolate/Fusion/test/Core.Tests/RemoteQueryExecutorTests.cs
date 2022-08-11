@@ -1,9 +1,10 @@
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
-using HotChocolate.Types.Relay;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Language.Utf8GraphQLParser;
@@ -165,8 +166,23 @@ public class RemoteQueryExecutorTests
         var result = await executor.ExecuteAsync(context);
 
         // assert
+        var index = 0;
+        var snapshot = new Snapshot();
+        var formatter = new JsonQueryResultFormatter(indented: true);
 
+        snapshot.Add(request, "User Request");
 
+        foreach (var executionNode in queryPlan.ExecutionNodes)
+        {
+            if (executionNode is RequestNode rn)
+            {
+                snapshot.Add(rn.Handler.Document, $"Request {++index}");
+            }
+        }
+
+        snapshot.Add(formatter.Format(result), "Result");
+
+        await snapshot.MatchAsync();
     }
 
     public class MockHttpClientFactory : IHttpClientFactory

@@ -1,14 +1,10 @@
-using System.Collections;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using static HotChocolate.Fusion.Utilities.JsonValueToGraphQLValueConverter;
-using IType = HotChocolate.Fusion.Metadata.IType;
 using ObjectType = HotChocolate.Fusion.Metadata.ObjectType;
 
 namespace HotChocolate.Fusion.Execution;
@@ -24,7 +20,7 @@ internal sealed class RemoteQueryExecutor2
         _executorFactory = executorFactory;
     }
 
-    public async Task<IExecutionResult> ExecuteAsync(
+    public async Task<IQueryResult> ExecuteAsync(
         RemoteExecutorContext context,
         CancellationToken cancellationToken = default)
     {

@@ -20,10 +20,10 @@ internal sealed class RequestPlaner
 
     public void Plan(QueryPlanContext context)
     {
-        var declaringType = _serviceConfig.GetType<ObjectType>(context.Operation.RootType.Name);
+        var selectionSetType = _serviceConfig.GetType<ObjectType>(context.Operation.RootType.Name);
         var selections = context.Operation.RootSelectionSet.Selections;
 
-        Plan(context, declaringType, selections, null);
+        Plan(context, selectionSetType, selections, null);
 
         while (_backlog.TryDequeue(out var item))
         {
@@ -33,7 +33,7 @@ internal sealed class RequestPlaner
 
     private void Plan(
         QueryPlanContext context,
-        ObjectType declaringType,
+        ObjectType selectionSetType,
         IReadOnlyList<ISelection> selections,
         ISelection? parentSelection)
     {
@@ -43,17 +43,17 @@ internal sealed class RequestPlaner
         do
         {
             var current = (IReadOnlyList<ISelection>?)leftovers ?? selections;
-            var schemaName = ResolveBestMatchingSchema(context.Operation, current, declaringType);
-            var workItem = new SelectionExecutionStep(schemaName, declaringType, parentSelection);
+            var schemaName = ResolveBestMatchingSchema(context.Operation, current, selectionSetType);
+            var workItem = new SelectionExecutionStep(schemaName, selectionSetType, parentSelection);
             context.Steps.Add(workItem);
             leftovers = null;
             FetchDefinition? resolver;
 
             if (parentSelection is not null &&
-                declaringType.Resolvers.ContainsResolvers(schemaName))
+                selectionSetType.Resolvers.ContainsResolvers(schemaName))
             {
-                CalculateVariablesInContext(declaringType, parentSelection, variablesInContext);
-                if (TryGetResolver(declaringType, schemaName, variablesInContext, out resolver))
+                CalculateVariablesInContext(selectionSetType, parentSelection, variablesInContext);
+                if (TryGetResolver(selectionSetType, schemaName, variablesInContext, out resolver))
                 {
                     workItem.Resolver = resolver;
                     CalculateRequirements(parentSelection, resolver, workItem.Requires);
@@ -62,12 +62,12 @@ internal sealed class RequestPlaner
 
             foreach (var selection in current)
             {
-                var field = declaringType.Fields[selection.Field.Name];
+                var field = selectionSetType.Fields[selection.Field.Name];
                 if (field.Bindings.TryGetValue(schemaName, out _))
                 {
                     CalculateVariablesInContext(
                         selection,
-                        declaringType,
+                        selectionSetType,
                         parentSelection,
                         variablesInContext);
 
@@ -83,7 +83,7 @@ internal sealed class RequestPlaner
 
                         CalculateRequirements(
                             selection,
-                            declaringType,
+                            selectionSetType,
                             parentSelection,
                             resolver,
                             workItem.Requires);

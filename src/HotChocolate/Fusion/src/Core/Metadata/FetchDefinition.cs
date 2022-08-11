@@ -1,3 +1,4 @@
+using System.ComponentModel.Design;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 
@@ -30,16 +31,12 @@ internal sealed class FetchDefinition
 
     public IReadOnlyList<string> Requires { get; }
 
-    public ISelectionNode CreateSelection(
+    public (ISelectionNode selectionNode, IReadOnlyList<string> Path) CreateSelection(
         IReadOnlyDictionary<string, IValueNode> variables,
         SelectionSetNode? selectionSet)
     {
-        var selection = _rewriter.Rewrite(
-            Select,
-            new FetchRewriterContext(
-                Placeholder,
-                variables,
-                selectionSet));
+        var context = new FetchRewriterContext(Placeholder, variables, selectionSet);
+        var selection = _rewriter.Rewrite(Select, context);
 
         if (Placeholder is null && selectionSet is not null)
         {
@@ -49,10 +46,10 @@ internal sealed class FetchDefinition
                     "Either provide a placeholder or the select expression must be a FieldNode.");
             }
 
-            return fieldNode.WithSelectionSet(selectionSet);
+            return (fieldNode.WithSelectionSet(selectionSet), new[] { fieldNode.Name.Value });
         }
 
-        return (ISelectionNode)selection!;
+        return ((ISelectionNode)selection!, context.SelectionPath);
     }
 
     private class FetchRewriter : SyntaxRewriter<FetchRewriterContext>
@@ -72,11 +69,13 @@ internal sealed class FetchDefinition
 
                     if (rewrittenList is null)
                     {
-                        if (!ReferenceEquals(selectionNode, context.Placeholder))
+                        if (!selectionNode.Equals(context.Placeholder, SyntaxComparison.Syntax))
                         {
                             continue;
                         }
 
+                        // preserve selection path, so we are later able to unwrap the result.
+                        context.SelectionPath = context.Path.ToArray();
                         rewrittenList = new List<ISelectionNode>();
 
                         for (var j = 0; j < i; j++)
@@ -109,6 +108,30 @@ internal sealed class FetchDefinition
 
             return base.OnRewrite(node, context);
         }
+
+        protected override FetchRewriterContext OnEnter(
+            ISyntaxNode node,
+            FetchRewriterContext context)
+        {
+            if (node is FieldNode field)
+            {
+                context.Path.Push(field.Name.Value);
+            }
+
+            return base.OnEnter(node, context);
+        }
+
+        protected override void OnLeave(
+            ISyntaxNode? node,
+            FetchRewriterContext context)
+        {
+            if (node is FieldNode)
+            {
+                context.Path.Pop();
+            }
+
+            base.OnLeave(node, context);
+        }
     }
 
     private sealed class FetchRewriterContext : ISyntaxVisitorContext
@@ -123,10 +146,14 @@ internal sealed class FetchDefinition
             SelectionSet = selectionSet;
         }
 
+        public Stack<string> Path { get; } = new();
+
         public FragmentSpreadNode? Placeholder { get; }
 
         public IReadOnlyDictionary<string, IValueNode> Variables { get; }
 
         public SelectionSetNode? SelectionSet { get; }
+
+        public IReadOnlyList<string> SelectionPath { get; set; } = Array.Empty<string>();
     }
 }

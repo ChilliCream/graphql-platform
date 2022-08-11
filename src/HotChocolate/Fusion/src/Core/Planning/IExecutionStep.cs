@@ -17,7 +17,7 @@ internal interface IExecutionStep
     /// <summary>
     /// Gets the declaring type of the root selection set of this execution step.
     /// </summary>
-    ObjectType DeclaringType { get; }
+    ObjectType SelectionSetType { get; }
 
     /// <summary>
     /// Gets the parent selection.

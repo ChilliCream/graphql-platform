@@ -56,7 +56,7 @@ internal sealed class RequirementsPlaner
 
                 // if we still have requirements unfulfilled will try to resolve them
                 // from sibling execution steps.
-                foreach (var variable in step.DeclaringType.Variables)
+                foreach (var variable in step.SelectionSetType.Variables)
                 {
                     var schemaName = variable.SchemaName;
                     if (requires.Contains(variable.Name) &&

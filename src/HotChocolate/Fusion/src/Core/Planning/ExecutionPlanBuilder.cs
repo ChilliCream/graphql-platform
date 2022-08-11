@@ -49,9 +49,9 @@ internal sealed class ExecutionPlanBuilder
             ? context.Operation.RootSelectionSet
             : context.Operation.GetSelectionSet(
                 executionStep.ParentSelection,
-                _schema.GetType<Types.ObjectType>(executionStep.DeclaringType.Name));
+                _schema.GetType<Types.ObjectType>(executionStep.SelectionSetType.Name));
 
-        var requestDocument = CreateRequestDocument(context, executionStep);
+        var (requestDocument, path) = CreateRequestDocument(context, executionStep);
 
         var requestHandler = new RequestHandler(
             executionStep.SchemaName,
@@ -61,16 +61,17 @@ internal sealed class ExecutionPlanBuilder
             executionStep.Variables.Values
                 .Select(t => new RequiredState(t, null!, false))
                 .ToArray(),
-            Array.Empty<string>());
+            path);
 
         return new RequestNode(requestHandler);
     }
 
-    private DocumentNode CreateRequestDocument(
+    private (DocumentNode Document, IReadOnlyList<string> Path) CreateRequestDocument(
         QueryPlanContext context,
         SelectionExecutionStep executionStep)
     {
         var rootSelectionSetNode = CreateRootSelectionSetNode(context, executionStep);
+        IReadOnlyList<string> path = Array.Empty<string>();
 
         if (executionStep.Resolver is not null &&
             executionStep.ParentSelection is not null)
@@ -81,11 +82,12 @@ internal sealed class ExecutionPlanBuilder
                 executionStep.Resolver,
                 executionStep.Variables);
 
-            var rootResolver = executionStep.Resolver.CreateSelection(
+            var (rootResolver, p) = executionStep.Resolver.CreateSelection(
                 context.VariableValues,
                 rootSelectionSetNode);
 
             rootSelectionSetNode = new SelectionSetNode(new[] { rootResolver });
+            path = p;
         }
 
         var operationDefinitionNode = new OperationDefinitionNode(
@@ -96,7 +98,7 @@ internal sealed class ExecutionPlanBuilder
             Array.Empty<DirectiveNode>(),
             rootSelectionSetNode);
 
-        return new DocumentNode(new[] { operationDefinitionNode });
+        return (new DocumentNode(new[] { operationDefinitionNode }), path);
     }
 
     private SelectionSetNode CreateRootSelectionSetNode(
@@ -105,12 +107,13 @@ internal sealed class ExecutionPlanBuilder
     {
         var selectionNodes = new List<ISelectionNode>();
         var selectionSet = executionStep.RootSelections[0].Selection.DeclaringSelectionSet;
+        var selectionSetType = executionStep.SelectionSetType;
 
         // create
         foreach (var rootSelection in executionStep.RootSelections)
         {
             ISelectionNode selectionNode;
-            var field = executionStep.DeclaringType.Fields[rootSelection.Selection.Field.Name];
+            var field = selectionSetType.Fields[rootSelection.Selection.Field.Name];
 
             if (rootSelection.Resolver is null)
             {
@@ -135,14 +138,15 @@ internal sealed class ExecutionPlanBuilder
                 ResolveRequirements(
                     context,
                     rootSelection.Selection,
-                    executionStep.DeclaringType,
+                    selectionSetType,
                     executionStep.ParentSelection,
                     rootSelection.Resolver,
                     executionStep.Variables);
 
-                selectionNode = rootSelection.Resolver.CreateSelection(
+                var (s, p) = rootSelection.Resolver.CreateSelection(
                     context.VariableValues,
                     selectionSetNode);
+                selectionNode = s;
             }
 
             selectionNodes.Add(selectionNode);

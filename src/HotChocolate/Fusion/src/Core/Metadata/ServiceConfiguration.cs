@@ -279,8 +279,10 @@ internal sealed class SchemaReader
                     if (node is FragmentSpreadNode p)
                     {
                         placeholder = p;
+                        return SyntaxVisitor.Break;
                     }
-                    else if (node is VariableNode v)
+
+                    if (node is VariableNode v)
                     {
                         _assert.Add(v.Name.Value);
                     }

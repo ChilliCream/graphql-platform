@@ -7,17 +7,23 @@ internal class SelectionExecutionStep : IExecutionStep
 {
     public SelectionExecutionStep(
         string schemaNameName,
-        ObjectType declaringType,
+        ObjectType selectionSetType,
         ISelection? parentSelection)
     {
-        DeclaringType = declaringType;
+        SelectionSetType = selectionSetType;
         ParentSelection = parentSelection;
         SchemaName = schemaNameName;
     }
 
     public string SchemaName { get; }
 
-    public ObjectType DeclaringType { get; }
+    /// <summary>
+    /// The type name of the root selection set of this execution step.
+    /// If <see cref="ParentSelection"/> is null then the selection set is the
+    /// operation root selection set, otherwise its the selection set resolved
+    /// by using the <see cref="ParentSelection"/>.
+    /// </summary>
+    public ObjectType SelectionSetType { get; }
 
     public ISelection? ParentSelection { get; }
 
