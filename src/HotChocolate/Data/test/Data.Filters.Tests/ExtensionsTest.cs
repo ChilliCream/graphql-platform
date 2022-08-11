@@ -1,8 +1,8 @@
 using System;
 using System.Linq;
+using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Types;
-using CookieCrumble;
 
 namespace HotChocolate.Data.Tests;
 
@@ -41,13 +41,13 @@ public class ExtensionTests
     public void ObjectField_UseFiltering()
     {
         // arrange
-        // act
         var builder = SchemaBuilder.New()
             .AddFiltering()
             .AddQueryType<Query>(
                 c =>
                     c.Field(x => x.GetFoos()).UseFiltering());
 
+        // act
         var schema = builder.Create();
 
         // assert

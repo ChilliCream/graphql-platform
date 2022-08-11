@@ -88,7 +88,8 @@ public class SnapshotTests
     {
         var snapshot = new Snapshot();
         snapshot.Add(new MyClass());
-        snapshot.Add(new MyClass { Foo = "Bar" }, "Bar:", new CustomSerializer());
+        snapshot.Add(new MyClass { Foo = "Baz" }, "Bar:", new CustomSerializer());
+        snapshot.Add(new MyClass { Foo = "Baz" });
         snapshot.Add(new MyClass { Foo = "Baz" });
         snapshot.Match();
     }
