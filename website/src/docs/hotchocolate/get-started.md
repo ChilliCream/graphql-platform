@@ -7,6 +7,10 @@ import { InputChoiceTabs } from "../../components/mdx/input-choice-tabs"
 
 In this tutorial, we will walk you through the basics of creating a GraphQL server with Hot Chocolate.
 
+<iframe width="560" height="315"
+src="https://www.youtube.com/embed/qrh97hToWpM"frameborder="0"
+allowfullscreen></iframe>
+
 # Setup
 
 If you are integrating Hot Chocolate into an existing project using ASP.NET Core, you can skip step 1.
