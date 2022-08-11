@@ -327,7 +327,7 @@ Especially when including HotChocolate in existing project, there might already 
         [Service] EventHub hub)
     {
         IAsyncEnumerable<BookCreated> messageStream = hub.ListenAsync<BookCreated>();
-        await foreach(BookCreatedEventArgs message in stream) {
+        await foreach(BookCreated message in stream) {
             Book book = message.Book;
             if (@book.Author == author)
                 yield return book;
