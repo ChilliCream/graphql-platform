@@ -315,9 +315,7 @@ public class Subscription
 }
 ```
 
-> ⚠️ Note: Arguments and return type of nodes in the schema is inferred from the resolver method. As in example with attribute `Topic`, all arguments must be be defined on resolver method even if accessed only by subscriber method.
-
-> ⚠️ Note: **Name and type of the parameter must match otherwise** subscriber method won't be called and **subscription will fail silently**. Some types like `int` and `long` may work with each other, but if and only if the value is in range.
+> ⚠️ Note: Arguments and return type of nodes in the schema is inferred from the resolver method. As in example with attribute `Topic`, all arguments must be be defined on resolver method even if accessed only by subscriber method. If accessed by subscriber method, **name and type of the parameter must match otherwise** subscriber method won't be called and **subscription will fail silently**. Some types like `int` and `long` may work with each other, but if and only if the value is in range.
 
 # Without provider
 
