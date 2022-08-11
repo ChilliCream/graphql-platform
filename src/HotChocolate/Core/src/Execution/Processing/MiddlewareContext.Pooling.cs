@@ -37,6 +37,7 @@ internal partial class MiddlewareContext
     public void Clean()
     {
         _childContext.Clear();
+        _cleanupTasks.Clear();
         _operationContext = default!;
         _services = default!;
         _selection = default!;

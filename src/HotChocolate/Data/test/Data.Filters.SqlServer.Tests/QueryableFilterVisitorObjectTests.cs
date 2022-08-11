@@ -163,7 +163,7 @@ public class QueryableFilterVisitorObjectTests
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
-                    "{ root(where: { foo: { barShort: { in: [ null, 14 ]}}}) " +
+                    "{ root(where: { foo: { barShort: { in: [ 13, 14 ]}}}) " +
                     "{ foo{ barShort}}}")
                 .Create());
 

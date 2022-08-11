@@ -71,6 +71,6 @@ internal sealed partial class ResolverTask : IExecutionTask
     }
 
     /// <inheritdoc />
-    public Task WaitForCompletionAsync(CancellationToken cancellationToken) =>
-        _task ?? Task.CompletedTask;
+    public Task WaitForCompletionAsync(CancellationToken cancellationToken)
+        => _task ?? Task.CompletedTask;
 }

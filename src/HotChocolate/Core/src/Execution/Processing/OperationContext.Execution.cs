@@ -43,18 +43,6 @@ internal sealed partial class OperationContext
         }
     }
 
-    /// <summary>
-    /// Register cleanup tasks that will be executed after resolver execution is finished.
-    /// </summary>
-    /// <param name="action">
-    /// Cleanup action.
-    /// </param>
-    public void RegisterForCleanup(Action action)
-    {
-        AssertInitialized();
-        _cleanupActions.Add(action);
-    }
-
     public ResolverTask CreateResolverTask(
         ISelection selection,
         object? parent,
