@@ -5,12 +5,14 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
 
-internal sealed class ExportDefinitions
+internal sealed class ExportDefinitionRegistry
 {
     private readonly Dictionary<(ISelectionSet, string), string> _stateKeyLookup = new();
     private readonly Dictionary<string, ExportDefinition> _exportDefinitions = new(StringComparer.Ordinal);
     private readonly string _groupKey = "_fusion_exports_";
     private int _stateId;
+
+    public IReadOnlyCollection<ExportDefinition> All => _exportDefinitions.Values;
 
     public string Register(
         ISelectionSet selectionSet,
@@ -79,8 +81,11 @@ internal sealed class ExportDefinitions
                 ReferenceEquals(exportDefinition.SelectionSet, selectionSet))
             {
                 // TODO : we need to transform this for better selection during execution
-                yield return exportDefinition.VariableDefinition.Select;
+                var selection = exportDefinition.VariableDefinition.Select;
+                var stateKey = exportDefinition.StateKey;
+                yield return selection.WithAlias(new NameNode(stateKey));
             }
         }
     }
+
 }

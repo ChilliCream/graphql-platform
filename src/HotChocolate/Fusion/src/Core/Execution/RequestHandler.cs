@@ -58,7 +58,6 @@ internal sealed class RequestHandler
                         $"The variable value `{required.VariableName}` was not provided " +
                         "but is required.",
                         nameof(variableValues));
-
                 }
             }
 

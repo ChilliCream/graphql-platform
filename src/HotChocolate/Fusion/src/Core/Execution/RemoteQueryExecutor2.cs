@@ -5,7 +5,9 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Language;
 using HotChocolate.Types;
+using static HotChocolate.Fusion.Utilities.JsonValueToGraphQLValueConverter;
 using IType = HotChocolate.Fusion.Metadata.IType;
 using ObjectType = HotChocolate.Fusion.Metadata.ObjectType;
 
@@ -50,9 +52,11 @@ internal sealed class RemoteQueryExecutor2
         foreach (var workItem in context.Fetch)
         {
             // todo: this is not really efficient
-            var arguments = workItem.Arguments.ToDictionary(static t => t.Name, static t => t.Value);
-            var selectionResult = workItem.SelectionResults;
-            var partialResult = selectionResult[0];
+            var variableValues = new Dictionary<string, IValueNode>(StringComparer.Ordinal);
+            var selectionResults = workItem.SelectionResults;
+            var partialResult = selectionResults[0];
+            var selections = workItem.SelectionSet.Selections;
+            var exportKeys = context.Plan.GetExports(workItem.SelectionSet);
 
             // if there was a partial result stored on the selection set then we will first unwrap
             // it before starting to fetch.
@@ -60,25 +64,30 @@ internal sealed class RemoteQueryExecutor2
             {
                 // first we need to erase the partial result from the array so that its not
                 // combined into the result creation.
-                selectionResult[0] = default;
+                selectionResults[0] = default;
 
                 // next we will unwrap the results.
-                CreateSelectionResults(partialResult, workItem.SelectionSet.Selections);
+                ExtractSelectionResults(partialResult, selections, selectionResults);
+
+                // last we will check if there are any exports for this selection-set.
+                ExtractVariables(partialResult, exportKeys, variableValues);
             }
 
             foreach (var requestNode in context.Plan.GetRequestNodes(workItem.SelectionSet))
             {
-                var request = requestNode.Handler.CreateRequest(arguments);
+                var request = requestNode.Handler.CreateRequest(variableValues);
                 var executor = _executorFactory.Create(requestNode.Handler.SchemaName);
                 var result = await executor.ExecuteAsync(request, ct).ConfigureAwait(false);
 
                 // extract arguments
 
                 ExtractSelectionResults(
-                    workItem.SelectionSet.Selections,
+                    selections,
                     request.SchemaName,
                     result.Data!.Value, // this is wrong, we need a way to correctly extract the result
-                    selectionResult);
+                    selectionResults);
+
+                ExtractVariables(result.Data!.Value, exportKeys, variableValues);
 
                 // todo: how do we treat errors
             }
@@ -87,29 +96,6 @@ internal sealed class RemoteQueryExecutor2
         }
 
         context.Fetch.Clear();
-    }
-
-    private void ExtractSelectionResults(
-        IReadOnlyList<ISelection> selections,
-        string schemaName,
-        JsonElement data,
-        SelectionResult[] selectionResults)
-    {
-        for (var i = 0; i < selections.Count; i++)
-        {
-            if (data.TryGetProperty(selections[i].ResponseName, out var property))
-            {
-                var selectionResult = selectionResults[i];
-                if (selectionResult.HasValue)
-                {
-                    selectionResults[i] = selectionResult.AddResult(new(schemaName, property));
-                }
-                else
-                {
-                    selectionResults[i] = new SelectionResult(new JsonResult(schemaName, property));
-                }
-            }
-        }
     }
 
     private void ComposeResult(
@@ -264,9 +250,9 @@ internal sealed class RemoteQueryExecutor2
         }
         else
         {
-            var childSelectionResults = CreateSelectionResults(
-                selectionResult,
-                selectionSet.Selections);
+            var selections = selectionSet.Selections;
+            var childSelectionResults = new SelectionResult[selections.Count];
+            ExtractSelectionResults(selectionResult, selections, childSelectionResults);
 
             /*
             var childVariables = CreateVariables(
@@ -305,16 +291,15 @@ internal sealed class RemoteQueryExecutor2
         ArgumentContext variables)
         => throw new NotImplementedException();
 
-    private IReadOnlyList<SelectionResult> CreateSelectionResults(
-        SelectionResult selectionResult,
-        IReadOnlyList<ISelection> selections)
+    private static void ExtractSelectionResults(
+        SelectionResult parent,
+        IReadOnlyList<ISelection> selections,
+        SelectionResult[] selectionResults)
     {
-        var selectionResults = new SelectionResult[selections.Count];
-
-        if (selectionResult.Multiple is null)
+        if (parent.Multiple is null)
         {
-            var schemaName = selectionResult.Single.SchemaName;
-            var data = selectionResult.Single.Element;
+            var schemaName = parent.Single.SchemaName;
+            var data = parent.Single.Element;
 
             for (var i = 0; i < selections.Count; i++)
             {
@@ -330,7 +315,7 @@ internal sealed class RemoteQueryExecutor2
         }
         else
         {
-            foreach (var result in selectionResult.Multiple)
+            foreach (var result in parent.Multiple)
             {
                 var schemaName = result.SchemaName;
                 var data = result.Element;
@@ -348,7 +333,62 @@ internal sealed class RemoteQueryExecutor2
                 }
             }
         }
+    }
 
-        return selectionResults;
+    private static void ExtractSelectionResults(
+        IReadOnlyList<ISelection> selections,
+        string schemaName,
+        JsonElement data,
+        SelectionResult[] selectionResults)
+    {
+        for (var i = 0; i < selections.Count; i++)
+        {
+            if (data.TryGetProperty(selections[i].ResponseName, out var property))
+            {
+                var selectionResult = selectionResults[i];
+                if (selectionResult.HasValue)
+                {
+                    selectionResults[i] = selectionResult.AddResult(new(schemaName, property));
+                }
+                else
+                {
+                    selectionResults[i] = new SelectionResult(new JsonResult(schemaName, property));
+                }
+            }
+        }
+    }
+
+    private static void ExtractVariables(
+        SelectionResult parent,
+        IReadOnlyList<string> exportKeys,
+        Dictionary<string, IValueNode> variableValues)
+    {
+        if (parent.Multiple is null)
+        {
+            ExtractVariables(parent.Single.Element, exportKeys, variableValues);
+        }
+        else
+        {
+            foreach (var result in parent.Multiple)
+            {
+                ExtractVariables(result.Element, exportKeys, variableValues);
+            }
+        }
+    }
+
+    private static void ExtractVariables(
+        JsonElement parent,
+        IReadOnlyList<string> exportKeys,
+        Dictionary<string, IValueNode> variableValues)
+    {
+        for (var i = 0; i < exportKeys.Count; i++)
+        {
+            var key = exportKeys[i];
+            if (!variableValues.ContainsKey(key) &&
+                parent.TryGetProperty(key, out var property))
+            {
+                variableValues.TryAdd(key, Convert(property));
+            }
+        }
     }
 }

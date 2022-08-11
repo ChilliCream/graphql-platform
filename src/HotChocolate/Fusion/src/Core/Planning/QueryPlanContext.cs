@@ -16,7 +16,7 @@ internal sealed class QueryPlanContext
 
     public IOperation Operation { get; }
 
-    public ExportDefinitions Exports { get; } = new();
+    public ExportDefinitionRegistry Exports { get; } = new();
 
     public List<IExecutionStep> Steps { get; } = new();
 

@@ -38,7 +38,7 @@ internal sealed class ExecutionPlanBuilder
             }
         }
 
-        return new QueryPlan(context.RequestNodes.Values.ToArray());
+        return new QueryPlan(context.RequestNodes.Values, context.Exports.All);
     }
 
     private RequestNode CreateRequestNode(
@@ -52,11 +52,16 @@ internal sealed class ExecutionPlanBuilder
                 _schema.GetType<Types.ObjectType>(executionStep.DeclaringType.Name));
 
         var requestDocument = CreateRequestDocument(context, executionStep);
+
         var requestHandler = new RequestHandler(
             executionStep.SchemaName,
             requestDocument,
             selectionSet,
-            Array.Empty<RequiredState>());
+            // do we need the type?
+            executionStep.Variables.Values
+                .Select(t => new RequiredState(t, null!, false))
+                .ToArray());
+
         return new RequestNode(requestHandler);
     }
 
