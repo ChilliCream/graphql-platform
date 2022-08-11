@@ -334,8 +334,6 @@ Especially when including HotChocolate in existing project, there might already 
             if (@book.Author == author)
                 yield return book;
         }
-
-        return receiver.SubscribeAsync<string, Book>(topic);
     }
 
     [Subscribe(With = nameof(SubscribeToBooks))]
