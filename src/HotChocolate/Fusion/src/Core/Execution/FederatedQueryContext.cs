@@ -3,9 +3,9 @@ using HotChocolate.Fusion.Planning;
 
 namespace HotChocolate.Fusion.Execution;
 
-internal sealed class RemoteExecutorContext
+internal sealed class FederatedQueryContext
 {
-    public RemoteExecutorContext(
+    public FederatedQueryContext(
         ISchema schema,
         ResultBuilder result,
         IOperation operation,

@@ -50,6 +50,7 @@ internal static class InternalServiceCollectionExtensions
         services.TryAddSingleton(_ => new ObjectResultPool(maximumRetained, maximumArrayCapacity));
         services.TryAddSingleton(_ => new ListResultPool(maximumRetained, maximumArrayCapacity));
         services.TryAddSingleton<ResultPool>();
+        services.TryAddTransient<ResultBuilder>();
         return services;
     }
 
@@ -129,17 +130,11 @@ internal static class InternalServiceCollectionExtensions
         {
             var pool = sp.GetRequiredService<ObjectPool<DeferredWorkState>>();
             var state = pool.Get();
-
             return new DeferredWorkStateOwner(state, pool);
         });
 
-        services.TryAddTransient<DeferredWorkScheduler>();
-
         services.TryAddScoped<IFactory<DeferredWorkStateOwner>>(
             sp => new ServiceFactory<DeferredWorkStateOwner>(sp));
-
-        services.TryAddScoped<IFactory<DeferredWorkScheduler>>(
-            sp => new ServiceFactory<DeferredWorkScheduler>(sp));
 
         return services;
     }
