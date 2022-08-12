@@ -151,7 +151,7 @@ public class RemoteQueryExecutorTests
 
         var executorFactory = new RemoteRequestExecutorFactory(new[] { executor1, executor2 });
 
-        var executor = new RemoteQueryExecutor2(serviceConfig, executorFactory);
+        var executor = new RemoteQueryExecutor(serviceConfig, executorFactory);
         var context = new RemoteExecutorContext(
             schema,
             new ResultBuilder(
