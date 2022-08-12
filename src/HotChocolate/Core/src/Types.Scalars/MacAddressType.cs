@@ -30,7 +30,7 @@ public class MacAddressType : RegexType
     /// Initializes a new instance of the <see cref="MacAddressType"/> class.
     /// </summary>
     public MacAddressType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(

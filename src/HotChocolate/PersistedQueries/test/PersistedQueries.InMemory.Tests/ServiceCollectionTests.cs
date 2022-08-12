@@ -1,38 +1,30 @@
-﻿using System;
-using System.Linq;
-using Microsoft.Extensions.DependencyInjection;
-using Xunit;
-using HotChocolate.Utilities;
-using Snapshooter.Xunit;
+﻿namespace HotChocolate.PersistedQueries.InMemory;
 
-namespace HotChocolate.PersistedQueries.FileSystem
+public class ServiceCollectionTests
 {
-    public class ServiceCollectionTests
+    [Fact]
+    public void AddFileSystemQueryStorage_Services_Is_Null()
     {
-        [Fact]
-        public void AddFileSystemQueryStorage_Services_Is_Null()
-        {
-            // arrange
-            // act
-            Action action = () =>
-                HotChocolateInMemoryPersistedQueriesServiceCollectionExtensions
-                    .AddInMemoryQueryStorage(null!);
+        // arrange
+        // act
+        void Action()
+            => HotChocolateInMemoryPersistedQueriesServiceCollectionExtensions
+                .AddInMemoryQueryStorage(null!);
 
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
+        // assert
+        Assert.Throws<ArgumentNullException>((Action) Action);
+    }
 
-        [Fact]
-        public void AddReadOnlyFileSystemQueryStorage_Services_Is_Null()
-        {
-            // arrange
-            // act
-            Action action = () =>
-                HotChocolateInMemoryPersistedQueriesServiceCollectionExtensions
-                    .AddReadOnlyInMemoryQueryStorage(null!);
+    [Fact]
+    public void AddReadOnlyFileSystemQueryStorage_Services_Is_Null()
+    {
+        // arrange
+        // act
+        void Action()
+            => HotChocolateInMemoryPersistedQueriesServiceCollectionExtensions
+                .AddReadOnlyInMemoryQueryStorage(null!);
 
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
+        // assert
+        Assert.Throws<ArgumentNullException>(Action);
     }
 }

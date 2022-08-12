@@ -27,7 +27,7 @@ public interface IComplexOutputType
     /// <param name="typeName">
     /// The interface type name.
     /// </param>
-    bool IsImplementing(NameString typeName);
+    bool IsImplementing(string typeName);
 
     /// <summary>
     /// Defines if this type is implementing the

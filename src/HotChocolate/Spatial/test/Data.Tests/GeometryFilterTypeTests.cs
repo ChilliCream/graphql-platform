@@ -1,13 +1,9 @@
-using System.Collections.Generic;
-using System.Linq;
+using CookieCrumble;
+using HotChocolate.Data.Filters.Spatial;
+using HotChocolate.Data.Filters.Spatial.Tests;
 using HotChocolate.Types;
-#if NETCOREAPP2_1
-using Snapshooter;
-#endif
-using Snapshooter.Xunit;
-using Xunit;
 
-namespace HotChocolate.Data.Filters.Spatial.Tests;
+namespace HotChocolate.Data.Spatial;
 
 public class GeometryFilterInputTypeTest
     : FilterTestBase
@@ -17,14 +13,10 @@ public class GeometryFilterInputTypeTest
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(s => s.AddType<GeometryFilterInputType>());
+        var schema = CreateSchema(s => s.AddType<GeometryFilterInputType>());
 
         // assert
-#if NETCOREAPP2_1
-            schema.Print().MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
-#else
-        schema.Print().MatchSnapshot();
-#endif
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -32,14 +24,10 @@ public class GeometryFilterInputTypeTest
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(s => s.AddType<LineStringFilterInputType>());
+        var schema = CreateSchema(s => s.AddType<LineStringFilterInputType>());
 
         // assert
-#if NETCOREAPP2_1
-            schema.Print().MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
-#else
-        schema.Print().MatchSnapshot();
-#endif
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -47,14 +35,10 @@ public class GeometryFilterInputTypeTest
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(s => s.AddType<MultiLineStringFilterInputType>());
+        var schema = CreateSchema(s => s.AddType<MultiLineStringFilterInputType>());
 
         // assert
-#if NETCOREAPP2_1
-            schema.Print().MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
-#else
-        schema.Print().MatchSnapshot();
-#endif
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -62,14 +46,10 @@ public class GeometryFilterInputTypeTest
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(s => s.AddType<PointFilterInputType>());
+        var schema = CreateSchema(s => s.AddType<PointFilterInputType>());
 
         // assert
-#if NETCOREAPP2_1
-            schema.Print().MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
-#else
-        schema.Print().MatchSnapshot();
-#endif
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -77,14 +57,10 @@ public class GeometryFilterInputTypeTest
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(s => s.AddType<MultiPointFilterInputType>());
+        var schema = CreateSchema(s => s.AddType<MultiPointFilterInputType>());
 
         // assert
-#if NETCOREAPP2_1
-            schema.Print().MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
-#else
-        schema.Print().MatchSnapshot();
-#endif
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -92,14 +68,10 @@ public class GeometryFilterInputTypeTest
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(s => s.AddType<PolygonFilterInputType>());
+        var schema = CreateSchema(s => s.AddType<PolygonFilterInputType>());
 
         // assert
-#if NETCOREAPP2_1
-            schema.Print().MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
-#else
-        schema.Print().MatchSnapshot();
-#endif
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -107,14 +79,10 @@ public class GeometryFilterInputTypeTest
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(s => s.AddType<MultiPolygonFilterInputType>());
+        var schema = CreateSchema(s => s.AddType<MultiPolygonFilterInputType>());
 
         // assert
-#if NETCOREAPP2_1
-            schema.Print().MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
-#else
-        schema.Print().MatchSnapshot();
-#endif
+        schema.MatchSnapshot();
     }
 
     public class FooDirective

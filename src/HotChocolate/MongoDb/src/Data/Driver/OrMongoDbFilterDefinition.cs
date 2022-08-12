@@ -30,7 +30,7 @@ public sealed class OrMongoDbFilterDefinition : MongoDbFilterDefinition
 
         foreach (var filter in _filters)
         {
-            BsonDocument renderedFilter = filter.Render(documentSerializer, serializerRegistry);
+            var renderedFilter = filter.Render(documentSerializer, serializerRegistry);
             AddClause(clauses, renderedFilter);
         }
 

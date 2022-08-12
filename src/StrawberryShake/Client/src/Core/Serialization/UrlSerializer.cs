@@ -14,7 +14,7 @@ public class UrlSerializer : ScalarSerializer<string, Uri>
 
     public override Uri Parse(string serializedValue)
     {
-        if (!Uri.TryCreate(serializedValue, UriKind.RelativeOrAbsolute, out Uri? uri))
+        if (!Uri.TryCreate(serializedValue, UriKind.RelativeOrAbsolute, out var uri))
         {
             throw ThrowHelper.UrlFormatter_CouldNotParseUri(serializedValue);
         }

@@ -1,1 +1,0 @@
-﻿MATCH (fooStringNullable:FooStringNullable) WHERE fooStringNullable.Bar <> 'testatest' RETURN fooStringNullable {.Bar}

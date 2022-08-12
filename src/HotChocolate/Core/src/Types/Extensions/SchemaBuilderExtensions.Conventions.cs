@@ -130,7 +130,7 @@ public static partial class SchemaBuilderExtensions
             {
                 if (s.TryGetOrCreateService<IConvention>(
                     concreteConvention,
-                    out IConvention convention))
+                    out var convention))
                 {
                     return convention;
                 }

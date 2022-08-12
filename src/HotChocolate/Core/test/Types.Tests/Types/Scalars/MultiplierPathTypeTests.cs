@@ -13,7 +13,7 @@ public class MultiplierPathTypeTests
         var type = new MultiplierPathType();
 
         // act
-        TypeKind kind = type.Kind;
+        var kind = type.Kind;
 
         // assert
         Assert.Equal(TypeKind.Scalar, kind);
@@ -38,7 +38,7 @@ public class MultiplierPathTypeTests
     {
         // arrange
         var type = new MultiplierPathType();
-        NullValueNode input = NullValueNode.Default;
+        var input = NullValueNode.Default;
 
         // act
         var result = type.IsInstanceOfType(input);
@@ -150,7 +150,7 @@ public class MultiplierPathTypeTests
     {
         // arrange
         var type = new MultiplierPathType();
-        NullValueNode input = NullValueNode.Default;
+        var input = NullValueNode.Default;
 
         // act
         var output = type.ParseLiteral(input);

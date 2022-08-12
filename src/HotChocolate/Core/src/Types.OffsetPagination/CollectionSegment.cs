@@ -29,12 +29,31 @@ public class CollectionSegment : IPage
         CollectionSegmentInfo info,
         Func<CancellationToken, ValueTask<int>> getTotalCount)
     {
-        Items = items ??
-            throw new ArgumentNullException(nameof(items));
-        Info = info ??
-            throw new ArgumentNullException(nameof(info));
-        _getTotalCount = getTotalCount ??
-            throw new ArgumentNullException(nameof(getTotalCount));
+        Items = items ?? throw new ArgumentNullException(nameof(items));
+        Info = info ?? throw new ArgumentNullException(nameof(info));
+        _getTotalCount = getTotalCount ?? throw new ArgumentNullException(nameof(getTotalCount));
+    }
+
+    /// <summary>
+    /// Initializes <see cref="CollectionSegment" />.
+    /// </summary>
+    /// <param name="items">
+    /// The items that belong to this page.
+    /// </param>
+    /// <param name="info">
+    /// Additional information about this page.
+    /// </param>
+    /// <param name="totalCount">
+    /// The total count of the data set / collection that is being paged.
+    /// </param>
+    public CollectionSegment(
+        IReadOnlyCollection<object> items,
+        CollectionSegmentInfo info,
+        int totalCount = 0)
+    {
+        _getTotalCount = _ => new(totalCount);
+        Items = items ?? throw new ArgumentNullException(nameof(items));
+        Info = info ?? throw new ArgumentNullException(nameof(info));
     }
 
     /// <summary>
@@ -45,7 +64,12 @@ public class CollectionSegment : IPage
     /// <summary>
     /// Gets more information about this page.
     /// </summary>
-    public IPageInfo Info { get; }
+    public CollectionSegmentInfo Info { get; }
+
+    /// <summary>
+    /// Gets more information about this page.
+    /// </summary>
+    IPageInfo IPage.Info => Info;
 
     /// <summary>
     /// Requests the total count of the data set / collection that is being paged.
@@ -56,7 +80,6 @@ public class CollectionSegment : IPage
     /// <returns>
     /// The total count of the data set / collection.
     /// </returns>
-    public ValueTask<int> GetTotalCountAsync(
-        CancellationToken cancellationToken) =>
-        _getTotalCount(cancellationToken);
+    public ValueTask<int> GetTotalCountAsync(CancellationToken cancellationToken)
+        => _getTotalCount(cancellationToken);
 }

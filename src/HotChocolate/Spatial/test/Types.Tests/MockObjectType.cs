@@ -1,4 +1,3 @@
-using System;
 using NetTopologySuite.Geometries;
 
 namespace HotChocolate.Types.Spatial;

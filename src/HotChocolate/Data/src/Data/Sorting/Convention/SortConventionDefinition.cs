@@ -2,16 +2,22 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Sorting;
 
 public class SortConventionDefinition : IHasScope
 {
     public static readonly string DefaultArgumentName = "order";
+    private string _argumentName = DefaultArgumentName;
 
     public string? Scope { get; set; }
 
-    public string ArgumentName { get; set; } = DefaultArgumentName;
+    public string ArgumentName
+    {
+        get => _argumentName;
+        set => _argumentName = value.EnsureGraphQLName();
+    }
 
     public Type? Provider { get; set; }
 

@@ -24,7 +24,7 @@ public class QueryableStringNotStartsWithHandler : QueryableStringOperationHandl
             throw new GraphQLException(ErrorHelper.CreateNonNullError(field, value, context));
         }
 
-        Expression property = context.GetInstance();
+        var property = context.GetInstance();
         return FilterExpressionBuilder.Not(
             FilterExpressionBuilder.StartsWith(property, parsedValue));
     }

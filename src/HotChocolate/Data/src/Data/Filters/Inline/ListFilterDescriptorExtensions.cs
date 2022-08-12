@@ -14,6 +14,7 @@ public static class ListFilterDescriptorExtensions
     /// Defines a <see cref="FilterField" /> that binds to the specified property and also
     /// configures the type of the field
     /// </summary>
+    /// <param name="descriptor">The descriptor</param>
     /// <param name="propertyOrMember">
     /// The property to which a filter field shall be bound.
     /// </param>
@@ -23,7 +24,7 @@ public static class ListFilterDescriptorExtensions
         Expression<Func<T, IEnumerable<TField?>?>> propertyOrMember,
         Action<IListOperationTypeDescriptor<TField>> configure)
     {
-        IFilterFieldDescriptor fieldDescriptor = descriptor.Field(propertyOrMember);
+        var fieldDescriptor = descriptor.Field(propertyOrMember);
         fieldDescriptor.Extend().Definition.CreateFieldTypeDefinition = CreateFieldTypeDefinition;
         return fieldDescriptor;
 

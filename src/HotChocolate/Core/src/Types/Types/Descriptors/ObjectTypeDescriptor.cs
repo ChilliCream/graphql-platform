@@ -43,7 +43,7 @@ public class ObjectTypeDescriptor
     {
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
 
-        foreach (ObjectFieldDefinition field in definition.Fields)
+        foreach (var field in definition.Fields)
         {
             Fields.Add(ObjectFieldDescriptor.From(Context, field));
         }
@@ -66,7 +66,7 @@ public class ObjectTypeDescriptor
             Definition.AttributesAreApplied = true;
         }
 
-        foreach (ObjectFieldDescriptor field in Fields)
+        foreach (var field in Fields)
         {
             if (!field.Definition.Ignore)
             {
@@ -79,7 +79,7 @@ public class ObjectTypeDescriptor
             Definition.FieldIgnores.Add(new(field.Definition.Name, ObjectFieldBindingType.Field));
         }
 
-        var fields = new Dictionary<NameString, ObjectFieldDefinition>();
+        var fields = new Dictionary<string, ObjectFieldDefinition>();
         var handledMembers = new HashSet<MemberInfo>();
 
         FieldDescriptorUtilities.AddExplicitFields(
@@ -97,7 +97,7 @@ public class ObjectTypeDescriptor
     }
 
     protected virtual void OnCompleteFields(
-        IDictionary<NameString, ObjectFieldDefinition> fields,
+        IDictionary<string, ObjectFieldDefinition> fields,
         ISet<MemberInfo> handledMembers)
     {
 
@@ -110,9 +110,9 @@ public class ObjectTypeDescriptor
         return this;
     }
 
-    public IObjectTypeDescriptor Name(NameString value)
+    public IObjectTypeDescriptor Name(string value)
     {
-        Definition.Name = value.EnsureNotEmpty(nameof(value));
+        Definition.Name = value;
         return this;
     }
 
@@ -183,12 +183,11 @@ public class ObjectTypeDescriptor
         return this;
     }
 
-    public IObjectFieldDescriptor Field(NameString name)
+    public IObjectFieldDescriptor Field(string name)
     {
-        ObjectFieldDescriptor? fieldDescriptor = Fields.FirstOrDefault(
-            t => t.Definition.Name.Equals(name));
+        var fieldDescriptor = Fields.FirstOrDefault(t => t.Definition.Name.EqualsOrdinal(name));
 
-        if (fieldDescriptor is { })
+        if (fieldDescriptor is not null)
         {
             return fieldDescriptor;
         }
@@ -212,7 +211,7 @@ public class ObjectTypeDescriptor
 
         if (propertyOrMethod is PropertyInfo || propertyOrMethod is MethodInfo)
         {
-            ObjectFieldDescriptor? fieldDescriptor = Fields.FirstOrDefault(
+            var fieldDescriptor = Fields.FirstOrDefault(
                 t => t.Definition.Member == propertyOrMethod);
 
             if (fieldDescriptor is not null)
@@ -242,11 +241,11 @@ public class ObjectTypeDescriptor
             throw new ArgumentNullException(nameof(propertyOrMethod));
         }
 
-        MemberInfo? member = propertyOrMethod.TryExtractMember();
+        var member = propertyOrMethod.TryExtractMember();
 
         if (member is PropertyInfo or MethodInfo)
         {
-            ObjectFieldDescriptor? fieldDescriptor = Fields.FirstOrDefault(
+            var fieldDescriptor = Fields.FirstOrDefault(
                 t => t.Definition.Member == member);
 
             if (fieldDescriptor is not null)
@@ -293,9 +292,7 @@ public class ObjectTypeDescriptor
         return this;
     }
 
-    public IObjectTypeDescriptor Directive(
-        NameString name,
-        params ArgumentNode[] arguments)
+    public IObjectTypeDescriptor Directive(string name, params ArgumentNode[] arguments)
     {
         Definition.AddDirective(name, arguments);
         return this;

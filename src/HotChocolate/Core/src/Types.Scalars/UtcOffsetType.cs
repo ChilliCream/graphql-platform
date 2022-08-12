@@ -25,7 +25,7 @@ public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
     /// Initializes a new instance of the <see cref="UtcOffsetType"/> class.
     /// </summary>
     public UtcOffsetType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Implicit)
         : base(name, bind)

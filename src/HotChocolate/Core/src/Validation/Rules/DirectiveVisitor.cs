@@ -1,6 +1,5 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-using HotChocolate.Types;
 using DirectiveLoc = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.Validation.Rules;
@@ -117,10 +116,10 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
         DirectiveNode node,
         IDocumentValidatorContext context)
     {
-        if (context.Schema.TryGetDirectiveType(node.Name.Value, out DirectiveType? dt))
+        if (context.Schema.TryGetDirectiveType(node.Name.Value, out var dt))
         {
-            if (context.Path.TryPeek(out ISyntaxNode? parent) &&
-                TryLookupLocation(parent, out DirectiveLoc location) &&
+            if (context.Path.TryPeek(out var parent) &&
+                TryLookupLocation(parent, out var location) &&
                 !dt.Locations.Contains(location))
             {
                 context.ReportError(context.DirectiveNotValidInLocation(node));
@@ -139,9 +138,9 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
         where T : ISyntaxNode, Language.IHasDirectives
     {
         context.Names.Clear();
-        foreach (DirectiveNode directive in node.Directives)
+        foreach (var directive in node.Directives)
         {
-            if (context.Schema.TryGetDirectiveType(directive.Name.Value, out DirectiveType? dt)
+            if (context.Schema.TryGetDirectiveType(directive.Name.Value, out var dt)
                 && !dt.IsRepeatable
                 && !context.Names.Add(directive.Name.Value))
             {

@@ -246,7 +246,7 @@ public class AnyTypeTests
         var representation = new Representation("test", objectValueNode);
 
         // act
-        IValueNode valueSyntax = type.ParseValue(representation);
+        var valueSyntax = type.ParseValue(representation);
 
         // assert
         Assert.Equal(
@@ -275,7 +275,7 @@ public class AnyTypeTests
         var valueSyntax = type.ParseLiteral(objectValueNode);
 
         // assert
-        Representation parsedRepresentation = Assert.IsType<Representation>(valueSyntax);
+        var parsedRepresentation = Assert.IsType<Representation>(valueSyntax);
         Assert.Equal("test", parsedRepresentation.TypeName);
         Assert.Equal(objectValueNode, parsedRepresentation.Data);
     }
@@ -311,7 +311,7 @@ public class AnyTypeTests
         var representation = new Representation("test", objectValueNode);
 
         // act
-        IValueNode parsedResult = type.ParseResult(representation);
+        var parsedResult = type.ParseResult(representation);
 
         // assert
         Assert.Equal(
@@ -327,7 +327,7 @@ public class AnyTypeTests
         var type = new AnyType();
 
         // act
-        IValueNode parsedResult = type.ParseResult(null);
+        var parsedResult = type.ParseResult(null);
 
         // assert
         Assert.Equal(NullValueNode.Default, parsedResult);
@@ -354,7 +354,7 @@ public class AnyTypeTests
         var type = new AnyType();
 
         // act
-        IValueNode valueSyntax = type.ParseValue(null);
+        var valueSyntax = type.ParseValue(null);
 
         // assert
         Assert.IsType<NullValueNode>(valueSyntax);

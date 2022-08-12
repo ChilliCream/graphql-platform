@@ -1,5 +1,4 @@
 using System;
-using HotChocolate.Execution.Properties;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.Properties.Resources;
@@ -57,7 +56,7 @@ internal static class RootValueResolver
                         ErrorBuilder.New()
                             .SetMessage(
                                 RootValueResolver_Resolve_CannotCreateInstance,
-                                rootType.Name.Value,
+                                rootType.Name,
                                 rootType.RuntimeType.FullName ?? rootType.RuntimeType.Name)
                             .SetCode(ErrorCodes.Execution.CannotCreateRootValue)
                             .SetExtension("operationType", rootType.Name)

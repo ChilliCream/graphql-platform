@@ -44,7 +44,7 @@ public class QueryableExecutable<T> : IExecutable<T>
         if (Source is IAsyncEnumerable<T> ae)
         {
             var result = new List<T>();
-            await foreach (T element in ae.WithCancellation(cancellationToken)
+            await foreach (var element in ae.WithCancellation(cancellationToken)
                 .ConfigureAwait(false))
             {
                 result.Add(element);
@@ -61,7 +61,7 @@ public class QueryableExecutable<T> : IExecutable<T>
     {
         if (Source is IAsyncEnumerable<T> ae)
         {
-            await using IAsyncEnumerator<T> enumerator =
+            await using var enumerator =
                 ae.GetAsyncEnumerator(cancellationToken);
 
             if (await enumerator.MoveNextAsync().ConfigureAwait(false))
@@ -80,7 +80,7 @@ public class QueryableExecutable<T> : IExecutable<T>
     {
         if (Source is IAsyncEnumerable<T> ae)
         {
-            await using IAsyncEnumerator<T> enumerator =
+            await using var enumerator =
                 ae.GetAsyncEnumerator(cancellationToken);
 
             object? result;

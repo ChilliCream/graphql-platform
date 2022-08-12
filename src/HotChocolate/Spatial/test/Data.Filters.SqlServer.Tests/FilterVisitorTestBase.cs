@@ -1,17 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using HotChocolate.Data.Filters.Expressions;
+using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
 
-namespace HotChocolate.Data.Filters.Spatial;
+namespace HotChocolate.Data.Spatial.Filters;
 
 public class FilterVisitorTestBase
 {
@@ -35,9 +30,9 @@ public class FilterVisitorTestBase
             "CREATE EXTENSION postgis;\n" + sql,
             databaseName);
 
-        DbSet<T> set = dbContext.Set<T>();
+        var set = dbContext.Set<T>();
 
-        foreach (T result in results)
+        foreach (var result in results)
         {
             set.Add(result);
             await dbContext.SaveChangesAsync();
@@ -52,8 +47,7 @@ public class FilterVisitorTestBase
         where TEntity : class
         where T : FilterInputType<TEntity>
     {
-        Func<IResolverContext, IEnumerable<TEntity>> resolver =
-            await BuildResolverAsync(entities);
+        var resolver = await BuildResolverAsync(entities);
 
         return await new ServiceCollection()
             .AddGraphQL()

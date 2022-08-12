@@ -30,7 +30,7 @@ public class IdType : ScalarType<string>
     /// Initializes a new instance of the <see cref="IdType"/> class.
     /// </summary>
     public IdType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)

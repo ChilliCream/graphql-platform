@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
 using System.Reflection;
+using HotChocolate.Internal;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -10,6 +14,8 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// </summary>
 public class InterfaceFieldDefinition : OutputFieldDefinitionBase
 {
+    private List<IParameterExpressionBuilder>? _expressionBuilders;
+
     /// <summary>
     /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
     /// </summary>
@@ -19,11 +25,11 @@ public class InterfaceFieldDefinition : OutputFieldDefinitionBase
     /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
     /// </summary>
     public InterfaceFieldDefinition(
-        NameString name,
+        string name,
         string? description = null,
         ITypeReference? type = null)
     {
-        Name = name;
+        Name = name.EnsureGraphQLName();
         Description = description;
         Type = type;
     }
@@ -32,4 +38,58 @@ public class InterfaceFieldDefinition : OutputFieldDefinitionBase
     /// Gets the interface member to which this field is bound to.
     /// </summary>
     public MemberInfo? Member { get; set; }
+
+    /// <summary>
+    /// A list of parameter expression builders that shall be applied when compiling
+    /// the resolver or when arguments are inferred from a method.
+    /// </summary>
+    public IList<IParameterExpressionBuilder> ParameterExpressionBuilders
+    {
+        get
+        {
+            return _expressionBuilders ??= new List<IParameterExpressionBuilder>();
+        }
+    }
+
+    /// <summary>
+    /// A list of parameter expression builders that shall be applied when compiling
+    /// the resolver or when arguments are inferred from a method.
+    /// </summary>
+    internal IReadOnlyList<IParameterExpressionBuilder> GetParameterExpressionBuilders()
+    {
+        if (_expressionBuilders is null)
+        {
+            return Array.Empty<IParameterExpressionBuilder>();
+        }
+
+        return _expressionBuilders;
+    }
+
+    internal void CopyTo(InterfaceFieldDefinition target)
+    {
+        base.CopyTo(target);
+
+        if (_expressionBuilders is { Count: > 0 })
+        {
+            target._expressionBuilders = new(_expressionBuilders);
+        }
+
+        target.Member = Member;
+    }
+
+    internal void MergeInto(InterfaceFieldDefinition target)
+    {
+        base.MergeInto(target);
+
+        if (_expressionBuilders is { Count: > 0 })
+        {
+            target._expressionBuilders ??= new List<IParameterExpressionBuilder>();
+            target._expressionBuilders.AddRange(_expressionBuilders);
+        }
+
+        if (Member is not null)
+        {
+            target.Member = Member;
+        }
+    }
 }

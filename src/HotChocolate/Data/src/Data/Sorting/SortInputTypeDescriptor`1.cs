@@ -41,7 +41,7 @@ public class SortInputTypeDescriptor<T>
     }
 
     protected override void OnCompleteFields(
-        IDictionary<NameString, SortFieldDefinition> fields,
+        IDictionary<string, SortFieldDefinition> fields,
         ISet<MemberInfo> handledProperties)
     {
         if (Definition.Fields.IsImplicitBinding() &&
@@ -55,7 +55,7 @@ public class SortInputTypeDescriptor<T>
                     .CreateDefinition(),
                 fields,
                 handledProperties,
-                include: (members, member) => member is PropertyInfo &&
+                include: (_, member) => member is PropertyInfo &&
                     !handledProperties.Contains(member) &&
                     !Context.TypeInspector.GetReturnType(member).IsArrayOrList);
         }
@@ -64,7 +64,7 @@ public class SortInputTypeDescriptor<T>
     }
 
     /// <inheritdoc />
-    public new ISortInputTypeDescriptor<T> Name(NameString value)
+    public new ISortInputTypeDescriptor<T> Name(string value)
     {
         base.Name(value);
         return this;
@@ -104,7 +104,7 @@ public class SortInputTypeDescriptor<T>
         switch (propertyOrMember.TryExtractMember())
         {
             case PropertyInfo m:
-                SortFieldDescriptor? fieldDescriptor =
+                var fieldDescriptor =
                     Fields.FirstOrDefault(t => t.Definition.Member == m);
 
                 if (fieldDescriptor is null)
@@ -115,7 +115,7 @@ public class SortInputTypeDescriptor<T>
 
                 return fieldDescriptor;
 
-            case MethodInfo m:
+            case MethodInfo:
                 throw new ArgumentException(
                     SortInputTypeDescriptor_Field_OnlyProperties,
                     nameof(propertyOrMember));
@@ -132,7 +132,7 @@ public class SortInputTypeDescriptor<T>
         Expression<Func<T, TField?>> propertyOrMember,
         Action<ISortInputTypeDescriptor<TField>> configure)
     {
-        ISortFieldDescriptor descriptor = Field(propertyOrMember);
+        var descriptor = Field(propertyOrMember);
         descriptor.Extend().Definition.CreateFieldTypeDefinition = CreateFieldTypeDefinition;
         return descriptor;
 
@@ -140,15 +140,14 @@ public class SortInputTypeDescriptor<T>
             IDescriptorContext context,
             string? scope)
         {
-            SortInputTypeDescriptor<TField> descriptor =
-                Inline<TField>(context, typeof(TField), scope);
-            configure(descriptor);
-            return descriptor.CreateDefinition();
+            var fieldDescriptor = Inline<TField>(context, typeof(TField), scope);
+            configure(fieldDescriptor);
+            return fieldDescriptor.CreateDefinition();
         }
     }
 
     /// <inheritdoc />
-    public new ISortInputTypeDescriptor<T> Ignore(NameString name)
+    public new ISortInputTypeDescriptor<T> Ignore(string name)
     {
         base.Ignore(name);
         return this;
@@ -159,7 +158,7 @@ public class SortInputTypeDescriptor<T>
     {
         if (propertyOrMember.ExtractMember() is PropertyInfo p)
         {
-            SortFieldDescriptor? fieldDescriptor =
+            var fieldDescriptor =
                 Fields.FirstOrDefault(t => t.Definition.Member == p);
 
             if (fieldDescriptor is null)
@@ -191,9 +190,7 @@ public class SortInputTypeDescriptor<T>
         return this;
     }
 
-    public new ISortInputTypeDescriptor<T> Directive(
-        NameString name,
-        params ArgumentNode[] arguments)
+    public new ISortInputTypeDescriptor<T> Directive(string name, params ArgumentNode[] arguments)
     {
         base.Directive(name, arguments);
         return this;

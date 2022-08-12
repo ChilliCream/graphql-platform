@@ -15,7 +15,7 @@ public class ProjectionVisitorTestBase
         params TResult[] results)
         where TResult : class
     {
-        IMongoCollection<TResult> collection =
+        var collection =
             mongoResource.CreateCollection<TResult>("data_" + Guid.NewGuid().ToString("N"));
 
         collection.InsertMany(results);
@@ -33,7 +33,7 @@ public class ProjectionVisitorTestBase
         ObjectType<TEntity>? objectType = null)
         where TEntity : class
     {
-        Func<IResolverContext, IExecutable<TEntity>> resolver = BuildResolver(
+        var resolver = BuildResolver(
             mongoResource,
             entities);
 

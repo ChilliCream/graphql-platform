@@ -1,8 +1,8 @@
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Validation.Rules;
 
@@ -28,18 +28,18 @@ internal sealed class IntrospectionVisitor : TypeDocumentValidatorVisitor
         FieldNode node,
         IDocumentValidatorContext context)
     {
-        if (IntrospectionFields.TypeName.Equals(node.Name.Value))
+        if (IntrospectionFields.TypeName.EqualsOrdinal(node.Name.Value))
         {
             return Skip;
         }
 
-        if (context.Types.TryPeek(out IType? type))
+        if (context.Types.TryPeek(out var type))
         {
-            INamedType namedType = type.NamedType();
+            var namedType = type.NamedType();
 
             if (context.Schema.QueryType == namedType &&
-                (IntrospectionFields.Schema.Equals(node.Name.Value) ||
-                 IntrospectionFields.Type.Equals(node.Name.Value)))
+                (IntrospectionFields.Schema.EqualsOrdinal(node.Name.Value) ||
+                 IntrospectionFields.Type.EqualsOrdinal(node.Name.Value)))
             {
                 context.ReportError(context.IntrospectionNotAllowed(node));
                 return Break;
@@ -47,7 +47,7 @@ internal sealed class IntrospectionVisitor : TypeDocumentValidatorVisitor
 
             if (namedType is IComplexOutputType ct)
             {
-                if (ct.Fields.TryGetField(node.Name.Value, out IOutputField? of))
+                if (ct.Fields.TryGetField(node.Name.Value, out var of))
                 {
                     if (node.SelectionSet is null ||
                         node.SelectionSet.Selections.Count == 0 ||

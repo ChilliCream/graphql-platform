@@ -5,245 +5,244 @@ using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate
+namespace HotChocolate;
+
+public class ErrorTests
 {
-    public class ErrorTests
+    [Fact]
+    public void WithCode()
     {
-        [Fact]
-        public void WithCode()
-        {
-            // arrange
-            IError error = new Error("123");
+        // arrange
+        IError error = new Error("123");
 
-            // act
-            error = error.WithCode("foo");
+        // act
+        error = error.WithCode("foo");
 
-            // assert
-            Assert.Equal("foo", error.Code);
-        }
+        // assert
+        Assert.Equal("foo", error.Code);
+    }
 
-        [Fact]
-        public void RemoveCode()
-        {
-            // arrange
-            IError error = new Error("123", code: "foo");
+    [Fact]
+    public void RemoveCode()
+    {
+        // arrange
+        IError error = new Error("123", code: "foo");
 
-            // act
-            error = error.RemoveCode();
+        // act
+        error = error.RemoveCode();
 
-            // assert
-            Assert.Null(error.Code);
-        }
+        // assert
+        Assert.Null(error.Code);
+    }
 
-        [Fact]
-        public void WithException()
-        {
-            // arrange
-            IError error = new Error
-            (
-                "123"
-            );
+    [Fact]
+    public void WithException()
+    {
+        // arrange
+        IError error = new Error
+        (
+            "123"
+        );
 
-            var exception = new Exception();
+        var exception = new Exception();
 
-            // act
-            error = error.WithException(exception);
+        // act
+        error = error.WithException(exception);
 
-            // assert
-            Assert.Equal(exception, error.Exception);
-        }
+        // assert
+        Assert.Equal(exception, error.Exception);
+    }
 
-        [Fact]
-        public void RemoveException()
-        {
-            // arrange
-            IError error = new Error
-            (
-                "123",
-                exception: new Exception()
-            );
+    [Fact]
+    public void RemoveException()
+    {
+        // arrange
+        IError error = new Error
+        (
+            "123",
+            exception: new Exception()
+        );
 
-            Assert.NotNull(error.Exception);
+        Assert.NotNull(error.Exception);
 
-            // act
-            error = error.RemoveException();
+        // act
+        error = error.RemoveException();
 
-            // assert
-            Assert.Null(error.Exception);
-        }
+        // assert
+        Assert.Null(error.Exception);
+    }
 
-        [Fact]
-        public void WithExtensions()
-        {
-            // arrange
-            IError error = new Error("123");
+    [Fact]
+    public void WithExtensions()
+    {
+        // arrange
+        IError error = new Error("123");
 
-            // act
-            error = error.WithExtensions(
-                new Dictionary<string, object> { { "a", "b" } });
+        // act
+        error = error.WithExtensions(
+            new Dictionary<string, object> { { "a", "b" } });
 
-            // assert
-            Assert.Collection(error.Extensions,
-                t =>
-                {
-                    Assert.Equal("a", t.Key);
-                    Assert.Equal("b", t.Value);
-                });
-        }
+        // assert
+        Assert.Collection(error.Extensions,
+            t =>
+            {
+                Assert.Equal("a", t.Key);
+                Assert.Equal("b", t.Value);
+            });
+    }
 
-        [Fact]
-        public void AddExtensions()
-        {
-            // arrange
-            IError error = new Error("123");
+    [Fact]
+    public void AddExtensions()
+    {
+        // arrange
+        IError error = new Error("123");
 
-            // act
-            error = error.SetExtension("a", "b").SetExtension("c", "d");
+        // act
+        error = error.SetExtension("a", "b").SetExtension("c", "d");
 
-            // assert
-            Assert.Collection(error.Extensions.OrderBy(t => t.Key),
-                t =>
-                {
-                    Assert.Equal("a", t.Key);
-                    Assert.Equal("b", t.Value);
-                },
-                t =>
-                {
-                    Assert.Equal("c", t.Key);
-                    Assert.Equal("d", t.Value);
-                });
-        }
+        // assert
+        Assert.Collection(error.Extensions.OrderBy(t => t.Key),
+            t =>
+            {
+                Assert.Equal("a", t.Key);
+                Assert.Equal("b", t.Value);
+            },
+            t =>
+            {
+                Assert.Equal("c", t.Key);
+                Assert.Equal("d", t.Value);
+            });
+    }
 
-        [Fact]
-        public void RemoveExtensions()
-        {
-            // arrange
-            IError error = new Error("123");
-            error = error.WithExtensions(
-                new Dictionary<string, object>
-                {
-                    { "a", "b" },
-                    { "c", "d" }
-                });
+    [Fact]
+    public void RemoveExtensions()
+    {
+        // arrange
+        IError error = new Error("123");
+        error = error.WithExtensions(
+            new Dictionary<string, object>
+            {
+                { "a", "b" },
+                { "c", "d" }
+            });
 
-            // act
-            error = error.RemoveExtension("a");
+        // act
+        error = error.RemoveExtension("a");
 
-            // assert
-            Assert.Collection(error.Extensions,
-                t =>
-                {
-                    Assert.Equal("c", t.Key);
-                    Assert.Equal("d", t.Value);
-                });
-        }
+        // assert
+        Assert.Collection(error.Extensions,
+            t =>
+            {
+                Assert.Equal("c", t.Key);
+                Assert.Equal("d", t.Value);
+            });
+    }
 
-        [Fact]
-        public void WithLocations()
-        {
-            // arrange
-            IError error = new Error("123");
+    [Fact]
+    public void WithLocations()
+    {
+        // arrange
+        IError error = new Error("123");
 
-            // act
-            error = error.WithLocations(
-                new List<Location> { new Location(1, 2) });
+        // act
+        error = error.WithLocations(
+            new List<Location> { new Location(1, 2) });
 
-            // assert
-            Assert.Collection(error.Locations,
-                t =>
-                {
-                    Assert.Equal(1, t.Line);
-                    Assert.Equal(2, t.Column);
-                });
-        }
+        // assert
+        Assert.Collection(error.Locations,
+            t =>
+            {
+                Assert.Equal(1, t.Line);
+                Assert.Equal(2, t.Column);
+            });
+    }
 
-        [Fact]
-        public void WithMessage()
-        {
-            // arrange
-            IError error = new Error("123");
+    [Fact]
+    public void WithMessage()
+    {
+        // arrange
+        IError error = new Error("123");
 
-            // act
-            error = error.WithMessage("456");
+        // act
+        error = error.WithMessage("456");
 
-            // assert
-            Assert.Equal("456", error.Message);
-        }
+        // assert
+        Assert.Equal("456", error.Message);
+    }
 
-        [Fact]
-        public void WithMessage_MessageNull_ArgumentException()
-        {
-            // arrange
-            IError error = new Error("123");
+    [Fact]
+    public void WithMessage_MessageNull_ArgumentException()
+    {
+        // arrange
+        IError error = new Error("123");
 
-            // act
-            Action action = () => error.WithMessage(null);
+        // act
+        Action action = () => error.WithMessage(null);
 
-            // assert
-            Assert.Throws<ArgumentException>(action);
-        }
+        // assert
+        Assert.Throws<ArgumentException>(action);
+    }
 
-        [Fact]
-        public void WithMessage_MessageEmpty_ArgumentException()
-        {
-            // arrange
-            IError error = new Error("123");
+    [Fact]
+    public void WithMessage_MessageEmpty_ArgumentException()
+    {
+        // arrange
+        IError error = new Error("123");
 
-            // act
-            Action action = () => error.WithMessage(string.Empty);
+        // act
+        Action action = () => error.WithMessage(string.Empty);
 
-            // assert
-            Assert.Throws<ArgumentException>(action);
-        }
+        // assert
+        Assert.Throws<ArgumentException>(action);
+    }
 
-        [Fact]
-        public void WithPath()
-        {
-            // arrange
-            IError error = new Error("123");
+    [Fact]
+    public void WithPath()
+    {
+        // arrange
+        IError error = new Error("123");
 
-            // act
-            error = error.WithPath(Path.New("foo"));
+        // act
+        error = error.WithPath(Path.FromList("foo"));
 
-            // assert
-            Assert.Equal("/foo", error.Path.Print());
-        }
+        // assert
+        Assert.Equal("/foo", error.Path.Print());
+    }
 
-        [Fact]
-        public void WithSyntaxNode()
-        {
-            // arrange
-            IError error = new Error("123");
+    [Fact]
+    public void WithSyntaxNode()
+    {
+        // arrange
+        IError error = new Error("123");
 
-            // act
-            error = error.WithSyntaxNode(new StringValueNode("Foo"));
+        // act
+        error = error.WithSyntaxNode(new StringValueNode("Foo"));
 
-            // assert
-            error.MatchSnapshot();
-        }
+        // assert
+        error.MatchSnapshot();
+    }
 
-        [Fact]
-        public void Constructor_WithSyntaxNode()
-        {
-            // arrange
-            // act
-            IError error = new Error("123", syntaxNode:new StringValueNode("Foo"));
+    [Fact]
+    public void Constructor_WithSyntaxNode()
+    {
+        // arrange
+        // act
+        IError error = new Error("123", syntaxNode:new StringValueNode("Foo"));
 
-            // assert
-            error.MatchSnapshot();
-        }
+        // assert
+        error.MatchSnapshot();
+    }
 
-        [Fact]
-        public void RemoveSyntaxNode()
-        {
-            // arrange
-            IError error = new Error("123", syntaxNode:new StringValueNode("Foo"));
+    [Fact]
+    public void RemoveSyntaxNode()
+    {
+        // arrange
+        IError error = new Error("123", syntaxNode:new StringValueNode("Foo"));
 
-            // act
-            error = error.RemoveSyntaxNode();
+        // act
+        error = error.RemoveSyntaxNode();
 
-            // assert
-            error.MatchSnapshot();
-        }
+        // assert
+        error.MatchSnapshot();
     }
 }

@@ -12,8 +12,7 @@ namespace HotChocolate.Data.MongoDb.Filters;
 /// A <see cref="FilterProvider{TContext}"/> translates a incoming query to a
 /// <see cref="FilterDefinition{T}"/>
 /// </summary>
-public class MongoDbFilterProvider
-    : FilterProvider<MongoDbFilterVisitorContext>
+public class MongoDbFilterProvider : FilterProvider<MongoDbFilterVisitorContext>
 {
     /// <inheritdoc />
     public MongoDbFilterProvider()
@@ -35,7 +34,7 @@ public class MongoDbFilterProvider
     { get; } = new(new MongoDbFilterCombinator());
 
     /// <inheritdoc />
-    public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
+    public override FieldMiddleware CreateExecutor<TEntityType>(string argumentName)
     {
         return next => context => ExecuteAsync(next, context);
 
@@ -44,8 +43,8 @@ public class MongoDbFilterProvider
             IMiddlewareContext context)
         {
             MongoDbFilterVisitorContext? visitorContext = null;
-            IInputField argument = context.Selection.Field.Arguments[argumentName];
-            IValueNode filter = context.ArgumentLiteral<IValueNode>(argumentName);
+            var argument = context.Selection.Field.Arguments[argumentName];
+            var filter = context.ArgumentLiteral<IValueNode>(argumentName);
 
             if (filter is not NullValueNode && argument.Type is IFilterInputType filterInput)
             {
@@ -53,27 +52,26 @@ public class MongoDbFilterProvider
 
                 Visitor.Visit(filter, visitorContext);
 
-                if (!visitorContext.TryCreateQuery(out MongoDbFilterDefinition? whereQuery) ||
-                    visitorContext.Errors.Count > 0)
+                if (visitorContext.Errors.Count > 0)
                 {
                     context.Result = Array.Empty<TEntityType>();
-                    foreach (IError error in visitorContext.Errors)
+                    foreach (var error in visitorContext.Errors)
                     {
                         context.ReportError(error.WithPath(context.Path));
                     }
                 }
                 else
                 {
-                    context.LocalContextData =
-                        context.LocalContextData.SetItem(
-                            nameof(FilterDefinition<TEntityType>),
-                            whereQuery);
+                    var query = visitorContext.CreateQuery();
+
+                    context.LocalContextData = context.LocalContextData
+                        .SetItem(nameof(FilterDefinition<TEntityType>), query);
 
                     await next(context).ConfigureAwait(false);
 
                     if (context.Result is IMongoDbExecutable executable)
                     {
-                        context.Result = executable.WithFiltering(whereQuery);
+                        context.Result = executable.WithFiltering(query);
                     }
                 }
             }

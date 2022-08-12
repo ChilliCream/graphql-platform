@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Caching;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Pipeline.Complexity;
 using HotChocolate.Execution.Processing;
@@ -56,17 +55,17 @@ internal sealed class OperationComplexityMiddleware
                 context.OperationId is not null &&
                 context.Document is not null)
             {
-                IExecutionDiagnosticEvents diagnostic = context.DiagnosticEvents;
+                var diagnostic = context.DiagnosticEvents;
 
                 using (diagnostic.AnalyzeOperationComplexity(context))
                 {
                     var cacheId = context.CreateCacheId(context.OperationId);
-                    DocumentNode document = context.Document;
-                    OperationDefinitionNode operationDefinition =
+                    var document = context.Document;
+                    var operationDefinition =
                         context.Operation?.Definition ??
                         document.GetOperation(context.Request.OperationName);
 
-                    if (!_cache.TryGetAnalyzer(cacheId, out ComplexityAnalyzerDelegate? analyzer))
+                    if (!_cache.TryGetAnalyzer(cacheId, out var analyzer))
                     {
                         analyzer = CompileAnalyzer(context, document, operationDefinition);
                         diagnostic.OperationComplexityAnalyzerCompiled(context);
@@ -104,7 +103,7 @@ internal sealed class OperationComplexityMiddleware
         DocumentNode document,
         OperationDefinitionNode operationDefinition)
     {
-        DocumentValidatorContext validatorContext = _contextPool.Get();
+        var validatorContext = _contextPool.Get();
         ComplexityAnalyzerDelegate? operationAnalyzer = null;
 
         try
@@ -114,7 +113,7 @@ internal sealed class OperationComplexityMiddleware
             _compiler.Visit(document, validatorContext);
             var analyzers = (List<OperationComplexityAnalyzer>)validatorContext.List.Peek()!;
 
-            foreach (OperationComplexityAnalyzer? analyzer in analyzers)
+            foreach (var analyzer in analyzers)
             {
                 if (analyzer.OperationDefinitionNode == operationDefinition)
                 {

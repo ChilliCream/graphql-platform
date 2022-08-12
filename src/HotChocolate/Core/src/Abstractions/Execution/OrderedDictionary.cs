@@ -32,7 +32,7 @@ public class OrderedDictionary<TKey, TValue>
         _order = new List<KeyValuePair<TKey, TValue>>();
         _map = new Dictionary<TKey, TValue>();
 
-        foreach (KeyValuePair<TKey, TValue> item in values)
+        foreach (var item in values)
         {
             _map.Add(item.Key, item.Value);
             _order.Add(item);

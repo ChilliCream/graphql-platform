@@ -8,10 +8,14 @@ using HotChocolate.Types;
 namespace HotChocolate.Resolvers;
 
 /// <summary>
-/// Encapsulates all resolver-specific information about the execution of an individual field selection.
+/// Encapsulates all resolver-specific information about the execution of
+/// an individual field selection.
 /// </summary>
 public interface IMiddlewareContext : IResolverContext
 {
+    /// <summary>
+    /// Gets or sets the value type hint.
+    /// </summary>
     IType? ValueType { get; set; }
 
     /// <summary>
@@ -40,9 +44,12 @@ public interface IMiddlewareContext : IResolverContext
     /// Register cleanup tasks that will be executed after resolver execution is finished.
     /// </summary>
     /// <param name="action">
-    /// Cleanup action.
+    /// The cleanup action.
     /// </param>
-    void RegisterForCleanup(Action action);
+    /// <param name="cleanAfter">
+    /// Specifies when the cleanup task shall be applied.
+    /// </param>
+    void RegisterForCleanup(Func<ValueTask> action, CleanAfter cleanAfter = CleanAfter.Resolver);
 
     /// <summary>
     /// Replaces the argument values for the current field execution pipeline.
@@ -54,6 +61,6 @@ public interface IMiddlewareContext : IResolverContext
     /// Returns the original argument values map so that a middleware is able to conserve them
     /// and restore the initial state of the context after it finished to execute.
     /// </returns>
-    IReadOnlyDictionary<NameString, ArgumentValue> ReplaceArguments(
-        IReadOnlyDictionary<NameString, ArgumentValue> argumentValues);
+    IReadOnlyDictionary<string, ArgumentValue> ReplaceArguments(
+        IReadOnlyDictionary<string, ArgumentValue> argumentValues);
 }

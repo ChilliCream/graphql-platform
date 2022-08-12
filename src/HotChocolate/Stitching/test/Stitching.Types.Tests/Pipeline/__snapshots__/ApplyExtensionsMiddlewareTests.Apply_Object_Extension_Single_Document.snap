@@ -1,4 +1,8 @@
-﻿type Foo {
+﻿schema @_hc_service(name: "abc") {
+
+}
+
+type Foo {
   abc: String
   def: String
 }

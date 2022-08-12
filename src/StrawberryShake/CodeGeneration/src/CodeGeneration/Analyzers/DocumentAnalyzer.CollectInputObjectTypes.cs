@@ -14,7 +14,7 @@ public partial class DocumentAnalyzer
         var analyzer = new InputObjectTypeUsageAnalyzer(context.Schema);
         analyzer.Analyze(context.Document);
 
-        foreach (INamedInputType namedInputType in analyzer.InputTypes)
+        foreach (var namedInputType in analyzer.InputTypes)
         {
             if (namedInputType is InputObjectType inputObjectType)
             {
@@ -52,7 +52,7 @@ public partial class DocumentAnalyzer
 
         rename = inputObjectType.Directives.SingleOrDefault<RenameDirective>();
 
-        NameString typeName = context.ResolveTypeName(
+        var typeName = context.ResolveTypeName(
             GetClassName(rename?.Name ?? inputObjectType.Name));
 
         context.RegisterModel(

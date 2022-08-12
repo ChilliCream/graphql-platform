@@ -39,7 +39,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
         if (services is null)
             throw new ArgumentNullException(nameof(services));
 
-        IRequestExecutorBuilder executorBuilder =
+        var executorBuilder =
             services.AddGraphQLServer(maxAllowedRequestSize: maxAllowedRequestSize);
 
         //Register AzFunc Custom Binding Extensions for In-Process Functions.
@@ -73,15 +73,16 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
         services.AddSingleton<IGraphQLRequestExecutor>(sp =>
         {
             PathString path = apiRoute?.TrimEnd('/');
-            IFileProvider fileProvider = CreateFileProvider();
+            var fileProvider = CreateFileProvider();
             var options = new GraphQLServerOptions();
 
-            foreach (Action<GraphQLServerOptions> configure in sp.GetServices<Action<GraphQLServerOptions>>())
+            foreach (var configure in
+                sp.GetServices<Action<GraphQLServerOptions>>())
             {
                 configure(options);
             }
 
-            RequestDelegate pipeline =
+            var pipeline =
                 new PipelineBuilder()
                     .UseMiddleware<WebSocketSubscriptionMiddleware>()
                     .UseMiddleware<HttpPostMiddleware>()
@@ -131,7 +132,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
 
     private static IFileProvider CreateFileProvider()
     {
-        Type type = typeof(HttpMultipartMiddleware);
+        var type = typeof(HttpMultipartMiddleware);
         var resourceNamespace = typeof(MiddlewareBase).Namespace + ".Resources";
         return new EmbeddedFileProvider(type.Assembly, resourceNamespace);
     }

@@ -3,9 +3,14 @@
     "Message": "More than one argument with the same name in an argument set is ambiguous and invalid.",
     "Code": null,
     "Path": {
-      "Parent": null,
+      "Name": "fieldWithArg",
+      "Parent": {
+        "Parent": null,
+        "Depth": -1,
+        "IsRoot": true
+      },
       "Depth": 0,
-      "Name": "fieldWithArg"
+      "IsRoot": false
     },
     "Locations": [
       {
@@ -54,9 +59,14 @@
     "Message": "More than one argument with the same name in an argument set is ambiguous and invalid.",
     "Code": null,
     "Path": {
-      "Parent": null,
+      "Name": "fieldWithArg",
+      "Parent": {
+        "Parent": null,
+        "Depth": -1,
+        "IsRoot": true
+      },
       "Depth": 0,
-      "Name": "fieldWithArg"
+      "IsRoot": false
     },
     "Locations": [
       {

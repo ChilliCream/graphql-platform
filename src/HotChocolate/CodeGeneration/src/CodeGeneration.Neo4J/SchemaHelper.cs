@@ -23,7 +23,7 @@ namespace HotChocolate.CodeGeneration.Neo4J.Types
             schemaBuilder.ModifyOptions(o => o.StrictValidation = false);
             schemaBuilder.Use(next => next);
 
-            foreach (DocumentNode? document in documents)
+            foreach (var document in documents)
             {
                 schemaBuilder.AddDocument(document);
             }

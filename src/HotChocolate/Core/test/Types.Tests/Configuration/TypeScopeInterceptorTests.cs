@@ -7,119 +7,118 @@ using HotChocolate.Types.Descriptors.Definitions;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Configuration
+namespace HotChocolate.Configuration;
+
+public class TypeScopeInterceptorTests
 {
-    public class TypeScopeInterceptorTests
+    [Fact]
+    public void BranchTypesWithScope()
     {
-        [Fact]
-        public void BranchTypesWithScope()
+        var types = new List<ITypeSystemMember>();
+
+        SchemaBuilder.New()
+            .AddQueryType<Foo>()
+            .TryAddTypeInterceptor(new TypeScopeInterceptor(types))
+            .Create()
+            .Print()
+            .MatchSnapshot();
+
+        Assert.Collection(
+            types.OfType<INamedType>().Select(t => t.Name).OrderBy(t => t),
+            name => Assert.Equal("A_Bar", name),
+            name => Assert.Equal("B_Bar", name),
+            name => Assert.Equal("C_Baz", name));
+    }
+
+    public class Foo
+    {
+        [Scope(Scope = "A")]
+        public Bar Bar1 => new Bar();
+
+        [Scope(Scope = "B")]
+        public Bar Bar2 => new Bar();
+    }
+
+    public class Bar
+    {
+        [Scope(Scope = "C")]
+        public Baz Baz => new Baz();
+
+        [Scope(Scope = "D")]
+        public string SomeString => "hello";
+    }
+
+    public class Baz
+    {
+        public string SomeString => "hello";
+    }
+
+    public class ScopeAttribute : ObjectFieldDescriptorAttribute
+    {
+        public string Scope { get; set; }
+
+        public override void OnConfigure(
+            IDescriptorContext context,
+            IObjectFieldDescriptor descriptor,
+            MemberInfo member)
         {
-            var types = new List<ITypeSystemMember>();
-
-            SchemaBuilder.New()
-                .AddQueryType<Foo>()
-                .TryAddTypeInterceptor(new TypeScopeInterceptor(types))
-                .Create()
-                .Print()
-                .MatchSnapshot();
-
-            Assert.Collection(
-                types.OfType<INamedType>().Select(t => t.Name).OrderBy(t => t),
-                name => Assert.Equal("A_Bar", name),
-                name => Assert.Equal("B_Bar", name),
-                name => Assert.Equal("C_Baz", name));
-        }
-
-        public class Foo
-        {
-            [Scope(Scope = "A")]
-            public Bar Bar1 => new Bar();
-
-            [Scope(Scope = "B")]
-            public Bar Bar2 => new Bar();
-        }
-
-        public class Bar
-        {
-            [Scope(Scope = "C")]
-            public Baz Baz => new Baz();
-
-            [Scope(Scope = "D")]
-            public string SomeString => "hello";
-        }
-
-        public class Baz
-        {
-            public string SomeString => "hello";
-        }
-
-        public class ScopeAttribute : ObjectFieldDescriptorAttribute
-        {
-            public string Scope { get; set; }
-
-            public override void OnConfigure(
-                IDescriptorContext context,
-                IObjectFieldDescriptor descriptor,
-                MemberInfo member)
-            {
-                descriptor
-                    .Extend()
-                    .OnBeforeCreate(d =>
-                    {
-                        d.Type = ((ExtendedTypeReference)d.Type).WithScope(Scope);
-                    });
-            }
-        }
-
-        public class TypeScopeInterceptor
-            : TypeInterceptor
-            , ITypeScopeInterceptor
-        {
-            private readonly ICollection<ITypeSystemMember> _types;
-
-            public TypeScopeInterceptor(ICollection<ITypeSystemMember> types)
-            {
-                _types = types;
-            }
-
-            public override bool TriggerAggregations => true;
-
-            public override bool CanHandle(
-                ITypeSystemObjectContext context) =>
-                context is { Scope: { } };
-
-            public override void OnBeforeRegisterDependencies(
-                ITypeDiscoveryContext discoveryContext,
-                DefinitionBase definition,
-                IDictionary<string, object> contextData)
-            {
-                if (definition is ObjectTypeDefinition def)
+            descriptor
+                .Extend()
+                .OnBeforeCreate(d =>
                 {
-                    foreach (ObjectFieldDefinition field in def.Fields)
+                    d.Type = ((ExtendedTypeReference)d.Type).WithScope(Scope);
+                });
+        }
+    }
+
+    public class TypeScopeInterceptor
+        : TypeInterceptor
+            , ITypeScopeInterceptor
+    {
+        private readonly ICollection<ITypeSystemMember> _types;
+
+        public TypeScopeInterceptor(ICollection<ITypeSystemMember> types)
+        {
+            _types = types;
+        }
+
+        public override bool TriggerAggregations => true;
+
+        public override bool CanHandle(
+            ITypeSystemObjectContext context) =>
+            context is { Scope: { } };
+
+        public override void OnBeforeRegisterDependencies(
+            ITypeDiscoveryContext discoveryContext,
+            DefinitionBase definition,
+            IDictionary<string, object> contextData)
+        {
+            if (definition is ObjectTypeDefinition def)
+            {
+                foreach (var field in def.Fields)
+                {
+                    if (field.Type is not null && field.Type.Scope is null)
                     {
-                        if (field.Type is not null && field.Type.Scope is null)
-                        {
-                            field.Type = field.Type.With(scope: discoveryContext.Scope);
-                        }
+                        field.Type = field.Type.With(scope: discoveryContext.Scope);
                     }
                 }
             }
+        }
 
-            public override void OnBeforeCompleteName(
-                ITypeCompletionContext completionContext,
-                DefinitionBase definition,
-                IDictionary<string, object> contextData)
-            {
-                definition.Name = completionContext.Scope + "_" + definition.Name;
-            }
+        public override void OnBeforeCompleteName(
+            ITypeCompletionContext completionContext,
+            DefinitionBase definition,
+            IDictionary<string, object> contextData)
+        {
+            definition.Name = completionContext.Scope + "_" + definition.Name;
+        }
 
-            public override void OnTypesInitialized(
-                IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+        public override void OnTypesInitialized(
+            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+        {
+            foreach (var context in discoveryContexts)
             {
-                foreach (ITypeDiscoveryContext context in discoveryContexts)
-                {
-                    _types.Add(context.Type);
-                }
+                _types.Add(context.Type);
             }
         }
     }

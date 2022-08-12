@@ -1,7 +1,0 @@
-interface A @source(name: "A", schema: "Schema_A") @source(name: "A", schema: "Schema_C") {
-  b: String
-}
-
-interface Schema_B_A @source(name: "A", schema: "Schema_B") {
-  b(a: String): String
-}

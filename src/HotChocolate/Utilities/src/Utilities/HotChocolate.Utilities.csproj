@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.Utilities</AssemblyName>
@@ -11,6 +11,7 @@
     <InternalsVisibleTo Include="HotChocolate.AspNetCore" />
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests" />
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests.Utilities" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion" />
   </ItemGroup>
 
   <ItemGroup>

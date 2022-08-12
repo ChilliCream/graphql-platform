@@ -20,7 +20,7 @@ public class ByteArrayType : ScalarType<byte[], StringValueNode>
     /// Initializes a new instance of the <see cref="ByteArrayType"/> class.
     /// </summary>
     public ByteArrayType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)

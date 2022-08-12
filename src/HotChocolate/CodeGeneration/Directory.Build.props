@@ -5,10 +5,7 @@
 
   <PropertyGroup>
     <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
 </Project>

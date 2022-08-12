@@ -1,0 +1,118 @@
+﻿query ViewerContainerQuery($symbol: String!) {
+  assetBySymbol(symbol: $symbol) {
+    ... ViewerHeaderFragment_asset
+    ... ViewerSnapshotFragment_asset
+    ... ViewerStatsFragment_asset
+    ... ViewerOverviewFragment_asset
+    ... ViewerResourcesFragment_asset
+    id
+  }
+}
+
+fragment ViewerHeaderFragment_asset on Asset {
+  id
+  symbol
+  name
+  imageUrl
+  isInWatchlist
+  hasAlerts
+}
+
+fragment ViewerOverviewFragment_asset on Asset {
+  description
+}
+
+fragment ViewerResourcesFragment_asset on Asset {
+  website
+  whitePaper
+}
+
+fragment ViewerSnapshotFragment_asset on Asset {
+  symbol
+  color
+  price {
+    ... ViewerSnapshotFragment_price
+    id
+  }
+}
+
+fragment ViewerSnapshotFragment_price on AssetPrice {
+  currency
+  lastPrice
+  change(span: DAY) {
+    percentageChange
+    history {
+      nodes {
+        epoch
+        price
+      }
+    }
+    id
+  }
+  id
+}
+
+fragment ViewerStatsFragment_asset on Asset {
+  price {
+    currency
+    marketCap
+    volume24Hour
+    volumePercentChange24Hour
+    maxSupply
+    circulatingSupply
+    tradingActivity
+    tradableMarketCapRank
+    id
+  }
+}
+
+---------------------------------------------------------
+
+query ViewerContainerQuery($symbol: String!) {
+  ... on Query {
+    assetBySymbol(symbol: $symbol) @__execute(id: 0, kind: DEFAULT, type: COMPOSITE) {
+      ... on Asset {
+        id @__execute(id: 1, kind: DEFAULT, type: LEAF)
+        symbol @__execute(id: 2, kind: DEFAULT, type: LEAF)
+        name @__execute(id: 3, kind: DEFAULT, type: LEAF)
+        imageUrl @__execute(id: 4, kind: DEFAULT, type: LEAF)
+        isInWatchlist @__execute(id: 5, kind: DEFAULT, type: LEAF)
+        hasAlerts @__execute(id: 6, kind: DEFAULT, type: LEAF)
+        color @__execute(id: 7, kind: DEFAULT, type: LEAF)
+        price @__execute(id: 8, kind: DEFAULT, type: COMPOSITE) {
+          ... on AssetPrice {
+            currency @__execute(id: 12, kind: DEFAULT, type: LEAF)
+            lastPrice @__execute(id: 13, kind: DEFAULT, type: LEAF)
+            change(span: DAY) @__execute(id: 14, kind: DEFAULT, type: COMPOSITE) {
+              ... on AssetPriceChange {
+                percentageChange @__execute(id: 23, kind: DEFAULT, type: LEAF)
+                history @__execute(id: 24, kind: DEFAULT, type: COMPOSITE) {
+                  ... on HistoryConnection {
+                    nodes @__execute(id: 26, kind: DEFAULT, type: COMPOSITE_LIST) {
+                      ... on AssetPriceHistory {
+                        epoch @__execute(id: 27, kind: DEFAULT, type: LEAF)
+                        price @__execute(id: 28, kind: DEFAULT, type: LEAF)
+                      }
+                    }
+                  }
+                }
+                id @__execute(id: 25, kind: DEFAULT, type: LEAF)
+              }
+            }
+            id @__execute(id: 15, kind: DEFAULT, type: LEAF)
+            marketCap @__execute(id: 16, kind: DEFAULT, type: LEAF)
+            volume24Hour @__execute(id: 17, kind: DEFAULT, type: LEAF)
+            volumePercentChange24Hour @__execute(id: 18, kind: DEFAULT, type: LEAF)
+            maxSupply @__execute(id: 19, kind: DEFAULT, type: LEAF)
+            circulatingSupply @__execute(id: 20, kind: DEFAULT, type: LEAF)
+            tradingActivity @__execute(id: 21, kind: DEFAULT, type: LEAF)
+            tradableMarketCapRank @__execute(id: 22, kind: DEFAULT, type: LEAF)
+          }
+        }
+        description @__execute(id: 9, kind: DEFAULT, type: LEAF)
+        website @__execute(id: 10, kind: DEFAULT, type: LEAF)
+        whitePaper @__execute(id: 11, kind: DEFAULT, type: LEAF)
+      }
+    }
+  }
+}

@@ -1,15 +1,16 @@
 using System;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
-using static HotChocolate.Execution.Processing.SelectionOptimizerHelper;
+using static HotChocolate.Execution.Processing.OperationCompilerOptimizerHelper;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Execution;
 
 public static class ExecutionObjectFieldDescriptorExtensions
 {
     public static IObjectFieldDescriptor UseOptimizer(
         this IObjectFieldDescriptor descriptor,
-        ISelectionOptimizer optimizer)
+        IOperationCompilerOptimizer optimizer)
     {
         if (descriptor is null)
         {

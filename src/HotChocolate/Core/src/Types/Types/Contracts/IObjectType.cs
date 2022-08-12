@@ -31,7 +31,7 @@ public interface IObjectType : IComplexOutputType
     /// The result that shall be checked.
     /// </param>
     /// <returns>
-    /// <c>true</c> if the <see cref="resolverResult"/> is an instance of this type;
+    /// <c>true</c> if the <paramref name="context"/> is an instance of this type;
     /// otherwise, <c>false</c>.
     /// </returns>
     bool IsInstanceOfType(IResolverContext context, object resolverResult);

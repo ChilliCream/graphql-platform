@@ -1,5 +1,0 @@
-﻿SELECT "b"."BlogId" IS NULL, "p"."PostId", "b"."BlogId", COALESCE("p0"."PostId", 0), "p0"."Title", "p0"."PostId", "b"."Url", COALESCE("p"."PostId", 0), "p"."Title"
-FROM "Posts" AS "p"
-LEFT JOIN "Blogs" AS "b" ON "p"."BlogId" = "b"."BlogId"
-LEFT JOIN "Posts" AS "p0" ON "b"."BlogId" = "p0"."BlogId"
-ORDER BY "p"."PostId", "b"."BlogId"

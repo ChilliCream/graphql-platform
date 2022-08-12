@@ -47,7 +47,7 @@ public class ResolverServiceTests
     {
         Snapshot.FullName();
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddSingleton<SayHelloService>()
                 .AddGraphQL()
@@ -64,11 +64,11 @@ public class ResolverServiceTests
     {
         Snapshot.FullName();
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddSingleton<SayHelloService>()
                 .AddGraphQL()
-                .AddQueryType<QueryResolverService>()
+                .AddQueryType<QueryResolverService>(x => x.Name("Query"))
                 .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .MapField(
                     new FieldReference("Query", "sayHello"),

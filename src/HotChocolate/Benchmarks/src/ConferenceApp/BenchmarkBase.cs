@@ -74,7 +74,7 @@ namespace HotChocolate.ConferencePlanner
         [GlobalSetup]
         public async Task GlobalSetup()
         {
-            foreach (MethodInfo method in GetType().GetMethods()
+            foreach (var method in GetType().GetMethods()
                 .Where(t => t.IsDefined(typeof(BenchmarkAttribute))))
             {
                 Console.WriteLine("Initialize: " + method.Name);
@@ -98,46 +98,46 @@ namespace HotChocolate.ConferencePlanner
 
         public async Task BenchmarkAsync(IQueryRequest request)
         {
-            IRequestExecutor executor = await ExecutorResolver.GetRequestExecutorAsync();
-            IExecutionResult result = await executor.ExecuteAsync(request);
+            var executor = await ExecutorResolver.GetRequestExecutorAsync();
+            var result = await executor.ExecuteAsync(request);
 
-            if (result.Errors is { Count: > 0 })
+            if (result is IQueryResult cr && cr.Errors is { Count: > 0 })
             {
                 throw new InvalidOperationException("The request failed.");
             }
 
-            if (result is IDisposable d)
+            if (result is IAsyncDisposable d)
             {
-                d.Dispose();
+                await d.DisposeAsync();
             }
         }
 
         public async Task<string> PrintQueryPlanAsync(string requestDocument)
         {
-            IRequestExecutor executor = await ExecutorResolver.GetRequestExecutorAsync();
+            var executor = await ExecutorResolver.GetRequestExecutorAsync();
 
-            string hash = _md5.ComputeHash(Encoding.UTF8.GetBytes(requestDocument).AsSpan());
-            DocumentNode document = Utf8GraphQLParser.Parse(requestDocument);
+            var hash = _md5.ComputeHash(Encoding.UTF8.GetBytes(requestDocument).AsSpan());
+            var document = Utf8GraphQLParser.Parse(requestDocument);
             var operation = document.Definitions.OfType<OperationDefinitionNode>().First();
+            var compiler = new OperationCompiler(new InputParser());
 
-            IPreparedOperation preparedOperation =
-                OperationCompiler.Compile(
+            var preparedOperation =
+                compiler.Compile(
                     hash,
-                    document,
                     operation,
-                    executor.Schema,
-                    executor.Schema.GetOperationType(operation.Operation),
-                    new InputParser());
+                    executor.Schema.GetOperationType(operation.Operation)!,
+                    document,
+                    executor.Schema);
 
-            string serialized = preparedOperation.Print();
+            var serialized = preparedOperation.ToString()!;
             Console.WriteLine(serialized);
             return serialized;
         }
 
         protected static IQueryRequest Prepare(string requestDocument)
         {
-            string hash = _md5.ComputeHash(Encoding.UTF8.GetBytes(requestDocument).AsSpan());
-            DocumentNode document = Utf8GraphQLParser.Parse(requestDocument);
+            var hash = _md5.ComputeHash(Encoding.UTF8.GetBytes(requestDocument).AsSpan());
+            var document = Utf8GraphQLParser.Parse(requestDocument);
 
             return QueryRequestBuilder.New()
                 .SetQuery(document)
@@ -215,7 +215,7 @@ namespace HotChocolate.ConferencePlanner
                 Content = content
             };
 
-            using HttpResponseMessage responseMsg = await TestClient.SendAsync(requestMsg);
+            using var responseMsg = await TestClient.SendAsync(requestMsg);
 
             if (responseMsg.StatusCode != HttpStatusCode.OK)
             {
@@ -260,7 +260,7 @@ namespace HotChocolate.ConferencePlanner
         public override void StartProcessing(IRequestContext context)
         {
             ((RequestScope)context.ContextData[nameof(RequestScope)]!).CountStarts();
-        
+
             // TimeSpan timeSpan = ((RequestScope)context.ContextData[nameof(RequestScope)]!).Elapsed;
             // Console.WriteLine($"{timeSpan} Start processing.");
         }
@@ -352,14 +352,14 @@ namespace HotChocolate.ConferencePlanner
                 _requestScope = requestScope;
                 _selection = selection;
 
-                TimeSpan timeSpan = requestScope.Elapsed;
+                var timeSpan = requestScope.Elapsed;
                 requestScope.Count(selection.Field.Coordinate);
                 // Console.WriteLine($"{timeSpan} {Thread.CurrentThread.ManagedThreadId} Begin {selection.Field.Coordinate}");
             }
 
             public void Dispose()
             {
-                TimeSpan timeSpan = _requestScope.Elapsed;
+                var timeSpan = _requestScope.Elapsed;
                 //Console.WriteLine($"{timeSpan} {Thread.CurrentThread.ManagedThreadId} End {_selection.Field.Coordinate}");
             }
         }
@@ -401,9 +401,9 @@ namespace HotChocolate.ConferencePlanner
                 {
                     var configBuilder = new ConfigurationBuilder();
                     configBuilder.AddInMemoryCollection();
-                    IConfigurationRoot config = configBuilder.Build();
+                    var config = configBuilder.Build();
                     config["server.urls"] = $"http://localhost:{port}";
-                    IWebHost host = new WebHostBuilder()
+                    var host = new WebHostBuilder()
                         .UseConfiguration(config)
                         .UseKestrel()
                         .ConfigureServices(services =>

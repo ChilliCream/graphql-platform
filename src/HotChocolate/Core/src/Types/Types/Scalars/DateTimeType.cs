@@ -35,7 +35,7 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
     /// Initializes a new instance of the <see cref="DateTimeType"/> class.
     /// </summary>
     public DateTimeType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)
@@ -46,7 +46,7 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
 
     protected override DateTimeOffset ParseLiteral(StringValueNode valueSyntax)
     {
-        if (TryDeserializeFromString(valueSyntax.Value, out DateTimeOffset? value))
+        if (TryDeserializeFromString(valueSyntax.Value, out var value))
         {
             return value.Value;
         }
@@ -120,7 +120,7 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
             return true;
         }
 
-        if (resultValue is string s && TryDeserializeFromString(s, out DateTimeOffset? d))
+        if (resultValue is string s && TryDeserializeFromString(s, out var d))
         {
             runtimeValue = d;
             return true;
@@ -168,7 +168,7 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
                 serialized,
                 CultureInfo.InvariantCulture,
                 DateTimeStyles.AssumeUniversal,
-                out DateTime zuluTime))
+                out var zuluTime))
         {
             value = new DateTimeOffset(
                 zuluTime.ToUniversalTime(),
@@ -179,7 +179,7 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
         if (serialized is not null
             && DateTimeOffset.TryParse(
                 serialized,
-                out DateTimeOffset dt))
+                out var dt))
         {
             value = dt;
             return true;

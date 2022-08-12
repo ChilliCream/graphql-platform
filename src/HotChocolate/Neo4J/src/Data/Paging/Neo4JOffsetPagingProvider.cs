@@ -62,7 +62,7 @@ public class Neo4JOffsetPagingProvider : OffsetPagingProvider
             object source,
             OffsetPagingArguments arguments)
         {
-            Neo4JExecutable<TEntity> f = CreatePagingContainer(source);
+            var f = CreatePagingContainer(source);
             return ResolveAsync(context, f, arguments);
         }
 
@@ -91,11 +91,11 @@ public class Neo4JOffsetPagingProvider : OffsetPagingProvider
                 queryable = queryable.WithLimit(arguments.Take.Value + 1);
             }
 
-            IList items = await queryable
+            var items = await queryable
                 .ToListAsync(context.RequestAborted)
                 .ConfigureAwait(false);
 
-            return new CollectionSegment((IReadOnlyCollection<object>)items, null, null);
+            return new CollectionSegment((IReadOnlyCollection<object>)items, null!);
         }
     }
 }

@@ -96,8 +96,8 @@ public static class CSharpGenerator
 
         // divide documents into type system document for the schema
         // and executable documents.
-        IReadOnlyList<GraphQLFile> typeSystemFiles = files.GetTypeSystemDocuments();
-        IReadOnlyList<GraphQLFile> executableFiles = files.GetExecutableDocuments();
+        var typeSystemFiles = files.GetTypeSystemDocuments();
+        var executableFiles = files.GetExecutableDocuments();
 
         if (typeSystemFiles.Count == 0 || executableFiles.Count == 0)
         {
@@ -118,7 +118,7 @@ public static class CSharpGenerator
                 errors,
                 settings.StrictSchemaValidation,
                 settings.NoStore,
-                out ISchema? schema))
+                out var schema))
         {
             return new(errors);
         }
@@ -137,14 +137,14 @@ public static class CSharpGenerator
         var analyzer = new DocumentAnalyzer();
         analyzer.SetSchema(schema);
 
-        foreach (GraphQLFile executableDocument in executableFiles)
+        foreach (var executableDocument in executableFiles)
         {
             analyzer.AddDocument(executableDocument.Document);
         }
 
         try
         {
-            ClientModel clientModel = analyzer.Analyze();
+            var clientModel = analyzer.Analyze();
 
             // With the client model we finally can create CSharp code.
             return Generate(clientModel, settings);
@@ -213,7 +213,7 @@ public static class CSharpGenerator
         DependencyInjectionMapper.Map(context);
 
         // Last we execute all our generators with the descriptors.
-        IReadOnlyList<GeneratorResult> results = GenerateCSharpDocuments(context, settings);
+        var results = GenerateCSharpDocuments(context, settings);
 
         var documents = new List<SourceDocument>();
 
@@ -285,18 +285,18 @@ public static class CSharpGenerator
         // enable nullability settings
         code.AppendLine("#nullable enable");
 
-        CompilationUnitSyntax compilationUnit = CompilationUnit();
+        var compilationUnit = CompilationUnit();
 
         foreach (var group in results.GroupBy(t => t.Result.Namespace).OrderBy(t => t.Key))
         {
-            NamespaceDeclarationSyntax namespaceDeclaration =
+            var namespaceDeclaration =
                 NamespaceDeclaration(IdentifierName(group.Key));
 
             foreach (var item in group)
             {
-                BaseTypeDeclarationSyntax typeDeclaration = item.Result.TypeDeclaration;
+                var typeDeclaration = item.Result.TypeDeclaration;
 #if DEBUG
-                SyntaxTriviaList trivia = typeDeclaration
+                var trivia = typeDeclaration
                     .GetLeadingTrivia()
                     .Insert(0, Comment("// " + item.Generator.FullName));
 
@@ -337,7 +337,7 @@ public static class CSharpGenerator
             {
                 if (generator.CanHandle(descriptor, generatorSettings))
                 {
-                    CSharpSyntaxGeneratorResult result =
+                    var result =
                         generator.Generate(descriptor, generatorSettings);
                     results.Add(new(generator.GetType(), result));
                 }
@@ -353,7 +353,7 @@ public static class CSharpGenerator
         ICollection<SourceDocument> documents)
     {
         var workspace = new AdhocWorkspace();
-        OptionSet options = workspace.Options
+        var options = workspace.Options
             .WithChangedOption(IndentationSize, LanguageNames.CSharp, 4)
             .WithChangedOption(SmartIndent, LanguageNames.CSharp, IndentStyle.Smart)
             .WithChangedOption(UseTabs, LanguageNames.CSharp, false);
@@ -362,20 +362,20 @@ public static class CSharpGenerator
         {
             foreach (var item in group)
             {
-                BaseTypeDeclarationSyntax typeDeclaration = item.Result.TypeDeclaration;
+                var typeDeclaration = item.Result.TypeDeclaration;
 #if DEBUG
-                SyntaxTriviaList trivia = typeDeclaration
+                var trivia = typeDeclaration
                     .GetLeadingTrivia()
                     .Insert(0, Comment("// " + item.Generator.FullName));
 
                 typeDeclaration = typeDeclaration.WithLeadingTrivia(trivia);
 #endif
-                CompilationUnitSyntax compilationUnit =
+                var compilationUnit =
                     CompilationUnit().AddMembers(
                         NamespaceDeclaration(IdentifierName(group.Key)).AddMembers(
                             typeDeclaration));
 
-                SyntaxNode formatted = Formatter.Format(compilationUnit, workspace, options);
+                var formatted = Formatter.Format(compilationUnit, workspace, options);
 
                 var code = new StringBuilder();
 
@@ -406,7 +406,7 @@ public static class CSharpGenerator
         {
             try
             {
-                DocumentNode document = Parse(File.ReadAllBytes(fileName));
+                var document = Parse(File.ReadAllBytes(fileName));
                 files.Add(new(fileName, document));
             }
             catch (SyntaxException syntaxException)
@@ -433,7 +433,7 @@ public static class CSharpGenerator
         }
         catch (SchemaException ex)
         {
-            foreach (ISchemaError error in ex.Errors)
+            foreach (var error in ex.Errors)
             {
                 errors.Add(error.SchemaError(fileLookup));
             }
@@ -449,10 +449,10 @@ public static class CSharpGenerator
         Dictionary<ISyntaxNode, string> fileLookup,
         List<IError> errors)
     {
-        IDocumentValidator validator = CreateDocumentValidator();
+        var validator = CreateDocumentValidator();
 
-        DocumentNode document = MergeDocuments(executableFiles);
-        DocumentValidatorResult validationResult = validator.Validate(schema, document);
+        var document = MergeDocuments(executableFiles);
+        var validationResult = validator.Validate(schema, document);
 
         if (validationResult.HasErrors)
         {

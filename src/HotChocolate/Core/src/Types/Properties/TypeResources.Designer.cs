@@ -1413,6 +1413,12 @@ namespace HotChocolate.Properties {
             }
         }
         
+        internal static string ConnectionType_TotalCount_Description {
+            get {
+                return ResourceManager.GetString("ConnectionType_TotalCount_Description", resourceCulture);
+            }
+        }
+        
         internal static string CollectionSegmentType_PageInfo_Description {
             get {
                 return ResourceManager.GetString("CollectionSegmentType_PageInfo_Description", resourceCulture);
@@ -1494,6 +1500,36 @@ namespace HotChocolate.Properties {
         internal static string ResolverContextExtensions_ContextData_KeyNotFound {
             get {
                 return ResourceManager.GetString("ResolverContextExtensions_ContextData_KeyNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaTypes_GetType_DoesNotExist {
+            get {
+                return ResourceManager.GetString("SchemaTypes_GetType_DoesNotExist", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaTypes_DefinitionInvalid {
+            get {
+                return ResourceManager.GetString("SchemaTypes_DefinitionInvalid", resourceCulture);
+            }
+        }
+        
+        internal static string InputObjectTypeDescriptor_OnlyProperties {
+            get {
+                return ResourceManager.GetString("InputObjectTypeDescriptor_OnlyProperties", resourceCulture);
+            }
+        }
+        
+        internal static string InterfaceTypeDescriptor_MustBePropertyOrMethod {
+            get {
+                return ResourceManager.GetString("InterfaceTypeDescriptor_MustBePropertyOrMethod", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_FieldBase_Sealed {
+            get {
+                return ResourceManager.GetString("ThrowHelper_FieldBase_Sealed", resourceCulture);
             }
         }
     }

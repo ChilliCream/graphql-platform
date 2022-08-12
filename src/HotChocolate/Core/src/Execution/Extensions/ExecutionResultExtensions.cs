@@ -1,12 +1,10 @@
 using System;
 using System.Buffers;
-using System.IO;
-using System.Text;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Serialization;
 using static HotChocolate.Execution.Properties.Resources;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate;
 
 public static class ExecutionResultExtensions

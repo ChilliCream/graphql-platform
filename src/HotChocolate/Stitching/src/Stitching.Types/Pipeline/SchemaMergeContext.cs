@@ -4,7 +4,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Types.Pipeline;
 
-public sealed class SchemaMergeContext : ISchemaMergeContext
+internal sealed class SchemaMergeContext : ISchemaMergeContext
 {
     public SchemaMergeContext(IReadOnlyList<ServiceConfiguration> configurations)
     {
@@ -13,7 +13,9 @@ public sealed class SchemaMergeContext : ISchemaMergeContext
 
     public IReadOnlyList<ServiceConfiguration> Configurations { get; }
 
-    public IImmutableList<DocumentNode> Documents { get; set; } = ImmutableList<DocumentNode>.Empty;
+    public IImmutableList<Document> Documents { get; set; } = ImmutableList<Document>.Empty;
 
     public ICollection<IError> Errors { get; } = new List<IError>();
+
+    public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
 }

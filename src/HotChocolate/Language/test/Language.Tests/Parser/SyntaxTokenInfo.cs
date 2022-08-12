@@ -17,7 +17,7 @@ public sealed class SyntaxTokenInfo
     }
 
     /// <summary>
-    /// Gets the kind of <see cref="SyntaxToken" />.
+    /// Gets the kind of <see cref="HotChocolate.Language.ISyntaxNode" />.
     /// </summary>
     public TokenKind Kind { get; }
 
@@ -33,24 +33,16 @@ public sealed class SyntaxTokenInfo
 
     /// <summary>
     /// Gets the 1-indexed line number on which this
-    /// <see cref="SyntaxToken" /> appears.
+    /// <see cref="HotChocolate.Language.ISyntaxNode" /> appears.
     /// </summary>
     public int Line { get; }
 
     /// <summary>
     /// Gets the 1-indexed column number at which this
-    /// <see cref="SyntaxToken" /> begins.
+    /// <see cref="HotChocolate.Language.ISyntaxNode" /> begins.
     /// </summary>
     public int Column { get; }
 
-    public static SyntaxTokenInfo FromReader(
-        in Utf8GraphQLReader reader)
-    {
-        return new SyntaxTokenInfo(
-            reader.Kind,
-            reader.Start,
-            reader.End,
-            reader.Line,
-            reader.Column);
-    }
+    public static SyntaxTokenInfo FromReader(in Utf8GraphQLReader reader)
+        => new(reader.Kind, reader.Start, reader.End, reader.Line, reader.Column);
 }

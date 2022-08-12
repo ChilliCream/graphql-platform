@@ -5,7 +5,6 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace HotChocolate.Data;
 
@@ -124,7 +123,7 @@ public class ProjectionConventionExtensionsTests
         }
 
         public Selection RewriteSelection(
-            SelectionOptimizerContext context,
+            SelectionSetOptimizerContext context,
             Selection selection)
         {
             throw new NotImplementedException();
@@ -133,8 +132,7 @@ public class ProjectionConventionExtensionsTests
 
     private sealed class MockProjectionConvention : ProjectionConvention
     {
-        public MockProjectionConvention(
-            Action<IProjectionConventionDescriptor> configure)
+        public MockProjectionConvention(Action<IProjectionConventionDescriptor> configure)
             : base(configure)
         {
         }

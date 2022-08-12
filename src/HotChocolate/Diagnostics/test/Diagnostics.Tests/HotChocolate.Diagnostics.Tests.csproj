@@ -1,9 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.Diagnostics.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Diagnostics</RootNamespace>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,17 +10,10 @@
     <ProjectReference Include="..\..\src\Diagnostics\HotChocolate.Diagnostics.csproj" />
   </ItemGroup>
 
-  <!--For Visual Studio for Mac Test Explorer we need this reference here-->
-  <ItemGroup>
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
-  </ItemGroup>
   <ItemGroup>
     <None Update="__resources__\CostSchema.graphql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="__snapshots__" />
   </ItemGroup>
 
 </Project>

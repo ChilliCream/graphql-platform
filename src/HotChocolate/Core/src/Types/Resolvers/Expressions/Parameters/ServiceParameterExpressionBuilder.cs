@@ -23,7 +23,7 @@ internal sealed class ServiceParameterExpressionBuilder
     public bool IsDefaultHandler => false;
 
     public bool CanHandle(ParameterInfo parameter)
-        => ServiceExpressionHelper.TryGetServiceKind(parameter, out ServiceKind kind) &&
+        => ServiceExpressionHelper.TryGetServiceKind(parameter, out var kind) &&
            kind is ServiceKind.Default;
 
     public void ApplyConfiguration(ParameterInfo parameter, ObjectFieldDescriptor descriptor)

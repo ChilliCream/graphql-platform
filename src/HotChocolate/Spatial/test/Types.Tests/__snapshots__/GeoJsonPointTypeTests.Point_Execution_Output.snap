@@ -1,25 +1,18 @@
-﻿{
-  "Kind": "SingleResult",
-  "Label": null,
-  "Path": null,
-  "Data": {
+{
+  "data": {
     "test": {
       "type": "Point",
       "coordinates": [
-        30.0,
-        10.0
+        30,
+        10
       ],
       "bbox": [
-        30.0,
-        10.0,
-        30.0,
-        10.0
+        30,
+        10,
+        30,
+        10
       ],
       "crs": 4326
     }
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null,
-  "HasNext": null
+  }
 }

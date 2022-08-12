@@ -19,7 +19,7 @@ internal class AggregateFluentPagingContainer<TEntity> : IMongoPagingContainer<T
 
     public async Task<int> CountAsync(CancellationToken cancellationToken)
     {
-        AggregateCountResult result = await _countSource
+        var result = await _countSource
             .FirstOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
 
@@ -32,14 +32,14 @@ internal class AggregateFluentPagingContainer<TEntity> : IMongoPagingContainer<T
     {
         var list = new List<IndexEdge<TEntity>>();
 
-        using IAsyncCursor<TEntity> cursor = await _source
+        using var cursor = await _source
             .ToCursorAsync(cancellationToken)
             .ConfigureAwait(false);
 
         var index = offset;
         while (await cursor.MoveNextAsync(cancellationToken).ConfigureAwait(false))
         {
-            foreach (TEntity item in cursor.Current)
+            foreach (var item in cursor.Current)
             {
                 list.Add(IndexEdge<TEntity>.Create(item, index++));
             }

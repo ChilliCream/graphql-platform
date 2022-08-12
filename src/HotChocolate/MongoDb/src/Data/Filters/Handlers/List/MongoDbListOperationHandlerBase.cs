@@ -1,8 +1,6 @@
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
-using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 
@@ -54,7 +52,7 @@ public abstract class MongoDbListOperationHandlerBase
         if (context.RuntimeTypes.Count > 0 &&
             context.RuntimeTypes.Peek().TypeArguments is { Count: > 0 } args)
         {
-            IExtendedType element = args[0];
+            var element = args[0];
             context.RuntimeTypes.Push(element);
             context.AddScope();
 
@@ -75,11 +73,10 @@ public abstract class MongoDbListOperationHandlerBase
     {
         context.RuntimeTypes.Pop();
 
-        if (context.TryCreateQuery(out MongoDbFilterDefinition? query) &&
-            context.Scopes.Pop() is MongoDbFilterScope scope)
+        if (context.Scopes.Pop() is MongoDbFilterScope scope)
         {
             var path = context.GetMongoFilterScope().GetPath();
-            MongoDbFilterDefinition combinedOperations = HandleListOperation(
+            var combinedOperations = HandleListOperation(
                 context,
                 field,
                 scope,
@@ -113,10 +110,9 @@ public abstract class MongoDbListOperationHandlerBase
     /// </summary>
     /// <param name="scope">The scope where the definitions should be combined</param>
     /// <returns>A with and combined filter definition of all definitions of the scope</returns>
-    protected static MongoDbFilterDefinition CombineOperationsOfScope(
-        MongoDbFilterScope scope)
+    protected static MongoDbFilterDefinition CombineOperationsOfScope(MongoDbFilterScope scope)
     {
-        Queue<MongoDbFilterDefinition> level = scope.Level.Peek();
+        var level = scope.Level.Peek();
         if (level.Count == 1)
         {
             return level.Peek();

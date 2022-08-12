@@ -231,7 +231,7 @@ internal static class ThrowHelper
                     .SetMessage(
                         "The field `{0}` does not exist on the type `{1}`.",
                         invalidFieldNames[0],
-                        type.Name.Value)
+                        type.Name)
                     .SetPath(path)
                     .SetExtension("type", type.Name)
                     .Build(),
@@ -244,7 +244,7 @@ internal static class ThrowHelper
                 .SetMessage(
                     "The fields `{0}` do not exist on the type `{1}`.",
                     string.Join(", ", invalidFieldNames.Select(t => $"`{t}`")),
-                    type.Name.Value)
+                    type.Name)
                 .SetPath(path)
                 .SetExtension("type", type.Name)
                 .Build(),
@@ -256,10 +256,8 @@ internal static class ThrowHelper
         InputObjectType type,
         Path? path)
     {
-        IErrorBuilder builder = ErrorBuilder.New()
-            .SetMessage(
-                ThrowHelper_OneOfNoFieldSet,
-                type.Name.Value)
+        var builder = ErrorBuilder.New()
+            .SetMessage(ThrowHelper_OneOfNoFieldSet, type.Name)
             .SetCode(ErrorCodes.Execution.OneOfNoFieldSet)
             .SetPath(path);
 
@@ -270,10 +268,8 @@ internal static class ThrowHelper
         InputObjectType type,
         Path? path)
     {
-        IErrorBuilder builder = ErrorBuilder.New()
-            .SetMessage(
-                ThrowHelper_OneOfMoreThanOneFieldSet,
-                type.Name.Value)
+        var builder = ErrorBuilder.New()
+            .SetMessage(ThrowHelper_OneOfMoreThanOneFieldSet, type.Name)
             .SetCode(ErrorCodes.Execution.OneOfMoreThanOneFieldSet)
             .SetPath(path);
 
@@ -285,11 +281,8 @@ internal static class ThrowHelper
         Path? path,
         InputField field)
     {
-        IErrorBuilder builder = ErrorBuilder.New()
-            .SetMessage(
-                ThrowHelper_OneOfFieldIsNull,
-                field.Name.Value,
-                type.Name.Value)
+        var builder = ErrorBuilder.New()
+            .SetMessage(ThrowHelper_OneOfFieldIsNull, field.Name, type.Name)
             .SetCode(ErrorCodes.Execution.OneOfFieldIsNull)
             .SetPath(path)
             .SetExtension(nameof(field), field.Coordinate.ToString());
@@ -302,7 +295,7 @@ internal static class ThrowHelper
         Path? path,
         InputField? field = null)
     {
-        IErrorBuilder builder = ErrorBuilder.New()
+        var builder = ErrorBuilder.New()
             .SetMessage("Cannot accept null for non-nullable input.")
             .SetCode(ErrorCodes.Execution.NonNullViolation)
             .SetPath(path);
@@ -324,9 +317,9 @@ internal static class ThrowHelper
             .SetMessage(
                 "The syntax node `{0}` is incompatible with the type `{1}`.",
                 kind,
-                type.Name.Value)
+                type.Name)
             .SetPath(path)
-            .SetExtension(nameof(type), type.Name.Value)
+            .SetExtension(nameof(type), type.Name)
             .Build(),
             type,
             path);
@@ -341,10 +334,10 @@ internal static class ThrowHelper
                 "The input object `{1}` must to be serialized as `{2}` or as " +
                 "`IReadOnlyDictionary<string. object?>` but not as `{0}`.",
                 objectType.FullName ?? objectType.Name,
-                type.Name.Value,
+                type.Name,
                 type.RuntimeType.FullName ?? type.RuntimeType.Name)
             .SetPath(path)
-            .SetExtension(nameof(type), type.Name.Value)
+            .SetExtension(nameof(type), type.Name)
             .Build(),
             type,
             path);
@@ -410,10 +403,10 @@ internal static class ThrowHelper
                     "The input object `{1}` must to be of type `{2}` or serialized as " +
                     "`IReadOnlyDictionary<string. object?>` but not as `{0}`.",
                     objectType.FullName ?? objectType.Name,
-                    type.Name.Value,
+                    type.Name,
                     type.RuntimeType.FullName ?? type.RuntimeType.Name)
                 .SetPath(path)
-                .SetExtension(nameof(type), type.Name.Value)
+                .SetExtension(nameof(type), type.Name)
                 .Build(),
             type,
             path);
@@ -458,7 +451,7 @@ internal static class ThrowHelper
             string.Format(
                 CultureInfo.InvariantCulture,
                 "Argument `{0}` was not found on directive `@{1}`.",
-                coordinate.ArgumentName!.Value,
+                coordinate.ArgumentName!,
                 coordinate.Name),
             coordinate);
 
@@ -477,7 +470,7 @@ internal static class ThrowHelper
             string.Format(
                 CultureInfo.InvariantCulture,
                 "Enum value `{0}` was not found on type `{1}`.",
-                coordinate.MemberName!.Value,
+                coordinate.MemberName!,
                 coordinate.Name),
             coordinate);
 
@@ -487,7 +480,7 @@ internal static class ThrowHelper
             string.Format(
                 CultureInfo.InvariantCulture,
                 "Input field `{0}` was not found on type `{1}`.",
-                coordinate.MemberName!.Value,
+                coordinate.MemberName!,
                 coordinate.Name),
             coordinate);
 
@@ -499,7 +492,7 @@ internal static class ThrowHelper
                 CultureInfo.InvariantCulture,
                 "The coordinate `{0}` is invalid for the type `{1}`.",
                 coordinate.ToString(),
-                type.Name.Value),
+                type.Name),
             coordinate);
 
     public static InvalidSchemaCoordinateException Schema_GetMember_FieldArgNotFound(
@@ -508,9 +501,9 @@ internal static class ThrowHelper
             string.Format(
                 CultureInfo.InvariantCulture,
                 "Argument `{0}` was not found on field `{1}.{2}`.",
-                coordinate.ArgumentName!.Value,
-                coordinate.Name.Value,
-                coordinate.MemberName!.Value),
+                coordinate.ArgumentName!,
+                coordinate.Name,
+                coordinate.MemberName!),
             coordinate);
 
     public static InvalidSchemaCoordinateException Schema_GetMember_FieldNotFound(
@@ -519,8 +512,8 @@ internal static class ThrowHelper
             string.Format(
                 CultureInfo.InvariantCulture,
                 "Field `{0}` was not found on type `{1}`.",
-                coordinate.MemberName!.Value,
-                coordinate.Name.Value),
+                coordinate.MemberName!,
+                coordinate.Name),
             coordinate);
 
     public static InvalidSchemaCoordinateException Schema_GetMember_TypeNotFound(
@@ -529,6 +522,9 @@ internal static class ThrowHelper
             string.Format(
                 CultureInfo.InvariantCulture,
                 "A type with the name `{0}` was not found.",
-                coordinate.Name.Value),
+                coordinate.Name),
             coordinate);
+
+    public static InvalidOperationException FieldBase_Sealed()
+        => new(ThrowHelper_FieldBase_Sealed);
 }

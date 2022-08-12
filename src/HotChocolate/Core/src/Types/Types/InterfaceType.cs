@@ -4,6 +4,7 @@ using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -40,7 +41,7 @@ namespace HotChocolate.Types;
 ///   age: Int
 /// }
 ///
-/// type Business implements NamedEntity & ValuedEntity {
+/// type Business implements NamedEntity &amp; ValuedEntity {
 ///   name: String
 ///   value: Int
 ///   employeeCount: Int
@@ -115,8 +116,8 @@ public partial class InterfaceType
     /// <param name="typeName">
     /// The interface type name.
     /// </param>
-    public bool IsImplementing(NameString typeName)
-        => _implements.Any(t => t.Name.Equals(typeName));
+    public bool IsImplementing(string typeName)
+        => _implements.Any(t => t.Name.EqualsOrdinal(typeName));
 
     /// <summary>
     /// Defines if this type is implementing the

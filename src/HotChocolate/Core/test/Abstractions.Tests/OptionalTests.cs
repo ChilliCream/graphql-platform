@@ -1,193 +1,192 @@
 using Xunit;
 
-namespace HotChocolate
+namespace HotChocolate;
+
+public class OptionalTests
 {
-    public class OptionalTests
+    [Fact]
+    public void Optional_Is_Not_Set()
     {
-        [Fact]
-        public void Optional_Is_Not_Set()
-        {
-            // arrange
-            // act
-            var optional = new Optional<string>();
+        // arrange
+        // act
+        var optional = new Optional<string>();
 
-            // assert
-            Assert.False(optional.HasValue);
-            Assert.True(optional.IsEmpty);
-            Assert.Null(optional.Value);
-        }
+        // assert
+        Assert.False(optional.HasValue);
+        Assert.True(optional.IsEmpty);
+        Assert.Null(optional.Value);
+    }
 
-        [Fact]
-        public void Optional_Is_Set_To_Value()
-        {
-            // arrange
-            // act
-            Optional<string> optional = "abc";
+    [Fact]
+    public void Optional_Is_Set_To_Value()
+    {
+        // arrange
+        // act
+        Optional<string> optional = "abc";
 
-            // assert
-            Assert.True(optional.HasValue);
-            Assert.False(optional.IsEmpty);
-            Assert.Equal("abc", optional.Value);
-        }
+        // assert
+        Assert.True(optional.HasValue);
+        Assert.False(optional.IsEmpty);
+        Assert.Equal("abc", optional.Value);
+    }
 
-        [Fact]
-        public void Optional_Is_Set_To_Null()
-        {
-            // arrange
-            // act
-            Optional<string> optional = null;
+    [Fact]
+    public void Optional_Is_Set_To_Null()
+    {
+        // arrange
+        // act
+        Optional<string> optional = null;
 
-            // assert
-            Assert.True(optional.HasValue);
-            Assert.False(optional.IsEmpty);
-            Assert.Null(optional.Value);
-        }
+        // assert
+        Assert.True(optional.HasValue);
+        Assert.False(optional.IsEmpty);
+        Assert.Null(optional.Value);
+    }
 
-        [Fact]
-        public void Optional_Equals_True()
-        {
-            // arrange
-            Optional<string> a = "abc";
-            Optional<string> b = "abc";
+    [Fact]
+    public void Optional_Equals_True()
+    {
+        // arrange
+        Optional<string> a = "abc";
+        Optional<string> b = "abc";
 
-            // act
-            bool result = a.Equals(b);
+        // act
+        var result = a.Equals(b);
 
-            // assert
-            Assert.True(result);
-        }
+        // assert
+        Assert.True(result);
+    }
 
-        [Fact]
-        public void Optional_Equals_True_2()
-        {
-            // arrange
-            Optional<string> a = "abc";
-            var b = "abc";
+    [Fact]
+    public void Optional_Equals_True_2()
+    {
+        // arrange
+        Optional<string> a = "abc";
+        var b = "abc";
 
-            // act
-            bool result = a.Equals(b);
+        // act
+        var result = a.Equals(b);
 
-            // assert
-            Assert.True(result);
-        }
+        // assert
+        Assert.True(result);
+    }
 
-        [Fact]
-        public void Optional_Equals_False()
-        {
-            // arrange
-            Optional<string> a = "abc";
-            Optional<string> b = "def";
+    [Fact]
+    public void Optional_Equals_False()
+    {
+        // arrange
+        Optional<string> a = "abc";
+        Optional<string> b = "def";
 
-            // act
-            bool result = a.Equals(b);
+        // act
+        var result = a.Equals(b);
 
-            // assert
-            Assert.False(result);
-        }
+        // assert
+        Assert.False(result);
+    }
 
-        [Fact]
-        public void Optional_Equals_Operator_True()
-        {
-            // arrange
-            Optional<string> a = "abc";
-            Optional<string> b = "abc";
+    [Fact]
+    public void Optional_Equals_Operator_True()
+    {
+        // arrange
+        Optional<string> a = "abc";
+        Optional<string> b = "abc";
 
-            // act
-            bool result = a == b;
+        // act
+        var result = a == b;
 
-            // assert
-            Assert.True(result);
-        }
+        // assert
+        Assert.True(result);
+    }
 
-        [Fact]
-        public void Optional_Equals_Operator_True_2()
-        {
-            // arrange
-            Optional<string> a = "abc";
-            var b = "abc";
+    [Fact]
+    public void Optional_Equals_Operator_True_2()
+    {
+        // arrange
+        Optional<string> a = "abc";
+        var b = "abc";
 
-            // act
-            bool result = a == b;
+        // act
+        var result = a == b;
 
-            // assert
-            Assert.True(result);
-        }
+        // assert
+        Assert.True(result);
+    }
 
-        [Fact]
-        public void Optional_Equals_Operator_False()
-        {
-            // arrange
-            Optional<string> a = "abc";
-            Optional<string> b = "def";
+    [Fact]
+    public void Optional_Equals_Operator_False()
+    {
+        // arrange
+        Optional<string> a = "abc";
+        Optional<string> b = "def";
 
-            // act
-            bool result = a == b;
+        // act
+        var result = a == b;
 
-            // assert
-            Assert.False(result);
-        }
+        // assert
+        Assert.False(result);
+    }
 
-        [Fact]
-        public void Optional_Not_Equals_Operator_True()
-        {
-            // arrange
-            Optional<string> a = "abc";
-            Optional<string> b = "abc";
+    [Fact]
+    public void Optional_Not_Equals_Operator_True()
+    {
+        // arrange
+        Optional<string> a = "abc";
+        Optional<string> b = "abc";
 
-            // act
-            bool result = a != b;
+        // act
+        var result = a != b;
 
-            // assert
-            Assert.False(result);
-        }
+        // assert
+        Assert.False(result);
+    }
 
-        [Fact]
-        public void Optional_Not_Equals_Operator_True_2()
-        {
-            // arrange
-            Optional<string> a = "abc";
-            var b = "abc";
+    [Fact]
+    public void Optional_Not_Equals_Operator_True_2()
+    {
+        // arrange
+        Optional<string> a = "abc";
+        var b = "abc";
 
-            // act
-            bool result = a != b;
+        // act
+        var result = a != b;
 
-            // assert
-            Assert.False(result);
-        }
+        // assert
+        Assert.False(result);
+    }
 
-        [Fact]
-        public void Optional_Not_Equals_Operator_False()
-        {
-            // arrange
-            Optional<string> a = "abc";
-            Optional<string> b = "def";
+    [Fact]
+    public void Optional_Not_Equals_Operator_False()
+    {
+        // arrange
+        Optional<string> a = "abc";
+        Optional<string> b = "def";
 
-            // act
-            bool result = a != b;
+        // act
+        var result = a != b;
 
-            // assert
-            Assert.True(result);
-        }
+        // assert
+        Assert.True(result);
+    }
 
-        [Fact]
-        public void Optional_From_Value_Equals()
-        {
-            Optional<int> a = 1;
-            Optional<int> b = Optional<int>.From(a);
+    [Fact]
+    public void Optional_From_Value_Equals()
+    {
+        Optional<int> a = 1;
+        var b = Optional<int>.From(a);
 
-            Assert.True(a.HasValue);
-            Assert.True(b.HasValue);
-            Assert.Equal(a.Value, b.Value);
-        }
+        Assert.True(a.HasValue);
+        Assert.True(b.HasValue);
+        Assert.Equal(a.Value, b.Value);
+    }
 
-        [Fact]
-        public void Optional_From_Struct_Is_Not_Set()
-        {
-            var emptyOptional = new Optional<int?>();
-            var fromEmptyOptional = Optional<int>.From(emptyOptional);
+    [Fact]
+    public void Optional_From_Struct_Is_Not_Set()
+    {
+        var emptyOptional = new Optional<int?>();
+        var fromEmptyOptional = Optional<int>.From(emptyOptional);
 
-            Assert.False(fromEmptyOptional.HasValue);
-            Assert.True(fromEmptyOptional.IsEmpty);
-        }
+        Assert.False(fromEmptyOptional.HasValue);
+        Assert.True(fromEmptyOptional.IsEmpty);
     }
 }

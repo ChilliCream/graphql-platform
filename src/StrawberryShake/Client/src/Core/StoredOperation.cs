@@ -54,7 +54,7 @@ internal class StoredOperation<T>
         LastModified = DateTime.UtcNow;
 
         // capture current subscriber list
-        ImmutableList<Subscription> observers = _subscriptions;
+        var observers = _subscriptions;
 
         if (!updated || observers.IsEmpty)
         {
@@ -63,7 +63,7 @@ internal class StoredOperation<T>
         }
 
         // if we have subscribers we will invoke every one of them
-        foreach (Subscription observer in observers)
+        foreach (var observer in observers)
         {
             observer.OnNext(result);
         }
@@ -89,10 +89,10 @@ internal class StoredOperation<T>
     public void Complete()
     {
         // capture current subscriber list
-        ImmutableList<Subscription> observers = _subscriptions;
+        var observers = _subscriptions;
 
         // if we have subscribers we will dispose every one of them
-        foreach (Subscription observer in observers)
+        foreach (var observer in observers)
         {
             observer.Dispose();
         }
@@ -132,9 +132,9 @@ internal class StoredOperation<T>
         if (!_disposed)
         {
             // capture current subscriber list
-            ImmutableList<Subscription> subscriptions = _subscriptions;
+            var subscriptions = _subscriptions;
 
-            foreach (Subscription subscription in subscriptions)
+            foreach (var subscription in subscriptions)
             {
                 subscription.Dispose();
             }

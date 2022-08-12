@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Data.Filters;
-using MongoDB.Bson;
-using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Filters;
 
@@ -16,11 +12,12 @@ public class MongoDbFilterCombinator
         MongoDbFilterVisitorContext context,
         Queue<MongoDbFilterDefinition> operations,
         FilterCombinator combinator,
-        [NotNullWhen(true)] out MongoDbFilterDefinition combined)
+        [NotNullWhen(true)] out MongoDbFilterDefinition? combined)
     {
         if (operations.Count == 0)
         {
-            throw ThrowHelper.Filtering_MongoDbCombinator_QueueEmpty(this);
+            combined = default;
+            return false;
         }
 
         combined = combinator switch

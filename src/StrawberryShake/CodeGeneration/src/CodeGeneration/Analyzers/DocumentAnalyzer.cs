@@ -42,19 +42,19 @@ public partial class DocumentAnalyzer
                 "You must at least provide one document.");
         }
 
-        OperationDocuments operationDocuments = CreateOperationDocuments(_documents, _schema);
+        var operationDocuments = CreateOperationDocuments(_documents, _schema);
         List<OperationModel> operations = new();
-        Dictionary<NameString, LeafTypeModel> leafTypes = new();
-        Dictionary<NameString, InputObjectTypeModel> inputObjectType = new();
+        Dictionary<string, LeafTypeModel> leafTypes = new(StringComparer.Ordinal);
+        Dictionary<string, InputObjectTypeModel> inputObjectType = new(StringComparer.Ordinal);
         Dictionary<SelectionSetInfo, SelectionSetNode> selectionSets = new();
 
-        foreach (DocumentNode operation in operationDocuments.Operations.Values)
+        foreach (var operation in operationDocuments.Operations.Values)
         {
             var context = new DocumentAnalyzerContext(_schema, operation);
-            OperationModel operationModel = CreateOperationModel(context);
+            var operationModel = CreateOperationModel(context);
             operations.Add(operationModel);
 
-            foreach (ITypeModel typeModel in context.TypeModels)
+            foreach (var typeModel in context.TypeModels)
             {
                 if (typeModel is LeafTypeModel leafTypeModel &&
                     !leafTypes.ContainsKey(leafTypeModel.Name))
@@ -68,9 +68,9 @@ public partial class DocumentAnalyzer
                 }
             }
 
-            foreach ((SelectionSetInfo key, SelectionSetNode? value) in context.SelectionSets)
+            foreach ((var key, var value) in context.SelectionSets)
             {
-                if (selectionSets.TryGetValue(key, out SelectionSetNode? to) && to != value)
+                if (selectionSets.TryGetValue(key, out var to) && to != value)
                 {
                     throw ThrowHelper.DuplicateSelectionSet();
                 }

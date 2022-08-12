@@ -14,28 +14,23 @@ namespace HotChocolate.Types;
 
 public sealed class DirectiveCollection : IDirectiveCollection
 {
-    private static readonly ILookup<NameString, IDirective> _defaultLookup =
+    private static readonly ILookup<string, IDirective> _defaultLookup =
         Enumerable.Empty<IDirective>().ToLookup(x => x.Name);
 
     private readonly object _source;
     private readonly DirectiveLocation _location;
     private IDirective[] _directives = Array.Empty<IDirective>();
-    private DirectiveDefinition[]? _definitions;
-    private ILookup<NameString, IDirective> _lookup = default!;
+    private IReadOnlyList<DirectiveDefinition>? _definitions;
+    private ILookup<string, IDirective> _lookup = default!;
 
     public DirectiveCollection(
         object source,
-        IEnumerable<DirectiveDefinition> directiveDefinitions)
+        IReadOnlyList<DirectiveDefinition> directiveDefinitions)
     {
-        if (directiveDefinitions is null)
-        {
+        _source = source ??
+            throw new ArgumentNullException(nameof(source));
+        _definitions = directiveDefinitions ??
             throw new ArgumentNullException(nameof(directiveDefinitions));
-        }
-
-        _source = source ?? throw new ArgumentNullException(nameof(source));
-        _definitions = directiveDefinitions.Any()
-            ? directiveDefinitions.ToArray()
-            : Array.Empty<DirectiveDefinition>();
         _location = DirectiveHelper.InferDirectiveLocation(source);
     }
 
@@ -43,10 +38,10 @@ public sealed class DirectiveCollection : IDirectiveCollection
     public int Count => _directives.Length;
 
     /// <inheritdoc />
-    public IEnumerable<IDirective> this[NameString key] => _lookup[key];
+    public IEnumerable<IDirective> this[string key] => _lookup[key];
 
     /// <inheritdoc />
-    public bool Contains(NameString key) => _lookup.Contains(key);
+    public bool Contains(string key) => _lookup.Contains(key);
 
     public void CompleteCollection(ITypeCompletionContext context)
     {
@@ -58,13 +53,13 @@ public sealed class DirectiveCollection : IDirectiveCollection
         var processed = new HashSet<string>();
         List<IDirective>? directives = null;
 
-        foreach (DirectiveDefinition description in _definitions!)
+        foreach (var description in _definitions!)
         {
             if (TryCompleteDirective(
                 context,
                 description,
                 processed,
-                out Directive? directive))
+                out var directive))
             {
                 directives ??= new List<IDirective>();
                 directives.Add(directive);
@@ -93,7 +88,7 @@ public sealed class DirectiveCollection : IDirectiveCollection
     {
         if (!context.TryGetDirectiveType(
             definition.Reference,
-            out DirectiveType? directiveType))
+            out var directiveType))
         {
             directive = null;
             return false;
@@ -132,11 +127,11 @@ public sealed class DirectiveCollection : IDirectiveCollection
     {
         var arguments = directive.ToNode().Arguments.ToDictionary(t => t.Name.Value);
 
-        foreach (ArgumentNode argument in arguments.Values)
+        foreach (var argument in arguments.Values)
         {
             if (directive.Type.Arguments.TryGetField(
                 argument.Name.Value,
-                out Argument? arg))
+                out var arg))
             {
                 if (!arg.Type.IsInstanceOfType(argument.Value))
                 {
@@ -161,10 +156,10 @@ public sealed class DirectiveCollection : IDirectiveCollection
             }
         }
 
-        foreach (Argument argument in directive.Type.Arguments
+        foreach (var argument in directive.Type.Arguments
             .Where(a => a.Type.IsNonNullType()))
         {
-            if (!arguments.TryGetValue(argument.Name, out ArgumentNode? arg)
+            if (!arguments.TryGetValue(argument.Name, out var arg)
                 || arg.Value is NullValueNode)
             {
                 context.ReportError(
@@ -193,7 +188,7 @@ public sealed class DirectiveCollection : IDirectiveCollection
     public static IDirectiveCollection CreateAndComplete(
         ITypeCompletionContext context,
         object source,
-        IEnumerable<DirectiveDefinition> directiveDefinitions)
+        IReadOnlyList<DirectiveDefinition> directiveDefinitions)
     {
         if (context is null)
         {
@@ -210,7 +205,7 @@ public sealed class DirectiveCollection : IDirectiveCollection
             throw new ArgumentNullException(nameof(directiveDefinitions));
         }
 
-        if (!directiveDefinitions.Any())
+        if (directiveDefinitions.Count is 0)
         {
             return EmptyDirectiveCollection.Default;
         }
@@ -220,7 +215,7 @@ public sealed class DirectiveCollection : IDirectiveCollection
         return directives;
     }
 
-    internal class EmptyDirectiveCollection : IDirectiveCollection
+    private sealed class EmptyDirectiveCollection : IDirectiveCollection
     {
         private EmptyDirectiveCollection() { }
 
@@ -236,10 +231,10 @@ public sealed class DirectiveCollection : IDirectiveCollection
 
         public int Count => 0;
 
-        public IEnumerable<IDirective> this[NameString key] => Array.Empty<IDirective>();
+        public IEnumerable<IDirective> this[string key] => Array.Empty<IDirective>();
 
 
-        public bool Contains(NameString key) => false;
+        public bool Contains(string key) => false;
 
 
         public static readonly IDirectiveCollection Default = new EmptyDirectiveCollection();

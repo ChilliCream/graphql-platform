@@ -22,9 +22,5 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\StrawberryShake.Core.csproj" />
   </ItemGroup>
-
-  <PropertyGroup>
-    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
-  </PropertyGroup>
   
 </Project>

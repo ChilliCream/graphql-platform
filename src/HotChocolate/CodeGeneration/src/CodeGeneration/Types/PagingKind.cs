@@ -1,9 +1,8 @@
-namespace HotChocolate.CodeGeneration.Types
+namespace HotChocolate.CodeGeneration.Types;
+
+public enum PagingKind
 {
-    public enum PagingKind
-    {
-        Cursor,
-        Offset,
-        None
-    }
+    Cursor,
+    Offset,
+    None
 }

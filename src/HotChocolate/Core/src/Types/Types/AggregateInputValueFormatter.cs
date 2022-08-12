@@ -31,7 +31,7 @@ internal sealed class AggregateInputValueFormatter : IInputValueFormatter
     {
         var current = runtimeValue;
 
-        foreach (IInputValueFormatter formatter in _formatters)
+        foreach (var formatter in _formatters)
         {
             current = formatter.OnAfterDeserialize(current);
         }

@@ -1,7 +1,5 @@
 using System;
 using HotChocolate.AspNetCore.Authorization;
-using HotChocolate.Execution.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate;
 

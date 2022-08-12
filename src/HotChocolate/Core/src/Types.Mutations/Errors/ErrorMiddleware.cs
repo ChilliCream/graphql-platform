@@ -29,9 +29,9 @@ internal sealed class ErrorMiddleware
         {
             var errors = new List<object>();
 
-            foreach (Exception exception in ex.InnerExceptions)
+            foreach (var exception in ex.InnerExceptions)
             {
-                foreach (CreateError createError in _errorHandlers)
+                foreach (var createError in _errorHandlers)
                 {
                     if (createError(exception) is { } error)
                     {
@@ -53,7 +53,7 @@ internal sealed class ErrorMiddleware
         {
             object? error = null;
 
-            foreach (CreateError createError in _errorHandlers)
+            foreach (var createError in _errorHandlers)
             {
                 if (createError(ex) is { } e)
                 {
@@ -67,11 +67,7 @@ internal sealed class ErrorMiddleware
                 throw;
             }
 
-            context.SetScopedState(ErrorContextDataKeys.Errors,
-                new[]
-                {
-                    error
-                });
+            context.SetScopedState(ErrorContextDataKeys.Errors, new[] { error });
             context.Result = ErrorObject;
         }
     }

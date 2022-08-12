@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Language;
@@ -30,7 +29,7 @@ public static class SyntaxNodeExtensions
         }
 
         if (type.Kind is SyntaxKind.NonNullType &&
-            ((NonNullTypeNode)type).Kind is SyntaxKind.ListType)
+            ((NonNullTypeNode)type).Type.Kind is SyntaxKind.ListType)
         {
             return true;
         }
@@ -84,7 +83,7 @@ public static class SyntaxNodeExtensions
 
     public static NamedTypeNode NamedType(this ITypeNode type)
     {
-        ITypeNode innerType = InnerTypeInternal(type);
+        var innerType = InnerTypeInternal(type);
 
         if (innerType.Kind is SyntaxKind.NamedType)
         {

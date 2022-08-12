@@ -8,7 +8,7 @@ internal static class AssigmentBuilderExtensions
         this AssignmentBuilder builder,
         string? methodName = null)
     {
-        MethodCallBuilder methodCallBuilder = MethodCallBuilder
+        var methodCallBuilder = MethodCallBuilder
             .New()
             .SetDetermineStatement(false);
 

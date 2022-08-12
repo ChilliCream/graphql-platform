@@ -2,136 +2,135 @@
 using HotChocolate.Language;
 using Xunit;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public class BooleanTypeTests
 {
-    public class BooleanTypeTests
+    [Fact]
+    public void ParseLiteral()
     {
-        [Fact]
-        public void ParseLiteral()
-        {
-            // arrange
-            var literal = new BooleanValueNode(null, true);
+        // arrange
+        var literal = new BooleanValueNode(null, true);
 
-            // act
-            var booleanType = new BooleanType();
-            object result = booleanType.ParseLiteral(literal);
+        // act
+        var booleanType = new BooleanType();
+        var result = booleanType.ParseLiteral(literal);
 
-            // assert
-            Assert.IsType<bool>(result);
-            Assert.True((bool)result);
-        }
+        // assert
+        Assert.IsType<bool>(result);
+        Assert.True((bool)result);
+    }
 
-        [Fact]
-        public void IsInstanceOfType()
-        {
-            // arrange
-            var boolLiteral = new BooleanValueNode(null, true);
-            var stringLiteral = new StringValueNode(null, "12345", false);
-            NullValueNode nullLiteral = NullValueNode.Default;
+    [Fact]
+    public void IsInstanceOfType()
+    {
+        // arrange
+        var boolLiteral = new BooleanValueNode(null, true);
+        var stringLiteral = new StringValueNode(null, "12345", false);
+        var nullLiteral = NullValueNode.Default;
 
-            // act
-            var booleanType = new BooleanType();
-            bool isIntLiteralInstanceOf = booleanType.IsInstanceOfType(boolLiteral);
-            bool isStringLiteralInstanceOf = booleanType.IsInstanceOfType(stringLiteral);
-            bool isNullLiteralInstanceOf = booleanType.IsInstanceOfType(nullLiteral);
+        // act
+        var booleanType = new BooleanType();
+        var isIntLiteralInstanceOf = booleanType.IsInstanceOfType(boolLiteral);
+        var isStringLiteralInstanceOf = booleanType.IsInstanceOfType(stringLiteral);
+        var isNullLiteralInstanceOf = booleanType.IsInstanceOfType(nullLiteral);
 
-            // assert
-            Assert.True(isIntLiteralInstanceOf);
-            Assert.False(isStringLiteralInstanceOf);
-            Assert.True(isNullLiteralInstanceOf);
-        }
+        // assert
+        Assert.True(isIntLiteralInstanceOf);
+        Assert.False(isStringLiteralInstanceOf);
+        Assert.True(isNullLiteralInstanceOf);
+    }
 
-        [Fact]
-        public void EnsureBooleanTypeKindIsCorret()
-        {
-            // arrange
-            var type = new BooleanType();
+    [Fact]
+    public void EnsureBooleanTypeKindIsCorret()
+    {
+        // arrange
+        var type = new BooleanType();
 
-            // act
-            TypeKind kind = type.Kind;
+        // act
+        var kind = type.Kind;
 
-            // assert
-            Assert.Equal(TypeKind.Scalar, type.Kind);
-        }
+        // assert
+        Assert.Equal(TypeKind.Scalar, type.Kind);
+    }
 
-        [Fact]
-        public void Serialize_Null_Null()
-        {
-            // arrange
-            var booleanType = new BooleanType();
+    [Fact]
+    public void Serialize_Null_Null()
+    {
+        // arrange
+        var booleanType = new BooleanType();
 
-            // act
-            object result = booleanType.Serialize(null);
+        // act
+        var result = booleanType.Serialize(null);
 
-            // assert
-            Assert.Null(result);
-        }
+        // assert
+        Assert.Null(result);
+    }
 
-        [Fact]
-        public void Serialize_True_True()
-        {
-            // arrange
-            var booleanType = new BooleanType();
+    [Fact]
+    public void Serialize_True_True()
+    {
+        // arrange
+        var booleanType = new BooleanType();
 
-            // act
-            object result = booleanType.Serialize(true);
+        // act
+        var result = booleanType.Serialize(true);
 
-            // assert
-            Assert.IsType<bool>(result);
-            Assert.True((bool)result);
-        }
+        // assert
+        Assert.IsType<bool>(result);
+        Assert.True((bool)result);
+    }
 
-        [Fact]
-        public void Serialize_String_Exception()
-        {
-            // arrange
-            var booleanType = new BooleanType();
+    [Fact]
+    public void Serialize_String_Exception()
+    {
+        // arrange
+        var booleanType = new BooleanType();
 
-            // act
-            Action a = () => booleanType.Serialize("foo");
+        // act
+        Action a = () => booleanType.Serialize("foo");
 
-            // assert
-            Assert.Throws<SerializationException>(a);
-        }
+        // assert
+        Assert.Throws<SerializationException>(a);
+    }
 
-        [Fact]
-        public void Deserialize_Null_Null()
-        {
-            // arrange
-            var booleanType = new BooleanType();
+    [Fact]
+    public void Deserialize_Null_Null()
+    {
+        // arrange
+        var booleanType = new BooleanType();
 
-            // act
-            object result = booleanType.Serialize(null);
+        // act
+        var result = booleanType.Serialize(null);
 
-            // assert
-            Assert.Null(result);
-        }
+        // assert
+        Assert.Null(result);
+    }
 
-        [Fact]
-        public void Deserialize_True_True()
-        {
-            // arrange
-            var booleanType = new BooleanType();
+    [Fact]
+    public void Deserialize_True_True()
+    {
+        // arrange
+        var booleanType = new BooleanType();
 
-            // act
-            object result = booleanType.Serialize(true);
+        // act
+        var result = booleanType.Serialize(true);
 
-            // assert
-            Assert.IsType<bool>(result);
-            Assert.True((bool)result);
-        }
+        // assert
+        Assert.IsType<bool>(result);
+        Assert.True((bool)result);
+    }
 
-        [Fact]
-        public void Deserialize_String_Exception()
-        {
-            // arrange
-            var booleanType = new BooleanType();
+    [Fact]
+    public void Deserialize_String_Exception()
+    {
+        // arrange
+        var booleanType = new BooleanType();
 
-            // act
-            Action a = () => booleanType.Serialize("foo");
+        // act
+        Action a = () => booleanType.Serialize("foo");
 
-            // assert
-            Assert.Throws<SerializationException>(a);
-        }
+        // assert
+        Assert.Throws<SerializationException>(a);
     }
 }

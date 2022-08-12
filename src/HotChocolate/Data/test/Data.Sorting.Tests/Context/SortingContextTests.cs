@@ -1,16 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
-using HotChocolate.Data.Filters.Expressions;
+using CookieCrumble;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Execution;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data.Sorting;
 
@@ -49,8 +44,8 @@ public class SortingContextTests
 
         // assert
         Assert.NotNull(context);
-        ISortingFieldInfo field = Assert.Single(Assert.Single(context!.GetFields()));
-        object? operation = Assert.IsType<SortingValue>(field.Value).Value;
+        var field = Assert.Single(Assert.Single(context!.GetFields()));
+        var operation = Assert.IsType<SortingValue>(field.Value).Value;
         Assert.Equal("title", field.Field.Name);
         Assert.Equal("DESC", operation);
     }
@@ -89,8 +84,8 @@ public class SortingContextTests
         // assert
         Assert.NotNull(context);
         Assert.Equal(2, context!.GetFields().Count);
-        ISortingFieldInfo field = Assert.Single(context!.GetFields()[0]);
-        object? operation = Assert.IsType<SortingValue>(field.Value).Value;
+        var field = Assert.Single(context!.GetFields()[0]);
+        var operation = Assert.IsType<SortingValue>(field.Value).Value;
         Assert.Equal("title", field.Field.Name);
         Assert.Equal("DESC", operation);
     }
@@ -128,10 +123,10 @@ public class SortingContextTests
 
         // assert
         Assert.NotNull(context);
-        ISortingFieldInfo field = Assert.Single(Assert.Single(context!.GetFields()));
-        ISortingFieldInfo name =
+        var field = Assert.Single(Assert.Single(context!.GetFields()));
+        var name =
             Assert.Single(Assert.IsType<SortingInfo>(field.Value).GetFields());
-        object? operation = Assert.IsType<SortingValue>(name.Value).Value;
+        var operation = Assert.IsType<SortingValue>(name.Value).Value;
         Assert.Equal("author", field.Field.Name);
         Assert.Equal("name", name.Field.Name);
         Assert.Equal("DESC", operation);

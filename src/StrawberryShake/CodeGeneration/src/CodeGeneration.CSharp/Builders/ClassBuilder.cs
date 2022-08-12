@@ -163,7 +163,7 @@ public class ClassBuilder : AbstractTypeBuilder
 
         writer.WriteGeneratedAttribute();
 
-        string modifier = _accessModifier.ToString().ToLowerInvariant();
+        var modifier = _accessModifier.ToString().ToLowerInvariant();
 
         writer.WriteIndent();
 
@@ -211,7 +211,7 @@ public class ClassBuilder : AbstractTypeBuilder
         {
             if (_fields.Count > 0)
             {
-                foreach (FieldBuilder builder in _fields)
+                foreach (var builder in _fields)
                 {
                     builder.Build(writer);
                 }

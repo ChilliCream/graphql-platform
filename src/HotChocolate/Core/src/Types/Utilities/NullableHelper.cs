@@ -22,7 +22,7 @@ internal readonly struct NullableHelper
     {
         _context = GetContext(GetNullableContextAttribute(type.Assembly), true);
 
-        Type? current = type.DeclaringType;
+        var current = type.DeclaringType;
         while (current != null)
         {
             _context = GetContext(GetNullableContextAttribute(current), _context);
@@ -39,13 +39,13 @@ internal readonly struct NullableHelper
 
     public bool? GetContext(MemberInfo member)
     {
-        NullableContextAttribute? attribute = GetNullableContextAttribute(member);
+        var attribute = GetNullableContextAttribute(member);
         return GetContext(attribute);
     }
 
     private bool? GetContext(ParameterInfo parameter)
     {
-        NullableContextAttribute? attribute = GetNullableContextAttribute(parameter);
+        var attribute = GetNullableContextAttribute(parameter);
         return GetContext(attribute, GetContext(parameter.Member));
     }
 
@@ -120,7 +120,7 @@ internal readonly struct NullableHelper
     private static NullableContextAttribute? GetNullableContextAttribute(
         IList<CustomAttributeData> attributes)
     {
-        CustomAttributeData? data = attributes.FirstOrDefault(t =>
+        var data = attributes.FirstOrDefault(t =>
             t.AttributeType.FullName.EqualsOrdinal(_nullableContextAttributeName));
 
         if (data is not null)
@@ -135,7 +135,7 @@ internal readonly struct NullableHelper
     private static NullableAttribute? GetNullableAttribute(
         MethodInfo method)
     {
-        object[] attributes = method.ReturnTypeCustomAttributes.GetCustomAttributes(false);
+        var attributes = method.ReturnTypeCustomAttributes.GetCustomAttributes(false);
         var attribute = attributes.FirstOrDefault(t =>
             t.GetType().FullName.EqualsOrdinal(_nullableAttributeName));
 
@@ -168,7 +168,7 @@ internal readonly struct NullableHelper
     private static NullableAttribute? GetNullableAttribute(
         IList<CustomAttributeData> attributes)
     {
-        CustomAttributeData? data = attributes.FirstOrDefault(t =>
+        var data = attributes.FirstOrDefault(t =>
             t.AttributeType.FullName.EqualsOrdinal(_nullableAttributeName));
 
         if (data is not null)

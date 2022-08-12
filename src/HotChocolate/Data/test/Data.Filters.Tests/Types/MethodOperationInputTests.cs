@@ -1,6 +1,5 @@
 using System.Linq;
-using Snapshooter.Xunit;
-using Xunit;
+using CookieCrumble;
 
 namespace HotChocolate.Data.Filters;
 
@@ -19,14 +18,14 @@ public class MethodOperationInputTests
             });
 
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<QueryExplicit>()
             .AddConvention<IFilterConvention>(convention)
             .AddFiltering()
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -36,14 +35,14 @@ public class MethodOperationInputTests
         var convention = new FilterConvention(x => x.UseMock().Operation(155).Name("Method155"));
 
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<Query>()
             .AddConvention<IFilterConvention>(convention)
             .AddFiltering()
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     public class QueryExplicit

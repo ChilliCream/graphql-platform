@@ -16,7 +16,7 @@ public class SchemaHelperTests
         var extensionsSdl = @"extend schema @key(fields: ""id"")";
 
         // act
-        ISchema schema =
+        var schema =
             SchemaHelper.Load(
                 new GraphQLFile[]
                 {
@@ -25,7 +25,7 @@ public class SchemaHelperTests
                 });
 
         // assert
-        ScalarType scalarType = schema.GetType<ScalarType>("X509Certificate");
+        var scalarType = schema.GetType<ScalarType>("X509Certificate");
 
         Assert.Equal(
             "global::System.String",

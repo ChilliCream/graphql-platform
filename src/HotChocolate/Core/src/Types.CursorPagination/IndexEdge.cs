@@ -25,7 +25,7 @@ public sealed class IndexEdge<T> : Edge<T>
         Span<byte> buffer = stackalloc byte[27 / 3 * 4];
         Utf8Formatter.TryFormat(index, buffer, out var written);
         Base64.EncodeToUtf8InPlace(buffer, written, out written);
-        string cursor = CreateString(buffer.Slice(0, written));
+        var cursor = CreateString(buffer.Slice(0, written));
         return new IndexEdge<T>(node, cursor, index);
     }
 
@@ -44,7 +44,7 @@ public sealed class IndexEdge<T> : Edge<T>
             var count = _utf8.GetByteCount(cPtr, cursor.Length);
             byte[]? rented = null;
 
-            Span<byte> buffer = count <= 128
+            var buffer = count <= 128
                 ? stackalloc byte[count]
                 : rented = ArrayPool<byte>.Shared.Rent(count);
 

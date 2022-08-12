@@ -3,11 +3,13 @@ using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.Serialization.JsonConstants;
 
@@ -93,7 +95,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         {
             throw new ArgumentNullException(nameof(writer));
         }
-        
+
         writer.WriteStartArray();
 
         for (var i = 0; i < errors.Count; i++)
@@ -187,13 +189,13 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         Utf8JsonWriter writer,
         IReadOnlyDictionary<string, object?>? data)
     {
-        if (data is { Count: > 0 })
+        if (data is not null)
         {
             writer.WritePropertyName(Data);
 
-            if (data is IResultMap resultMap)
+            if (data is ObjectResult resultMap)
             {
-                WriteResultMap(writer, resultMap);
+                WriteObjectResult(writer, resultMap);
             }
             else
             {
@@ -259,7 +261,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
 
     private static void WritePath(Utf8JsonWriter writer, Path? path)
     {
-        if (path is not null && path is not RootPathSegment)
+        if (path is not null)
         {
             writer.WritePropertyName(JsonConstants.Path);
             WritePathValue(writer, path);
@@ -268,7 +270,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
 
     private static void WritePathValue(Utf8JsonWriter writer, Path path)
     {
-        if (path is RootPathSegment)
+        if (path.IsRoot)
         {
             writer.WriteStartArray();
             writer.WriteEndArray();
@@ -277,16 +279,12 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
 
         writer.WriteStartArray();
 
-        IReadOnlyList<object> list = path.ToList();
+        var list = path.ToList();
 
         for (var i = 0; i < list.Count; i++)
         {
             switch (list[i])
             {
-                case NameString n:
-                    writer.WriteStringValue(n.Value);
-                    break;
-
                 case string s:
                     writer.WriteStringValue(s);
                     break;
@@ -329,7 +327,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
     {
         writer.WriteStartObject();
 
-        foreach (KeyValuePair<string, object?> item in dict)
+        foreach (var item in dict)
         {
             writer.WritePropertyName(item.Key);
             WriteFieldValue(writer, item.Value);
@@ -338,23 +336,57 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         writer.WriteEndObject();
     }
 
-    private void WriteResultMap(
+    private void WriteDictionary(
         Utf8JsonWriter writer,
-        IResultMap resultMap)
+        Dictionary<string, object?> dict)
     {
         writer.WriteStartObject();
 
-        for (var i = 0; i < resultMap.Count; i++)
+        foreach (var item in dict)
         {
-            ResultValue value = resultMap[i];
-            if (value.IsInitialized)
+            writer.WritePropertyName(item.Key);
+            WriteFieldValue(writer, item.Value);
+        }
+
+        writer.WriteEndObject();
+    }
+
+    private void WriteObjectResult(
+        Utf8JsonWriter writer,
+        ObjectResult objectResult)
+    {
+        writer.WriteStartObject();
+
+        ref var searchSpace = ref objectResult.GetReference();
+
+        for(var i = 0; i < objectResult.Capacity; i++)
+        {
+            var field = Unsafe.Add(ref searchSpace, i);
+            if (field.IsInitialized)
             {
-                writer.WritePropertyName(value.Name);
-                WriteFieldValue(writer, value.Value);
+                writer.WritePropertyName(field.Name);
+                WriteFieldValue(writer, field.Value);
             }
         }
 
         writer.WriteEndObject();
+    }
+
+    private void WriteListResult(
+        Utf8JsonWriter writer,
+        ListResult list)
+    {
+        writer.WriteStartArray();
+
+        ref var searchSpace = ref list.GetReference();
+
+        for (var i = 0; i < list.Count; i++)
+        {
+            var element = Unsafe.Add(ref searchSpace, i);
+            WriteFieldValue(writer, element);
+        }
+
+        writer.WriteEndArray();
     }
 
     private void WriteList(
@@ -366,27 +398,6 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         for (var i = 0; i < list.Count; i++)
         {
             WriteFieldValue(writer, list[i]);
-        }
-
-        writer.WriteEndArray();
-    }
-
-    private void WriteResultMapList(
-        Utf8JsonWriter writer,
-        IResultMapList list)
-    {
-        writer.WriteStartArray();
-
-        for (var i = 0; i < list.Count; i++)
-        {
-            if (list[i] is { } m)
-            {
-                WriteResultMap(writer, m);
-            }
-            else
-            {
-                WriteFieldValue(writer, null);
-            }
         }
 
         writer.WriteEndArray();
@@ -404,12 +415,16 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
 
         switch (value)
         {
-            case IResultMap resultMap:
-                WriteResultMap(writer, resultMap);
+            case ObjectResult resultMap:
+                WriteObjectResult(writer, resultMap);
                 break;
 
-            case IResultMapList resultMapList:
-                WriteResultMapList(writer, resultMapList);
+            case ListResult resultMapList:
+                WriteListResult(writer, resultMapList);
+                break;
+
+            case Dictionary<string, object?> dict:
+                WriteDictionary(writer, dict);
                 break;
 
             case IReadOnlyDictionary<string, object?> dict:
@@ -470,10 +485,6 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
 
             case bool b:
                 writer.WriteBooleanValue(b);
-                break;
-
-            case NameString n:
-                writer.WriteStringValue(n.Value);
                 break;
 
             case Uri u:

@@ -27,7 +27,7 @@ public class EnumTypeDescriptor<T>
         return this;
     }
 
-    public new IEnumTypeDescriptor<T> Name(NameString value)
+    public new IEnumTypeDescriptor<T> Name(string value)
     {
         base.Name(value);
         return this;
@@ -80,7 +80,7 @@ public class EnumTypeDescriptor<T>
     }
 
     public new IEnumTypeDescriptor<T> Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments)
     {
         base.Directive(name, arguments);
