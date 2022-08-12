@@ -9,12 +9,12 @@ using ObjectType = HotChocolate.Fusion.Metadata.ObjectType;
 
 namespace HotChocolate.Fusion.Execution;
 
-internal sealed class RemoteQueryExecutor2
+internal sealed class RemoteQueryExecutor
 {
     private readonly Metadata.ServiceConfiguration _serviceConfiguration;
     private readonly RemoteRequestExecutorFactory _executorFactory;
 
-    public RemoteQueryExecutor2(Metadata.ServiceConfiguration serviceConfiguration, RemoteRequestExecutorFactory executorFactory)
+    public RemoteQueryExecutor(Metadata.ServiceConfiguration serviceConfiguration, RemoteRequestExecutorFactory executorFactory)
     {
         _serviceConfiguration = serviceConfiguration;
         _executorFactory = executorFactory;

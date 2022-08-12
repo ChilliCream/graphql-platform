@@ -72,6 +72,9 @@
     <Compile Update="SchemaErrorBuilder.Error.cs">
       <DependentUpon>SchemaErrorBuilder.cs</DependentUpon>
     </Compile>
+    <Compile Update="Types\EnumType.Initialization.cs">
+      <DependentUpon>EnumType.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

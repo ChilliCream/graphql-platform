@@ -14,8 +14,8 @@ namespace HotChocolate.Types;
 
 public partial class EnumType
 {
-    private readonly Dictionary<string, IEnumValue> _enumValues = new();
-    private readonly Dictionary<object, IEnumValue> _valueLookup = new();
+    private Dictionary<string, IEnumValue> _enumValues = default!;
+    private Dictionary<object, IEnumValue> _valueLookup = default!;
     private Action<IEnumTypeDescriptor>? _configure;
     private INamingConventions _naming = default!;
 
@@ -96,6 +96,9 @@ public partial class EnumType
         EnumTypeDefinition definition)
     {
         base.OnCompleteType(context, definition);
+
+        _enumValues = new Dictionary<string, IEnumValue>(definition.NameComparer);
+        _valueLookup = new Dictionary<object, IEnumValue>(definition.ValueComparer);
 
         _naming = context.DescriptorContext.Naming;
         SyntaxNode = definition.SyntaxNode;
