@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using HotChocolate.Language;
@@ -233,4 +235,34 @@ public readonly struct NameString
         => string.IsNullOrEmpty(s)
             ? new NameString()
             : new NameString(s);
+}
+
+/// <summary>
+/// Provides comparers for <see cref="NameString"/>.
+/// </summary>
+public static class NameStringComparer
+{
+    public static IEqualityComparer<NameString> Ordinal { get; } =
+        new OrdinalComparer();
+
+    public static IEqualityComparer<NameString> OrdinalIgnoreCase { get; } =
+        new OrdinalIgnoreCaseComparer();
+
+    private sealed class OrdinalIgnoreCaseComparer : IEqualityComparer<NameString>
+    {
+        public bool Equals(NameString x, NameString y)
+            => x.Equals(y, StringComparison.OrdinalIgnoreCase);
+
+        public int GetHashCode(NameString obj)
+            => StringComparer.OrdinalIgnoreCase.GetHashCode(obj.Value);
+    }
+
+    private sealed class OrdinalComparer : IEqualityComparer<NameString>
+    {
+        public bool Equals(NameString x, NameString y)
+            => x.Equals(y, StringComparison.Ordinal);
+
+        public int GetHashCode(NameString obj)
+            => obj.Value.GetHashCode();
+    }
 }

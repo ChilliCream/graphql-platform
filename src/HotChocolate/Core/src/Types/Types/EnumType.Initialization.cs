@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Properties;
@@ -14,8 +13,8 @@ namespace HotChocolate.Types;
 
 public partial class EnumType
 {
-    private readonly Dictionary<NameString, IEnumValue> _enumValues = new();
-    private readonly Dictionary<object, IEnumValue> _valueLookup = new();
+    private Dictionary<NameString, IEnumValue> _enumValues = default!;
+    private Dictionary<object, IEnumValue> _valueLookup = default!;
     private Action<IEnumTypeDescriptor>? _configure;
     private INamingConventions _naming = default!;
 
@@ -97,6 +96,9 @@ public partial class EnumType
     {
         base.OnCompleteType(context, definition);
 
+        _enumValues = new Dictionary<NameString, IEnumValue>(definition.NameComparer);
+        _valueLookup = new Dictionary<object, IEnumValue>(definition.ValueComparer);
+
         _naming = context.DescriptorContext.Naming;
         SyntaxNode = definition.SyntaxNode;
 
@@ -112,7 +114,7 @@ public partial class EnumType
             }
         }
 
-        if (!Values.Any())
+        if (Values.Count == 0)
         {
             context.ReportError(
                 SchemaErrorBuilder.New()

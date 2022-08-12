@@ -31,6 +31,20 @@ public class EnumTypeDefinition : TypeDefinitionBase<EnumTypeDefinitionNode>
     }
 
     /// <summary>
+    /// Gets or sets the enum name comparer that will be used to validate
+    /// if an enum name represents an enum value of this type.
+    /// </summary>
+    public IEqualityComparer<NameString> NameComparer { get; set; } =
+        NameStringComparer.Ordinal;
+
+    /// <summary>
+    /// Gets or sets the runtime value comparer that will be used to validate
+    /// if a runtime value represents a GraphQL enum value of this type.
+    /// </summary>
+    public IEqualityComparer<object> ValueComparer { get; set; } =
+        DefaultValueComparer.Instance;
+
+    /// <summary>
     /// Gets the enum values.
     /// </summary>
     public IBindableList<EnumValueDefinition> Values { get; } =
@@ -56,5 +70,16 @@ public class EnumTypeDefinition : TypeDefinitionBase<EnumTypeDefinitionNode>
         }
 
         return configs ?? Enumerable.Empty<ITypeSystemMemberConfiguration>();
+    }
+
+    private sealed class DefaultValueComparer : IEqualityComparer<object>
+    {
+        bool IEqualityComparer<object>.Equals(object? x, object? y)
+            => Equals(x, y);
+
+        int IEqualityComparer<object>.GetHashCode(object obj)
+            => obj.GetHashCode();
+
+        public static DefaultValueComparer Instance { get; } = new();
     }
 }

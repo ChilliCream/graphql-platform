@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -583,9 +584,9 @@ namespace HotChocolate.Types
         [Fact]
         public void Generic_Ignore_Descriptor_Is_Null()
         {
-            void Fail() 
+            void Fail()
                 => EnumTypeDescriptorExtensions.Ignore<int>(default(IEnumTypeDescriptor<int>)!, 1);
-            
+
             Assert.Throws<ArgumentNullException>(Fail);
         }
 
@@ -594,18 +595,18 @@ namespace HotChocolate.Types
         {
             var descriptor = new Mock<IEnumTypeDescriptor<int?>>();
 
-            void Fail() 
+            void Fail()
                 => EnumTypeDescriptorExtensions.Ignore<int?>(descriptor.Object, null);
-            
+
             Assert.Throws<ArgumentNullException>(Fail);
         }
 
         [Fact]
         public void Ignore_Descriptor_Is_Null()
         {
-            void Fail() 
+            void Fail()
                 => EnumTypeDescriptorExtensions.Ignore<int>(default(IEnumTypeDescriptor)!, 1);
-            
+
             Assert.Throws<ArgumentNullException>(Fail);
         }
 
@@ -614,10 +615,54 @@ namespace HotChocolate.Types
         {
             var descriptor = new Mock<IEnumTypeDescriptor>();
 
-            void Fail() 
+            void Fail()
                 => EnumTypeDescriptorExtensions.Ignore<int?>(descriptor.Object, null);
-            
+
             Assert.Throws<ArgumentNullException>(Fail);
+        }
+
+        [Fact]
+        public void EnumName_Set_Name_Comparer()
+        {
+            // act
+            var schema = SchemaBuilder
+                .New()
+                .AddDirectiveType(new DirectiveType<Bar>(d => d
+                    .Name("bar")
+                    .Location(DirectiveLocation.EnumValue)))
+                .AddEnumType(d => d
+                    .Name("Foo")
+                    .NameComparer(NameStringComparer.OrdinalIgnoreCase)
+                    .Value("baz")
+                    .Name("BAZ"))
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+            // assert
+            var type = schema.GetType<EnumType>("Foo");
+            Assert.True(type.IsInstanceOfType(new EnumValueNode("baz")));
+        }
+
+        [Fact]
+        public void EnumName_Set_Value_Comparer()
+        {
+            // act
+            var schema = SchemaBuilder
+                .New()
+                .AddDirectiveType(new DirectiveType<Bar>(d => d
+                    .Name("bar")
+                    .Location(DirectiveLocation.EnumValue)))
+                .AddEnumType(d => d
+                    .Name("Foo")
+                    .ValueComparer(new ValueComparer())
+                    .Value("baz")
+                    .Name("BAZ"))
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+            // assert
+            var type = schema.GetType<EnumType>("Foo");
+            Assert.True(type.IsInstanceOfType("ANYTHING WILL DO"));
         }
 
         public enum Foo
@@ -704,6 +749,20 @@ namespace HotChocolate.Types
         {
             Foo,
             Bar
+        }
+
+
+        public class ValueComparer : IEqualityComparer<object>
+        {
+            bool IEqualityComparer<object>.Equals(object x, object y)
+            {
+                return true;
+            }
+
+            int IEqualityComparer<object>.GetHashCode(object obj)
+            {
+                return 1;
+            }
         }
     }
 }

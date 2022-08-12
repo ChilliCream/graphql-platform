@@ -1,9 +1,16 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types;
 
+/// <summary>
+/// A fluent configuration API for GraphQL enum types.
+/// </summary>
+/// <typeparam name="T">
+/// The runtime type.
+/// </typeparam>"
 public interface IEnumTypeDescriptor<T>
     : IDescriptor<EnumTypeDefinition>
     , IFluent
@@ -34,6 +41,12 @@ public interface IEnumTypeDescriptor<T>
     /// </param>
     IEnumTypeDescriptor<T> Description(string value);
 
+    /// <summary>
+    /// Defines a value that should be included on the enum type.
+    /// </summary>
+    /// <param name="value">
+    /// The value to include.
+    /// </param>
     [Obsolete("Use `Value`.")]
     IEnumValueDescriptor Item(T value);
 
@@ -45,9 +58,21 @@ public interface IEnumTypeDescriptor<T>
     /// </param>
     IEnumValueDescriptor Value(T value);
 
+    /// <summary>
+    /// Specifies if the enum values shall be inferred or explicitly specfied.
+    /// </summary>
+    /// <param name="behavior">
+    /// The binding behavior.
+    /// </param>
     [Obsolete("Use `BindValues`.")]
     IEnumTypeDescriptor<T> BindItems(BindingBehavior behavior);
 
+    /// <summary>
+    /// Specifies if the enum values shall be inferred or explicitly specfied.
+    /// </summary>
+    /// <param name="behavior">
+    /// The binding behavior.
+    /// </param>
     IEnumTypeDescriptor<T> BindValues(BindingBehavior behavior);
 
     /// <summary>
@@ -61,13 +86,55 @@ public interface IEnumTypeDescriptor<T>
     /// </summary>
     IEnumTypeDescriptor<T> BindValuesImplicitly();
 
+    /// <summary>
+    /// Specifies the enum name comparer that will be used to validate
+    /// if an enum name represents an enum value of this type.
+    /// </summary>
+    /// <param name="comparer">
+    /// The equality comparer for enum names.
+    /// </param>
+    IEnumTypeDescriptor NameComparer(IEqualityComparer<NameString> comparer);
+
+    /// <summary>
+    /// Specifies the runtime value comparer that will be used to validate
+    /// if a runtime value represents a GraphQL enum value of this type.
+    /// </summary>
+    /// <param name="comparer">
+    /// The equality comparer for enum names.
+    /// </param>
+    IEnumTypeDescriptor ValueComparer(IEqualityComparer<object> comparer);
+
+    /// <summary>
+    /// Annotates a directive to this type.
+    /// </summary>
+    /// <param name="directiveInstance">
+    /// The directive that shall be annotated to this type.
+    /// </param>
+    /// <typeparam name="TDirective">
+    /// The type of the directive instance.
+    /// </typeparam>
     IEnumTypeDescriptor<T> Directive<TDirective>(
         TDirective directiveInstance)
         where TDirective : class;
 
+    /// <summary>
+    /// Annotates a directive to this type.
+    /// </summary>
+    /// <typeparam name="TDirective">
+    /// The type of the directive instance.
+    /// </typeparam>
     IEnumTypeDescriptor<T> Directive<TDirective>()
         where TDirective : class, new();
 
+    /// <summary>
+    /// Annotates a directive to this type.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the directive.
+    /// </param>
+    /// <param name="arguments">
+    /// The argument values that the directive instance shall have.
+    /// </param>
     IEnumTypeDescriptor<T> Directive(
         NameString name,
         params ArgumentNode[] arguments);
