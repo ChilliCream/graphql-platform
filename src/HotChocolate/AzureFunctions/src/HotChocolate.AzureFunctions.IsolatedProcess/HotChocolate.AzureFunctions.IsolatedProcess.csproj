@@ -1,8 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- Azure Functions Isolated Process ONLY supports these targets (.Net Core 3.1 is not supported and will fail the build) -->
-    <TargetFrameworks>net5.0;net6.0</TargetFrameworks>
     <PackageId>HotChocolate.AzureFunctions.IsolatedProcess</PackageId>
     <AssemblyName>HotChocolate.AzureFunctions.IsolatedProcess</AssemblyName>
     <RootNamespace>HotChocolate.AzureFunctions.IsolatedProcess</RootNamespace>

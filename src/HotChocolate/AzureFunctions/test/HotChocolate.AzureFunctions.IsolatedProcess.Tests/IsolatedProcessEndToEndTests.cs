@@ -1,16 +1,13 @@
-using System;
 using System.Threading.Tasks;
-using HotChocolate.AzureFunctions.IsolatedProcess;
-using HotChocolate.Types;
 using HotChocolate.AzureFunctions.IsolatedProcess.Tests.Helpers;
+using HotChocolate.Types;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Linq;
-using Xunit;
 
-namespace HotChocolate.AzureFunctions.Tests;
+namespace HotChocolate.AzureFunctions.IsolatedProcess.Tests;
 public class IsolatedProcessEndToEndTests
 {
     [Fact]

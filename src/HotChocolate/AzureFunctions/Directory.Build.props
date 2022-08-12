@@ -3,6 +3,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>$(AzfTargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks Condition="$(MSBuildProjectName.Contains('Isolated'))">$(AzfIsoProcTargetFrameworks)</TargetFrameworks>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 

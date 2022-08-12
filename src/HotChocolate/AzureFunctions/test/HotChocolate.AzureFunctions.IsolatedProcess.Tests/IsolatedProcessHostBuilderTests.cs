@@ -1,12 +1,11 @@
 using System;
-using HotChocolate.Types;
 using HotChocolate.AzureFunctions.IsolatedProcess.Tests.Helpers;
+using HotChocolate.Types;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Xunit;
 
-namespace HotChocolate.AzureFunctions.Tests;
+namespace HotChocolate.AzureFunctions.IsolatedProcess.Tests;
 
 public class IsolatedProcessHostBuilderTests
 {
