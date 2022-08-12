@@ -12,7 +12,7 @@ using static HotChocolate.Execution.Serialization.JsonConstants;
 
 namespace HotChocolate.Fusion.Utilities;
 
-public sealed class JsonQueryResultFormatter : IQueryResultFormatter
+internal sealed class JsonQueryResultFormatter : IQueryResultFormatter
 {
     private readonly JsonWriterOptions _options;
 

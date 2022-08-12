@@ -1,6 +1,7 @@
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Utilities;
@@ -18,6 +19,7 @@ public class RemoteQueryExecutorTests
     [Fact]
     public async Task Do()
     {
+        // arrange
         using var server1 = _testServerFactory.Create(
             s => s
                 .AddRouting()
@@ -38,7 +40,30 @@ public class RemoteQueryExecutorTests
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL()));
 
-        // arrange
+        var clients = new Dictionary<string, Func<HttpClient>>
+        {
+            {
+                "a",
+                () =>
+                {
+                    var httpClient = server1.CreateClient();
+                    httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
+                    return httpClient;
+                }
+            },
+            {
+                "b",
+                () =>
+                {
+                    var httpClient = server2.CreateClient();
+                    httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
+                    return httpClient;
+                }
+            },
+        };
+
+        var clientFactory = new MockHttpClientFactory(clients);
+
         const string sdl = @"
             type Query {
                 personById(id: ID!) : Person
@@ -51,7 +76,7 @@ public class RemoteQueryExecutorTests
                 friends: [Person!]
             }";
 
-        const string serviceDefinition = @"
+        const string serviceConfiguration = @"
             type Query {
               personById(id: ID!): Person
                 @variable(name: ""personId"", argument: ""id"")
@@ -84,86 +109,29 @@ public class RemoteQueryExecutorTests
               query: Query
             }";
 
-        var schema = await new ServiceCollection()
-            .AddGraphQL()
-            .AddDocumentFromString(sdl)
-            .UseField(n => n)
-            .BuildSchemaAsync();
-
-        var serviceConfig = Metadata.ServiceConfiguration.Load(serviceDefinition);
-
-        var request =
-            Parse(
-                @"query GetPersonById {
-                    personById(id: 4) {
+        var request = Parse(
+            @"query GetPersonById {
+                personById(id: 4) {
+                    name
+                    friends {
                         name
-                        friends {
-                            name
-                            bio
-                        }
+                        bio
                     }
-                }");
+                }
+            }");
 
-        var operationCompiler = new OperationCompiler(new());
-        var operation = operationCompiler.Compile(
-            "abc",
-            (OperationDefinitionNode)request.Definitions.First(),
-            schema.QueryType,
-            request,
-            schema);
+        var executor = await new ServiceCollection()
+            .AddSingleton<IHttpClientFactory>(clientFactory)
+            .AddGraphQLServer()
+            .AddGraphQLGateway(serviceConfiguration, sdl)
+            .BuildRequestExecutorAsync();
 
         // act
-        var queryPlanContext = new QueryPlanContext(operation);
-        var requestPlaner = new RequestPlaner(serviceConfig);
-        var requirementsPlaner = new RequirementsPlaner();
-        var executionPlanBuilder = new ExecutionPlanBuilder(serviceConfig, schema);
-
-        requestPlaner.Plan(queryPlanContext);
-        requirementsPlaner.Plan(queryPlanContext);
-        var queryPlan = executionPlanBuilder.Build(queryPlanContext);
-
-        var clients = new Dictionary<string, Func<HttpClient>>
-        {
-            {
-                "a",
-                () =>
-                {
-                    var httpClient = server1.CreateClient();
-                    httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-                    return httpClient;
-                }
-            },
-            {
-                "b",
-                () =>
-                {
-                    var httpClient = server2.CreateClient();
-                    httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-                    return httpClient;
-                }
-            },
-        };
-
-        var clientFactory = new MockHttpClientFactory(clients);
-
-        var executor1 = new HttpRequestExecutor("a", clientFactory);
-        var executor2 = new HttpRequestExecutor("b", clientFactory);
-
-        var executorFactory = new RemoteRequestExecutorFactory(new[] { executor1, executor2 });
-
-        var executor = new RemoteQueryExecutor(serviceConfig, executorFactory);
-        var context = new RemoteExecutorContext(
-            schema,
-            new ResultBuilder(
-                new ResultPool(
-                    new ObjectResultPool(32, 32),
-                    new ListResultPool(32, 32))),
-            operation,
-            queryPlan,
-            new HashSet<ISelectionSet>(queryPlan.ExecutionNodes.OfType<RequestNode>().Select(t => t.Handler.SelectionSet)));
-
-
-        var result = await executor.ExecuteAsync(context);
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .Create());
 
         // assert
         var index = 0;
@@ -172,6 +140,7 @@ public class RemoteQueryExecutorTests
 
         snapshot.Add(request, "User Request");
 
+        /*
         foreach (var executionNode in queryPlan.ExecutionNodes)
         {
             if (executionNode is RequestNode rn)
@@ -179,8 +148,9 @@ public class RemoteQueryExecutorTests
                 snapshot.Add(rn.Handler.Document, $"Request {++index}");
             }
         }
+        */
 
-        snapshot.Add(formatter.Format(result), "Result");
+        snapshot.Add(formatter.Format((QueryResult)result), "Result");
 
         await snapshot.MatchAsync();
     }
