@@ -1,24 +1,19 @@
 {
   "errors": [
     {
-      "message": "The provided value for filter \u0060all\u0060 of type FooNestedFilterInput is invalid. Null values are not supported.",
+      "message": "Unexpected Execution Error",
       "locations": [
         {
-          "line": 1,
-          "column": 35
+          "line": 2,
+          "column": 25
         }
       ],
       "path": [
         "root"
-      ],
-      "extensions": {
-        "code": "HC0026",
-        "expectedType": "FooNestedFilterInput!",
-        "filterType": "FooNestedFilterInput"
-      }
+      ]
     }
   ],
   "data": {
-    "root": []
+    "root": null
   }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language;
@@ -150,7 +151,11 @@ public ref partial struct Utf8GraphQLParser
         Parse(sourceText, ParserOptions.Default);
 
     public static unsafe DocumentNode Parse(
+#if NET7_0_OR_GREATER
+        [StringSyntax("graphql")] string sourceText,
+#else
         string sourceText,
+#endif
         ParserOptions options)
     {
         if (string.IsNullOrEmpty(sourceText))

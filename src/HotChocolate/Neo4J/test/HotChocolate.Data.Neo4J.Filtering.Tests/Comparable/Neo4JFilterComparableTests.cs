@@ -476,7 +476,7 @@ public class Neo4JFilterComparableTests
                 .SetQuery(query1)
                 .Create());
 
-        const string query2 = "{ root(where: { barShort: { in: [ null, 14 ]}}){ barShort }}";
+        const string query2 = "{ root(where: { barShort: { in: [ 13, 14 ]}}){ barShort }}";
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(query2)
@@ -511,7 +511,7 @@ public class Neo4JFilterComparableTests
                 .SetQuery(query1)
                 .Create());
 
-        const string query2 = "{ root(where: { barShort: { nin: [ null, 14 ]}}){ barShort }}";
+        const string query2 = "{ root(where: { barShort: { nin: [ 13, 14 ]}}){ barShort }}";
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(query2)

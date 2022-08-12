@@ -67,11 +67,7 @@ internal sealed class ErrorMiddleware
                 throw;
             }
 
-            context.SetScopedState(ErrorContextDataKeys.Errors,
-                new[]
-                {
-                    error
-                });
+            context.SetScopedState(ErrorContextDataKeys.Errors, new[] { error });
             context.Result = ErrorObject;
         }
     }

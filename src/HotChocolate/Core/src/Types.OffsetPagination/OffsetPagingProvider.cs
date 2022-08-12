@@ -3,20 +3,19 @@ using HotChocolate.Internal;
 namespace HotChocolate.Types.Pagination;
 
 /// <summary>
-/// Represents an offset paging provider, which can be implemented to 
-/// create optimized pagination for data sources. 
-/// 
-/// The paging provider will be used by the configuration to choose 
+/// Represents an offset paging provider, which can be implemented to
+/// create optimized pagination for data sources.
+///
+/// The paging provider will be used by the configuration to choose
 /// the right paging handler for executing the field.
 /// </summary>
-public abstract class OffsetPagingProvider
-    : IPagingProvider
+public abstract class OffsetPagingProvider : IPagingProvider
 {
     /// <summary>
-    /// Specifies if this paging provider can handle the specified <see cref="source"/>.
+    /// Specifies if this paging provider can handle the specified <paramref name="source"/>.
     /// </summary>
     /// <param name="source">
-    /// The source type represents the result of the field resolver and could be a collection, 
+    /// The source type represents the result of the field resolver and could be a collection,
     /// a query builder or some other object representing the data set.
     /// </param>
     public abstract bool CanHandle(IExtendedType source);
@@ -30,7 +29,7 @@ public abstract class OffsetPagingProvider
     /// Creates the paging handler for offset pagination.
     /// </summary>
     /// <param name="source">
-    /// The source type represents the result of the field resolver and could be a collection, 
+    /// The source type represents the result of the field resolver and could be a collection,
     /// a query builder or some other object representing the data set.
     /// </param>
     /// <param name="options">

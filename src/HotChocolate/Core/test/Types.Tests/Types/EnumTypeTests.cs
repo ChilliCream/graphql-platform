@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -620,6 +621,50 @@ public class EnumTypeTests : TypeTestBase
         Assert.Throws<ArgumentNullException>(Fail);
     }
 
+    [Fact]
+    public void EnumName_Set_Name_Comparer()
+    {
+        // act
+        var schema = SchemaBuilder
+            .New()
+            .AddDirectiveType(new DirectiveType<Bar>(d => d
+                .Name("bar")
+                .Location(DirectiveLocation.EnumValue)))
+            .AddEnumType(d => d
+                .Name("Foo")
+                .NameComparer(StringComparer.OrdinalIgnoreCase)
+                .Value("baz")
+                .Name("BAZ"))
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
+
+        // assert
+        var type = schema.GetType<EnumType>("Foo");
+        Assert.True(type.IsInstanceOfType(new EnumValueNode("baz")));
+    }
+
+    [Fact]
+    public void EnumName_Set_Value_Comparer()
+    {
+        // act
+        var schema = SchemaBuilder
+            .New()
+            .AddDirectiveType(new DirectiveType<Bar>(d => d
+                .Name("bar")
+                .Location(DirectiveLocation.EnumValue)))
+            .AddEnumType(d => d
+                .Name("Foo")
+                .ValueComparer(new ValueComparer())
+                .Value("baz")
+                .Name("BAZ"))
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
+
+        // assert
+        var type = schema.GetType<EnumType>("Foo");
+        Assert.True(type.IsInstanceOfType("ANYTHING WILL DO"));
+    }
+
     public enum Foo
     {
         Bar1,
@@ -704,5 +749,18 @@ public class EnumTypeTests : TypeTestBase
     {
         Foo,
         Bar
+    }
+
+    public class ValueComparer : IEqualityComparer<object>
+    {
+        bool IEqualityComparer<object>.Equals(object x, object y)
+        {
+            return true;
+        }
+
+        int IEqualityComparer<object>.GetHashCode(object obj)
+        {
+            return 1;
+        }
     }
 }

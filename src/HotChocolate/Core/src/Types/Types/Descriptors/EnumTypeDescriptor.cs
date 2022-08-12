@@ -121,6 +121,18 @@ public class EnumTypeDescriptor
     public IEnumTypeDescriptor BindValuesImplicitly() =>
         BindValues(BindingBehavior.Implicit);
 
+    public IEnumTypeDescriptor NameComparer(IEqualityComparer<string> comparer)
+    {
+        Definition.NameComparer = comparer ?? throw new ArgumentNullException(nameof(comparer));
+        return this;
+    }
+
+    public IEnumTypeDescriptor ValueComparer(IEqualityComparer<object> comparer)
+    {
+        Definition.ValueComparer = comparer ?? throw new ArgumentNullException(nameof(comparer));
+        return this;
+    }
+
     [Obsolete("Use `Value`.")]
     public IEnumValueDescriptor Item<T>(T value) => Value(value);
 

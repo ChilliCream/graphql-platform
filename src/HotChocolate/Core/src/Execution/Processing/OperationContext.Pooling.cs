@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -14,7 +13,6 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed partial class OperationContext
 {
-    private readonly ConcurrentBag<Action> _cleanupActions = new();
     private readonly IFactory<ResolverTask> _resolverTaskFactory;
     private readonly WorkScheduler _workScheduler;
     private readonly DeferredWorkScheduler _deferredWorkScheduler;
@@ -106,14 +104,6 @@ internal sealed partial class OperationContext
     {
         if (_isInitialized)
         {
-            if (!_cleanupActions.IsEmpty)
-            {
-                while (_cleanupActions.TryTake(out var clean))
-                {
-                    clean();
-                }
-            }
-
             _pathFactory.Clear();
             _workScheduler.Clear();
             _resultHelper.Clear();
