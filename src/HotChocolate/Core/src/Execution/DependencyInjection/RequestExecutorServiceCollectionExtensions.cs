@@ -10,6 +10,7 @@ using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static class RequestExecutorServiceCollectionExtensions
@@ -33,7 +34,7 @@ public static class RequestExecutorServiceCollectionExtensions
 
         services.TryAddSingleton<ObjectPool<StringBuilder>>(sp =>
         {
-            ObjectPoolProvider provider = sp.GetRequiredService<ObjectPoolProvider>();
+            var provider = sp.GetRequiredService<ObjectPoolProvider>();
             var policy = new StringBuilderPooledObjectPolicy();
             return provider.Create(policy);
         });
@@ -58,7 +59,10 @@ public static class RequestExecutorServiceCollectionExtensions
             .TryAddResultPool()
             .TryAddResolverTaskPool()
             .TryAddOperationContextPool()
-            .TryAddDataLoaderTaskCachePool();
+            .TryAddDeferredWorkStatePool()
+            .TryAddDataLoaderTaskCachePool()
+            .TryAddPathSegmentPool()
+            .TryAddOperationCompilerPool();
 
         // global executor services
         services
@@ -86,14 +90,14 @@ public static class RequestExecutorServiceCollectionExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddGraphQL(
         this IServiceCollection services,
-        NameString schemaName = default)
+        string? schemaName = default)
     {
         if (services is null)
         {
             throw new ArgumentNullException(nameof(services));
         }
 
-        schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
+        schemaName ??= Schema.DefaultName;
 
         services
             .AddGraphQLCore()
@@ -117,14 +121,14 @@ public static class RequestExecutorServiceCollectionExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddGraphQL(
         this IRequestExecutorBuilder builder,
-        NameString schemaName = default)
+        string? schemaName = default)
     {
         if (builder is null)
         {
             throw new ArgumentNullException(nameof(builder));
         }
 
-        schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
+        schemaName ??= Schema.DefaultName;
 
         builder.Services.AddValidation(schemaName);
 
@@ -133,7 +137,7 @@ public static class RequestExecutorServiceCollectionExtensions
 
     private static IRequestExecutorBuilder CreateBuilder(
         IServiceCollection services,
-        NameString schemaName)
+        string schemaName)
     {
         var builder = new DefaultRequestExecutorBuilder(services, schemaName);
 
@@ -166,13 +170,10 @@ public static class RequestExecutorServiceCollectionExtensions
         int capacity = 100)
     {
         services.RemoveAll<IPreparedOperationCache>();
-        services.RemoveAll<IQueryPlanCache>();
         services.RemoveAll<IComplexityAnalyzerCache>();
 
         services.AddSingleton<IPreparedOperationCache>(
-            sp => new DefaultPreparedOperationCache(capacity));
-        services.AddSingleton<IQueryPlanCache>(
-            sp => new DefaultQueryPlanCache(capacity));
+            _ => new DefaultPreparedOperationCache(capacity));
         services.AddSingleton<IComplexityAnalyzerCache>(
             _ => new DefaultComplexityAnalyzerCache(capacity));
 

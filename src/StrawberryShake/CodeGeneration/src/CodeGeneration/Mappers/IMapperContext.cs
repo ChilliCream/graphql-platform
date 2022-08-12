@@ -6,62 +6,67 @@ using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.Tools.Configuration;
 
-namespace StrawberryShake.CodeGeneration.Mappers
+namespace StrawberryShake.CodeGeneration.Mappers;
+
+public interface IMapperContext
 {
-    public interface IMapperContext
-    {
-        string ClientName { get; }
+    string ClientName { get; }
 
-        /// <summary>
-        /// Gets the client root namespace.
-        /// This namespace is where we have all the public client APIs.
-        /// </summary>
-        string Namespace { get; }
+    /// <summary>
+    /// Gets the client root namespace.
+    /// This namespace is where we have all the public client APIs.
+    /// </summary>
+    string Namespace { get; }
 
-        /// <summary>
-        /// Gets the client request strategy.
-        /// </summary>
-        RequestStrategy RequestStrategy { get; }
+    /// <summary>
+    /// Gets the client request strategy.
+    /// </summary>
+    RequestStrategy RequestStrategy { get; }
 
-        /// <summary>
-        /// Gets the hash provider that is used to hash queries.
-        /// </summary>
-        IDocumentHashProvider HashProvider { get; }
+    /// <summary>
+    /// Gets the hash provider that is used to hash queries.
+    /// </summary>
+    IDocumentHashProvider HashProvider { get; }
 
-        IReadOnlyList<INamedTypeDescriptor> Types { get; }
+    IReadOnlyList<INamedTypeDescriptor> Types { get; }
 
-        IReadOnlyCollection<EntityTypeDescriptor> EntityTypes { get; }
+    IReadOnlyCollection<EntityTypeDescriptor> EntityTypes { get; }
 
-        IReadOnlyCollection<OperationDescriptor> Operations { get; }
+    IReadOnlyCollection<OperationDescriptor> Operations { get; }
 
-        IReadOnlyList<TransportProfile> TransportProfiles { get; }
+    IReadOnlyList<TransportProfile> TransportProfiles { get; }
 
-        ClientDescriptor Client { get; }
+    ClientDescriptor Client { get; }
 
-        StoreAccessorDescriptor StoreAccessor { get; }
+    StoreAccessorDescriptor StoreAccessor { get; }
 
-        EntityIdFactoryDescriptor EntityIdFactory { get; }
+    EntityIdFactoryDescriptor EntityIdFactory { get; }
 
-        void Register(IEnumerable<INamedTypeDescriptor> typeDescriptors);
+    IReadOnlyList<ResultFromEntityDescriptor> ResultFromEntityMappers { get; }
 
-        void Register(IEnumerable<EntityTypeDescriptor> entityTypeDescriptor);
+    void Register(IEnumerable<INamedTypeDescriptor> typeDescriptors);
 
-        void Register(IEnumerable<DataTypeDescriptor> dataTypeDescriptors);
+    void Register(IEnumerable<EntityTypeDescriptor> entityTypeDescriptor);
 
-        void Register(NameString operationName, OperationDescriptor operationDescriptor);
+    void Register(IEnumerable<DataTypeDescriptor> dataTypeDescriptors);
 
-        void Register(NameString resultBuilderName, ResultBuilderDescriptor operationDescriptor);
+    void Register(string operationName, OperationDescriptor operationDescriptor);
 
-        void Register(ClientDescriptor clientDescriptor);
+    void Register(string resultBuilderName, ResultBuilderDescriptor operationDescriptor);
 
-        void Register(EntityIdFactoryDescriptor entityIdFactoryDescriptor);
+    void Register(ClientDescriptor clientDescriptor);
 
-        void Register(DependencyInjectionDescriptor dependencyInjectionDescriptor);
+    void Register(EntityIdFactoryDescriptor entityIdFactoryDescriptor);
 
-        void Register(StoreAccessorDescriptor storeAccessorDescriptor);
+    void Register(DependencyInjectionDescriptor dependencyInjectionDescriptor);
 
-        bool Register(NameString typeName, TypeKind kind, RuntimeTypeInfo runtimeType);
+    void Register(StoreAccessorDescriptor storeAccessorDescriptor);
 
-        RuntimeTypeInfo GetRuntimeType(NameString typeName, TypeKind kind);
-    }
+    bool Register(string typeName, TypeKind kind, RuntimeTypeInfo runtimeType);
+
+    void Register(ResultFromEntityDescriptor descriptor);
+
+    RuntimeTypeInfo GetRuntimeType(string typeName, TypeKind kind);
+
+    T GetType<T>(string runtimeTypeName) where T : INamedTypeDescriptor;
 }

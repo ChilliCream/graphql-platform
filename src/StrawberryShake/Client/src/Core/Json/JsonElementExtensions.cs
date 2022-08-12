@@ -1,28 +1,20 @@
 using System.Text.Json;
 
-namespace StrawberryShake.Json
+namespace StrawberryShake.Json;
+
+public static class JsonElementExtensions
 {
-    public static class JsonElementExtensions
-    {
-        public static JsonElement? GetPropertyOrNull(this JsonElement jsonElement, string key)
-        {
-            if (jsonElement.TryGetProperty(key, out JsonElement property) &&
-                property.ValueKind != JsonValueKind.Null)
-            {
-                return property;
-            }
+    public static JsonElement? GetPropertyOrNull(this JsonElement obj, string key)
+        => obj.TryGetProperty(key, out var property) &&
+            property.ValueKind is not JsonValueKind.Null
+            ? property
+            : null;
 
-            return null;
-        }
+    public static JsonElement? GetPropertyOrNull(this JsonElement? obj, string key)
+        => obj.HasValue ? GetPropertyOrNull(obj.Value, key) : null;
 
-        public static JsonElement? GetPropertyOrNull(this JsonElement? jsonElement, string key)
-        {
-            if (jsonElement.HasValue)
-            {
-                return GetPropertyOrNull(jsonElement.Value, key);
-            }
-
-            return null;
-        }
-    }
+    public static bool ContainsFragment(this JsonElement? obj, string key)
+        => obj.HasValue &&
+            obj.Value.TryGetProperty(key, out var property) &&
+            property.ValueKind is JsonValueKind.String;
 }

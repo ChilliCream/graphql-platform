@@ -1,8 +1,6 @@
 using System;
+using CookieCrumble;
 using HotChocolate.Types;
-using Snapshooter;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data.Filters;
 
@@ -10,69 +8,56 @@ public class ComparableOperationInputTests
 {
     [Fact]
     public void Create_OperationType()
-    {
-        // arrange
-        // act
-        ISchema schema = SchemaBuilder.New()
-            .AddQueryType(
-                t => t
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolve("foo")
-                    .Argument("test", a => a.Type<ComparableOperationFilterInputType<int>>()))
+        => SchemaBuilder.New()
+            .AddQueryType(t => t
+                .Name("Query")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("foo")
+                .Argument("test", a => a.Type<ComparableOperationFilterInputType<int>>()))
             .AddFiltering()
-            .Create();
-
-        // assert
-        schema.ToString().MatchSnapshot();
-    }
+            .Create()
+            .MatchSnapshot();
 
     [Fact]
     public void Create_Implicit_Operation()
-    {
-        // arrange
-        // act
-        ISchema schema = SchemaBuilder.New()
-            .AddQueryType(
-                t => t
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolve("foo")
-                    .Argument("test", a => a.Type<FilterInputType<Foo>>()))
-            .AddFiltering()
-            .Create();
+        => SchemaBuilder.New()
+            .AddQueryType(t => t
+                .Name("Query")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("foo")
+                .Argument("test", a => a.Type<FilterInputType<Foo>>()))
+            .AddFiltering(compatabilityMode: true)
+            .Create()
+            .MatchSnapshot();
 
-        // assert
-#if NET6_0_OR_GREATER
-        schema.ToString().MatchSnapshot(new SnapshotNameExtension("NET6"));
-#else
-        schema.ToString().MatchSnapshot();
-#endif
-    }
+    [Fact]
+    public void Create_Implicit_Operation_Normalized()
+        => SchemaBuilder.New()
+            .AddQueryType(t => t
+                .Name("Query")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("foo")
+                .Argument("test", a => a.Type<FilterInputType<Foo>>()))
+            .AddFiltering()
+            .Create()
+            .MatchSnapshot();
 
     [Fact]
     public void Create_Explicit_Operation()
-    {
-        // arrange
-        // act
-        ISchema schema = SchemaBuilder.New()
-            .AddQueryType(
-                t => t
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolve("foo")
-                    .Argument("test", a => a.Type<FooFilterInput>()))
-            .TryAddConvention<IFilterConvention>(
-                (sp) => new FilterConvention(x => x.UseMock()))
+        => SchemaBuilder.New()
+            .AddQueryType(t => t
+                .Name("Query")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("foo")
+                .Argument("test", a => a.Type<FooFilterInput>()))
+            .TryAddConvention<IFilterConvention>(_ => new FilterConvention(x => x.UseMock()))
             .AddFiltering()
-            .Create();
-
-        // assert
-        schema.ToString().MatchSnapshot(new SnapshotNameExtension("NET6"));
-    }
+            .Create()
+            .MatchSnapshot();
 
     public class FooFilterInput : FilterInputType
     {
@@ -96,6 +81,12 @@ public class ComparableOperationInputTests
 
         public decimal BarDecimal { get; set; }
 
+        public Uri BarUri { get; set; } = default!;
+
+        public byte BarByte { get; set; } = default!;
+
+        public Uri? BarUriNullable { get; set; }
+
         public short? BarShortNullable { get; set; }
 
         public int? BarIntNullable { get; set; }
@@ -108,9 +99,10 @@ public class ComparableOperationInputTests
 
         public decimal? BarDecimalNullable { get; set; }
 
+        public byte? BarByteNullable { get; set; } = default!;
+
         public FooBar FooBar { get; set; }
 
-#if NET6_0_OR_GREATER
         public DateOnly DateOnly { get; set; }
 
         public DateOnly? DateOnlyNullable { get; set; }
@@ -118,7 +110,6 @@ public class ComparableOperationInputTests
         public TimeOnly TimeOnly { get; set; }
 
         public TimeOnly? TimeOnlyNullable { get; set; }
-#endif
     }
 
     public enum FooBar

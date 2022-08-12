@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -9,7 +10,11 @@ public static partial class SchemaBuilderExtensions
 {
     public static ISchemaBuilder AddDocumentFromString(
         this ISchemaBuilder builder,
+#if NET7_0_OR_GREATER
+        [StringSyntax("graphql")] string schema)
+#else
         string schema)
+#endif
     {
         if (builder is null)
         {
@@ -42,9 +47,7 @@ public static partial class SchemaBuilderExtensions
                 nameof(filePath));
         }
 
-        return builder.AddDocument(sp =>
-            Utf8GraphQLParser.Parse(
-                File.ReadAllBytes(filePath)));
+        return builder.AddDocument(_ => Utf8GraphQLParser.Parse(File.ReadAllBytes(filePath)));
     }
 
     public static ISchemaBuilder AddDocument(
@@ -61,6 +64,6 @@ public static partial class SchemaBuilderExtensions
             throw new ArgumentNullException(nameof(document));
         }
 
-        return builder.AddDocument(sp => document);
+        return builder.AddDocument(_ => document);
     }
 }

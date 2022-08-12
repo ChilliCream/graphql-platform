@@ -20,11 +20,12 @@ internal class ObjectTypeValidationRule : ISchemaValidationRule
     {
         if (options.StrictValidation)
         {
-            foreach (ObjectType type in typeSystemObjects.OfType<ObjectType>())
+            foreach (var type in typeSystemObjects.OfType<ObjectType>())
             {
                 EnsureTypeHasFields(type, errors);
                 EnsureFieldNamesAreValid(type, errors);
                 EnsureInterfacesAreCorrectlyImplemented(type, errors);
+                EnsureArgumentDeprecationIsValid(type, errors);
             }
         }
     }

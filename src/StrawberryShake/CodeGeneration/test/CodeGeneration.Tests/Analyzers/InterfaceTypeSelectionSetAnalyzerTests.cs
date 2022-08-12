@@ -6,249 +6,248 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using Xunit;
 
-namespace StrawberryShake.CodeGeneration.Analyzers
+namespace StrawberryShake.CodeGeneration.Analyzers;
+
+public class InterfaceTypeSelectionSetAnalyzerTests
 {
-    public class InterfaceTypeSelectionSetAnalyzerTests
+    [Fact]
+    public async Task Interface_With_Default_Names_One_Models()
     {
-        [Fact]
-        public async Task Interface_With_Default_Names_One_Models()
-        {
-            // arrange
-            var schema =
-                await new ServiceCollection()
-                    .AddStarWarsRepositories()
-                    .AddGraphQL()
-                    .AddStarWars()
-                    .BuildSchemaAsync();
+        // arrange
+        var schema =
+            await new ServiceCollection()
+                .AddStarWarsRepositories()
+                .AddGraphQL()
+                .AddStarWars()
+                .BuildSchemaAsync();
 
-            var document =
-                Utf8GraphQLParser.Parse(@"
-                    query GetHero {
-                        hero(episode: NEW_HOPE) {
-                            name
-                        }
-                    }");
-
-            var context = new DocumentAnalyzerContext(schema, document);
-            SelectionSetVariants selectionSetVariants = context.CollectFields();
-            FieldSelection fieldSelection = selectionSetVariants.ReturnType.Fields.First();
-            selectionSetVariants = context.CollectFields(fieldSelection);
-
-            // act
-            var analyzer = new InterfaceTypeSelectionSetAnalyzer();
-            var result = analyzer.Analyze(context, fieldSelection, selectionSetVariants);
-
-            // assert
-            Assert.Equal("IGetHero_Hero", result.Name);
-
-
-            Assert.Collection(
-                context.GetImplementations(result).OrderBy(m => m.Name),
-                model => Assert.Equal("IGetHero_Hero_Droid", model.Name),
-                model => Assert.Equal("IGetHero_Hero_Human", model.Name));
-
-            Assert.Collection(
-                result.Fields,
-                field => Assert.Equal("Name", field.Name));
-        }
-
-        [Fact]
-        public async Task Interface_With_Default_Names_Two_Models()
-        {
-            // arrange
-            var schema =
-                await new ServiceCollection()
-                    .AddStarWarsRepositories()
-                    .AddGraphQL()
-                    .AddStarWars()
-                    .BuildSchemaAsync();
-
-            var document =
-                Utf8GraphQLParser.Parse(@"
-                    query GetHero {
-                        hero(episode: NEW_HOPE) {
-                            name
-                            ... on Droid {
-                                primaryFunction
-                            }
-                        }
-                    }");
-
-            var context = new DocumentAnalyzerContext(schema, document);
-            SelectionSetVariants selectionSetVariants = context.CollectFields();
-            FieldSelection fieldSelection = selectionSetVariants.ReturnType.Fields.First();
-            selectionSetVariants = context.CollectFields(fieldSelection);
-
-            // act
-            var analyzer = new InterfaceTypeSelectionSetAnalyzer();
-            var result = analyzer.Analyze(context, fieldSelection, selectionSetVariants);
-
-            // assert
-            Assert.Equal("IGetHero_Hero", result.Name);
-
-             Assert.Collection(
-                context.GetImplementations(result),
-                model => Assert.Equal("IGetHero_Hero_Human", model.Name),
-                model => Assert.Equal("IGetHero_Hero_Droid", model.Name));
-
-            Assert.Collection(
-                result.Fields,
-                field => Assert.Equal("Name", field.Name));
-        }
-
-        [Fact]
-        public async Task Interface_With_Fragment_Definition_One_Model()
-        {
-            // arrange
-            var schema =
-                await new ServiceCollection()
-                    .AddStarWarsRepositories()
-                    .AddGraphQL()
-                    .AddStarWars()
-                    .BuildSchemaAsync();
-
-            var document =
-                Utf8GraphQLParser.Parse(@"
-                    query GetHero {
-                        hero(episode: NEW_HOPE) {
-                            ... Hero
-                        }
-                    }
-
-                    fragment Hero on Character {
+        var document =
+            Utf8GraphQLParser.Parse(@"
+                query GetHero {
+                    hero(episode: NEW_HOPE) {
                         name
-                    }");
+                    }
+                }");
 
-            var context = new DocumentAnalyzerContext(schema, document);
-            SelectionSetVariants selectionSetVariants = context.CollectFields();
-            FieldSelection fieldSelection = selectionSetVariants.ReturnType.Fields.First();
-            selectionSetVariants = context.CollectFields(fieldSelection);
+        var context = new DocumentAnalyzerContext(schema, document);
+        var selectionSetVariants = context.CollectFields();
+        var fieldSelection = selectionSetVariants.ReturnType.Fields.First();
+        selectionSetVariants = context.CollectFields(fieldSelection);
 
-            // act
-            var analyzer = new InterfaceTypeSelectionSetAnalyzer();
-            var result = analyzer.Analyze(context, fieldSelection, selectionSetVariants);
+        // act
+        var analyzer = new InterfaceTypeSelectionSetAnalyzer();
+        var result = analyzer.Analyze(context, fieldSelection, selectionSetVariants);
 
-            // assert
-            Assert.Equal("IGetHero_Hero", result.Name);
+        // assert
+        Assert.Equal("IGetHero_Hero", result.Name);
 
-            Assert.Collection(
-                context.GetImplementations(result).OrderBy(t => t.Name),
-                model => Assert.Equal("IGetHero_Hero_Droid", model.Name),
-                model => Assert.Equal("IGetHero_Hero_Human", model.Name));
 
-            Assert.Empty(result.Fields);
-        }
+        Assert.Collection(
+            context.GetImplementations(result).OrderBy(m => m.Name),
+            model => Assert.Equal("IGetHero_Hero_Droid", model.Name),
+            model => Assert.Equal("IGetHero_Hero_Human", model.Name));
 
-        [Fact]
-        public async Task Interface_With_Fragment_Definition_Two_Models()
-        {
-            // arrange
-            var schema =
-                await new ServiceCollection()
-                    .AddStarWarsRepositories()
-                    .AddGraphQL()
-                    .AddStarWars()
-                    .BuildSchemaAsync();
+        Assert.Collection(
+            result.Fields,
+            field => Assert.Equal("Name", field.Name));
+    }
 
-            var document =
-                Utf8GraphQLParser.Parse(@"
-                    query GetHero {
-                        hero(episode: NEW_HOPE) {
-                            ... Hero
+    [Fact]
+    public async Task Interface_With_Default_Names_Two_Models()
+    {
+        // arrange
+        var schema =
+            await new ServiceCollection()
+                .AddStarWarsRepositories()
+                .AddGraphQL()
+                .AddStarWars()
+                .BuildSchemaAsync();
+
+        var document =
+            Utf8GraphQLParser.Parse(@"
+                query GetHero {
+                    hero(episode: NEW_HOPE) {
+                        name
+                        ... on Droid {
+                            primaryFunction
                         }
                     }
+                }");
 
-                    fragment Hero on Character {
-                        name
-                        ... Human
-                        ... Droid
+        var context = new DocumentAnalyzerContext(schema, document);
+        var selectionSetVariants = context.CollectFields();
+        var fieldSelection = selectionSetVariants.ReturnType.Fields.First();
+        selectionSetVariants = context.CollectFields(fieldSelection);
+
+        // act
+        var analyzer = new InterfaceTypeSelectionSetAnalyzer();
+        var result = analyzer.Analyze(context, fieldSelection, selectionSetVariants);
+
+        // assert
+        Assert.Equal("IGetHero_Hero", result.Name);
+
+        Assert.Collection(
+            context.GetImplementations(result),
+            model => Assert.Equal("IGetHero_Hero_Human", model.Name),
+            model => Assert.Equal("IGetHero_Hero_Droid", model.Name));
+
+        Assert.Collection(
+            result.Fields,
+            field => Assert.Equal("Name", field.Name));
+    }
+
+    [Fact]
+    public async Task Interface_With_Fragment_Definition_One_Model()
+    {
+        // arrange
+        var schema =
+            await new ServiceCollection()
+                .AddStarWarsRepositories()
+                .AddGraphQL()
+                .AddStarWars()
+                .BuildSchemaAsync();
+
+        var document =
+            Utf8GraphQLParser.Parse(@"
+                query GetHero {
+                    hero(episode: NEW_HOPE) {
+                        ... Hero
                     }
+                }
 
-                    fragment Human on Human {
-                        homePlanet
+                fragment Hero on Character {
+                    name
+                }");
+
+        var context = new DocumentAnalyzerContext(schema, document);
+        var selectionSetVariants = context.CollectFields();
+        var fieldSelection = selectionSetVariants.ReturnType.Fields.First();
+        selectionSetVariants = context.CollectFields(fieldSelection);
+
+        // act
+        var analyzer = new InterfaceTypeSelectionSetAnalyzer();
+        var result = analyzer.Analyze(context, fieldSelection, selectionSetVariants);
+
+        // assert
+        Assert.Equal("IGetHero_Hero", result.Name);
+
+        Assert.Collection(
+            context.GetImplementations(result).OrderBy(t => t.Name),
+            model => Assert.Equal("IGetHero_Hero_Droid", model.Name),
+            model => Assert.Equal("IGetHero_Hero_Human", model.Name));
+
+        Assert.Empty(result.Fields);
+    }
+
+    [Fact]
+    public async Task Interface_With_Fragment_Definition_Two_Models()
+    {
+        // arrange
+        var schema =
+            await new ServiceCollection()
+                .AddStarWarsRepositories()
+                .AddGraphQL()
+                .AddStarWars()
+                .BuildSchemaAsync();
+
+        var document =
+            Utf8GraphQLParser.Parse(@"
+                query GetHero {
+                    hero(episode: NEW_HOPE) {
+                        ... Hero
                     }
+                }
 
-                    fragment Droid on Droid {
-                        primaryFunction
-                    }");
+                fragment Hero on Character {
+                    name
+                    ... Human
+                    ... Droid
+                }
 
-            var context = new DocumentAnalyzerContext(schema, document);
-            SelectionSetVariants selectionSetVariants = context.CollectFields();
-            FieldSelection fieldSelection = selectionSetVariants.ReturnType.Fields.First();
-            selectionSetVariants = context.CollectFields(fieldSelection);
+                fragment Human on Human {
+                    homePlanet
+                }
 
-            // act
-            var analyzer = new InterfaceTypeSelectionSetAnalyzer();
-            var result = analyzer.Analyze(context, fieldSelection, selectionSetVariants);
+                fragment Droid on Droid {
+                    primaryFunction
+                }");
 
-            // assert
-            Assert.Equal("IGetHero_Hero", result.Name);
+        var context = new DocumentAnalyzerContext(schema, document);
+        var selectionSetVariants = context.CollectFields();
+        var fieldSelection = selectionSetVariants.ReturnType.Fields.First();
+        selectionSetVariants = context.CollectFields(fieldSelection);
 
-            Assert.Collection(
-                context.GetImplementations(result),
-                model => Assert.Equal("IGetHero_Hero_Human", model.Name),
-                model => Assert.Equal("IGetHero_Hero_Droid", model.Name));
+        // act
+        var analyzer = new InterfaceTypeSelectionSetAnalyzer();
+        var result = analyzer.Analyze(context, fieldSelection, selectionSetVariants);
 
-            Assert.Empty(result.Fields);
-        }
+        // assert
+        Assert.Equal("IGetHero_Hero", result.Name);
 
-        [Fact]
-        public async Task Union_With_Fragment_Definition_Two_Models()
-        {
-            // arrange
-            var schema =
-                await new ServiceCollection()
-                    .AddStarWarsRepositories()
-                    .AddGraphQL()
-                    .AddStarWars()
-                    .BuildSchemaAsync();
+        Assert.Collection(
+            context.GetImplementations(result),
+            model => Assert.Equal("IGetHero_Hero_Human", model.Name),
+            model => Assert.Equal("IGetHero_Hero_Droid", model.Name));
 
-            var document =
-                Utf8GraphQLParser.Parse(@"
-                    query GetHero {
-                        search(text: ""hello"") {
-                            ... Hero
-                            ... Starship
-                        }
+        Assert.Empty(result.Fields);
+    }
+
+    [Fact]
+    public async Task Union_With_Fragment_Definition_Two_Models()
+    {
+        // arrange
+        var schema =
+            await new ServiceCollection()
+                .AddStarWarsRepositories()
+                .AddGraphQL()
+                .AddStarWars()
+                .BuildSchemaAsync();
+
+        var document =
+            Utf8GraphQLParser.Parse(@"
+                query GetHero {
+                    search(text: ""hello"") {
+                        ... Hero
+                        ... Starship
                     }
+                }
 
-                    fragment Hero on Character {
-                        name
-                        ... Human
-                        ... Droid
-                    }
+                fragment Hero on Character {
+                    name
+                    ... Human
+                    ... Droid
+                }
 
-                    fragment Human on Human {
-                        homePlanet
-                    }
+                fragment Human on Human {
+                    homePlanet
+                }
 
-                    fragment Droid on Droid {
-                        primaryFunction
-                    }
+                fragment Droid on Droid {
+                    primaryFunction
+                }
 
-                    fragment Starship on Starship {
-                        length
-                    }");
+                fragment Starship on Starship {
+                    length
+                }");
 
-            var context = new DocumentAnalyzerContext(schema, document);
-            SelectionSetVariants selectionSetVariants = context.CollectFields();
-            FieldSelection fieldSelection = selectionSetVariants.ReturnType.Fields.First();
-            selectionSetVariants = context.CollectFields(fieldSelection);
+        var context = new DocumentAnalyzerContext(schema, document);
+        var selectionSetVariants = context.CollectFields();
+        var fieldSelection = selectionSetVariants.ReturnType.Fields.First();
+        selectionSetVariants = context.CollectFields(fieldSelection);
 
-            // act
-            var analyzer = new InterfaceTypeSelectionSetAnalyzer();
-            var result = analyzer.Analyze(context, fieldSelection, selectionSetVariants);
+        // act
+        var analyzer = new InterfaceTypeSelectionSetAnalyzer();
+        var result = analyzer.Analyze(context, fieldSelection, selectionSetVariants);
 
-            // assert
-            Assert.Equal("IGetHero_Search", result.Name);
+        // assert
+        Assert.Equal("IGetHero_Search", result.Name);
 
-            Assert.Collection(
-                context.GetImplementations(result),
-                model => Assert.Equal("IGetHero_Search_Starship", model.Name),
-                model => Assert.Equal("IGetHero_Search_Human", model.Name),
-                model => Assert.Equal("IGetHero_Search_Droid", model.Name));
+        Assert.Collection(
+            context.GetImplementations(result),
+            model => Assert.Equal("IGetHero_Search_Starship", model.Name),
+            model => Assert.Equal("IGetHero_Search_Human", model.Name),
+            model => Assert.Equal("IGetHero_Search_Droid", model.Name));
 
-            Assert.Empty(result.Fields);
-        }
+        Assert.Empty(result.Fields);
     }
 }

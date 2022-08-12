@@ -89,9 +89,9 @@ public readonly ref struct ComplexityContext
     /// </summary>
     public bool TryGetArgumentValue<T>(string name, out T? value)
     {
-        if (Field.Arguments.TryGetField(name, out IInputField? argument))
+        if (Field.Arguments.TryGetField(name, out var argument))
         {
-            IValueNode? argumentValue = Selection.Arguments
+            var argumentValue = Selection.Arguments
                 .FirstOrDefault(t => t.Name.Value.EqualsOrdinal(name))?
                 .Value;
 

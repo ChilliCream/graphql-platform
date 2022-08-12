@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -32,10 +33,7 @@ public abstract class FilterProvider<TContext>
 
     /// <inheritdoc />
     public FilterProvider(Action<IFilterProviderDescriptor<TContext>> configure)
-    {
-        _configure = configure ??
-            throw new ArgumentNullException(nameof(configure));
-    }
+        => _configure = configure ?? throw new ArgumentNullException(nameof(configure));
 
     internal new FilterProviderDefinition? Definition => base.Definition;
 
@@ -72,7 +70,7 @@ public abstract class FilterProvider<TContext>
     }
 
     /// <inheritdoc />
-    protected override void Complete(IConventionContext context)
+    protected internal override void Complete(IConventionContext context)
     {
         if (Definition!.Handlers.Count == 0)
         {
@@ -86,7 +84,7 @@ public abstract class FilterProvider<TContext>
                 context.Scope);
         }
 
-        IServiceProvider services = new DictionaryServiceProvider(
+        var services = new DictionaryServiceProvider(
             (typeof(IFilterProvider), this),
             (typeof(IConventionContext), context),
             (typeof(IDescriptorContext), context.DescriptorContext),
@@ -136,8 +134,7 @@ public abstract class FilterProvider<TContext>
     /// </param>
     /// <typeparam name="TEntityType">The runtime type of the entity</typeparam>
     /// <returns>A middleware</returns>
-    public abstract FieldMiddleware CreateExecutor<TEntityType>(
-        NameString argumentName);
+    public abstract FieldMiddleware CreateExecutor<TEntityType>(string argumentName);
 
     /// <summary>
     /// Is called on each field that filtering is applied to. This method can be used to
@@ -147,9 +144,13 @@ public abstract class FilterProvider<TContext>
     /// The argument name specified in the <see cref="FilterConvention"/>
     /// </param>
     /// <param name="descriptor">The descriptor of the field</param>
-    public virtual void ConfigureField(
-        NameString argumentName,
-        IObjectFieldDescriptor descriptor)
+    public virtual void ConfigureField(string argumentName, IObjectFieldDescriptor descriptor)
     {
     }
+
+    public virtual IFilterMetadata? CreateMetaData(
+        ITypeCompletionContext context,
+        IFilterInputTypeDefinition typeDefinition,
+        IFilterFieldDefinition fieldDefinition)
+        => null;
 }

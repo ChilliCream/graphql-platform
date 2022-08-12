@@ -16,19 +16,20 @@ public sealed class InputObjectTypeExtensionNode
     {
     }
 
-    public override SyntaxKind Kind { get; } =
-        SyntaxKind.InputObjectTypeExtension;
+    /// <inheritdoc />
+    public override SyntaxKind Kind => SyntaxKind.InputObjectTypeExtension;
 
+    /// <inheritdoc />
     public override IEnumerable<ISyntaxNode> GetNodes()
     {
         yield return Name;
 
-        foreach (DirectiveNode directive in Directives)
+        foreach (var directive in Directives)
         {
             yield return directive;
         }
 
-        foreach (InputValueDefinitionNode field in Fields)
+        foreach (var field in Fields)
         {
             yield return field;
         }
@@ -55,29 +56,59 @@ public sealed class InputObjectTypeExtensionNode
     /// </returns>
     public override string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Location" /> with <paramref name="location" />.
+    /// </summary>
+    /// <param name="location">
+    /// The location that shall be used to replace the current location.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="location" />.
+    /// </returns>
     public InputObjectTypeExtensionNode WithLocation(Location? location)
-    {
-        return new InputObjectTypeExtensionNode(
-            location, Name, Directives, Fields);
-    }
+        => new(location, Name, Directives, Fields);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="NamedSyntaxNode.Name" /> with <paramref name="name" />.
+    /// </summary>
+    /// <param name="name">
+    /// The name that shall be used to replace the current <see cref="NamedSyntaxNode.Name" />.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="name" />.
+    /// </returns>
     public InputObjectTypeExtensionNode WithName(NameNode name)
-    {
-        return new InputObjectTypeExtensionNode(
-            Location, name, Directives, Fields);
-    }
+        => new(Location, name, Directives, Fields);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="NamedSyntaxNode.Directives" /> with <paramref name="directives" />.
+    /// </summary>
+    /// <param name="directives">
+    /// The directives that shall be used to replace the current
+    /// <see cref="NamedSyntaxNode.Directives" />.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="directives" />.
+    /// </returns>
     public InputObjectTypeExtensionNode WithDirectives(
         IReadOnlyList<DirectiveNode> directives)
-    {
-        return new InputObjectTypeExtensionNode(
-            Location, Name, directives, Fields);
-    }
+        => new(Location, Name, directives, Fields);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="InputObjectTypeDefinitionNodeBase.Fields" /> with <paramref name="fields" />.
+    /// </summary>
+    /// <param name="fields">
+    /// The fields that shall be used to replace the current
+    /// <see cref="InputObjectTypeDefinitionNodeBase.Fields" />.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="fields" />.
+    /// </returns>
     public InputObjectTypeExtensionNode WithFields(
         IReadOnlyList<InputValueDefinitionNode> fields)
-    {
-        return new InputObjectTypeExtensionNode(
-            Location, Name, Directives, fields);
-    }
+        => new(Location, Name, Directives, fields);
 }

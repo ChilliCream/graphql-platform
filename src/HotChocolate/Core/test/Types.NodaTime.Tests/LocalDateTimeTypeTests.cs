@@ -1,8 +1,8 @@
+
 using System;
-using System.Linq;
 using HotChocolate.Execution;
-using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
+using NodaTime.Text;
 using Xunit;
 
 namespace HotChocolate.Types.NodaTime.Tests
@@ -13,7 +13,11 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             public class Query
             {
-                public LocalDateTime One => LocalDateTime.FromDateTime(new DateTime(2020, 02, 20, 17, 42, 59));
+                public LocalDateTime One =>
+                    LocalDateTime.FromDateTime(
+                        new DateTime(2020, 02, 20, 17, 42, 59))
+                            .PlusNanoseconds(1234)
+                            .WithCalendar(CalendarSystem.Julian);
             }
 
             public class Mutation
@@ -25,10 +29,11 @@ namespace HotChocolate.Types.NodaTime.Tests
             }
         }
 
-        private readonly IRequestExecutor testExecutor;
+        private readonly IRequestExecutor _testExecutor;
+
         public LocalDateTimeTypeIntegrationTests()
         {
-            testExecutor = SchemaBuilder.New()
+            _testExecutor = SchemaBuilder.New()
                 .AddQueryType<Schema.Query>()
                 .AddMutationType<Schema.Mutation>()
                 .AddNodaTime()
@@ -39,59 +44,68 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void QueryReturns()
         {
-            IExecutionResult? result = testExecutor.Execute("query { test: one }");
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("2020-02-20T17:42:59", queryResult!.Data!["test"]);
+            IExecutionResult result = _testExecutor.Execute("query { test: one }");
+
+            Assert.Equal("2020-02-07T17:42:59.000001234", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
         public void ParsesVariable()
         {
-            IExecutionResult? result = testExecutor
+            IExecutionResult result = _testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation($arg: LocalDateTime!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "2020-02-21T17:42:59")
+                    .SetVariableValue("arg", "2020-02-21T17:42:59.000001234")
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("2020-02-21T17:52:59", queryResult!.Data!["test"]);
+
+            Assert.Equal("2020-02-21T17:52:59.000001234", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
         public void DoesntParseAnIncorrectVariable()
         {
-            IExecutionResult? result = testExecutor
+            IExecutionResult result = _testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation($arg: LocalDateTime!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "2020-02-20T17:42:59Z")
+                    .SetVariableValue("arg", "2020-02-20T17:42:59.000001234Z")
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Null(queryResult!.Data);
-            Assert.Equal(1, queryResult!.Errors!.Count);
+
+            Assert.Null(result.ExpectQueryResult().Data);
+            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
         }
 
         [Fact]
         public void ParsesLiteral()
         {
-            IExecutionResult? result = testExecutor
+            IExecutionResult result = _testExecutor
                 .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"2020-02-20T17:42:59\") }")
+                    .SetQuery("mutation { test(arg: \"2020-02-20T17:42:59.000001234\") }")
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("2020-02-20T17:52:59", queryResult!.Data!["test"]);
+
+            Assert.Equal("2020-02-20T17:52:59.000001234", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
         public void DoesntParseIncorrectLiteral()
         {
-            IExecutionResult? result = testExecutor
+            IExecutionResult result = _testExecutor
                 .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"2020-02-20T17:42:59Z\") }")
+                    .SetQuery("mutation { test(arg: \"2020-02-20T17:42:59.000001234Z\") }")
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Null(queryResult!.Data);
-            Assert.Equal(1, queryResult!.Errors!.Count);
-            Assert.Null(queryResult.Errors.First().Code);
-            Assert.Equal("Unable to deserialize string to LocalDateTime", queryResult.Errors.First().Message);
+
+            Assert.Null(result.ExpectQueryResult().Data);
+            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
+            Assert.Null(result.ExpectQueryResult().Errors![0].Code);
+            Assert.Equal(
+                "Unable to deserialize string to LocalDateTime",
+                result.ExpectQueryResult().Errors![0].Message);
+        }
+
+        [Fact]
+        public void PatternEmpty_ThrowSchemaException()
+        {
+            static object Call() => new LocalDateTimeType(Array.Empty<IPattern<LocalDateTime>>());
+            Assert.Throws<SchemaException>(Call);
         }
     }
 }

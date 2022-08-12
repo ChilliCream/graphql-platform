@@ -1,0 +1,47 @@
+12and13
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barShort": "Rm9vU2hvcnROdWxsYWJsZQpzMTI="
+      },
+      {
+        "barShort": "Rm9vU2hvcnROdWxsYWJsZQpzMTM="
+      }
+    ]
+  }
+}
+---------------
+
+13and14
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barShort": "Rm9vU2hvcnROdWxsYWJsZQpzMTQ="
+      },
+      {
+        "barShort": "Rm9vU2hvcnROdWxsYWJsZQpzMTM="
+      }
+    ]
+  }
+}
+---------------
+
+13andNull
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barShort": null
+      },
+      {
+        "barShort": "Rm9vU2hvcnROdWxsYWJsZQpzMTM="
+      }
+    ]
+  }
+}
+---------------

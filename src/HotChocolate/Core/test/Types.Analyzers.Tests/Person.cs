@@ -1,6 +1,7 @@
 namespace HotChocolate.Types;
 
-public class Person
+[ObjectType]
+public class Person : IEntity
 {
     public string Name { get; } = default!;
 }

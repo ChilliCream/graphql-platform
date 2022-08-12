@@ -1,12 +1,12 @@
+#nullable enable
+
 using System;
 using System.Linq;
-using System.Reflection;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Relay.Descriptors;
+using static System.Reflection.BindingFlags;
 using static HotChocolate.Utilities.ThrowHelper;
-
-#nullable enable
 
 namespace HotChocolate.Types.Relay;
 
@@ -51,7 +51,7 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
             // first we try to resolve the id field.
             if (IdField is not null)
             {
-                MemberInfo? idField = type.GetMember(IdField).FirstOrDefault();
+                var idField = type.GetMember(IdField).FirstOrDefault();
 
                 if (idField is null)
                 {
@@ -74,7 +74,9 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
             {
                 if (NodeResolver is not null)
                 {
-                    MethodInfo? method = NodeResolverType.GetMethod(NodeResolver);
+                    var method = NodeResolverType.GetMethod(
+                        NodeResolver,
+                        Instance | Static | Public | FlattenHierarchy);
 
                     if (method is null)
                     {
@@ -92,7 +94,9 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
             }
             else if (NodeResolver is not null)
             {
-                MethodInfo? method = type.GetMethod(NodeResolver);
+                var method = type.GetMethod(
+                    NodeResolver,
+                    Instance | Static | Public | FlattenHierarchy);
 
                 if (method is null)
                 {
@@ -103,7 +107,7 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
             }
             else if (definition.RuntimeType != typeof(object) && definition.RuntimeType != type)
             {
-                MethodInfo? method = descriptorContext.TypeInspector.GetNodeResolverMethod(
+                var method = descriptorContext.TypeInspector.GetNodeResolverMethod(
                     definition.RuntimeType,
                     type);
 
@@ -115,7 +119,7 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
                 if (definition.Fields.Any(
                     t => t.Member == method || t.ResolverMember == method))
                 {
-                    foreach (ObjectFieldDefinition? fieldDefinition in definition.Fields
+                    foreach (var fieldDefinition in definition.Fields
                         .Where(t => t.Member == method || t.ResolverMember == method)
                         .ToArray())
                     {
@@ -132,8 +136,8 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
 
             // we trigger a late id field configuration
             var descriptor = ObjectTypeDescriptor.From(
-            descriptorContext.DescriptorContext,
-            definition);
+                descriptorContext.DescriptorContext,
+                definition);
             nodeDescriptor.ConfigureNodeField(descriptor);
             descriptor.CreateDefinition();
 

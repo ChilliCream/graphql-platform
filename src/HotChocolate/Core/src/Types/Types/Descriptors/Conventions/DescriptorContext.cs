@@ -62,6 +62,7 @@ public sealed class DescriptorContext : IDescriptorContext
         void OnSchemaOnCompleted(object? sender, EventArgs args)
         {
             SchemaCompleted?.Invoke(this, new SchemaCompletedEventArgs(schema.Schema));
+            SchemaCompleted = null;
         }
     }
 
@@ -137,9 +138,9 @@ public sealed class DescriptorContext : IDescriptorContext
         if (ContextData.TryGetValue(SchemaDirectives, out var value) &&
             value is IReadOnlyList<ISchemaDirective> directives)
         {
-            foreach (ISchemaDirective sd in directives)
+            foreach (var sd in directives)
             {
-                _schemaDirectives[sd.Name.Value] = sd;
+                _schemaDirectives[sd.Name] = sd;
             }
 
             ContextData.Remove(SchemaDirectives);
@@ -159,7 +160,7 @@ public sealed class DescriptorContext : IDescriptorContext
             throw new ArgumentNullException(nameof(defaultConvention));
         }
 
-        if (_conventions.TryGetValue((typeof(T), scope), out IConvention? conv) &&
+        if (_conventions.TryGetValue((typeof(T), scope), out var conv) &&
             conv is T castedConvention)
         {
             return castedConvention;
@@ -167,8 +168,8 @@ public sealed class DescriptorContext : IDescriptorContext
 
         CreateConventions<T>(
             scope,
-            out IConvention? createdConvention,
-            out IList<IConventionExtension>? extensions);
+            out var createdConvention,
+            out var extensions);
 
         createdConvention ??= createdConvention as T;
         createdConvention ??= _services.GetService(typeof(T)) as T;
@@ -176,7 +177,7 @@ public sealed class DescriptorContext : IDescriptorContext
 
         if (createdConvention is Convention init)
         {
-            ConventionContext conventionContext =
+            var conventionContext =
                 ConventionContext.Create(scope, _services, this);
 
             init.Initialize(conventionContext);
@@ -203,11 +204,11 @@ public sealed class DescriptorContext : IDescriptorContext
 
         if (_cFactories.TryGetValue(
             (typeof(T), scope),
-            out List<CreateConvention>? factories))
+            out var factories))
         {
             for (var i = 0; i < factories.Count; i++)
             {
-                IConvention convention = factories[i](_services);
+                var convention = factories[i](_services);
                 if (convention is IConventionExtension extension)
                 {
                     extensions.Add(extension);
@@ -234,7 +235,7 @@ public sealed class DescriptorContext : IDescriptorContext
         Convention convention,
         IList<IConventionExtension> extensions)
     {
-        foreach (IConventionExtension? extension in extensions)
+        foreach (var extension in extensions)
         {
             if (extension is Convention extensionConvention)
             {
@@ -266,7 +267,7 @@ public sealed class DescriptorContext : IDescriptorContext
             typeInterceptor ?? new AggregateTypeInterceptor());
     }
 
-    private class NoOpStringBuilderPool : ObjectPool<StringBuilder>
+    private sealed class NoOpStringBuilderPool : ObjectPool<StringBuilder>
     {
         public override StringBuilder Get() => new();
 

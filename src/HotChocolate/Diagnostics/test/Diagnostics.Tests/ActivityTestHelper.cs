@@ -25,7 +25,7 @@ public static class ActivityTestHelper
 
                 if (a.Parent is null && 
                     a.OperationName.EqualsOrdinal("ExecuteHttpRequest") && 
-                    lookup.TryGetValue(rootActivity, out OrderedDictionary? parentData))
+                    lookup.TryGetValue(rootActivity, out var parentData))
                 {
                     RegisterActivity(a, parentData);
                     lookup[a] = (OrderedDictionary)a.GetCustomProperty("test.data")!;
@@ -82,7 +82,7 @@ public static class ActivityTestHelper
         data["event"] = activity.Events.Select(t => new { t.Name, t.Tags });
     }
 
-    private class Session : IDisposable
+    private sealed class Session : IDisposable
     {
         private readonly Activity _activity;
         private readonly ActivityListener _listener;

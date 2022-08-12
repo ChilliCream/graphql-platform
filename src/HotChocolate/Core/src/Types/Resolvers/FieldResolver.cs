@@ -11,8 +11,8 @@ public sealed class FieldResolver
     private FieldReference? _fieldReference;
 
     public FieldResolver(
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         FieldResolverDelegate resolver,
         PureFieldDelegate? pureResolver = null)
         : base(typeName, fieldName)
@@ -36,12 +36,12 @@ public sealed class FieldResolver
 
     public PureFieldDelegate? PureResolver { get; }
 
-    public FieldResolver WithTypeName(NameString typeName)
+    public FieldResolver WithTypeName(string typeName)
         => string.Equals(TypeName, typeName, StringComparison.Ordinal)
             ? this
             : new FieldResolver(typeName, FieldName, Resolver);
 
-    public FieldResolver WithFieldName(NameString fieldName)
+    public FieldResolver WithFieldName(string fieldName)
         => string.Equals(FieldName, fieldName, StringComparison.Ordinal)
             ? this
             : new FieldResolver(TypeName, fieldName, Resolver);

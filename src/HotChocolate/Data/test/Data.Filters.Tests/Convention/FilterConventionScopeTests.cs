@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using CookieCrumble;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data.Filters;
 
@@ -14,14 +12,14 @@ public class FilterConventionScopeTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddConvention<IFilterConvention, BarFilterConvention>("Bar")
             .AddQueryType<Query1>()
             .AddFiltering()
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -29,14 +27,30 @@ public class FilterConventionScopeTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddConvention<IFilterConvention, BarFilterConvention>("Bar")
             .AddQueryType<QueryType>()
             .AddFiltering()
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public void FilterConvention_Should_Work_When_ConfiguredWithCustomizedType()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddConvention<IFilterConvention, BarFilterConvention>("Bar")
+            .AddQueryType<CustomizedQueryType>()
+            .AddFiltering()
+            .ModifyOptions(x => x.RemoveUnreachableTypes = true)
+            .Create();
+
+        // assert
+        schema.MatchSnapshot();
     }
 
     public class QueryType : ObjectType
@@ -50,6 +64,22 @@ public class FilterConventionScopeTests
             descriptor.Field("foosBar")
                 .Resolve(Array.Empty<Foo>().AsQueryable())
                 .UseFiltering("Bar");
+        }
+    }
+
+    public class CustomizedQueryType : ObjectType
+    {
+        protected override void Configure(IObjectTypeDescriptor descriptor)
+        {
+            descriptor
+                .Field("foos")
+                .Resolve(Array.Empty<Foo>().AsQueryable())
+                .UseFiltering<Foo>(d => d.Field(x => x.Bar).AllowContains());
+
+            descriptor
+                .Field("foosBar")
+                .Resolve(Array.Empty<Foo>().AsQueryable())
+                .UseFiltering<Foo>(d => d.Field(x => x.Bar).AllowContains(), "Bar");
         }
     }
 

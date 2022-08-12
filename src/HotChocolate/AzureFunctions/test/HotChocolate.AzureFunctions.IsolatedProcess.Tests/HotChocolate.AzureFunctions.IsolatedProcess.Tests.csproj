@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\HotChocolate.AzureFunctions.IsolatedProcess\HotChocolate.AzureFunctions.IsolatedProcess.csproj" />
+    <ProjectReference Include="..\HotChocolate.AzureFunctions.Tests\HotChocolate.AzureFunctions.Tests.csproj" />
+  </ItemGroup>
+
+</Project>

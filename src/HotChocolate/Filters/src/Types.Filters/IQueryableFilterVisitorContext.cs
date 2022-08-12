@@ -3,21 +3,20 @@ using System.Collections.Generic;
 using HotChocolate.Types.Filters.Expressions;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Types.Filters
+namespace HotChocolate.Types.Filters;
+
+[Obsolete("Use HotChocolate.Data.")]
+public interface IQueryableFilterVisitorContext
 {
-    [Obsolete("Use HotChocolate.Data.")]
-    public interface IQueryableFilterVisitorContext
-    {
-        IReadOnlyList<IExpressionOperationHandler> OperationHandlers { get; }
+    IReadOnlyList<IExpressionOperationHandler> OperationHandlers { get; }
 
-        IReadOnlyList<IExpressionFieldHandler> FieldHandlers { get; }
+    IReadOnlyList<IExpressionFieldHandler> FieldHandlers { get; }
 
-        ITypeConverter TypeConverter { get; }
+    ITypeConverter TypeConverter { get; }
 
-        bool InMemory { get; }
+    bool InMemory { get; }
 
-        Stack<QueryableClosure> Closures { get; }
+    Stack<QueryableClosure> Closures { get; }
 
-        InputParser InputParser { get; }
-    }
+    InputParser InputParser { get; }
 }

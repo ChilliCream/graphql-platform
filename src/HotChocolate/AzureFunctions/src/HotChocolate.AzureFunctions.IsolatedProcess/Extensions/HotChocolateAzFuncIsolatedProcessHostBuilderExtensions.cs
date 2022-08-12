@@ -13,6 +13,9 @@ public static class HotChocolateAzFuncIsolatedProcessHostBuilderExtensions
     /// <param name="hostBuilder">
     /// The <see cref="IFunctionsHostBuilder"/>.
     /// </param>
+    /// <param name="graphqlConfigureFunc">
+    /// The GraphQL Configuration function that will be invoked, for chained configuration, when the Host is built.
+    /// </param>
     /// <param name="maxAllowedRequestSize">
     /// The max allowed GraphQL request size.
     /// </param>
@@ -20,25 +23,30 @@ public static class HotChocolateAzFuncIsolatedProcessHostBuilderExtensions
     /// The API route that was used in the GraphQL Azure Function.
     /// </param>
     /// <returns>
-    /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
+    /// Returns the <see cref="IHostBuilder"/> so that host configuration can be chained.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// The <see cref="IServiceCollection"/> is <c>null</c>.
     /// </exception>
-    public static IRequestExecutorBuilder AddGraphQLFunctionIsolatedProcess(
+    public static IHostBuilder AddGraphQLFunction(
         this IHostBuilder hostBuilder,
-        int maxAllowedRequestSize = 20 * 1000 * 1000,
-        string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute)
+        Action<IRequestExecutorBuilder> graphqlConfigureFunc,
+        int maxAllowedRequestSize = GraphQLAzureFunctionsConstants.DefaultMaxRequests,
+        string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute
+    )
     {
         if (hostBuilder is null)
             throw new ArgumentNullException(nameof(hostBuilder));
 
-        IRequestExecutorBuilder executorBuilder = null!;
+        if (graphqlConfigureFunc is null)
+            throw new ArgumentNullException(nameof(graphqlConfigureFunc));
+
         hostBuilder.ConfigureServices(services =>
         {
-            executorBuilder = services.AddGraphQLFunction(maxAllowedRequestSize, apiRoute);
+            var executorBuilder = services.AddGraphQLFunction(maxAllowedRequestSize, apiRoute);
+            graphqlConfigureFunc(executorBuilder);
         });
 
-        return executorBuilder;
+        return hostBuilder;
     }
 }

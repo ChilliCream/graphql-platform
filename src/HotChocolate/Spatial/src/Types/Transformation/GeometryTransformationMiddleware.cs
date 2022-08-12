@@ -4,57 +4,56 @@ using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using NetTopologySuite.Geometries;
 
-namespace HotChocolate.Types.Spatial.Transformation
+namespace HotChocolate.Types.Spatial.Transformation;
+
+/// <summary>
+/// Transforms a Geometry to the SRID provided by the CRS argument of the field
+/// </summary>
+internal class GeometryTransformationMiddleware
 {
-    /// <summary>
-    /// Transforms a Geometry to the SRID provided by the CRS argument of the field
-    /// </summary>
-    internal class GeometryTransformationMiddleware
+    private readonly FieldDelegate _next;
+    private readonly IGeometryTransformerFactory _factory;
+    private readonly int _defaultSrid;
+
+    public GeometryTransformationMiddleware(
+        FieldDelegate next,
+        IGeometryTransformerFactory factory,
+        int defaultSrid)
     {
-        private readonly FieldDelegate _next;
-        private readonly IGeometryTransformerFactory _factory;
-        private readonly int _defaultSrid;
+        _next = next ?? throw new ArgumentNullException(nameof(next));
+        _factory = factory ?? throw new ArgumentNullException(nameof(factory));
+        _defaultSrid = defaultSrid;
+    }
 
-        public GeometryTransformationMiddleware(
-            FieldDelegate next,
-            IGeometryTransformerFactory factory,
-            int defaultSrid)
+    public async Task InvokeAsync(IMiddlewareContext context)
+    {
+        await _next(context).ConfigureAwait(false);
+
+        var targetCrs = context.ArgumentValue<int?>(WellKnownFields.CrsFieldName);
+        if (targetCrs.HasValue)
         {
-            _next = next ?? throw new ArgumentNullException(nameof(next));
-            _factory = factory ?? throw new ArgumentNullException(nameof(factory));
-            _defaultSrid = defaultSrid;
+            TransformInPlace(context.Result, targetCrs.Value);
         }
+    }
 
-        public async Task InvokeAsync(IMiddlewareContext context)
+    private void TransformInPlace(
+        object? runtimeValue,
+        int toSrid)
+    {
+        if (runtimeValue is Geometry g)
         {
-            await _next(context).ConfigureAwait(false);
-
-            var targetCrs = context.ArgumentValue<int?>(WellKnownFields.CrsFieldName);
-            if (targetCrs.HasValue)
+            if (g.SRID != toSrid)
             {
-                TransformInPlace(context.Result, targetCrs.Value);
+                var transformer =
+                    _factory.Create(g.SRID is -1 or 0 ? _defaultSrid : g.SRID, toSrid);
+                transformer.TransformInPlace(g, toSrid);
             }
         }
-
-        private void TransformInPlace(
-            object? runtimeValue,
-            int toSrid)
+        else if (runtimeValue is IList list)
         {
-            if (runtimeValue is Geometry g)
+            for (var i = 0; i < list.Count; i++)
             {
-                if (g.SRID != toSrid)
-                {
-                    IGeometryTransformer transformer =
-                        _factory.Create(g.SRID is -1 or 0 ? _defaultSrid : g.SRID, toSrid);
-                    transformer.TransformInPlace(g, toSrid);
-                }
-            }
-            else if (runtimeValue is IList list)
-            {
-                for (var i = 0; i < list.Count; i++)
-                {
-                    TransformInPlace(list[i], toSrid);
-                }
+                TransformInPlace(list[i], toSrid);
             }
         }
     }

@@ -1,24 +1,21 @@
-using System;
+using CookieCrumble;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data.Filters.Expressions;
 
-public class QueryableFilterVisitorEnumTests
-    : FilterVisitorTestBase
+public class QueryableFilterVisitorEnumTests : FilterVisitorTestBase
 {
     [Fact]
     public void Create_EnumEqual_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ barEnum: { eq: BAR }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { BarEnum = FooEnum.BAR };
@@ -32,12 +29,12 @@ public class QueryableFilterVisitorEnumTests
     public void Create_EnumNotEqual_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ barEnum: { neq: BAR }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
 
         // assert
@@ -52,12 +49,12 @@ public class QueryableFilterVisitorEnumTests
     public void Create_EnumIn_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ barEnum: { in: [BAZ, QUX] }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { BarEnum = FooEnum.BAZ };
@@ -71,12 +68,12 @@ public class QueryableFilterVisitorEnumTests
     public void Create_EnumNotIn_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ barEnum: { nin: [BAZ, QUX] }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { BarEnum = FooEnum.BAR };
@@ -90,12 +87,12 @@ public class QueryableFilterVisitorEnumTests
     public void Create_NullableEnumEqual_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ barEnum: { eq: BAR }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
+        var tester = CreateProviderTester(new FooNullableFilterInput());
 
         // act
-        Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
+        var func = tester.Build<FooNullable>(value);
 
         // assert
         var a = new FooNullable { BarEnum = FooEnum.BAR };
@@ -113,12 +110,12 @@ public class QueryableFilterVisitorEnumTests
     {
         // arrange
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ barEnum: { neq: BAR }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
+        var tester = CreateProviderTester(new FooNullableFilterInput());
 
         // act
-        Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
+        var func = tester.Build<FooNullable>(value);
 
         // assert
         var a = new FooNullable { BarEnum = FooEnum.BAZ };
@@ -135,12 +132,12 @@ public class QueryableFilterVisitorEnumTests
     public void Create_NullableEnumIn_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ barEnum: { in: [BAZ, QUX] }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
+        var tester = CreateProviderTester(new FooNullableFilterInput());
 
         // act
-        Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
+        var func = tester.Build<FooNullable>(value);
 
         // assert
         var a = new FooNullable { BarEnum = FooEnum.BAZ };
@@ -157,12 +154,12 @@ public class QueryableFilterVisitorEnumTests
     public void Create_NullableEnumNotIn_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ barEnum: { nin: [BAZ, QUX] }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
+        var tester = CreateProviderTester(new FooNullableFilterInput());
 
         // act
-        Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
+        var func = tester.Build<FooNullable>(value);
 
         // assert
         var a = new FooNullable { BarEnum = FooEnum.BAR };
@@ -179,12 +176,12 @@ public class QueryableFilterVisitorEnumTests
     public void Create_NonNullOnNullableTypes_Attributes()
     {
         // arrange
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ nonNullOnNullableTypes: { eq: THIRD }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FilterInputType<AttributeTest>());
+        var tester = CreateProviderTester(new FilterInputType<AttributeTest>());
 
         // act
-        Func<AttributeTest, bool>? func = tester.Build<AttributeTest>(value);
+        var func = tester.Build<AttributeTest>(value);
 
         // assert
         var a = new AttributeTest { NonNullOnNullableTypes = TestEnum.Third };
@@ -201,12 +198,12 @@ public class QueryableFilterVisitorEnumTests
     public void Create_NonNullOnNullable_Attributes()
     {
         // arrange
-        IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ nonNullOnNullable: { eq: THIRD }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FilterInputType<AttributeTest>());
+        var tester = CreateProviderTester(new FilterInputType<AttributeTest>());
 
         // act
-        Func<AttributeTest, bool>? func = tester.Build<AttributeTest>(value);
+        var func = tester.Build<AttributeTest>(value);
 
         // assert
         var a = new AttributeTest { NonNullOnNullable = TestEnum.Third };
@@ -224,10 +221,10 @@ public class QueryableFilterVisitorEnumTests
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(new FilterInputType<EntityWithTypeAttribute>());
+        var schema = CreateSchema(new FilterInputType<EntityWithTypeAttribute>());
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     public class Foo
@@ -248,13 +245,11 @@ public class QueryableFilterVisitorEnumTests
         QUX
     }
 
-    public class FooFilterInput
-        : FilterInputType<Foo>
+    public class FooFilterInput : FilterInputType<Foo>
     {
     }
 
-    public class FooNullableFilterInput
-        : FilterInputType<FooNullable>
+    public class FooNullableFilterInput : FilterInputType<FooNullable>
     {
     }
 

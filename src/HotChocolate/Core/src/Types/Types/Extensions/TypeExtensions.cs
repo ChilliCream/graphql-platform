@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
 
 #nullable enable
@@ -235,7 +236,7 @@ public static class TypeExtensions
         return type.Kind != TypeKind.NonNull ? type : ((NonNullType)type).Type;
     }
 
-    public static NameString TypeName(this IType type)
+    public static string TypeName(this IType type)
     {
         if (type is null)
         {
@@ -259,7 +260,7 @@ public static class TypeExtensions
 
         if (type.Kind == TypeKind.NonNull)
         {
-            IType innerType = ((NonNullType)type).Type;
+            var innerType = ((NonNullType)type).Type;
             if (innerType.Kind == TypeKind.List)
             {
                 return (ListType)innerType;
@@ -276,7 +277,7 @@ public static class TypeExtensions
             throw new ArgumentNullException(nameof(type));
         }
 
-        IType current = type;
+        var current = type;
 
         if (IsNamed(current))
         {
@@ -327,7 +328,7 @@ public static class TypeExtensions
         {
             NonNullType xnn when y is NonNullType ynn => xnn.Type.IsEqualTo(ynn.Type),
             ListType xl when y is ListType yl => xl.ElementType.IsEqualTo(yl.ElementType),
-            INamedType xnt when y is INamedType ynt => xnt.Name.Equals(ynt.Name),
+            INamedType xnt when y is INamedType ynt => xnt.Name.EqualsOrdinal(ynt.Name),
             _ => false
         };
     }
@@ -341,7 +342,7 @@ public static class TypeExtensions
 
         if (type.IsListType())
         {
-            Type elementType = ToRuntimeType(type.ElementType());
+            var elementType = ToRuntimeType(type.ElementType());
             return typeof(List<>).MakeGenericType(elementType);
         }
 
@@ -540,7 +541,7 @@ public static class TypeExtensions
                 // we optimized this case to not allocate memory in the case that the type is
                 // already non-null and the inner type is either a named type or if the
                 // inner nullability modifier is null.
-                IType innerType = type.InnerType();
+                var innerType = type.InnerType();
                 return nullability.Element is null || innerType.IsNamedType()
                     // if the type is not a list type or if the nullability has no inner part
                     // we do not recursively rewrite.

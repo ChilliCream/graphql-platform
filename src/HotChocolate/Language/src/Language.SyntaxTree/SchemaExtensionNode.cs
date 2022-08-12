@@ -3,10 +3,23 @@ using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
-public sealed class SchemaExtensionNode
-    : SchemaDefinitionNodeBase
-    , ITypeSystemExtensionNode
+/// <summary>
+/// Represents the schema definition extension syntax.
+/// </summary>
+public sealed class SchemaExtensionNode : SchemaDefinitionNodeBase, ITypeSystemExtensionNode
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="SchemaExtensionNode"/>
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="directives">
+    /// The applied directives.
+    /// </param>
+    /// <param name="operationTypes">
+    /// The operation types.
+    /// </param>
     public SchemaExtensionNode(
         Location? location,
         IReadOnlyList<DirectiveNode> directives,
@@ -15,16 +28,18 @@ public sealed class SchemaExtensionNode
     {
     }
 
-    public override SyntaxKind Kind { get; } = SyntaxKind.SchemaExtension;
+    /// <inheritdoc cref="ISyntaxNode.Kind" />
+    public override SyntaxKind Kind => SyntaxKind.SchemaExtension;
 
+    /// <inheritdoc cref="ISyntaxNode.GetNodes()" />
     public IEnumerable<ISyntaxNode> GetNodes()
     {
-        foreach (DirectiveNode directive in Directives)
+        foreach (var directive in Directives)
         {
             yield return directive;
         }
 
-        foreach (OperationTypeDefinitionNode operationType in OperationTypes)
+        foreach (var operationType in OperationTypes)
         {
             yield return operationType;
         }
@@ -51,23 +66,47 @@ public sealed class SchemaExtensionNode
     /// </returns>
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Location" /> with <paramref name="location" />.
+    /// </summary>
+    /// <param name="location">
+    /// The location that shall be used to replace the current location.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="location" />.
+    /// </returns>
     public SchemaExtensionNode WithLocation(Location? location)
-    {
-        return new SchemaExtensionNode(
-            Location, Directives, OperationTypes);
-    }
+        => new(location, Directives, OperationTypes);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="NamedSyntaxNode.Directives" /> with <paramref name="directives" />.
+    /// </summary>
+    /// <param name="directives">
+    /// The directives that shall be used to replace the current
+    /// <see cref="NamedSyntaxNode.Directives" />.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="directives" />.
+    /// </returns>
     public SchemaExtensionNode WithDirectives(
         IReadOnlyList<DirectiveNode> directives)
-    {
-        return new SchemaExtensionNode(
-            Location, directives, OperationTypes);
-    }
+        => new(Location, directives, OperationTypes);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="SchemaDefinitionNodeBase.OperationTypes" /> with
+    /// <paramref name="operationTypes" />.
+    /// </summary>
+    /// <param name="operationTypes">
+    /// The operationTypes that shall be used to replace the current
+    /// <see cref="SchemaDefinitionNodeBase.OperationTypes" />.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="operationTypes" />.
+    /// </returns>
     public SchemaExtensionNode WithOperationTypes(
         IReadOnlyList<OperationTypeDefinitionNode> operationTypes)
-    {
-        return new SchemaExtensionNode(
-            Location, Directives, operationTypes);
-    }
+        => new(Location, Directives, operationTypes);
 }

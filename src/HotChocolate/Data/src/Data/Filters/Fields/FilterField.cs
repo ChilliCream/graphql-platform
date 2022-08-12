@@ -11,10 +11,16 @@ public class FilterField
     , IFilterField
 {
     internal FilterField(FilterFieldDefinition definition)
-        : base(definition, default)
+        : this(definition, default)
+    {
+    }
+
+    internal FilterField(FilterFieldDefinition definition, int index)
+        : base(definition, index)
     {
         Member = definition.Member;
         Handler = definition.Handler!;
+        Metadata = definition.Metadata;
     }
 
     public new FilterInputType DeclaringType => (FilterInputType)base.DeclaringType;
@@ -27,6 +33,8 @@ public class FilterField
 
     public IFilterFieldHandler Handler { get; }
 
+    public IFilterMetadata? Metadata { get; }
+
     protected override void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
@@ -37,6 +45,10 @@ public class FilterField
         if (Member?.DeclaringType is not null)
         {
             RuntimeType = context.TypeInspector.GetReturnType(Member, ignoreAttributes: true);
+        }
+        else if (base.RuntimeType is { } runtimeType)
+        {
+            RuntimeType = context.TypeInspector.GetType(runtimeType);
         }
     }
 }

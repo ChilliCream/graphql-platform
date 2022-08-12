@@ -23,7 +23,7 @@ public ref partial struct Utf8GraphQLRequestParser
         var length = checked(sourceText.Length * 4);
         byte[]? source = null;
 
-        Span<byte> sourceSpan = length <= GraphQLConstants.StackallocThreshold
+        var sourceSpan = length <= GraphQLConstants.StackallocThreshold
             ? stackalloc byte[length]
             : source = ArrayPool<byte>.Shared.Rent(length);
 
@@ -64,7 +64,7 @@ public ref partial struct Utf8GraphQLRequestParser
         var length = checked(sourceText.Length * 4);
         byte[]? source = null;
 
-        Span<byte> sourceSpan = length <= GraphQLConstants.StackallocThreshold
+        var sourceSpan = length <= GraphQLConstants.StackallocThreshold
             ? stackalloc byte[length]
             : source = ArrayPool<byte>.Shared.Rent(length);
 
@@ -108,7 +108,7 @@ public ref partial struct Utf8GraphQLRequestParser
         var length = checked(sourceText.Length * 4);
         byte[]? source = null;
 
-        Span<byte> sourceSpan = length <= GraphQLConstants.StackallocThreshold
+        var sourceSpan = length <= GraphQLConstants.StackallocThreshold
             ? stackalloc byte[length]
             : source = ArrayPool<byte>.Shared.Rent(length);
 
@@ -152,7 +152,7 @@ public ref partial struct Utf8GraphQLRequestParser
         var length = checked(sourceText.Length * 4);
         byte[]? source = null;
 
-        Span<byte> sourceSpan = length <= GraphQLConstants.StackallocThreshold
+        var sourceSpan = length <= GraphQLConstants.StackallocThreshold
             ? stackalloc byte[length]
             : source = ArrayPool<byte>.Shared.Rent(length);
 
@@ -180,5 +180,49 @@ public ref partial struct Utf8GraphQLRequestParser
         var parser = new Utf8GraphQLRequestParser(sourceText, options);
         parser._reader.Expect(TokenKind.StartOfFile);
         return parser.ParseResponse();
+    }
+
+    public static unsafe IReadOnlyList<object?>? ParseBatchResponse(
+        string sourceText,
+        ParserOptions? options = null)
+    {
+        if (string.IsNullOrEmpty(sourceText))
+        {
+            throw new ArgumentException(SourceText_Empty, nameof(sourceText));
+        }
+
+        options ??= ParserOptions.Default;
+
+        var length = checked(sourceText.Length * 4);
+        byte[]? source = null;
+
+        var sourceSpan = length <= GraphQLConstants.StackallocThreshold
+            ? stackalloc byte[length]
+            : source = ArrayPool<byte>.Shared.Rent(length);
+
+        try
+        {
+            Utf8GraphQLParser.ConvertToBytes(sourceText, ref sourceSpan);
+            return ParseBatchResponse(sourceSpan, options);
+        }
+        finally
+        {
+            if (source != null)
+            {
+                sourceSpan.Clear();
+                ArrayPool<byte>.Shared.Return(source);
+            }
+        }
+    }
+
+    public static IReadOnlyList<object?>? ParseBatchResponse(
+        ReadOnlySpan<byte> sourceText,
+        ParserOptions? options = null)
+    {
+        options ??= ParserOptions.Default;
+
+        var parser = new Utf8GraphQLRequestParser(sourceText, options);
+        parser._reader.Expect(TokenKind.StartOfFile);
+        return parser.ParseBatchResponse();
     }
 }

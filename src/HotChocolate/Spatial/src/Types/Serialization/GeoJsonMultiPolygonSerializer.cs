@@ -8,122 +8,118 @@ using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.ThrowHelper;
 using static HotChocolate.Types.Spatial.WellKnownFields;
 
-namespace HotChocolate.Types.Spatial.Serialization
+namespace HotChocolate.Types.Spatial.Serialization;
+
+internal class GeoJsonMultiPolygonSerializer
+    : GeoJsonInputObjectSerializer<MultiPolygon>
 {
-    internal class GeoJsonMultiPolygonSerializer
-        : GeoJsonInputObjectSerializer<MultiPolygon>
+    private GeoJsonMultiPolygonSerializer()
+        : base(GeoJsonGeometryType.MultiPolygon)
     {
-        private GeoJsonMultiPolygonSerializer()
-            : base(GeoJsonGeometryType.MultiPolygon)
+    }
+
+    public override MultiPolygon CreateGeometry(
+        IType type,
+        object? coordinates,
+        int? crs)
+    {
+        if (type is null)
         {
+            throw new ArgumentNullException(nameof(type));
         }
 
-        public override MultiPolygon CreateGeometry(
-            IType type,
-            object? coordinates,
-            int? crs)
+        Polygon[]? geometries;
+
+        if (coordinates is IList { Count: > 0 } list)
         {
-            if (type is null)
+            if (list.Count != 0)
             {
-                throw new ArgumentNullException(nameof(type));
-            }
+                geometries = new Polygon[list.Count];
 
-            Polygon[]? geometries;
-
-            if (coordinates is IList { Count: > 0 } list)
-            {
-                if (list.Count != 0)
+                for (var index = 0; index < list.Count; index++)
                 {
-                    geometries = new Polygon[list.Count];
-
-                    for (var index = 0; index < list.Count; index++)
+                    if (list[index] is IList nestedCoords)
                     {
-                        if (list[index] is IList nestedCoords)
-                        {
-                            geometries[index] =
-                                GeoJsonPolygonSerializer.Default
-                                    .CreateGeometry(type, nestedCoords, crs);
-                        }
-                        else
-                        {
-                            throw Serializer_Parse_CoordinatesIsInvalid(type);
-                        }
+                        geometries[index] =
+                            GeoJsonPolygonSerializer.Default
+                                .CreateGeometry(type, nestedCoords, crs);
                     }
-
-                    goto Success;
+                    else
+                    {
+                        throw Serializer_Parse_CoordinatesIsInvalid(type);
+                    }
                 }
+
+                goto Success;
             }
-
-            goto Error;
-
-            Success:
-            if (crs is not null)
-            {
-                GeometryFactory factory =
-                    NtsGeometryServices.Instance.CreateGeometryFactory(crs.Value);
-
-                return factory.CreateMultiPolygon(geometries);
-            }
-
-            return new MultiPolygon(geometries);
-
-            Error:
-            throw Serializer_Parse_CoordinatesIsInvalid(type);
         }
 
-        public override object CreateInstance(IType type, object?[] fieldValues)
+        goto Error;
+
+Success:
+        var factory = crs is null
+            ? NtsGeometryServices.Instance.CreateGeometryFactory()
+            : NtsGeometryServices.Instance.CreateGeometryFactory(crs.Value);
+
+        return factory.CreateMultiPolygon(geometries);
+
+Error:
+        throw Serializer_Parse_CoordinatesIsInvalid(type);
+    }
+
+    public override object CreateInstance(IType type, object?[] fieldValues)
+    {
+        if (type is null)
         {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            if (fieldValues[0] is not GeoJsonGeometryType.MultiPolygon)
-            {
-                throw Geometry_Parse_InvalidType(type);
-            }
-
-            return CreateGeometry(type, fieldValues[1], (int?)fieldValues[2]);
+            throw new ArgumentNullException(nameof(type));
         }
 
-        public override void GetFieldData(IType type, object runtimeValue, object?[] fieldValues)
+        if (fieldValues[0] is not GeoJsonGeometryType.MultiPolygon)
         {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            if (runtimeValue is not MultiPolygon geometry ||
-                !TrySerializeCoordinates(type, runtimeValue, out var serialized))
-            {
-                throw Geometry_Parse_InvalidGeometryType(type, runtimeValue.GetType());
-            }
-
-            fieldValues[0] = GeoJsonGeometryType.MultiPolygon;
-            fieldValues[1] = serialized;
-            fieldValues[2] = geometry.SRID;
+            throw Geometry_Parse_InvalidType(type);
         }
 
-        public override IValueNode ParseValue(IType type, object? runtimeValue)
+        return CreateGeometry(type, fieldValues[1], (int?)fieldValues[2]);
+    }
+
+    public override void GetFieldData(IType type, object runtimeValue, object?[] fieldValues)
+    {
+        if (type is null)
         {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
+            throw new ArgumentNullException(nameof(type));
+        }
 
-            if (runtimeValue is null)
-            {
-                return NullValueNode.Default;
-            }
+        if (runtimeValue is not MultiPolygon geometry ||
+            !TrySerializeCoordinates(type, runtimeValue, out var serialized))
+        {
+            throw Geometry_Parse_InvalidGeometryType(type, runtimeValue.GetType());
+        }
 
-            if (runtimeValue is IReadOnlyDictionary<string, object> dict)
-            {
-                return ParseResult(type, dict);
-            }
+        fieldValues[0] = GeoJsonGeometryType.MultiPolygon;
+        fieldValues[1] = serialized;
+        fieldValues[2] = geometry.SRID;
+    }
 
-            if (runtimeValue is MultiPolygon geometry)
-            {
-                var list = new List<ObjectFieldNode>
+    public override IValueNode ParseValue(IType type, object? runtimeValue)
+    {
+        if (type is null)
+        {
+            throw new ArgumentNullException(nameof(type));
+        }
+
+        if (runtimeValue is null)
+        {
+            return NullValueNode.Default;
+        }
+
+        if (runtimeValue is IReadOnlyDictionary<string, object> dict)
+        {
+            return ParseResult(type, dict);
+        }
+
+        if (runtimeValue is MultiPolygon geometry)
+        {
+            var list = new List<ObjectFieldNode>
                 {
                     new ObjectFieldNode(
                         TypeFieldName,
@@ -138,12 +134,11 @@ namespace HotChocolate.Types.Spatial.Serialization
                         new IntValueNode(geometry.SRID))
                 };
 
-                return new ObjectValueNode(list);
-            }
-
-            throw Serializer_CouldNotParseValue(type);
+            return new ObjectValueNode(list);
         }
 
-        public static readonly GeoJsonMultiPolygonSerializer Default = new();
+        throw Serializer_CouldNotParseValue(type);
     }
+
+    public static readonly GeoJsonMultiPolygonSerializer Default = new();
 }

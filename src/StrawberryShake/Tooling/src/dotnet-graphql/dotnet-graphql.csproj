@@ -4,8 +4,10 @@
     <OutputType>Exe</OutputType>
     <IsPackable>true</IsPackable>
     <PackAsTool>true</PackAsTool>
+    <ImplicitUsings>enable</ImplicitUsings>
     <NoWarn>$(NoWarn);CA1062</NoWarn>
     <LangVersion>preview</LangVersion>
+    <UseAppHost>false</UseAppHost>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -25,8 +27,10 @@
     <ProjectReference Include="..\..\..\..\HotChocolate\Utilities\src\Utilities.Introspection\HotChocolate.Utilities.Introspection.csproj" />
   </ItemGroup>
 
-  <PropertyGroup>
-    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
-  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\CodeGeneration\src\CodeGeneration.CSharp.Client\*.cs" />
+    <Compile Include="..\..\..\SourceGenerator\src\CodeGeneration.CSharp.Analyzers\CSharpGeneratorClient.cs" />
+    <None Include="$(MSBuildThisFileDirectory)..\.server\**\*.*" Pack="true" PackagePath="build/gen" Visible="false" />
+  </ItemGroup>
 
 </Project>

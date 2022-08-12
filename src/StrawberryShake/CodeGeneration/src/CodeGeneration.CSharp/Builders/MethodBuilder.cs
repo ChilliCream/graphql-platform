@@ -1,256 +1,245 @@
 using System;
 using System.Collections.Generic;
 
-namespace StrawberryShake.CodeGeneration.CSharp.Builders
+namespace StrawberryShake.CodeGeneration.CSharp.Builders;
+
+public class MethodBuilder : ICodeContainer<MethodBuilder>
 {
-    public class MethodBuilder : ICodeContainer<MethodBuilder>
+    private AccessModifier _accessModifier = AccessModifier.Private;
+    private Inheritance _inheritance = Inheritance.None;
+    private bool _isStatic;
+    private bool _isOnlyDeclaration;
+    private bool _isOverride;
+    private bool _is;
+    private TypeReferenceBuilder _returnType = TypeReferenceBuilder.New().SetName("void");
+    private string? _name;
+    private readonly List<ParameterBuilder> _parameters = new();
+    private readonly List<ICode> _lines = new();
+    private bool _isAsync;
+    private string? _interface;
+
+    public static MethodBuilder New() => new();
+
+    public MethodBuilder SetAccessModifier(AccessModifier value)
     {
-        private AccessModifier _accessModifier = AccessModifier.Private;
-        private Inheritance _inheritance = Inheritance.None;
-        private bool _isStatic;
-        private bool _isOnlyDeclaration;
-        private bool _isOverride;
-        private bool _is;
-        private TypeReferenceBuilder _returnType = TypeReferenceBuilder.New().SetName("void");
-        private string? _name;
-        private readonly List<ParameterBuilder> _parameters = new();
-        private readonly List<ICode> _lines = new();
-        private bool _isAsync;
-        private string? _interface;
+        _accessModifier = value;
+        return this;
+    }
 
-        public static MethodBuilder New() => new();
+    public MethodBuilder SetStatic()
+    {
+        _isStatic = true;
+        return this;
+    }
 
-        public MethodBuilder SetAccessModifier(AccessModifier value)
+    public MethodBuilder SetAsync()
+    {
+        _isAsync = true;
+        return this;
+    }
+
+    public MethodBuilder SetInterface(string value)
+    {
+        _interface = value;
+        return this;
+    }
+
+    public MethodBuilder SetOverride()
+    {
+        _isOverride = true;
+        return this;
+    }
+
+    public MethodBuilder Set()
+    {
+        _is = true;
+        return this;
+    }
+
+    public MethodBuilder SetInheritance(Inheritance value)
+    {
+        _inheritance = value;
+        return this;
+    }
+
+    public MethodBuilder SetOnlyDeclaration(bool value = true)
+    {
+        _isOnlyDeclaration = value;
+        return this;
+    }
+
+    public MethodBuilder SetReturnType(string value, bool condition = true)
+    {
+        if (condition)
         {
-            _accessModifier = value;
-            return this;
+            _returnType = TypeReferenceBuilder.New().SetName(value);
         }
 
-        public MethodBuilder SetStatic()
+        return this;
+    }
+
+    public MethodBuilder SetReturnType(TypeReferenceBuilder value, bool condition = true)
+    {
+        if (condition)
         {
-            _isStatic = true;
-            return this;
+            _returnType = value;
         }
 
-        public MethodBuilder SetAsync()
+        return this;
+    }
+
+    public MethodBuilder SetName(string value)
+    {
+        _name = value;
+        return this;
+    }
+
+    public MethodBuilder AddParameter(ParameterBuilder value)
+    {
+        _parameters.Add(value);
+        return this;
+    }
+
+    public MethodBuilder AddCode(string code, bool addIf = true)
+    {
+        if (addIf)
         {
-            _isAsync = true;
-            return this;
+            _lines.Add(CodeLineBuilder.New().SetLine(code));
         }
 
-        public MethodBuilder SetInterface(string value)
+        return this;
+    }
+
+    public MethodBuilder AddCode(ICode code, bool addIf = true)
+    {
+        if (addIf)
         {
-            _interface = value;
-            return this;
+            _lines.Add(code);
         }
 
-        public MethodBuilder SetOverride()
+        return this;
+    }
+
+    public MethodBuilder AddEmptyLine()
+    {
+        _lines.Add(CodeLineBuilder.New());
+        return this;
+    }
+
+    public MethodBuilder AddInlineCode(string code)
+    {
+        _lines.Add(CodeInlineBuilder.New().SetText(code));
+        return this;
+    }
+
+    public void Build(CodeWriter writer)
+    {
+        if (writer is null)
         {
-            _isOverride = true;
-            return this;
+            throw new ArgumentNullException(nameof(writer));
         }
 
-        public MethodBuilder Set()
-        {
-            _is = true;
-            return this;
-        }
+        var modifier = _accessModifier.ToString().ToLowerInvariant();
 
-        public MethodBuilder SetInheritance(Inheritance value)
-        {
-            _inheritance = value;
-            return this;
-        }
+        writer.WriteIndent();
 
-        public MethodBuilder SetOnlyDeclaration(bool value = true)
+        if (_interface is null && !_isOnlyDeclaration)
         {
-            _isOnlyDeclaration = value;
-            return this;
-        }
+            writer.Write($"{modifier} ");
 
-        public MethodBuilder SetReturnType(string value, bool condition = true)
-        {
-            if (condition)
+            if (_isStatic)
             {
-                _returnType = TypeReferenceBuilder.New().SetName(value);
+                writer.Write("static ");
             }
 
-            return this;
-        }
-
-        public MethodBuilder SetReturnType(TypeReferenceBuilder value, bool condition = true)
-        {
-            if (condition)
+            if (_isOverride)
             {
-                _returnType = value;
+                writer.Write("override ");
             }
 
-            return this;
-        }
-
-        public MethodBuilder SetName(string value)
-        {
-            _name = value;
-            return this;
-        }
-
-        public MethodBuilder AddParameter(ParameterBuilder value)
-        {
-            _parameters.Add(value);
-            return this;
-        }
-
-        public MethodBuilder AddCode(string code, bool addIf = true)
-        {
-            if (addIf)
+            if (_isAsync)
             {
-                _lines.Add(CodeLineBuilder.New().SetLine(code));
+                writer.Write("async ");
             }
 
-            return this;
-        }
-
-        public MethodBuilder AddCode(ICode code, bool addIf = true)
-        {
-            if (addIf)
+            if (_is)
             {
-                _lines.Add(code);
+                writer.Write(" ");
             }
 
-            return this;
+            writer.Write($"{CreateInheritance()}");
         }
 
-        public MethodBuilder AddEmptyLine()
+        _returnType.Build(writer);
+
+        if (_interface is not null)
         {
-            _lines.Add(CodeLineBuilder.New());
-            return this;
+            writer.Write(_interface);
+            writer.Write(".");
         }
 
-        public MethodBuilder AddInlineCode(string code)
-        {
-            _lines.Add(CodeInlineBuilder.New().SetText(code));
-            return this;
-        }
+        writer.Write($"{_name}(");
 
-        public void Build(CodeWriter writer)
+        if (_parameters.Count == 0)
         {
-            if (writer is null)
+            writer.Write(")");
+        }
+        else if (_parameters.Count == 1)
+        {
+            _parameters[0].Build(writer);
+            writer.Write(")");
+        }
+        else
+        {
+            writer.WriteLine();
+
+            using (writer.IncreaseIndent())
             {
-                throw new ArgumentNullException(nameof(writer));
-            }
-
-            string modifier = _accessModifier.ToString().ToLowerInvariant();
-
-            writer.WriteIndent();
-
-
-            if (_interface is null && !_isOnlyDeclaration)
-            {
-                writer.Write($"{modifier} ");
-
-                if (_isStatic)
+                for (var i = 0; i < _parameters.Count; i++)
                 {
-                    writer.Write("static ");
-                }
-
-                if (_isOverride)
-                {
-                    writer.Write("override ");
-                }
-
-                if (_isAsync)
-                {
-                    writer.Write("async ");
-                }
-
-                if (_is)
-                {
-                    writer.Write(" ");
-                }
-
-                writer.Write($"{CreateInheritance()}");
-            }
-
-            _returnType.Build(writer);
-
-            if (_interface is not null)
-            {
-                writer.Write(_interface);
-                writer.Write(".");
-            }
-
-            writer.Write($"{_name}(");
-
-            if (_parameters.Count == 0)
-            {
-                writer.Write(")");
-            }
-            else if (_parameters.Count == 1)
-            {
-                _parameters[0].Build(writer);
-                writer.Write(")");
-            }
-            else
-            {
-                writer.WriteLine();
-
-                using (writer.IncreaseIndent())
-                {
-                    for (var i = 0; i < _parameters.Count; i++)
+                    writer.WriteIndent();
+                    _parameters[i].Build(writer);
+                    if (i == _parameters.Count - 1)
                     {
-                        writer.WriteIndent();
-                        _parameters[i].Build(writer);
-                        if (i == _parameters.Count - 1)
-                        {
-                            writer.Write(")");
-                        }
-                        else
-                        {
-                            writer.Write(",");
-                            writer.WriteLine();
-                        }
+                        writer.Write(")");
+                    }
+                    else
+                    {
+                        writer.Write(",");
+                        writer.WriteLine();
                     }
                 }
             }
-
-            if (_isOnlyDeclaration)
-            {
-                writer.Write(";");
-                writer.WriteLine();
-            }
-            else
-            {
-                writer.WriteLine();
-                writer.WriteIndentedLine("{");
-
-                using (writer.IncreaseIndent())
-                {
-                    foreach (ICode code in _lines)
-                    {
-                        code.Build(writer);
-                    }
-                }
-
-                writer.WriteIndentedLine("}");
-            }
         }
 
-        private string CreateInheritance()
+        if (_isOnlyDeclaration)
         {
-            switch (_inheritance)
+            writer.Write(";");
+            writer.WriteLine();
+        }
+        else
+        {
+            writer.WriteLine();
+            writer.WriteIndentedLine("{");
+
+            using (writer.IncreaseIndent())
             {
-                case Inheritance.Override:
-                    return "override ";
-
-                case Inheritance.Sealed:
-                    return "sealed override ";
-
-                case Inheritance.Virtual:
-                    return "virtual ";
-
-                default:
-                    return string.Empty;
+                foreach (var code in _lines)
+                {
+                    code.Build(writer);
+                }
             }
+
+            writer.WriteIndentedLine("}");
         }
     }
+
+    private string CreateInheritance()
+        => _inheritance switch
+        {
+            Inheritance.Override => "override ",
+            Inheritance.Sealed => "sealed override ",
+            Inheritance.Virtual => "virtual ",
+            _ => string.Empty,
+        };
 }

@@ -1,1 +1,1 @@
-﻿MATCH (b:Bike), (u:User), (o:U) 
+MATCH (b:Bike), (u:User), (o:U) 

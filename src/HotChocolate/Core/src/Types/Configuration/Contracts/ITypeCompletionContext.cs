@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Resolvers;
@@ -93,6 +92,4 @@ public interface ITypeCompletionContext : ITypeSystemObjectContext
     bool TryGetDirectiveType(
         IDirectiveReference directiveRef,
         [NotNullWhen(true)] out DirectiveType? directiveType);
-
-    Func<ISchema> GetSchemaResolver();
 }

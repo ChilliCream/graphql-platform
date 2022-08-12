@@ -2,18 +2,20 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Sorting.Expressions;
 
 [return: NotNullIfNotNull("input")]
 public delegate object? ApplySorting(IResolverContext context, object? input);
 
-public class QueryableSortProvider
-    : SortProvider<QueryableSortContext>
+public class QueryableSortProvider : SortProvider<QueryableSortContext>
 {
     public const string ContextArgumentNameKey = "SortArgumentName";
     public const string ContextVisitSortArgumentKey = nameof(VisitSortArgument);
@@ -33,9 +35,9 @@ public class QueryableSortProvider
     protected virtual SortVisitor<QueryableSortContext, QueryableSortOperation> Visitor { get; }
         = new();
 
-    public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
+    public override FieldMiddleware CreateExecutor<TEntityType>(string argumentName)
     {
-        ApplySorting applySorting = CreateApplicatorAsync<TEntityType>(argumentName);
+        var applySorting = CreateApplicatorAsync<TEntityType>(argumentName.EnsureGraphQLName());
 
         return next => context => ExecuteAsync(next, context);
 
@@ -53,13 +55,13 @@ public class QueryableSortProvider
         }
     }
 
-    private static ApplySorting CreateApplicatorAsync<TEntityType>(NameString argumentName)
+    private static ApplySorting CreateApplicatorAsync<TEntityType>(string argumentName)
     {
         return (context, input) =>
         {
             // next we get the sort argument.
-            IInputField argument = context.Selection.Field.Arguments[argumentName];
-            IValueNode sort = context.ArgumentLiteral<IValueNode>(argumentName);
+            var argument = context.Selection.Field.Arguments[argumentName];
+            var sort = context.ArgumentLiteral<IValueNode>(argumentName);
 
             // if no sort is defined we can stop here and yield back control.
             var skipSorting =
@@ -88,7 +90,7 @@ public class QueryableSortProvider
                     input is not IQueryable ||
                     input is EnumerableQuery;
 
-                QueryableSortContext visitorContext = executor(
+                var visitorContext = executor(
                     sort,
                     sortInput,
                     inMemory);
@@ -97,7 +99,7 @@ public class QueryableSortProvider
                 if (visitorContext.Errors.Count > 0)
                 {
                     input = Array.Empty<TEntityType>();
-                    foreach (IError error in visitorContext.Errors)
+                    foreach (var error in visitorContext.Errors)
                     {
                         context.ReportError(error.WithPath(context.Path));
                     }
@@ -120,7 +122,7 @@ public class QueryableSortProvider
     }
 
     public override void ConfigureField(
-        NameString argumentName,
+        string argumentName,
         IObjectFieldDescriptor descriptor)
     {
         QueryableSortContext VisitSortArgumentExecutor(
@@ -138,10 +140,33 @@ public class QueryableSortProvider
             return visitorContext;
         }
 
-        ExtensionData contextData = descriptor.Extend().Definition.ContextData;
+        var contextData = descriptor.Extend().Definition.ContextData;
         var argumentKey = (VisitSortArgument)VisitSortArgumentExecutor;
         contextData[ContextVisitSortArgumentKey] = argumentKey;
         contextData[ContextArgumentNameKey] = argumentName;
+    }
+
+    public override ISortMetadata? CreateMetaData(
+        ITypeCompletionContext context,
+        ISortInputTypeDefinition typeDefinition,
+        ISortFieldDefinition fieldDefinition)
+    {
+        if (fieldDefinition.Expression is not null)
+        {
+            if (fieldDefinition.Expression is not LambdaExpression lambda ||
+                lambda.Parameters.Count != 1 ||
+                lambda.Parameters[0].Type != typeDefinition.EntityType)
+            {
+                throw ThrowHelper.QueryableSortProvider_ExpressionParameterInvalid(
+                    context.Type,
+                    typeDefinition,
+                    fieldDefinition);
+            }
+
+            return new ExpressionSortMetadata(fieldDefinition.Expression);
+        }
+
+        return null;
     }
 }
 

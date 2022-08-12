@@ -5,15 +5,13 @@ using HotChocolate.Execution;
 using Xunit;
 using System.Threading.Tasks;
 using Snapshooter.Xunit;
-using HotChocolate.Types.Relay;
 using Squadron;
 using System;
 
 namespace HotChocolate.Types.Sorting
 {
     [Obsolete]
-    public class MongoSortingTests
-        : IClassFixture<MongoResource>
+    public class MongoSortingTests : IClassFixture<MongoResource>
     {
         private readonly MongoResource _mongoResource;
 
@@ -28,10 +26,10 @@ namespace HotChocolate.Types.Sorting
         {
             // arrange
             IServiceProvider services = new ServiceCollection()
-                .AddSingleton<IMongoCollection<Model>>(sp =>
+                .AddSingleton(_ =>
                 {
-                    IMongoDatabase database = _mongoResource.CreateDatabase();
-                    IMongoCollection<Model> collection = database.GetCollection<Model>("col");
+                    var database = _mongoResource.CreateDatabase();
+                    var collection = database.GetCollection<Model>("col");
                     collection.InsertMany(new[]
                     {
                         new Model { Foo = "abc", Bar = 1, Baz = true },
@@ -44,20 +42,20 @@ namespace HotChocolate.Types.Sorting
                 .Services
                 .BuildServiceProvider();
 
-            IRequestExecutor executor =
+            var executor =
                 await services.GetRequiredService<IRequestExecutorResolver>()
                     .GetRequestExecutorAsync();
 
-            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+            var request = QueryRequestBuilder.New()
                 .SetQuery("{ items { foo } }")
                 .Create();
 
             // act
-            IExecutionResult result = await executor.ExecuteAsync(request);
+            var result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Null(result.Errors);
-            result.MatchSnapshot();
+            Assert.Null(result.ExpectQueryResult().Errors);
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -65,10 +63,10 @@ namespace HotChocolate.Types.Sorting
         {
             // arrange
             IServiceProvider services = new ServiceCollection()
-                .AddSingleton<IMongoCollection<Model>>(sp =>
+                .AddSingleton(_ =>
                 {
-                    IMongoDatabase database = _mongoResource.CreateDatabase();
-                    IMongoCollection<Model> collection = database.GetCollection<Model>("col");
+                    var database = _mongoResource.CreateDatabase();
+                    var collection = database.GetCollection<Model>("col");
                     collection.InsertMany(new[]
                     {
                         new Model { Foo = "abc", Bar = 1, Baz = true },
@@ -81,20 +79,20 @@ namespace HotChocolate.Types.Sorting
                 .Services
                 .BuildServiceProvider();
 
-            IRequestExecutor executor =
+            var executor =
                 await services.GetRequiredService<IRequestExecutorResolver>()
                     .GetRequestExecutorAsync();
 
-            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+            var request = QueryRequestBuilder.New()
                 .SetQuery("{ items(order_by: { foo: DESC }) { foo } }")
                 .Create();
 
             // act
-            IExecutionResult result = await executor.ExecuteAsync(request);
+            var result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Null(result.Errors);
-            result.MatchSnapshot();
+            Assert.Null(result.ExpectQueryResult().Errors);
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -102,10 +100,10 @@ namespace HotChocolate.Types.Sorting
         {
             // arrange
             IServiceProvider services = new ServiceCollection()
-                .AddSingleton<IMongoCollection<Model>>(sp =>
+                .AddSingleton(_ =>
                 {
-                    IMongoDatabase database = _mongoResource.CreateDatabase();
-                    IMongoCollection<Model> collection = database.GetCollection<Model>("col");
+                    var database = _mongoResource.CreateDatabase();
+                    var collection = database.GetCollection<Model>("col");
                     collection.InsertMany(new[]
                     {
                         new Model { Foo = "abc", Bar = 1, Baz = true },
@@ -118,20 +116,20 @@ namespace HotChocolate.Types.Sorting
                 .Services
                 .BuildServiceProvider();
 
-            IRequestExecutor executor =
+            var executor =
                 await services.GetRequiredService<IRequestExecutorResolver>()
                     .GetRequestExecutorAsync();
 
-            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+            var request = QueryRequestBuilder.New()
                 .SetQuery("{ paging(order_by: { foo: DESC }) { nodes { foo } } }")
                 .Create();
 
             // act
-            IExecutionResult result = await executor.ExecuteAsync(request);
+            var result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Null(result.Errors);
-            result.MatchSnapshot();
+            Assert.Null(result.ExpectQueryResult().Errors);
+            result.ToJson().MatchSnapshot();
         }
 
 
@@ -140,10 +138,10 @@ namespace HotChocolate.Types.Sorting
         {
             // arrange
             IServiceProvider services = new ServiceCollection()
-                .AddSingleton<IMongoCollection<Model>>(sp =>
+                .AddSingleton(_ =>
                 {
-                    IMongoDatabase database = _mongoResource.CreateDatabase();
-                    IMongoCollection<Model> collection = database.GetCollection<Model>("col");
+                    var database = _mongoResource.CreateDatabase();
+                    var collection = database.GetCollection<Model>("col");
                     collection.InsertMany(new[]
                     {
                         new Model { Foo = "abc", Bar = 1, Baz = true },
@@ -156,20 +154,20 @@ namespace HotChocolate.Types.Sorting
                 .Services
                 .BuildServiceProvider();
 
-            IRequestExecutor executor =
+            var executor =
                 await services.GetRequiredService<IRequestExecutorResolver>()
                     .GetRequestExecutorAsync();
 
-            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+            var request = QueryRequestBuilder.New()
                 .SetQuery("{ items(order_by: { qux: DESC }) { bar } }")
                 .Create();
 
             // act
-            IExecutionResult result = await executor.ExecuteAsync(request);
+            var result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Null(result.Errors);
-            result.MatchSnapshot();
+            Assert.Null(result.ExpectQueryResult().Errors);
+            result.ToJson().MatchSnapshot();
         }
 
         public class QueryType : ObjectType

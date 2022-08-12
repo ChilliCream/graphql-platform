@@ -1,4 +1,4 @@
-﻿{
+{
   "errors": [
     {
       "message": "The default authorization policy does not exist.",
@@ -15,8 +15,5 @@
         "code": "AUTH_NO_DEFAULT_POLICY"
       }
     }
-  ],
-  "data": {
-    "bar": null
-  }
+  ]
 }

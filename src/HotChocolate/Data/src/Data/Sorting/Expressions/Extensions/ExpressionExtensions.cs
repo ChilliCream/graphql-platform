@@ -8,7 +8,7 @@ public static class ExpressionExtensions
 {
     public static Type GetEnumerableKind(this Expression source)
     {
-        Type type = typeof(Enumerable);
+        var type = typeof(Enumerable);
         if (typeof(IOrderedQueryable).IsAssignableFrom(source.Type) ||
             typeof(IQueryable).IsAssignableFrom(source.Type))
         {

@@ -1,0 +1,40 @@
+{
+  "and": [
+    {
+      "title": {
+        "in": [
+          "a",
+          "b"
+        ]
+      },
+      "author": {
+        "name": {
+          "eq": "test",
+          "neq": "test"
+        }
+      }
+    },
+    {
+      "pages": {
+        "eq": 1
+      }
+    },
+    {
+      "isActive": {
+        "eq": true
+      }
+    }
+  ],
+  "or": [
+    {
+      "title": {
+        "eq": "a"
+      }
+    },
+    {
+      "title": {
+        "eq": "b"
+      }
+    }
+  ]
+}

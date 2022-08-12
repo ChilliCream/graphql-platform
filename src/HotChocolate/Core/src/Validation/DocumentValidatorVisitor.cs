@@ -40,7 +40,7 @@ public class DocumentValidatorVisitor : SyntaxWalker<IDocumentValidatorContext>
         DocumentNode node,
         IDocumentValidatorContext context)
     {
-        for (int i = 0; i < node.Definitions.Count; i++)
+        for (var i = 0; i < node.Definitions.Count; i++)
         {
             if (node.Definitions[i].Kind != SyntaxKind.FragmentDefinition &&
                 Visit(node.Definitions[i], node, context).IsBreak())
@@ -63,7 +63,7 @@ public class DocumentValidatorVisitor : SyntaxWalker<IDocumentValidatorContext>
 
         if (context.Fragments.TryGetValue(
             node.Name.Value,
-            out FragmentDefinitionNode? fragment) &&
+            out var fragment) &&
             context.VisitedFragments.Add(fragment.Name.Value))
         {
             if (Visit(fragment, node, context).IsBreak())

@@ -1,0 +1,20 @@
+﻿extend scalar String @rename(to: "SpecialString")
+
+schema @_hc_service(name: "abc") {
+
+}
+
+type Baz {
+  foo1(a: SpecialString): SpecialString
+  foo2(a: SpecialString!): SpecialString!
+  foo3(a: [SpecialString!]): [SpecialString!]
+  foo4(a: [SpecialString!]!): [SpecialString!]!
+}
+
+type Foo {
+  abc(input: FooInput): SpecialString
+}
+
+input FooInput {
+  a: [SpecialString!]!
+}

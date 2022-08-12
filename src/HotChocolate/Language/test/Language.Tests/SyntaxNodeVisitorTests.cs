@@ -21,7 +21,7 @@ public class SyntaxNodeVisitorTests
     public void Visit_Kitchen_Sink_Query()
     {
         // arrange
-        DocumentNode document = Utf8GraphQLParser.Parse(
+        var document = Utf8GraphQLParser.Parse(
             FileResource.Open("kitchen-sink.graphql")
                 .NormalizeLineBreaks());
         var visitationMap = new BarVisitationMap();
@@ -37,7 +37,7 @@ public class SyntaxNodeVisitorTests
     public void Visit_Kitchen_Sink_Schema()
     {
         // arrange
-        DocumentNode document = Utf8GraphQLParser.Parse(
+        var document = Utf8GraphQLParser.Parse(
             FileResource.Open("schema-kitchen-sink.graphql")
                 .NormalizeLineBreaks());
         var visitationMap = new BarVisitationMap();
@@ -53,7 +53,7 @@ public class SyntaxNodeVisitorTests
     public void Visit_Kitchen_Sink_Schema_Names_With_Delegate()
     {
         // arrange
-        DocumentNode document = Utf8GraphQLParser.Parse(
+        var document = Utf8GraphQLParser.Parse(
             FileResource.Open("schema-kitchen-sink.graphql")
                 .NormalizeLineBreaks());
         var visitationMap = new BarVisitationMap();
@@ -83,7 +83,7 @@ public class SyntaxNodeVisitorTests
     public void Visit_Kitchen_Sink_Query_Names_With_Delegate()
     {
         // arrange
-        DocumentNode document = Utf8GraphQLParser.Parse(
+        var document = Utf8GraphQLParser.Parse(
             FileResource.Open("kitchen-sink.graphql")
                 .NormalizeLineBreaks());
         var visitationMap = new BarVisitationMap();
@@ -113,7 +113,7 @@ public class SyntaxNodeVisitorTests
     public void Visit_Kitchen_Sink_Query_Names_With_Delegate_OnlyEnter()
     {
         // arrange
-        DocumentNode document = Utf8GraphQLParser.Parse(
+        var document = Utf8GraphQLParser.Parse(
             FileResource.Open("kitchen-sink.graphql")
                 .NormalizeLineBreaks());
         var visitationMap = new BarVisitationMap();
@@ -137,7 +137,7 @@ public class SyntaxNodeVisitorTests
     public void Visit_Kitchen_Sink_Query_Names_With_Delegate_OnlyLeave()
     {
         // arrange
-        DocumentNode document = Utf8GraphQLParser.Parse(
+        var document = Utf8GraphQLParser.Parse(
             FileResource.Open("kitchen-sink.graphql")
                 .NormalizeLineBreaks());
         var visitationMap = new BarVisitationMap();
@@ -157,7 +157,7 @@ public class SyntaxNodeVisitorTests
         visitedNames.MatchSnapshot();
     }
 
-    private class Foo
+    private sealed class Foo
         : SyntaxNodeVisitor
     {
         public Foo()
@@ -188,7 +188,7 @@ public class SyntaxNodeVisitorTests
         }
     }
 
-    private class Bar
+    private sealed class Bar
        : SyntaxNodeVisitor
     {
         public Bar()
@@ -198,7 +198,7 @@ public class SyntaxNodeVisitorTests
         }
     }
 
-    private class BarVisitationMap
+    private sealed class BarVisitationMap
         : VisitationMap
     {
         public List<ISyntaxNode> VisitedNodes { get; } =

@@ -4,114 +4,113 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Linq;
 
-namespace HotChocolate.Data.MongoDb
+namespace HotChocolate.Data.MongoDb;
+
+/// <summary>
+/// This class was ported over from the official mongo db driver
+/// </summary>
+public sealed class AndFilterDefinition : MongoDbFilterDefinition
 {
-    /// <summary>
-    /// This class was ported over from the official mongo db driver
-    /// </summary>
-    public sealed class AndFilterDefinition : MongoDbFilterDefinition
+    private static readonly string[] __operatorsThatCannotBeCombined = new[]
     {
-        private static readonly string[] __operatorsThatCannotBeCombined = new[]
-        {
             "$geoWithin",
             "$near",
             "$geoIntersects",
             "$nearSphere"
         };
 
-        private readonly MongoDbFilterDefinition[] _filters;
+    private readonly MongoDbFilterDefinition[] _filters;
 
-        public AndFilterDefinition(params MongoDbFilterDefinition[] filters)
+    public AndFilterDefinition(params MongoDbFilterDefinition[] filters)
+    {
+        _filters = filters;
+    }
+
+    public AndFilterDefinition(IEnumerable<MongoDbFilterDefinition> filters)
+    {
+        _filters = filters.ToArray();
+    }
+
+    public override BsonDocument Render(
+        IBsonSerializer documentSerializer,
+        IBsonSerializerRegistry serializerRegistry)
+    {
+        if (_filters.Length == 0)
         {
-            _filters = filters;
+            return new BsonDocument("$and", new BsonArray(0));
         }
 
-        public AndFilterDefinition(IEnumerable<MongoDbFilterDefinition> filters)
-        {
-            _filters = filters.ToArray();
-        }
+        var document = new BsonDocument();
 
-        public override BsonDocument Render(
-            IBsonSerializer documentSerializer,
-            IBsonSerializerRegistry serializerRegistry)
+        foreach (var filter in _filters)
         {
-            if (_filters.Length == 0)
+            var renderedFilter = filter.Render(documentSerializer, serializerRegistry);
+            foreach (var clause in renderedFilter)
             {
-                return new BsonDocument("$and", new BsonArray(0));
+                AddClause(document, clause);
             }
+        }
 
-            var document = new BsonDocument();
+        return document;
+    }
 
-            foreach (var filter in _filters)
+    private static void AddClause(BsonDocument document, BsonElement clause)
+    {
+        if (clause.Name == "$and")
+        {
+            // flatten out nested $and
+            foreach (var item in (BsonArray)clause.Value)
             {
-                BsonDocument renderedFilter = filter.Render(documentSerializer, serializerRegistry);
-                foreach (BsonElement clause in renderedFilter)
+                foreach (var element in (BsonDocument)item)
                 {
-                    AddClause(document, clause);
+                    AddClause(document, element);
                 }
             }
-
-            return document;
         }
-
-        private static void AddClause(BsonDocument document, BsonElement clause)
+        else if (document.ElementCount == 1 && document.GetElement(0).Name == "$and")
         {
-            if (clause.Name == "$and")
+            ((BsonArray)document[0]).Add(new BsonDocument(clause));
+        }
+        else if (document.Contains(clause.Name))
+        {
+            var existingClause = document.GetElement(clause.Name);
+            if (existingClause.Value is BsonDocument existingClauseValue &&
+                clause.Value is BsonDocument clauseValue)
             {
-                // flatten out nested $and
-                foreach (var item in (BsonArray)clause.Value)
+                var clauseOperator = clauseValue.ElementCount > 0
+                    ? clauseValue.GetElement(0).Name
+                    : null;
+                if (clauseValue.Names.Any(op => existingClauseValue.Contains(op)) ||
+                    __operatorsThatCannotBeCombined.Contains(clauseOperator))
                 {
-                    foreach (BsonElement element in (BsonDocument)item)
-                    {
-                        AddClause(document, element);
-                    }
-                }
-            }
-            else if (document.ElementCount == 1 && document.GetElement(0).Name == "$and")
-            {
-                ((BsonArray)document[0]).Add(new BsonDocument(clause));
-            }
-            else if (document.Contains(clause.Name))
-            {
-                BsonElement existingClause = document.GetElement(clause.Name);
-                if (existingClause.Value is BsonDocument existingClauseValue &&
-                    clause.Value is BsonDocument clauseValue)
-                {
-                    var clauseOperator = clauseValue.ElementCount > 0
-                        ? clauseValue.GetElement(0).Name
-                        : null;
-                    if (clauseValue.Names.Any(op => existingClauseValue.Contains(op)) ||
-                        __operatorsThatCannotBeCombined.Contains(clauseOperator))
-                    {
-                        PromoteFilterToDollarForm(document, clause);
-                    }
-                    else
-                    {
-                        existingClauseValue.AddRange(clauseValue);
-                    }
+                    PromoteFilterToDollarForm(document, clause);
                 }
                 else
                 {
-                    PromoteFilterToDollarForm(document, clause);
+                    existingClauseValue.AddRange(clauseValue);
                 }
             }
             else
             {
-                document.Add(clause);
+                PromoteFilterToDollarForm(document, clause);
             }
         }
-
-        private static void PromoteFilterToDollarForm(BsonDocument document, BsonElement clause)
+        else
         {
-            var clauses = new BsonArray();
-            foreach (BsonElement queryElement in document)
-            {
-                clauses.Add(new BsonDocument(queryElement));
-            }
-
-            clauses.Add(new BsonDocument(clause));
-            document.Clear();
-            document.Add("$and", clauses);
+            document.Add(clause);
         }
+    }
+
+    private static void PromoteFilterToDollarForm(BsonDocument document, BsonElement clause)
+    {
+        var clauses = new BsonArray();
+        foreach (var queryElement in document)
+        {
+            clauses.Add(new BsonDocument(queryElement));
+        }
+
+        clauses.Add(new BsonDocument(clause));
+        document.Clear();
+        document.Add("$and", clauses);
     }
 }

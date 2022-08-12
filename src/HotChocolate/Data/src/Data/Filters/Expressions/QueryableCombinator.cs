@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
@@ -12,11 +11,12 @@ public class QueryableCombinator
         QueryableFilterContext context,
         Queue<Expression> operations,
         FilterCombinator combinator,
-        [NotNullWhen(true)] out Expression combined)
+        [NotNullWhen(true)] out Expression? combined)
     {
         if (operations.Count == 0)
         {
-            throw ThrowHelper.Filtering_QueryableCombinator_QueueEmpty(this);
+            combined = default;
+            return false;
         }
 
         combined = operations.Dequeue();

@@ -109,4 +109,20 @@ public static class WellKnownContextData
     /// The key to the schema building directives.
     /// </summary>
     public const string SchemaDirectives = "HotChocolate.Schema.Building.Directives";
+
+    /// <summary>
+    /// The key to the optional schema documents.
+    /// </summary>
+    public const string SchemaDocuments = "HotChocolate.Schema.Building.Documents";
+
+    /// <summary>
+    /// The key to get the user provided transport operation session id when executing
+    /// GraphQL over Websocket.
+    /// </summary>
+    public const string OperationSessionId ="HotChocolate.Execution.Transport.OperationSessionId";
+
+    /// <summary>
+    /// The key to get the deferred task ID on the scoped context data.
+    /// </summary>
+    public const string DeferredResultId = "HotChocolate.Execution.Defer.ResultId";
 }

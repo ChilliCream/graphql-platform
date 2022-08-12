@@ -1,0 +1,7 @@
+﻿{
+  "message": "There is no object type implementing interface `Foo`.",
+  "code": "SCHEMA_INTERFACE_NO_IMPL",
+  "type": "Foo",
+  "extensions": {}
+}
+

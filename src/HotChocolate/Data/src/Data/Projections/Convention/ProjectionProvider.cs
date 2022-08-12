@@ -81,20 +81,20 @@ public abstract class ProjectionProvider
         Complete(context);
     }
 
-    protected override void Complete(IConventionContext context)
+    protected internal override void Complete(IConventionContext context)
     {
         if (Definition!.Handlers.Count == 0)
         {
             throw ProjectionProvider_NoHandlersConfigured(this);
         }
 
-        IServiceProvider services = new DictionaryServiceProvider(
+        var services = new DictionaryServiceProvider(
             (typeof(IConventionContext), context),
             (typeof(IDescriptorContext), context.DescriptorContext),
             (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
             .Include(context.Services);
 
-        foreach ((Type type, IProjectionFieldHandler? instance) in Definition.Handlers)
+        foreach ((var type, var instance) in Definition.Handlers)
         {
             switch (instance)
             {
@@ -114,7 +114,7 @@ public abstract class ProjectionProvider
             }
         }
 
-        foreach ((Type? type, IProjectionFieldInterceptor? instance) in Definition.Interceptors)
+        foreach ((var type, var instance) in Definition.Interceptors)
         {
             switch (instance)
             {
@@ -134,7 +134,7 @@ public abstract class ProjectionProvider
             }
         }
 
-        foreach ((Type? type, IProjectionOptimizer? instance) in Definition.Optimizers)
+        foreach ((var type, var instance) in Definition.Optimizers)
         {
             switch (instance)
             {
@@ -156,7 +156,7 @@ public abstract class ProjectionProvider
     }
 
     public Selection RewriteSelection(
-        SelectionOptimizerContext context,
+        SelectionSetOptimizerContext context,
         Selection selection)
     {
         for (var i = 0; i < _optimizer.Count; i++)
@@ -171,7 +171,7 @@ public abstract class ProjectionProvider
         {
             if (_fieldHandlers[i].CanHandle(selection))
             {
-                IProjectionFieldHandler fieldHandler = _fieldHandlers[i];
+                var fieldHandler = _fieldHandlers[i];
 
                 for (var m = 0; m < _fieldInterceptors.Count; m++)
                 {

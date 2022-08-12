@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.ObjectPool;
+using GreenDonut;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -13,8 +14,6 @@ using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using static HotChocolate.WellKnownContextData;
-using GreenDonut;
-using System.Collections;
 
 namespace HotChocolate.Diagnostics;
 
@@ -67,13 +66,18 @@ public class ActivityEnricher
                 break;
         }
 
+        if (_options.RenameRootActivity)
+        {
+            UpdateRootActivityName(activity, $"Begin {activity.DisplayName}");
+        }
+
         activity.SetTag("graphql.http.kind", kind);
 
         var isDefault = false;
         if (!(context.Items.TryGetValue(SchemaName, out var value) &&
             value is string schemaName))
         {
-            schemaName = Schema.DefaultName.Value;
+            schemaName = Schema.DefaultName;
             isDefault = true;
         }
 
@@ -144,7 +148,7 @@ public class ActivityEnricher
 
         for (var i = 0; i < batch.Count; i++)
         {
-            GraphQLRequest request = batch[i];
+            var request = batch[i];
 
             if (request.QueryId is not null &&
             (_options.RequestDetails & RequestDetails.Id) == RequestDetails.Id)
@@ -322,6 +326,11 @@ public class ActivityEnricher
     public virtual void EnrichParseHttpRequest(HttpContext context, Activity activity)
     {
         activity.DisplayName = "Parse HTTP Request";
+
+        if (_options.RenameRootActivity)
+        {
+            UpdateRootActivityName(activity, $"Begin {activity.DisplayName}");
+        }
     }
 
     public virtual void EnrichParserErrors(HttpContext context, IError error, Activity activity)
@@ -347,7 +356,7 @@ public class ActivityEnricher
         activity.SetTag("graphql.document.valid", context.IsValidDocument);
         activity.SetTag("graphql.operation.id", context.OperationId);
         activity.SetTag("graphql.operation.kind", context.Operation?.Type);
-        activity.SetTag("graphql.operation.name", context.Operation?.Name?.Value);
+        activity.SetTag("graphql.operation.name", context.Operation?.Name);
 
         if (_options.IncludeDocument && context.Document is not null)
         {
@@ -365,11 +374,11 @@ public class ActivityEnricher
     {
         if (context.Operation is { } operation)
         {
-            StringBuilder displayName = StringBuilderPool.Get();
+            var displayName = StringBuilderPool.Get();
 
             try
             {
-                var rootSelectionSet = operation.GetRootSelectionSet();
+                var rootSelectionSet = operation.RootSelectionSet;
 
                 displayName.Append('{');
                 displayName.Append(' ');
@@ -398,7 +407,7 @@ public class ActivityEnricher
                 if (operation.Name is { } name)
                 {
                     displayName.Insert(0, ' ');
-                    displayName.Insert(0, name.Value);
+                    displayName.Insert(0, name);
                 }
 
                 displayName.Insert(0, ' ');
@@ -415,9 +424,9 @@ public class ActivityEnricher
         return null;
     }
 
-    private void UpdateRootActivityName(Activity activity, string operationDisplayName)
+    private void UpdateRootActivityName(Activity activity, string displayName)
     {
-        Activity current = activity;
+        var current = activity;
 
         while (current.Parent is not null)
         {
@@ -426,19 +435,34 @@ public class ActivityEnricher
 
         if (current != activity)
         {
-            current.DisplayName = CreateRootActivityName(activity, current, operationDisplayName);
+            current.DisplayName = CreateRootActivityName(activity, current, displayName);
         }
     }
 
     protected virtual string CreateRootActivityName(
         Activity activity,
         Activity root,
-        string operationDisplayName)
-        => $"{root.DisplayName}: {operationDisplayName}";
+        string displayName)
+    {
+        const string key = "originalDisplayName";
+
+        if (root.GetCustomProperty(key) is not string rootDisplayName)
+        {
+            rootDisplayName = root.DisplayName;
+            root.SetCustomProperty(key, rootDisplayName);
+        }
+
+        return $"{rootDisplayName}: {displayName}";
+    }
 
     public virtual void EnrichParseDocument(IRequestContext context, Activity activity)
     {
         activity.DisplayName = "Parse Document";
+
+        if (_options.RenameRootActivity)
+        {
+            UpdateRootActivityName(activity, $"Begin {activity.DisplayName}");
+        }
     }
 
     public virtual void EnrichSyntaxError(
@@ -450,6 +474,12 @@ public class ActivityEnricher
     public virtual void EnrichValidateDocument(IRequestContext context, Activity activity)
     {
         activity.DisplayName = "Validate Document";
+
+        if (_options.RenameRootActivity)
+        {
+            UpdateRootActivityName(activity, $"Begin {activity.DisplayName}");
+        }
+
         activity.SetTag("graphql.document.id", context.DocumentId);
         activity.SetTag("graphql.document.hash", context.DocumentHash);
     }
@@ -478,7 +508,7 @@ public class ActivityEnricher
     public virtual void EnrichExecuteOperation(IRequestContext context, Activity activity)
     {
         activity.DisplayName =
-            context.Operation?.Name?.Value is { } op
+            context.Operation?.Name is { } op
                 ? $"Execute Operation {op}"
                 : "Execute Operation";
     }
@@ -489,24 +519,26 @@ public class ActivityEnricher
         string hierarchy;
         BuildPath();
 
-        IFieldSelection selection = context.Selection;
-        FieldCoordinate coordinate = selection.Field.Coordinate;
+        var selection = context.Selection;
+        var coordinate = selection.Field.Coordinate;
+
         activity.DisplayName = path;
-        activity.SetTag("graphql.selection.name", selection.ResponseName.Value);
+        activity.SetTag("graphql.selection.name", selection.ResponseName);
         activity.SetTag("graphql.selection.type", selection.Field.Type.Print());
         activity.SetTag("graphql.selection.path", path);
-        activity.SetTag("graphql.selection.field.name", coordinate.FieldName.Value);
+        activity.SetTag("graphql.selection.hierarchy", hierarchy);
+        activity.SetTag("graphql.selection.field.name", coordinate.FieldName);
         activity.SetTag("graphql.selection.field.coordinate", coordinate.ToString());
-        activity.SetTag("graphql.selection.field.declaringType", coordinate.TypeName.Value);
+        activity.SetTag("graphql.selection.field.declaringType", coordinate.TypeName);
         activity.SetTag("graphql.selection.field.isDeprecated", selection.Field.IsDeprecated);
 
         void BuildPath()
         {
-            StringBuilder p = StringBuilderPool.Get();
-            StringBuilder h = StringBuilderPool.Get();
-            StringBuilder index = StringBuilderPool.Get();
+            var p = StringBuilderPool.Get();
+            var h = StringBuilderPool.Get();
+            var index = StringBuilderPool.Get();
 
-            Path? current = context.Path;
+            var current = context.Path;
 
             do
             {
@@ -514,12 +546,12 @@ public class ActivityEnricher
                 {
                     p.Insert(0, '/');
                     h.Insert(0, '/');
-                    p.Insert(1, n.Name.Value);
-                    h.Insert(1, n.Name.Value);
+                    p.Insert(1, n.Name);
+                    h.Insert(1, n.Name);
 
                     if (index.Length > 0)
                     {
-                        p.Insert(1 + n.Name.Value.Length, index);
+                        p.Insert(1 + n.Name.Length, index);
                     }
 
                     index.Clear();
@@ -534,7 +566,7 @@ public class ActivityEnricher
                 }
 
                 current = current.Parent;
-            } while (current is not null && current is not RootPathSegment);
+            } while (!current.IsRoot);
 
             path = p.ToString();
             hierarchy = h.ToString();
@@ -549,9 +581,7 @@ public class ActivityEnricher
         IMiddlewareContext context,
         IError error,
         Activity activity)
-    {
-        EnrichError(error, activity);
-    }
+        => EnrichError(error, activity);
 
     public virtual void EnrichDataLoaderBatch<TKey>(
         IDataLoader dataLoader,

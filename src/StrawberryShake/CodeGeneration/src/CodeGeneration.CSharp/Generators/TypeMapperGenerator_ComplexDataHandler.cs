@@ -7,152 +7,150 @@ using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
-namespace StrawberryShake.CodeGeneration.CSharp.Generators
+namespace StrawberryShake.CodeGeneration.CSharp.Generators;
+
+public partial class TypeMapperGenerator
 {
-    public partial class TypeMapperGenerator
+    private static void AddComplexDataHandler(
+        CSharpSyntaxGeneratorSettings settings,
+        ClassBuilder classBuilder,
+        ConstructorBuilder constructorBuilder,
+        MethodBuilder method,
+        ComplexTypeDescriptor complexTypeDescriptor,
+        HashSet<string> processed,
+        bool isNonNullable)
     {
-        private void AddComplexDataHandler(
-            CSharpSyntaxGeneratorSettings settings,
-            ClassBuilder classBuilder,
-            ConstructorBuilder constructorBuilder,
-            MethodBuilder method,
-            ComplexTypeDescriptor complexTypeDescriptor,
-            HashSet<string> processed,
-            bool isNonNullable)
-        {
-            RuntimeTypeInfo typeInfo = complexTypeDescriptor.ParentRuntimeType
-                ?? throw new InvalidOperationException();
+        var typeInfo = complexTypeDescriptor.ParentRuntimeType
+                                   ?? throw new InvalidOperationException();
 
+        method
+            .AddParameter(_dataParameterName)
+            .SetType(typeInfo.ToString().MakeNullable(!isNonNullable))
+            .SetName(_dataParameterName);
+
+        if (settings.IsStoreEnabled())
+        {
             method
-                .AddParameter(_dataParameterName)
-                .SetType(typeInfo.ToString().MakeNullable(!isNonNullable))
-                .SetName(_dataParameterName);
-
-            if (settings.IsStoreEnabled())
-            {
-                method
-                    .AddParameter(_snapshot)
-                    .SetType(TypeNames.IEntityStoreSnapshot);
-            }
-
-            if (!isNonNullable)
-            {
-                method.AddCode(EnsureProperNullability(_dataParameterName, isNonNullable));
-            }
-
-            const string returnValue = nameof(returnValue);
-            method.AddCode($"{complexTypeDescriptor.RuntimeType.Name}? {returnValue};");
-            method.AddEmptyLine();
-
-            GenerateIfForEachImplementedBy(
-                method,
-                complexTypeDescriptor,
-                o => GenerateComplexDataInterfaceIfClause(settings, o, returnValue));
-
-            method.AddCode($"return {returnValue};");
-
-            AddRequiredMapMethods(
-                settings,
-                _dataParameterName,
-                complexTypeDescriptor,
-                classBuilder,
-                constructorBuilder,
-                processed);
+                .AddParameter(_snapshot)
+                .SetType(TypeNames.IEntityStoreSnapshot);
         }
 
-        private void GenerateIfForEachImplementedBy(
-            MethodBuilder method,
-            ComplexTypeDescriptor complexTypeDescriptor,
-            Func<ObjectTypeDescriptor, IfBuilder> generator)
+        if (!isNonNullable)
         {
-            if (!(complexTypeDescriptor is InterfaceTypeDescriptor interfaceTypeDescriptor) ||
-                !interfaceTypeDescriptor.ImplementedBy.Any())
-            {
-                return;
-            }
-
-            IEnumerable<ObjectTypeDescriptor> dataTypes =
-                interfaceTypeDescriptor.ImplementedBy.Where(x => x.IsData());
-
-            IfBuilder ifChain = generator(dataTypes.First());
-
-            foreach (ObjectTypeDescriptor objectTypeDescriptor in dataTypes.Skip(1))
-            {
-                ifChain.AddIfElse(generator(objectTypeDescriptor).SkipIndents());
-            }
-
-            ifChain.AddElse(ExceptionBuilder.New(TypeNames.NotSupportedException));
-
-            method.AddCode(ifChain);
+            method.AddCode(EnsureProperNullability(_dataParameterName, isNonNullable));
         }
 
-        private IfBuilder GenerateComplexDataInterfaceIfClause(
-            CSharpSyntaxGeneratorSettings settings,
-            ObjectTypeDescriptor objectTypeDescriptor,
-            string variableName)
+        const string returnValue = nameof(returnValue);
+        method.AddCode($"{complexTypeDescriptor.RuntimeType.Name}? {returnValue};");
+        method.AddEmptyLine();
+
+        GenerateIfForEachImplementedBy(
+            method,
+            complexTypeDescriptor,
+            o => GenerateComplexDataInterfaceIfClause(settings, o, returnValue));
+
+        method.AddCode($"return {returnValue};");
+
+        AddRequiredMapMethods(
+            settings,
+            complexTypeDescriptor,
+            classBuilder,
+            constructorBuilder,
+            processed);
+    }
+
+    private static void GenerateIfForEachImplementedBy(
+        MethodBuilder method,
+        ComplexTypeDescriptor complexTypeDescriptor,
+        Func<ObjectTypeDescriptor, IfBuilder> generator)
+    {
+        if (complexTypeDescriptor is not InterfaceTypeDescriptor interfaceTypeDescriptor ||
+            !interfaceTypeDescriptor.ImplementedBy.Any())
         {
-            var matchedTypeName = GetParameterName(objectTypeDescriptor.Name);
+            return;
+        }
 
-            // since we want to create the data name we will need to craft the type name
-            // by hand by using the GraphQL type name and the state namespace.
-            var dataTypeName = new RuntimeTypeInfo(
-                CreateDataTypeName(objectTypeDescriptor.Name),
-                $"{objectTypeDescriptor.RuntimeType.Namespace}.State");
+        var dataTypes =
+            interfaceTypeDescriptor.ImplementedBy.Where(x => x.IsData()).ToArray();
 
-            var block = CodeBlockBuilder.New();
+        var ifChain = generator(dataTypes.First());
 
-            MethodCallBuilder constructorCall = MethodCallBuilder
-                .Inline()
-                .SetNew()
-                .SetMethodName(objectTypeDescriptor.RuntimeType.ToString());
+        foreach (var objectTypeDescriptor in dataTypes.Skip(1))
+        {
+            ifChain.AddIfElse(generator(objectTypeDescriptor).SkipIndents());
+        }
 
-            foreach (PropertyDescriptor prop in objectTypeDescriptor.Properties)
+        ifChain.AddElse(ExceptionBuilder.New(TypeNames.NotSupportedException));
+
+        method.AddCode(ifChain);
+    }
+
+    private static IfBuilder GenerateComplexDataInterfaceIfClause(
+        CSharpSyntaxGeneratorSettings settings,
+        ObjectTypeDescriptor objectTypeDescriptor,
+        string variableName)
+    {
+        var matchedTypeName = GetParameterName(objectTypeDescriptor.Name);
+
+        // since we want to create the data name we will need to craft the type name
+        // by hand by using the GraphQL type name and the state namespace.
+        var dataTypeName = new RuntimeTypeInfo(
+            CreateDataTypeName(objectTypeDescriptor.Name),
+            $"{objectTypeDescriptor.RuntimeType.Namespace}.State");
+
+        var block = CodeBlockBuilder.New();
+
+        var constructorCall = MethodCallBuilder
+            .Inline()
+            .SetNew()
+            .SetMethodName(objectTypeDescriptor.RuntimeType.ToString());
+
+        foreach (var prop in objectTypeDescriptor.Properties)
+        {
+            if (prop.Type.IsEntity() || prop.Type.IsData())
             {
-                if (prop.Type.IsEntity() || prop.Type.IsData())
-                {
-                    constructorCall.AddArgument(
-                        BuildMapMethodCall(settings, matchedTypeName, prop));
-                }
-                else if (prop.Type.IsNonNullable())
-                {
-                    if (prop.Type.InnerType() is ILeafTypeDescriptor
+                constructorCall.AddArgument(
+                    BuildMapMethodCall(settings, matchedTypeName, prop));
+            }
+            else if (prop.Type.IsNonNull())
+            {
+                if (prop.Type.InnerType() is ILeafTypeDescriptor
                         { RuntimeType: { IsValueType: true } })
-                    {
-                        block
-                            .AddCode(IfBuilder
-                                .New()
-                                .SetCondition($"!{matchedTypeName}.{prop.Name}.HasValue")
-                                .AddCode(ExceptionBuilder.New(TypeNames.ArgumentNullException)))
-                            .AddEmptyLine();
+                {
+                    block
+                        .AddCode(IfBuilder
+                            .New()
+                            .SetCondition($"!{matchedTypeName}.{prop.Name}.HasValue")
+                            .AddCode(ExceptionBuilder.New(TypeNames.ArgumentNullException)))
+                        .AddEmptyLine();
 
-                        constructorCall.AddArgument($"{matchedTypeName}.{prop.Name}!.Value");
-                    }
-                    else
-                    {
-                        constructorCall
-                            .AddArgument(
-                                NullCheckBuilder
-                                    .Inline()
-                                    .SetCondition($"{matchedTypeName}.{prop.Name}")
-                                    .SetCode(ExceptionBuilder.Inline(
-                                        TypeNames.ArgumentNullException)));
-                    }
+                    constructorCall.AddArgument($"{matchedTypeName}.{prop.Name}!.Value");
                 }
                 else
                 {
-                    constructorCall.AddArgument($"{matchedTypeName}.{prop.Name}");
+                    constructorCall
+                        .AddArgument(
+                            NullCheckBuilder
+                                .Inline()
+                                .SetCondition($"{matchedTypeName}.{prop.Name}")
+                                .SetCode(ExceptionBuilder.Inline(
+                                    TypeNames.ArgumentNullException)));
                 }
             }
-
-            block.AddCode(AssignmentBuilder
-                .New()
-                .SetLefthandSide(variableName)
-                .SetRighthandSide(constructorCall));
-
-            return IfBuilder
-                .New()
-                .SetCondition($"{_dataParameterName} is {dataTypeName} {matchedTypeName}")
-                .AddCode(block);
+            else
+            {
+                constructorCall.AddArgument($"{matchedTypeName}.{prop.Name}");
+            }
         }
+
+        block.AddCode(AssignmentBuilder
+            .New()
+            .SetLefthandSide(variableName)
+            .SetRighthandSide(constructorCall));
+
+        return IfBuilder
+            .New()
+            .SetCondition($"{_dataParameterName} is {dataTypeName} {matchedTypeName}")
+            .AddCode(block);
     }
 }

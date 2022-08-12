@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(LibraryTargetFrameworks)</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Transport.Sockets</PackageId>
+    <AssemblyName>HotChocolate.Transport.Sockets</AssemblyName>
+    <RootNamespace>HotChocolate.Transport.Sockets</RootNamespace>
+    <Description>This package contains common abstractions and base classes for socket transport.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.IO.Pipelines" Version="4.7.0" />
+  </ItemGroup>
+
+</Project>

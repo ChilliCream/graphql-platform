@@ -5,146 +5,144 @@ using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Utilities;
 
-namespace StrawberryShake.CodeGeneration.Analyzers
+namespace StrawberryShake.CodeGeneration.Analyzers;
+
+public partial class DocumentAnalyzer
 {
-    public partial class DocumentAnalyzer
+    private static readonly InterfaceTypeSelectionSetAnalyzer _selectionAnalyzer = new();
+
+    private static OperationModel CreateOperationModel(
+        IDocumentAnalyzerContext context)
     {
-        private static readonly InterfaceTypeSelectionSetAnalyzer _selectionAnalyzer = new();
+        CollectEnumTypes(context);
+        CollectInputObjectTypes(context);
 
-        private static OperationModel CreateOperationModel(
-            IDocumentAnalyzerContext context)
+        return new(
+            context.OperationName,
+            context.OperationType,
+            QueryDocumentRewriter.Rewrite(context.Document, context.Schema),
+            context.OperationDefinition.Operation,
+            CreateOperationArguments(context),
+            GetResultType(context),
+            context.TypeModels.OfType<LeafTypeModel>().ToList(),
+            context.TypeModels.OfType<InputObjectTypeModel>().ToList(),
+            context.TypeModels.OfType<OutputTypeModel>().ToList(),
+            context.SelectionSets);
+    }
+
+    private static OutputTypeModel GetResultType(
+        IDocumentAnalyzerContext context)
+    {
+        Queue<FieldSelection> backlog = new();
+        var root = VisitOperationSelectionSet(context, backlog);
+
+        while (backlog.Any())
         {
-            CollectEnumTypes(context);
-            CollectInputObjectTypes(context);
+            var current = backlog.Dequeue();
+            var namedType = current.Field.Type.NamedType();
 
-            return new(
-                context.OperationName,
-                context.OperationType,
-                QueryDocumentRewriter.Rewrite(context.Document, context.Schema),
-                context.OperationDefinition.Operation,
-                CreateOperationArguments(context),
-                GetResultType(context),
-                context.TypeModels.OfType<LeafTypeModel>().ToList(),
-                context.TypeModels.OfType<InputObjectTypeModel>().ToList(),
-                context.TypeModels.OfType<OutputTypeModel>().ToList(),
-                context.SelectionSets);
-        }
-
-        private static OutputTypeModel GetResultType(
-            IDocumentAnalyzerContext context)
-        {
-            Queue<FieldSelection> backlog = new();
-            OutputTypeModel root = VisitOperationSelectionSet(context, backlog);
-
-            while (backlog.Any())
+            if (namedType.IsLeafType())
             {
-                FieldSelection current = backlog.Dequeue();
-                INamedType namedType = current.Field.Type.NamedType();
-
-                if (namedType.IsLeafType())
-                {
-                    context.RegisterType(namedType);
-                }
-                else
-                {
-                    VisitFieldSelectionSet(context, current, backlog);
-                }
+                context.RegisterType(namedType);
             }
-
-            return root;
+            else
+            {
+                VisitFieldSelectionSet(context, current, backlog);
+            }
         }
 
-        private static OutputTypeModel VisitOperationSelectionSet(
-            IDocumentAnalyzerContext context,
-            Queue<FieldSelection> backlog)
+        return root;
+    }
+
+    private static OutputTypeModel VisitOperationSelectionSet(
+        IDocumentAnalyzerContext context,
+        Queue<FieldSelection> backlog)
+    {
+        var selectionSetVariants =
+            context.CollectFields(
+                context.OperationDefinition.SelectionSet,
+                context.OperationType,
+                context.RootPath);
+
+        EnqueueFields(selectionSetVariants, backlog);
+
+        return _selectionAnalyzer.AnalyzeOperation(
+            context,
+            selectionSetVariants);
+    }
+
+    private static void VisitFieldSelectionSet(
+        IDocumentAnalyzerContext context,
+        FieldSelection fieldSelection,
+        Queue<FieldSelection> backlog)
+    {
+        var namedType = (INamedOutputType)fieldSelection.Field.Type.NamedType();
+
+        var selectionSetVariants =
+            context.CollectFields(
+                fieldSelection.SyntaxNode.SelectionSet!,
+                namedType,
+                fieldSelection.Path);
+
+        EnqueueFields(selectionSetVariants, backlog);
+
+        if (namedType is UnionType or InterfaceType)
         {
-            SelectionSetVariants selectionSetVariants =
-                context.CollectFields(
-                    context.OperationDefinition.SelectionSet,
-                    context.OperationType,
-                    context.RootPath);
-
-            EnqueueFields(selectionSetVariants, backlog);
-
-            return _selectionAnalyzer.AnalyzeOperation(
+            _selectionAnalyzer.Analyze(
                 context,
+                fieldSelection,
                 selectionSetVariants);
         }
-
-        private static void VisitFieldSelectionSet(
-            IDocumentAnalyzerContext context,
-            FieldSelection fieldSelection,
-            Queue<FieldSelection> backlog)
+        else if (namedType is ObjectType)
         {
-            var namedType = (INamedOutputType)fieldSelection.Field.Type.NamedType();
+            _selectionAnalyzer.Analyze(
+                context,
+                fieldSelection,
+                selectionSetVariants);
+        }
+    }
 
-            SelectionSetVariants selectionSetVariants =
-                context.CollectFields(
-                    fieldSelection.SyntaxNode.SelectionSet!,
-                    namedType,
-                    fieldSelection.Path);
+    private static IReadOnlyList<ArgumentModel> CreateOperationArguments(
+        IDocumentAnalyzerContext context)
+    {
+        var arguments = new List<ArgumentModel>();
 
-            EnqueueFields(selectionSetVariants, backlog);
+        foreach (var variableDefinition in
+                 context.OperationDefinition.VariableDefinitions)
+        {
+            var namedInputType = context.Schema.GetType<INamedInputType>(
+                variableDefinition.Type.NamedType().Name.Value);
 
-            if (namedType is UnionType or InterfaceType)
-            {
-                _selectionAnalyzer.Analyze(
-                    context,
-                    fieldSelection,
-                    selectionSetVariants);
-            }
-            else if (namedType is ObjectType)
-            {
-                _selectionAnalyzer.Analyze(
-                    context,
-                    fieldSelection,
-                    selectionSetVariants);
-            }
+            arguments.Add(new ArgumentModel(
+                variableDefinition.Variable.Name.Value,
+                (IInputType)variableDefinition.Type.ToType(namedInputType),
+                variableDefinition,
+                variableDefinition.DefaultValue));
         }
 
-        private static IReadOnlyList<ArgumentModel> CreateOperationArguments(
-            IDocumentAnalyzerContext context)
+        return arguments;
+    }
+
+    private static void EnqueueFields(
+        SelectionSetVariants selectionSetVariants,
+        Queue<FieldSelection> backlog)
+    {
+        if (selectionSetVariants.Variants.Count == 0)
         {
-            var arguments = new List<ArgumentModel>();
-
-            foreach (VariableDefinitionNode variableDefinition in
-                context.OperationDefinition.VariableDefinitions)
+            foreach (var fieldSelection in selectionSetVariants.ReturnType.Fields)
             {
-                INamedInputType namedInputType = context.Schema.GetType<INamedInputType>(
-                    variableDefinition.Type.NamedType().Name.Value);
-
-                arguments.Add(new ArgumentModel(
-                    variableDefinition.Variable.Name.Value,
-                    (IInputType)variableDefinition.Type.ToType(namedInputType),
-                    variableDefinition,
-                    variableDefinition.DefaultValue));
+                backlog.Enqueue(fieldSelection);
             }
-
-            return arguments;
         }
-
-        private static void EnqueueFields(
-            SelectionSetVariants selectionSetVariants,
-            Queue<FieldSelection> backlog)
+        else
         {
-            if (selectionSetVariants.Variants.Count == 0)
+            foreach (var selectionSet in selectionSetVariants.Variants)
             {
-                foreach (FieldSelection fieldSelection in selectionSetVariants.ReturnType.Fields)
+                foreach (var fieldSelection in selectionSet.Fields)
                 {
                     backlog.Enqueue(fieldSelection);
                 }
             }
-            else
-            {
-                foreach (SelectionSet selectionSet in selectionSetVariants.Variants)
-                {
-                    foreach (FieldSelection fieldSelection in selectionSet.Fields)
-                    {
-                        backlog.Enqueue(fieldSelection);
-                    }
-                }
-            }
         }
     }
-
 }

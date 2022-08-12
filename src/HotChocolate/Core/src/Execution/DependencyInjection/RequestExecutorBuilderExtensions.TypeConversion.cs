@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Utilities;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class RequestExecutorBuilderExtensions
@@ -113,7 +114,7 @@ public static partial class RequestExecutorBuilderExtensions
             sp => new DelegateChangeTypeProvider(changeType));
     }
 
-    private class DelegateChangeTypeProvider : IChangeTypeProvider
+    private sealed class DelegateChangeTypeProvider : IChangeTypeProvider
     {
         private readonly ChangeTypeProvider _changeTypeProvider;
 
@@ -132,7 +133,7 @@ public static partial class RequestExecutorBuilderExtensions
         }
     }
 
-    private class DelegateChangeTypeProvider<TSource, TTarget> : IChangeTypeProvider
+    private sealed class DelegateChangeTypeProvider<TSource, TTarget> : IChangeTypeProvider
     {
         private readonly ChangeType<TSource, TTarget> _changeType;
 

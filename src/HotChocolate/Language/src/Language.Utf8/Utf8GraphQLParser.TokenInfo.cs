@@ -2,7 +2,7 @@ namespace HotChocolate.Language;
 
 public ref partial struct Utf8GraphQLParser
 {
-    private ref partial struct TokenInfo
+    private readonly ref struct TokenInfo
     {
         public TokenInfo(int start, int end, int line, int column)
         {
@@ -26,13 +26,13 @@ public ref partial struct Utf8GraphQLParser
 
         /// <summary>
         /// Gets the 1-indexed line number on which this
-        /// <see cref="SyntaxToken" /> appears.
+        /// <see cref="ISyntaxNode" /> appears.
         /// </summary>
         public int Line { get; }
 
         /// <summary>
         /// Gets the 1-indexed column number at which this
-        /// <see cref="SyntaxToken" /> begins.
+        /// <see cref="ISyntaxNode" /> begins.
         /// </summary>
         public int Column { get; }
     }

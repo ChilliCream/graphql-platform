@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -20,13 +19,16 @@ public class InputField : FieldBase<InputFieldDefinition>, IInputField
         DefaultValue = definition.DefaultValue;
         Property = definition.Property;
 
-        IReadOnlyList<IInputValueFormatter> formatters = definition.GetFormatters();
+        var formatters = definition.GetFormatters();
         Formatter = formatters.Count switch
         {
             0 => null,
             1 => formatters[0],
             _ => new AggregateInputValueFormatter(formatters)
         };
+
+        IsDeprecated = !string.IsNullOrEmpty(definition.DeprecationReason);
+        DeprecationReason = definition.DeprecationReason;
     }
 
     /// <summary>
@@ -56,6 +58,12 @@ public class InputField : FieldBase<InputFieldDefinition>, IInputField
     /// Defines if the runtime type is represented as an <see cref="Optional{T}" />.
     /// </summary>
     internal bool IsOptional { get; private set; }
+
+    /// <inheritdoc />
+    public bool IsDeprecated { get; }
+
+    /// <inheritdoc />
+    public string? DeprecationReason { get; }
 
     /// <summary>
     /// If this field is bound to a property on a concrete model,

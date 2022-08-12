@@ -197,7 +197,7 @@ public partial class SchemaBuilder : ISchemaBuilder
 
         if (!_conventions.TryGetValue(
             (convention, scope),
-            out List<CreateConvention>? factories))
+            out var factories))
         {
             factories = new List<CreateConvention>();
             _conventions[(convention, scope)] = factories;
@@ -233,7 +233,7 @@ public partial class SchemaBuilder : ISchemaBuilder
                 nameof(schemaType));
         }
 
-        TypeContext context = SchemaTypeReference.InferTypeContext(schemaType);
+        var context = SchemaTypeReference.InferTypeContext(schemaType);
         _clrTypes[runtimeType] =
             (ti => ti.GetTypeRef(runtimeType, context),
             ti => ti.GetTypeRef(schemaType, context));
@@ -342,7 +342,7 @@ public partial class SchemaBuilder : ISchemaBuilder
                 nameof(operation));
         }
 
-        SchemaTypeReference reference = TypeReference.Create(rootType);
+        var reference = TypeReference.Create(rootType);
         _operations.Add(operation, _ => reference);
         _types.Add(_ => reference);
         return this;

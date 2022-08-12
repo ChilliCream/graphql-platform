@@ -12,73 +12,71 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using Squadron;
 
-namespace HotChocolate.Data.MongoDb.Sorting
+namespace HotChocolate.Data.MongoDb.Sorting;
+
+public class SortVisitorTestBase
 {
-    public class SortVisitorTestBase
+    private Func<IResolverContext, IExecutable<TResult>> BuildResolver<TResult>(
+        MongoResource mongoResource,
+        params TResult[] results)
+        where TResult : class
     {
-        private Func<IResolverContext, IExecutable<TResult>> BuildResolver<TResult>(
-            MongoResource mongoResource,
-            params TResult[] results)
-            where TResult : class
-        {
-            IMongoCollection<TResult> collection =
-                mongoResource.CreateCollection<TResult>("data_" + Guid.NewGuid().ToString("N"));
+        var collection =
+            mongoResource.CreateCollection<TResult>("data_" + Guid.NewGuid().ToString("N"));
 
-            collection.InsertMany(results);
+        collection.InsertMany(results);
 
-            return ctx => collection.AsExecutable();
-        }
+        return _ => collection.AsExecutable();
+    }
 
-        protected IRequestExecutor CreateSchema<TEntity, T>(
-            TEntity[] entities,
-            MongoResource mongoResource,
-            bool withPaging = false)
-            where TEntity : class
-            where T : SortInputType<TEntity>
-        {
-            Func<IResolverContext, IExecutable<TEntity>> resolver = BuildResolver(
-                mongoResource,
-                entities);
+    protected IRequestExecutor CreateSchema<TEntity, T>(
+        TEntity[] entities,
+        MongoResource mongoResource,
+        bool withPaging = false)
+        where TEntity : class
+        where T : SortInputType<TEntity>
+    {
+        var resolver = BuildResolver(
+            mongoResource,
+            entities);
 
-            return new ServiceCollection()
-                .AddGraphQL()
-                .AddSorting(x => x.BindRuntimeType<TEntity, T>().AddMongoDbDefaults())
-                .AddQueryType(
-                    c => c
-                        .Name("Query")
-                        .Field("root")
-                        .Resolve(resolver)
-                        .Use(
-                            next => async context =>
-                            {
-                                await next(context);
-                                if (context.Result is IExecutable executable)
-                                {
-                                    context.ContextData["query"] = executable.Print();
-                                }
-                            })
-                        .UseSorting<T>())
-                .UseRequest(
-                    next => async context =>
-                    {
-                        await next(context);
-                        if (context.Result is IReadOnlyQueryResult result &&
-                            context.ContextData.TryGetValue("query", out var queryString))
+        return new ServiceCollection()
+            .AddGraphQL()
+            .AddSorting(x => x.BindRuntimeType<TEntity, T>().AddMongoDbDefaults())
+            .AddQueryType(
+                c => c
+                    .Name("Query")
+                    .Field("root")
+                    .Resolve(resolver)
+                    .Use(
+                        next => async context =>
                         {
-                            context.Result =
-                                QueryResultBuilder
-                                    .FromResult(result)
-                                    .SetContextData("query", queryString)
-                                    .Create();
-                        }
-                    })
-                .UseDefaultPipeline()
-                .Services
-                .BuildServiceProvider()
-                .GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync()
-                .GetAwaiter()
-                .GetResult();
-        }
+                            await next(context);
+                            if (context.Result is IExecutable executable)
+                            {
+                                context.ContextData["query"] = executable.Print();
+                            }
+                        })
+                    .UseSorting<T>())
+            .UseRequest(
+                next => async context =>
+                {
+                    await next(context);
+                    if (context.ContextData.TryGetValue("query", out var queryString))
+                    {
+                        context.Result =
+                            QueryResultBuilder
+                                .FromResult(context.Result!.ExpectQueryResult())
+                                .SetContextData("query", queryString)
+                                .Create();
+                    }
+                })
+            .UseDefaultPipeline()
+            .Services
+            .BuildServiceProvider()
+            .GetRequiredService<IRequestExecutorResolver>()
+            .GetRequestExecutorAsync()
+            .GetAwaiter()
+            .GetResult();
     }
 }

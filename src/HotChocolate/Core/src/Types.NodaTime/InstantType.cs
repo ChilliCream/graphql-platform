@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using HotChocolate.Types.NodaTime.Properties;
 using NodaTime;
 using NodaTime.Text;
@@ -11,25 +10,39 @@ namespace HotChocolate.Types.NodaTime;
 /// </summary>
 public class InstantType : StringToStructBaseType<Instant>
 {
+    private readonly IPattern<Instant>[] _allowedPatterns;
+    private readonly IPattern<Instant> _serializationPattern;
+
     /// <summary>
     /// Initializes a new instance of <see cref="InstantType"/>.
     /// </summary>
-    public InstantType() : base("Instant")
+    public InstantType() : this(InstantPattern.ExtendedIso)
     {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="InstantType"/>.
+    /// </summary>
+    public InstantType(params IPattern<Instant>[] allowedPatterns) : base("Instant")
+    {
+        if (allowedPatterns.Length == 0)
+        {
+            throw ThrowHelper.PatternCannotBeEmpty(this);
+        }
+
+        _allowedPatterns = allowedPatterns;
+        _serializationPattern = allowedPatterns[0];
         Description = NodaTimeResources.InstantType_Description;
     }
 
     /// <inheritdoc />
     protected override string Serialize(Instant runtimeValue)
-        => InstantPattern.ExtendedIso
-            .WithCulture(CultureInfo.InvariantCulture)
+        => _serializationPattern
             .Format(runtimeValue);
 
     /// <inheritdoc />
     protected override bool TryDeserialize(
         string resultValue,
         [NotNullWhen(true)] out Instant? runtimeValue)
-        => InstantPattern.ExtendedIso
-            .WithCulture(CultureInfo.InvariantCulture)
-            .TryParse(resultValue, out runtimeValue);
+        => _allowedPatterns.TryParse(resultValue, out runtimeValue);
 }

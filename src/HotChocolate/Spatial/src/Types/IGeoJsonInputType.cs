@@ -1,6 +1,5 @@
-namespace HotChocolate.Types.Spatial
+namespace HotChocolate.Types.Spatial;
+
+internal interface IGeoJsonInputType : IType
 {
-    internal interface IGeoJsonInputType : IType
-    {
-    }
 }

@@ -45,9 +45,9 @@ internal sealed class TypeCache
     {
         lock (_sync)
         {
-            if (!_typeMemberLookup.TryGetValue(member, out ExtendedType? extendedType))
+            if (!_typeMemberLookup.TryGetValue(member, out var extendedType))
             {
-                ExtendedType type = create();
+                var type = create();
 
                 if (_types.TryGetValue(type.Id, out extendedType))
                 {
@@ -85,11 +85,11 @@ internal sealed class TypeCache
         IExtendedType extendedType,
         Func<TypeInfo> create)
     {
-        ExtendedTypeId id = ((ExtendedType)extendedType).Id;
+        var id = ((ExtendedType)extendedType).Id;
 
         lock (_sync)
         {
-            if (!_typeInfos.TryGetValue(id, out TypeInfo? typeInfo))
+            if (!_typeInfos.TryGetValue(id, out var typeInfo))
             {
                 typeInfo = create();
                 _typeInfos.Add(id, typeInfo);

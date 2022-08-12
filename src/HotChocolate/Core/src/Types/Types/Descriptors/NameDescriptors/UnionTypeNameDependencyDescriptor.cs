@@ -7,11 +7,11 @@ internal class UnionTypeNameDependencyDescriptor
     : IUnionTypeNameDependencyDescriptor
 {
     private readonly IUnionTypeDescriptor _descriptor;
-    private readonly Func<INamedType, NameString> _createName;
+    private readonly Func<INamedType, string> _createName;
 
     public UnionTypeNameDependencyDescriptor(
         IUnionTypeDescriptor descriptor,
-        Func<INamedType, NameString> createName)
+        Func<INamedType, string> createName)
     {
         _descriptor = descriptor
             ?? throw new ArgumentNullException(nameof(descriptor));
@@ -22,15 +22,13 @@ internal class UnionTypeNameDependencyDescriptor
     public IUnionTypeDescriptor DependsOn<TDependency>()
         where TDependency : IType
     {
-        TypeNameHelper.AddNameFunction(
-            _descriptor, _createName, typeof(TDependency));
+        TypeNameHelper.AddNameFunction(_descriptor, _createName, typeof(TDependency));
         return _descriptor;
     }
 
     public IUnionTypeDescriptor DependsOn(Type schemaType)
     {
-        TypeNameHelper.AddNameFunction(
-            _descriptor, _createName, schemaType);
+        TypeNameHelper.AddNameFunction(_descriptor, _createName, schemaType);
         return _descriptor;
     }
 }

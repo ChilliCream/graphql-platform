@@ -68,22 +68,10 @@ public abstract class TypeReference : ITypeReference
     }
 
     public override int GetHashCode()
-    {
-        unchecked
-        {
-            var hash = 0;
-
-            if (Scope is { })
-            {
-                hash ^= Scope.GetHashCode() * 397;
-            }
-
-            return hash;
-        }
-    }
+        => HashCode.Combine(Scope);
 
     public static DependantFactoryTypeReference Create(
-        NameString name,
+        string name,
         ITypeReference dependency,
         Func<IDescriptorContext, TypeSystemObjectBase> factory,
         TypeContext context = TypeContext.None,
@@ -109,11 +97,11 @@ public abstract class TypeReference : ITypeReference
         new(type, context, scope, factory);
 
     public static SyntaxTypeReference Create(
-        NameString typeName,
+        string typeName,
         TypeContext context = TypeContext.None,
         string? scope = null,
         Func<IDescriptorContext, TypeSystemObjectBase>? factory = null) =>
-        new(new NamedTypeNode(typeName), context, scope, factory);
+        new(new NamedTypeNode(typeName.EnsureGraphQLName()), context, scope, factory);
 
     public static SyntaxTypeReference Parse(
         string sourceText,
@@ -135,9 +123,6 @@ public abstract class TypeReference : ITypeReference
                 scope);
         }
 
-        return new ExtendedTypeReference(
-            type,
-            context,
-            scope);
+        return new ExtendedTypeReference(type, context, scope);
     }
 }

@@ -9,6 +9,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 
 #nullable enable
@@ -24,7 +25,6 @@ internal class TypeInitializer
     private readonly TypeInterceptor _interceptor;
     private readonly IsOfTypeFallback? _isOfType;
     private readonly Func<TypeSystemObjectBase, RootTypeKind> _getTypeKind;
-    private readonly Func<ISchema> _schemaResolver;
     private readonly IReadOnlySchemaOptions _options;
     private readonly TypeRegistry _typeRegistry;
     private readonly TypeLookup _typeLookup;
@@ -40,7 +40,6 @@ internal class TypeInitializer
         IReadOnlyList<ITypeReference> initialTypes,
         IsOfTypeFallback? isOfType,
         Func<TypeSystemObjectBase, RootTypeKind> getTypeKind,
-        Func<ISchema> schemaResolver,
         IReadOnlySchemaOptions options)
     {
         _context = descriptorContext ??
@@ -51,15 +50,13 @@ internal class TypeInitializer
             throw new ArgumentNullException(nameof(initialTypes));
         _getTypeKind = getTypeKind ??
             throw new ArgumentNullException(nameof(getTypeKind));
-        _schemaResolver = schemaResolver ??
-            throw new ArgumentNullException(nameof(schemaResolver));
         _options = options ??
             throw new ArgumentNullException(nameof(options));
 
         _isOfType = isOfType ?? options.DefaultIsOfTypeCheck;
 
         _interceptor = descriptorContext.TypeInterceptor;
-        ITypeInspector typeInspector = descriptorContext.TypeInspector;
+        var typeInspector = descriptorContext.TypeInspector;
         _typeLookup = new TypeLookup(typeInspector, _typeRegistry);
         _typeReferenceResolver = new TypeReferenceResolver(
             typeInspector, _typeRegistry, _typeLookup);
@@ -160,27 +157,27 @@ internal class TypeInitializer
             .Distinct()
             .ToList();
 
-        foreach (RegisteredType objectType in objectTypes)
+        foreach (var objectType in objectTypes)
         {
-            foreach (RegisteredType interfaceType in interfaceTypes)
+            foreach (var interfaceType in interfaceTypes)
             {
                 if (interfaceType.RuntimeType.IsAssignableFrom(objectType.RuntimeType))
                 {
-                    SchemaTypeReference typeReference = TypeReference.Create(interfaceType.Type);
+                    var typeReference = TypeReference.Create(interfaceType.Type);
                     ((ObjectType)objectType.Type).Definition!.Interfaces.Add(typeReference);
                     objectType.Dependencies.Add(new(typeReference, TypeDependencyKind.Completed));
                 }
             }
         }
 
-        foreach (RegisteredType implementing in interfaceTypes)
+        foreach (var implementing in interfaceTypes)
         {
-            foreach (RegisteredType interfaceType in interfaceTypes)
+            foreach (var interfaceType in interfaceTypes)
             {
                 if (!ReferenceEquals(implementing, interfaceType) &&
                     interfaceType.RuntimeType.IsAssignableFrom(implementing.RuntimeType))
                 {
-                    SchemaTypeReference typeReference = TypeReference.Create(interfaceType.Type);
+                    var typeReference = TypeReference.Create(interfaceType.Type);
                     ((InterfaceType)implementing.Type).Definition!.Interfaces.Add(typeReference);
                     implementing.Dependencies.Add(new(typeReference, TypeDependencyKind.Completed));
                 }
@@ -227,7 +224,6 @@ internal class TypeInitializer
     {
         registeredType.PrepareForCompletion(
             _typeReferenceResolver,
-            _schemaResolver,
             _globalComps,
             _isOfType);
 
@@ -238,14 +234,14 @@ internal class TypeInitializer
             _typeRegistry.Register(registeredType.Type.Name, registeredType);
         }
 
-        RootTypeKind kind = _getTypeKind(registeredType.Type);
+        var kind = _getTypeKind(registeredType.Type);
         registeredType.IsQueryType = kind == RootTypeKind.Query;
         registeredType.IsMutationType = kind == RootTypeKind.Mutation;
         registeredType.IsSubscriptionType = kind == RootTypeKind.Subscription;
 
         if (kind is not RootTypeKind.None)
         {
-            OperationType operationType = kind switch
+            var operationType = kind switch
             {
                 RootTypeKind.Query => OperationType.Query,
                 RootTypeKind.Mutation => OperationType.Mutation,
@@ -279,18 +275,18 @@ internal class TypeInitializer
                 .Where(t => t.IsNamedType)
                 .ToList();
 
-            foreach (NameString typeName in extensions
+            foreach (var typeName in extensions
                 .Select(t => t.Type)
                 .OfType<INamedTypeExtension>()
                 .Where(t => t.ExtendsType is null)
                 .Select(t => t.Name)
                 .Distinct())
             {
-                RegisteredType? type = types.FirstOrDefault(t => t.Type.Name.Equals(typeName));
+                var type = types.FirstOrDefault(t => t.Type.Name.EqualsOrdinal(typeName));
                 if (type?.Type is INamedType namedType)
                 {
                     MergeTypeExtension(
-                        extensions.Where(t => t.Type.Name.Equals(typeName)),
+                        extensions.Where(t => t.Type.Name.EqualsOrdinal(typeName)),
                         type,
                         namedType,
                         processed);
@@ -299,7 +295,7 @@ internal class TypeInitializer
 
             var extensionArray = new RegisteredType[1];
 
-            foreach (RegisteredType? extension in extensions.Except(processed))
+            foreach (var extension in extensions.Except(processed))
             {
                 if (extension.Type is INamedTypeExtension
                     {
@@ -309,7 +305,7 @@ internal class TypeInitializer
                     var isSchemaType = typeof(INamedType).IsAssignableFrom(extendsType);
                     extensionArray[0] = extension;
 
-                    foreach (RegisteredType? possibleMatchingType in types
+                    foreach (var possibleMatchingType in types
                         .Where(t =>
                             t.Type is INamedType n &&
                             n.Kind == namedTypeExtension.Kind))
@@ -348,7 +344,7 @@ internal class TypeInitializer
         INamedType namedType,
         HashSet<RegisteredType> processed)
     {
-        foreach (RegisteredType extension in extensions)
+        foreach (var extension in extensions)
         {
             processed.Add(extension);
 
@@ -403,7 +399,7 @@ internal class TypeInitializer
 
     private void FinalizeTypes()
     {
-        foreach (RegisteredType? registeredType in _typeRegistry.Types)
+        foreach (var registeredType in _typeRegistry.Types)
         {
             if (!registeredType.IsExtension)
             {
@@ -424,7 +420,7 @@ internal class TypeInitializer
             && processed.Count < _typeRegistry.Count
             && batch.Count > 0)
         {
-            foreach (RegisteredType registeredType in batch)
+            foreach (var registeredType in batch)
             {
                 if (!action(registeredType))
                 {
@@ -432,7 +428,7 @@ internal class TypeInitializer
                     break;
                 }
 
-                foreach (ITypeReference reference in registeredType.References)
+                foreach (var reference in registeredType.References)
                 {
                     processed.Add(reference);
                 }
@@ -447,16 +443,15 @@ internal class TypeInitializer
 
         if (!failed && processed.Count < _typeRegistry.Count)
         {
-            foreach (RegisteredType type in _typeRegistry.Types
+            foreach (var type in _typeRegistry.Types
                 .Where(t => !processed.Contains(t.References[0])))
             {
-                var name = type.Type.Name.HasValue
-                    ? type.Type.Name.Value
-                    : type.References[0].ToString()!;
+                // the name might not be set at this point.
+                var name = type.Type.Name ?? type.References[0].ToString()!;
 
                 IReadOnlyList<ITypeReference> needed =
                     TryNormalizeDependencies(type.Conditionals,
-                        out IReadOnlyList<ITypeReference>? normalized)
+                        out var normalized)
                         ? normalized.Except(processed).ToArray()
                         : type.Conditionals.Select(t => t.TypeReference).ToArray();
 
@@ -480,12 +475,12 @@ internal class TypeInitializer
     {
         _next.Clear();
 
-        foreach (RegisteredType? registeredType in _typeRegistry.Types)
+        foreach (var registeredType in _typeRegistry.Types)
         {
             var conditional = false;
             registeredType.ClearConditionals();
 
-            foreach (TypeDependency? dependency in registeredType.Dependencies)
+            foreach (var dependency in registeredType.Dependencies)
             {
                 if (dependency.Kind == kind)
                 {
@@ -508,7 +503,7 @@ internal class TypeInitializer
     private IEnumerable<RegisteredType> GetNextBatch(
         ISet<ITypeReference> processed)
     {
-        foreach (RegisteredType type in _next)
+        foreach (var type in _next)
         {
             if (TryNormalizeDependencies(type.Conditionals, out var normalized) &&
                 processed.IsSupersetOf(GetTypeRefsExceptSelfRefs(type, normalized)))
@@ -537,7 +532,7 @@ internal class TypeInitializer
             _typeRefSet.Clear();
             _typeRefSet.UnionWith(type.References);
 
-            foreach (ITypeReference? typeRef in normalizedTypeReferences)
+            foreach (var typeRef in normalizedTypeReferences)
             {
                 if (_typeRefSet.Add(typeRef))
                 {
@@ -555,11 +550,11 @@ internal class TypeInitializer
     {
         var n = new List<ITypeReference>();
 
-        foreach (TypeDependency dependency in dependencies)
+        foreach (var dependency in dependencies)
         {
             if (!_typeLookup.TryNormalizeReference(
                 dependency.TypeReference,
-                out ITypeReference? nr))
+                out var nr))
             {
                 normalized = null;
                 return false;
@@ -579,7 +574,7 @@ internal class TypeInitializer
     {
         var errors = new List<ISchemaError>(_errors);
 
-        foreach (RegisteredType type in _typeRegistry.Types)
+        foreach (var type in _typeRegistry.Types)
         {
             if (type.Errors.Count == 0)
             {

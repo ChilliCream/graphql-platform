@@ -3,29 +3,28 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace HotChocolate.Utilities.StreamAdapters
+namespace HotChocolate.Utilities.StreamAdapters;
+
+internal sealed class AsyncEnumerableStreamAdapter<T> : IAsyncEnumerable<object?>
 {
-    internal sealed class AsyncEnumerableStreamAdapter<T> : IAsyncEnumerable<object?>
+    private readonly IAsyncEnumerable<T> _stream;
+
+    public AsyncEnumerableStreamAdapter(IAsyncEnumerable<T> stream)
     {
-        private readonly IAsyncEnumerable<T> _stream;
+        _stream = stream ?? throw new ArgumentNullException(nameof(stream));
+    }
 
-        public AsyncEnumerableStreamAdapter(IAsyncEnumerable<T> stream)
+    public async IAsyncEnumerator<object?> GetAsyncEnumerator(
+        CancellationToken cancellationToken = default)
+    {
+        await foreach (var item in _stream.WithCancellation(cancellationToken))
         {
-            _stream = stream ?? throw new ArgumentNullException(nameof(stream));
-        }
-
-        public async IAsyncEnumerator<object?> GetAsyncEnumerator(
-            CancellationToken cancellationToken = default)
-        {
-            await foreach (T item in _stream.WithCancellation(cancellationToken))
+            if (cancellationToken.IsCancellationRequested)
             {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    yield break;
-                }
-
-                yield return item;
+                yield break;
             }
+
+            yield return item;
         }
     }
 }

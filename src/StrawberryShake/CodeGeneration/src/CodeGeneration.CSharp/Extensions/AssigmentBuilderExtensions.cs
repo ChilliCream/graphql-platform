@@ -1,25 +1,24 @@
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp;
+
+internal static class AssigmentBuilderExtensions
 {
-    internal static class AssigmentBuilderExtensions
+    public static MethodCallBuilder AddMethodCall(
+        this AssignmentBuilder builder,
+        string? methodName = null)
     {
-        public static MethodCallBuilder AddMethodCall(
-            this AssignmentBuilder builder,
-            string? methodName = null)
+        var methodCallBuilder = MethodCallBuilder
+            .New()
+            .SetDetermineStatement(false);
+
+        if (methodName is not null)
         {
-            MethodCallBuilder methodCallBuilder = MethodCallBuilder
-                .New()
-                .SetDetermineStatement(false);
-
-            if (methodName is not null)
-            {
-                methodCallBuilder.SetMethodName(methodName);
-            }
-
-            builder.SetRighthandSide(methodCallBuilder);
-
-            return methodCallBuilder;
+            methodCallBuilder.SetMethodName(methodName);
         }
+
+        builder.SetRighthandSide(methodCallBuilder);
+
+        return methodCallBuilder;
     }
 }

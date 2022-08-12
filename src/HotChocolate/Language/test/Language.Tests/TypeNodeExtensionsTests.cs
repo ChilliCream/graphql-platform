@@ -15,7 +15,7 @@ public class TypeNodeExtensionsTests
         var listType = new ListTypeNode(null, namedType);
 
         // act
-        ITypeNode innerType = listType.InnerType();
+        var innerType = listType.InnerType();
 
         // assert
         Assert.Equal(namedType, innerType);
@@ -29,7 +29,7 @@ public class TypeNodeExtensionsTests
         var nonNullType = new NonNullTypeNode(null, namedType);
 
         // act
-        ITypeNode innerType = nonNullType.InnerType();
+        var innerType = nonNullType.InnerType();
 
         // assert
         Assert.Equal(namedType, innerType);
@@ -43,8 +43,8 @@ public class TypeNodeExtensionsTests
         var nonNullType = new NonNullTypeNode(null, namedType);
 
         // act
-        ITypeNode a = nonNullType.NullableType();
-        ITypeNode b = namedType.NullableType();
+        var a = nonNullType.NullableType();
+        var b = namedType.NullableType();
 
         // assert
         Assert.Equal(namedType, a);
@@ -59,8 +59,8 @@ public class TypeNodeExtensionsTests
         var listType = new ListTypeNode(null, namedType);
 
         // act
-        bool shouldBeFalse = namedType.IsListType();
-        bool shouldBeTrue = listType.IsListType();
+        var shouldBeFalse = namedType.IsListType();
+        var shouldBeTrue = listType.IsListType();
 
         // assert
         Assert.False(shouldBeFalse);
@@ -75,8 +75,8 @@ public class TypeNodeExtensionsTests
         var nonNullType = new NonNullTypeNode(null, namedType);
 
         // act
-        bool shouldBeFalse = namedType.IsNonNullType();
-        bool shouldBeTrue = nonNullType.IsNonNullType();
+        var shouldBeFalse = namedType.IsNonNullType();
+        var shouldBeTrue = nonNullType.IsNonNullType();
 
         // assert
         Assert.False(shouldBeFalse);
@@ -99,10 +99,10 @@ public class TypeNodeExtensionsTests
     public void NamedType_ExtractType_ExtractSuccessfull(string fieldType)
     {
         // arrange
-        ITypeNode type = GetType(fieldType);
+        var type = GetType(fieldType);
 
         // act
-        NamedTypeNode name = type.NamedType();
+        var name = type.NamedType();
 
         // assert
         Assert.Equal("Foo", name.Print());
@@ -112,7 +112,7 @@ public class TypeNodeExtensionsTests
     public void InvalidTypeStructure()
     {
         // arrange
-        ITypeNode type = GetType("[[[Foo!]!]!]!");
+        var type = GetType("[[[[[[Foo!]!]!]!]!]!]!");
 
         // act
         Action a = () => type.NamedType();
@@ -123,7 +123,7 @@ public class TypeNodeExtensionsTests
 
     public ITypeNode GetType(string type)
     {
-        DocumentNode definition = Utf8GraphQLParser.Parse($"type Foo {{ field: {type}  }}");
+        var definition = Utf8GraphQLParser.Parse($"type Foo {{ field: {type}  }}");
 
         if (definition.Definitions.FirstOrDefault() is ObjectTypeDefinitionNode typeNode &&
             typeNode.Fields.FirstOrDefault() is { } field)

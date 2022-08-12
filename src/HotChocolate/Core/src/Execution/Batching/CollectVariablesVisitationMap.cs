@@ -68,7 +68,7 @@ public sealed class CollectVariablesVisitationMap
         IList<SyntaxNodeInfo> children)
     {
         if (_fragments is not null &&
-            _fragments.TryGetValue(node.Name.Value, out FragmentDefinitionNode? d))
+            _fragments.TryGetValue(node.Name.Value, out var d))
         {
             ResolveChildren(
                 d.Name.Value,

@@ -4,46 +4,51 @@ using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Data.MongoDb
+namespace HotChocolate.Data.MongoDb;
+
+internal static class ErrorHelper
 {
-    internal static class ErrorHelper
+    public static IError CreateNonNullError<T>(
+        IFilterField field,
+        IValueNode value,
+        IFilterVisitorContext<T> context,
+        bool isMemberInvalid = false)
     {
-        public static IError CreateNonNullError<T>(
-            IFilterField field,
-            IValueNode value,
-            IFilterVisitorContext<T> context)
-        {
-            IFilterInputType filterType = context.Types.OfType<IFilterInputType>().First();
+        var filterType = context.Types.OfType<IFilterInputType>().First();
 
-            return ErrorBuilder.New()
-                .SetMessage(
-                    MongoDbResources.ErrorHelper_Filtering_CreateNonNullError,
-                    context.Operations.Peek().Name,
-                    filterType.Print())
-                .AddLocation(value)
-                .SetCode(ErrorCodes.Data.NonNullError)
-                .SetExtension("expectedType", new NonNullType(field.Type).Print())
-                .SetExtension("filterType", filterType.Print())
-                .Build();
-        }
+        INullabilityNode nullability =
+            isMemberInvalid && field.Type.IsListType()
+            ? new ListNullabilityNode(null, new RequiredModifierNode(null, null))
+            : new RequiredModifierNode(null, null);
 
-        public static IError CreateNonNullError<T>(
-            ISortField field,
-            IValueNode value,
-            ISortVisitorContext<T> context)
-        {
-            ISortInputType sortType = context.Types.OfType<ISortInputType>().First();
+        return ErrorBuilder.New()
+            .SetMessage(
+                MongoDbResources.ErrorHelper_Filtering_CreateNonNullError,
+                context.Operations.Peek().Name,
+                filterType.Print())
+            .AddLocation(value)
+            .SetCode(ErrorCodes.Data.NonNullError)
+            .SetExtension("expectedType", field.Type.RewriteNullability(nullability).Print())
+            .SetExtension("filterType", filterType.Print())
+            .Build();
+    }
 
-            return ErrorBuilder.New()
-                .SetMessage(
-                    MongoDbResources.ErrorHelper_Filtering_CreateNonNullError,
-                    context.Fields.Peek().Name,
-                    sortType.Print())
-                .AddLocation(value)
-                .SetCode(ErrorCodes.Data.NonNullError)
-                .SetExtension("expectedType", new NonNullType(field.Type).Print())
-                .SetExtension("sortType", sortType.Print())
-                .Build();
-        }
+    public static IError CreateNonNullError<T>(
+        ISortField field,
+        IValueNode value,
+        ISortVisitorContext<T> context)
+    {
+        var sortType = context.Types.OfType<ISortInputType>().First();
+
+        return ErrorBuilder.New()
+            .SetMessage(
+                MongoDbResources.ErrorHelper_Filtering_CreateNonNullError,
+                context.Fields.Peek().Name,
+                sortType.Print())
+            .AddLocation(value)
+            .SetCode(ErrorCodes.Data.NonNullError)
+            .SetExtension("expectedType", new NonNullType(field.Type).Print())
+            .SetExtension("sortType", sortType.Print())
+            .Build();
     }
 }

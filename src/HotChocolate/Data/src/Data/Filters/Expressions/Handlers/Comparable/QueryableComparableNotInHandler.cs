@@ -1,5 +1,5 @@
-using System;
 using System.Linq.Expressions;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -25,7 +25,7 @@ public class QueryableComparableNotInHandler
         IValueNode value,
         object? parsedValue)
     {
-        Expression property = context.GetInstance();
+        var property = context.GetInstance();
         parsedValue = ParseValue(value, parsedValue, field.Type, context);
 
         if (parsedValue is null)

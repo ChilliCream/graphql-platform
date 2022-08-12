@@ -17,7 +17,6 @@ public class OutputFieldBase<TDefinition>
 
     internal OutputFieldBase(TDefinition definition, int index) : base(definition, index)
     {
-        IsDeprecated = !string.IsNullOrEmpty(definition.DeprecationReason);
         DeprecationReason = definition.DeprecationReason;
     }
 
@@ -40,10 +39,12 @@ public class OutputFieldBase<TDefinition>
     /// <summary>
     /// Defines if this field as a introspection field.
     /// </summary>
-    public virtual bool IsIntrospectionField => false;
+    public bool IsIntrospectionField
+        => (Flags & FieldFlags.Introspection) == FieldFlags.Introspection;
 
     /// <inheritdoc />
-    public bool IsDeprecated { get; }
+    public bool IsDeprecated
+        => (Flags & FieldFlags.Deprecated) == FieldFlags.Deprecated;
 
     /// <inheritdoc />
     public string? DeprecationReason { get; }

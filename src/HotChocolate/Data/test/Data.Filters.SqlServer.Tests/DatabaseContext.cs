@@ -10,7 +10,7 @@ public class DatabaseContext<T> : DbContext
 {
     private readonly string _fileName;
     private bool _disposed;
-    private Action<ModelBuilder>? _onModelCreating;
+    private readonly Action<ModelBuilder>? _onModelCreating;
 
     public DatabaseContext(
         string fileName,

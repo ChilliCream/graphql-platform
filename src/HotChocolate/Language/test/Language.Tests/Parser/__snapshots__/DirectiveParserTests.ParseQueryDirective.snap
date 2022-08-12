@@ -43,8 +43,7 @@
                 "Column": 25
               },
               "Value": "var"
-            },
-            "Value": "var"
+            }
           },
           "Type": {
             "Kind": "NamedType",

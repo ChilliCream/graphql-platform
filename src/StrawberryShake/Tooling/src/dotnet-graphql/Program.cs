@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
 
 namespace StrawberryShake.Tools
@@ -15,6 +14,9 @@ namespace StrawberryShake.Tools
             root.Command("init", InitCommand.Build);
             root.Command("update", UpdateCommand.Build);
             root.Command("download", DownloadCommand.Build);
+            root.Command("generate", GenerateCommand.Build);
+            root.Command("export", ExportCommand.Build);
+            root.Command("where", WhereCommand.Build);
 
             root.OnExecute(() =>
             {

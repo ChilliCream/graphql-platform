@@ -18,4 +18,6 @@ public interface ISortField
     new IExtendedType? RuntimeType { get; }
 
     ISortFieldHandler Handler { get; }
+
+    ISortMetadata? Metadata { get; }
 }

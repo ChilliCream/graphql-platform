@@ -8,15 +8,13 @@ public interface ISortFieldDescriptor
     : IDescriptor<SortFieldDefinition>
     , IFluent
 {
-    ISortFieldDescriptor SyntaxNode(
-        InputValueDefinitionNode inputValueDefinitionNode);
+    ISortFieldDescriptor SyntaxNode(InputValueDefinitionNode inputValueDefinition);
 
-    ISortFieldDescriptor Name(NameString value);
+    ISortFieldDescriptor Name(string value);
 
     ISortFieldDescriptor Description(string value);
 
-    ISortFieldDescriptor Type<TInputType>()
-        where TInputType : IInputType;
+    ISortFieldDescriptor Type<TInputType>() where TInputType : IInputType;
 
     ISortFieldDescriptor Type<TInputType>(TInputType inputType)
         where TInputType : class, IInputType;
@@ -31,13 +29,9 @@ public interface ISortFieldDescriptor
 
     ISortFieldDescriptor DefaultValue(object value);
 
-    ISortFieldDescriptor Directive<T>(T directiveInstance)
-        where T : class;
+    ISortFieldDescriptor Directive<T>(T directiveInstance) where T : class;
 
-    ISortFieldDescriptor Directive<T>()
-        where T : class, new();
+    ISortFieldDescriptor Directive<T>() where T : class, new();
 
-    ISortFieldDescriptor Directive(
-        NameString name,
-        params ArgumentNode[] arguments);
+    ISortFieldDescriptor Directive(string name, params ArgumentNode[] arguments);
 }

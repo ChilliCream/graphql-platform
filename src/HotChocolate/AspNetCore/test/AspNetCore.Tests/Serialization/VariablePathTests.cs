@@ -1,7 +1,3 @@
-using System;
-using System.Linq;
-using Xunit;
-
 namespace HotChocolate.AspNetCore.Serialization;
 
 public class VariablePathTests

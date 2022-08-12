@@ -29,7 +29,7 @@ public static class QueryableSortVisitorContextExtensions
 
         var firstOperation = true;
 
-        foreach (QueryableSortOperation? operation in context.Operations)
+        foreach (var operation in context.Operations)
         {
             if (firstOperation &&
                 !OrderingMethodFinder.OrderMethodExists(source))
@@ -50,7 +50,7 @@ public static class QueryableSortVisitorContextExtensions
 
     // Adapted from internal System.Web.Util.OrderingMethodFinder
     // http://referencesource.microsoft.com/#System.Web/Util/OrderingMethodFinder.cs
-    private class OrderingMethodFinder : ExpressionVisitor
+    private sealed class OrderingMethodFinder : ExpressionVisitor
     {
         private bool _orderingMethodFound = false;
 

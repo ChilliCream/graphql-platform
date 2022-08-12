@@ -28,7 +28,7 @@ public static class SyntaxWriterExtensions
         {
             action(items[0], writer);
 
-            for (int i = 1; i < items.Count; i++)
+            for (var i = 1; i < items.Count; i++)
             {
                 writer.Write(separator);
                 action(items[i], writer);
@@ -46,7 +46,7 @@ public static class SyntaxWriterExtensions
         {
             action(items[0], writer);
 
-            for (int i = 1; i < items.Count; i++)
+            for (var i = 1; i < items.Count; i++)
             {
                 separator(writer);
                 action(items[i], writer);
@@ -140,9 +140,9 @@ public static class SyntaxWriterExtensions
 
     private static void WriteEscapeCharacters(ISyntaxWriter writer, string input)
     {
-        for (int i = 0; i < input.Length; i++)
+        for (var i = 0; i < input.Length; i++)
         {
-            char c = input[i];
+            var c = input[i];
             WriteEscapeCharacter(writer, in c);
         }
     }

@@ -43,7 +43,7 @@ public class FilterProviderExtensionsTests
             x => Assert.Equal(firstFieldHandler, x.HandlerInstance));
     }
 
-    private class MockProviderExtensions
+    private sealed class MockProviderExtensions
         : FilterProviderExtensions<QueryableFilterContext>
     {
         public MockProviderExtensions(
@@ -53,7 +53,7 @@ public class FilterProviderExtensionsTests
         }
     }
 
-    private class MockProvider : FilterProvider<QueryableFilterContext>
+    private sealed class MockProvider : FilterProvider<QueryableFilterContext>
     {
         public FilterProviderDefinition? DefinitionAccessor => base.Definition;
 
@@ -62,7 +62,7 @@ public class FilterProviderExtensionsTests
         {
         }
 
-        public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
+        public override FieldMiddleware CreateExecutor<TEntityType>(string argumentName)
         {
             throw new NotImplementedException();
         }

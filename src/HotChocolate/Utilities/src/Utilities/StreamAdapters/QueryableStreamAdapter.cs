@@ -4,97 +4,96 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace HotChocolate.Utilities.StreamAdapters
+namespace HotChocolate.Utilities.StreamAdapters;
+
+internal sealed class QueryableStreamAdapter : IAsyncEnumerable<object?>
 {
-    internal sealed class QueryableStreamAdapter : IAsyncEnumerable<object?>
+    private readonly IQueryable _query;
+
+    public QueryableStreamAdapter(IQueryable query)
     {
-        private readonly IQueryable _query;
+        _query = query ?? throw new ArgumentNullException(nameof(query));
+    }
 
-        public QueryableStreamAdapter(IQueryable query)
+    public async IAsyncEnumerator<object?> GetAsyncEnumerator(
+        CancellationToken cancellationToken = default)
+    {
+        var list = await ToListAsync(cancellationToken).ConfigureAwait(false);
+
+        foreach (var item in list)
         {
-            _query = query ?? throw new ArgumentNullException(nameof(query));
-        }
-
-        public async IAsyncEnumerator<object?> GetAsyncEnumerator(
-            CancellationToken cancellationToken = default)
-        {
-            List<object?> list = await ToListAsync(cancellationToken).ConfigureAwait(false);
-
-            foreach (var item in list)
+            if (cancellationToken.IsCancellationRequested)
             {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    break;
-                }
-
-                yield return item;
+                break;
             }
-        }
 
-        private Task<List<object?>> ToListAsync(CancellationToken cancellationToken)
-        {
-            return Task.Run(() =>
-            {
-                var items = new List<object?>();
-
-                foreach (var o in _query)
-                {
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        break;
-                    }
-
-                    items.Add(o);
-                }
-
-                return items;
-            }, cancellationToken);
+            yield return item;
         }
     }
 
-    internal sealed class QueryableStreamAdapter<T> : IAsyncEnumerable<object?>
+    private Task<List<object?>> ToListAsync(CancellationToken cancellationToken)
     {
-        private readonly IQueryable<T> _query;
-
-        public QueryableStreamAdapter(IQueryable<T> query)
+        return Task.Run(() =>
         {
-            _query = query ?? throw new ArgumentNullException(nameof(query));
-        }
+            var items = new List<object?>();
 
-        public async IAsyncEnumerator<object?> GetAsyncEnumerator(
-            CancellationToken cancellationToken = default)
-        {
-            List<T> list = await ToListAsync(cancellationToken).ConfigureAwait(false);
-
-            foreach (T? item in list)
+            foreach (var o in _query)
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
                     break;
                 }
 
-                yield return item;
+                items.Add(o);
             }
-        }
 
-        private Task<List<T>> ToListAsync(CancellationToken cancellationToken)
+            return items;
+        }, cancellationToken);
+    }
+}
+
+internal sealed class QueryableStreamAdapter<T> : IAsyncEnumerable<object?>
+{
+    private readonly IQueryable<T> _query;
+
+    public QueryableStreamAdapter(IQueryable<T> query)
+    {
+        _query = query ?? throw new ArgumentNullException(nameof(query));
+    }
+
+    public async IAsyncEnumerator<object?> GetAsyncEnumerator(
+        CancellationToken cancellationToken = default)
+    {
+        var list = await ToListAsync(cancellationToken).ConfigureAwait(false);
+
+        foreach (var item in list)
         {
-            return Task.Run(() =>
+            if (cancellationToken.IsCancellationRequested)
             {
-                var items = new List<T>();
+                break;
+            }
 
-                foreach (T o in _query)
+            yield return item;
+        }
+    }
+
+    private Task<List<T>> ToListAsync(CancellationToken cancellationToken)
+    {
+        return Task.Run(() =>
+        {
+            var items = new List<T>();
+
+            foreach (var o in _query)
+            {
+                if (cancellationToken.IsCancellationRequested)
                 {
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        break;
-                    }
-
-                    items.Add(o);
+                    break;
                 }
 
-                return items;
-            }, cancellationToken);
-        }
+                items.Add(o);
+            }
+
+            return items;
+        }, cancellationToken);
     }
 }

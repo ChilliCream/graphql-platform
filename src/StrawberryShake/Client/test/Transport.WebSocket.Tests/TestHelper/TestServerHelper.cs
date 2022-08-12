@@ -7,70 +7,68 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace StrawberryShake.Transport.WebSockets
+namespace StrawberryShake.Transport.WebSockets;
+
+public static class TestServerHelper
 {
-    public static class TestServerHelper
+    public static IWebHost CreateServer(Action<IRequestExecutorBuilder> configure, out int port)
     {
-        public static IWebHost CreateServer(Action<IRequestExecutorBuilder> configure, out int port)
+        for (port = 5500; port < 6000; port++)
         {
-            for (port = 5500; port < 6000; port++)
+            try
             {
-                try
-                {
-                    var configBuilder = new ConfigurationBuilder();
-                    configBuilder.AddInMemoryCollection();
-                    var config = configBuilder.Build();
-                    config["server.urls"] = $"http://localhost:{port}";
-                    var host = new WebHostBuilder()
-                        .UseConfiguration(config)
-                        .UseKestrel()
-                        .ConfigureServices(services =>
-                        {
-                            IRequestExecutorBuilder builder = services.AddRouting()
-                                .AddGraphQLServer();
+                var configBuilder = new ConfigurationBuilder();
+                configBuilder.AddInMemoryCollection();
+                var config = configBuilder.Build();
+                config["server.urls"] = $"http://localhost:{port}";
+                var host = new WebHostBuilder()
+                    .UseConfiguration(config)
+                    .UseKestrel()
+                    .ConfigureServices(services =>
+                    {
+                        var builder = services.AddRouting().AddGraphQLServer();
 
-                            configure(builder);
+                        configure(builder);
 
-                            builder
-                                .AddStarWarsTypes()
-                                .AddExportDirectiveType()
-                                .AddStarWarsRepositories()
-                                .AddInMemorySubscriptions();
-                        })
-                        .Configure(app =>
-                            app.Use(async (ct, next) =>
+                        builder
+                            .AddStarWarsTypes()
+                            .AddExportDirectiveType()
+                            .AddStarWarsRepositories()
+                            .AddInMemorySubscriptions();
+                    })
+                    .Configure(app =>
+                        app.Use(async (ct, next) =>
+                            {
+                                try
                                 {
-                                    try
+                                    // Kestrel does not return proper error responses:
+                                    // https://github.com/aspnet/KestrelHttpServer/issues/43
+                                    await next();
+                                }
+                                catch (Exception ex)
+                                {
+                                    if (ct.Response.HasStarted)
                                     {
-                                        // Kestrel does not return proper error responses:
-                                        // https://github.com/aspnet/KestrelHttpServer/issues/43
-                                        await next();
+                                        throw;
                                     }
-                                    catch (Exception ex)
-                                    {
-                                        if (ct.Response.HasStarted)
-                                        {
-                                            throw;
-                                        }
 
-                                        ct.Response.StatusCode = 500;
-                                        ct.Response.Headers.Clear();
-                                        await ct.Response.WriteAsync(ex.ToString());
-                                    }
-                                })
-                                .UseWebSockets()
-                                .UseRouting()
-                                .UseEndpoints(e => e.MapGraphQL()))
-                        .Build();
+                                    ct.Response.StatusCode = 500;
+                                    ct.Response.Headers.Clear();
+                                    await ct.Response.WriteAsync(ex.ToString());
+                                }
+                            })
+                            .UseWebSockets()
+                            .UseRouting()
+                            .UseEndpoints(e => e.MapGraphQL()))
+                    .Build();
 
-                    host.Start();
+                host.Start();
 
-                    return host;
-                }
-                catch { }
+                return host;
             }
-
-            throw new InvalidOperationException("Not port found");
+            catch { }
         }
+
+        throw new InvalidOperationException("Not port found");
     }
 }

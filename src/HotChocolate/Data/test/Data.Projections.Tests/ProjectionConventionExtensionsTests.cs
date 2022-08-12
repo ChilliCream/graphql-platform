@@ -5,7 +5,6 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace HotChocolate.Data;
 
@@ -110,11 +109,11 @@ public class ProjectionConventionExtensionsTests
             x => Assert.Equal(provider2, x));
     }
 
-    private class MockProviderExtensions : ProjectionProviderExtension
+    private sealed class MockProviderExtensions : ProjectionProviderExtension
     {
     }
 
-    private class MockProvider : IProjectionProvider
+    private sealed class MockProvider : IProjectionProvider
     {
         public string? Scope { get; }
 
@@ -124,17 +123,16 @@ public class ProjectionConventionExtensionsTests
         }
 
         public Selection RewriteSelection(
-            SelectionOptimizerContext context,
+            SelectionSetOptimizerContext context,
             Selection selection)
         {
             throw new NotImplementedException();
         }
     }
 
-    private class MockProjectionConvention : ProjectionConvention
+    private sealed class MockProjectionConvention : ProjectionConvention
     {
-        public MockProjectionConvention(
-            Action<IProjectionConventionDescriptor> configure)
+        public MockProjectionConvention(Action<IProjectionConventionDescriptor> configure)
             : base(configure)
         {
         }

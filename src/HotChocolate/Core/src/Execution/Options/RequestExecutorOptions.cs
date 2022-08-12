@@ -11,13 +11,27 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
 {
     private const int _minQueryCacheSize = 10;
     private static readonly TimeSpan _minExecutionTimeout = TimeSpan.FromMilliseconds(100);
-    private TimeSpan _executionTimeout = TimeSpan.FromSeconds(30);
+    private TimeSpan _executionTimeout;
     private int _queryCacheSize = 100;
 
     /// <summary>
-    /// Gets or sets maximum allowed execution time of a query. The default
-    /// value is <c>30</c> seconds. The minimum allowed value is <c>100</c>
-    /// milliseconds.
+    /// <para>Initializes a new instance of <see cref="RequestExecutorOptions"/>.</para>
+    /// <para>
+    /// If the debugger is attached (<see cref="Debugger.IsAttached"/>) new instances will be
+    /// initialized with a default <see cref="ExecutionTimeout"/> of 30 minutes; otherwise, the
+    /// default <see cref="ExecutionTimeout"/> will be 30 seconds.
+    /// </para>
+    /// </summary>
+    public RequestExecutorOptions()
+    {
+        _executionTimeout = Debugger.IsAttached
+            ? TimeSpan.FromMinutes(30)
+            : TimeSpan.FromSeconds(30);
+    }
+
+    /// <summary>
+    /// Gets or sets maximum allowed execution time of a query.
+    /// The minimum allowed value is <c>100</c> milliseconds.
     /// </summary>
     public TimeSpan ExecutionTimeout
     {

@@ -40,12 +40,12 @@ internal sealed class ReferenceResolverArgumentExpressionBuilder
 
     public override Expression Build(ParameterInfo parameter, Expression context)
     {
-        ConstantExpression path = Expression.Constant(GetPath(parameter), typeof(string[]));
-        ConstantExpression dataKey = Expression.Constant(DataField, typeof(string));
-        ConstantExpression typeKey = Expression.Constant(TypeField, typeof(string));
-        Expression value = BuildGetter(parameter, dataKey, context, typeof(IValueNode));
-        Expression objectType = BuildGetter(parameter, typeKey, context, typeof(ObjectType));
-        MethodInfo getValueMethod = _getValue.MakeGenericMethod(parameter.ParameterType);
+        var path = Expression.Constant(GetPath(parameter), typeof(string[]));
+        var dataKey = Expression.Constant(DataField, typeof(string));
+        var typeKey = Expression.Constant(TypeField, typeof(string));
+        var value = BuildGetter(parameter, dataKey, context, typeof(IValueNode));
+        var objectType = BuildGetter(parameter, typeKey, context, typeof(ObjectType));
+        var getValueMethod = _getValue.MakeGenericMethod(parameter.ParameterType);
         Expression getValue = Expression.Call(getValueMethod, value, objectType, path);
         return getValue;
     }

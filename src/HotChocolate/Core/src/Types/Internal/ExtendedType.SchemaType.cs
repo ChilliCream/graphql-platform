@@ -22,7 +22,7 @@ internal sealed partial class ExtendedType
 
             if (type.IsGenericType)
             {
-                Type definition = type.GetGenericTypeDefinition();
+                var definition = type.GetGenericTypeDefinition();
 
                 if (definition == typeof(NonNullType<>))
                 {
@@ -35,7 +35,7 @@ internal sealed partial class ExtendedType
                         source is not null ? source : type,
                         () =>
                         {
-                            ExtendedType elementType =
+                            var elementType =
                                 FromType(type.GetGenericArguments()[0], null, true, cache);
 
                             return new ExtendedType(
@@ -55,7 +55,7 @@ internal sealed partial class ExtendedType
                 source ?? type,
                 () =>
                 {
-                    Type? definition = type.IsGenericType
+                    var definition = type.IsGenericType
                         ? type.GetGenericTypeDefinition()
                         : null;
 

@@ -5,6 +5,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -27,7 +28,13 @@ public static class TypeExtensionHelper
         IList<InputFieldDefinition> typeFields)
     {
         MergeFields(context, extensionFields, typeFields,
-            (_, _, _) => { });
+             (_, extensionField, typeField) =>
+             {
+                 if (extensionField.IsDeprecated)
+                 {
+                     typeField.DeprecationReason = extensionField.DeprecationReason;
+                 }
+             });
     }
 
     private static void MergeOutputFields<T>(
@@ -66,9 +73,10 @@ public static class TypeExtensionHelper
         Action<T>? onBeforeAdd = null)
         where T : FieldDefinitionBase
     {
-        foreach (T extensionField in extensionFields)
+        foreach (var extensionField in extensionFields)
         {
-            T? typeField = typeFields.FirstOrDefault(t => t.Name.Equals(extensionField.Name));
+            var typeField = typeFields.FirstOrDefault(
+                t => t.Name.EqualsOrdinal(extensionField.Name));
 
             if (typeField is null)
             {
@@ -96,24 +104,24 @@ public static class TypeExtensionHelper
     {
         var directives = new List<(DirectiveType type, DirectiveDefinition def)>();
 
-        foreach (DirectiveDefinition directive in type)
+        foreach (var directive in type)
         {
             if (context.TryGetDirectiveType(
                 directive.Reference,
-                out DirectiveType? directiveType))
+                out var directiveType))
             {
                 directives.Add((directiveType, directive));
             }
         }
 
-        foreach (DirectiveDefinition directive in extension)
+        foreach (var directive in extension)
         {
             MergeDirective(context, directives, directive);
         }
 
         type.Clear();
 
-        foreach (DirectiveDefinition directive in directives.Select(t => t.def))
+        foreach (var directive in directives.Select(t => t.def))
         {
             type.Add(directive);
         }
@@ -124,7 +132,7 @@ public static class TypeExtensionHelper
         IList<(DirectiveType type, DirectiveDefinition def)> directives,
         DirectiveDefinition directive)
     {
-        if (context.TryGetDirectiveType(directive.Reference, out DirectiveType? directiveType))
+        if (context.TryGetDirectiveType(directive.Reference, out var directiveType))
         {
             if (directiveType.IsRepeatable)
             {
@@ -132,7 +140,7 @@ public static class TypeExtensionHelper
             }
             else
             {
-                (DirectiveType type, DirectiveDefinition def) entry = directives.FirstOrDefault(t => t.type == directiveType);
+                var entry = directives.FirstOrDefault(t => t.type == directiveType);
                 if (entry == default)
                 {
                     directives.Add((directiveType, directive));
@@ -162,7 +170,7 @@ public static class TypeExtensionHelper
     {
         if (extension.GetInterfaces().Count > 0)
         {
-            foreach (ITypeReference interfaceReference in extension.GetInterfaces())
+            foreach (var interfaceReference in extension.GetInterfaces())
             {
                 type.Interfaces.Add(interfaceReference);
             }
@@ -181,7 +189,7 @@ public static class TypeExtensionHelper
     {
         var set = new HashSet<ITypeReference>(typeTypes);
 
-        foreach (ITypeReference reference in extensionTypes)
+        foreach (var reference in extensionTypes)
         {
             if (set.Add(reference))
             {
@@ -194,7 +202,7 @@ public static class TypeExtensionHelper
         ICollection<ITypeSystemMemberConfiguration> extensionConfigurations,
         ICollection<ITypeSystemMemberConfiguration> typeConfigurations)
     {
-        foreach (ITypeSystemMemberConfiguration configuration in extensionConfigurations)
+        foreach (var configuration in extensionConfigurations)
         {
             typeConfigurations.Add(configuration);
         }

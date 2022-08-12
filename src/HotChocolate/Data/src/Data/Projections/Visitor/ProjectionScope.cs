@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using HotChocolate.Language;
 
 namespace HotChocolate.Data.Projections;
 

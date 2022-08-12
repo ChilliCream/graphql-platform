@@ -3,10 +3,28 @@ using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
-public sealed class ScalarTypeExtensionNode
-    : ScalarTypeDefinitionNodeBase
-    , ITypeExtensionNode
+/// <summary>
+/// Scalar type extensions are used to represent a scalar type which has been
+/// extended from some original scalar type. For example, this might be used
+/// by a GraphQL tool or service which adds directives to an existing scalar.
+/// </summary>
+public sealed class ScalarTypeExtensionNode : NamedSyntaxNode, ITypeExtensionNode
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="ScalarTypeExtensionNode"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="name">
+    /// The name of the scalar.
+    /// </param>
+    /// <param name="description">
+    /// The description of the scalar.
+    /// </param>
+    /// <param name="directives">
+    /// The applied directives.
+    /// </param>
     public ScalarTypeExtensionNode(
         Location? location,
         NameNode name,
@@ -15,13 +33,15 @@ public sealed class ScalarTypeExtensionNode
     {
     }
 
-    public override SyntaxKind Kind { get; } = SyntaxKind.ScalarTypeExtension;
+    /// <inheritdoc />
+    public override SyntaxKind Kind => SyntaxKind.ScalarTypeExtension;
 
+    /// <inheritdoc />
     public override IEnumerable<ISyntaxNode> GetNodes()
     {
         yield return Name;
 
-        foreach (DirectiveNode directive in Directives)
+        foreach (var directive in Directives)
         {
             yield return directive;
         }
@@ -48,22 +68,44 @@ public sealed class ScalarTypeExtensionNode
     /// </returns>
     public override string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Location" /> with <paramref name="location" />.
+    /// </summary>
+    /// <param name="location">
+    /// The location that shall be used to replace the current location.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="location" />.
+    /// </returns>
     public ScalarTypeExtensionNode WithLocation(Location? location)
-    {
-        return new ScalarTypeExtensionNode(
-            location, Name, Directives);
-    }
+        => new(location, Name, Directives);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Name" /> with <paramref name="name" />.
+    /// </summary>
+    /// <param name="name">
+    /// The name that shall be used to replace the current name.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="name" />.
+    /// </returns>
     public ScalarTypeExtensionNode WithName(NameNode name)
-    {
-        return new ScalarTypeExtensionNode(
-            Location, name, Directives);
-    }
+        => new(Location, name, Directives);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="NamedSyntaxNode.Directives" /> with <paramref name="directives" />.
+    /// </summary>
+    /// <param name="directives">
+    /// The directives that shall be used to replace the current
+    /// <see cref="NamedSyntaxNode.Directives" />.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="directives" />.
+    /// </returns>
     public ScalarTypeExtensionNode WithDirectives(
         IReadOnlyList<DirectiveNode> directives)
-    {
-        return new ScalarTypeExtensionNode(
-            Location, Name, directives);
-    }
+        => new(Location, Name, directives);
 }

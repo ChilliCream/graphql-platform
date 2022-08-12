@@ -1,67 +1,69 @@
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
-using Snapshooter.Xunit;
-using Xunit;
 
-namespace HotChocolate.Data.Neo4J.Integration.AnnotationBased
+namespace HotChocolate.Data.Neo4J.Integration.AnnotationBased;
+
+public class AnnotationBasedIntegrationTests : IClassFixture<Neo4JFixture>
 {
-    public class AnnotationBasedIntegrationTests : IClassFixture<Neo4JFixture>
+    private readonly Neo4JFixture _fixture;
+
+    public AnnotationBasedIntegrationTests(Neo4JFixture fixture)
     {
-        private readonly Neo4JFixture _fixture;
+        _fixture = fixture;
+    }
 
-        public AnnotationBasedIntegrationTests(Neo4JFixture fixture)
-        {
-            _fixture = fixture;
-        }
+    [Fact]
+    public async Task MoviesSchemaIntegrationTests()
+    {
+        // arrange
+        var tester = await _fixture.CreateSchema();
 
-        [Fact]
-        public async Task MoviesSchemaIntegrationTests()
-        {
-            IRequestExecutor tester = await _fixture.CreateSchema();
-            tester.Schema.Print().MatchSnapshot("MoviesSchema_Snapshot");
+        // act
+        var res1 = await tester.ExecuteAsync(
+            @"{
+                actors {
+                    name
+                    actedIn {
+                        title
+                    }
+                }
+            }");
 
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                @"{
-                        actors {
-                            name
-                            actedIn {
-                                title
-                            }
-                        }
-                    }");
+        var res2 = await tester.ExecuteAsync(
+            @"{
+                actors (where : {name : { startsWith : ""Keanu"" }}) {
+                    name
+                    actedIn {
+                        title
+                    }
+                }
+            }");
 
-            res1.MatchSnapshot("MoviesSchema_Actors_Query");
+        var res3 = await tester.ExecuteAsync(
+            @"{
+                movies {
+                    title
+                }
+            }");
 
-            IExecutionResult res2 = await tester.ExecuteAsync(
-                @"{
-                        actors (where : {name : { startsWith : ""Keanu"" }}) {
-                            name
-                            actedIn {
-                                title
-                            }
-                        }
-                    }");
+        var res4 = await tester.ExecuteAsync(
+            @"{
+                actors(order: [{ name : ASC }]) {
+                    name
+                    actedIn {
+                        title
+                    }
+                }
+            }");
 
-            res2.MatchSnapshot("MoviesSchema_Name_StartsWith_Actors_Query");
-
-            IExecutionResult res3 = await tester.ExecuteAsync(
-                @"{
-                        movies {
-                            title
-                        }
-                    }");
-            res3.MatchSnapshot("MoviesSchema_Movies_Query");
-
-            IExecutionResult res4 = await tester.ExecuteAsync(
-                @"{
-                        actors(order: [{ name : ASC }]) {
-                            name
-                            actedIn {
-                                title
-                            }
-                        }
-                    }");
-            res4.MatchSnapshot("MoviesSchema_Name_Desc_Sort_Actors_Query");
-        }
+        // assert
+        await Snapshot
+            .Create()
+            .Add(tester.Schema)
+            .Add(res1, "MoviesSchema_Actors_Query")
+            .Add(res2, "MoviesSchema_Name_StartsWith_Actors_Query")
+            .Add(res3, "MoviesSchema_Movies_Query")
+            .Add(res4, "MoviesSchema_Name_Desc_Sort_Actors_Query")
+            .MatchAsync();
     }
 }

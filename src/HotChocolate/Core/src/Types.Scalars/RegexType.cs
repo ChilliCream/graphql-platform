@@ -18,7 +18,7 @@ public class RegexType : StringType
     /// Initializes a new instance of the <see cref="RegexType"/> class.
     /// </summary>
     public RegexType(
-        NameString name,
+        string name,
         string pattern,
         string? description = null,
         RegexOptions regexOptions = RegexOptions.Compiled,
@@ -38,7 +38,7 @@ public class RegexType : StringType
     /// Initializes a new instance of the <see cref="RegexType"/> class.
     /// </summary>
     public RegexType(
-        NameString name,
+        string name,
         Regex regex,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)

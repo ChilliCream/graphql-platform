@@ -4,9 +4,6 @@
     <PackageId>HotChocolate.Data.AutoMapper</PackageId>
     <AssemblyName>HotChocolate.Data.AutoMapper</AssemblyName>
     <RootNamespace>HotChocolate.Data</RootNamespace>
-    <NoWarn>$(NoWarn);CA1062</NoWarn>
-    <TargetFrameworks Condition="'$(IsMacOsArm)' != 'true'">net6.0; net5.0; netstandard2.1</TargetFrameworks>
-    <TargetFrameworks Condition="'$(IsMacOsArm)' == 'true'">net6.0</TargetFrameworks>
     <Description>Contains extensions for easier integration of AutoMapper into HotChocolate</Description>
   </PropertyGroup>
 
@@ -17,11 +14,6 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="10.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.Data.props" Pack="true" PackagePath="build/HotChocolate.Data.EntityFramework.props" Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.Data.targets" Pack="true" PackagePath="build/HotChocolate.Data.EntityFramework.targets" Visible="false" />
   </ItemGroup>
 
 </Project>

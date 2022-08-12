@@ -1,12 +1,6 @@
-using System.Collections.Generic;
-using System.IO;
-using System.Net.Http;
-using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Utilities;
-using Microsoft.AspNetCore.TestHost;
+using CookieCrumble;
+using HotChocolate.AspNetCore.Tests.Utilities;
 using Newtonsoft.Json;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.AspNetCore;
 
@@ -21,12 +15,12 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
     public async Task EmptyForm_Test()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
         var form = new MultipartFormDataContent();
 
-        ClientQueryResult result = await server.PostMultipartAsync(form);
+        var result = await server.PostMultipartAsync(form);
 
         // assert
         result.MatchSnapshot();
@@ -36,7 +30,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
     public async Task EmptyOperations_Test()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
         var form = new MultipartFormDataContent
@@ -44,7 +38,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 { new StringContent(""), "operations" },
             };
 
-        ClientQueryResult result = await server.PostMultipartAsync(form);
+        var result = await server.PostMultipartAsync(form);
 
         // assert
         result.MatchSnapshot();
@@ -54,7 +48,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
     public async Task IncompleteOperations_Test()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
         var form = new MultipartFormDataContent
@@ -63,7 +57,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 { new StringContent("{}"), "map" },
             };
 
-        ClientQueryResult result = await server.PostMultipartAsync(form);
+        var result = await server.PostMultipartAsync(form);
 
         // assert
         result.MatchSnapshot();
@@ -73,7 +67,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
     public async Task MapWithNoOperations_Test()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
         var form = new MultipartFormDataContent
@@ -81,7 +75,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 { new StringContent("{}"), "map" },
             };
 
-        ClientQueryResult result = await server.PostMultipartAsync(form);
+        var result = await server.PostMultipartAsync(form);
 
         // assert
         result.MatchSnapshot();
@@ -91,7 +85,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
     public async Task MapBeforeOperations_Test()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
         var form = new MultipartFormDataContent
@@ -100,7 +94,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 { new StringContent("{}"), "operations" },
             };
 
-        ClientQueryResult result = await server.PostMultipartAsync(form);
+        var result = await server.PostMultipartAsync(form);
 
         // assert
         result.MatchSnapshot();
@@ -110,7 +104,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
     public async Task EmptyMap_Test()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
         var form = new MultipartFormDataContent
@@ -119,7 +113,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 { new StringContent(""), "map" },
             };
 
-        ClientQueryResult result = await server.PostMultipartAsync(form);
+        var result = await server.PostMultipartAsync(form);
 
         // assert
         result.MatchSnapshot();
@@ -129,7 +123,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
     public async Task InvalidMap_Test()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
         var form = new MultipartFormDataContent
@@ -138,7 +132,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 { new StringContent("data"), "map" },
             };
 
-        ClientQueryResult result = await server.PostMultipartAsync(form);
+        var result = await server.PostMultipartAsync(form);
 
         // assert
         result.MatchSnapshot();
@@ -148,7 +142,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
     public async Task MissingFile_Test()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
         var form = new MultipartFormDataContent
@@ -157,7 +151,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 { new StringContent("{ \"1\": [\"variables.file\"] }"), "map" },
             };
 
-        ClientQueryResult result = await server.PostMultipartAsync(form);
+        var result = await server.PostMultipartAsync(form);
 
         // assert
         result.MatchSnapshot();
@@ -167,7 +161,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
     public async Task MissingKeyInMap_Test()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
         var form = new MultipartFormDataContent
@@ -176,7 +170,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 { new StringContent("{ \"\": [\"variables.file\"] }"), "map" },
             };
 
-        ClientQueryResult result = await server.PostMultipartAsync(form);
+        var result = await server.PostMultipartAsync(form);
 
         // assert
         result.MatchSnapshot();
@@ -186,7 +180,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
     public async Task MissingObjectPathsForKey_Test()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
         var form = new MultipartFormDataContent
@@ -195,7 +189,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 { new StringContent("{ \"1\": [] }"), "map" },
             };
 
-        ClientQueryResult result = await server.PostMultipartAsync(form);
+        var result = await server.PostMultipartAsync(form);
 
         // assert
         result.MatchSnapshot();
@@ -205,7 +199,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
     public async Task Upload_File()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         var query = @"
                 query ($upload: Upload!) {
@@ -230,7 +224,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 { new StringContent("abc"), "1", "foo.bar" },
             };
 
-        ClientQueryResult result = await server.PostMultipartAsync(form, path: "/upload");
+        var result = await server.PostMultipartAsync(form, path: "/upload");
 
         // assert
         result.MatchSnapshot();
@@ -240,7 +234,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
     public async Task Upload_Optional_File()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         var query = @"
                 query ($upload: Upload) {
@@ -265,7 +259,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 { new StringContent("abc"), "1", "foo.bar" },
             };
 
-        ClientQueryResult result = await server.PostMultipartAsync(form, path: "/upload");
+        var result = await server.PostMultipartAsync(form, path: "/upload");
 
         // assert
         result.MatchSnapshot();
@@ -275,7 +269,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
     public async Task Upload_Optional_File_In_InputObject()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         var query = @"
                 query ($input: InputWithOptionalFileInput!) {
@@ -300,7 +294,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 { new StringContent("abc"), "1", "foo.bar" },
             };
 
-        ClientQueryResult result = await server.PostMultipartAsync(form, path: "/upload");
+        var result = await server.PostMultipartAsync(form, path: "/upload");
 
         // assert
         result.MatchSnapshot();
@@ -310,7 +304,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
     public async Task Upload_Optional_File_In_Inline_InputObject()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         var query = @"
                 query ($upload: Upload!) {
@@ -335,7 +329,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 { new StringContent("abc"), "1", "foo.bar" },
             };
 
-        ClientQueryResult result = await server.PostMultipartAsync(form, path: "/upload");
+        var result = await server.PostMultipartAsync(form, path: "/upload");
 
         // assert
         result.MatchSnapshot();
@@ -345,7 +339,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
     public async Task Upload_File_In_InputObject()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         var query = @"
                 query ($input: InputWithFileInput!) {
@@ -370,7 +364,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 { new StringContent("abc"), "1", "foo.bar" },
             };
 
-        ClientQueryResult result = await server.PostMultipartAsync(form, path: "/upload");
+        var result = await server.PostMultipartAsync(form, path: "/upload");
 
         // assert
         result.MatchSnapshot();
@@ -380,12 +374,12 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
     public async Task Upload_File_Inline_InputObject()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         var query = @"
-                query ($upload: Upload!) {
-                    objectUpload(input: { file: $upload })
-                }";
+            query ($upload: Upload!) {
+                objectUpload(input: { file: $upload })
+            }";
 
         var request = JsonConvert.SerializeObject(
             new ClientQueryRequest
@@ -405,7 +399,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 { new StringContent("abc"), "1", "foo.bar" },
             };
 
-        ClientQueryResult result = await server.PostMultipartAsync(form, path: "/upload");
+        var result = await server.PostMultipartAsync(form, path: "/upload");
 
         // assert
         result.MatchSnapshot();
@@ -415,10 +409,10 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
     public async Task Upload_File_In_List()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         var query = @"
-                query ($input: [[InputWithFileInput!]]) {
+                query ($input: [[InputWithFileInput!]!]!) {
                     listUpload(input: $input)
                 }";
 
@@ -449,7 +443,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 { new StringContent("abc"), "1", "foo.bar" },
             };
 
-        ClientQueryResult result = await server.PostMultipartAsync(form, path: "/upload");
+        var result = await server.PostMultipartAsync(form, path: "/upload");
 
         // assert
         result.MatchSnapshot();
@@ -459,7 +453,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
     public async Task Upload_Too_Large_File_Test()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         var query = @"
                 query ($upload: Upload!) {
@@ -479,7 +473,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
         var count = 1024 * 1024 * 129;
         var buffer = new byte[count];
 
-        for (int i = 0; i < buffer.Length; i++)
+        for (var i = 0; i < buffer.Length; i++)
         {
             buffer[i] = 0xFF;
         }
@@ -492,7 +486,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 { new ByteArrayContent(buffer), "1", "foo.bar" },
             };
 
-        ClientQueryResult result = await server.PostMultipartAsync(form, path: "/upload");
+        var result = await server.PostMultipartAsync(form, path: "/upload");
 
         // assert
         result.MatchSnapshot();

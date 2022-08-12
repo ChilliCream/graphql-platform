@@ -18,12 +18,12 @@ public abstract class DocumentHashProviderBase
     public string ComputeHash(ReadOnlySpan<byte> document)
     {
         // TODO : with netcoreapp 3.0 we do not need that anymore.
-        byte[] rented = ArrayPool<byte>.Shared.Rent(document.Length);
+        var rented = ArrayPool<byte>.Shared.Rent(document.Length);
         document.CopyTo(rented);
 
         try
         {
-            byte[] hash = ComputeHash(rented, document.Length);
+            var hash = ComputeHash(rented, document.Length);
 
             switch (Format)
             {

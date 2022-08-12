@@ -7,56 +7,54 @@ using StrawberryShake.CodeGeneration.Analyzers.Models;
 
 #nullable enable
 
-namespace StrawberryShake.CodeGeneration.Analyzers
+namespace StrawberryShake.CodeGeneration.Analyzers;
+
+public interface IDocumentAnalyzerContext
 {
-    public interface IDocumentAnalyzerContext
-    {
-        ISchema Schema { get; }
+    ISchema Schema { get; }
 
-        DocumentNode Document { get; }
+    DocumentNode Document { get; }
 
-        ObjectType OperationType { get; }
+    ObjectType OperationType { get; }
 
-        OperationDefinitionNode OperationDefinition { get; }
+    OperationDefinitionNode OperationDefinition { get; }
 
-        NameString OperationName { get; }
+    string OperationName { get; }
 
-        Path RootPath { get; }
+    Path RootPath { get; }
 
-        Queue<FieldSelection> Fields { get; }
+    Queue<FieldSelection> Fields { get; }
 
-        IReadOnlyCollection<ITypeModel> TypeModels { get; }
+    IReadOnlyCollection<ITypeModel> TypeModels { get; }
 
-        IReadOnlyDictionary<SelectionSetInfo, SelectionSetNode> SelectionSets { get; }
+    IReadOnlyDictionary<SelectionSetInfo, SelectionSetNode> SelectionSets { get; }
 
-        NameString ResolveTypeName(
-            NameString proposedName);
+    string ResolveTypeName(string proposedName);
 
-        NameString ResolveTypeName(
-            NameString proposedName,
-            ISyntaxNode syntaxNode,
-            IReadOnlyList<string>? additionalNamePatterns = null);
+    string ResolveTypeName(
+        string proposedName,
+        ISyntaxNode syntaxNode,
+        IReadOnlyList<string>? additionalNamePatterns = null);
 
-        SelectionSetVariants CollectFields(
-            SelectionSetNode selectionSet,
-            INamedOutputType type,
-            Path path);
+    SelectionSetVariants CollectFields(
+        SelectionSetNode selectionSet,
+        INamedOutputType type,
+        Path path);
 
-        bool TryGetModel<T>(
-            NameString name,
-            [NotNullWhen(true)] out T? typeModel)
-            where T : ITypeModel;
+    bool TryGetModel<T>(
+        string name,
+        [NotNullWhen(true)] out T? typeModel)
+        where T : ITypeModel;
 
-        void RegisterModel(NameString name, ITypeModel typeModel);
+    void RegisterModel(string name, ITypeModel typeModel);
 
-        void RegisterType(INamedType type);
+    void RegisterType(INamedType type);
 
-        void RegisterSelectionSet(
-            INamedType namedType, 
-            SelectionSetNode from, 
-            SelectionSetNode to);
+    void RegisterSelectionSet(
+        INamedType namedType,
+        SelectionSetNode from,
+        SelectionSetNode to);
 
-        IEnumerable<OutputTypeModel> GetImplementations(
-            OutputTypeModel outputTypeModel);
-    }
+    IEnumerable<OutputTypeModel> GetImplementations(
+        OutputTypeModel outputTypeModel);
 }

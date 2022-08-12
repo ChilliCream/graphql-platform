@@ -1,167 +1,168 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace HotChocolate.Data.Neo4J.Language
+namespace HotChocolate.Data.Neo4J.Language;
+
+/// <summary>
+/// A condition that consists of one or two conditions
+/// </summary>
+public class CompoundCondition : Condition
 {
     /// <summary>
-    /// A condition that consists of one or two conditions
+    /// Empty compound condition
     /// </summary>
-    public class CompoundCondition : Condition
+    private static readonly CompoundCondition _emptyCondition = new(null);
+
+    private static readonly HashSet<Operator> _validOperations =
+        new() { Operator.And, Operator.Or, Operator.XOr };
+
+    private readonly Operator? _operator;
+
+    private readonly List<Condition> _conditions;
+
+    public CompoundCondition(Operator? op)
     {
-        /// <summary>
-        /// Empty compound condition
-        /// </summary>
-        private static readonly CompoundCondition _emptyCondition = new(null);
+        _operator = op;
+        _conditions = new List<Condition>();
+    }
 
-        private static readonly HashSet<Operator> _validOperations =
-            new() { Operator.And, Operator.Or, Operator.XOr };
+    public bool IsEmpty => _conditions.Count == 0;
 
-        private readonly Operator? _operator;
+    public override ClauseKind Kind => ClauseKind.CompoundCondition;
 
-        private readonly List<Condition> _conditions;
+    public new void And(Condition condition) =>
+        Add(Operator.And, condition);
 
-        public CompoundCondition(Operator? op)
+    public new void Or(Condition condition) =>
+        Add(Operator.Or, condition);
+
+    public new void XOr(Condition condition) =>
+        Add(Operator.XOr, condition);
+
+    public override void Visit(CypherVisitor cypherVisitor)
+    {
+        // There is nothing to visit here
+        if (!_conditions.Any())
         {
-            _operator = op;
-            _conditions = new List<Condition>();
+            return;
         }
 
-        public override ClauseKind Kind => ClauseKind.CompoundCondition;
-
-        public new void And(Condition condition) =>
-            Add(Operator.And, condition);
-
-        public new void Or(Condition condition) =>
-            Add(Operator.Or, condition);
-
-        public new void XOr(Condition condition) =>
-            Add(Operator.XOr, condition);
-
-        public override void Visit(CypherVisitor cypherVisitor)
+        // Fold single condition
+        var hasManyConditions = _conditions.Count > 1;
+        if (hasManyConditions)
         {
-            // There is nothing to visit here
-            if (!_conditions.Any())
-            {
-                return;
-            }
-
-            // Fold single condition
-            var hasManyConditions = _conditions.Count > 1;
-            if (hasManyConditions)
-            {
-                cypherVisitor.Enter(this);
-            }
-
-            // The first nested condition does not need an operator
-            AcceptVisitorWithOperatorForChildCondition(cypherVisitor, null, _conditions[0]);
-
-            // All others do
-            if (!hasManyConditions)
-            {
-                return;
-            }
-
-            foreach (Condition condition in _conditions.Skip(1))
-            {
-                // This takes care of a potential inner compound condition that got added with a
-                // different operator and thus forms a tree.
-                Operator? actualOperator = condition is CompoundCondition condition1
-                    ? condition1._operator
-                    : _operator;
-
-                AcceptVisitorWithOperatorForChildCondition(
-                    cypherVisitor,
-                    actualOperator,
-                    condition);
-            }
-
-            cypherVisitor.Leave(this);
+            cypherVisitor.Enter(this);
         }
 
-        private CompoundCondition Add(Operator chainingOperator, Condition condition)
+        // The first nested condition does not need an operator
+        AcceptVisitorWithOperatorForChildCondition(cypherVisitor, null, _conditions[0]);
+
+        // All others do
+        if (!hasManyConditions)
         {
-            if (this == _emptyCondition)
-            {
-                return new CompoundCondition(chainingOperator).Add(chainingOperator, condition);
-            }
+            return;
+        }
 
-            if (condition == _emptyCondition)
-            {
-                return this;
-            }
+        foreach (var condition in _conditions.Skip(1))
+        {
+            // This takes care of a potential inner compound condition that got added with a
+            // different operator and thus forms a tree.
+            var actualOperator = condition is CompoundCondition condition1
+                ? condition1._operator
+                : _operator;
 
-            if (condition is CompoundCondition compoundCondition)
-            {
-                if (_operator == chainingOperator &&
-                    chainingOperator == compoundCondition._operator)
-                {
-                    if (compoundCondition.CanBeFlattenedWith(chainingOperator))
-                    {
-                        _conditions.AddRange(compoundCondition._conditions);
-                    }
-                    else
-                    {
-                        _conditions.Add(compoundCondition);
-                    }
-                }
-                else
-                {
-                    var inner = new CompoundCondition(chainingOperator);
-                    inner._conditions.Add(compoundCondition);
-                    _conditions.Add(inner);
-                }
+            AcceptVisitorWithOperatorForChildCondition(
+                cypherVisitor,
+                actualOperator,
+                condition);
+        }
 
-                return this;
-            }
+        cypherVisitor.Leave(this);
+    }
 
-            if (_operator != chainingOperator)
-            {
-                return Create(this, chainingOperator, condition);
-            }
+    private CompoundCondition Add(Operator chainingOperator, Condition condition)
+    {
+        if (this == _emptyCondition)
+        {
+            return new CompoundCondition(chainingOperator).Add(chainingOperator, condition);
+        }
 
-            _conditions.Add(condition);
+        if (condition == _emptyCondition)
+        {
             return this;
         }
 
-        private bool CanBeFlattenedWith(Operator operatorBefore)
+        if (condition is CompoundCondition compoundCondition)
         {
-            if (_operator != operatorBefore)
+            if (_operator == chainingOperator &&
+                chainingOperator == compoundCondition._operator)
+            {
+                if (compoundCondition.CanBeFlattenedWith(chainingOperator))
+                {
+                    _conditions.AddRange(compoundCondition._conditions);
+                }
+                else
+                {
+                    _conditions.Add(compoundCondition);
+                }
+            }
+            else
+            {
+                var inner = new CompoundCondition(chainingOperator);
+                inner._conditions.Add(compoundCondition);
+                _conditions.Add(inner);
+            }
+
+            return this;
+        }
+
+        if (_operator != chainingOperator)
+        {
+            return Create(this, chainingOperator, condition);
+        }
+
+        _conditions.Add(condition);
+        return this;
+    }
+
+    private bool CanBeFlattenedWith(Operator operatorBefore)
+    {
+        if (_operator != operatorBefore)
+        {
+            return false;
+        }
+
+        foreach (var c in _conditions)
+        {
+            if (c is CompoundCondition condition && condition._operator != operatorBefore)
             {
                 return false;
             }
-
-            foreach (Condition c in _conditions)
-            {
-                if (c is CompoundCondition condition && condition._operator != operatorBefore)
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
 
-        private static void AcceptVisitorWithOperatorForChildCondition(
-            CypherVisitor cypherVisitor,
-            IVisitable? op,
-            IVisitable condition)
-        {
-            op?.Visit(cypherVisitor);
-            condition.Visit(cypherVisitor);
-        }
+        return true;
+    }
 
-        public static CompoundCondition Empty() => _emptyCondition;
+    private static void AcceptVisitorWithOperatorForChildCondition(
+        CypherVisitor cypherVisitor,
+        IVisitable? op,
+        IVisitable condition)
+    {
+        op?.Visit(cypherVisitor);
+        condition.Visit(cypherVisitor);
+    }
 
-        public static CompoundCondition Create(Condition left, Operator op, Condition right)
-        {
-            Ensure.IsTrue(_validOperations.Contains(op),
-                "Operator " + op + " is not a valid operator for a compound condition.");
-            Ensure.IsNotNull(left, "Left hand side condition is required.");
-            Ensure.IsNotNull(op, "Operator is required.");
-            Ensure.IsNotNull(right, "Right hand side condition is required.");
-            return new CompoundCondition(op)
-                .Add(op, left)
-                .Add(op, right);
-        }
+    public static CompoundCondition Empty() => _emptyCondition;
+
+    public static CompoundCondition Create(Condition left, Operator op, Condition right)
+    {
+        Ensure.IsTrue(_validOperations.Contains(op),
+            "Operator " + op + " is not a valid operator for a compound condition.");
+        Ensure.IsNotNull(left, "Left hand side condition is required.");
+        Ensure.IsNotNull(op, "Operator is required.");
+        Ensure.IsNotNull(right, "Right hand side condition is required.");
+        return new CompoundCondition(op)
+            .Add(op, left)
+            .Add(op, right);
     }
 }

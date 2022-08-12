@@ -1,0 +1,38 @@
+12
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barShort": "Rm9vU2hvcnROdWxsYWJsZQpzMTI="
+      }
+    ]
+  }
+}
+---------------
+
+13
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barShort": "Rm9vU2hvcnROdWxsYWJsZQpzMTM="
+      }
+    ]
+  }
+}
+---------------
+
+null
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barShort": null
+      }
+    ]
+  }
+}
+---------------

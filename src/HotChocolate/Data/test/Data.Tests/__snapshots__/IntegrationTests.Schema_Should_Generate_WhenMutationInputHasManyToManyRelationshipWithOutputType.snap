@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: FirstOrDefaulQuery
   mutation: FirstOrDefaultMutation_ManyToMany
 }

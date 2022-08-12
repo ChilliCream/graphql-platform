@@ -18,8 +18,8 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
     public void Create_MethodSimple_Expression()
     {
         // arrange
-        IValueNode value = Syntax.ParseValueLiteral("{ simple: { eq:\"a\" }}");
-        ExecutorBuilder tester = CreateProviderTester(
+        var value = Syntax.ParseValueLiteral("{ simple: { eq:\"a\" }}");
+        var tester = CreateProviderTester(
             new FooFilterInput(),
             new FilterConvention(
                 x =>
@@ -35,7 +35,7 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
                 }));
 
         // act
-        Func<Foo, bool> func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { Bar = "a" };
@@ -49,7 +49,7 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
     public void Create_MethodComplex_Expression()
     {
         // arrange
-        ExecutorBuilder tester = CreateProviderTester(
+        var tester = CreateProviderTester(
             new FooFilterInput(),
             new FilterConvention(
                 x =>
@@ -64,14 +64,14 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
                                 .AddDefaultFieldHandlers()));
                 }));
 
-        IValueNode valueTrue = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var valueTrue = Syntax.ParseValueLiteral(
             "{ complex: {parameter:\"a\", eq:\"a\" }}");
 
-        IValueNode valueFalse = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var valueFalse = Syntax.ParseValueLiteral(
             "{ complex: {parameter:\"a\", eq:\"b\" }}");
         // act
-        Func<Foo, bool> funcTrue = tester.Build<Foo>(valueTrue);
-        Func<Foo, bool> funcFalse = tester.Build<Foo>(valueFalse);
+        var funcTrue = tester.Build<Foo>(valueTrue);
+        var funcFalse = tester.Build<Foo>(valueFalse);
 
         // assert
         var a = new Foo();
@@ -81,15 +81,14 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
         Assert.False(funcFalse(b));
     }
 
-    private class QueryableSimpleMethodTest
-        : QueryableDefaultFieldHandler
+    private sealed class QueryableSimpleMethodTest : QueryableDefaultFieldHandler
     {
-        private static readonly MethodInfo Method = typeof(Foo).GetMethod(nameof(Foo.Simple))!;
-        private IExtendedType _extendedType;
+        private static readonly MethodInfo _method = typeof(Foo).GetMethod(nameof(Foo.Simple))!;
+        private readonly IExtendedType _extendedType;
 
         public QueryableSimpleMethodTest(ITypeInspector typeInspector)
         {
-            _extendedType = typeInspector.GetReturnType(Method);
+            _extendedType = typeInspector.GetReturnType(_method);
         }
 
         public override bool CanHandle(
@@ -121,7 +120,7 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
                 return true;
             }
 
-            Expression nestedProperty = Expression.Call(context.GetInstance(), Method);
+            Expression nestedProperty = Expression.Call(context.GetInstance(), _method);
 
             context.PushInstance(nestedProperty);
             context.RuntimeTypes.Push(_extendedType!);
@@ -130,7 +129,7 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
         }
     }
 
-    private class QueryableComplexMethodTest : QueryableDefaultFieldHandler
+    private sealed class QueryableComplexMethodTest : QueryableDefaultFieldHandler
     {
         private static readonly MethodInfo _method =
             typeof(Foo).GetMethod(nameof(Foo.Complex))!;
@@ -191,7 +190,7 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
                     throw new InvalidOperationException();
                 }
 
-                object? value =
+                var value =
                     _inputParser
                         .ParseLiteral(parameterNode, operationType.Fields["parameter"].Type);
 
@@ -220,7 +219,7 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
         public string Complex(string parameter) => parameter;
     }
 
-    private class FooFilterInput
+    private sealed class FooFilterInput
         : FilterInputType<Foo>
     {
         protected override void Configure(IFilterInputTypeDescriptor<Foo> descriptor)
@@ -231,7 +230,7 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
         }
     }
 
-    private class TestComplexFilterInputType : StringOperationFilterInputType
+    private sealed class TestComplexFilterInputType : StringOperationFilterInputType
     {
         protected override void Configure(IFilterInputTypeDescriptor descriptor)
         {

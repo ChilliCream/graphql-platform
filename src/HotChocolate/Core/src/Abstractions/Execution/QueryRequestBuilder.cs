@@ -15,10 +15,10 @@ public class QueryRequestBuilder : IQueryRequestBuilder
     private string? _queryHash;
     private string? _operationName;
     private IReadOnlyDictionary<string, object?>? _readOnlyVariableValues;
-    private Dictionary<string, object?>? _variableValuesDict;
+    private Dictionary<string, object?>? _variableValues;
     private object? _initialValue;
-    private IReadOnlyDictionary<string, object?>? _readOnlyProperties;
-    private Dictionary<string, object?>? _properties;
+    private IReadOnlyDictionary<string, object?>? _readOnlyContextData;
+    private Dictionary<string, object?>? _contextData;
     private IReadOnlyDictionary<string, object?>? _readOnlyExtensions;
     private Dictionary<string, object?>? _extensions;
     private IServiceProvider? _services;
@@ -97,11 +97,10 @@ public class QueryRequestBuilder : IQueryRequestBuilder
         Dictionary<string, object?>? variableValues) =>
         SetVariableValues((IDictionary<string, object?>?)variableValues);
 
-
     public IQueryRequestBuilder SetVariableValues(
         IDictionary<string, object?>? variableValues)
     {
-        _variableValuesDict = variableValues is null
+        _variableValues = variableValues is null
             ? null
             : new Dictionary<string, object?>(variableValues);
         _readOnlyVariableValues = null;
@@ -111,7 +110,7 @@ public class QueryRequestBuilder : IQueryRequestBuilder
     public IQueryRequestBuilder SetVariableValues(
        IReadOnlyDictionary<string, object?>? variableValues)
     {
-        _variableValuesDict = null;
+        _variableValues = null;
         _readOnlyVariableValues = variableValues;
         return this;
     }
@@ -120,7 +119,7 @@ public class QueryRequestBuilder : IQueryRequestBuilder
     {
         InitializeVariables();
 
-        _variableValuesDict![name] = value;
+        _variableValues![name] = value;
         return this;
     }
 
@@ -129,7 +128,7 @@ public class QueryRequestBuilder : IQueryRequestBuilder
     {
         InitializeVariables();
 
-        _variableValuesDict!.Add(name, value);
+        _variableValues!.Add(name, value);
         return this;
     }
 
@@ -138,62 +137,115 @@ public class QueryRequestBuilder : IQueryRequestBuilder
     {
         InitializeVariables();
 
-        if (!_variableValuesDict!.ContainsKey(name))
+        if (!_variableValues!.ContainsKey(name))
         {
-            _variableValuesDict.Add(name, value);
+            _variableValues.Add(name, value);
         }
         return this;
     }
 
+    [Obsolete("Use `InitializeGlobalState`")]
     public IQueryRequestBuilder SetProperties(
-        Dictionary<string, object?>? properties) =>
-        SetProperties((IDictionary<string, object?>?)properties);
+        Dictionary<string, object?>? properties)
+        => InitializeGlobalState(properties);
 
+    /// <inheritdoc />
+    public IQueryRequestBuilder InitializeGlobalState(
+        Dictionary<string, object?>? initialState)
+        => InitializeGlobalState((IDictionary<string, object?>?)initialState);
 
+    [Obsolete("Use `InitializeGlobalState`")]
     public IQueryRequestBuilder SetProperties(
         IDictionary<string, object?>? properties)
+        => InitializeGlobalState(properties);
+
+    /// <inheritdoc />
+    public IQueryRequestBuilder InitializeGlobalState(
+        IDictionary<string, object?>? initialState)
     {
-        _properties = properties is null
+        _contextData = initialState is null
             ? null
-            : new Dictionary<string, object?>(properties);
-        _readOnlyProperties = null;
+            : new Dictionary<string, object?>(initialState);
+        _readOnlyContextData = null;
         return this;
     }
 
+    [Obsolete("Use `InitializeGlobalState`")]
     public IQueryRequestBuilder SetProperties(
         IReadOnlyDictionary<string, object?>? properties)
+        => InitializeGlobalState(properties);
+
+    /// <inheritdoc />
+    public IQueryRequestBuilder InitializeGlobalState(
+        IReadOnlyDictionary<string, object?>? initialState)
     {
-        _properties = null;
-        _readOnlyProperties = properties;
+        _contextData = null;
+        _readOnlyContextData = initialState;
         return this;
     }
 
+    [Obsolete("Use `SetGlobalState`")]
     public IQueryRequestBuilder SetProperty(string name, object? value)
-    {
-        InitializeProperties();
+        => SetGlobalState(name, value);
 
-        _properties![name] = value;
+    /// <inheritdoc />
+    public IQueryRequestBuilder SetGlobalState(
+        string name, object? value)
+    {
+        InitializeContextData();
+
+        _contextData![name] = value;
         return this;
     }
 
+    [Obsolete("Use `AddGlobalState`")]
     public IQueryRequestBuilder AddProperty(
         string name, object? value)
-    {
-        InitializeProperties();
+        => AddGlobalState(name, value);
 
-        _properties!.Add(name, value);
+    /// <inheritdoc />
+    public IQueryRequestBuilder AddGlobalState(
+        string name, object? value)
+    {
+        InitializeContextData();
+
+        _contextData!.Add(name, value);
         return this;
     }
 
+    [Obsolete("Use `TryAddGlobalState`")]
     public IQueryRequestBuilder TryAddProperty(
         string name, object? value)
-    {
-        InitializeProperties();
+        => TryAddGlobalState(name, value);
 
-        if (!_properties!.ContainsKey(name))
+    /// <inheritdoc />
+    public IQueryRequestBuilder TryAddGlobalState(
+        string name, object? value)
+    {
+        InitializeContextData();
+
+        if (!_contextData!.ContainsKey(name))
         {
-            _properties.Add(name, value);
+            _contextData!.Add(name, value);
         }
+        return this;
+    }
+
+    [Obsolete("Use `RemoveGlobalState`")]
+    public IQueryRequestBuilder TryRemoveProperty(string name)
+        => RemoveGlobalState(name);
+
+    /// <inheritdoc />
+    public IQueryRequestBuilder RemoveGlobalState(string name)
+    {
+        if (_readOnlyContextData is null && _contextData is null)
+        {
+            return this;
+        }
+
+        InitializeContextData();
+
+        _contextData!.Remove(name);
         return this;
     }
 
@@ -249,32 +301,30 @@ public class QueryRequestBuilder : IQueryRequestBuilder
     }
 
     public IReadOnlyQueryRequest Create()
-    {
-        return new QueryRequest
+        => new QueryRequest
         (
             query: _query,
             queryId: _queryName,
             queryHash: _queryHash,
             operationName: _operationName,
-            initialValue: _initialValue,
-            services: _services,
             variableValues: GetVariableValues(),
-            contextData: GetProperties(),
+            contextData: GetContextData(),
             extensions: GetExtensions(),
+            services: _services,
+            initialValue: _initialValue,
             allowedOperations: _allowedOperations
         );
-    }
 
     private IReadOnlyDictionary<string, object?> GetVariableValues()
     {
-        return _variableValuesDict ?? _readOnlyVariableValues!;
+        return _variableValues ?? _readOnlyVariableValues!;
     }
 
     private void InitializeVariables()
     {
-        if (_variableValuesDict is null)
+        if (_variableValues is null)
         {
-            _variableValuesDict = _readOnlyVariableValues is null
+            _variableValues = _readOnlyVariableValues is null
                 ? new Dictionary<string, object?>()
                 : _readOnlyVariableValues.ToDictionary(
                     t => t.Key, t => t.Value);
@@ -282,20 +332,20 @@ public class QueryRequestBuilder : IQueryRequestBuilder
         }
     }
 
-    private IReadOnlyDictionary<string, object?>? GetProperties()
+    private IReadOnlyDictionary<string, object?>? GetContextData()
     {
-        return _properties ?? _readOnlyProperties;
+        return _contextData ?? _readOnlyContextData;
     }
 
-    private void InitializeProperties()
+    private void InitializeContextData()
     {
-        if (_properties is null)
+        if (_contextData is null)
         {
-            _properties = _readOnlyProperties is null
+            _contextData = _readOnlyContextData is null
                 ? new Dictionary<string, object?>()
-                : _readOnlyProperties.ToDictionary(
+                : _readOnlyContextData.ToDictionary(
                     t => t.Key, t => t.Value);
-            _readOnlyProperties = null;
+            _readOnlyContextData = null;
         }
     }
 
@@ -331,7 +381,7 @@ public class QueryRequestBuilder : IQueryRequestBuilder
             _operationName = request.OperationName,
             _readOnlyVariableValues = request.VariableValues,
             _initialValue = request.InitialValue,
-            _readOnlyProperties = request.ContextData,
+            _readOnlyContextData = request.ContextData,
             _readOnlyExtensions = request.Extensions,
             _services = request.Services
         };
@@ -347,7 +397,7 @@ public class QueryRequestBuilder : IQueryRequestBuilder
 
     public static QueryRequestBuilder From(GraphQLRequest request)
     {
-        QueryRequestBuilder builder = New();
+        var builder = New();
 
         builder
             .SetQueryId(request.QueryId)

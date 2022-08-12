@@ -58,15 +58,15 @@ internal sealed class RequestExecutor : IRequestExecutor
             throw new ArgumentNullException(nameof(request));
         }
 
-        IServiceScope? scope = request.Services is null
+        var scope = request.Services is null
             ? _applicationServices.CreateScope()
             : null;
 
-        IServiceProvider services = scope is null
+        var services = scope is null
             ? request.Services!
             : scope.ServiceProvider;
 
-        RequestContext context = _contextPool.Get();
+        var context = _contextPool.Get();
 
         try
         {
@@ -87,14 +87,9 @@ internal sealed class RequestExecutor : IRequestExecutor
                 return context.Result;
             }
 
-            if (context.Result is DeferredQueryResult deferred)
+            if (context.Result.IsStreamResult())
             {
-                context.Result = new DeferredQueryResult(deferred, scope);
-                scope = null;
-            }
-            else if (context.Result is SubscriptionResult result)
-            {
-                context.Result = new SubscriptionResult(result, scope);
+                context.Result.RegisterForCleanup(scope);
                 scope = null;
             }
 
@@ -107,9 +102,8 @@ internal sealed class RequestExecutor : IRequestExecutor
         }
     }
 
-    public Task<IBatchQueryResult> ExecuteBatchAsync(
-        IEnumerable<IQueryRequest> requestBatch,
-        bool allowParallelExecution = false,
+    public Task<IResponseStream> ExecuteBatchAsync(
+        IReadOnlyList<IQueryRequest> requestBatch,
         CancellationToken cancellationToken = default)
     {
         if (requestBatch is null)
@@ -117,9 +111,9 @@ internal sealed class RequestExecutor : IRequestExecutor
             throw new ArgumentNullException(nameof(requestBatch));
         }
 
-        return Task.FromResult<IBatchQueryResult>(
-            new BatchQueryResult(
+        return Task.FromResult<IResponseStream>(
+            new ResponseStream(
                 () => _batchExecutor.ExecuteAsync(this, requestBatch),
-                null));
+                ExecutionResultKind.BatchResult));
     }
 }

@@ -18,7 +18,7 @@ internal static class SdlToTypeSystemHelper
         Stack<IDefinition> path)
         where TOwner : IHasDirectiveDefinition, IDefinition
     {
-        foreach (DirectiveNode directive in ownerSyntax.Directives)
+        foreach (var directive in ownerSyntax.Directives)
         {
             if (context.TryGetSchemaDirective(directive, out var schemaDirective))
             {
@@ -38,7 +38,7 @@ internal static class SdlToTypeSystemHelper
     public static string? DeprecationReason(
         this Language.IHasDirectives syntaxNode)
     {
-        DirectiveNode? directive = syntaxNode.Directives.FirstOrDefault(
+        var directive = syntaxNode.Directives.FirstOrDefault(
             t => t.Name.Value == WellKnownDirectives.Deprecated);
 
         if (directive is null)

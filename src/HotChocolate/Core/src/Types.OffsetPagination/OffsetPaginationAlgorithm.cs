@@ -49,7 +49,7 @@ public abstract class OffsetPaginationAlgorithm<TQuery, TEntity>
             ? async ct => await CountAsync(query, ct)
             : _ => new ValueTask<int>(totalCount.Value);
 
-        TQuery sliced = query;
+        var sliced = query;
 
         if (arguments.Skip is { } skip)
         {
@@ -61,20 +61,17 @@ public abstract class OffsetPaginationAlgorithm<TQuery, TEntity>
             sliced = ApplyTake(sliced, take + 1);
         }
 
-        IReadOnlyList<TEntity> items =
+        var items =
             await ExecuteAsync(sliced, cancellationToken).ConfigureAwait(false);
 
-        bool hasNextPage = items.Count == arguments.Take + 1;
-        bool hasPreviousPage = (arguments.Skip ?? 0) > 0;
+        var hasNextPage = items.Count == arguments.Take + 1;
+        var hasPreviousPage = (arguments.Skip ?? 0) > 0;
 
         CollectionSegmentInfo pageInfo = new(hasNextPage, hasPreviousPage);
 
         items = new SkipLastCollection<TEntity>(items, skipLast: hasNextPage);
 
-        return new CollectionSegment<TEntity>(
-            items,
-            pageInfo,
-            getTotalCount);
+        return new CollectionSegment<TEntity>( items, pageInfo, getTotalCount);
     }
 
     /// <summary>
@@ -104,7 +101,7 @@ public abstract class OffsetPaginationAlgorithm<TQuery, TEntity>
     private static ValueTask<int> GetTotalCountAssert(CancellationToken _) =>
         throw new InvalidOperationException();
 
-    private class SkipLastCollection<T> : IReadOnlyList<T>
+    private sealed class SkipLastCollection<T> : IReadOnlyList<T>
     {
         private readonly IReadOnlyList<T> _items;
         private readonly bool _skipLast;

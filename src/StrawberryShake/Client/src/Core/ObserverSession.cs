@@ -1,45 +1,58 @@
 using System;
 
-namespace StrawberryShake
+namespace StrawberryShake;
+
+internal class ObserverSession : IDisposable
 {
-    internal class ObserverSession : IDisposable
+    private readonly object _sync = new();
+    private IDisposable? _storeSession;
+    private bool _disposed;
+
+    public ObserverSession()
     {
-        private readonly object _sync = new();
-        private IDisposable? _storeSession;
-        private bool _disposed;
+        RequestSession = new RequestSession();
+    }
 
-        public ObserverSession()
+    public RequestSession RequestSession { get; }
+
+    public bool HasStoreSession
+    {
+        get
         {
-            RequestSession = new RequestSession();
-        }
+            if (_storeSession is not null)
+            {
+                return true;
+            }
 
-        public RequestSession RequestSession { get; }
-
-        public bool HasStoreSession => _storeSession is not null;
-
-        public void SetStoreSession(IDisposable storeSession)
-        {
             lock (_sync)
             {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(typeof(ObserverSession).FullName);
-                }
-
-                _storeSession = storeSession;
+                return _storeSession is not null;
             }
         }
+    }
 
-        public void Dispose()
+    public void SetStoreSession(IDisposable storeSession)
+    {
+        lock (_sync)
         {
-            lock (_sync)
+            if (_disposed)
             {
-                if (!_disposed)
-                {
-                    RequestSession.Dispose();
-                    _storeSession?.Dispose();
-                    _disposed = true;
-                }
+                throw new ObjectDisposedException(typeof(ObserverSession).FullName);
+            }
+
+            _storeSession = storeSession;
+        }
+    }
+
+    public void Dispose()
+    {
+        lock (_sync)
+        {
+            if (!_disposed)
+            {
+                RequestSession.Dispose();
+                _storeSession?.Dispose();
+                _disposed = true;
             }
         }
     }

@@ -15,7 +15,7 @@ public class WebSocketSubscriptionMiddleware : MiddlewareBase
         IRequestExecutorResolver executorResolver,
         IHttpResultSerializer resultSerializer,
         IServerDiagnosticEvents diagnosticEvents,
-        NameString schemaName)
+        string schemaName)
         : base(next, executorResolver, resultSerializer, schemaName)
     {
         _diagnosticEvents = diagnosticEvents ??
@@ -24,38 +24,26 @@ public class WebSocketSubscriptionMiddleware : MiddlewareBase
 
     public Task InvokeAsync(HttpContext context)
     {
-        if (context.WebSockets.IsWebSocketRequest)
-        {
-            return HandleWebSocketSessionAsync(context);
-        }
-        else
-        {
-            return NextAsync(context);
-        }
+        return context.WebSockets.IsWebSocketRequest
+            ? HandleWebSocketSessionAsync(context)
+            : NextAsync(context);
     }
 
     private async Task HandleWebSocketSessionAsync(HttpContext context)
     {
         if (!IsDefaultSchema)
         {
-            context.Items[WellKnownContextData.SchemaName] = SchemaName.Value;
+            context.Items[WellKnownContextData.SchemaName] = SchemaName;
         }
 
         using (_diagnosticEvents.WebSocketSession(context))
         {
             try
             {
-                IRequestExecutor requestExecutor = 
-                    await GetExecutorAsync(context.RequestAborted);
-                IMessagePipeline? messagePipeline = 
-                    requestExecutor.GetRequiredService<IMessagePipeline>();
-                ISocketSessionInterceptor? socketSessionInterceptor = 
-                    requestExecutor.GetRequiredService<ISocketSessionInterceptor>();
-                context.Items[WellKnownContextData.RequestExecutor] = requestExecutor;
-
-                await WebSocketSession
-                    .New(context, messagePipeline, socketSessionInterceptor)
-                    .HandleAsync(context.RequestAborted);
+                var executor = await GetExecutorAsync(context.RequestAborted);
+                var interceptor = executor.GetRequiredService<ISocketSessionInterceptor>();
+                context.Items[WellKnownContextData.RequestExecutor] = executor;
+                await WebSocketSession.AcceptAsync(context, executor, interceptor);
             }
             catch (Exception ex)
             {

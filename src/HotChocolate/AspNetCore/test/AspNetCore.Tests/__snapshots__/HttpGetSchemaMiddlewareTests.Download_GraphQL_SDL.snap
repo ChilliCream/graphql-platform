@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: Query
   mutation: Mutation
   subscription: Subscription
@@ -89,8 +89,8 @@ type Starship {
 
 type Subscription {
   onReview(episode: Episode!): Review!
-  onNext: String
-  onException: String
+  onNext: String!
+  onException: String!
 }
 
 union SearchResult = Starship | Human | Droid

@@ -1,1 +1,0 @@
-﻿find({ "Foo.BarShort" : { "$in" : [12, 13] } })

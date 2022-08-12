@@ -15,7 +15,7 @@ internal static class ReferenceResolverHelper
         IResolverContext context,
         IReadOnlyList<string[]> required)
         => ArgumentParser.Matches(
-            context.GetLocalValue<IValueNode>(DataField)!,
+            context.GetLocalStateOrDefault<IValueNode>(DataField)!,
             required);
 
     public static ValueTask<object?> ExecuteAsync(
@@ -25,7 +25,7 @@ internal static class ReferenceResolverHelper
 
     public static ValueTask<object?> Invalid(IResolverContext context)
     {
-        var representation = context.GetLocalValue<IValueNode>(DataField)?.ToString() ?? "null";
+        var representation = context.GetLocalStateOrDefault<IValueNode>(DataField)?.ToString() ?? "null";
 
         throw new GraphQLException(
             new Error(

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Execution;
 
 /// <summary>
@@ -30,10 +31,10 @@ public static class RequestExecutorServiceProviderExtensions
     /// </returns>
     public static async ValueTask<ISchema> GetSchemaAsync(
         this IServiceProvider services,
-        NameString schemaName = default,
+        string? schemaName = default,
         CancellationToken cancellationToken = default)
     {
-        IRequestExecutor executor =
+        var executor =
             await GetRequestExecutorAsync(services, schemaName, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -57,11 +58,11 @@ public static class RequestExecutorServiceProviderExtensions
     /// </returns>
     public static async ValueTask<ISchema> BuildSchemaAsync(
         this IRequestExecutorBuilder builder,
-        NameString schemaName = default,
+        string? schemaName = default,
         CancellationToken cancellationToken = default)
     {
         IServiceProvider services = builder.Services.BuildServiceProvider();
-        IRequestExecutor executor =
+        var executor =
             await GetRequestExecutorAsync(services, schemaName, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -85,7 +86,7 @@ public static class RequestExecutorServiceProviderExtensions
     /// </returns>
     public static ValueTask<IRequestExecutor> GetRequestExecutorAsync(
         this IServiceProvider services,
-        NameString schemaName = default,
+        string? schemaName = default,
         CancellationToken cancellationToken = default) =>
         services
             .GetRequiredService<IRequestExecutorResolver>()
@@ -109,7 +110,7 @@ public static class RequestExecutorServiceProviderExtensions
     /// </returns>
     public static ValueTask<IRequestExecutor> BuildRequestExecutorAsync(
         this IRequestExecutorBuilder builder,
-        NameString schemaName = default,
+        string? schemaName = default,
         CancellationToken cancellationToken = default) =>
         builder
             .Services
@@ -136,24 +137,24 @@ public static class RequestExecutorServiceProviderExtensions
     /// Returns the execution result of the given GraphQL <paramref name="request" />.
     ///
     /// If the request operation is a simple query or mutation the result is a
-    /// <see cref="global::HotChocolate.Execution.IReadOnlyQueryResult" />.
+    /// <see cref="IQueryResult" />.
     ///
     /// If the request operation is a query or mutation where data is deferred, streamed or
-    /// includes live data the result is a <see cref="global::HotChocolate.Execution.IResponseStream" /> where each result
-    /// that the <see cref="global::HotChocolate.Execution.IResponseStream" /> yields is a <see cref="global::HotChocolate.Execution.IReadOnlyQueryResult" />.
+    /// includes live data the result is a <see cref="IResponseStream" /> where each result
+    /// that the <see cref="IResponseStream" /> yields is a <see cref="IQueryResult" />.
     ///
     /// If the request operation is a subscription the result is a
-    /// <see cref="global::HotChocolate.Execution.IResponseStream" /> where each result that the
-    /// <see cref="global::HotChocolate.Execution.IResponseStream" /> yields is a
-    /// <see cref="global::HotChocolate.Execution.IReadOnlyQueryResult" />.
+    /// <see cref="IResponseStream" /> where each result that the
+    /// <see cref="IResponseStream" /> yields is a
+    /// <see cref="IQueryResult" />.
     /// </returns>
     public static async Task<IExecutionResult> ExecuteRequestAsync(
         this IServiceProvider services,
         IQueryRequest request,
-        NameString schemaName = default,
+        string? schemaName = default,
         CancellationToken cancellationToken = default)
     {
-        IRequestExecutor executor =
+        var executor =
             await GetRequestExecutorAsync(services, schemaName, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -195,10 +196,10 @@ public static class RequestExecutorServiceProviderExtensions
     public static async Task<IExecutionResult> ExecuteRequestAsync(
         this IRequestExecutorBuilder builder,
         IQueryRequest request,
-        NameString schemaName = default,
+        string? schemaName = default,
         CancellationToken cancellationToken = default)
     {
-        IRequestExecutor executor =
+        var executor =
             await BuildRequestExecutorAsync(builder, schemaName, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -241,10 +242,10 @@ public static class RequestExecutorServiceProviderExtensions
     public static async Task<IExecutionResult> ExecuteRequestAsync(
         this IServiceProvider services,
         string query,
-        NameString schemaName = default,
+        string? schemaName = default,
         CancellationToken cancellationToken = default)
     {
-        IRequestExecutor executor =
+        var executor =
             await GetRequestExecutorAsync(services, schemaName, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -269,28 +270,31 @@ public static class RequestExecutorServiceProviderExtensions
     /// The cancellation token.
     /// </param>
     /// <returns>
-    /// Returns the execution result of the given GraphQL <paramref name="query" />.
-    ///
+    /// <para>Returns the execution result of the given GraphQL <paramref name="query" />.</para>
+    /// <para>
     /// If the request operation is a simple query or mutation the result is a
     /// <see cref="IQueryResult" />.
-    ///
+    /// </para>
+    /// <para>
     /// If the request operation is a query or mutation where data is deferred, streamed or
     /// includes live data the result is a <see cref="IResponseStream" /> where each result
     /// that the <see cref="IResponseStream" /> yields is a
     /// <see cref="IQueryResult" />.
-    ///
+    /// </para>
+    /// <para>
     /// If the request operation is a subscription the result is a
     /// <see cref="IResponseStream" /> where each result that the
     /// <see cref="IResponseStream" /> yields is a
     /// <see cref="IQueryResult" />.
+    /// </para>
     /// </returns>
     public static async Task<IExecutionResult> ExecuteRequestAsync(
         this IRequestExecutorBuilder builder,
         string query,
-        NameString schemaName = default,
+        string? schemaName = default,
         CancellationToken cancellationToken = default)
     {
-        IRequestExecutor executor =
+        var executor =
             await BuildRequestExecutorAsync(builder, schemaName, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -308,9 +312,6 @@ public static class RequestExecutorServiceProviderExtensions
     /// <param name="requestBatch">
     /// The GraphQL request batch.
     /// </param>
-    /// <param name="allowParallelExecution">
-    /// Defines if the executor is allowed to execute the batch in parallel.
-    /// </param>
     /// <param name="schemaName">
     /// The schema name.
     /// </param>
@@ -320,19 +321,18 @@ public static class RequestExecutorServiceProviderExtensions
     /// <returns>
     /// Returns a stream of query results.
     /// </returns>
-    public static async Task<IBatchQueryResult> ExecuteBatchRequestAsync(
+    public static async Task<IResponseStream> ExecuteBatchRequestAsync(
         this IServiceProvider services,
-        IEnumerable<IQueryRequest> requestBatch,
-        bool allowParallelExecution = false,
-        NameString schemaName = default,
+        IReadOnlyList<IQueryRequest> requestBatch,
+        string? schemaName = default,
         CancellationToken cancellationToken = default)
     {
-        IRequestExecutor executor =
+        var executor =
             await GetRequestExecutorAsync(services, schemaName, cancellationToken)
                 .ConfigureAwait(false);
 
         return await executor
-            .ExecuteBatchAsync(requestBatch, allowParallelExecution, cancellationToken)
+            .ExecuteBatchAsync(requestBatch, cancellationToken)
             .ConfigureAwait(false);
     }
 }

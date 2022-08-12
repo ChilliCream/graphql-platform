@@ -6,7 +6,7 @@ using HotChocolate.Internal;
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal sealed class PathParameterExpressionBuilder
-    : LambdaParameterExpressionBuilder<IResolverContext, Path>
+    : LambdaParameterExpressionBuilder<IPureResolverContext, Path>
 {
     public PathParameterExpressionBuilder()
         : base(ctx => ctx.Path)

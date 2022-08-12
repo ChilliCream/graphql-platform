@@ -1,12 +1,10 @@
-using System;
 using System.Linq.Expressions;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters.Expressions;
-
 public class QueryableComparableInHandler
     : QueryableComparableOperationHandler
 {
@@ -26,7 +24,7 @@ public class QueryableComparableInHandler
         IValueNode value,
         object? parsedValue)
     {
-        Expression property = context.GetInstance();
+        var property = context.GetInstance();
         parsedValue = ParseValue(value, parsedValue, field.Type, context);
 
         if (parsedValue is null)

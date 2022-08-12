@@ -1,36 +1,35 @@
 using System;
 using System.Collections.Generic;
 
-namespace StrawberryShake.CodeGeneration.CSharp.Builders
+namespace StrawberryShake.CodeGeneration.CSharp.Builders;
+
+public class CodeInlineBlockBuilder : ICode
 {
-    public class CodeInlineBlockBuilder : ICode
+    private readonly List<ICode> _lineParts = new();
+
+    public static CodeInlineBlockBuilder New() => new();
+
+    public CodeInlineBlockBuilder AddCode(ICode value)
     {
-        private readonly List<ICode> _lineParts = new();
-
-        public static CodeInlineBlockBuilder New() => new();
-
-        public CodeInlineBlockBuilder AddCode(ICode value)
+        if (value is null)
         {
-            if (value is null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
-
-            _lineParts.Add(value);
-            return this;
+            throw new ArgumentNullException(nameof(value));
         }
 
-        public void Build(CodeWriter writer)
-        {
-            if (writer is null)
-            {
-                throw new ArgumentNullException(nameof(writer));
-            }
+        _lineParts.Add(value);
+        return this;
+    }
 
-            foreach (ICode code in _lineParts)
-            {
-                code.Build(writer);
-            }
+    public void Build(CodeWriter writer)
+    {
+        if (writer is null)
+        {
+            throw new ArgumentNullException(nameof(writer));
+        }
+
+        foreach (var code in _lineParts)
+        {
+            code.Build(writer);
         }
     }
 }

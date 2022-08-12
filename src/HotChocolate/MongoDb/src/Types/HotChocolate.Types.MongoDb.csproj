@@ -4,7 +4,6 @@
     <PackageId>HotChocolate.Types.MongoDb</PackageId>
     <AssemblyName>HotChocolate.Types.MongoDb</AssemblyName>
     <RootNamespace>HotChocolate.Types.MongoDb</RootNamespace>
-    <NoWarn>$(NoWarn);CA1062</NoWarn>
     <Description>Contains common HotChocolate types for MongoDb</Description>
   </PropertyGroup>
 
@@ -22,9 +21,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>MongoDbTypeResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="Resources\MongoDbTypesResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

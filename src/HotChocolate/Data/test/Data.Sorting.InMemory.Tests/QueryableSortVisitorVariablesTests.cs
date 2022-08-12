@@ -1,134 +1,136 @@
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Utilities;
-using HotChocolate.Execution;
-using HotChocolate.Resolvers;
-using HotChocolate.Tests;
-using HotChocolate.Types;
+using CookieCrumble;
+using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
-using Snapshooter;
-using Snapshooter.Xunit;
-using Xunit;
+using HotChocolate.Execution;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Sorting;
 
-public class QueryableSortVisitorVariablesTests
-    : IClassFixture<SchemaCache>
+public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
 {
     private static readonly Foo[] _fooEntities =
     {
-            new() { Bar = true },
-            new() { Bar = false }
-        };
+        new() { Bar = true },
+        new() { Bar = false }
+    };
 
     [Fact]
     public async Task Create_Boolean_OrderBy()
     {
         // arrange
-        IRequestExecutor tester = await CreateSchema<Foo, FooSortType>(_fooEntities);
+        var tester = await CreateSchema<Foo, FooSortType>(_fooEntities);
         const string query =
             "query Test($order: SortEnumType){ root(order: { bar: $order}){ bar}}";
 
         // act
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(query)
                 .AddVariableValue("order", "ASC")
                 .Create());
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(query)
                 .AddVariableValue("order", "DESC")
                 .Create());
 
         // assert
-        res1.MatchSnapshot("ASC");
-        res2.MatchSnapshot("DESC");
+        await Snapshot
+            .Create()
+            .Add(res1, "ASC")
+            .Add(res2, "DESC")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_Boolean_OrderBy_NonNull()
     {
         // arrange
-        IRequestExecutor tester = await CreateSchema<Foo, FooSortType>(_fooEntities);
+        var tester = await CreateSchema<Foo, FooSortType>(_fooEntities);
         const string query =
             "query Test($order: SortEnumType!){ root(order: { bar: $order}){ bar}}";
 
         // act
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(query)
                 .AddVariableValue("order", "ASC")
                 .Create());
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(query)
                 .AddVariableValue("order", "DESC")
                 .Create());
 
         // assert
-        res1.MatchSnapshot("ASC");
-        res2.MatchSnapshot("DESC");
+        await Snapshot
+            .Create()
+            .Add(res1, "ASC")
+            .Add(res2, "DESC")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Integration_Create_Boolean_OrderBy()
     {
         // arrange
-        TestServer server = CreateServer<Foo, FooSortType>(_fooEntities);
+        var server = CreateServer<Foo, FooSortType>(_fooEntities);
         const string query =
             "query Test($order: SortEnumType){ root(order: { bar: $order}){ bar}}";
 
         // act
         ClientQueryRequest request1 =
             new() { Query = query, Variables = new() { ["order"] = "ASC" } };
-        ClientQueryResult response1 = await server.PostAsync(request1);
+        var res1 = await server.PostAsync(request1);
 
         ClientQueryRequest request2 =
             new() { Query = query, Variables = new() { ["order"] = "DESC" } };
-        ClientQueryResult response2 = await server.PostAsync(request2);
+        var res2 = await server.PostAsync(request2);
 
         // assert
-        response1.MatchSnapshot(new SnapshotNameExtension("ASC"));
-        response2.MatchSnapshot(new SnapshotNameExtension("DESC"));
+        await Snapshot
+            .Create()
+            .Add(res1, "ASC")
+            .Add(res2, "DESC")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Integration_Create_Boolean_OrderBy_NonNull()
     {
         // arrange
-        TestServer server = CreateServer<Foo, FooSortType>(_fooEntities);
+        var server = CreateServer<Foo, FooSortType>(_fooEntities);
         const string query =
             "query Test($order: SortEnumType!){ root(order: { bar: $order}){ bar}}";
 
         // act
         ClientQueryRequest request1 =
             new() { Query = query, Variables = new() { ["order"] = "ASC" } };
-        ClientQueryResult response1 = await server.PostAsync(request1);
+        var res1 = await server.PostAsync(request1);
 
         ClientQueryRequest request2 =
             new() { Query = query, Variables = new() { ["order"] = "DESC" } };
-        ClientQueryResult response2 = await server.PostAsync(request2);
+        var res2 = await server.PostAsync(request2);
 
         // assert
-        response1.MatchSnapshot(new SnapshotNameExtension("ASC"));
-        response2.MatchSnapshot(new SnapshotNameExtension("DESC"));
+        await Snapshot
+            .Create()
+            .Add(res1, "ASC")
+            .Add(res2, "DESC")
+            .MatchAsync();
     }
 
     private TestServer CreateServer<TEntity, T>(TEntity?[] entities)
         where TEntity : class
         where T : SortInputType<TEntity>
     {
-        IWebHostBuilder builder = new WebHostBuilder()
+        var builder = new WebHostBuilder()
             .ConfigureServices((_, services) =>
             {
                 services.AddRouting();
@@ -163,15 +165,15 @@ public class QueryableSortVisitorVariablesTests
             .AddGraphQL()
             .AddSorting()
             .AddQueryType(
-                c =>
+                descriptor =>
                 {
-                    c
+                    descriptor
                         .Name("Query")
                         .Field("root")
                         .Resolve(entities)
                         .UseSorting<T>();
 
-                    c
+                    descriptor
                         .Name("Query")
                         .Field("rootExecutable")
                         .Resolve(entities.AsExecutable())
@@ -179,16 +181,15 @@ public class QueryableSortVisitorVariablesTests
                 })
             .BuildRequestExecutorAsync();
     }
-}
 
-public class Foo
-{
-    public int Id { get; set; }
+    public class Foo
+    {
+        public int Id { get; set; }
 
-    public bool Bar { get; set; }
-}
+        public bool Bar { get; set; }
+    }
 
-public class FooSortType
-    : SortInputType<Foo>
-{
+    public class FooSortType : SortInputType<Foo>
+    {
+    }
 }

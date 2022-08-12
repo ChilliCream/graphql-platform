@@ -1,17 +1,15 @@
 using System;
 using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Fetching;
 
 namespace HotChocolate.Execution.Processing;
 
+#pragma warning disable CS0067
 internal class NoopBatchDispatcher : IBatchDispatcher
 {
     public event EventHandler? TaskEnqueued;
 
-    public bool HasTasks => false;
-
-    public bool DispatchOnSchedule { get; set; } = false;
+    public bool DispatchOnSchedule { get; set; }
 
     public void BeginDispatch(CancellationToken cancellationToken) { }
 

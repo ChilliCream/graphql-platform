@@ -52,10 +52,11 @@ internal sealed class DbContextParameterExpressionBuilder<TDbContext>
 
             case ServiceKind.Resolver:
                 ServiceExpressionHelper.ApplyConfiguration(parameter, descriptor, _kind);
-                ObjectFieldDefinition definition = descriptor.Extend().Definition;
-                FieldMiddlewareDefinition placeholderMiddleware =
-                    new(_ => _ => throw new NotSupportedException(), key: ToList);
-                FieldMiddlewareDefinition serviceMiddleware =
+                var definition = descriptor.Extend().Definition;
+                var placeholderMiddleware = new FieldMiddlewareDefinition(
+                    _ => _ => throw new NotSupportedException(),
+                    key: ToList);
+                var serviceMiddleware =
                     definition.MiddlewareDefinitions.Last(t => t.Key == PooledService);
                 var index = definition.MiddlewareDefinitions.IndexOf(serviceMiddleware) + 1;
                 definition.MiddlewareDefinitions.Insert(index, placeholderMiddleware);

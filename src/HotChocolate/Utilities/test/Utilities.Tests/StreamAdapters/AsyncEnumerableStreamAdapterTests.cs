@@ -64,7 +64,7 @@ namespace HotChocolate.Utilities.StreamAdapters
             Assert.Throws<ArgumentNullException>(Verify);
         }
 
-        private class TestEnumerable : IAsyncEnumerable<string>
+        private sealed class TestEnumerable : IAsyncEnumerable<string>
         {
             private readonly IEnumerable<string> _strings;
 
@@ -77,7 +77,7 @@ namespace HotChocolate.Utilities.StreamAdapters
                 CancellationToken cancellationToken = default)
                 => new Enumerator(_strings.GetEnumerator());
 
-            private class Enumerator : IAsyncEnumerator<string>
+            private sealed class Enumerator : IAsyncEnumerator<string>
             {
                 private readonly IEnumerator<string> _enumerator;
 

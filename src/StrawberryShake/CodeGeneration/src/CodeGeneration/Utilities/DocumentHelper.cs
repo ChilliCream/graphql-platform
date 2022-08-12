@@ -5,70 +5,69 @@ using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using SyntaxVisitor = HotChocolate.Language.Visitors.SyntaxVisitor;
 
-namespace StrawberryShake.CodeGeneration.Utilities
-{
-    public static class DocumentHelper
-    {
-        public static IReadOnlyList<GraphQLFile> GetTypeSystemDocuments(
-            this IEnumerable<GraphQLFile> documentNodes)
-        {
-            if (documentNodes is null)
-            {
-                throw new ArgumentNullException(nameof(documentNodes));
-            }
+namespace StrawberryShake.CodeGeneration.Utilities;
 
-            return documentNodes.Where(doc =>
+public static class DocumentHelper
+{
+    public static IReadOnlyList<GraphQLFile> GetTypeSystemDocuments(
+        this IEnumerable<GraphQLFile> documentNodes)
+    {
+        if (documentNodes is null)
+        {
+            throw new ArgumentNullException(nameof(documentNodes));
+        }
+
+        return documentNodes.Where(doc =>
                 doc.Document.Definitions.All(def =>
                     def is ITypeSystemDefinitionNode or ITypeSystemExtensionNode))
-                .ToList();
+            .ToList();
+    }
+
+    public static IReadOnlyList<GraphQLFile> GetExecutableDocuments(
+        this IEnumerable<GraphQLFile> documentNodes)
+    {
+        if (documentNodes is null)
+        {
+            throw new ArgumentNullException(nameof(documentNodes));
         }
 
-        public static IReadOnlyList<GraphQLFile> GetExecutableDocuments(
-            this IEnumerable<GraphQLFile> documentNodes)
-        {
-            if (documentNodes is null)
-            {
-                throw new ArgumentNullException(nameof(documentNodes));
-            }
-
-            return documentNodes.Where(doc =>
+        return documentNodes.Where(doc =>
                 doc.Document.Definitions.All(def => def is IExecutableDefinitionNode))
-                .ToList();
-        }
+            .ToList();
+    }
 
-        public static void IndexSyntaxNodes(
-            IEnumerable<GraphQLFile> files,
-            IDictionary<ISyntaxNode, string> lookup)
+    public static void IndexSyntaxNodes(
+        IEnumerable<GraphQLFile> files,
+        IDictionary<ISyntaxNode, string> lookup)
+    {
+        foreach (var file in files)
         {
-            foreach (var file in files)
-            {
-                IndexSyntaxNodes(file, lookup);
-            }
+            IndexSyntaxNodes(file, lookup);
         }
+    }
 
-        public static void IndexSyntaxNodes(
-            GraphQLFile file,
-            IDictionary<ISyntaxNode, string> lookup)
-        {
-            SyntaxVisitor
-                .Create(
-                    enter: node =>
+    public static void IndexSyntaxNodes(
+        GraphQLFile file,
+        IDictionary<ISyntaxNode, string> lookup)
+    {
+        SyntaxVisitor
+            .Create(
+                enter: node =>
+                {
+                    if (!lookup.ContainsKey(node))
                     {
-                        if (!lookup.ContainsKey(node))
-                        {
-                            lookup.Add(node, file.FileName);
-                        }
-                        return SyntaxVisitor.Continue;
-                    },
-                    defaultAction: SyntaxVisitor.Continue,
-                    options: new SyntaxVisitorOptions
-                    {
-                        VisitArguments = true,
-                        VisitDescriptions = true,
-                        VisitDirectives = true,
-                        VisitNames = true
-                    })
-                .Visit(file.Document);
-        }
+                        lookup.Add(node, file.FileName);
+                    }
+                    return SyntaxVisitor.Continue;
+                },
+                defaultAction: SyntaxVisitor.Continue,
+                options: new SyntaxVisitorOptions
+                {
+                    VisitArguments = true,
+                    VisitDescriptions = true,
+                    VisitDirectives = true,
+                    VisitNames = true
+                })
+            .Visit(file.Document);
     }
 }

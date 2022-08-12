@@ -1,42 +1,41 @@
 using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 
-namespace StrawberryShake.CodeGeneration.CSharp.Generators
+namespace StrawberryShake.CodeGeneration.CSharp.Generators;
+
+internal class HashCodeBuilder : ICode
 {
-    internal class HashCodeBuilder : ICode
+    public const string VariableName = "hash";
+    public const int Prime = 397;
+
+    private readonly List<ICode> _code = new();
+
+    public static HashCodeBuilder New() => new();
+
+    public HashCodeBuilder AddCode(ICode code)
     {
-        public const string VariableName = "hash";
-        public const int Prime = 397;
+        _code.Add(code);
+        return this;
+    }
 
-        private readonly List<ICode> _code = new();
+    public void Build(CodeWriter writer)
+    {
+        writer.WriteIndentedLine("unchecked");
+        writer.WriteIndentedLine("{");
 
-        public static HashCodeBuilder New() => new();
-
-        public HashCodeBuilder AddCode(ICode code)
+        using (writer.IncreaseIndent())
         {
-            _code.Add(code);
-            return this;
-        }
-
-        public void Build(CodeWriter writer)
-        {
-            writer.WriteIndentedLine("unchecked");
-            writer.WriteIndentedLine("{");
-
-            using (writer.IncreaseIndent())
+            writer.WriteIndentedLine($"int {VariableName} = 5;");
+            writer.WriteLine();
+            foreach (var check in _code)
             {
-                writer.WriteIndentedLine($"int {VariableName} = 5;");
+                check.Build(writer);
                 writer.WriteLine();
-                foreach (ICode check in _code)
-                {
-                    check.Build(writer);
-                    writer.WriteLine();
-                }
-
-                writer.WriteIndentedLine($"return {VariableName};");
             }
 
-            writer.WriteIndentedLine("}");
+            writer.WriteIndentedLine($"return {VariableName};");
         }
+
+        writer.WriteIndentedLine("}");
     }
 }

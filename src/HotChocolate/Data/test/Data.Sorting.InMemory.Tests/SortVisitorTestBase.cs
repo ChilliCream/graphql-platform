@@ -27,9 +27,9 @@ public class SortVisitorTestBase
     {
         convention ??= new SortConvention(x => x.AddDefaults().BindRuntimeType<TEntity, T>());
 
-        Func<IResolverContext, IEnumerable<TEntity>>? resolver = BuildResolver(entities!);
+        var resolver = BuildResolver(entities!);
 
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddConvention<ISortConvention>(convention)
             .AddSorting()
             .AddQueryType(
@@ -50,7 +50,7 @@ public class SortVisitorTestBase
 
         configure?.Invoke(builder);
 
-        ISchema? schema = builder.Create();
+        var schema = builder.Create();
 
         return schema.MakeExecutable();
     }

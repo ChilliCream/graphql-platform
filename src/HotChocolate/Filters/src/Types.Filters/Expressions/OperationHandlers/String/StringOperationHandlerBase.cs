@@ -3,46 +3,45 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Filters.Expressions
+namespace HotChocolate.Types.Filters.Expressions;
+
+[Obsolete("Use HotChocolate.Data.")]
+public abstract class StringOperationHandlerBase
+    : IExpressionOperationHandler
 {
-    [Obsolete("Use HotChocolate.Data.")]
-    public abstract class StringOperationHandlerBase
-        : IExpressionOperationHandler
+    public bool TryHandle(
+        FilterOperation operation,
+        IInputType type,
+        IValueNode value,
+        IQueryableFilterVisitorContext context,
+        [NotNullWhen(true)] out Expression? expression)
     {
-        public bool TryHandle(
-            FilterOperation operation,
-            IInputType type,
-            IValueNode value,
-            IQueryableFilterVisitorContext context,
-            [NotNullWhen(true)] out Expression? expression)
+        if (operation.Type == typeof(string) && type.IsInstanceOfType(value))
         {
-            if (operation.Type == typeof(string) && type.IsInstanceOfType(value))
+            var parsedValue = context.InputParser.ParseLiteral(value, type);
+
+            var property = context.GetInstance();
+
+            if (!operation.IsSimpleArrayType())
             {
-                var parsedValue = context.InputParser.ParseLiteral(value, type);
-
-                Expression property = context.GetInstance();
-
-                if (!operation.IsSimpleArrayType())
-                {
-                    property = Expression.Property(
-                        context.GetInstance(), operation.Property);
-                }
-
-                return TryCreateExpression(
-                    operation,
-                    property,
-                    parsedValue,
-                    out expression);
+                property = Expression.Property(
+                    context.GetInstance(), operation.Property);
             }
 
-            expression = null;
-            return false;
+            return TryCreateExpression(
+                operation,
+                property,
+                parsedValue,
+                out expression);
         }
 
-        protected abstract bool TryCreateExpression(
-            FilterOperation operation,
-            Expression property,
-            object parsedValue,
-            [NotNullWhen(true)] out Expression? expression);
+        expression = null;
+        return false;
     }
+
+    protected abstract bool TryCreateExpression(
+        FilterOperation operation,
+        Expression property,
+        object parsedValue,
+        [NotNullWhen(true)] out Expression? expression);
 }

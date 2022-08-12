@@ -28,23 +28,23 @@ public static class EntityFrameworkObjectFieldDescriptorExtensions
             {
 #if NET6_0_OR_GREATER
                 await using TDbContext dbContext = await context.Services
-                .GetRequiredService<IDbContextFactory<TDbContext>>()
-                .CreateDbContextAsync()
-                .ConfigureAwait(false);
+                    .GetRequiredService<IDbContextFactory<TDbContext>>()
+                    .CreateDbContextAsync()
+                    .ConfigureAwait(false);
 #else
-                    using TDbContext dbContext = context.Services
-                        .GetRequiredService<IDbContextFactory<TDbContext>>()
-                        .CreateDbContext();
+                using TDbContext dbContext = context.Services
+                    .GetRequiredService<IDbContextFactory<TDbContext>>()
+                    .CreateDbContext();
 #endif
 
                 try
                 {
-                    context.SetLocalValue(scopedServiceName, dbContext);
+                    context.SetLocalState(scopedServiceName, dbContext);
                     await next(context).ConfigureAwait(false);
                 }
                 finally
                 {
-                    context.RemoveLocalValue(scopedServiceName);
+                    context.RemoveLocalState(scopedServiceName);
                 }
             }, key: WellKnownMiddleware.DbContext));
 
@@ -69,25 +69,21 @@ public static class EntityFrameworkObjectFieldDescriptorExtensions
         FieldMiddlewareDefinition contextMiddleware =
             new(next => async context =>
                 {
-#if NET6_0_OR_GREATER
-                    await using TDbContext dbContext = await context.Services
-                    .GetRequiredService<IDbContextFactory<TDbContext>>()
-                    .CreateDbContextAsync()
-                    .ConfigureAwait(false);
-#else
-                        using TDbContext dbContext = context.Services
-                            .GetRequiredService<IDbContextFactory<TDbContext>>()
-                            .CreateDbContext();
-#endif
+                    var dbContext = await context.Services
+                        .GetRequiredService<IDbContextFactory<TDbContext>>()
+                        .CreateDbContextAsync()
+                        .ConfigureAwait(false);
+
+                    context.RegisterForCleanup(() => dbContext.DisposeAsync());
 
                     try
                     {
-                        context.SetLocalValue(scopedServiceName, dbContext);
+                        context.SetLocalState(scopedServiceName, dbContext);
                         await next(context).ConfigureAwait(false);
                     }
                     finally
                     {
-                        context.RemoveLocalValue(scopedServiceName);
+                        context.RemoveLocalState(scopedServiceName);
                     }
                 },
                 key: WellKnownMiddleware.DbContext);
@@ -169,13 +165,8 @@ public static class EntityFrameworkObjectFieldDescriptorExtensions
             return false;
         }
 
-        Type resultTypeDefinition = resultType.GetGenericTypeDefinition();
-        if ((resultTypeDefinition == _task || resultTypeDefinition == _valueTask) &&
-            typeof(IExecutable).IsAssignableFrom(resultType.GenericTypeArguments[0]))
-        {
-            return true;
-        }
-
-        return false;
+        var resultTypeDefinition = resultType.GetGenericTypeDefinition();
+        return (resultTypeDefinition == _task || resultTypeDefinition == _valueTask) &&
+            typeof(IExecutable).IsAssignableFrom(resultType.GenericTypeArguments[0]);
     }
 }

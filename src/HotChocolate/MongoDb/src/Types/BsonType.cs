@@ -34,7 +34,7 @@ public class BsonType : ScalarType
     /// Initializes a new instance of the <see cref="BsonType"/> class.
     /// </summary>
     public BsonType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)
@@ -347,42 +347,42 @@ public class BsonType : ScalarType
         switch (resultValue)
         {
             case IDictionary<string, object> dictionary:
-            {
-                var result = new BsonDocument();
-                foreach (KeyValuePair<string, object> element in dictionary)
                 {
-                    if (TryDeserialize(element.Value, out elementValue))
+                    var result = new BsonDocument();
+                    foreach (KeyValuePair<string, object> element in dictionary)
                     {
-                        result[element.Key] = (BsonValue)elementValue;
+                        if (TryDeserialize(element.Value, out elementValue))
+                        {
+                            result[element.Key] = (BsonValue?)elementValue;
+                        }
+                        else
+                        {
+                            return false;
+                        }
                     }
-                    else
-                    {
-                        return false;
-                    }
-                }
 
-                runtimeValue = result;
-                return true;
-            }
+                    runtimeValue = result;
+                    return true;
+                }
 
             case IList list:
-            {
-                var result = new BsonValue[list.Count];
-                for (var i = 0; i < list.Count; i++)
                 {
-                    if (TryDeserialize(list[i], out elementValue))
+                    var result = new BsonValue?[list.Count];
+                    for (var i = 0; i < list.Count; i++)
                     {
-                        result[i] = (BsonValue)elementValue;
+                        if (TryDeserialize(list[i], out elementValue))
+                        {
+                            result[i] = (BsonValue?)elementValue;
+                        }
+                        else
+                        {
+                            return false;
+                        }
                     }
-                    else
-                    {
-                        return false;
-                    }
-                }
 
-                runtimeValue = new BsonArray(result);
-                return true;
-            }
+                    runtimeValue = new BsonArray(result);
+                    return true;
+                }
 
             case IValueNode literal:
                 runtimeValue = ParseLiteral(literal);

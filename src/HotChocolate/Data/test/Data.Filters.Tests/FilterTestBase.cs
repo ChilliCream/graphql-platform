@@ -8,7 +8,7 @@ public abstract class FilterTestBase
 {
     public ISchema CreateSchema(Action<ISchemaBuilder> configure)
     {
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddFiltering()
             .AddQueryType(c =>
                 c.Name("Query")
@@ -17,6 +17,24 @@ public abstract class FilterTestBase
                     .Resolve("bar"));
 
         configure(builder);
+
+        return builder.Create();
+    }
+
+    public ISchema CreateSchemaWithFilter<T>(
+        Action<IFilterInputTypeDescriptor<T>> configure,
+        Action<ISchemaBuilder>? configureSchema = null)
+    {
+        var builder = SchemaBuilder.New()
+            .AddFiltering()
+            .ModifyOptions(x => x.RemoveUnreachableTypes = true)
+            .AddQueryType(c =>
+                c.Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .UseFiltering(configure)
+                    .Resolve("bar"));
+        configureSchema?.Invoke(builder);
 
         return builder.Create();
     }

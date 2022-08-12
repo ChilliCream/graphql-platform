@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class SchemaRequestExecutorBuilderExtensions
@@ -30,8 +30,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddResolver(
         this IRequestExecutorBuilder builder,
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         Func<IResolverContext, object?> resolver)
     {
         if (builder is null)
@@ -67,8 +67,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddResolver(
         this IRequestExecutorBuilder builder,
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         Func<IResolverContext, ValueTask<object?>> resolver)
     {
         if (builder is null)
@@ -104,8 +104,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddResolver<TResult>(
         this IRequestExecutorBuilder builder,
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         Func<IResolverContext, TResult> resolver)
     {
         if (builder is null)
@@ -141,8 +141,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddResolver<TResult>(
         this IRequestExecutorBuilder builder,
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         Func<IResolverContext, ValueTask<TResult>> resolver)
     {
         if (builder is null)
@@ -180,8 +180,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddResolver(
         this IRequestExecutorBuilder builder,
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         Func<object?> resolver)
     {
         if (builder is null)
@@ -217,8 +217,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddResolver(
         this IRequestExecutorBuilder builder,
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         Func<ValueTask<object?>> resolver)
     {
         if (builder is null)
@@ -254,8 +254,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddResolver<TResult>(
         this IRequestExecutorBuilder builder,
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         Func<TResult> resolver)
     {
         if (builder is null)
@@ -291,8 +291,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddResolver<TResult>(
         this IRequestExecutorBuilder builder,
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         Func<ValueTask<TResult>> resolver)
     {
         if (builder is null)
@@ -330,8 +330,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddResolver(
         this IRequestExecutorBuilder builder,
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         Func<IResolverContext, CancellationToken, object?> resolver)
     {
         if (builder is null)
@@ -367,8 +367,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddResolver<TResult>(
         this IRequestExecutorBuilder builder,
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         Func<IResolverContext, CancellationToken, TResult> resolver)
     {
         if (builder is null)
@@ -404,8 +404,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddResolver<TResult>(
         this IRequestExecutorBuilder builder,
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         Func<IResolverContext, CancellationToken, ValueTask<TResult>> resolver)
     {
         if (builder is null)
@@ -443,8 +443,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddResolver(
         this IRequestExecutorBuilder builder,
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         object? constantResult)
     {
         if (builder is null)
@@ -475,8 +475,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddResolver<TResult>(
         this IRequestExecutorBuilder builder,
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         TResult constantResult)
     {
         if (builder is null)
@@ -505,7 +505,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddResolver<TResolver>(
         this IRequestExecutorBuilder builder,
-        NameString? typeName = null)
+        string? typeName = null)
     {
         if (builder is null)
         {
@@ -534,7 +534,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddResolver(
         this IRequestExecutorBuilder builder,
         Type resolverType,
-        NameString? typeName = null)
+        string? typeName = null)
     {
         if (builder is null)
         {
@@ -543,7 +543,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
         if (resolverType is null)
         {
-            throw new ArgumentNullException(nameof(builder));
+            throw new ArgumentNullException(nameof(resolverType));
         }
 
         return builder.ConfigureSchema(b => b.AddResolver(resolverType, typeName));

@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters;
 
@@ -43,8 +44,7 @@ public interface IFilterConventionDescriptor
     /// <typeparam name="TFilterType">
     /// The filter type for which additional configuration shall be provided.
     /// </typeparam>
-    IFilterConventionDescriptor Configure<TFilterType>(
-        ConfigureFilterInputType configure)
+    IFilterConventionDescriptor Configure<TFilterType>(ConfigureFilterInputType configure)
         where TFilterType : FilterInputType;
 
     /// <summary>
@@ -86,14 +86,14 @@ public interface IFilterConventionDescriptor
 
     /// <summary>
     /// Defines the argument name of the filter used by
-    /// <see cref="FilterObjectFieldDescriptorExtensions.UseFiltering"/>
+    /// <see cref="FilterObjectFieldDescriptorExtensions.UseFiltering(IObjectFieldDescriptor, string?)"/>
     /// </summary>
     /// <param name="argumentName">The argument name.</param>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="argumentName"/> is <c>null</c> or
     /// <see cref="string.Empty"/>.
     /// </exception>
-    IFilterConventionDescriptor ArgumentName(NameString argumentName);
+    IFilterConventionDescriptor ArgumentName(string argumentName);
 
     /// <summary>
     /// Add a extensions that is applied to <see cref="FilterProvider{TContext}"/>

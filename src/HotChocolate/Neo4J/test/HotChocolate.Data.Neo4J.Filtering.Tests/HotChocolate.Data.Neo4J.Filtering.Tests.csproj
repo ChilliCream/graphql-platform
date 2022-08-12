@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.Data.Neo4J.Filtering.Tests</AssemblyName>
-    <RootNamespace>HotChocolate.Data</RootNamespace>
+    <RootNamespace>HotChocolate.Data.Neo4J.Filtering</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

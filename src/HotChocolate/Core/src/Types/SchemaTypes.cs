@@ -1,14 +1,18 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using HotChocolate.Types;
+using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate;
 
 internal sealed class SchemaTypes
 {
-    private readonly Dictionary<NameString, INamedType> _types;
-    private readonly Dictionary<NameString, List<ObjectType>> _possibleTypes;
+    private readonly Dictionary<string, INamedType> _types;
+    private readonly Dictionary<string, List<ObjectType>> _possibleTypes;
 
     public SchemaTypes(SchemaTypesDefinition definition)
     {
@@ -17,38 +21,43 @@ internal sealed class SchemaTypes
             throw new ArgumentNullException(nameof(definition));
         }
 
+        if (definition.Types is null || definition.DirectiveTypes is null)
+        {
+            throw new ArgumentException(
+                SchemaTypes_DefinitionInvalid,
+                nameof(definition));
+        }
+
         _types = definition.Types.ToDictionary(t => t.Name);
         _possibleTypes = CreatePossibleTypeLookup(definition.Types);
-        QueryType = definition.QueryType;
+        QueryType = definition.QueryType!;
         MutationType = definition.MutationType;
         SubscriptionType = definition.SubscriptionType;
     }
 
     public ObjectType QueryType { get; }
 
-    public ObjectType MutationType { get; }
+    public ObjectType? MutationType { get; }
 
-    public ObjectType SubscriptionType { get; }
+    public ObjectType? SubscriptionType { get; }
 
-    public T GetType<T>(NameString typeName) where T : IType
+    public T GetType<T>(string typeName) where T : IType
     {
-        if (_types.TryGetValue(typeName, out INamedType namedType)
+        if (_types.TryGetValue(typeName, out var namedType)
             && namedType is T type)
         {
             return type;
         }
 
-        // TODO : resource
         throw new ArgumentException(
-            $"The specified type `{typeName}` does not exist or " +
-            $"is not of the specified kind `{typeof(T).Name}`.",
+            string.Format(SchemaTypes_GetType_DoesNotExist, typeName, typeof(T).Name),
             nameof(typeName));
     }
 
-    public bool TryGetType<T>(NameString typeName, out T type)
+    public bool TryGetType<T>(string typeName, [NotNullWhen(true)] out T? type)
         where T : IType
     {
-        if (_types.TryGetValue(typeName, out INamedType namedType)
+        if (_types.TryGetValue(typeName, out var namedType)
             && namedType is T t)
         {
             type = t;
@@ -64,9 +73,9 @@ internal sealed class SchemaTypes
         return _types.Values;
     }
 
-    public bool TryGetClrType(NameString typeName, out Type clrType)
+    public bool TryGetClrType(string typeName, [NotNullWhen(true)] out Type? clrType)
     {
-        if (_types.TryGetValue(typeName, out INamedType type)
+        if (_types.TryGetValue(typeName, out var type)
             && type is IHasRuntimeType ct
             && ct.RuntimeType != typeof(object))
         {
@@ -80,9 +89,9 @@ internal sealed class SchemaTypes
 
     public bool TryGetPossibleTypes(
         string abstractTypeName,
-        out IReadOnlyList<ObjectType> types)
+        [NotNullWhen(true)] out IReadOnlyList<ObjectType>? types)
     {
-        if (_possibleTypes.TryGetValue(abstractTypeName, out List<ObjectType> pt))
+        if (_possibleTypes.TryGetValue(abstractTypeName, out var pt))
         {
             types = pt;
             return true;
@@ -92,18 +101,18 @@ internal sealed class SchemaTypes
         return false;
     }
 
-    private static Dictionary<NameString, List<ObjectType>> CreatePossibleTypeLookup(
+    private static Dictionary<string, List<ObjectType>> CreatePossibleTypeLookup(
         IReadOnlyCollection<INamedType> types)
     {
-        var possibleTypes = new Dictionary<NameString, List<ObjectType>>();
+        var possibleTypes = new Dictionary<string, List<ObjectType>>();
 
-        foreach (ObjectType objectType in types.OfType<ObjectType>())
+        foreach (var objectType in types.OfType<ObjectType>())
         {
             possibleTypes[objectType.Name] = new List<ObjectType> { objectType };
 
-            foreach (InterfaceType interfaceType in objectType.Implements)
+            foreach (var interfaceType in objectType.Implements)
             {
-                if (!possibleTypes.TryGetValue(interfaceType.Name, out List<ObjectType> pt))
+                if (!possibleTypes.TryGetValue(interfaceType.Name, out var pt))
                 {
                     pt = new List<ObjectType>();
                     possibleTypes[interfaceType.Name] = pt;
@@ -113,12 +122,12 @@ internal sealed class SchemaTypes
             }
         }
 
-        foreach (UnionType unionType in types.OfType<UnionType>())
+        foreach (var unionType in types.OfType<UnionType>())
         {
-            foreach (ObjectType objectType in unionType.Types.Values)
+            foreach (var objectType in unionType.Types.Values)
             {
                 if (!possibleTypes.TryGetValue(
-                    unionType.Name, out List<ObjectType> pt))
+                    unionType.Name, out var pt))
                 {
                     pt = new List<ObjectType>();
                     possibleTypes[unionType.Name] = pt;

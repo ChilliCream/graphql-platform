@@ -34,8 +34,7 @@ public class SortEnumTypeDescriptor
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
     }
 
-    protected override SortEnumTypeDefinition Definition { get; set; } =
-        new SortEnumTypeDefinition();
+    protected internal override SortEnumTypeDefinition Definition { get; protected set; } = new();
 
     protected ICollection<SortEnumValueDescriptor> Values { get; } =
         new List<SortEnumValueDescriptor>();
@@ -58,7 +57,7 @@ public class SortEnumTypeDescriptor
 
         definition.Values.Clear();
 
-        foreach (SortEnumValueDefinition value in values.Values)
+        foreach (var value in values.Values)
         {
             definition.Values.Add(value);
         }
@@ -73,9 +72,9 @@ public class SortEnumTypeDescriptor
         return this;
     }
 
-    public ISortEnumTypeDescriptor Name(NameString value)
+    public ISortEnumTypeDescriptor Name(string value)
     {
-        Definition.Name = value.EnsureNotEmpty(nameof(value));
+        Definition.Name = value;
         return this;
     }
 
@@ -87,7 +86,7 @@ public class SortEnumTypeDescriptor
 
     public ISortEnumValueDescriptor Operation(int operation)
     {
-        SortEnumValueDescriptor? descriptor = Values
+        var descriptor = Values
             .FirstOrDefault(
                 t =>
                     t.Definition.RuntimeValue is not null &&
@@ -117,31 +116,26 @@ public class SortEnumTypeDescriptor
         return this;
     }
 
-    public ISortEnumTypeDescriptor Directive(
-        NameString name,
-        params ArgumentNode[] arguments)
+    public ISortEnumTypeDescriptor Directive(string name, params ArgumentNode[] arguments)
     {
         Definition.AddDirective(name, arguments);
         return this;
     }
 
-    public static SortEnumTypeDescriptor New(
-        IDescriptorContext context,
-        Type type,
-        string? scope) =>
-        new SortEnumTypeDescriptor(context, type, scope);
+    public static SortEnumTypeDescriptor New(IDescriptorContext context, Type type, string? scope)
+        => new(context, type, scope);
 
     public static SortEnumTypeDescriptor FromSchemaType(
         IDescriptorContext context,
         Type schemaType,
         string? scope)
     {
-        SortEnumTypeDescriptor descriptor = New(context, schemaType, scope);
+        var descriptor = New(context, schemaType, scope);
         return descriptor;
     }
 
     public static SortEnumTypeDescriptor From(
         IDescriptorContext context,
-        SortEnumTypeDefinition definition) =>
-        new SortEnumTypeDescriptor(context, definition);
+        SortEnumTypeDefinition definition)
+        => new(context, definition);
 }

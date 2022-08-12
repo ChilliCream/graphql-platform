@@ -22,7 +22,7 @@ public class UnsignedLongType : IntegerTypeBase<ulong>
     /// Initializes a new instance of the <see cref="UnsignedLongType"/> class.
     /// </summary>
     public UnsignedLongType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Implicit)
         : base(name, ulong.MinValue, ulong.MaxValue, bind)

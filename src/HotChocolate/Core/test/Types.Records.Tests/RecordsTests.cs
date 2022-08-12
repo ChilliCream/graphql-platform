@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Types.Relay;
 using static HotChocolate.Tests.TestHelper;
 using System.Threading.Tasks;
