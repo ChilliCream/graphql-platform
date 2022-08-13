@@ -13,12 +13,12 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static class RequestExecutorBuilderExtensions
 {
     public static IRequestExecutorBuilder AddFusionGatewayServer(
-        this IRequestExecutorBuilder builder,
+        this IServiceCollection services,
         string serviceConfiguration)
     {
-        if (builder is null)
+        if (services is null)
         {
-            throw new ArgumentNullException(nameof(builder));
+            throw new ArgumentNullException(nameof(services));
         }
 
         if (string.IsNullOrEmpty(serviceConfiguration))
@@ -31,12 +31,12 @@ public static class RequestExecutorBuilderExtensions
     }
 
     public static IRequestExecutorBuilder AddFusionGatewayServer(
-        this IRequestExecutorBuilder builder,
+        this IServiceCollection services,
         DocumentNode serviceConfiguration)
     {
-        if (builder is null)
+        if (services is null)
         {
-            throw new ArgumentNullException(nameof(builder));
+            throw new ArgumentNullException(nameof(services));
         }
 
         if (serviceConfiguration is null)
@@ -56,7 +56,8 @@ public static class RequestExecutorBuilderExtensions
                 "A valid service configuration must always produce a schema document.");
         }
 
-        return builder
+        return services
+            .AddGraphQLServer()
             .AddDocument(schemaDoc)
             .UseField(next => next)
             .UseDefaultGatewayPipeline()

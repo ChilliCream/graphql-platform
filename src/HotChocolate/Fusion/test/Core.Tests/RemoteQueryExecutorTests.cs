@@ -122,7 +122,6 @@ public class RemoteQueryExecutorTests
 
         var executor = await new ServiceCollection()
             .AddSingleton<IHttpClientFactory>(clientFactory)
-            .AddGraphQLServer()
             .AddFusionGatewayServer(serviceConfiguration)
             .BuildRequestExecutorAsync();
 
