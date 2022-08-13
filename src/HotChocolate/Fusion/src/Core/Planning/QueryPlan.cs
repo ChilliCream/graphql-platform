@@ -26,6 +26,7 @@ internal sealed class QueryPlan
     // name is not really good... the selection sets that require execution of request nodes.
     public IReadOnlySet<ISelectionSet> RequiresFetch { get; }
 
+    // should we return a tree instead so that dependencies are correctly modeled?
     public IEnumerable<RequestNode> GetRequestNodes(ISelectionSet selectionSet)
         => _lookup[selectionSet];
 

@@ -1,0 +1,7 @@
+{
+  "VariableDirective": "variable",
+  "FetchDirective": "fetch",
+  "BindDirective": "bind",
+  "HttpDirective": "httpClient",
+  "FusionDirective": "fusion"
+}

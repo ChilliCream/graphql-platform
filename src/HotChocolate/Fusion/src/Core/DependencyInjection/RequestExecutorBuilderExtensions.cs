@@ -11,15 +11,15 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class RequestExecutorBuilderExtensions
 {
-    public static IRequestExecutorBuilder AddGraphQLGateway(
+    public static IRequestExecutorBuilder AddFusionGatewayServer(
         this IRequestExecutorBuilder builder,
-        string serviceConfig,
-        string sdl)
+        string serviceConfig)
     {
         var configuration = ServiceConfiguration.Load(serviceConfig);
 
+
         return builder
-            .AddDocumentFromString(sdl)
+            .AddDocumentFromString(null)
             .UseField(next => next)
             .UseDefaultGatewayPipeline()
             .ConfigureSchemaServices(
@@ -42,7 +42,7 @@ public static class RequestExecutorBuilderExtensions
                 });
     }
 
-    public static IRequestExecutorBuilder UseDefaultGatewayPipeline(
+    private static IRequestExecutorBuilder UseDefaultGatewayPipeline(
         this IRequestExecutorBuilder builder)
     {
         return builder
