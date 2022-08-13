@@ -12,7 +12,7 @@ Using Entity Framework Core requires some additional setup to play nicely with t
 
 # MongoDB
 
-You will learn how to access MongoDB from within your resovlers and how to translate our pagination, projection, filtering and sorting capabilities to native MongoDB queries.
+You will learn how to access MongoDB from within your resolvers and how to translate our pagination, projection, filtering and sorting capabilities to native MongoDB queries.
 
 [Learn more about our MongoDB integration](/docs/hotchocolate/integrations/mongodb)
 
@@ -21,3 +21,10 @@ You will learn how to access MongoDB from within your resovlers and how to trans
 You will learn how you can expose [NetTopologySuite types](https://github.com/NetTopologySuite/NetTopologySuite) in form of [GeoJSON](https://geojson.org/) and how to integrate it with our data APIs.
 
 [Learn more about our Spatial Data integration](/docs/hotchocolate/integrations/spatial-data)
+
+# Marten
+
+Marten requires some custom configurations to work well with the `HotChocolate.Data` package. You will learn how to in configure your schema
+to integrate seamlessly with Marten.
+
+[Learn more about our Marten integration](/docs/hotchocolate/integrations/marten)
