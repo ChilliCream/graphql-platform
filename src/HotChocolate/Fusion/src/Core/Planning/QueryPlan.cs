@@ -13,16 +13,18 @@ internal sealed class QueryPlan
     {
         ExecutionNodes = executionNodes.ToArray();
         RootExecutionNodes = ExecutionNodes.Where(t => t.DependsOn.Count == 0).ToArray();
-        _lookup = ExecutionNodes.OfType<RequestNode>().ToLookup(t => t.Handler.SelectionSet);
+        RequiresFetch = new HashSet<ISelectionSet>(ExecutionNodes.OfType<RequestNode>().Select(t => t.Handler.SelectionSet));
 
-        _exports = exportDefinitions
-            .GroupBy(t => t.SelectionSet, t => t.StateKey)
-            .ToDictionary(t => t.Key, t => t.ToArray());
+        _lookup = ExecutionNodes.OfType<RequestNode>().ToLookup(t => t.Handler.SelectionSet);
+        _exports = exportDefinitions.GroupBy(t => t.SelectionSet, t => t.StateKey).ToDictionary(t => t.Key, t => t.ToArray());
     }
 
     public IReadOnlyList<ExecutionNode> RootExecutionNodes { get; }
 
     public IReadOnlyList<ExecutionNode> ExecutionNodes { get; }
+
+    // name is not really good... the selection sets that require execution of request nodes.
+    public IReadOnlySet<ISelectionSet> RequiresFetch { get; }
 
     public IEnumerable<RequestNode> GetRequestNodes(ISelectionSet selectionSet)
         => _lookup[selectionSet];

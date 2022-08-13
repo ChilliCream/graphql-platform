@@ -18,6 +18,7 @@ internal sealed class ServiceConfiguration
         _types = types.ToDictionary(t => t.Name, StringComparer.Ordinal);
     }
 
+    // todo: Should be named SchemaNames or maybe SubGraphNames?
     public IReadOnlyList<string> Bindings => _bindings;
 
     public T GetType<T>(string typeName) where T : IType
@@ -66,10 +67,10 @@ internal sealed class ServiceConfiguration
     }
 
     public static ServiceConfiguration Load(string sourceText)
-        => new SchemaReader().Read(sourceText);
+        => new ServiceConfigurationReader().Read(sourceText);
 }
 
-internal sealed class SchemaReader
+internal sealed class ServiceConfigurationReader
 {
     private readonly HashSet<string> _assert = new();
 
