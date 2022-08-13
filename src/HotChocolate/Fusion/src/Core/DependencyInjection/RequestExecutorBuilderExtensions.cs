@@ -27,7 +27,7 @@ public static class RequestExecutorBuilderExtensions
         }
 
         var serviceConfDoc = Utf8GraphQLParser.Parse(serviceConfiguration);
-        return AddFusionGatewayServer(builder, serviceConfDoc);
+        return AddFusionGatewayServer(services, serviceConfDoc);
     }
 
     public static IRequestExecutorBuilder AddFusionGatewayServer(
