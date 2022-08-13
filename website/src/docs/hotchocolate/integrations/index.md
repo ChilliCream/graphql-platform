@@ -24,7 +24,6 @@ You will learn how you can expose [NetTopologySuite types](https://github.com/Ne
 
 # Marten
 
-Marten requires some custom configurations to work well with the `HotChocolate.Data` package. You will learn how to in configure your schema
-to integrate seamlessly with Marten.
+Marten requires some custom configurations to work well with the `HotChocolate.Data` package. You will learn how to configure your schema to integrate seamlessly with Marten.
 
 [Learn more about our Marten integration](/docs/hotchocolate/integrations/marten)

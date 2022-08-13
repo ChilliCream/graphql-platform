@@ -5,7 +5,7 @@ title: Marten
 Generally, the features from the `HotChocolate.Data` package should work with
 any LINQ provider from which some `IQueryable<T>` can be retrieved. However, this is not the case with Marten. Pagination and projections
 work out of the box as expected, but filtering and sorting do not. LINQ expressions generated for filtering and sorting must first 
-be tranlated in a format that is digestable for the Marten LINQ provider before they are applied to the `IQueryable<T>` object.
+be translated in a format that is digestible for the Marten LINQ provider before they are applied to the `IQueryable<T>` object.
 This integration provides custom configurations to seamlessly integrate Marten with the `HotChocolate.Data` package.
 
 # Get Started
@@ -28,6 +28,7 @@ services
     .AddQueryType<Query>()
     .AddMartenFiltering();
 ```
+[Learn more about filtering](/docs/hotchocolate/fetching-data/filtering).
 
 # Sorting
 
@@ -39,6 +40,7 @@ services
     .AddQueryType<Query>()
     .AddMartenSorting();
 ```
+[Learn more about sorting](/docs/hotchocolate/fetching-data/sorting).
 
 # Projections
 
