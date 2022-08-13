@@ -4,6 +4,7 @@ using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Pipeline;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 // ReSharper disable once CheckNamespace
@@ -13,13 +14,50 @@ public static class RequestExecutorBuilderExtensions
 {
     public static IRequestExecutorBuilder AddFusionGatewayServer(
         this IRequestExecutorBuilder builder,
-        string serviceConfig)
+        string serviceConfiguration)
     {
-        var configuration = ServiceConfiguration.Load(serviceConfig);
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
 
+        if (string.IsNullOrEmpty(serviceConfiguration))
+        {
+            throw new ArgumentNullException(nameof(serviceConfiguration));
+        }
+
+        var serviceConfDoc = Utf8GraphQLParser.Parse(serviceConfiguration);
+        return AddFusionGatewayServer(builder, serviceConfDoc);
+    }
+
+    public static IRequestExecutorBuilder AddFusionGatewayServer(
+        this IRequestExecutorBuilder builder,
+        DocumentNode serviceConfiguration)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (serviceConfiguration is null)
+        {
+            throw new ArgumentNullException(nameof(serviceConfiguration));
+        }
+
+        var configuration = ServiceConfiguration.Load(serviceConfiguration);
+        var context = ConfigurationDirectiveNamesContext.From(serviceConfiguration);
+        var rewriter = new ServiceConfigurationToSchemaRewriter();
+        var schemaDoc = (DocumentNode?)rewriter.Rewrite(serviceConfiguration, context);
+
+        if (schemaDoc is null)
+        {
+            // todo : exception.
+            throw new InvalidOperationException(
+                "A valid service configuration must always produce a schema document.");
+        }
 
         return builder
-            .AddDocumentFromString(null)
+            .AddDocument(schemaDoc)
             .UseField(next => next)
             .UseDefaultGatewayPipeline()
             .ConfigureSchemaServices(

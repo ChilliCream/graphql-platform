@@ -1,3 +1,5 @@
+using HotChocolate.Language;
+
 namespace HotChocolate.Fusion.Metadata;
 
 internal sealed class ServiceConfiguration
@@ -62,6 +64,9 @@ internal sealed class ServiceConfiguration
 
     public static ServiceConfiguration Load(string sourceText)
         => new ServiceConfigurationReader().Read(sourceText);
+
+    public static ServiceConfiguration Load(DocumentNode document)
+        => new ServiceConfigurationReader().Read(document);
 }
 
 public readonly struct TypeInfo

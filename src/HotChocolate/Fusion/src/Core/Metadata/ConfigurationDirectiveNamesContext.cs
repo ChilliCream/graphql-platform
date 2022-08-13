@@ -1,10 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Metadata;
 
-internal class ConfigurationDirectiveNamesContext
+internal class ConfigurationDirectiveNamesContext : ISyntaxVisitorContext
 {
     private ConfigurationDirectiveNamesContext(
         string variableDirective,
@@ -25,6 +26,13 @@ internal class ConfigurationDirectiveNamesContext
     public string BindDirective { get; }
     public string HttpDirective { get; }
     public string FusionDirective { get; }
+
+    public bool IsConfigurationDirective(string name)
+        => VariableDirective.EqualsOrdinal(name) ||
+            FetchDirective.EqualsOrdinal(name) ||
+            BindDirective.EqualsOrdinal(name) ||
+            HttpDirective.EqualsOrdinal(name) ||
+            FusionDirective.EqualsOrdinal(name);
 
     public static ConfigurationDirectiveNamesContext Create(
         string? prefix = null,

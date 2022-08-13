@@ -13,6 +13,9 @@ internal sealed class ServiceConfigurationReader
     public ServiceConfiguration Read(string sourceText)
         => ReadServiceDefinition(Utf8GraphQLParser.Parse(sourceText));
 
+    public ServiceConfiguration Read(DocumentNode document)
+        => ReadServiceDefinition(document);
+
     private ServiceConfiguration ReadServiceDefinition(DocumentNode documentNode)
     {
         var context = ConfigurationDirectiveNamesContext.From(documentNode);
