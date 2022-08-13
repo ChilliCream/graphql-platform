@@ -61,7 +61,7 @@ namespace HotChocolate.Data.Marten {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MartenQueryableCombinator {0} could not combine expression. {1} is a invalid combinator.
+        ///   Looks up a localized string similar to MartenQueryableCombinator {0} could not combine expression. {1} is an invalid combinator..
         /// </summary>
         internal static string Filtering_MartenQueryableCombinator_InvalidCombinator {
             get {

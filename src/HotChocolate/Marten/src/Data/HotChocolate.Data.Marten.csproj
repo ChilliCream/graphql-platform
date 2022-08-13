@@ -4,7 +4,7 @@
     <PackageId>HotChocolate.Data.Marten</PackageId>
     <AssemblyName>HotChocolate.Data.Marten</AssemblyName>
     <RootNamespace>HotChocolate.Data.Marten</RootNamespace>
-    <Description>Contains extensions for seamless integration of Marten into the HotChocolate.Data package</Description>
+    <Description>Contains extensions for seamless integration of Marten into the HotChocolate.Data package.</Description>
   </PropertyGroup>
 
     <ItemGroup>
