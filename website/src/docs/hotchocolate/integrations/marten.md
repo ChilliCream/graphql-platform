@@ -47,5 +47,5 @@ Projections work out of the box as expected with Marten. No custom configuration
 
 # Paging
 
-Pagination work out of the box as expected with Marten. No custom configuration is needed.
+Pagination works out of the box as expected with Marten. No custom configuration is needed.
 [Learn more about pagination](/docs/hotchocolate/fetching-data/pagination).
