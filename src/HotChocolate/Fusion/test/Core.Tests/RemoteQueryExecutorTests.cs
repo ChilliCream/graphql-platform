@@ -1,8 +1,6 @@
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Execution.Serialization;
-using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Utilities;
@@ -121,10 +119,13 @@ public class RemoteQueryExecutorTests
                 }
             }");
 
-        var executor = await new ServiceCollection()
-            .AddSingleton<IHttpClientFactory>(clientFactory)
-            .AddFusionGatewayServer(serviceConfiguration)
-            .BuildRequestExecutorAsync();
+        var operationCompiler = new OperationCompiler(new());
+        var operation = operationCompiler.Compile(
+            "abc",
+            (OperationDefinitionNode)request.Definitions.First(),
+            schema.QueryType,
+            request,
+            schema);
 
         // act
         var result = await executor.ExecuteAsync(
