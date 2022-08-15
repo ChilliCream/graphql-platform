@@ -10,7 +10,7 @@ namespace HotChocolate.Fusion;
 
 public class ExecutionPlanBuilderTests
 {
-     [Fact]
+    [Fact]
     public async Task GetPersonById_With_Name_And_Bio_With_Prefixed_Directives()
     {
         // arrange
