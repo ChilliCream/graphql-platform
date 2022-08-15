@@ -37,7 +37,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         _options = new JsonWriterOptions { Indented = indented, Encoder = encoder };
     }
 
-    public unsafe string Serialize(IQueryResult result)
+    public unsafe string Format(IQueryResult result)
     {
         if (result is null)
         {
@@ -54,7 +54,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         }
     }
 
-    public void Serialize(IQueryResult result, Utf8JsonWriter writer)
+    public void Format(IQueryResult result, Utf8JsonWriter writer)
     {
         if (result is null)
         {
@@ -69,7 +69,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         WriteResult(writer, result);
     }
 
-    public void Serialize(IError error, Utf8JsonWriter writer)
+    public void Format(IError error, Utf8JsonWriter writer)
     {
         if (error is null)
         {
@@ -84,7 +84,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         WriteError(writer, error);
     }
 
-    public void Serialize(IReadOnlyList<IError> errors, Utf8JsonWriter writer)
+    public void Format(IReadOnlyList<IError> errors, Utf8JsonWriter writer)
     {
         if (errors is null)
         {
@@ -359,7 +359,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
 
         ref var searchSpace = ref objectResult.GetReference();
 
-        for(var i = 0; i < objectResult.Capacity; i++)
+        for (var i = 0; i < objectResult.Capacity; i++)
         {
             var field = Unsafe.Add(ref searchSpace, i);
             if (field.IsInitialized)
@@ -403,6 +403,76 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         writer.WriteEndArray();
     }
 
+#if NET5_0_OR_GREATER
+    private void WriteJsonElement(
+        Utf8JsonWriter writer,
+        JsonElement element)
+    {
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Object:
+                WriteJsonObject(writer, element);
+                break;
+
+            case JsonValueKind.Array:
+                WriteJsonArray(writer, element);
+                break;
+
+            case JsonValueKind.String:
+                writer.WriteStringValue(element.GetString());
+                break;
+
+            case JsonValueKind.Number:
+                writer.WriteRawValue(element.GetRawText());
+                break;
+
+            case JsonValueKind.True:
+                writer.WriteBooleanValue(true);
+                break;
+
+            case JsonValueKind.False:
+                writer.WriteBooleanValue(false);
+                break;
+
+            case JsonValueKind.Null:
+                writer.WriteNullValue();
+                break;
+
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    private void WriteJsonObject(
+        Utf8JsonWriter writer,
+        JsonElement element)
+    {
+        writer.WriteStartObject();
+
+        foreach (var item in element.EnumerateObject())
+        {
+            writer.WritePropertyName(item.Name);
+            WriteJsonElement(writer, item.Value);
+        }
+
+        writer.WriteEndObject();
+    }
+
+    private void WriteJsonArray(
+        Utf8JsonWriter writer,
+        JsonElement element)
+    {
+        writer.WriteStartArray();
+
+        foreach (var item in element.EnumerateArray())
+        {
+            WriteJsonElement(writer, item);
+        }
+
+        writer.WriteEndArray();
+    }
+
+#endif
     private void WriteFieldValue(
         Utf8JsonWriter writer,
         object? value)
@@ -423,6 +493,11 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
                 WriteListResult(writer, resultMapList);
                 break;
 
+#if NET5_0_OR_GREATER
+            case JsonElement element:
+                WriteJsonElement(writer, element);
+                break;
+#endif
             case Dictionary<string, object?> dict:
                 WriteDictionary(writer, dict);
                 break;
