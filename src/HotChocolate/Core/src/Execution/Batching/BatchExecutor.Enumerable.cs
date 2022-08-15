@@ -6,9 +6,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Fetching;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Batching;
@@ -27,13 +29,15 @@ internal partial class BatchExecutor
         private readonly CollectVariablesVisitationMap _visitationMap = new();
         private DocumentNode? _previous;
         private Dictionary<string, FragmentDefinitionNode>? _fragments;
+        private bool _allowParallelExecution;
 
         public BatchExecutorEnumerable(
             IEnumerable<IQueryRequest> requestBatch,
             IRequestExecutor requestExecutor,
             IErrorHandler errorHandler,
             ITypeConverter typeConverter,
-            InputFormatter inputFormatter)
+            InputFormatter inputFormatter,
+            bool allowParallelExecution)
         {
             _requestBatch = requestBatch ??
                 throw new ArgumentNullException(nameof(requestBatch));
@@ -46,9 +50,80 @@ internal partial class BatchExecutor
             _inputFormatter = inputFormatter ??
                 throw new ArgumentNullException(nameof(inputFormatter));
             _visitor = new CollectVariablesVisitor(requestExecutor.Schema);
+            _allowParallelExecution = allowParallelExecution;
         }
 
-        public async IAsyncEnumerator<IQueryResult> GetAsyncEnumerator(
+        public IAsyncEnumerator<IQueryResult> GetAsyncEnumerator(
+            CancellationToken cancellationToken = default)
+        {
+            if (_allowParallelExecution)
+            {
+                return GetParallelAsyncEnumerator(cancellationToken);
+            }
+            else
+            {
+                return GetSequentialAsyncEnumerator(cancellationToken);
+            }
+        }
+
+        private async IAsyncEnumerator<IQueryResult> GetParallelAsyncEnumerator(
+            CancellationToken cancellationToken = default)
+        {
+            var pending = new List<Task<IQueryResult>>();
+            var exportCount = _exportedVariables.Count;
+            var hasMutatedState = false;
+            BatchScheduler? scheduler = null;
+            foreach (IQueryRequest queryRequest in _requestBatch)
+            {
+                var nextScheduler = queryRequest.Services.GetRequiredService<IBatchDispatcher>() as BatchScheduler;
+                if (scheduler != nextScheduler)
+                {
+                    if (scheduler != null)
+                    {
+                        throw new InvalidOperationException("Too many schedulers");
+                    }
+
+                    scheduler = nextScheduler;
+                }
+                scheduler?.Suspend();
+                var request = (IReadOnlyQueryRequest)queryRequest;
+                var canMutateState = CanAffectState(request);
+                if (_exportedVariables.Count > exportCount || canMutateState || hasMutatedState)
+                {
+                    exportCount = _exportedVariables.Count;
+                    scheduler?.Resume();
+                    await Task.WhenAll(pending).ConfigureAwait(false);
+                    scheduler.Suspend();
+                }
+
+                hasMutatedState = canMutateState;
+                pending.Add(ExecuteNextAsync(request, cancellationToken));
+            }
+            scheduler?.Resume();
+
+            foreach (Task<IQueryResult> task in pending)
+            {
+                IQueryResult result = await task.ConfigureAwait(false);
+                yield return result;
+
+                if (result.Data is null)
+                {
+                    break;
+                }
+            }
+        }
+
+        private static bool CanAffectState(IQueryRequest request)
+        {
+            if (request.Query is QueryDocument doc && doc.Document.Definitions[0] is OperationDefinitionNode op)
+            {
+                return op.Operation != OperationType.Query;
+            }
+
+            return false;
+        }
+
+        private async IAsyncEnumerator<IQueryResult> GetSequentialAsyncEnumerator(
             CancellationToken cancellationToken = default)
         {
             foreach (IQueryRequest queryRequest in _requestBatch)

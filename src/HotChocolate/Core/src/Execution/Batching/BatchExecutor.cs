@@ -27,13 +27,15 @@ internal partial class BatchExecutor
 
     public IAsyncEnumerable<IQueryResult> ExecuteAsync(
         IRequestExecutor requestExecutor,
-        IEnumerable<IQueryRequest> requestBatch)
+        IEnumerable<IQueryRequest> requestBatch,
+        bool allowParallelExecution)
     {
         return new BatchExecutorEnumerable(
             requestBatch,
             requestExecutor,
             _errorHandler,
             _typeConverter,
-            _inputFormatter);
+            _inputFormatter,
+            /*allowParallelExecution*/true); // TODO: How to set this from caller?
     }
 }
