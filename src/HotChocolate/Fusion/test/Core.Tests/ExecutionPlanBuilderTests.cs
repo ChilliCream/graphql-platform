@@ -11,6 +11,202 @@ namespace HotChocolate.Fusion;
 public class ExecutionPlanBuilderTests
 {
     [Fact]
+    public async Task GetPersonById_With_Name_And_Bio_With_Prefixed_Directives()
+    {
+        // arrange
+        const string sdl = @"
+            type Query {
+                personById(id: ID!) : Person
+            }
+
+            type Person {
+                id: ID!
+                name: String!
+                bio: String
+            }";
+
+        const string serviceDefinition = @"
+            type Query {
+              personById(id: ID!): Person
+                @abc_variable(name: ""personId"", argument: ""id"")
+                @abc_bind(to: ""a"")
+                @abc_fetch(from: ""a"", select: ""personById(id: $personId) { ... Person }"")
+                @abc_fetch(from: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"")
+            }
+
+            type Person
+              @abc_variable(name: ""personId"", select: ""id"" from: ""b"" type: ""ID!"")
+              @abc_variable(name: ""personId"", select: ""id"" from: ""b"" type: ""ID!"")
+              @abc_fetch(from: ""a"", select: ""personById(id: $personId) { ... Person }"")
+              @abc_fetch(from: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"") {
+
+              id: ID!
+                @abc_bind(to: ""a"")
+                @abc_bind(to: ""b"")
+              name: String!
+                @abc_bind(to: ""a"")
+              bio: String
+                @abc_bind(to: ""b"")
+            }
+
+            schema
+              @fusion(prefix: ""abc"")
+              @abc_httpClient(name: ""a"" baseAddress: ""https://a/graphql"")
+              @abc_httpClient(name: ""b"" baseAddress: ""https://b/graphql"") {
+              query: Query
+            }";
+
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(sdl)
+            .UseField(n => n)
+            .BuildSchemaAsync();
+
+        var serviceConfig = Metadata.ServiceConfiguration.Load(serviceDefinition);
+
+        var request =
+            Parse(
+                @"query GetPersonById {
+                    personById(id: 1) {
+                        id
+                        name
+                        bio
+                    }
+                }");
+
+        var operationCompiler = new OperationCompiler(new());
+        var operation = operationCompiler.Compile(
+            "abc",
+            (OperationDefinitionNode)request.Definitions.First(),
+            schema.QueryType,
+            request,
+            schema);
+
+        // act
+        var queryPlanContext = new QueryPlanContext(operation);
+        var requestPlaner = new RequestPlaner(serviceConfig);
+        var requirementsPlaner = new RequirementsPlaner();
+        var executionPlanBuilder = new ExecutionPlanBuilder(serviceConfig, schema);
+
+        requestPlaner.Plan(queryPlanContext);
+        requirementsPlaner.Plan(queryPlanContext);
+        var queryPlan = executionPlanBuilder.Build(queryPlanContext);
+
+        // assert
+        var index = 0;
+        var snapshot = new Snapshot();
+        snapshot.Add(request, "User Request");
+
+        foreach (var executionNode in queryPlan.ExecutionNodes)
+        {
+            if (executionNode is RequestNode rn)
+            {
+                snapshot.Add(rn.Handler.Document, $"Request {++index}");
+            }
+        }
+
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task GetPersonById_With_Name_And_Bio_With_Prefixed_Directives_PrefixedSelf()
+    {
+        // arrange
+        const string sdl = @"
+            type Query {
+                personById(id: ID!) : Person
+            }
+
+            type Person {
+                id: ID!
+                name: String!
+                bio: String
+            }";
+
+        const string serviceDefinition = @"
+            type Query {
+              personById(id: ID!): Person
+                @abc_variable(name: ""personId"", argument: ""id"")
+                @abc_bind(to: ""a"")
+                @abc_fetch(from: ""a"", select: ""personById(id: $personId) { ... Person }"")
+                @abc_fetch(from: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"")
+            }
+
+            type Person
+              @abc_variable(name: ""personId"", select: ""id"" from: ""b"" type: ""ID!"")
+              @abc_variable(name: ""personId"", select: ""id"" from: ""b"" type: ""ID!"")
+              @abc_fetch(from: ""a"", select: ""personById(id: $personId) { ... Person }"")
+              @abc_fetch(from: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"") {
+
+              id: ID!
+                @abc_bind(to: ""a"")
+                @abc_bind(to: ""b"")
+              name: String!
+                @abc_bind(to: ""a"")
+              bio: String
+                @abc_bind(to: ""b"")
+            }
+
+            schema
+              @abc_fusion(prefix: ""abc"", prefixSelf: true)
+              @abc_httpClient(name: ""a"" baseAddress: ""https://a/graphql"")
+              @abc_httpClient(name: ""b"" baseAddress: ""https://b/graphql"") {
+              query: Query
+            }";
+
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(sdl)
+            .UseField(n => n)
+            .BuildSchemaAsync();
+
+        var serviceConfig = Metadata.ServiceConfiguration.Load(serviceDefinition);
+
+        var request =
+            Parse(
+                @"query GetPersonById {
+                    personById(id: 1) {
+                        id
+                        name
+                        bio
+                    }
+                }");
+
+        var operationCompiler = new OperationCompiler(new());
+        var operation = operationCompiler.Compile(
+            "abc",
+            (OperationDefinitionNode)request.Definitions.First(),
+            schema.QueryType,
+            request,
+            schema);
+
+        // act
+        var queryPlanContext = new QueryPlanContext(operation);
+        var requestPlaner = new RequestPlaner(serviceConfig);
+        var requirementsPlaner = new RequirementsPlaner();
+        var executionPlanBuilder = new ExecutionPlanBuilder(serviceConfig, schema);
+
+        requestPlaner.Plan(queryPlanContext);
+        requirementsPlaner.Plan(queryPlanContext);
+        var queryPlan = executionPlanBuilder.Build(queryPlanContext);
+
+        // assert
+        var index = 0;
+        var snapshot = new Snapshot();
+        snapshot.Add(request, "User Request");
+
+        foreach (var executionNode in queryPlan.ExecutionNodes)
+        {
+            if (executionNode is RequestNode rn)
+            {
+                snapshot.Add(rn.Handler.Document, $"Request {++index}");
+            }
+        }
+
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
     public async Task GetPersonById_With_Name_And_Bio()
     {
         // arrange

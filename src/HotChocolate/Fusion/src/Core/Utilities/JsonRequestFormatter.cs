@@ -1,8 +1,6 @@
 using System.Buffers;
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using HotChocolate.Fusion.Clients;
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Language;
 using GraphQLRequest = HotChocolate.Fusion.Clients.GraphQLRequest;
 

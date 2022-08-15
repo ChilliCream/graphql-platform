@@ -1,7 +1,7 @@
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Fusion.Clients;
+using HotChocolate.Execution.Serialization;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Utilities;
@@ -64,18 +64,6 @@ public class RemoteQueryExecutorTests
 
         var clientFactory = new MockHttpClientFactory(clients);
 
-        const string sdl = @"
-            type Query {
-                personById(id: ID!) : Person
-            }
-
-            type Person {
-                id: ID!
-                name: String!
-                bio: String
-                friends: [Person!]
-            }";
-
         const string serviceConfiguration = @"
             type Query {
               personById(id: ID!): Person
@@ -120,10 +108,9 @@ public class RemoteQueryExecutorTests
                 }
             }");
 
-        var executor = await new ServiceCollection()
+         var executor = await new ServiceCollection()
             .AddSingleton<IHttpClientFactory>(clientFactory)
-            .AddGraphQLServer()
-            .AddGraphQLGateway(serviceConfiguration, sdl)
+            .AddFusionGatewayServer(serviceConfiguration)
             .BuildRequestExecutorAsync();
 
         // act

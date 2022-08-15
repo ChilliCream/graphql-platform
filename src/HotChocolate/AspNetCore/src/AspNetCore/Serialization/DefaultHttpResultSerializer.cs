@@ -9,7 +9,7 @@ namespace HotChocolate.AspNetCore.Serialization;
 
 public class DefaultHttpResultSerializer : IHttpResultSerializer
 {
-    private readonly JsonQueryResultFormatter _jsonFormatter;
+    private readonly IQueryResultFormatter _jsonFormatter;
 
     private readonly string _deferContentType;
     private readonly IResponseStreamFormatter _deferFormatter;
@@ -43,6 +43,41 @@ public class DefaultHttpResultSerializer : IHttpResultSerializer
         JavaScriptEncoder? encoder = null)
     {
         _jsonFormatter = new JsonQueryResultFormatter(indented, encoder);
+        var jsonArrayFormatter = new JsonArrayResponseStreamFormatter(_jsonFormatter);
+        var multiPartFormatter = new MultiPartResponseStreamFormatter(_jsonFormatter);
+
+        if (deferSerialization is HttpResultSerialization.JsonArray)
+        {
+            _deferContentType = ContentType.Json;
+            _deferFormatter = jsonArrayFormatter;
+        }
+        else
+        {
+            _deferContentType = ContentType.MultiPart;
+            _deferFormatter = multiPartFormatter;
+        }
+
+        if (batchSerialization is HttpResultSerialization.JsonArray)
+        {
+            _batchContentType = ContentType.Json;
+            _batchFormatter = jsonArrayFormatter;
+        }
+        else
+        {
+            _batchContentType = ContentType.MultiPart;
+            _batchFormatter = multiPartFormatter;
+        }
+    }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="DefaultHttpResultSerializer" />.
+    /// </summary>
+    protected DefaultHttpResultSerializer(
+        IQueryResultFormatter jsonFormatter,
+        HttpResultSerialization batchSerialization = HttpResultSerialization.MultiPartChunked,
+        HttpResultSerialization deferSerialization = HttpResultSerialization.MultiPartChunked)
+    {
+        _jsonFormatter = jsonFormatter;
         var jsonArrayFormatter = new JsonArrayResponseStreamFormatter(_jsonFormatter);
         var multiPartFormatter = new MultiPartResponseStreamFormatter(_jsonFormatter);
 

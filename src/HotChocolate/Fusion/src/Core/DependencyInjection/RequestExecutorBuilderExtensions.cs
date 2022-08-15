@@ -4,6 +4,7 @@ using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Pipeline;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 // ReSharper disable once CheckNamespace
@@ -11,15 +12,53 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class RequestExecutorBuilderExtensions
 {
-    public static IRequestExecutorBuilder AddGraphQLGateway(
-        this IRequestExecutorBuilder builder,
-        string serviceConfig,
-        string sdl)
+    public static IRequestExecutorBuilder AddFusionGatewayServer(
+        this IServiceCollection services,
+        string serviceConfiguration)
     {
-        var configuration = ServiceConfiguration.Load(serviceConfig);
+        if (services is null)
+        {
+            throw new ArgumentNullException(nameof(services));
+        }
 
-        return builder
-            .AddDocumentFromString(sdl)
+        if (string.IsNullOrEmpty(serviceConfiguration))
+        {
+            throw new ArgumentNullException(nameof(serviceConfiguration));
+        }
+
+        var serviceConfDoc = Utf8GraphQLParser.Parse(serviceConfiguration);
+        return AddFusionGatewayServer(services, serviceConfDoc);
+    }
+
+    public static IRequestExecutorBuilder AddFusionGatewayServer(
+        this IServiceCollection services,
+        DocumentNode serviceConfiguration)
+    {
+        if (services is null)
+        {
+            throw new ArgumentNullException(nameof(services));
+        }
+
+        if (serviceConfiguration is null)
+        {
+            throw new ArgumentNullException(nameof(serviceConfiguration));
+        }
+
+        var configuration = ServiceConfiguration.Load(serviceConfiguration);
+        var context = ConfigurationDirectiveNamesContext.From(serviceConfiguration);
+        var rewriter = new ServiceConfigurationToSchemaRewriter();
+        var schemaDoc = (DocumentNode?)rewriter.Rewrite(serviceConfiguration, context);
+
+        if (schemaDoc is null)
+        {
+            // todo : exception.
+            throw new InvalidOperationException(
+                "A valid service configuration must always produce a schema document.");
+        }
+
+        return services
+            .AddGraphQLServer()
+            .AddDocument(schemaDoc)
             .UseField(next => next)
             .UseDefaultGatewayPipeline()
             .ConfigureSchemaServices(
@@ -42,7 +81,7 @@ public static class RequestExecutorBuilderExtensions
                 });
     }
 
-    public static IRequestExecutorBuilder UseDefaultGatewayPipeline(
+    private static IRequestExecutorBuilder UseDefaultGatewayPipeline(
         this IRequestExecutorBuilder builder)
     {
         return builder
