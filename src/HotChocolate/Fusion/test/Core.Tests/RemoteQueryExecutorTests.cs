@@ -1,6 +1,7 @@
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Execution.Serialization;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Utilities;
@@ -63,18 +64,6 @@ public class RemoteQueryExecutorTests
 
         var clientFactory = new MockHttpClientFactory(clients);
 
-        const string sdl = @"
-            type Query {
-                personById(id: ID!) : Person
-            }
-
-            type Person {
-                id: ID!
-                name: String!
-                bio: String
-                friends: [Person!]
-            }";
-
         const string serviceConfiguration = @"
             type Query {
               personById(id: ID!): Person
@@ -119,13 +108,10 @@ public class RemoteQueryExecutorTests
                 }
             }");
 
-        var operationCompiler = new OperationCompiler(new());
-        var operation = operationCompiler.Compile(
-            "abc",
-            (OperationDefinitionNode)request.Definitions.First(),
-            schema.QueryType,
-            request,
-            schema);
+         var executor = await new ServiceCollection()
+            .AddSingleton<IHttpClientFactory>(clientFactory)
+            .AddFusionGatewayServer(serviceConfiguration)
+            .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
