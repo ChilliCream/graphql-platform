@@ -2,24 +2,29 @@ using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using HotChocolate.Fusion.Utilities;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Clients;
 
-public sealed class HttpRequestExecutor : IRemoteRequestExecutor
+// note: should the GraphQL client handle the capabilities?
+// meaning the execution engine should just use batching and
+// all and the client decides to batch if batching is available?
+public sealed class GraphQLHttpClient : IGraphQLClient
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly JsonRequestFormatter _formatter = new();
 
-    public HttpRequestExecutor(string schemaName, IHttpClientFactory httpClientFactory)
+    public GraphQLHttpClient(string schemaName, IHttpClientFactory httpClientFactory)
     {
         _httpClientFactory = httpClientFactory;
         SchemaName = schemaName;
     }
 
+    // TODO: naming? SubGraphName?
     public string SchemaName { get; }
 
-    public async Task<Response> ExecuteAsync(Request request, CancellationToken cancellationToken)
+    public async Task<GraphQLResponse> ExecuteAsync(GraphQLRequest request, CancellationToken cancellationToken)
     {
         // todo : this is just a naive dummy implementation
         using var writer = new ArrayWriter();
@@ -41,10 +46,24 @@ public sealed class HttpRequestExecutor : IRemoteRequestExecutor
         }
 
         var document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
-        return new Response(document);
+        return new GraphQLResponse(document);
     }
 
-    private HttpRequestMessage CreateRequestMessage(ArrayWriter writer, Request request)
+    public Task<IAsyncEnumerable<GraphQLResponse>> ExecuteBatchAsync(
+        IReadOnlyList<GraphQLRequest> requests,
+        CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<IAsyncEnumerable<GraphQLResponse>> SubscribeAsync(
+        GraphQLRequest graphQLRequests,
+        CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    private HttpRequestMessage CreateRequestMessage(ArrayWriter writer, GraphQLRequest request)
     {
         _formatter.Write(writer, request);
 
