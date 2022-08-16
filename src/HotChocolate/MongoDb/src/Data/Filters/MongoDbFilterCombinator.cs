@@ -20,7 +20,8 @@ namespace HotChocolate.Data.MongoDb.Filters
         {
             if (operations.Count == 0)
             {
-                throw ThrowHelper.Filtering_MongoDbCombinator_QueueEmpty(this);
+                 combined = default!;
+                 return false;
             }
 
             combined = combinator switch

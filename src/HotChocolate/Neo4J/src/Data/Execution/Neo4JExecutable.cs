@@ -91,7 +91,11 @@ namespace HotChocolate.Data.Neo4J.Execution
         /// <inheritdoc />
         public INeo4JExecutable WithFiltering(CompoundCondition filters)
         {
-            _filters = filters;
+            if (!filters.IsEmpty)
+            {
+                _filters = filters;
+            }
+
             return this;
         }
 

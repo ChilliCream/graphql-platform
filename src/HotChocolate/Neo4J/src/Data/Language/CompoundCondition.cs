@@ -26,6 +26,8 @@ namespace HotChocolate.Data.Neo4J.Language
             _conditions = new List<Condition>();
         }
 
+        public bool IsEmpty => _conditions.Count == 0;
+
         public override ClauseKind Kind => ClauseKind.CompoundCondition;
 
         public new void And(Condition condition) =>

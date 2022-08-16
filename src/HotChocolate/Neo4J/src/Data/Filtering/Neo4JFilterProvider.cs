@@ -49,8 +49,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
 
                     Visitor.Visit(filter, visitorContext);
 
-                    if (!visitorContext.TryCreateQuery(out CompoundCondition whereQuery) ||
-                        visitorContext.Errors.Count > 0)
+                    if (visitorContext.Errors.Count > 0)
                     {
                         context.Result = Array.Empty<TEntityType>();
                         foreach (IError error in visitorContext.Errors)
@@ -58,7 +57,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
                             context.ReportError(error.WithPath(context.Path));
                         }
                     }
-                    else
+                    else if (visitorContext.TryCreateQuery(out CompoundCondition whereQuery))
                     {
                         context.LocalContextData =
                             context.LocalContextData.SetItem("Filter", whereQuery);
