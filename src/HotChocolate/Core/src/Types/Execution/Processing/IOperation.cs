@@ -7,6 +7,9 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing;
 
+/// <summary>
+/// Represents a compiled GraphQL operation.
+/// </summary>
 public interface IOperation : IHasReadOnlyContextData
 {
     /// <summary>

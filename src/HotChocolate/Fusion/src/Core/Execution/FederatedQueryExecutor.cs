@@ -46,7 +46,8 @@ internal sealed class FederatedQueryExecutor
             }
         }
 
-        return QueryResultBuilder.New().SetData(rootResult).Create();
+        context.Result.SetData(rootResult);
+        return context.Result.BuildResult();
     }
 
     // note: this is inefficient and we want to group here, for now we just want to get it working.

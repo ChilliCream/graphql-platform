@@ -8,12 +8,12 @@ namespace HotChocolate.Fusion.Planning;
 /// The request planer will rewrite the <see cref="IOperation"/> into
 /// queries against the downstream services.
 /// </summary>
-internal sealed class RequestPlaner
+internal sealed class RequestPlanner
 {
     private readonly ServiceConfiguration _serviceConfig;
     private readonly Queue<BacklogItem> _backlog = new(); // TODO: we should get rid of this, maybe put it on the context?
 
-    public RequestPlaner(ServiceConfiguration serviceConfig)
+    public RequestPlanner(ServiceConfiguration serviceConfig)
     {
         _serviceConfig = serviceConfig ?? throw new ArgumentNullException(nameof(serviceConfig));
     }
@@ -199,7 +199,7 @@ internal sealed class RequestPlaner
         return score;
     }
 
-    private bool TryGetResolver(
+    private static bool TryGetResolver(
         ObjectField field,
         string schemaName,
         HashSet<string> variablesInContext,
@@ -232,7 +232,7 @@ internal sealed class RequestPlaner
         return false;
     }
 
-    private bool TryGetResolver(
+    private static bool TryGetResolver(
         ObjectType declaringType,
         string schemaName,
         HashSet<string> variablesInContext,

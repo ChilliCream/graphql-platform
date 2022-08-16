@@ -84,7 +84,8 @@ internal sealed class ExecutionPlanBuilder
 
             var (rootResolver, p) = executionStep.Resolver.CreateSelection(
                 context.VariableValues,
-                rootSelectionSetNode);
+                rootSelectionSetNode,
+                null);
 
             rootSelectionSetNode = new SelectionSetNode(new[] { rootResolver });
             path = p;
@@ -143,9 +144,10 @@ internal sealed class ExecutionPlanBuilder
                     rootSelection.Resolver,
                     executionStep.Variables);
 
-                var (s, p) = rootSelection.Resolver.CreateSelection(
+                var (s, _) = rootSelection.Resolver.CreateSelection(
                     context.VariableValues,
-                    selectionSetNode);
+                    selectionSetNode,
+                    rootSelection.Selection.ResponseName);
                 selectionNode = s;
             }
 

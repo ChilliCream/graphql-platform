@@ -29,8 +29,8 @@ public class RedisPubSub
         CancellationToken cancellationToken = default)
         where TTopic : notnull
     {
-        ISubscriber subscriber = _connection.GetSubscriber();
-        var serializedTopic = topic is string s ? s : _messageSerializer.Serialize(topic);
+        var subscriber = _connection.GetSubscriber();
+        var serializedTopic = topic as string ?? _messageSerializer.Serialize(topic);
         var serializedMessage = _messageSerializer.Serialize(message);
         await subscriber.PublishAsync(serializedTopic, serializedMessage).ConfigureAwait(false);
     }
@@ -38,8 +38,8 @@ public class RedisPubSub
     public async ValueTask CompleteAsync<TTopic>(TTopic topic)
         where TTopic : notnull
     {
-        ISubscriber subscriber = _connection.GetSubscriber();
-        var serializedTopic = topic is string s ? s : _messageSerializer.Serialize(topic);
+        var subscriber = _connection.GetSubscriber();
+        var serializedTopic = topic as string ?? _messageSerializer.Serialize(topic);
         await subscriber.PublishAsync(serializedTopic, Completed).ConfigureAwait(false);
     }
 
@@ -48,10 +48,10 @@ public class RedisPubSub
         CancellationToken cancellationToken = default)
         where TTopic : notnull
     {
-        ISubscriber subscriber = _connection.GetSubscriber();
-        var serializedTopic = topic is string s ? s : _messageSerializer.Serialize(topic);
+        var subscriber = _connection.GetSubscriber();
+        var serializedTopic = topic as string ?? _messageSerializer.Serialize(topic);
 
-        ChannelMessageQueue channel = await subscriber
+        var channel = await subscriber
             .SubscribeAsync(serializedTopic)
             .ConfigureAwait(false);
 

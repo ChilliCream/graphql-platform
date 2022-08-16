@@ -27,7 +27,7 @@ internal sealed class OperationExecutionMiddleware
     {
         if (context.Operation is not null &&
             context.Variables is not null &&
-            context.ContextData.TryGetValue(PipelineProperties.QueryPlan, out var value) &&
+            context.Operation.ContextData.TryGetValue(PipelineProps.QueryPlan, out var value) &&
             value is QueryPlan queryPlan)
         {
             resultBuilder.Initialize(
@@ -44,6 +44,28 @@ internal sealed class OperationExecutionMiddleware
                     queryPlan.ExecutionNodes
                         .OfType<RequestNode>()
                         .Select(t => t.Handler.SelectionSet)));
+
+            // TODO : just for debug
+            if (context.ContextData.ContainsKey(WellKnownContextData.IncludeQueryPlan))
+            {
+                var subGraphRequests = new OrderedDictionary<string, object?>();
+                var plan = new OrderedDictionary<string, object?>();
+                plan.Add("userRequest", context.Document?.ToString());
+                plan.Add("subGraphRequests", subGraphRequests);
+
+                var index = 0;
+                foreach (var executionNode in queryPlan.ExecutionNodes)
+                {
+                    if (executionNode is RequestNode rn)
+                    {
+                        subGraphRequests.Add(
+                            $"subGraphRequest{++index}",
+                            rn.Handler.Document.ToString());
+                    }
+                }
+
+                resultBuilder.SetExtension("queryPlan", plan);
+            }
 
             context.Result = await _executor.ExecuteAsync(
                 federatedQueryContext,

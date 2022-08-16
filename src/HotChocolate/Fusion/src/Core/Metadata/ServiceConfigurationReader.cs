@@ -105,7 +105,7 @@ internal sealed class ServiceConfigurationReader
         DirectiveNode directiveNode)
     {
         AssertName(directiveNode, context.HttpDirective);
-        AssertArguments(directiveNode, NameArg, BaseAddressArg);
+        AssertArguments(directiveNode, SchemaArg, BaseAddressArg);
 
         string name = default!;
         string baseAddress = default!;
@@ -114,7 +114,7 @@ internal sealed class ServiceConfigurationReader
         {
             switch (argument.Name.Value)
             {
-                case NameArg:
+                case SchemaArg:
                     name = Expect<StringValueNode>(argument.Value).Value;
                     break;
 
@@ -149,7 +149,7 @@ internal sealed class ServiceConfigurationReader
         DirectiveNode directiveNode)
     {
         AssertName(directiveNode, context.VariableDirective);
-        AssertArguments(directiveNode, NameArg, SelectArg, TypeArg, FromArg);
+        AssertArguments(directiveNode, NameArg, SelectArg, TypeArg, SchemaArg);
 
         string name = default!;
         FieldNode select = default!;
@@ -172,7 +172,7 @@ internal sealed class ServiceConfigurationReader
                     type = ParseTypeReference(Expect<StringValueNode>(argument.Value).Value);
                     break;
 
-                case FromArg:
+                case SchemaArg:
                     schemaName = Expect<StringValueNode>(argument.Value).Value;
                     break;
             }
@@ -203,7 +203,7 @@ internal sealed class ServiceConfigurationReader
         DirectiveNode directiveNode)
     {
         AssertName(directiveNode, context.FetchDirective);
-        AssertArguments(directiveNode, SelectArg, FromArg);
+        AssertArguments(directiveNode, SelectArg, SchemaArg);
 
         ISelectionNode select = default!;
         string schemaName = default!;
@@ -216,7 +216,7 @@ internal sealed class ServiceConfigurationReader
                     select = ParseField(Expect<StringValueNode>(argument.Value).Value);
                     break;
 
-                case FromArg:
+                case SchemaArg:
                     schemaName = Expect<StringValueNode>(argument.Value).Value;
                     break;
             }
@@ -264,7 +264,7 @@ internal sealed class ServiceConfigurationReader
 
         foreach (var directiveNode in directiveNodes)
         {
-            if (directiveNode.Name.Value.EqualsOrdinal(context.BindDirective))
+            if (directiveNode.Name.Value.EqualsOrdinal(context.SourceDirective))
             {
                 definitions.Add(ReadMemberBinding(context, directiveNode, annotatedField));
             }
@@ -297,8 +297,8 @@ internal sealed class ServiceConfigurationReader
         DirectiveNode directiveNode,
         FieldDefinitionNode annotatedField)
     {
-        AssertName(directiveNode, context.BindDirective);
-        AssertArguments(directiveNode, ToArg, AsArg);
+        AssertName(directiveNode, context.SourceDirective);
+        AssertArguments(directiveNode, SchemaArg, NameArg);
 
         string? name = null;
         string schemaName = default!;
@@ -307,11 +307,11 @@ internal sealed class ServiceConfigurationReader
         {
             switch (argument.Name.Value)
             {
-                case AsArg:
+                case NameArg:
                     name = Expect<StringValueNode>(argument.Value).Value;
                     break;
 
-                case ToArg:
+                case SchemaArg:
                     schemaName = Expect<StringValueNode>(argument.Value).Value;
                     break;
             }

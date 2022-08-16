@@ -10,27 +10,27 @@ internal class ConfigurationDirectiveNamesContext : ISyntaxVisitorContext
     private ConfigurationDirectiveNamesContext(
         string variableDirective,
         string fetchDirective,
-        string bindDirective,
+        string sourceDirective,
         string httpDirective,
         string fusionDirective)
     {
         VariableDirective = variableDirective;
         FetchDirective = fetchDirective;
-        BindDirective = bindDirective;
+        SourceDirective = sourceDirective;
         HttpDirective = httpDirective;
         FusionDirective = fusionDirective;
     }
 
     public string VariableDirective { get; }
     public string FetchDirective { get; }
-    public string BindDirective { get; }
+    public string SourceDirective { get; }
     public string HttpDirective { get; }
     public string FusionDirective { get; }
 
     public bool IsConfigurationDirective(string name)
         => VariableDirective.EqualsOrdinal(name) ||
             FetchDirective.EqualsOrdinal(name) ||
-            BindDirective.EqualsOrdinal(name) ||
+            SourceDirective.EqualsOrdinal(name) ||
             HttpDirective.EqualsOrdinal(name) ||
             FusionDirective.EqualsOrdinal(name);
 
@@ -43,7 +43,7 @@ internal class ConfigurationDirectiveNamesContext : ISyntaxVisitorContext
             return new ConfigurationDirectiveNamesContext(
                 $"{prefix}_{ConfigurationDirectiveNames.VariableDirective}",
                 $"{prefix}_{ConfigurationDirectiveNames.FetchDirective}",
-                $"{prefix}_{ConfigurationDirectiveNames.BindDirective}",
+                $"{prefix}_{ConfigurationDirectiveNames.SourceDirective}",
                 $"{prefix}_{ConfigurationDirectiveNames.HttpDirective}",
                 prefixSelf
                     ? $"{prefix}_{ConfigurationDirectiveNames.FusionDirective}"
@@ -53,7 +53,7 @@ internal class ConfigurationDirectiveNamesContext : ISyntaxVisitorContext
         return new ConfigurationDirectiveNamesContext(
             ConfigurationDirectiveNames.VariableDirective,
             ConfigurationDirectiveNames.FetchDirective,
-            ConfigurationDirectiveNames.BindDirective,
+            ConfigurationDirectiveNames.SourceDirective,
             ConfigurationDirectiveNames.HttpDirective,
             ConfigurationDirectiveNames.FusionDirective);
     }
@@ -80,7 +80,7 @@ internal class ConfigurationDirectiveNamesContext : ISyntaxVisitorContext
             return new ConfigurationDirectiveNamesContext(
                 $"{prefix}_{ConfigurationDirectiveNames.VariableDirective}",
                 $"{prefix}_{ConfigurationDirectiveNames.FetchDirective}",
-                $"{prefix}_{ConfigurationDirectiveNames.BindDirective}",
+                $"{prefix}_{ConfigurationDirectiveNames.SourceDirective}",
                 $"{prefix}_{ConfigurationDirectiveNames.HttpDirective}",
                 prefixSelf
                     ? $"{prefix}_{ConfigurationDirectiveNames.FusionDirective}"
@@ -90,7 +90,7 @@ internal class ConfigurationDirectiveNamesContext : ISyntaxVisitorContext
         return new ConfigurationDirectiveNamesContext(
             ConfigurationDirectiveNames.VariableDirective,
             ConfigurationDirectiveNames.FetchDirective,
-            ConfigurationDirectiveNames.BindDirective,
+            ConfigurationDirectiveNames.SourceDirective,
             ConfigurationDirectiveNames.HttpDirective,
             ConfigurationDirectiveNames.FusionDirective);
     }

@@ -1,6 +1,6 @@
 namespace HotChocolate.Fusion.Pipeline;
 
-internal static class PipelineProperties
+internal static class PipelineProps
 {
     public const string QueryPlan = "HotChocolate.Fusion.Pipeline.QueryPlan";
 }
