@@ -66,7 +66,7 @@ public class ExecutionPlanBuilderTests
             .UseField(n => n)
             .BuildSchemaAsync();
 
-        var serviceConfig = Metadata.ServiceConfiguration.Load(serviceDefinition);
+        var serviceConfig = ServiceConfiguration.Load(serviceDefinition);
 
         var request =
             Parse(
@@ -164,7 +164,7 @@ public class ExecutionPlanBuilderTests
             .UseField(n => n)
             .BuildSchemaAsync();
 
-        var serviceConfig = Metadata.ServiceConfiguration.Load(serviceDefinition);
+        var serviceConfig = ServiceConfiguration.Load(serviceDefinition);
 
         var request =
             Parse(
@@ -261,7 +261,7 @@ public class ExecutionPlanBuilderTests
             .UseField(n => n)
             .BuildSchemaAsync();
 
-        var serviceConfig = Metadata.ServiceConfiguration.Load(serviceDefinition);
+        var serviceConfig = ServiceConfiguration.Load(serviceDefinition);
 
         var request =
             Parse(
@@ -358,7 +358,7 @@ public class ExecutionPlanBuilderTests
             .UseField(n => n)
             .BuildSchemaAsync();
 
-        var serviceConfig = Metadata.ServiceConfiguration.Load(serviceDefinition);
+        var serviceConfig = ServiceConfiguration.Load(serviceDefinition);
 
         var request =
             Parse(
@@ -454,7 +454,7 @@ public class ExecutionPlanBuilderTests
             .UseField(n => n)
             .BuildSchemaAsync();
 
-        var serviceConfig = Metadata.ServiceConfiguration.Load(serviceDefinition);
+        var serviceConfig = ServiceConfiguration.Load(serviceDefinition);
 
         var request =
             Parse(
@@ -553,7 +553,7 @@ public class ExecutionPlanBuilderTests
             .UseField(n => n)
             .BuildSchemaAsync();
 
-        var serviceConfig = Metadata.ServiceConfiguration.Load(serviceDefinition);
+        var serviceConfig = ServiceConfiguration.Load(serviceDefinition);
 
         var request =
             Parse(
@@ -654,7 +654,7 @@ public class ExecutionPlanBuilderTests
             .UseField(n => n)
             .BuildSchemaAsync();
 
-        var serviceConfig = Metadata.ServiceConfiguration.Load(serviceDefinition);
+        var serviceConfig = ServiceConfiguration.Load(serviceDefinition);
 
         var request =
             Parse(
@@ -703,7 +703,73 @@ public class ExecutionPlanBuilderTests
     }
 
     [Fact]
-    public async Task Example_Me_Name_Reviews_Upc()
+    public async Task StoreService_Me_Name_Reviews_Upc()
+    {
+        // arrange
+        var request = Parse(
+            @"query Me {
+                me {
+                    name
+                    reviews {
+                        product {
+                            upc
+                        }
+                    }
+                }
+            }");
+
+        // act
+        var queryPlan = await BuildStoreServiceQueryPlanAsync(request);
+
+        // assert
+        var index = 0;
+        var snapshot = new Snapshot();
+        snapshot.Add(request, "User Request");
+
+        foreach (var executionNode in queryPlan.ExecutionNodes)
+        {
+            if (executionNode is RequestNode rn)
+            {
+                snapshot.Add(rn.Handler.Document, $"Request {++index}");
+            }
+        }
+
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task StoreService_Introspection()
+    {
+        // arrange
+        var request = Parse(
+            @"query Intro {
+                __schema {
+                    types {
+                        name
+                    }
+                }
+            }");
+
+        // act
+        var queryPlan = await BuildStoreServiceQueryPlanAsync(request);
+
+        // assert
+        var index = 0;
+        var snapshot = new Snapshot();
+        snapshot.Add(request, "User Request");
+
+        foreach (var executionNode in queryPlan.ExecutionNodes)
+        {
+            if (executionNode is RequestNode rn)
+            {
+                snapshot.Add(rn.Handler.Document, $"Request {++index}");
+            }
+        }
+
+        await snapshot.MatchAsync();
+    }
+
+    private static async Task<QueryPlan> BuildStoreServiceQueryPlanAsync(DocumentNode request)
     {
         // arrange
         var serviceConfigDoc = Parse(FileResource.Open("StoreServiceConfig.graphql")!);
@@ -718,19 +784,6 @@ public class ExecutionPlanBuilderTests
             .AddDocumentFromString(sdl)
             .UseField(n => n)
             .BuildSchemaAsync();
-
-        var request =
-            Parse(
-                @"query Me {
-                    me {
-                        name
-                        reviews {
-                            product {
-                                upc
-                            }
-                        }
-                    }
-                }");
 
         var operationCompiler = new OperationCompiler(new());
         var operation = operationCompiler.Compile(
@@ -748,21 +801,6 @@ public class ExecutionPlanBuilderTests
 
         requestPlaner.Plan(queryPlanContext);
         requirementsPlaner.Plan(queryPlanContext);
-        var queryPlan = executionPlanBuilder.Build(queryPlanContext);
-
-        // assert
-        var index = 0;
-        var snapshot = new Snapshot();
-        snapshot.Add(request, "User Request");
-
-        foreach (var executionNode in queryPlan.ExecutionNodes)
-        {
-            if (executionNode is RequestNode rn)
-            {
-                snapshot.Add(rn.Handler.Document, $"Request {++index}");
-            }
-        }
-
-        await snapshot.MatchAsync();
+        return executionPlanBuilder.Build(queryPlanContext);
     }
 }

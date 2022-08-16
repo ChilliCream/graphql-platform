@@ -1,6 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
+using HotChocolate.Types.Introspection;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -45,7 +47,6 @@ internal sealed class RequestPlanner
             var current = (IReadOnlyList<ISelection>?)leftovers ?? selections;
             var schemaName = ResolveBestMatchingSchema(context.Operation, current, selectionSetType);
             var workItem = new SelectionExecutionStep(schemaName, selectionSetType, parentSelection);
-            context.Steps.Add(workItem);
             leftovers = null;
             FetchDefinition? resolver;
 
@@ -62,6 +63,18 @@ internal sealed class RequestPlanner
 
             foreach (var selection in current)
             {
+                if (selection.Field.IsIntrospectionField)
+                {
+                    if (!context.HasIntrospectionSelections &&
+                        (selection.Field.Name.EqualsOrdinal(IntrospectionFields.Schema) ||
+                            selection.Field.Name.EqualsOrdinal(IntrospectionFields.Type)))
+                    {
+                        context.HasIntrospectionSelections = true;
+                    }
+
+                    continue;
+                }
+
                 var field = selectionSetType.Fields[selection.Field.Name];
                 if (field.Bindings.TryGetValue(schemaName, out _))
                 {
@@ -102,6 +115,12 @@ internal sealed class RequestPlanner
                     (leftovers ??= new()).Add(selection);
                 }
             }
+
+            if (workItem.RootSelections.Count > 0)
+            {
+                context.Steps.Add(workItem);
+            }
+
         } while (leftovers is not null);
     }
 
@@ -176,7 +195,8 @@ internal sealed class RequestPlanner
 
         foreach (var selection in selections)
         {
-            if (typeContext.Fields[selection.Field.Name].Bindings.ContainsSchema(schemaName))
+            if (!selection.Field.IsIntrospectionField &&
+                typeContext.Fields[selection.Field.Name].Bindings.ContainsSchema(schemaName))
             {
                 score++;
 

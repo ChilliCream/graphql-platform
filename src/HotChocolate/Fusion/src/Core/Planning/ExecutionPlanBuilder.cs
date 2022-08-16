@@ -38,7 +38,10 @@ internal sealed class ExecutionPlanBuilder
             }
         }
 
-        return new QueryPlan(context.RequestNodes.Values, context.Exports.All);
+        return new QueryPlan(
+            context.RequestNodes.Values,
+            context.Exports.All,
+            context.HasIntrospectionSelections);
     }
 
     private RequestNode CreateRequestNode(
