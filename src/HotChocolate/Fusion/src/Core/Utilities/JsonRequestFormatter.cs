@@ -2,8 +2,9 @@ using System.Buffers;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.Language;
+using GraphQLRequest = HotChocolate.Fusion.Clients.GraphQLRequest;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Utilities;
 
 internal sealed class JsonRequestFormatter
 {
@@ -13,7 +14,7 @@ internal sealed class JsonRequestFormatter
         Encoder = JavaScriptEncoder.Default
     };
 
-    public void Write(IBufferWriter<byte> bufferWriter, Request request)
+    public void Write(IBufferWriter<byte> bufferWriter, GraphQLRequest request)
     {
         using var jsonWriter = new Utf8JsonWriter(bufferWriter, _options);
         jsonWriter.WriteStartObject();

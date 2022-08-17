@@ -1,34 +1,73 @@
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Execution.Processing.Tasks;
+using HotChocolate.Fusion.Clients;
+using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Types.Introspection;
+using HotChocolate.Utilities;
 using static HotChocolate.Fusion.Utilities.JsonValueToGraphQLValueConverter;
+using IType = HotChocolate.Types.IType;
 using ObjectType = HotChocolate.Fusion.Metadata.ObjectType;
 
 namespace HotChocolate.Fusion.Execution;
 
-internal sealed class RemoteQueryExecutor2
+internal sealed class FederatedQueryExecutor
 {
-    private readonly Metadata.ServiceConfiguration _serviceConfiguration;
-    private readonly RemoteRequestExecutorFactory _executorFactory;
+    private readonly ServiceConfiguration _serviceConfiguration;
+    private readonly GraphQLClientFactory _executorFactory;
 
-    public RemoteQueryExecutor2(Metadata.ServiceConfiguration serviceConfiguration, RemoteRequestExecutorFactory executorFactory)
+    public FederatedQueryExecutor(
+        ServiceConfiguration serviceConfiguration,
+        GraphQLClientFactory executorFactory)
     {
-        _serviceConfiguration = serviceConfiguration;
-        _executorFactory = executorFactory;
+        _serviceConfiguration = serviceConfiguration ??
+            throw new ArgumentNullException(nameof(serviceConfiguration));
+        _executorFactory = executorFactory ??
+            throw new ArgumentNullException(nameof(executorFactory));
     }
 
     public async Task<IQueryResult> ExecuteAsync(
-        RemoteExecutorContext context,
+        FederatedQueryContext context,
         CancellationToken cancellationToken = default)
     {
+        var scopedContext = ImmutableDictionary<string, object?>.Empty;
         var rootSelectionSet = context.Operation.RootSelectionSet;
         var rootResult = context.Result.RentObject(rootSelectionSet.Selections.Count);
-        var rootWorkItem = new WorkItem(rootSelectionSet, new ArgumentContext(), rootResult);
+        var rootWorkItem = new WorkItem(rootSelectionSet, rootResult);
         context.Fetch.Add(rootWorkItem);
 
+        // introspection
+        if (context.Plan.HasIntrospectionSelections)
+        {
+            var rootSelections = rootSelectionSet.Selections;
+            var operationContext = context.OperationContext;
+
+            for (var i = 0; i < rootSelections.Count; i++)
+            {
+                var selection = rootSelections[i];
+                if (selection.Field.IsIntrospectionField)
+                {
+                    var resolverTask = operationContext.CreateResolverTask(
+                        selection,
+                        operationContext.RootValue,
+                        rootResult,
+                        i,
+                        operationContext.PathFactory.Append(Path.Root, selection.ResponseName),
+                        scopedContext);
+                    resolverTask.BeginExecute(cancellationToken);
+
+                    // todo : this is just temporary
+                    await resolverTask.WaitForCompletionAsync(cancellationToken);
+                }
+            }
+        }
+
+        // federated stuff
         while (context.Fetch.Count > 0)
         {
             await FetchAsync(context, cancellationToken).ConfigureAwait(false);
@@ -39,11 +78,12 @@ internal sealed class RemoteQueryExecutor2
             }
         }
 
-        return QueryResultBuilder.New().SetData(rootResult).Create();
+        context.Result.SetData(rootResult);
+        return context.Result.BuildResult();
     }
 
     // note: this is inefficient and we want to group here, for now we just want to get it working.
-    private async Task FetchAsync(RemoteExecutorContext context, CancellationToken ct)
+    private async Task FetchAsync(FederatedQueryContext context, CancellationToken ct)
     {
         foreach (var workItem in context.Fetch)
         {
@@ -73,11 +113,17 @@ internal sealed class RemoteQueryExecutor2
             {
                 var executor = _executorFactory.Create(requestNode.Handler.SchemaName);
                 var request = requestNode.Handler.CreateRequest(variableValues);
-                var result = await executor.ExecuteAsync(request, ct).ConfigureAwait(false);
-                var data = requestNode.Handler.UnwrapResult(result);
+                var response = await executor.ExecuteAsync(request, ct).ConfigureAwait(false);
+                var data = requestNode.Handler.UnwrapResult(response);
 
                 ExtractSelectionResults(selections, request.SchemaName, data, selectionResults);
                 ExtractVariables(data, exportKeys, variableValues);
+
+                context.Result.RegisterForCleanup(() =>
+                {
+                    response.Dispose();
+                    return default;
+                });
             }
 
             context.Compose.Enqueue(workItem);
@@ -87,25 +133,31 @@ internal sealed class RemoteQueryExecutor2
     }
 
     private void ComposeResult(
-        RemoteExecutorContext context,
+        FederatedQueryContext context,
         WorkItem workItem)
         => ComposeResult(
             context,
             workItem.SelectionSet.Selections,
             workItem.SelectionResults,
-            workItem.Result,
-            workItem.Variables);
+            workItem.Result);
 
     private void ComposeResult(
-        RemoteExecutorContext context,
+        FederatedQueryContext context,
         IReadOnlyList<ISelection> selections,
         IReadOnlyList<SelectionResult> selectionResults,
-        ObjectResult selectionSetResult,
-        ArgumentContext variables)
+        ObjectResult selectionSetResult)
     {
         for (var i = 0; i < selections.Count; i++)
         {
             var selection = selections[i];
+
+            if (selection.Field.IsIntrospectionField &&
+                (selection.Field.Name.EqualsOrdinal(IntrospectionFields.Schema) ||
+                    selection.Field.Name.EqualsOrdinal(IntrospectionFields.Type)))
+            {
+                continue;
+            }
+
             var selectionResult = selectionResults[i];
             var nullable = selection.TypeKind is not TypeKind.NonNull;
             var namedType = selection.Type.NamedType();
@@ -132,24 +184,23 @@ internal sealed class RemoteQueryExecutor2
                 selectionSetResult.SetValueUnsafe(
                     i,
                     selection.ResponseName,
-                    ComposeObject(context, selection, selectionResult, variables));
+                    ComposeObject(context, selection, selectionResult));
             }
             else
             {
                 selectionSetResult.SetValueUnsafe(
                     i,
                     selection.ResponseName,
-                    ComposeList(context, selection, selectionResult, variables, selection.Type));
+                    ComposeList(context, selection, selectionResult, selection.Type));
             }
         }
     }
 
     private ListResult? ComposeList(
-        RemoteExecutorContext context,
+        FederatedQueryContext context,
         ISelection selection,
         SelectionResult selectionResult,
-        ArgumentContext variables,
-        Types.IType type)
+        IType type)
     {
         if (selectionResult.IsNull())
         {
@@ -172,8 +223,7 @@ internal sealed class RemoteQueryExecutor2
                     ComposeObject(
                         context,
                         selection,
-                        new SelectionResult(new JsonResult(schemaName, item)),
-                        variables));
+                        new SelectionResult(new JsonResult(schemaName, item))));
             }
         }
         else
@@ -185,7 +235,6 @@ internal sealed class RemoteQueryExecutor2
                         context,
                         selection,
                         new SelectionResult(new JsonResult(schemaName, item)),
-                        variables,
                         elementType));
             }
         }
@@ -194,10 +243,9 @@ internal sealed class RemoteQueryExecutor2
     }
 
     private ObjectResult? ComposeObject(
-        RemoteExecutorContext context,
+        FederatedQueryContext context,
         ISelection selection,
-        SelectionResult selectionResult,
-        ArgumentContext variables)
+        SelectionResult selectionResult)
     {
         if (selectionResult.IsNull())
         {
@@ -231,7 +279,7 @@ internal sealed class RemoteQueryExecutor2
                 typeMetadata);
 
             context.Fetch.Add(
-                new WorkItem(fetchArguments, selectionSet, variables, result)
+                new WorkItem(fetchArguments, selectionSet, result)
                 {
                     SelectionResults = { [0] = selectionResult }
                 });
@@ -241,43 +289,20 @@ internal sealed class RemoteQueryExecutor2
             var selections = selectionSet.Selections;
             var childSelectionResults = new SelectionResult[selections.Count];
             ExtractSelectionResults(selectionResult, selections, childSelectionResults);
-
-            /*
-            var childVariables = CreateVariables(
-                context,
-                selection,
-                selectionResult,
-                typeMetadata,
-                variables);
-                */
-
-            ComposeResult(
-                context,
-                selectionSet.Selections,
-                childSelectionResults,
-                result,
-                variables);
+            ComposeResult(context, selectionSet.Selections, childSelectionResults, result);
         }
 
         return result;
     }
 
     private IReadOnlyList<Argument> CreateArguments(
-        RemoteExecutorContext context,
+        FederatedQueryContext context,
         ISelection selection,
         SelectionResult selectionResult,
         ObjectType typeMetadata)
     {
         return new List<Argument>();
     }
-
-    private ArgumentContext CreateVariables(
-        RemoteExecutorContext context,
-        ISelection selection,
-        SelectionResult selectionResult,
-        ObjectType typeMetadata,
-        ArgumentContext variables)
-        => throw new NotImplementedException();
 
     private static void ExtractSelectionResults(
         SelectionResult parent,

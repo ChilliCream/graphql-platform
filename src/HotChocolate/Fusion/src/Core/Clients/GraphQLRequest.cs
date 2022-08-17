@@ -1,10 +1,10 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Clients;
 
-public readonly struct Request
+public readonly struct GraphQLRequest
 {
-    public Request(
+    public GraphQLRequest(
         string schemaName,
         DocumentNode document,
         ObjectValueNode? variableValues,

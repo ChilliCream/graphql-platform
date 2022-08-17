@@ -225,7 +225,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         jsonWriter.WriteString(Id, operationSessionId);
         jsonWriter.WriteString(MessageProperties.Type, Utf8Messages.Data);
         jsonWriter.WritePropertyName(Payload);
-        _formatter.Serialize(result, jsonWriter);
+        _formatter.Format(result, jsonWriter);
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(cancellationToken);
         await session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
@@ -243,7 +243,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         jsonWriter.WriteString(Id, operationSessionId);
         jsonWriter.WriteString(MessageProperties.Type, Utf8Messages.Error);
         jsonWriter.WritePropertyName(Payload);
-        _formatter.Serialize(errors[0], jsonWriter);
+        _formatter.Format(errors[0], jsonWriter);
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(cancellationToken);
         await session.Connection.SendAsync(arrayWriter.Body, cancellationToken);

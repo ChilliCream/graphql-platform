@@ -6,20 +6,17 @@ internal struct WorkItem
 {
     public WorkItem(
         ISelectionSet selectionSet,
-        ArgumentContext variables,
         ObjectResult result)
-        : this(Array.Empty<Argument>(), selectionSet, variables, result) { }
+        : this(Array.Empty<Argument>(), selectionSet, result) { }
 
     public WorkItem(
         IReadOnlyList<Argument> arguments,
         ISelectionSet selectionSet,
-        ArgumentContext variables,
         ObjectResult result)
     {
         Arguments = arguments;
         SelectionSet = selectionSet;
         SelectionResults = Array.Empty<SelectionResult>();
-        Variables = variables;
         Result = result;
         SelectionResults = new SelectionResult[selectionSet.Selections.Count];
     }
@@ -29,8 +26,6 @@ internal struct WorkItem
     public ISelectionSet SelectionSet { get; }
 
     public SelectionResult[] SelectionResults { get; }
-
-    public ArgumentContext Variables { get; set; }
 
     public ObjectResult Result { get; }
 }
