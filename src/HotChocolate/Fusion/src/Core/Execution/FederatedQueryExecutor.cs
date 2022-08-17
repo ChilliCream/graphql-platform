@@ -113,11 +113,17 @@ internal sealed class FederatedQueryExecutor
             {
                 var executor = _executorFactory.Create(requestNode.Handler.SchemaName);
                 var request = requestNode.Handler.CreateRequest(variableValues);
-                var result = await executor.ExecuteAsync(request, ct).ConfigureAwait(false);
-                var data = requestNode.Handler.UnwrapResult(result);
+                var response = await executor.ExecuteAsync(request, ct).ConfigureAwait(false);
+                var data = requestNode.Handler.UnwrapResult(response);
 
                 ExtractSelectionResults(selections, request.SchemaName, data, selectionResults);
                 ExtractVariables(data, exportKeys, variableValues);
+
+                context.Result.RegisterForCleanup(() =>
+                {
+                    response.Dispose();
+                    return default;
+                });
             }
 
             context.Compose.Enqueue(workItem);

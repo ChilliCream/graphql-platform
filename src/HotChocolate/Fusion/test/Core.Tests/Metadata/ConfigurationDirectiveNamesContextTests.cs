@@ -19,7 +19,7 @@ public class ConfigurationDirectiveNamesContextTests
                 @"{
                     ""VariableDirective"": ""variable"",
                     ""FetchDirective"": ""fetch"",
-                    ""BindDirective"": ""bind"",
+                    ""SourceDirective"": ""source"",
                     ""HttpDirective"": ""httpClient"",
                     ""FusionDirective"": ""fusion""
                 }");
@@ -39,7 +39,7 @@ public class ConfigurationDirectiveNamesContextTests
                 @"{
                     ""VariableDirective"": ""def_variable"",
                     ""FetchDirective"": ""def_fetch"",
-                    ""BindDirective"": ""def_bind"",
+                    ""SourceDirective"": ""def_source"",
                     ""HttpDirective"": ""def_httpClient"",
                     ""FusionDirective"": ""fusion""
                 }");
@@ -59,7 +59,7 @@ public class ConfigurationDirectiveNamesContextTests
                 @"{
                     ""VariableDirective"": ""def_variable"",
                     ""FetchDirective"": ""def_fetch"",
-                    ""BindDirective"": ""def_bind"",
+                    ""SourceDirective"": ""def_source"",
                     ""HttpDirective"": ""def_httpClient"",
                     ""FusionDirective"": ""def_fusion""
                 }");
@@ -82,7 +82,7 @@ public class ConfigurationDirectiveNamesContextTests
                 @"{
                     ""VariableDirective"": ""variable"",
                     ""FetchDirective"": ""fetch"",
-                    ""BindDirective"": ""bind"",
+                    ""SourceDirective"": ""source"",
                     ""HttpDirective"": ""httpClient"",
                     ""FusionDirective"": ""fusion""
                 }");
@@ -105,7 +105,7 @@ public class ConfigurationDirectiveNamesContextTests
                 @"{
                     ""VariableDirective"": ""variable"",
                     ""FetchDirective"": ""fetch"",
-                    ""BindDirective"": ""bind"",
+                    ""SourceDirective"": ""source"",
                     ""HttpDirective"": ""httpClient"",
                     ""FusionDirective"": ""fusion""
                 }");
@@ -128,7 +128,7 @@ public class ConfigurationDirectiveNamesContextTests
                 @"{
                     ""VariableDirective"": ""abc_variable"",
                     ""FetchDirective"": ""abc_fetch"",
-                    ""BindDirective"": ""abc_bind"",
+                    ""SourceDirective"": ""abc_source"",
                     ""HttpDirective"": ""abc_httpClient"",
                     ""FusionDirective"": ""fusion""
                 }");
@@ -152,7 +152,7 @@ public class ConfigurationDirectiveNamesContextTests
                 @"{
                     ""VariableDirective"": ""abc_variable"",
                     ""FetchDirective"": ""abc_fetch"",
-                    ""BindDirective"": ""abc_bind"",
+                    ""SourceDirective"": ""abc_source"",
                     ""HttpDirective"": ""abc_httpClient"",
                     ""FusionDirective"": ""abc_fusion""
                 }");

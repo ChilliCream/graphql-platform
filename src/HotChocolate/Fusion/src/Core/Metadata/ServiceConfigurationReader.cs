@@ -49,20 +49,18 @@ internal sealed class ServiceConfigurationReader
             throw new Exception("No types");
         }
 
-
-        return new ServiceConfiguration(
-            httpClientConfigs.Select(t => t.SchemaName),
-            types);
+        return new ServiceConfiguration(types, httpClientConfigs);
     }
 
     private ObjectType ReadObjectType(
         ConfigurationDirectiveNamesContext context,
         ObjectTypeDefinitionNode typeDef)
     {
+        var bindings = ReadMemberBindings(context, typeDef.Directives, typeDef);
         var variables = ReadFieldVariableDefinitions(context, typeDef.Directives);
         var resolvers = ReadFetchDefinitions(context, typeDef.Directives);
         var fields = ReadObjectFields(context, typeDef.Fields);
-        return new ObjectType(typeDef.Name.Value, variables, resolvers, fields);
+        return new ObjectType(typeDef.Name.Value, bindings, variables, resolvers, fields);
     }
 
     private ObjectFieldCollection ReadObjectFields(
@@ -257,6 +255,24 @@ internal sealed class ServiceConfigurationReader
     private MemberBindingCollection ReadMemberBindings(
         ConfigurationDirectiveNamesContext context,
         IReadOnlyList<DirectiveNode> directiveNodes,
+        NamedSyntaxNode annotatedMember)
+    {
+        var definitions = new List<MemberBinding>();
+
+        foreach (var directiveNode in directiveNodes)
+        {
+            if (directiveNode.Name.Value.EqualsOrdinal(context.SourceDirective))
+            {
+                definitions.Add(ReadMemberBinding(context, directiveNode, annotatedMember));
+            }
+        }
+
+        return new MemberBindingCollection(definitions);
+    }
+
+    private MemberBindingCollection ReadMemberBindings(
+        ConfigurationDirectiveNamesContext context,
+        IReadOnlyList<DirectiveNode> directiveNodes,
         FieldDefinitionNode annotatedField,
         FetchDefinitionCollection resolvers)
     {
@@ -295,7 +311,7 @@ internal sealed class ServiceConfigurationReader
     private MemberBinding ReadMemberBinding(
         ConfigurationDirectiveNamesContext context,
         DirectiveNode directiveNode,
-        FieldDefinitionNode annotatedField)
+        NamedSyntaxNode annotatedField)
     {
         AssertName(directiveNode, context.SourceDirective);
         AssertArguments(directiveNode, SchemaArg, NameArg);
@@ -394,10 +410,12 @@ internal sealed class ServiceConfigurationReader
 
     private void AssertArguments(DirectiveNode directive, params string[] expectedArguments)
     {
-        if (directive.Arguments.Count < 0)
+        if (directive.Arguments.Count == 0)
         {
             // TODO : EXCEPTION
-            throw new InvalidOperationException("INVALID ARGS");
+            throw new InvalidOperationException(
+                $"The directive `{directive.Name.Value}` has required arguments " +
+                "but non were provided.");
         }
 
         _assert.Clear();
@@ -411,8 +429,12 @@ internal sealed class ServiceConfigurationReader
 
         if (_assert.Count > 0)
         {
-            // TODO : EXCEPTION
-            throw new InvalidOperationException("INVALID ARGS");
+            throw new InvalidOperationException(
+                $"Expected arguments for the directive `{directive.Name.Value}` are " +
+                $"`{string.Join(", ", expectedArguments)}`. " +
+                "The service configuration reader found the following arguments " +
+                $"`{string.Join(", ", _assert)}` on the directive in line number " +
+                $"{directive.Location!.Line}.");
         }
     }
 }

@@ -80,6 +80,9 @@ internal sealed class OperationExecutionMiddleware
                 operationContext.Result.SetExtension("queryPlan", plan);
             }
 
+            // we store the context on the result for unit tests.
+            operationContext.Result.SetContextData("queryPlan", queryPlan);
+
             context.Result = await _executor.ExecuteAsync(
                 federatedQueryContext,
                 context.RequestAborted)

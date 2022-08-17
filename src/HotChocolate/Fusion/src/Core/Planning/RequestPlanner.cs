@@ -169,9 +169,9 @@ internal sealed class RequestPlanner
         ObjectType typeContext)
     {
         var bestScore = 0;
-        var bestSchema = _serviceConfig.Bindings[0];
+        var bestSchema = _serviceConfig.SchemaNames[0];
 
-        foreach (var schemaName in _serviceConfig.Bindings)
+        foreach (var schemaName in _serviceConfig.SchemaNames)
         {
             var score = CalculateSchemaScore(operation, selections, typeContext, schemaName);
 

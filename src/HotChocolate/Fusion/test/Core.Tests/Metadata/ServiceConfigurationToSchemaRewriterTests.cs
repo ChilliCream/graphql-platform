@@ -13,30 +13,30 @@ public class ServiceConfigurationToSchemaRewriterTests
             type Query {
               personById(id: ID!): Person
                 @abc_variable(name: ""personId"", argument: ""id"")
-                @abc_bind(to: ""a"")
-                @abc_fetch(from: ""a"", select: ""personById(id: $personId) { ... Person }"")
-                @abc_fetch(from: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"")
+                @abc_source(schema: ""a"")
+                @abc_fetch(schema: ""a"", select: ""personById(id: $personId) { ... Person }"")
+                @abc_fetch(schema: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"")
             }
 
             type Person
-              @abc_variable(name: ""personId"", select: ""id"" from: ""b"" type: ""ID!"")
-              @abc_variable(name: ""personId"", select: ""id"" from: ""b"" type: ""ID!"")
-              @abc_fetch(from: ""a"", select: ""personById(id: $personId) { ... Person }"")
-              @abc_fetch(from: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"") {
+              @abc_variable(name: ""personId"", select: ""id"" schema: ""b"" type: ""ID!"")
+              @abc_variable(name: ""personId"", select: ""id"" schema: ""b"" type: ""ID!"")
+              @abc_fetch(schema: ""a"", select: ""personById(id: $personId) { ... Person }"")
+              @abc_fetch(schema: ""b"", select: ""node(id: $personId) { ... on Person { ... Person } }"") {
 
               id: ID!
-                @abc_bind(to: ""a"")
-                @abc_bind(to: ""b"")
+                @abc_source(schema: ""a"")
+                @abc_source(schema: ""b"")
               name: String!
-                @abc_bind(to: ""a"")
+                @abc_source(schema: ""a"")
               bio: String
-                @abc_bind(to: ""b"")
+                @abc_source(schema: ""b"")
             }
 
             schema
               @fusion(prefix: ""abc"")
-              @abc_httpClient(name: ""a"" baseAddress: ""https://a/graphql"")
-              @abc_httpClient(name: ""b"" baseAddress: ""https://b/graphql"") {
+              @abc_httpClient(schema: ""a"" baseAddress: ""https://a/graphql"")
+              @abc_httpClient(schema: ""b"" baseAddress: ""https://b/graphql"") {
               query: Query
             }";
 

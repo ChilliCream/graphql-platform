@@ -65,7 +65,7 @@ public static class RequestExecutorBuilderExtensions
             .ConfigureSchemaServices(
                 sc =>
                 {
-                    foreach (var schemaName in configuration.Bindings)
+                    foreach (var schemaName in configuration.SchemaNames)
                     {
                         sc.AddSingleton<IGraphQLClient>(
                             sp => new GraphQLHttpClient(
