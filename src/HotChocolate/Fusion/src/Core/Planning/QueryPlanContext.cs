@@ -24,6 +24,8 @@ internal sealed class QueryPlanContext
 
     public Dictionary<IExecutionStep, RequestNode> RequestNodes { get; } = new();
 
+    public bool HasIntrospectionSelections { get; set; }
+
     public NameNode CreateRemoteOperationName()
         => new($"{_opName}_{++_opId}");
 }

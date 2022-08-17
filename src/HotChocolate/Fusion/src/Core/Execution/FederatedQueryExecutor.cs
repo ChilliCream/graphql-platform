@@ -1,14 +1,18 @@
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Types.Introspection;
+using HotChocolate.Utilities;
+using static HotChocolate.Fusion.Utilities.JsonValueToGraphQLValueConverter;
 using IType = HotChocolate.Types.IType;
 using ObjectType = HotChocolate.Fusion.Metadata.ObjectType;
-using static HotChocolate.Fusion.Utilities.JsonValueToGraphQLValueConverter;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -31,11 +35,39 @@ internal sealed class FederatedQueryExecutor
         FederatedQueryContext context,
         CancellationToken cancellationToken = default)
     {
+        var scopedContext = ImmutableDictionary<string, object?>.Empty;
         var rootSelectionSet = context.Operation.RootSelectionSet;
         var rootResult = context.Result.RentObject(rootSelectionSet.Selections.Count);
         var rootWorkItem = new WorkItem(rootSelectionSet, rootResult);
         context.Fetch.Add(rootWorkItem);
 
+        // introspection
+        if (context.Plan.HasIntrospectionSelections)
+        {
+            var rootSelections = rootSelectionSet.Selections;
+            var operationContext = context.OperationContext;
+
+            for (var i = 0; i < rootSelections.Count; i++)
+            {
+                var selection = rootSelections[i];
+                if (selection.Field.IsIntrospectionField)
+                {
+                    var resolverTask = operationContext.CreateResolverTask(
+                        selection,
+                        operationContext.RootValue,
+                        rootResult,
+                        i,
+                        operationContext.PathFactory.Append(Path.Root, selection.ResponseName),
+                        scopedContext);
+                    resolverTask.BeginExecute(cancellationToken);
+
+                    // todo : this is just temporary
+                    await resolverTask.WaitForCompletionAsync(cancellationToken);
+                }
+            }
+        }
+
+        // federated stuff
         while (context.Fetch.Count > 0)
         {
             await FetchAsync(context, cancellationToken).ConfigureAwait(false);
@@ -46,7 +78,8 @@ internal sealed class FederatedQueryExecutor
             }
         }
 
-        return QueryResultBuilder.New().SetData(rootResult).Create();
+        context.Result.SetData(rootResult);
+        return context.Result.BuildResult();
     }
 
     // note: this is inefficient and we want to group here, for now we just want to get it working.
@@ -80,11 +113,17 @@ internal sealed class FederatedQueryExecutor
             {
                 var executor = _executorFactory.Create(requestNode.Handler.SchemaName);
                 var request = requestNode.Handler.CreateRequest(variableValues);
-                var result = await executor.ExecuteAsync(request, ct).ConfigureAwait(false);
-                var data = requestNode.Handler.UnwrapResult(result);
+                var response = await executor.ExecuteAsync(request, ct).ConfigureAwait(false);
+                var data = requestNode.Handler.UnwrapResult(response);
 
                 ExtractSelectionResults(selections, request.SchemaName, data, selectionResults);
                 ExtractVariables(data, exportKeys, variableValues);
+
+                context.Result.RegisterForCleanup(() =>
+                {
+                    response.Dispose();
+                    return default;
+                });
             }
 
             context.Compose.Enqueue(workItem);
@@ -111,6 +150,14 @@ internal sealed class FederatedQueryExecutor
         for (var i = 0; i < selections.Count; i++)
         {
             var selection = selections[i];
+
+            if (selection.Field.IsIntrospectionField &&
+                (selection.Field.Name.EqualsOrdinal(IntrospectionFields.Schema) ||
+                    selection.Field.Name.EqualsOrdinal(IntrospectionFields.Type)))
+            {
+                continue;
+            }
+
             var selectionResult = selectionResults[i];
             var nullable = selection.TypeKind is not TypeKind.NonNull;
             var namedType = selection.Type.NamedType();

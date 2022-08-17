@@ -14,11 +14,13 @@ public sealed class GraphQLHttpClient : IGraphQLClient
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly JsonRequestFormatter _formatter = new();
+    private readonly HttpClient _client;
 
     public GraphQLHttpClient(string schemaName, IHttpClientFactory httpClientFactory)
     {
         _httpClientFactory = httpClientFactory;
         SchemaName = schemaName;
+        _client =_httpClientFactory.CreateClient(SchemaName);
     }
 
     // TODO: naming? SubGraphName?
@@ -28,10 +30,8 @@ public sealed class GraphQLHttpClient : IGraphQLClient
     {
         // todo : this is just a naive dummy implementation
         using var writer = new ArrayWriter();
-        using var client = _httpClientFactory.CreateClient(SchemaName);
         using var requestMessage = CreateRequestMessage(writer, request);
-        using var responseMessage = await client.SendAsync(requestMessage, cancellationToken);
-        var s = await responseMessage.Content.ReadAsStringAsync(cancellationToken);
+        using var responseMessage = await _client.SendAsync(requestMessage, cancellationToken);
         responseMessage.EnsureSuccessStatusCode(); // TODO : remove for production
 
         await using var contentStream = await responseMessage.Content.ReadAsStreamAsync(cancellationToken);

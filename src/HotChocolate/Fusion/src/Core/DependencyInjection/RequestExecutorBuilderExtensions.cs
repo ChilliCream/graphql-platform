@@ -61,10 +61,11 @@ public static class RequestExecutorBuilderExtensions
             .AddDocument(schemaDoc)
             .UseField(next => next)
             .UseDefaultGatewayPipeline()
+            .AddOperationCompilerOptimizer<OperationQueryPlanCompiler>()
             .ConfigureSchemaServices(
                 sc =>
                 {
-                    foreach (var schemaName in configuration.Bindings)
+                    foreach (var schemaName in configuration.SchemaNames)
                     {
                         sc.AddSingleton<IGraphQLClient>(
                             sp => new GraphQLHttpClient(
@@ -73,8 +74,8 @@ public static class RequestExecutorBuilderExtensions
                     }
 
                     sc.TryAddSingleton(configuration);
-                    sc.TryAddSingleton<RequestPlaner>();
-                    sc.TryAddSingleton<RequirementsPlaner>();
+                    sc.TryAddSingleton<RequestPlanner>();
+                    sc.TryAddSingleton<RequirementsPlanner>();
                     sc.TryAddSingleton<ExecutionPlanBuilder>();
                     sc.TryAddSingleton<GraphQLClientFactory>();
                     sc.TryAddSingleton<FederatedQueryExecutor>();
@@ -95,7 +96,6 @@ public static class RequestExecutorBuilderExtensions
             .UseOperationComplexityAnalyzer()
             .UseOperationResolver()
             .UseOperationVariableCoercion()
-            .UseRequest<QueryPlanMiddleware>()
             .UseRequest<OperationExecutionMiddleware>();
     }
 }
