@@ -23,5 +23,8 @@ Result:
 
 Exception:
 ---------------
-null
+For more details look at the `Errors` property.
+
+1. Sorting was not found. Register sorting with [UseSorting] or descriptor.UseSorting().
+
 ---------------
