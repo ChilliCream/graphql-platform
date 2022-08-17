@@ -61,7 +61,7 @@ find({ "ObjectId" : { "$not" : { "$gt" : ObjectId("6124e80f3f5fc839830c1f6a") } 
 find({ "ObjectId" : { "$not" : { "$gt" : ObjectId("6124e80f3f5fc839830c1f6b") } } })
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

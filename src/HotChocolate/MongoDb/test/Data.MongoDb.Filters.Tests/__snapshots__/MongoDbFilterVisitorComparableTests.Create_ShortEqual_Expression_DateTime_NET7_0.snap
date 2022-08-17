@@ -34,7 +34,7 @@ find({ "BarDateTime" : { "$eq" : ISODate("2000-01-12T00:00:00Z") } })
 find({ "BarDateTime" : { "$eq" : ISODate("2000-01-12T00:00:00Z") } })
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

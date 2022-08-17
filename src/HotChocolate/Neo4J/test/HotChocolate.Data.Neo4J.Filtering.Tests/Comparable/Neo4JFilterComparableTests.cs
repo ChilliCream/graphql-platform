@@ -84,11 +84,11 @@ public class Neo4JFilterComparableTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "12")
-            .AddSqlFrom(res2, "13")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "12"), res2, "13"), res3, "null")
             .MatchAsync();
     }
 
@@ -119,11 +119,11 @@ public class Neo4JFilterComparableTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "12")
-            .AddSqlFrom(res2, "13")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "12"), res2, "13"), res3, "null")
             .MatchAsync();
     }
 
@@ -160,12 +160,12 @@ public class Neo4JFilterComparableTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "12")
-            .AddSqlFrom(res2, "13")
-            .AddSqlFrom(res3, "14")
-            .AddSqlFrom(res4, "null")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        SnapshotExtensions.Add(
+                            Snapshot
+                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
     }
 
@@ -202,12 +202,12 @@ public class Neo4JFilterComparableTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "12")
-            .AddSqlFrom(res2, "13")
-            .AddSqlFrom(res3, "14")
-            .AddSqlFrom(res4, "null")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        SnapshotExtensions.Add(
+                            Snapshot
+                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
     }
 
@@ -244,12 +244,12 @@ public class Neo4JFilterComparableTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "12")
-            .AddSqlFrom(res2, "13")
-            .AddSqlFrom(res3, "14")
-            .AddSqlFrom(res4, "null")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        SnapshotExtensions.Add(
+                            Snapshot
+                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
     }
 
@@ -286,12 +286,12 @@ public class Neo4JFilterComparableTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "12")
-            .AddSqlFrom(res2, "13")
-            .AddSqlFrom(res3, "14")
-            .AddSqlFrom(res4, "null")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        SnapshotExtensions.Add(
+                            Snapshot
+                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
     }
 
@@ -328,12 +328,12 @@ public class Neo4JFilterComparableTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "12")
-            .AddSqlFrom(res2, "13")
-            .AddSqlFrom(res3, "14")
-            .AddSqlFrom(res4, "null")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        SnapshotExtensions.Add(
+                            Snapshot
+                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
     }
 
@@ -370,12 +370,12 @@ public class Neo4JFilterComparableTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "12")
-            .AddSqlFrom(res2, "13")
-            .AddSqlFrom(res3, "14")
-            .AddSqlFrom(res4, "null")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        SnapshotExtensions.Add(
+                            Snapshot
+                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
     }
 
@@ -412,12 +412,12 @@ public class Neo4JFilterComparableTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "12")
-            .AddSqlFrom(res2, "13")
-            .AddSqlFrom(res3, "14")
-            .AddSqlFrom(res4, "null")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        SnapshotExtensions.Add(
+                            Snapshot
+                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
     }
 
@@ -454,12 +454,12 @@ public class Neo4JFilterComparableTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "12")
-            .AddSqlFrom(res2, "13")
-            .AddSqlFrom(res3, "14")
-            .AddSqlFrom(res4, "null")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        SnapshotExtensions.Add(
+                            Snapshot
+                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
     }
 
@@ -489,11 +489,11 @@ public class Neo4JFilterComparableTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "12and13")
-            .AddSqlFrom(res2, "13and14")
-            .AddSqlFrom(res3, "13and14")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "12and13"), res2, "13and14"), res3, "13and14")
             .MatchAsync();
     }
 
@@ -524,11 +524,11 @@ public class Neo4JFilterComparableTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "12and13")
-            .AddSqlFrom(res2, "13and14")
-            .AddSqlFrom(res3, "nullAnd14")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "12and13"), res2, "13and14"), res3, "nullAnd14")
             .MatchAsync();
     }
 
@@ -560,11 +560,11 @@ public class Neo4JFilterComparableTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "12")
-            .AddSqlFrom(res2, "13")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "12"), res2, "13"), res3, "null")
             .MatchAsync();
     }
 
@@ -596,11 +596,11 @@ public class Neo4JFilterComparableTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "12")
-            .AddSqlFrom(res2, "13")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "12"), res2, "13"), res3, "null")
             .MatchAsync();
     }
 
@@ -638,12 +638,12 @@ public class Neo4JFilterComparableTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "12")
-            .AddSqlFrom(res2, "13")
-            .AddSqlFrom(res3, "14")
-            .AddSqlFrom(res4, "null")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        SnapshotExtensions.Add(
+                            Snapshot
+                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
     }
 
@@ -681,12 +681,12 @@ public class Neo4JFilterComparableTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "12")
-            .AddSqlFrom(res2, "13")
-            .AddSqlFrom(res3, "14")
-            .AddSqlFrom(res4, "null")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        SnapshotExtensions.Add(
+                            Snapshot
+                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
     }
 
@@ -724,12 +724,12 @@ public class Neo4JFilterComparableTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "12")
-            .AddSqlFrom(res2, "13")
-            .AddSqlFrom(res3, "14")
-            .AddSqlFrom(res4, "null")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        SnapshotExtensions.Add(
+                            Snapshot
+                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
     }
 
@@ -767,12 +767,12 @@ public class Neo4JFilterComparableTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "12")
-            .AddSqlFrom(res2, "13")
-            .AddSqlFrom(res3, "14")
-            .AddSqlFrom(res4, "null")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        SnapshotExtensions.Add(
+                            Snapshot
+                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
     }
 
@@ -810,12 +810,12 @@ public class Neo4JFilterComparableTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "12")
-            .AddSqlFrom(res2, "13")
-            .AddSqlFrom(res3, "14")
-            .AddSqlFrom(res4, "null")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        SnapshotExtensions.Add(
+                            Snapshot
+                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
     }
 
@@ -853,12 +853,12 @@ public class Neo4JFilterComparableTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "12")
-            .AddSqlFrom(res2, "13")
-            .AddSqlFrom(res3, "14")
-            .AddSqlFrom(res4, "null")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        SnapshotExtensions.Add(
+                            Snapshot
+                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
     }
 
@@ -896,12 +896,12 @@ public class Neo4JFilterComparableTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "12")
-            .AddSqlFrom(res2, "13")
-            .AddSqlFrom(res3, "14")
-            .AddSqlFrom(res4, "null")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        SnapshotExtensions.Add(
+                            Snapshot
+                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
     }
 
@@ -939,12 +939,12 @@ public class Neo4JFilterComparableTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "12")
-            .AddSqlFrom(res2, "13")
-            .AddSqlFrom(res3, "14")
-            .AddSqlFrom(res4, "null")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        SnapshotExtensions.Add(
+                            Snapshot
+                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
     }
 
@@ -976,11 +976,11 @@ public class Neo4JFilterComparableTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "12and13")
-            .AddSqlFrom(res2, "13and14")
-            .AddSqlFrom(res3, "13andNull")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "12and13"), res2, "13and14"), res3, "13andNull")
             .MatchAsync();
     }
 
@@ -1012,11 +1012,11 @@ public class Neo4JFilterComparableTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "12and13")
-            .AddSqlFrom(res2, "13and14")
-            .AddSqlFrom(res3, "13andNull")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "12and13"), res2, "13and14"), res3, "13andNull")
             .MatchAsync();
     }
 

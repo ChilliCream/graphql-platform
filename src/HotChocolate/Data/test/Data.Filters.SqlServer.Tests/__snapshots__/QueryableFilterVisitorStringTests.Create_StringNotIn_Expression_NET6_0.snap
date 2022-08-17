@@ -14,7 +14,7 @@ FROM "Data" AS "d"
 WHERE "d"."Bar" NOT IN ('testatest', 'testbtest')
 ---------------
 
-testbtestAndNull Result:
+testbtestAndNull
 ---------------
 {
   "errors": [
