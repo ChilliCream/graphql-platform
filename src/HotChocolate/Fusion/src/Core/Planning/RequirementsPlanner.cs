@@ -8,7 +8,7 @@ namespace HotChocolate.Fusion.Planning;
 /// request to a downstream service and enrich these so that all requirements for each requests
 /// are fulfilled.
 /// </summary>
-internal sealed class RequirementsPlaner
+internal sealed class RequirementsPlanner
 {
     public void Plan(QueryPlanContext context)
     {

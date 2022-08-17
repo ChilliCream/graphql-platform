@@ -1,21 +1,37 @@
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Metadata;
 
 internal sealed class ServiceConfiguration
 {
-    private readonly string[] _bindings;
     private readonly Dictionary<string, IType> _types;
-    private readonly Dictionary<(string, string), string> _typeNameLookup = new();
+    private readonly Dictionary<(string Schema, string Type), string> _typeNameLookup = new();
 
-    public ServiceConfiguration(IEnumerable<string> bindings, IEnumerable<IType> types)
+    public ServiceConfiguration(
+        IReadOnlyList<IType> types,
+        IReadOnlyList<HttpClientConfig> httpClientConfigs)
     {
-        _bindings = bindings.ToArray();
         _types = types.ToDictionary(t => t.Name, StringComparer.Ordinal);
+        HttpClientConfigs = httpClientConfigs;
+        SchemaNames = httpClientConfigs.Select(t => t.SchemaName).ToArray();
+
+        foreach (var type in types)
+        {
+            foreach (var binding in type.Bindings)
+            {
+                if (!binding.Name.EqualsOrdinal(type.Name))
+                {
+                    _typeNameLookup.Add((binding.SchemaName, binding.Name), type.Name);
+                }
+            }
+        }
     }
 
     // todo: Should be named SchemaNames or maybe SubGraphNames?
-    public IReadOnlyList<string> Bindings => _bindings;
+    public IReadOnlyList<string> SchemaNames { get; }
+
+    public IReadOnlyList<HttpClientConfig> HttpClientConfigs { get; }
 
     public T GetType<T>(string typeName) where T : IType
     {

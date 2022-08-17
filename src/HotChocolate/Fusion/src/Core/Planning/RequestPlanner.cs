@@ -1,6 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Metadata;
+using HotChocolate.Types.Introspection;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -8,12 +10,12 @@ namespace HotChocolate.Fusion.Planning;
 /// The request planer will rewrite the <see cref="IOperation"/> into
 /// queries against the downstream services.
 /// </summary>
-internal sealed class RequestPlaner
+internal sealed class RequestPlanner
 {
     private readonly ServiceConfiguration _serviceConfig;
     private readonly Queue<BacklogItem> _backlog = new(); // TODO: we should get rid of this, maybe put it on the context?
 
-    public RequestPlaner(ServiceConfiguration serviceConfig)
+    public RequestPlanner(ServiceConfiguration serviceConfig)
     {
         _serviceConfig = serviceConfig ?? throw new ArgumentNullException(nameof(serviceConfig));
     }
@@ -45,7 +47,6 @@ internal sealed class RequestPlaner
             var current = (IReadOnlyList<ISelection>?)leftovers ?? selections;
             var schemaName = ResolveBestMatchingSchema(context.Operation, current, selectionSetType);
             var workItem = new SelectionExecutionStep(schemaName, selectionSetType, parentSelection);
-            context.Steps.Add(workItem);
             leftovers = null;
             FetchDefinition? resolver;
 
@@ -62,6 +63,18 @@ internal sealed class RequestPlaner
 
             foreach (var selection in current)
             {
+                if (selection.Field.IsIntrospectionField)
+                {
+                    if (!context.HasIntrospectionSelections &&
+                        (selection.Field.Name.EqualsOrdinal(IntrospectionFields.Schema) ||
+                            selection.Field.Name.EqualsOrdinal(IntrospectionFields.Type)))
+                    {
+                        context.HasIntrospectionSelections = true;
+                    }
+
+                    continue;
+                }
+
                 var field = selectionSetType.Fields[selection.Field.Name];
                 if (field.Bindings.TryGetValue(schemaName, out _))
                 {
@@ -102,6 +115,12 @@ internal sealed class RequestPlaner
                     (leftovers ??= new()).Add(selection);
                 }
             }
+
+            if (workItem.RootSelections.Count > 0)
+            {
+                context.Steps.Add(workItem);
+            }
+
         } while (leftovers is not null);
     }
 
@@ -150,9 +169,9 @@ internal sealed class RequestPlaner
         ObjectType typeContext)
     {
         var bestScore = 0;
-        var bestSchema = _serviceConfig.Bindings[0];
+        var bestSchema = _serviceConfig.SchemaNames[0];
 
-        foreach (var schemaName in _serviceConfig.Bindings)
+        foreach (var schemaName in _serviceConfig.SchemaNames)
         {
             var score = CalculateSchemaScore(operation, selections, typeContext, schemaName);
 
@@ -176,7 +195,8 @@ internal sealed class RequestPlaner
 
         foreach (var selection in selections)
         {
-            if (typeContext.Fields[selection.Field.Name].Bindings.ContainsSchema(schemaName))
+            if (!selection.Field.IsIntrospectionField &&
+                typeContext.Fields[selection.Field.Name].Bindings.ContainsSchema(schemaName))
             {
                 score++;
 
@@ -199,7 +219,7 @@ internal sealed class RequestPlaner
         return score;
     }
 
-    private bool TryGetResolver(
+    private static bool TryGetResolver(
         ObjectField field,
         string schemaName,
         HashSet<string> variablesInContext,
@@ -232,7 +252,7 @@ internal sealed class RequestPlaner
         return false;
     }
 
-    private bool TryGetResolver(
+    private static bool TryGetResolver(
         ObjectType declaringType,
         string schemaName,
         HashSet<string> variablesInContext,
