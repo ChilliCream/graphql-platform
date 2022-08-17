@@ -64,10 +64,10 @@ public class Neo4JBooleanFilterTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "true")
-            .AddSqlFrom(res2, "false")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    Snapshot
+                        .Create(), res1, "true"), res2, "false")
             .MatchAsync();
     }
 
@@ -87,9 +87,9 @@ public class Neo4JBooleanFilterTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "and")
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1, "and")
             .MatchAsync();
     }
 
@@ -109,9 +109,9 @@ public class Neo4JBooleanFilterTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "or")
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1, "or")
             .MatchAsync();
     }
 
@@ -136,10 +136,10 @@ public class Neo4JBooleanFilterTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "true")
-            .AddSqlFrom(res2, "false")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    Snapshot
+                        .Create(), res1, "true"), res2, "false")
             .MatchAsync();
     }
 
@@ -171,11 +171,11 @@ public class Neo4JBooleanFilterTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "true")
-            .AddSqlFrom(res2, "false")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "true"), res2, "false"), res3, "null")
             .MatchAsync();
     }
 
@@ -207,11 +207,11 @@ public class Neo4JBooleanFilterTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "true")
-            .AddSqlFrom(res2, "false")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "true"), res2, "false"), res3, "null")
             .MatchAsync();
     }
 }

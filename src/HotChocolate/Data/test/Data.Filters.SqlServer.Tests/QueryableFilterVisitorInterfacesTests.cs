@@ -55,11 +55,11 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "a")
-            .AddSqlFrom(res2, "ba")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "a"), res2, "ba"), res3, "null")
             .MatchAsync();
 
     }
