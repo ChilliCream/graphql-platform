@@ -50,7 +50,7 @@ d Query:
 find({ "Foo.ObjectArray" : { "$elemMatch" : { "Foo.BarString" : { "$eq" : "d" } } } })
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

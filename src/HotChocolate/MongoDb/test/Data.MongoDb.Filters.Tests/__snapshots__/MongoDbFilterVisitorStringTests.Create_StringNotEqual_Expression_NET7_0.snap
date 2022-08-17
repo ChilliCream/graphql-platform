@@ -34,7 +34,7 @@ testbtest Query:
 find({ "Bar" : { "$ne" : "testbtest" } })
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

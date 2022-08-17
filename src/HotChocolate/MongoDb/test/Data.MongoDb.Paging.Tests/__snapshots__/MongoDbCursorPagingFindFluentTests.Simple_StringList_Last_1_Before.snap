@@ -1,0 +1,25 @@
+{
+  "data": {
+    "foos": {
+      "edges": [
+        {
+          "node": {
+            "bar": "e"
+          },
+          "cursor": "Mw=="
+        }
+      ],
+      "nodes": [
+        {
+          "bar": "e"
+        }
+      ],
+      "pageInfo": {
+        "hasNextPage": true,
+        "hasPreviousPage": true,
+        "startCursor": "Mw==",
+        "endCursor": "Mw=="
+      }
+    }
+  }
+}

@@ -45,10 +45,10 @@ public class QueryableFilterVisitorExecutableTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "true")
-            .AddSqlFrom(res2, "false")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    Snapshot
+                        .Create(), res1, "true"), res2, "false")
             .MatchAsync();
     }
 
@@ -70,10 +70,10 @@ public class QueryableFilterVisitorExecutableTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "true")
-            .AddSqlFrom(res2, "false")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    Snapshot
+                        .Create(), res1, "true"), res2, "false")
             .MatchAsync();
     }
 
@@ -100,11 +100,11 @@ public class QueryableFilterVisitorExecutableTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "true")
-            .AddSqlFrom(res2, "false")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "true"), res2, "false"), res3, "null")
             .MatchAsync();
     }
 
@@ -131,11 +131,11 @@ public class QueryableFilterVisitorExecutableTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "true")
-            .AddSqlFrom(res2, "false")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "true"), res2, "false"), res3, "null")
             .MatchAsync();
     }
 

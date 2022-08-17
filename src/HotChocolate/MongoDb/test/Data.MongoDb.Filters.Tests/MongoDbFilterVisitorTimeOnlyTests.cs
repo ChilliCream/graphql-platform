@@ -52,10 +52,10 @@ public class MongoDbFilterVisitorTimeOnlyTests
                 .Create());
 
         // arrange
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "0630")
-            .AddSqlFrom(res2, "1600")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    Snapshot
+                        .Create(), res1, "0630"), res2, "1600")
             .MatchAsync();
     }
 
@@ -77,10 +77,10 @@ public class MongoDbFilterVisitorTimeOnlyTests
                 .Create());
 
         // arrange
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "0630")
-            .AddSqlFrom(res2, "1600")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    Snapshot
+                        .Create(), res1, "0630"), res2, "1600")
             .MatchAsync();
     }
 
@@ -107,11 +107,11 @@ public class MongoDbFilterVisitorTimeOnlyTests
                 .Create());
 
         // arrange
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "0630")
-            .AddSqlFrom(res2, "1600")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "0630"), res2, "1600"), res3, "null")
             .MatchAsync();
     }
 
@@ -138,11 +138,11 @@ public class MongoDbFilterVisitorTimeOnlyTests
                 .Create());
 
         // arrange
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "0630")
-            .AddSqlFrom(res2, "1600")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "0630"), res2, "1600"), res3, "null")
             .MatchAsync();
     }
 

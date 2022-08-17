@@ -34,7 +34,7 @@ find({ "BarShort" : { "$eq" : 12 } })
 find({ "BarShort" : { "$eq" : 13 } })
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

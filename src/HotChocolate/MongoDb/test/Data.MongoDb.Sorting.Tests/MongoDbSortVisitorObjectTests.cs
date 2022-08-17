@@ -138,10 +138,10 @@ public class MongoDbSortVisitorObjectTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "ASC")
-            .AddSqlFrom(res2, "DESC")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
             .MatchAsync();
     }
 
@@ -168,10 +168,10 @@ public class MongoDbSortVisitorObjectTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "ASC")
-            .AddSqlFrom(res2, "13")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "13")
             .MatchAsync();
     }
 
@@ -197,10 +197,10 @@ public class MongoDbSortVisitorObjectTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "ASC")
-            .AddSqlFrom(res2, "DESC")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
             .MatchAsync();
     }
 
@@ -227,10 +227,10 @@ public class MongoDbSortVisitorObjectTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "ASC")
-            .AddSqlFrom(res2, "13")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "13")
             .MatchAsync();
     }
 
@@ -256,10 +256,10 @@ public class MongoDbSortVisitorObjectTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "ASC")
-            .AddSqlFrom(res2, "DESC")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
             .MatchAsync();
     }
 
@@ -286,10 +286,10 @@ public class MongoDbSortVisitorObjectTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "ASC")
-            .AddSqlFrom(res2, "13")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "13")
             .MatchAsync();
     }
 
@@ -315,10 +315,10 @@ public class MongoDbSortVisitorObjectTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "ASC")
-            .AddSqlFrom(res2, "DESC")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
             .MatchAsync();
     }
 
@@ -345,10 +345,10 @@ public class MongoDbSortVisitorObjectTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "ASC")
-            .AddSqlFrom(res2, "13")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "13")
             .MatchAsync();
     }
 

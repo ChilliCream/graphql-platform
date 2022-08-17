@@ -38,7 +38,7 @@ testbtest Query:
 find({ "Foo.BarString" : { "$eq" : "testbtest" } })
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [
