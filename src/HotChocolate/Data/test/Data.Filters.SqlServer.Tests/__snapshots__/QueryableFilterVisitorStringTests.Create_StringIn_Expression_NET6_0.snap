@@ -21,7 +21,7 @@ FROM "Data" AS "d"
 WHERE "d"."Bar" IN ('testatest', 'testbtest')
 ---------------
 
-testbtestAndNull Result:
+testbtestAndNull
 ---------------
 {
   "errors": [

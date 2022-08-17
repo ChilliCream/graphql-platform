@@ -54,9 +54,9 @@ public class Neo4JOffsetPagingTests : IClassFixture<Neo4JFixture>
                 }
             }");
 
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1)
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
             .MatchAsync();
     }
 
@@ -81,9 +81,9 @@ public class Neo4JOffsetPagingTests : IClassFixture<Neo4JFixture>
             }");
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(result)
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), result)
             .MatchAsync();
     }
 
@@ -108,9 +108,9 @@ public class Neo4JOffsetPagingTests : IClassFixture<Neo4JFixture>
             }");
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(result)
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), result)
             .MatchAsync();
     }
 }

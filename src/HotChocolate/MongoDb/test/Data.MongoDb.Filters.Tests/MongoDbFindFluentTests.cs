@@ -64,10 +64,10 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
                 .Create());
 
         // arrange
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "true")
-            .AddSqlFrom(res2, "false")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    Snapshot
+                        .Create(), res1, "true"), res2, "false")
             .MatchAsync();
     }
 
@@ -100,10 +100,10 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
                 .Create());
 
         // arrange
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "2020-01-11")
-            .AddSqlFrom(res2, "2020-01-12")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    Snapshot
+                        .Create(), res1, "2020-01-11"), res2, "2020-01-12")
             .MatchAsync();
     }
 
@@ -133,10 +133,10 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
                 .Create());
 
         // arrange
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "2020-01-11")
-            .AddSqlFrom(res2, "2020-01-12")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    Snapshot
+                        .Create(), res1, "2020-01-11"), res2, "2020-01-12")
             .MatchAsync();
     }
     public class Foo

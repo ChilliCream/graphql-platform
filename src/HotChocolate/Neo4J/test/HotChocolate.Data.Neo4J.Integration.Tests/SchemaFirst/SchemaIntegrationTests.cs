@@ -57,13 +57,13 @@ public class SchemaIntegrationTests : IClassFixture<Neo4JFixture>
             }");
 
         // assert
-        await Snapshot
-            .Create()
-            .Add(tester.Schema, "MoviesSchema_Snapshot")
-            .AddSqlFrom(res1, "MoviesSchema_Actors_Query")
-            .AddSqlFrom(res2, "MoviesSchema_Name_StartsWith_Actors_Query")
-            .AddSqlFrom(res3, "MoviesSchema_Movies_Query")
-            .AddSqlFrom(res4, "MoviesSchema_Name_Desc_Sort_Actors_Query")
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        SnapshotExtensions.Add(
+                            Snapshot
+                                .Create()
+                                .Add(tester.Schema, "MoviesSchema_Snapshot"), res1, "MoviesSchema_Actors_Query"), res2, "MoviesSchema_Name_StartsWith_Actors_Query"), res3, "MoviesSchema_Movies_Query"), res4, "MoviesSchema_Name_Desc_Sort_Actors_Query")
             .MatchAsync();
     }
 }

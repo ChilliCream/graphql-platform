@@ -74,9 +74,9 @@ public class Neo4JRelationshipProjectionTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1)
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
             .MatchAsync();
     }
 
@@ -109,9 +109,9 @@ public class Neo4JRelationshipProjectionTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1)
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
             .MatchAsync();
     }
 }

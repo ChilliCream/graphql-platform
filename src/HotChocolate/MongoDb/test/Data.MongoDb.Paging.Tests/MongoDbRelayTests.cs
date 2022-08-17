@@ -31,9 +31,9 @@ public class MongoDbRelayTests
             }");
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(result)
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), result)
             .MatchAsync();
     }
 
@@ -60,9 +60,9 @@ public class MongoDbRelayTests
             }");
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(result)
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), result)
             .MatchAsync();
     }
 

@@ -48,7 +48,7 @@ FROM "Data" AS "d"
 WHERE "d"."Bar" IS NULL OR ((@__p_0 <> '') AND ((NOT ("d"."Bar" LIKE @__p_0 || '%') OR (substr("d"."Bar", 1, length(@__p_0)) <> @__p_0)) AND (@__p_0 <> '')))
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [
