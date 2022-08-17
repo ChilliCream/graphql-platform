@@ -69,7 +69,7 @@ true Query:
 find({ "Bar" : { "$exists" : true, "$nin" : [[], null] } })
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

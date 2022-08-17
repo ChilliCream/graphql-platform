@@ -38,7 +38,7 @@ find({ "Foo.BarShort" : { "$eq" : 12 } })
 find({ "Foo.BarShort" : { "$eq" : 13 } })
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

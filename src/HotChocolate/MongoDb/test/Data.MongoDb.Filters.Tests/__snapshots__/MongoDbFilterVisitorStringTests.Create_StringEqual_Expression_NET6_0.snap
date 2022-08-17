@@ -34,7 +34,7 @@ testbtest Query:
 find({ "Bar" : { "$eq" : "testbtest" } })
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [
