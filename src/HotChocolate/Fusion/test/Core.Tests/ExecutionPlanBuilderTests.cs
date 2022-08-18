@@ -766,6 +766,41 @@ public class ExecutionPlanBuilderTests
         await snapshot.MatchAsync();
     }
 
+    [Fact]
+    public async Task StoreService_Introspection_TypeName()
+    {
+        // arrange
+        var request = Parse(
+            @"query Me {
+                me {
+                    name
+                    reviews {
+                        product {
+                            __typename
+                        }
+                    }
+                }
+            }");
+
+        // act
+        var queryPlan = await BuildStoreServiceQueryPlanAsync(request);
+
+        // assert
+        var index = 0;
+        var snapshot = new Snapshot();
+        snapshot.Add(request, "User Request");
+
+        foreach (var executionNode in queryPlan.ExecutionNodes)
+        {
+            if (executionNode is RequestNode rn)
+            {
+                snapshot.Add(rn.Handler.Document, $"Request {++index}");
+            }
+        }
+
+        await snapshot.MatchAsync();
+    }
+
     private static async Task<QueryPlan> BuildStoreServiceQueryPlanAsync(DocumentNode request)
     {
         // arrange

@@ -1,5 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
+using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
 using static HotChocolate.Fusion.Metadata.ConfigurationDirectiveNames;
 using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
@@ -18,21 +19,28 @@ internal sealed class ServiceConfigurationReader
 
     private ServiceConfiguration ReadServiceDefinition(DocumentNode documentNode)
     {
-        var context = ConfigurationDirectiveNamesContext.From(documentNode);
+        var schemaDef = documentNode.Definitions.OfType<SchemaDefinitionNode>().FirstOrDefault();
+
+        if (schemaDef is null)
+        {
+            // todo : exception
+            throw new ArgumentException(
+                "The service configuration must contain a schema definition.",
+                nameof(documentNode));
+        }
 
         var types = new List<IType>();
-        IReadOnlyList<HttpClientConfig>? httpClientConfigs = null;
+        var context = ConfigurationDirectiveNamesContext.From(documentNode);
+        var httpClientConfigs = ReadHttpClientConfigs(context, schemaDef.Directives);
+        var typeNameField = CreateTypeNameField(httpClientConfigs.Select(t => t.SchemaName));
+
 
         foreach (var definition in documentNode.Definitions)
         {
             switch (definition)
             {
                 case ObjectTypeDefinitionNode node:
-                    types.Add(ReadObjectType(context, node));
-                    break;
-
-                case SchemaDefinitionNode node:
-                    httpClientConfigs = ReadHttpClientConfigs(context, node.Directives);
+                    types.Add(ReadObjectType(context, node, typeNameField));
                     break;
             }
         }
@@ -54,18 +62,20 @@ internal sealed class ServiceConfigurationReader
 
     private ObjectType ReadObjectType(
         ConfigurationDirectiveNamesContext context,
-        ObjectTypeDefinitionNode typeDef)
+        ObjectTypeDefinitionNode typeDef,
+        ObjectField typeNameField)
     {
         var bindings = ReadMemberBindings(context, typeDef.Directives, typeDef);
         var variables = ReadFieldVariableDefinitions(context, typeDef.Directives);
         var resolvers = ReadFetchDefinitions(context, typeDef.Directives);
-        var fields = ReadObjectFields(context, typeDef.Fields);
+        var fields = ReadObjectFields(context, typeDef.Fields, typeNameField);
         return new ObjectType(typeDef.Name.Value, bindings, variables, resolvers, fields);
     }
 
     private ObjectFieldCollection ReadObjectFields(
         ConfigurationDirectiveNamesContext context,
-        IReadOnlyList<FieldDefinitionNode> fieldDefinitionNodes)
+        IReadOnlyList<FieldDefinitionNode> fieldDefinitionNodes,
+        ObjectField typeNameField)
     {
         var collection = new List<ObjectField>();
 
@@ -78,8 +88,18 @@ internal sealed class ServiceConfigurationReader
             collection.Add(field);
         }
 
+        collection.Add(typeNameField);
+
         return new ObjectFieldCollection(collection);
     }
+
+    private ObjectField CreateTypeNameField(IEnumerable<string> schemaNames)
+        => new ObjectField(
+            IntrospectionFields.TypeName,
+            new MemberBindingCollection(
+                schemaNames.Select(t => new MemberBinding(t, IntrospectionFields.TypeName))),
+            ArgumentVariableDefinitionCollection.Empty,
+            FetchDefinitionCollection.Empty);
 
     private IReadOnlyList<HttpClientConfig> ReadHttpClientConfigs(
         ConfigurationDirectiveNamesContext context,
@@ -183,17 +203,19 @@ internal sealed class ServiceConfigurationReader
         ConfigurationDirectiveNamesContext context,
         IReadOnlyList<DirectiveNode> directiveNodes)
     {
-        var definitions = new List<FetchDefinition>();
+        List<FetchDefinition>? definitions = null;
 
         foreach (var directiveNode in directiveNodes)
         {
             if (directiveNode.Name.Value.EqualsOrdinal(context.FetchDirective))
             {
-                definitions.Add(ReadFetchDefinition(context, directiveNode));
+                (definitions ??= new()).Add(ReadFetchDefinition(context, directiveNode));
             }
         }
 
-        return new FetchDefinitionCollection(definitions);
+        return definitions is null
+            ? FetchDefinitionCollection.Empty
+            : new FetchDefinitionCollection(definitions);
     }
 
     private FetchDefinition ReadFetchDefinition(
@@ -257,17 +279,20 @@ internal sealed class ServiceConfigurationReader
         IReadOnlyList<DirectiveNode> directiveNodes,
         NamedSyntaxNode annotatedMember)
     {
-        var definitions = new List<MemberBinding>();
+        List<MemberBinding>? definitions = null;
 
         foreach (var directiveNode in directiveNodes)
         {
             if (directiveNode.Name.Value.EqualsOrdinal(context.SourceDirective))
             {
-                definitions.Add(ReadMemberBinding(context, directiveNode, annotatedMember));
+                var memberBinding = ReadMemberBinding(context, directiveNode, annotatedMember);
+                (definitions ??= new()).Add(memberBinding);
             }
         }
 
-        return new MemberBindingCollection(definitions);
+        return definitions is null
+            ? MemberBindingCollection.Empty
+            : new MemberBindingCollection(definitions);
     }
 
     private MemberBindingCollection ReadMemberBindings(
@@ -341,21 +366,23 @@ internal sealed class ServiceConfigurationReader
         IReadOnlyList<DirectiveNode> directiveNodes,
         FieldDefinitionNode annotatedField)
     {
-        var definitions = new List<ArgumentVariableDefinition>();
+        List<ArgumentVariableDefinition>? definitions = null;
 
         foreach (var directiveNode in directiveNodes)
         {
             if (directiveNode.Name.Value.EqualsOrdinal(context.VariableDirective))
             {
-                definitions.Add(
-                    ReadArgumentVariableDefinition(
-                        context,
-                        directiveNode,
-                        annotatedField));
+                var argumentVarDef = ReadArgumentVariableDefinition(
+                    context,
+                    directiveNode,
+                    annotatedField);
+                (definitions ??= new()).Add(argumentVarDef);
             }
         }
 
-        return new ArgumentVariableDefinitionCollection(definitions);
+        return definitions is null
+            ? ArgumentVariableDefinitionCollection.Empty
+            : new ArgumentVariableDefinitionCollection(definitions);
     }
 
     private ArgumentVariableDefinition ReadArgumentVariableDefinition(
