@@ -4,8 +4,10 @@ query Me {
   me {
     name
     reviews {
-      product {
-        upc
+      nodes {
+        product {
+          upc
+        }
       }
     }
   }
@@ -17,8 +19,10 @@ Request 1
 query Me_1 {
   me: authorById(id: 1) {
     reviews {
-      product {
-        upc
+      nodes {
+        product {
+          upc
+        }
       }
     }
     __fusion_exports__1: id

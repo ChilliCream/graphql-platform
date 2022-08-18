@@ -1,56 +1,102 @@
 type Query {
-  me: User! 
-    @fetch(select: "user(id: 1) { ... User }", schema: "accounts")
-    @fetch(select: "authorById(id: 1) { ... User }", schema: "reviews")
-    @source(schema: "accounts")
-    @source(schema: "reviews")
+  me: User!
+  @fetch(select: "user(id: 1) { ... User }", schema: "accounts")
+  @fetch(select: "authorById(id: 1) { ... User }", schema: "reviews")
+  userById(id: Int!): User
+  @variable(argument: "id", name: "userId")
+  @fetch(select: "user(id: $userId) { ... User }", schema: "accounts")
+  @fetch(select: "authorById(id: $userId) { ... User }", schema: "reviews")
 }
 
-type User 
-  @source(schema: "reviews", name: "Author")
-  @variable(name: "userId", select: "id", schema: "accounts", type: "Int!")
-  @variable(name: "userId", select: "id", schema: "reviews", type: "Int!")
-  @fetch(select: "user(id: $userId) { ... User }", schema: "accounts")
-  @fetch(select: "authorById(id: $userId) { ... User }", schema: "reviews") {
+type User
+@source(schema: "reviews", name: "Author")
+@variable(name: "userId", select: "id", schema: "accounts", type: "Int!")
+@variable(name: "userId", select: "id", schema: "reviews", type: "Int!")
+@fetch(select: "user(id: $userId) { ... User }", schema: "accounts")
+@fetch(select: "authorById(id: $userId) { ... User }", schema: "reviews") {
   id: Int!
-    @source(schema: "accounts")
-    @source(schema: "reviews")
+  @source(schema: "accounts")
+  @source(schema: "reviews")
   name: String!
-    @source(schema: "accounts")
+  @source(schema: "accounts")
   birthdate: DateTime!
-    @source(schema: "accounts")
+  @source(schema: "accounts")
   username: String!
-    @source(schema: "accounts")
-    @source(schema: "reviews")
-  reviews: [Review]
-    @source(schema: "reviews")
+  @source(schema: "accounts")
+  @source(schema: "reviews")
+  reviews(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String) : ReviewsConnection
+  @source(schema: "reviews")
 }
 
 type Review
-  @variable(name: "reviewId", select: "id", schema: "reviews", type: "Int!")
-  @fetch(select: "reviewById(id: $reviewId) { ... Review }", schema: "reviews") {
+@variable(name: "reviewId", select: "id", schema: "reviews", type: "Int!")
+@fetch(select: "reviewById(id: $reviewId) { ... Review }", schema: "reviews") {
   id: Int!
-    @source(schema: "reviews")
+  @source(schema: "reviews")
   body: String!
-    @source(schema: "reviews")
+  @source(schema: "reviews")
   author: User!
-    @source(schema: "reviews")
+  @source(schema: "reviews")
   product: Product!
-    @source(schema: "reviews")
+  @source(schema: "reviews")
 }
 
-type Product 
-  @variable(name: "productId", select: "upc", schema: "reviews", type: "Int!")
-  @fetch(select: "productById(upc: $productId) { ... Product }", schema: "reviews") {
+type ReviewsConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  @source(schema: "reviews")
+  "A list of edges."
+  edges: [ReviewsEdge!]
+  @source(schema: "reviews")
+  "A flattened list of the nodes."
+  nodes: [Review!]
+  @source(schema: "reviews")
+}
+
+type ReviewsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  @source(schema: "reviews")
+  "The item at the end of the edge."
+  node: Review!
+  @source(schema: "reviews")
+}
+
+type Product
+@variable(name: "productId", select: "upc", schema: "reviews", type: "Int!")
+@fetch(select: "productById(upc: $productId) { ... Product }", schema: "reviews") {
   upc: Int!
-    @source(schema: "reviews")
+  @source(schema: "reviews")
   reviews: [Review!]!
-    @source(schema: "reviews")
+  @source(schema: "reviews")
 }
 
+"Information about pagination in a connection."
+type PageInfo {
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  @source(schema: "reviews")
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+  @source(schema: "reviews")
+  "When paginating backwards, the cursor to continue."
+  startCursor: String
+  @source(schema: "reviews")
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
+  @source(schema: "reviews")
+}
 
 schema
-  @httpClient(schema: "accounts", baseAddress: "http://localhost:5051")
-  @httpClient(schema: "reviews", baseAddress: "http://localhost:5054") {
+@httpClient(schema: "accounts", baseAddress: "http://localhost:5051")
+@httpClient(schema: "reviews", baseAddress: "http://localhost:5054") {
   query: Query
 }
