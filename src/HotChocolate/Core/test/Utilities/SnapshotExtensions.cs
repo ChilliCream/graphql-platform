@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Serialization;
-using HotChocolate.Tests;
 using Snapshooter;
 using Snapshooter.Xunit;
 

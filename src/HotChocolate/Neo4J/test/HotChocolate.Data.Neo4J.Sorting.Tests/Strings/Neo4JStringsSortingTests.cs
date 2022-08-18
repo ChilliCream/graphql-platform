@@ -1,8 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data.Neo4J.Sorting.Boolean;
 
@@ -25,8 +23,7 @@ public class Neo4JStringsSortingTests
         public string Bar { get; set; }
     }
 
-    public class FooStringSortType
-        : SortInputType<FooString>
+    public class FooStringSortType : SortInputType<FooString>
     {
     }
 
@@ -34,31 +31,34 @@ public class Neo4JStringsSortingTests
     public async Task Sorting_Strings_SchemaSnapshot()
     {
         // arrange
-        IRequestExecutor tester =
+        var tester =
             await _fixture.GetOrCreateSchema<FooString, FooStringSortType>(_fooEntitiesCypher);
-        tester.Schema.Print().MatchSnapshot();
+        tester.Schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task Create_String_OrderBy()
     {
         // arrange
-        IRequestExecutor tester =
+        var tester =
             await _fixture.GetOrCreateSchema<FooString, FooStringSortType>(_fooEntitiesCypher);
 
         // act
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { bar: ASC}){ bar }}")
                 .Create());
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { bar: DESC}){ bar }}")
                 .Create());
 
         // assert
-        res1.MatchDocumentSnapshot("ASC");
-        res2.MatchDocumentSnapshot("DESC");
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
+            .MatchAsync();
     }
 }

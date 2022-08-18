@@ -1,11 +1,10 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data;
 
@@ -44,7 +43,7 @@ public class UseDbContextTests
         var result = await executor.ExecuteAsync("{ authors { name } }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -80,7 +79,7 @@ public class UseDbContextTests
         var result = await executor.ExecuteAsync("{ authors { name } }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -116,7 +115,7 @@ public class UseDbContextTests
         var result = await executor.ExecuteAsync("{ authors { name } }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -165,7 +164,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -214,7 +213,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -263,7 +262,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -312,7 +311,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -360,7 +359,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -408,7 +407,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -456,7 +455,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -492,7 +491,7 @@ public class UseDbContextTests
         var result = await executor.ExecuteAsync("{ author { name } }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -597,7 +596,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -622,7 +621,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -671,7 +670,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -720,7 +719,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -769,7 +768,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -818,7 +817,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -866,7 +865,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -914,7 +913,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -962,7 +961,7 @@ public class UseDbContextTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     private static string CreateConnectionString() =>

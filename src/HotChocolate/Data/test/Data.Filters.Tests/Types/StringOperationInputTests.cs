@@ -1,6 +1,5 @@
 using HotChocolate.Types;
-using Snapshooter.Xunit;
-using Xunit;
+using CookieCrumble;
 
 namespace HotChocolate.Data.Filters;
 
@@ -8,65 +7,43 @@ public class StringOperationInputTests
 {
     [Fact]
     public void Create_OperationType()
-    {
-        // arrange
-        // act
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                t => t
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolve("foo")
-                    .Argument("test", a => a.Type<StringOperationFilterInputType>()))
+        => SchemaBuilder.New()
+            .AddQueryType(t => t
+                .Name("Query")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("foo")
+                .Argument("test", a => a.Type<StringOperationFilterInputType>()))
             .AddFiltering()
-            .Create();
-
-        // assert
-        schema.ToString().MatchSnapshot();
-    }
+            .Create()
+            .MatchSnapshot();
 
     [Fact]
     public void Create_Implicit_Operation()
-    {
-        // arrange
-        // act
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                t => t
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolve("foo")
-                    .Argument("test", a => a.Type<FilterInputType<Foo>>()))
+        => SchemaBuilder.New()
+            .AddQueryType(t => t
+                .Name("Query")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("foo")
+                .Argument("test", a => a.Type<FilterInputType<Foo>>()))
             .AddFiltering()
-            .Create();
-
-        // assert
-        schema.ToString().MatchSnapshot();
-    }
+            .Create()
+            .MatchSnapshot();
 
     [Fact]
     public void Create_Explicit_Operation()
-    {
-        // arrange
-        // act
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                t => t
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolve("foo")
-                    .Argument("test", a => a.Type<FooFilterInput>()))
-            .TryAddConvention<IFilterConvention>(
-                (sp) => new FilterConvention(x => x.UseMock()))
+        => SchemaBuilder.New()
+            .AddQueryType(t => t
+                .Name("Query")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("foo")
+                .Argument("test", a => a.Type<FooFilterInput>()))
+            .TryAddConvention<IFilterConvention>(_ => new FilterConvention(x => x.UseMock()))
             .AddFiltering()
-            .Create();
-
-        // assert
-        schema.ToString().MatchSnapshot();
-    }
+            .Create()
+            .MatchSnapshot();
 
     public class FooFilterInput : FilterInputType
     {

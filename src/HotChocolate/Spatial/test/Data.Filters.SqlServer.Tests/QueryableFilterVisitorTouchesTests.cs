@@ -1,41 +1,39 @@
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using NetTopologySuite.Geometries;
 using Squadron;
-using Xunit;
 
-namespace HotChocolate.Data.Filters.Spatial;
+namespace HotChocolate.Data.Spatial.Filters;
 
 [Collection("Postgres")]
-public class QueryableFilterVisitorTouchesTests
-    : SchemaCache
+public class QueryableFilterVisitorTouchesTests : SchemaCache
 {
     private static readonly Polygon _truePolygon =
-        new Polygon(new LinearRing(new[]
+        new(new LinearRing(new[]
         {
-                new Coordinate(140, 120),
-                new Coordinate(160, 20),
-                new Coordinate(20, 20),
-                new Coordinate(20, 120),
-                new Coordinate(140, 120)
+            new Coordinate(140, 120),
+            new Coordinate(160, 20),
+            new Coordinate(20, 20),
+            new Coordinate(20, 120),
+            new Coordinate(140, 120)
         }));
 
     private static readonly Polygon _falsePolygon =
-        new Polygon(new LinearRing(new[]
+        new(new LinearRing(new[]
         {
-                new Coordinate(1000, 1000),
-                new Coordinate(100000, 1000),
-                new Coordinate(100000, 100000),
-                new Coordinate(1000, 100000),
-                new Coordinate(1000, 1000),
+            new Coordinate(1000, 1000),
+            new Coordinate(100000, 1000),
+            new Coordinate(100000, 100000),
+            new Coordinate(1000, 100000),
+            new Coordinate(1000, 1000),
         }));
 
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { Id = 1, Bar = _truePolygon },
-            new Foo { Id = 2, Bar = _falsePolygon }
-        };
+        new() { Id = 1, Bar = _truePolygon },
+        new() { Id = 2, Bar = _falsePolygon }
+    };
 
     public QueryableFilterVisitorTouchesTests(PostgreSqlResource<PostgisConfig> resource)
         : base(resource)
@@ -54,59 +52,62 @@ public class QueryableFilterVisitorTouchesTests
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"{
-                            root(where: {
-                                bar: {
-                                    touches: {
-                                        geometry: {
-                                            type: Polygon,
-                                            coordinates: [
-                                                [
-                                                    [240 80],
-                                                    [140 120],
-                                                    [180 240],
-                                                    [280 200],
-                                                    [240 80]
-                                                ]
+                        root(where: {
+                            bar: {
+                                touches: {
+                                    geometry: {
+                                        type: Polygon,
+                                        coordinates: [
+                                            [
+                                                [240 80],
+                                                [140 120],
+                                                [180 240],
+                                                [280 200],
+                                                [240 80]
                                             ]
-                                        }
+                                        ]
                                     }
                                 }
-                            }){
-                                id
                             }
-                        }")
+                        }){
+                            id
+                        }
+                    }")
                 .Create());
-
-        res1.MatchSqlSnapshot("true");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"{
-                            root(where: {
-                                bar: {
-                                    ntouches: {
-                                        geometry: {
-                                            type: Polygon,
-                                            coordinates: [
-                                                [
-                                                    [240 80],
-                                                    [140 120],
-                                                    [180 240],
-                                                    [280 200],
-                                                    [240 80]
-                                                ]
+                        root(where: {
+                            bar: {
+                                ntouches: {
+                                    geometry: {
+                                        type: Polygon,
+                                        coordinates: [
+                                            [
+                                                [240 80],
+                                                [140 120],
+                                                [180 240],
+                                                [280 200],
+                                                [240 80]
                                             ]
-                                        }
+                                        ]
                                     }
                                 }
-                            }){
-                                id
                             }
-                        }")
+                        }){
+                            id
+                        }
+                    }")
                 .Create());
 
-        res2.MatchSqlSnapshot("false");
+        // assert
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    Snapshot
+                        .Create(), res1, "true"), res2, "false")
+            .MatchAsync();
     }
 
     public class Foo
@@ -116,8 +117,7 @@ public class QueryableFilterVisitorTouchesTests
         public Polygon Bar { get; set; } = null!;
     }
 
-    public class FooFilterType
-        : FilterInputType<Foo>
+    public class FooFilterType : FilterInputType<Foo>
     {
     }
 }

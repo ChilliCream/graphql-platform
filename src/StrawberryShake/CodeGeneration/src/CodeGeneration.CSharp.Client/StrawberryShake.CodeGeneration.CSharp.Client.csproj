@@ -10,8 +10,4 @@
     <RootNamespace>StrawberryShake.CodeGeneration.CSharp</RootNamespace>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
-  </PropertyGroup>
-
 </Project>

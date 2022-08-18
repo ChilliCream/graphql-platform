@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Snapshooter.Xunit;
+﻿using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution.Instrumentation;

@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading;
@@ -13,7 +12,7 @@ public sealed class JsonArrayResponseStreamFormatter : IResponseStreamFormatter
     private const byte _leftBracket = (byte)'[';
     private const byte _rightBracket = (byte)']';
     private const byte _comma = (byte)',';
-    private readonly JsonQueryResultFormatter _formatter;
+    private readonly IQueryResultFormatter _formatter;
 
     /// <summary>
     /// Creates a new instance of <see cref="JsonArrayResponseStreamFormatter" />.
@@ -45,7 +44,7 @@ public sealed class JsonArrayResponseStreamFormatter : IResponseStreamFormatter
     /// <paramref name="formatter"/> is <c>null</c>.
     /// </exception>
     public JsonArrayResponseStreamFormatter(
-        JsonQueryResultFormatter formatter)
+        IQueryResultFormatter formatter)
     {
         _formatter = formatter ??
             throw new ArgumentNullException(nameof(formatter));

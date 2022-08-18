@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
-using HotChocolate.Data.Projections.Extensions;
+using CookieCrumble;
 using HotChocolate.Execution;
-using Xunit;
 
 namespace HotChocolate.Data.Projections;
 
@@ -9,23 +8,23 @@ public class QueryableProjectionVisitorIsProjectedTests
 {
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { IsProjectedTrue = true, IsProjectedFalse = false },
-            new Foo { IsProjectedTrue = true, IsProjectedFalse = false }
-        };
+        new() { IsProjectedTrue = true, IsProjectedFalse = false },
+        new() { IsProjectedTrue = true, IsProjectedFalse = false }
+    };
 
     private static readonly MultipleFoo[] _fooMultipleEntities =
     {
-            new MultipleFoo{ IsProjectedTrue1 = true, IsProjectedFalse = false },
-            new MultipleFoo{ IsProjectedTrue1 = true, IsProjectedFalse = false }
-        };
+        new() { IsProjectedTrue1 = true, IsProjectedFalse = false },
+        new() { IsProjectedTrue1 = true, IsProjectedFalse = false }
+    };
 
     private static readonly Bar[] _barEntities =
     {
-            new Bar { IsProjectedFalse = false },
-            new Bar { IsProjectedFalse = false }
-        };
+        new() { IsProjectedFalse = false },
+        new() { IsProjectedFalse = false }
+    };
 
-    private readonly SchemaCache _cache = new SchemaCache();
+    private readonly SchemaCache _cache = new();
 
     [Fact]
     public async Task IsProjected_Should_NotBeProjectedWhenSelected_When_FalseWithOneProps()
@@ -34,13 +33,16 @@ public class QueryableProjectionVisitorIsProjectedTests
         var tester = _cache.CreateSchema(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root { isProjectedFalse }}")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
@@ -50,13 +52,16 @@ public class QueryableProjectionVisitorIsProjectedTests
         var tester = _cache.CreateSchema(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root { isProjectedFalse isProjectedTrue  }}")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
@@ -66,13 +71,16 @@ public class QueryableProjectionVisitorIsProjectedTests
         var tester = _cache.CreateSchema(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root { isProjectedFalse }}")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
@@ -82,13 +90,16 @@ public class QueryableProjectionVisitorIsProjectedTests
         var tester = _cache.CreateSchema(_fooMultipleEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root { isProjectedFalse }}")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
@@ -98,13 +109,16 @@ public class QueryableProjectionVisitorIsProjectedTests
         var tester = _cache.CreateSchema(_barEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root { isProjectedFalse }}")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     public class Foo

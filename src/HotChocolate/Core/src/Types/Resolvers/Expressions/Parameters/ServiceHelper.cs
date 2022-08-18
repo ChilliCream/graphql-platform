@@ -43,19 +43,17 @@ internal static class ServiceHelper
         FieldMiddlewareDefinition serviceMiddleware =
             new(next => async context =>
                 {
-                    var services = context.Services;
-                    var objectPool = services.GetRequiredService<ObjectPool<TService>>();
+                    var objectPool = context.Services.GetRequiredService<ObjectPool<TService>>();
                     var service = objectPool.Get();
 
-                    try
+                    context.RegisterForCleanup(() =>
                     {
-                        context.SetLocalState(scopedServiceName, service);
-                        await next(context).ConfigureAwait(false);
-                    }
-                    finally
-                    {
-                        objectPool.Return(service!);
-                    }
+                        objectPool.Return(service);
+                        return default;
+                    });
+
+                    context.SetLocalState(scopedServiceName, service);
+                    await next(context).ConfigureAwait(false);
                 },
                 isRepeatable: true,
                 key: WellKnownMiddleware.PooledService);
@@ -86,7 +84,12 @@ internal static class ServiceHelper
             middleware = new FieldMiddlewareDefinition(
                 next => async context =>
                 {
-                    using var scope = context.Services.CreateScope();
+                    var scope = context.Services.CreateScope();
+                    context.RegisterForCleanup(() =>
+                    {
+                        scope.Dispose();
+                        return default;
+                    });
                     context.SetLocalState(WellKnownContextData.ResolverServiceScope, scope);
                     await next(context).ConfigureAwait(false);
                 },

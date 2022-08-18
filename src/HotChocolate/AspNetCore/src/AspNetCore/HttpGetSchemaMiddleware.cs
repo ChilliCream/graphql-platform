@@ -70,13 +70,15 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
 
         if (context.Request.Query.TryGetValue("types", out var typesValue))
         {
-            if (string.IsNullOrEmpty(typesValue))
+            string? s = typesValue;
+
+            if (string.IsNullOrEmpty(s))
             {
                 await WriteResultAsync(context, TypeNameIsEmpty(), BadRequest);
                 return;
             }
 
-            await WriteTypesAsync(context, schema, typesValue, indent);
+            await WriteTypesAsync(context, schema, s, indent);
         }
         else
         {

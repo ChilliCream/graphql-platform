@@ -14,6 +14,8 @@
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Tests" />
     <InternalsVisibleTo Include="StrawberryShake.CodeGeneration" />
   </ItemGroup>
 
@@ -164,6 +166,18 @@
     </Compile>
     <Compile Update="Processing\Tasks\ResolverTask.Pooling.cs">
       <DependentUpon>ResolverTask.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\OperationContext.Execution.cs">
+      <DependentUpon>OperationContext.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\OperationContext.Operation.cs">
+      <DependentUpon>OperationContext.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\OperationContext.Services.cs">
+      <DependentUpon>OperationContext.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\OperationContext.Utilities.cs">
+      <DependentUpon>OperationContext.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 

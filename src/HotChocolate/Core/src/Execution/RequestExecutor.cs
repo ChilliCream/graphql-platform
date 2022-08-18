@@ -15,7 +15,6 @@ internal sealed class RequestExecutor : IRequestExecutor
     private readonly RequestDelegate _requestDelegate;
     private readonly BatchExecutor _batchExecutor;
     private readonly ObjectPool<RequestContext> _contextPool;
-    private readonly bool _parallelBatching;
 
     public RequestExecutor(
         ISchema schema,

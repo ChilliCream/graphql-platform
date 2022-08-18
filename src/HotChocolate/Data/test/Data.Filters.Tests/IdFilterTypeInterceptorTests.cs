@@ -1,11 +1,10 @@
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data;
 
@@ -22,7 +21,7 @@ public class IdFilterTypeInterceptorTests
             .AddFiltering()
             .BuildSchemaAsync();
 
-        schema.Print().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -35,7 +34,7 @@ public class IdFilterTypeInterceptorTests
             .AddFiltering()
             .BuildSchemaAsync();
 
-        schema.Print().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     public class Foo

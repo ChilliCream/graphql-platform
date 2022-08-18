@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Immutable;
 using HotChocolate.Execution.Processing.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -40,20 +39,8 @@ internal sealed partial class OperationContext
         get
         {
             AssertInitialized();
-            return _resultHelper;
+            return _resultBuilder;
         }
-    }
-
-    /// <summary>
-    /// Register cleanup tasks that will be executed after resolver execution is finished.
-    /// </summary>
-    /// <param name="action">
-    /// Cleanup action.
-    /// </param>
-    public void RegisterForCleanup(Action action)
-    {
-        AssertInitialized();
-        _cleanupActions.Add(action);
     }
 
     public ResolverTask CreateResolverTask(

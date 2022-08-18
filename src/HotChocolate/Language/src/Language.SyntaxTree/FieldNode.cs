@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;

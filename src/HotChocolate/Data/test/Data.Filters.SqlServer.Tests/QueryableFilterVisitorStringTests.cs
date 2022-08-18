@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
-using Xunit;
 
 namespace HotChocolate.Data.Filters;
 
@@ -8,661 +8,682 @@ public class QueryableFilterVisitorStringTests
 {
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { Bar = "testatest" }, new Foo { Bar = "testbtest" }
-        };
+        new() { Bar = "testatest" },
+        new() { Bar = "testbtest" }
+    };
 
     private static readonly FooNullable[] _fooNullableEntities =
     {
-            new FooNullable { Bar = "testatest" },
-            new FooNullable { Bar = "testbtest" },
-            new FooNullable { Bar = null }
-        };
+        new() { Bar = "testatest" },
+        new() { Bar = "testbtest" },
+        new() { Bar = null }
+    };
 
-    private readonly SchemaCache _cache = new SchemaCache();
+    private readonly SchemaCache _cache = new();
 
     [Fact]
     public async Task Create_StringEqual_Expression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
-        // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: \"testatest\"}}){ bar}}")
                 .Create());
 
-        res1.MatchSqlSnapshot("testatest");
-
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: \"testbtest\"}}){ bar}}")
                 .Create());
 
-        res2.MatchSqlSnapshot("testbtest");
-
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: null}}){ bar}}")
                 .Create());
 
-        res3.MatchSqlSnapshot("null");
+        // assert
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "testatest"), res2, "testbtest"), res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_StringEqual_Expression_CustomAllows()
     {
         // arrange
-        IRequestExecutor? tester =
-            _cache.CreateSchema<Foo, FooCustomAllowsFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooCustomAllowsFilterInput>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: \"testatest\"}}){ bar}}")
                 .Create());
 
-        res1.MatchSqlSnapshot("testatest");
-
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: \"testbtest\"}}){ bar}}")
                 .Create());
 
-        res2.MatchSqlSnapshot("testbtest");
-
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: null}}){ bar}}")
                 .Create());
 
-        res3.MatchSqlSnapshot("null");
+        // assert
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "testatest"), res2, "testbtest"), res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_StringNotEqual_Expression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
-        // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: \"testatest\"}}){ bar}}")
                 .Create());
 
-        res1.MatchSqlSnapshot("testatest");
-
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: \"testbtest\"}}){ bar}}")
                 .Create());
 
-        res2.MatchSqlSnapshot("testbtest");
-
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: null}}){ bar}}")
                 .Create());
 
-        res3.MatchSqlSnapshot("null");
+        // assert
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "testatest"), res2, "testbtest"), res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_StringIn_Expression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
-        // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { bar: { in: [ \"testatest\"  \"testbtest\" ]}}){ bar}}")
                 .Create());
 
-        res1.MatchSqlSnapshot("testatestAndtestb");
-
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { in: [\"testbtest\" null]}}){ bar}}")
                 .Create());
 
-        res2.MatchSqlSnapshot("testbtestAndNull");
-
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { in: [ \"testatest\" ]}}){ bar}}")
                 .Create());
 
-        res3.MatchSqlSnapshot("testatest");
+        // assert
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "testatestAndtestb"), res2, "testbtestAndNull"), res3, "testatest")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_StringNotIn_Expression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
-        // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { bar: { nin: [ \"testatest\"  \"testbtest\" ]}}){ bar}}")
                 .Create());
 
-        res1.MatchSqlSnapshot("testatestAndtestb");
-
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { nin: [\"testbtest\" null]}}){ bar}}")
                 .Create());
 
-        res2.MatchSqlSnapshot("testbtestAndNull");
-
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { nin: [ \"testatest\" ]}}){ bar}}")
                 .Create());
 
-        res3.MatchSqlSnapshot("testatest");
+        // assert
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "testatestAndtestb"), res2, "testbtestAndNull"), res3, "testatest")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_StringContains_Expression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
-        // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { contains: \"a\" }}){ bar}}")
                 .Create());
 
-        res1.MatchSqlSnapshot("a");
-
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { contains: \"b\" }}){ bar}}")
                 .Create());
 
-        res2.MatchSqlSnapshot("b");
-
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { contains: null }}){ bar}}")
                 .Create());
 
-        res3.MatchSqlSnapshot("null");
+        // assert
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "a"), res2, "b"), res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_StringNoContains_Expression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
-        // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { ncontains: \"a\" }}){ bar}}")
                 .Create());
 
-        res1.MatchSqlSnapshot("a");
-
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { ncontains: \"b\" }}){ bar}}")
                 .Create());
 
-        res2.MatchSqlSnapshot("b");
-
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { ncontains: null }}){ bar}}")
                 .Create());
 
-        res3.MatchSqlSnapshot("null");
+        // assert
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "a"), res2, "b"), res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_StringStartsWith_Expression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { startsWith: \"testa\" }}){ bar}}")
                 .Create());
 
-        res1.MatchSqlSnapshot("testa");
-
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { startsWith: \"testb\" }}){ bar}}")
                 .Create());
 
-        res2.MatchSqlSnapshot("testb");
-
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { startsWith: null }}){ bar}}")
                 .Create());
 
-        res3.MatchSqlSnapshot("null");
+        // assert
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "testa"), res2, "testb"), res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_StringNotStartsWith_Expression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
-        // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { nstartsWith: \"testa\" }}){ bar}}")
                 .Create());
 
-        res1.MatchSqlSnapshot("testa");
-
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { nstartsWith: \"testb\" }}){ bar}}")
                 .Create());
 
-        res2.MatchSqlSnapshot("testb");
-
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { nstartsWith: null }}){ bar}}")
                 .Create());
 
-        res3.MatchSqlSnapshot("null");
+        // assert
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "testa"), res2, "testb"), res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_StringEndsWith_Expression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
-        // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { endsWith: \"atest\" }}){ bar}}")
                 .Create());
 
-        res1.MatchSqlSnapshot("atest");
-
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { endsWith: \"btest\" }}){ bar}}")
                 .Create());
 
-        res2.MatchSqlSnapshot("btest");
-
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { endsWith: null }}){ bar}}")
                 .Create());
 
-        res3.MatchSqlSnapshot("null");
+        // assert
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "atest"), res2, "btest"), res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_StringNotEndsWith_Expression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
-        // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { nendsWith: \"atest\" }}){ bar}}")
                 .Create());
 
-        res1.MatchSqlSnapshot("atest");
-
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { nendsWith: \"btest\" }}){ bar}}")
                 .Create());
 
-        res2.MatchSqlSnapshot("btest");
-
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { nendsWith: null }}){ bar}}")
                 .Create());
 
-        res3.MatchSqlSnapshot("null");
+        // assert
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "atest"), res2, "btest"), res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_NullableStringEqual_Expression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
 
         // act
-        // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: \"testatest\"}}){ bar}}")
                 .Create());
 
-        res1.MatchSqlSnapshot("testatest");
-
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: \"testbtest\"}}){ bar}}")
                 .Create());
 
-        res2.MatchSqlSnapshot("testbtest");
-
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: null}}){ bar}}")
                 .Create());
 
-        res3.MatchSqlSnapshot("null");
+        // assert
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "testatest"), res2, "testbtest"), res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_NullableStringNotEqual_Expression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
             _fooNullableEntities);
 
         // act
-        // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: \"testatest\"}}){ bar}}")
                 .Create());
 
-        res1.MatchSqlSnapshot("testatest");
-
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: \"testbtest\"}}){ bar}}")
                 .Create());
 
-        res2.MatchSqlSnapshot("testbtest");
-
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: null}}){ bar}}")
                 .Create());
 
-        res3.MatchSqlSnapshot("null");
+        // assert
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "testatest"), res2, "testbtest"), res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_NullableStringIn_Expression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
 
         // act
-        // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { bar: { in: [ \"testatest\"  \"testbtest\" ]}}){ bar}}")
                 .Create());
 
-        res1.MatchSqlSnapshot("testatestAndtestb");
-
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { in: [\"testbtest\" null]}}){ bar}}")
                 .Create());
 
-        res2.MatchSqlSnapshot("testbtestAndNull");
-
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { in: [ \"testatest\" ]}}){ bar}}")
                 .Create());
 
-        res3.MatchSqlSnapshot("testatest");
+        // assert
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "testatestAndtestb"), res2, "testbtestAndNull"), res3, "testatest")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_NullableStringNotIn_Expression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
             _fooNullableEntities);
 
         // act
-        // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { bar: { nin: [ \"testatest\"  \"testbtest\" ]}}){ bar}}")
                 .Create());
 
-        res1.MatchSqlSnapshot("testatestAndtestb");
-
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { nin: [\"testbtest\" null]}}){ bar}}")
                 .Create());
 
-        res2.MatchSqlSnapshot("testbtestAndNull");
-
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { nin: [ \"testatest\" ]}}){ bar}}")
                 .Create());
 
-        res3.MatchSqlSnapshot("testatest");
+        // assert
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "testatestAndtestb"), res2, "testbtestAndNull"), res3, "testatest")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_NullableStringContains_Expression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
             _fooNullableEntities);
 
         // act
-        // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { contains: \"a\" }}){ bar}}")
                 .Create());
 
-        res1.MatchSqlSnapshot("a");
-
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { contains: \"b\" }}){ bar}}")
                 .Create());
 
-        res2.MatchSqlSnapshot("b");
-
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { contains: null }}){ bar}}")
                 .Create());
 
-        res3.MatchSqlSnapshot("null");
+        // assert
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "a"), res2, "b"), res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_NullableStringNoContains_Expression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
 
         // act
-        // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { ncontains: \"a\" }}){ bar}}")
                 .Create());
 
-        res1.MatchSqlSnapshot("a");
-
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { ncontains: \"b\" }}){ bar}}")
                 .Create());
 
-        res2.MatchSqlSnapshot("b");
-
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { ncontains: null }}){ bar}}")
                 .Create());
 
-        res3.MatchSqlSnapshot("null");
+        // assert
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "a"), res2, "b"), res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_NullableStringStartsWith_Expression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
             _fooNullableEntities);
 
         // act
-        // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { startsWith: \"testa\" }}){ bar}}")
                 .Create());
 
-        res1.MatchSqlSnapshot("testa");
-
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { startsWith: \"testb\" }}){ bar}}")
                 .Create());
 
-        res2.MatchSqlSnapshot("testb");
-
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { startsWith: null }}){ bar}}")
                 .Create());
 
-        res3.MatchSqlSnapshot("null");
+        // assert
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "testa"), res2, "testb"), res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_NullableStringNotStartsWith_Expression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
             _fooNullableEntities);
 
         // act
-        // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { nstartsWith: \"testa\" }}){ bar}}")
                 .Create());
 
-        res1.MatchSqlSnapshot("testa");
-
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { nstartsWith: \"testb\" }}){ bar}}")
                 .Create());
 
-        res2.MatchSqlSnapshot("testb");
-
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { nstartsWith: null }}){ bar}}")
                 .Create());
 
-        res3.MatchSqlSnapshot("null");
+        // assert
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "testa"), res2, "testb"), res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_NullableStringEndsWith_Expression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
             _fooNullableEntities);
 
         // act
-        // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { endsWith: \"atest\" }}){ bar}}")
                 .Create());
 
-        res1.MatchSqlSnapshot("atest");
-
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { endsWith: \"btest\" }}){ bar}}")
                 .Create());
 
-        res2.MatchSqlSnapshot("btest");
-
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { endsWith: null }}){ bar}}")
                 .Create());
 
-        res3.MatchSqlSnapshot("null");
+        // assert
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "atest"), res2, "btest"), res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_NullableStringNotEndsWith_Expression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
             _fooNullableEntities);
 
         // act
         // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { nendsWith: \"atest\" }}){ bar}}")
                 .Create());
 
-        res1.MatchSqlSnapshot("atest");
-
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { nendsWith: \"btest\" }}){ bar}}")
                 .Create());
 
-        res2.MatchSqlSnapshot("btest");
-
-        IExecutionResult? res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { nendsWith: null }}){ bar}}")
                 .Create());
 
-        res3.MatchSqlSnapshot("null");
+        // assert
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        Snapshot
+                            .Create(), res1, "atest"), res2, "btest"), res3, "null")
+            .MatchAsync();
     }
 
     public class Foo

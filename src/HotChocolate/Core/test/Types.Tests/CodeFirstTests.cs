@@ -278,7 +278,7 @@ public class CodeFirstTests
 
     public class Example : IStructuralEquatable
     {
-        public string Some { get; set; }
+        public string Some { get; set; } = default!;
 
         public bool Equals(object? other, IEqualityComparer comparer) => throw new NotImplementedException();
 

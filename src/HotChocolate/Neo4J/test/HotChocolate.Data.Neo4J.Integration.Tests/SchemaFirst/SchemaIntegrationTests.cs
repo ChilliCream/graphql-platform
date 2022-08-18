@@ -1,7 +1,5 @@
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data.Neo4J.Integration.SchemaFirst;
 
@@ -17,50 +15,55 @@ public class SchemaIntegrationTests : IClassFixture<Neo4JFixture>
     [Fact]
     public async Task MoviesSchemaIntegrationTests()
     {
+        // arrange
         var tester = await _fixture.CreateSchema();
-        tester.Schema.Print().MatchSnapshot("MoviesSchema_Snapshot");
 
+        // act
         var res1 = await tester.ExecuteAsync(
             @"{
-                        actors {
-                            name
-                            actedIn {
-                                title
-                            }
-                        }
-                    }");
-
-        res1.MatchSnapshot("MoviesSchema_Actors_Query");
+                actors {
+                    name
+                    actedIn {
+                        title
+                    }
+                }
+            }");
 
         var res2 = await tester.ExecuteAsync(
             @"{
-                        actors (where : {name : { startsWith : ""Keanu"" }}) {
-                            name
-                            actedIn {
-                                title
-                            }
-                        }
-                    }");
-
-        res2.MatchSnapshot("MoviesSchema_Name_StartsWith_Actors_Query");
+                actors (where : {name : { startsWith : ""Keanu"" }}) {
+                    name
+                    actedIn {
+                        title
+                    }
+                }
+            }");
 
         var res3 = await tester.ExecuteAsync(
             @"{
-                        movies {
-                            title
-                        }
-                    }");
-        res3.MatchSnapshot("MoviesSchema_Movies_Query");
+                movies {
+                    title
+                }
+            }");
 
         var res4 = await tester.ExecuteAsync(
             @"{
-                        actors(order: [{ name : ASC }]) {
-                            name
-                            actedIn {
-                                title
-                            }
-                        }
-                    }");
-        res4.MatchSnapshot("MoviesSchema_Name_Desc_Sort_Actors_Query");
+                actors(order: [{ name : ASC }]) {
+                    name
+                    actedIn {
+                        title
+                    }
+                }
+            }");
+
+        // assert
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    SnapshotExtensions.Add(
+                        SnapshotExtensions.Add(
+                            Snapshot
+                                .Create()
+                                .Add(tester.Schema, "MoviesSchema_Snapshot"), res1, "MoviesSchema_Actors_Query"), res2, "MoviesSchema_Name_StartsWith_Actors_Query"), res3, "MoviesSchema_Movies_Query"), res4, "MoviesSchema_Name_Desc_Sort_Actors_Query")
+            .MatchAsync();
     }
 }

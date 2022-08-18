@@ -9,12 +9,12 @@ public class InterfaceTypeParserTests
     public void Parser_Simple()
     {
         // arrange
-        string sourceText = "interface a { b: String } ";
+        var sourceText = "interface a { b: String } ";
         var parser = new Utf8GraphQLParser(
             Encoding.UTF8.GetBytes(sourceText));
 
         // act
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
         var def = (document.Definitions[0] as InterfaceTypeDefinitionNode);
@@ -32,12 +32,12 @@ public class InterfaceTypeParserTests
     public void Parser_Description()
     {
         // arrange
-        string sourceText = "\"\"\"test\"\"\"interface a { b: String } ";
+        var sourceText = "\"\"\"test\"\"\"interface a { b: String } ";
         var parser = new Utf8GraphQLParser(
             Encoding.UTF8.GetBytes(sourceText));
 
         // act
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
         var def = (document.Definitions[0] as InterfaceTypeDefinitionNode);
@@ -55,12 +55,12 @@ public class InterfaceTypeParserTests
     public void Parser_Directive()
     {
         // arrange
-        string sourceText = "interface a @foo(a: \"123\") { b: String } ";
+        var sourceText = "interface a @foo(a: \"123\") { b: String } ";
         var parser = new Utf8GraphQLParser(
             Encoding.UTF8.GetBytes(sourceText));
 
         // act
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
         var def = (document.Definitions[0] as InterfaceTypeDefinitionNode);
@@ -81,12 +81,12 @@ public class InterfaceTypeParserTests
     public void Parser_Directive_Multiple()
     {
         // arrange
-        string sourceText = "interface a @foo(a: \"123\") @foo(b: \"321\") { b: String } ";
+        var sourceText = "interface a @foo(a: \"123\") @foo(b: \"321\") { b: String } ";
         var parser = new Utf8GraphQLParser(
             Encoding.UTF8.GetBytes(sourceText));
 
         // act
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
         var def = (document.Definitions[0] as InterfaceTypeDefinitionNode);
@@ -116,12 +116,12 @@ public class InterfaceTypeParserTests
     public void Parser_ImplementsInterfaces()
     {
         // arrange
-        string sourceText = "interface a implements e { b: String } ";
+        var sourceText = "interface a implements e { b: String } ";
         var parser = new Utf8GraphQLParser(
             Encoding.UTF8.GetBytes(sourceText));
 
         // act
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
         var def = (document.Definitions[0] as InterfaceTypeDefinitionNode);
@@ -140,12 +140,12 @@ public class InterfaceTypeParserTests
     public void Parser_ImplementsInterfaces_Multiple()
     {
         // arrange
-        string sourceText = "interface a implements e & f { b: String } ";
+        var sourceText = "interface a implements e & f { b: String } ";
         var parser = new Utf8GraphQLParser(
             Encoding.UTF8.GetBytes(sourceText));
 
         // act
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
         var def = (document.Definitions[0] as InterfaceTypeDefinitionNode);
@@ -171,14 +171,14 @@ public class InterfaceTypeParserTests
     public void Parser_ImplementsInterfacesAndDirectives()
     {
         // arrange
-        string sourceText = "interface a implements e & f" +
+        var sourceText = "interface a implements e & f" +
             "@foo(a: \"123\") @foo(b: \"321\") { b: String } ";
 
         var parser = new Utf8GraphQLParser(
             Encoding.UTF8.GetBytes(sourceText));
 
         // act
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
         var def = (document.Definitions[0] as InterfaceTypeDefinitionNode);
@@ -217,7 +217,7 @@ public class InterfaceTypeParserTests
     public void Parser__Should_Fail_WhenDirectivesBeforeInterface()
     {
         // arrange
-        string sourceText = "interface a @foo(a: \"123\") implements e & f" +
+        var sourceText = "interface a @foo(a: \"123\") implements e & f" +
             " @foo(b: \"321\") { b: String } ";
 
         // act & assert

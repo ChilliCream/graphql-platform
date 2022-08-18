@@ -12,29 +12,6 @@ internal partial class MiddlewareContext
 {
     public IReadOnlyDictionary<string, ArgumentValue> Arguments { get; set; } = default!;
 
-    public T Argument<T>(string name)
-    {
-        if (string.IsNullOrEmpty(name))
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
-
-        if (typeof(IValueNode).IsAssignableFrom(typeof(T)))
-        {
-            var literal = ArgumentLiteral<IValueNode>(name);
-
-            if (literal is T casted)
-            {
-                return casted;
-            }
-
-            throw ResolverContext_LiteralNotCompatible(
-                _selection.SyntaxNode, Path, name, typeof(T), literal.GetType());
-        }
-
-        return ArgumentValue<T>(name);
-    }
-
     public T ArgumentValue<T>(string name)
     {
         if (string.IsNullOrEmpty(name))

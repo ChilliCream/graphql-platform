@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using Snapshooter.Xunit;
-using Xunit;
+using CookieCrumble;
 
 namespace HotChocolate.Data.Filters;
 
@@ -12,59 +11,35 @@ public class FilterAttributeTests
 {
     [Fact]
     public void Create_Schema_With_FilterInput()
-    {
-        // arrange
-        // act
-        var schema = SchemaBuilder.New()
+        => SchemaBuilder.New()
             .AddQueryType<Query1>()
             .AddFiltering()
-            .Create();
-
-        // assert
-        schema.ToString().MatchSnapshot();
-    }
+            .Create()
+            .MatchSnapshot();
 
     [Fact]
     public void Create_Schema_With_FilterInput_With_Fluent_API_Ctor_Param()
-    {
-        // arrange
-        // act
-        var schema = SchemaBuilder.New()
+        => SchemaBuilder.New()
             .AddQueryType<Query3>()
             .AddFiltering()
-            .Create();
-
-        // assert
-        schema.ToString().MatchSnapshot();
-    }
+            .Create()
+            .MatchSnapshot();
 
     [Fact]
     public void Create_Schema_With_FilterInput_With_Fluent_API()
-    {
-        // arrange
-        // act
-        var schema = SchemaBuilder.New()
+        => SchemaBuilder.New()
             .AddQueryType<Query2>()
             .AddFiltering()
-            .Create();
-
-        // assert
-        schema.ToString().MatchSnapshot();
-    }
+            .Create()
+            .MatchSnapshot();
 
     [Fact]
     public void Create_Schema_With_FilterAttributes()
-    {
-        // arrange
-        // act
-        var schema = SchemaBuilder.New()
+        => SchemaBuilder.New()
             .AddQueryType<Query4>()
             .AddFiltering()
-            .Create();
-
-        // assert
-        schema.ToString().MatchSnapshot();
-    }
+            .Create()
+            .MatchSnapshot();
 
     public class Query1
     {
@@ -86,14 +61,14 @@ public class FilterAttributeTests
         [UseFiltering(Type = typeof(FooFilterInput))]
         public IEnumerable<Foo> Foos { get; } = new[]
         {
-                new Foo { Bar = "aa", Baz = 1, Qux = 1 },
-                new Foo { Bar = "ba", Baz = 1 },
-                new Foo { Bar = "ca", Baz = 2 },
-                new Foo { Bar = "ab", Baz = 2 },
-                new Foo { Bar = "ac", Baz = 2 },
-                new Foo { Bar = "ad", Baz = 2 },
-                new Foo { Bar = null!, Baz = 0 }
-            };
+            new Foo { Bar = "aa", Baz = 1, Qux = 1 },
+            new Foo { Bar = "ba", Baz = 1 },
+            new Foo { Bar = "ca", Baz = 2 },
+            new Foo { Bar = "ab", Baz = 2 },
+            new Foo { Bar = "ac", Baz = 2 },
+            new Foo { Bar = "ad", Baz = 2 },
+            new Foo { Bar = null!, Baz = 0 }
+        };
     }
 
     public class Query3
@@ -101,14 +76,14 @@ public class FilterAttributeTests
         [UseFiltering(typeof(FooFilterInput))]
         public IEnumerable<Foo> Foos { get; } = new[]
         {
-                new Foo { Bar = "aa", Baz = 1, Qux = 1 },
-                new Foo { Bar = "ba", Baz = 1 },
-                new Foo { Bar = "ca", Baz = 2 },
-                new Foo { Bar = "ab", Baz = 2 },
-                new Foo { Bar = "ac", Baz = 2 },
-                new Foo { Bar = "ad", Baz = 2 },
-                new Foo { Bar = null!, Baz = 0 }
-            };
+            new Foo { Bar = "aa", Baz = 1, Qux = 1 },
+            new Foo { Bar = "ba", Baz = 1 },
+            new Foo { Bar = "ca", Baz = 2 },
+            new Foo { Bar = "ab", Baz = 2 },
+            new Foo { Bar = "ac", Baz = 2 },
+            new Foo { Bar = "ad", Baz = 2 },
+            new Foo { Bar = null!, Baz = 0 }
+        };
     }
 
     public class Query4
@@ -116,12 +91,12 @@ public class FilterAttributeTests
         [UseFiltering]
         public IEnumerable<Bar> Bars { get; } = new[]
         {
-                new Bar { Baz = 1 },
-                new Bar { Baz = 2 },
-                new Bar { Baz = 2 },
-                new Bar { Baz = 2 },
-                new Bar { Baz = 2 },
-            };
+            new Bar { Baz = 1 },
+            new Bar { Baz = 2 },
+            new Bar { Baz = 2 },
+            new Bar { Baz = 2 },
+            new Bar { Baz = 2 },
+        };
     }
 
     public class FooFilterInput : FilterInputType<Foo>

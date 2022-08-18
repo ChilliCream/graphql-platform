@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Introspection;
 using Moq;
 using Xunit;

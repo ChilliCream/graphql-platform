@@ -1,8 +1,8 @@
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using NetTopologySuite.Geometries;
 using Squadron;
-using Xunit;
 
 namespace HotChocolate.Data.Projections.Spatial;
 
@@ -51,7 +51,6 @@ public class QueryableProjectionVisitorTests
         var tester = await CreateSchemaAsync(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -63,7 +62,11 @@ public class QueryableProjectionVisitorTests
                     }")
                 .Create());
 
-        res1.MatchSqlSnapshot("");
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     public class Foo

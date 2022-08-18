@@ -1,0 +1,59 @@
+User Request
+---------------
+query GetPersonById {
+  personById(id: 4) {
+    name
+    friends {
+      name
+      bio
+    }
+  }
+}
+---------------
+
+Request 1
+---------------
+query GetPersonById_1 {
+  personById(id: 4) {
+    name
+    friends {
+      name
+      __fusion_exports__1: id
+    }
+  }
+}
+---------------
+
+Request 2
+---------------
+query GetPersonById_2($__fusion_exports__1: Int!) {
+  personById(id: $__fusion_exports__1) {
+    bio
+  }
+}
+---------------
+
+Result
+---------------
+{
+  "data": {
+    "personById": {
+      "name": "Rafi",
+      "friends": [
+        {
+          "name": "Pascal",
+          "bio": "Foo"
+        },
+        {
+          "name": "Michael",
+          "bio": "Bar"
+        },
+        {
+          "name": "Martin",
+          "bio": "Baz"
+        }
+      ]
+    }
+  }
+}
+---------------

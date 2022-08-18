@@ -1,20 +1,15 @@
-using System;
 using System.Collections.Concurrent;
-using System.Threading.Tasks;
 using HotChocolate.Data.Neo4J.Execution;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Neo4j.Driver;
 using Squadron;
 
 namespace HotChocolate.Data.Neo4J.Projections;
 
 public class Neo4JFixture : Neo4jResource<Neo4JConfig>
 {
-    private readonly ConcurrentDictionary<(Type, object), Task<IRequestExecutor>>
-        _cache = new();
+    private readonly ConcurrentDictionary<(Type, object), Task<IRequestExecutor>> _cache = new();
 
     public Task<IRequestExecutor> GetOrCreateSchema<T>(string cypher)
         where T : class
@@ -23,17 +18,17 @@ public class Neo4JFixture : Neo4jResource<Neo4JConfig>
 
         return _cache.GetOrAdd(
             key,
-            k => CreateSchema<T>(cypher));
+            _ => CreateSchema<T>(cypher));
     }
 
     protected async Task<IRequestExecutor> CreateSchema<TEntity>(string cypher)
         where TEntity : class
     {
-        IAsyncSession session = GetAsyncSession();
-        IResultCursor cursor = await session.RunAsync(cypher);
+        var session = GetAsyncSession();
+        var cursor = await session.RunAsync(cypher);
         await cursor.ConsumeAsync();
 
-        IRequestExecutorBuilder builder = new ServiceCollection().AddGraphQL();
+        var builder = new ServiceCollection().AddGraphQL();
 
         return builder
             .AddNeo4JProjections()

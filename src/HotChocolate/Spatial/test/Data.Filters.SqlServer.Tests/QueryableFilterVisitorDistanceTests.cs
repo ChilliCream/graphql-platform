@@ -1,40 +1,40 @@
-using System.Threading.Tasks;
+using CookieCrumble;
+using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using NetTopologySuite.Geometries;
 using Squadron;
-using Xunit;
 
-namespace HotChocolate.Data.Filters.Spatial;
+namespace HotChocolate.Data.Spatial.Filters;
 
 [Collection("Postgres")]
 public class QueryableFilterVisitorDistanceTests
     : SchemaCache
 {
-    private static readonly Polygon _truePolygon = new Polygon(
+    private static readonly Polygon _truePolygon = new(
         new LinearRing(new[]
         {
-                new Coordinate(0, 0),
-                new Coordinate(0, 2),
-                new Coordinate(2, 2),
-                new Coordinate(2, 0),
-                new Coordinate(0, 0)
+            new Coordinate(0, 0),
+            new Coordinate(0, 2),
+            new Coordinate(2, 2),
+            new Coordinate(2, 0),
+            new Coordinate(0, 0)
         }));
 
-    private static readonly Polygon _falsePolygon = new Polygon(
+    private static readonly Polygon _falsePolygon = new(
         new LinearRing(new[]
         {
-                new Coordinate(0, 0),
-                new Coordinate(0, -2),
-                new Coordinate(-2, -2),
-                new Coordinate(-2, 0),
-                new Coordinate(0, 0)
+            new Coordinate(0, 0),
+            new Coordinate(0, -2),
+            new Coordinate(-2, -2),
+            new Coordinate(-2, 0),
+            new Coordinate(0, 0)
         }));
 
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { Id = 1, Bar = _truePolygon },
-            new Foo { Id = 2, Bar = _falsePolygon }
-        };
+        new() { Id = 1, Bar = _truePolygon },
+        new() { Id = 2, Bar = _falsePolygon }
+    };
 
     public QueryableFilterVisitorDistanceTests(PostgreSqlResource<PostgisConfig> resource)
         : base(resource)
@@ -69,8 +69,6 @@ public class QueryableFilterVisitorDistanceTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot("2");
-
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -91,7 +89,12 @@ public class QueryableFilterVisitorDistanceTests
                         }")
                 .Create());
 
-        res2.MatchSqlSnapshot("1");
+        // assert
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    Snapshot
+                        .Create(), res1, "2"), res2, "1")
+            .MatchAsync();
     }
 
     public class Foo
@@ -101,8 +104,7 @@ public class QueryableFilterVisitorDistanceTests
         public Polygon Bar { get; set; } = null!;
     }
 
-    public class FooFilterType
-        : FilterInputType<Foo>
+    public class FooFilterType : FilterInputType<Foo>
     {
     }
 }

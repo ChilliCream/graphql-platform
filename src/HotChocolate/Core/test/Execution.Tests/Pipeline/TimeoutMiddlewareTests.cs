@@ -1,19 +1,11 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Options;
-using HotChocolate.Execution.Processing;
-using HotChocolate.Language;
 using HotChocolate.Tests;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
-using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using Snapshooter.Xunit;
 using Xunit;
 

@@ -1,16 +1,10 @@
-using System;
 using System.Buffers;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Xunit;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 

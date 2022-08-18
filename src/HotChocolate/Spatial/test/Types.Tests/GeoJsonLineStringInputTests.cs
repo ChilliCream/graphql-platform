@@ -1,18 +1,15 @@
-using System;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using NetTopologySuite.Geometries;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.Spatial;
 
 public class GeoJsonLineStringInputTests
 {
-    private readonly ListValueNode _linestring = new ListValueNode(
+    private readonly ListValueNode _linestring = new(
         new ListValueNode(
             new IntValueNode(30),
             new IntValueNode(10)),
@@ -191,10 +188,8 @@ public class GeoJsonLineStringInputTests
     }
 
     [Fact]
-    public void Schema_Tests() =>
-        CreateSchema()
-            .Print()
-            .MatchSnapshot();
+    public void Schema_Tests()
+        => CreateSchema().MatchSnapshot();
 
     [Fact]
     public void ParseLiteral_With_Input_Crs()

@@ -1,10 +1,8 @@
-using System;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
-using Xunit;
 
 namespace HotChocolate.Data.MongoDb.Sorting;
 
@@ -14,23 +12,22 @@ public class MongoDbSortVisitorEnumTests
 {
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { BarEnum = FooEnum.BAR },
-            new Foo { BarEnum = FooEnum.BAZ },
-            new Foo { BarEnum = FooEnum.FOO },
-            new Foo { BarEnum = FooEnum.QUX }
-        };
+        new() { BarEnum = FooEnum.BAR },
+        new() { BarEnum = FooEnum.BAZ },
+        new() { BarEnum = FooEnum.FOO },
+        new() { BarEnum = FooEnum.QUX }
+    };
 
     private static readonly FooNullable[] _fooNullableEntities =
     {
-            new FooNullable { BarEnum = FooEnum.BAR },
-            new FooNullable { BarEnum = FooEnum.BAZ },
-            new FooNullable { BarEnum = FooEnum.FOO },
-            new FooNullable { BarEnum = null },
-            new FooNullable { BarEnum = FooEnum.QUX }
-        };
+        new() { BarEnum = FooEnum.BAR },
+        new() { BarEnum = FooEnum.BAZ },
+        new() { BarEnum = FooEnum.FOO },
+        new() { BarEnum = null },
+        new() { BarEnum = FooEnum.QUX }
+    };
 
-    public MongoDbSortVisitorEnumTests(
-        MongoResource resource)
+    public MongoDbSortVisitorEnumTests(MongoResource resource)
     {
         Init(resource);
     }
@@ -39,45 +36,51 @@ public class MongoDbSortVisitorEnumTests
     public async Task Create_Enum_OrderBy()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<Foo, FooSortType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooSortType>(_fooEntities);
 
         // act
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { barEnum: ASC}){ barEnum}}")
                 .Create());
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { barEnum: DESC}){ barEnum}}")
                 .Create());
 
         // assert
-        res1.MatchDocumentSnapshot("ASC");
-        res2.MatchDocumentSnapshot("DESC");
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_Enum_OrderBy_Nullable()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<FooNullable, FooNullableSortType>(
+        var tester = CreateSchema<FooNullable, FooNullableSortType>(
             _fooNullableEntities);
 
         // act
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { barEnum: ASC}){ barEnum}}")
                 .Create());
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { barEnum: DESC}){ barEnum}}")
                 .Create());
 
         // assert
-        res1.MatchDocumentSnapshot("ASC");
-        res2.MatchDocumentSnapshot("DESC");
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
+            .MatchAsync();
     }
 
     public class Foo
@@ -104,13 +107,11 @@ public class MongoDbSortVisitorEnumTests
         QUX
     }
 
-    public class FooSortType
-        : SortInputType<Foo>
+    public class FooSortType : SortInputType<Foo>
     {
     }
 
-    public class FooNullableSortType
-        : SortInputType<FooNullable>
+    public class FooNullableSortType : SortInputType<FooNullable>
     {
     }
 }

@@ -36,9 +36,6 @@ public abstract class DescriptorBase<T>
         if (Definition.HasConfigurations)
         {
             var i = 0;
-            var buffered = 0;
-            var length = Definition.Configurations.Count;
-            var rented = ArrayPool<CreateConfiguration>.Shared.Rent(length);
             var configurations = Definition.Configurations;
 
             do
@@ -46,21 +43,13 @@ public abstract class DescriptorBase<T>
                 if (configurations[i] is { On: ApplyConfigurationOn.Create } config)
                 {
                     configurations.RemoveAt(i);
-                    rented[buffered++] = (CreateConfiguration)config;
+                    ((CreateConfiguration)config).Configure(Context);
                 }
                 else
                 {
                     i++;
                 }
             } while (i < configurations.Count);
-
-            for (i = 0; i < buffered; i++)
-            {
-                rented[i].Configure(Context);
-            }
-
-            rented.AsSpan().Slice(0, length).Clear();
-            ArrayPool<CreateConfiguration>.Shared.Return(rented, true);
         }
 
         return Definition;

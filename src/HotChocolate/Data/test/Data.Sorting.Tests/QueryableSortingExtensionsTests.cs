@@ -1,15 +1,13 @@
-using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data.Sorting;
 
@@ -17,8 +15,9 @@ public class QueryableSortingExtensionsTests
 {
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { Bar = true, Baz = "a" }, new Foo { Bar = false, Baz = "b" }
-        };
+        new() { Bar = true, Baz = "a" },
+        new() { Bar = false, Baz = "b" }
+    };
 
     [Fact]
     public async Task Extensions_Should_SortQuery()
@@ -38,7 +37,7 @@ public class QueryableSortingExtensionsTests
                 .Create());
 
         // assert
-        res1.ToJson().MatchSnapshot();
+        res1.MatchSnapshot();
     }
 
     [Fact]
@@ -49,7 +48,7 @@ public class QueryableSortingExtensionsTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddSorting()
-            .CreateExecptionExecutor();
+            .CreateExceptionExecutor();
 
         // act
         var res1 = await executor.ExecuteAsync(
@@ -59,7 +58,10 @@ public class QueryableSortingExtensionsTests
                 .Create());
 
         // assert
-        res1.MatchException();
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
@@ -70,7 +72,7 @@ public class QueryableSortingExtensionsTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddSorting()
-            .CreateExecptionExecutor();
+            .CreateExceptionExecutor();
 
         // act
         var res1 = await executor.ExecuteAsync(
@@ -80,7 +82,10 @@ public class QueryableSortingExtensionsTests
                 .Create());
 
         // assert
-        res1.MatchException();
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     public class Query

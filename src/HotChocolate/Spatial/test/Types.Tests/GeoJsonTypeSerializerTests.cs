@@ -1,8 +1,6 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Spatial.Serialization;
 using Moq;
-using Xunit;
 
 namespace HotChocolate.Types.Spatial;
 

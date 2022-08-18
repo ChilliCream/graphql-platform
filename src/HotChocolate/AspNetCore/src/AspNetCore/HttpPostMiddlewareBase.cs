@@ -123,9 +123,10 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 // defines the order in which the operations shall be executed.
                 case 1 when context.Request.Query.ContainsKey(_batchOperations):
                     {
-                        string operationNames = context.Request.Query[_batchOperations];
+                        string? operationNames = context.Request.Query[_batchOperations];
 
-                        if (TryParseOperations(operationNames, out var ops))
+                        if (!string.IsNullOrEmpty(operationNames) &&
+                            TryParseOperations(operationNames, out var ops))
                         {
                             result = await ExecuteOperationBatchAsync(
                                 context,

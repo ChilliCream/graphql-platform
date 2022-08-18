@@ -1,10 +1,9 @@
-using System;
 using System.Collections.Concurrent;
-using System.Threading.Tasks;
+using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using Squadron;
 
-namespace HotChocolate.Data.Filters.Spatial;
+namespace HotChocolate.Data.Spatial.Filters;
 
 public class SchemaCache
     : FilterVisitorTestBase

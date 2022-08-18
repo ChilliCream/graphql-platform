@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Language;
@@ -14,11 +12,12 @@ public class Neo4JFilterCombinator
         Neo4JFilterVisitorContext context,
         Queue<Condition> operations,
         FilterCombinator combinator,
-        [NotNullWhen(true)] out Condition combined)
+        [NotNullWhen(true)] out Condition? combined)
     {
         if (operations.Count == 0)
         {
-            throw ThrowHelper.Filtering_Neo4JFilterCombinator_QueueEmpty(this);
+            combined = default;
+            return false;
         }
 
         combined = combinator switch

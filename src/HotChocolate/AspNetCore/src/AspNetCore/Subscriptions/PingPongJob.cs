@@ -1,5 +1,4 @@
 using System.Net.WebSockets;
-using HotChocolate.AspNetCore.Subscriptions.Protocols;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 

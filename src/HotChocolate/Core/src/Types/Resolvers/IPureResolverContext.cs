@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;

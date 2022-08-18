@@ -11,6 +11,7 @@ namespace HotChocolate.Execution.Processing;
 
 internal partial class MiddlewareContext : IMiddlewareContext
 {
+    private readonly List<Func<ValueTask>> _cleanupTasks = new();
     private OperationContext _operationContext = default!;
     private IServiceProvider _services = default!;
     private InputParser _parser = default!;
@@ -25,8 +26,6 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public ISchema Schema => _operationContext.Schema;
 
-    public IObjectType RootType => _operationContext.Operation.RootType;
-
     public IOperation Operation => _operationContext.Operation;
 
     public IDictionary<string, object?> ContextData => _operationContext.ContextData;
@@ -34,6 +33,8 @@ internal partial class MiddlewareContext : IMiddlewareContext
     public IVariableValueCollection Variables => _operationContext.Variables;
 
     public CancellationToken RequestAborted { get; private set; }
+
+    public bool HasCleanupTasks => _cleanupTasks.Count > 0;
 
     public IReadOnlyList<ISelection> GetSelections(
         IObjectType typeContext,
@@ -192,9 +193,33 @@ internal partial class MiddlewareContext : IMiddlewareContext
         return Services.GetRequiredService(service);
     }
 
-    public void RegisterForCleanup(Action action) =>
-        _operationContext.RegisterForCleanup(action);
+    public void RegisterForCleanup(
+        Func<ValueTask> action,
+        CleanAfter cleanAfter = CleanAfter.Resolver)
+    {
+        if (action is null)
+        {
+            throw new ArgumentNullException(nameof(action));
+        }
 
-    public T GetQueryRoot<T>() =>
-        _operationContext.GetQueryRoot<T>();
+        if (cleanAfter is CleanAfter.Request)
+        {
+            _operationContext.Result.RegisterForCleanup(action);
+        }
+        else
+        {
+            _cleanupTasks.Add(action);
+        }
+    }
+
+    public async ValueTask ExecuteCleanupTasksAsync()
+    {
+        foreach (var task in _cleanupTasks)
+        {
+            await task.Invoke().ConfigureAwait(false);
+        }
+    }
+
+    public T GetQueryRoot<T>() 
+        => _operationContext.GetQueryRoot<T>();
 }

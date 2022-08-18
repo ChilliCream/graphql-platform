@@ -1,11 +1,8 @@
-using System;
 using HotChocolate.Language;
-using Xunit;
 
 namespace HotChocolate.Data.Filters.Expressions;
 
-public class QueryableFilterVisitorObjectTests
-    : FilterVisitorTestBase
+public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
 {
     [Fact]
     public void Create_ObjectShortEqual_Expression()

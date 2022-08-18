@@ -64,10 +64,10 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
                                 .AddDefaultFieldHandlers()));
                 }));
 
-        var valueTrue = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var valueTrue = Syntax.ParseValueLiteral(
             "{ complex: {parameter:\"a\", eq:\"a\" }}");
 
-        var valueFalse = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var valueFalse = Syntax.ParseValueLiteral(
             "{ complex: {parameter:\"a\", eq:\"b\" }}");
         // act
         var funcTrue = tester.Build<Foo>(valueTrue);
@@ -81,15 +81,14 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
         Assert.False(funcFalse(b));
     }
 
-    private sealed class QueryableSimpleMethodTest
-        : QueryableDefaultFieldHandler
+    private sealed class QueryableSimpleMethodTest : QueryableDefaultFieldHandler
     {
-        private static readonly MethodInfo Method = typeof(Foo).GetMethod(nameof(Foo.Simple))!;
-        private IExtendedType _extendedType;
+        private static readonly MethodInfo _method = typeof(Foo).GetMethod(nameof(Foo.Simple))!;
+        private readonly IExtendedType _extendedType;
 
         public QueryableSimpleMethodTest(ITypeInspector typeInspector)
         {
-            _extendedType = typeInspector.GetReturnType(Method);
+            _extendedType = typeInspector.GetReturnType(_method);
         }
 
         public override bool CanHandle(
@@ -121,7 +120,7 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
                 return true;
             }
 
-            Expression nestedProperty = Expression.Call(context.GetInstance(), Method);
+            Expression nestedProperty = Expression.Call(context.GetInstance(), _method);
 
             context.PushInstance(nestedProperty);
             context.RuntimeTypes.Push(_extendedType!);

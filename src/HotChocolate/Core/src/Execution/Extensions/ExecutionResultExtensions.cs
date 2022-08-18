@@ -1,8 +1,5 @@
 using System;
 using System.Buffers;
-using System.IO;
-using System.Text;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Serialization;
 using static HotChocolate.Execution.Properties.Resources;
@@ -52,8 +49,8 @@ public static class ExecutionResultExtensions
         if (result is IQueryResult queryResult)
         {
             return withIndentations
-                ? _formatterIndented.Serialize(queryResult)
-                : _formatter.Serialize(queryResult);
+                ? _formatterIndented.Format(queryResult)
+                : _formatter.Format(queryResult);
         }
 
         throw new NotSupportedException(ExecutionResultExtensions_OnlyQueryResults);

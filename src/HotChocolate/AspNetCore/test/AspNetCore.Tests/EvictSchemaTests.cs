@@ -1,7 +1,4 @@
-using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Tests.Utilities;
-using Microsoft.AspNetCore.TestHost;
-using Xunit;
 
 namespace HotChocolate.AspNetCore;
 

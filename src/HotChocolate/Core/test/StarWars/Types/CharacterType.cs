@@ -1,5 +1,4 @@
 ﻿using HotChocolate.Types;
-using HotChocolate.Types.Relay;
 using HotChocolate.StarWars.Models;
 
 namespace HotChocolate.StarWars.Types

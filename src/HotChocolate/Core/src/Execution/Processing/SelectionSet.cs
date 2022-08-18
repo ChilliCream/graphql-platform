@@ -72,7 +72,7 @@ internal sealed class SelectionSet : ISelectionSet
         {
             for (var i = 0; i < _selections.Length; i++)
             {
-                _selections[i].Seal();
+                _selections[i].Seal(this);
             }
 
             _flags |= Flags.Sealed;
@@ -83,7 +83,7 @@ internal sealed class SelectionSet : ISelectionSet
     /// Returns a reference to the 0th element of the underlying selections array.
     /// If the selections array is empty, returns a reference to the location where the 0th element
     /// would have been stored. Such a reference may or may not be null.
-    /// It can be used for pinning but must never be dereferenced.
+    /// It can be used for pinning but must never be de-referenced.
     /// This is only meant for use by the execution engine.
     /// </summary>
     internal ref Selection GetSelectionsReference()

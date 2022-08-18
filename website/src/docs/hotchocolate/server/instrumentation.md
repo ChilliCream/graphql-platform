@@ -228,6 +228,10 @@ OpenTelemetry is an open-source project and unified standard for service instrum
 
 Hot Chocolate has implemented an OpenTelemetry integration, and you can easily opt into it instead of building a custom tracing integration.
 
+<iframe width="560" height="315"
+src="https://www.youtube.com/embed/nCLSfJMihsg"frameborder="0"
+allowfullscreen></iframe>
+
 ## Setup
 
 To get started, add the HotChocolate.Diagnostics package to your project.

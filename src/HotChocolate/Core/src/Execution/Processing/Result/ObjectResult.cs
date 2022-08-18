@@ -57,6 +57,32 @@ public sealed class ObjectResult
         => _buffer[index].Set(name, value, isNullable);
 
     /// <summary>
+    /// Sets a field value in the buffer.
+    /// Note: Set will not validate if the buffer has enough space.
+    /// </summary>
+    /// <param name="index">
+    /// The index in the buffer on which the value shall be stored.
+    /// </param>
+    /// <param name="name">
+    /// The name of the field.
+    /// </param>
+    /// <param name="value">
+    /// The field value.
+    /// </param>
+    /// <param name="isNullable">
+    /// Specifies if the value is allowed to be null.
+    /// </param>
+    internal void SetValueUnsafe(int index, string name, ResultData? value, bool isNullable = true)
+    {
+        if (value is not null)
+        {
+            value.Parent = this;
+        }
+
+        _buffer[index].Set(name, value, isNullable);
+    }
+
+    /// <summary>
     /// Removes a field value from the buffer.
     /// Note: Remove will not validate if the buffer has enough space.
     /// </summary>
@@ -137,7 +163,7 @@ public sealed class ObjectResult
         {
             Unsafe.Add(ref searchSpace, i).Reset();
         }
-        
+
         _capacity = 0;
     }
 

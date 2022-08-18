@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using CookieCrumble;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
+
 using Xunit;
 
 namespace HotChocolate.Data.Sorting;
@@ -21,7 +22,7 @@ public class SortConventionScopeTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -36,7 +37,7 @@ public class SortConventionScopeTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     public class QueryType : ObjectType
@@ -71,8 +72,7 @@ public class SortConventionScopeTests
         public string Bar { get; set; } = default!;
     }
 
-    public class FooSortType
-        : SortInputType<Foo>
+    public class FooSortType : SortInputType<Foo>
     {
         protected override void Configure(
             ISortInputTypeDescriptor<Foo> descriptor)

@@ -1,14 +1,11 @@
-using System;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using NetTopologySuite.Geometries;
-using Snapshooter.Xunit;
-using Xunit;
 
-namespace HotChocolate.Types.Spatial.Tests;
+namespace HotChocolate.Types.Spatial;
 
 public class GeoJsonPointInputTests
 {
@@ -211,6 +208,6 @@ public class GeoJsonPointInputTests
         var schema = CreateSchema();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 }

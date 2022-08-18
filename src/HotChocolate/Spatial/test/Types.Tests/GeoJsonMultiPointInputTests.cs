@@ -1,18 +1,15 @@
-using System;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using NetTopologySuite.Geometries;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.Spatial;
 
 public class GeoJsonMultiPointInputTests
 {
-    private readonly ListValueNode _multipoint = new ListValueNode(
+    private readonly ListValueNode _multipoint = new(
         new ListValueNode(
             new IntValueNode(10),
             new IntValueNode(40)),
@@ -194,7 +191,7 @@ public class GeoJsonMultiPointInputTests
 
         // act
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     private ISchema CreateSchema() =>

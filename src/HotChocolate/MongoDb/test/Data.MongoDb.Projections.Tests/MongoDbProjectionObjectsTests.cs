@@ -1,37 +1,33 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
-using Xunit;
 
 namespace HotChocolate.Data.MongoDb.Projections;
 
-public class MongoDbProjectionObjectTests
-    : IClassFixture<MongoResource>
+public class MongoDbProjectionObjectTests : IClassFixture<MongoResource>
 {
     private static readonly BarNullable[] _barWithoutRelation =
     {
-            new BarNullable
+        new()
+        {
+            Number = 2,
+            Foo = new FooNullable
             {
-                Number = 2,
-                Foo = new FooNullable
+                BarEnum = BarEnum.BAR,
+                BarShort = 15,
+                NestedObject = new BarNullableDeep
                 {
-                    BarEnum = BarEnum.BAR,
-                    BarShort = 15,
-                    NestedObject = new BarNullableDeep
-                    {
-                        Foo = new FooDeep { BarString = "Foo" }
-                    }
+                    Foo = new FooDeep { BarString = "Foo" }
                 }
-            },
-            new BarNullable
-            {
-                Number = 2, Foo = new FooNullable { BarEnum = BarEnum.FOO, BarShort = 14 }
-            },
-            new BarNullable { Number = 2 }
-        };
+            }
+        },
+        new()
+        {
+            Number = 2, Foo = new FooNullable { BarEnum = BarEnum.FOO, BarShort = 14 }
+        },
+        new() { Number = 2 }
+    };
 
     private readonly SchemaCache _cache;
 
@@ -44,80 +40,86 @@ public class MongoDbProjectionObjectTests
     public async Task Should_NotInitializeObject_When_ResultOfLeftJoinIsNull()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barWithoutRelation);
+        var tester = _cache.CreateSchema(_barWithoutRelation);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
-                    @"
-                        {
-                            root {
-                                number
-                                foo {
-                                   barEnum
-                                }
+                    @"{
+                        root {
+                            number
+                            foo {
+                               barEnum
                             }
-                        }")
+                        }
+                    }")
                 .Create());
 
-        res1.MatchDocumentSnapshot();
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Should_NotInitializeObject_When_ResultOfLeftJoinIsNull_TwoFields()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barWithoutRelation);
+        var tester = _cache.CreateSchema(_barWithoutRelation);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
-                    @"
-                        {
-                            root {
-                                number
-                                foo {
-                                    barEnum
-                                }
+                    @"{
+                        root {
+                            number
+                            foo {
+                                barEnum
                             }
-                        }")
+                        }
+                    }")
                 .Create());
 
-        res1.MatchDocumentSnapshot();
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Should_NotInitializeObject_When_ResultOfLeftJoinIsNull_Deep()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barWithoutRelation);
+        var tester = _cache.CreateSchema(_barWithoutRelation);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
-                    @"
-                        {
-                            root {
-                                number
-                                foo {
-                                    barEnum
-                                    nestedObject {
-                                        foo {
-                                            barString
-                                        }
+                    @"{
+                        root {
+                            number
+                            foo {
+                                barEnum
+                                nestedObject {
+                                    foo {
+                                        barString
                                     }
                                 }
                             }
-                        }")
+                        }
+                    }")
                 .Create());
 
-        res1.MatchDocumentSnapshot();
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     public class Foo

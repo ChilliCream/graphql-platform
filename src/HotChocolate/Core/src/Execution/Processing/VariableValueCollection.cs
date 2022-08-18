@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using HotChocolate.Language;
-using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing;
 

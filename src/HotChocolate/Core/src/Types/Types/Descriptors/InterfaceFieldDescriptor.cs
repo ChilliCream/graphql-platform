@@ -74,7 +74,8 @@ public class InterfaceFieldDescriptor
             FieldDescriptorUtilities.DiscoverArguments(
                 Context,
                 definition.Arguments,
-                definition.Member);
+                definition.Member,
+                definition.GetParameterExpressionBuilders());
             _argumentsInitialized = true;
         }
     }

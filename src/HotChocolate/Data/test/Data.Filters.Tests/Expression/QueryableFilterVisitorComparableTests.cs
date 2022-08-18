@@ -1,8 +1,7 @@
-using System;
+using CookieCrumble;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
-using Xunit;
+
 
 namespace HotChocolate.Data.Filters.Expressions;
 
@@ -13,8 +12,7 @@ public class QueryableFilterVisitorComparableTests
     public void Create_ShortEqual_Expression()
     {
         // arrange
-        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-            "{ barShort: { eq: 12 }}");
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ barShort: { eq: 12 }}");
         var tester = CreateProviderTester(new FooFilterInput());
 
         // act
@@ -32,13 +30,11 @@ public class QueryableFilterVisitorComparableTests
     public void Create_ShortNotEqual_Expression()
     {
         // arrange
-        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-            "{ barShort: { neq: 12 }}");
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ barShort: { neq: 12 }}");
         var tester = CreateProviderTester(new FooFilterInput());
 
         // act
         var func = tester.Build<Foo>(value);
-
 
         // assert
         var a = new Foo { BarShort = 13 };
@@ -189,8 +185,7 @@ public class QueryableFilterVisitorComparableTests
     public void Create_ShortLowerThanOrEquals_Expression()
     {
         // arrange
-        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-            "{ barShort: { lte: 12 }}");
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ barShort: { lte: 12 }}");
         var tester = CreateProviderTester(new FooFilterInput());
 
         // act
@@ -211,8 +206,7 @@ public class QueryableFilterVisitorComparableTests
     public void Create_ShortNotLowerThanOrEquals_Expression()
     {
         // arrange
-        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-            "{ barShort: { nlte: 12 }}");
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ barShort: { nlte: 12 }}");
         var tester = CreateProviderTester(new FooFilterInput());
 
         // act
@@ -233,8 +227,7 @@ public class QueryableFilterVisitorComparableTests
     public void Create_ShortIn_Expression()
     {
         // arrange
-        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-            "{ barShort: { in: [13, 14] }}");
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ barShort: { in: [13, 14] }}");
         var tester = CreateProviderTester(new FooFilterInput());
 
         // act
@@ -252,8 +245,7 @@ public class QueryableFilterVisitorComparableTests
     public void Create_ShortNotIn_Expression()
     {
         // arrange
-        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-            "{ barShort: { nin: [13, 14] }}");
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ barShort: { nin: [13, 14] }}");
         var tester = CreateProviderTester(new FooFilterInput());
 
         // act
@@ -271,8 +263,7 @@ public class QueryableFilterVisitorComparableTests
     public void Create_NullableShortEqual_Expression()
     {
         // arrange
-        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-            "{ barShort: { eq: 12 }}");
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ barShort: { eq: 12 }}");
         var tester = CreateProviderTester(new FooNullableFilterInput());
 
         // act
@@ -293,9 +284,7 @@ public class QueryableFilterVisitorComparableTests
     public void Create_NullableShortNotEqual_Expression()
     {
         // arrange
-        // arrange
-        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-            "{ barShort: { neq: 12 }}");
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ barShort: { neq: 12 }}");
         var tester = CreateProviderTester(new FooNullableFilterInput());
 
         // act
@@ -568,7 +557,7 @@ public class QueryableFilterVisitorComparableTests
         var schema = CreateSchema(new FilterInputType<EntityWithTypeAttribute>());
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     public class Foo

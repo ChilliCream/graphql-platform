@@ -1,5 +1,4 @@
-using Snapshooter.Xunit;
-using Xunit;
+using CookieCrumble;
 
 namespace HotChocolate.Data.Neo4J.Language;
 
@@ -20,7 +19,7 @@ public class LiteralTests
     {
         var visitor = new CypherVisitor();
 
-        BooleanLiteral literal = Language.BooleanLiteral.True;
+        var literal = Language.BooleanLiteral.True;
         literal.Visit(visitor);
         visitor.Print().MatchSnapshot();
     }

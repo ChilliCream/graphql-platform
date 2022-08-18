@@ -1,4 +1,3 @@
-using System.Buffers;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.Transport.Sockets;
 using Microsoft.AspNetCore.Http;

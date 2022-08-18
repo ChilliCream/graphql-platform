@@ -1,10 +1,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using HotChocolate.Data.Projections.Extensions;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
-using Xunit;
 using static HotChocolate.Data.Projections.ProjectionVisitorTestBase;
 
 namespace HotChocolate.Data.Projections;
@@ -13,35 +12,35 @@ public class QueryableProjectionUnionTypeTests
 {
     private static readonly AbstractType[] _barEntities =
     {
-            new Bar { Name = "Bar", BarProp = "BarProp" },
-            new Foo { Name = "Foo", FooProp = "FooProp" }
-        };
+        new Bar { Name = "Bar", BarProp = "BarProp" },
+        new Foo { Name = "Foo", FooProp = "FooProp" }
+    };
 
     private static readonly NestedObject[] _barNestedEntities =
     {
-            new() { Nested = new Bar { Name = "Bar", BarProp = "BarProp" } },
-            new() { Nested = new Foo { Name = "Foo", FooProp = "FooProp" } },
-        };
+        new() { Nested = new Bar { Name = "Bar", BarProp = "BarProp" } },
+        new() { Nested = new Foo { Name = "Foo", FooProp = "FooProp" } },
+    };
 
     private static readonly NestedList[] _barListEntities =
     {
-            new()
+        new()
+        {
+            List = new()
             {
-                List = new()
-                {
-                    new Foo { Name = "Foo", FooProp = "FooProp" },
-                    new Bar { Name = "Bar", BarProp = "BarProp" }
-                }
-            },
-            new()
+                new Foo { Name = "Foo", FooProp = "FooProp" },
+                new Bar { Name = "Bar", BarProp = "BarProp" }
+            }
+        },
+        new()
+        {
+            List = new()
             {
-                List = new()
-                {
-                    new Bar { Name = "Bar", BarProp = "BarProp" },
-                    new Foo { Name = "Foo", FooProp = "FooProp" }
-                }
-            },
-        };
+                new Bar { Name = "Bar", BarProp = "BarProp" },
+                new Foo { Name = "Foo", FooProp = "FooProp" }
+            }
+        },
+    };
 
     private readonly SchemaCache _cache = new SchemaCache();
 
@@ -53,7 +52,6 @@ public class QueryableProjectionUnionTypeTests
             _cache.CreateSchema(_barEntities, OnModelCreating, configure: ConfigureSchema);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -70,7 +68,11 @@ public class QueryableProjectionUnionTypeTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
@@ -96,7 +98,6 @@ public class QueryableProjectionUnionTypeTests
                 });
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -115,7 +116,11 @@ public class QueryableProjectionUnionTypeTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
@@ -126,7 +131,6 @@ public class QueryableProjectionUnionTypeTests
             .CreateSchema(_barNestedEntities, OnModelCreating, configure: ConfigureSchema);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -145,7 +149,11 @@ public class QueryableProjectionUnionTypeTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
@@ -156,7 +164,6 @@ public class QueryableProjectionUnionTypeTests
             .CreateSchema(_barListEntities, OnModelCreating, configure: ConfigureSchema);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -175,7 +182,11 @@ public class QueryableProjectionUnionTypeTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
@@ -186,7 +197,6 @@ public class QueryableProjectionUnionTypeTests
             _cache.CreateSchema(_barEntities, OnModelCreating, configure: ConfigureSchema);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -200,7 +210,11 @@ public class QueryableProjectionUnionTypeTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
 

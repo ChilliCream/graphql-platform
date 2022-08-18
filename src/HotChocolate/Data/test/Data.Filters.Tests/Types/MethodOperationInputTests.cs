@@ -1,6 +1,5 @@
 using System.Linq;
-using Snapshooter.Xunit;
-using Xunit;
+using CookieCrumble;
 
 namespace HotChocolate.Data.Filters;
 
@@ -26,7 +25,7 @@ public class MethodOperationInputTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -43,7 +42,7 @@ public class MethodOperationInputTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     public class QueryExplicit

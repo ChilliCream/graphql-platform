@@ -1,15 +1,13 @@
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors;
 using NetTopologySuite.Geometries;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.Spatial;
 
 public class GeoJsonPointTypeTests
 {
-    private readonly Point _geom = new Point(new Coordinate(30, 10));
+    private readonly Point _geom = new(new Coordinate(30, 10));
 
     [Fact]
     public async Task Point_Execution_Output_Scalar()
@@ -85,6 +83,7 @@ public class GeoJsonPointTypeTests
     public void Point_Execution_Tests()
     {
         // arrange
+        // act
         var schema = SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
             .BindClrType<Coordinate, GeoJsonPositionType>()
@@ -95,8 +94,7 @@ public class GeoJsonPointTypeTests
                 .Resolve(_geom))
             .Create();
 
-        // act
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 }

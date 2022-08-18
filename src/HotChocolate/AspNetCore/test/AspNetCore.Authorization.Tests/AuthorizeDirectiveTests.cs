@@ -1,7 +1,5 @@
-using System;
+using CookieCrumble;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.AspNetCore.Authorization;
 
@@ -81,7 +79,7 @@ public class AuthorizeDirectiveTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(c => c
                 .Name("Query")
                 .Authorize()
@@ -91,7 +89,7 @@ public class AuthorizeDirectiveTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -111,7 +109,7 @@ public class AuthorizeDirectiveTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(c => c
                 .Name("Query")
                 .Authorize("MyPolicy")
@@ -121,7 +119,7 @@ public class AuthorizeDirectiveTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -142,7 +140,7 @@ public class AuthorizeDirectiveTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(c => c
                 .Name("Query")
                 .Authorize(new[] { "MyRole" })
@@ -152,7 +150,7 @@ public class AuthorizeDirectiveTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -172,7 +170,7 @@ public class AuthorizeDirectiveTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(c => c
                 .Name("Query")
                 .Field("foo")
@@ -182,7 +180,7 @@ public class AuthorizeDirectiveTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -190,7 +188,7 @@ public class AuthorizeDirectiveTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(c => c
                 .Name("Query")
                 .Field("foo")
@@ -200,7 +198,7 @@ public class AuthorizeDirectiveTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -208,7 +206,7 @@ public class AuthorizeDirectiveTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(c => c
                 .Name("Query")
                 .Field("foo")
@@ -218,7 +216,7 @@ public class AuthorizeDirectiveTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -239,7 +237,7 @@ public class AuthorizeDirectiveTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(c => c
                 .Name("Query")
                 .Field("foo")
@@ -249,7 +247,7 @@ public class AuthorizeDirectiveTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -257,7 +255,7 @@ public class AuthorizeDirectiveTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(c => c
                 .Name("Query")
                 .Field("foo")
@@ -267,7 +265,7 @@ public class AuthorizeDirectiveTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -275,7 +273,7 @@ public class AuthorizeDirectiveTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(c => c
                 .Name("Query")
                 .Field("foo")
@@ -285,7 +283,7 @@ public class AuthorizeDirectiveTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -306,7 +304,7 @@ public class AuthorizeDirectiveTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(c => c
                 .Name("Query")
                 .Field("foo")
@@ -316,7 +314,7 @@ public class AuthorizeDirectiveTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]

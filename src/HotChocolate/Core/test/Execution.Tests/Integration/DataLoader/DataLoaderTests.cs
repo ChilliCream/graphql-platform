@@ -10,7 +10,6 @@ using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
-using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;

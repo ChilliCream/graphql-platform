@@ -1,11 +1,10 @@
 using System.Linq;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data;
 
@@ -49,7 +48,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -81,7 +80,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -116,7 +115,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -151,7 +150,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -183,7 +182,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -218,7 +217,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -251,7 +250,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -284,7 +283,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -320,7 +319,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -355,7 +354,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -390,7 +389,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -425,7 +424,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -460,6 +459,6 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 ");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 }

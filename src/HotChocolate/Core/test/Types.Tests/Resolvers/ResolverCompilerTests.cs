@@ -13,6 +13,7 @@ using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Tests;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 using Moq;
 using Snapshooter.Xunit;
 using Xunit;
@@ -1311,6 +1312,30 @@ public class ResolverCompilerTests
             .MatchSnapshotAsync();
     }
 
+    [Fact]
+    public async Task ScopedExpressionBuilderTest()
+    {
+        // arrange
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithScopedExpressionBuilder>()
+            .ModifyOptions(o => o.SortFieldsByName = true)
+            .ExecuteRequestAsync("{ bar }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task ScopedExpressionBuilderSchemaTest()
+    {
+        // arrange
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithScopedExpressionBuilder>()
+            .ModifyOptions(o => o.SortFieldsByName = true)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
     public class Resolvers
     {
         public Task<object> ObjectTaskResolver() =>
@@ -1506,4 +1531,36 @@ public class ResolverCompilerTests
     public class Entity { }
 
     public class MyService { }
+
+    public class QueryWithScopedExpressionBuilder
+    {
+        [UseSomeState]
+        public string Bar(SomeState someState)
+            => someState.Foo;
+    }
+
+    public class SomeState
+    {
+        public string Foo => "Abc";
+    }
+
+    public class UseSomeStateAttribute : ObjectFieldDescriptorAttribute
+    {
+        public override void OnConfigure(
+            IDescriptorContext context,
+            IObjectFieldDescriptor descriptor,
+            MemberInfo member)
+        {
+            descriptor.Use(
+                n => c =>
+                {
+                    c.SetLocalState("foo", new SomeState());
+                    return n(c);
+                });
+
+            descriptor.Extend().Definition.ParameterExpressionBuilders.Add(
+                new CustomParameterExpressionBuilder<SomeState>(
+                    t => t.GetLocalState<SomeState>("foo")!));
+        }
+    }
 }

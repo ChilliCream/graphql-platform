@@ -1,11 +1,6 @@
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
-using Microsoft.AspNetCore.TestHost;
 using Newtonsoft.Json;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.AspNetCore;
 

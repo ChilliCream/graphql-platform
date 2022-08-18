@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
-using Xunit;
 
 namespace HotChocolate.Data.Neo4J.Filtering.Lists;
 
@@ -16,7 +14,7 @@ public class Neo4JListFilterTests
         _fixture = fixture;
     }
 
-    private readonly string _fooEntitiesCypher = @"
+    private const string _fooEntitiesCypher = @"
             CREATE (a:Foo {BarString: 'a'})-[:RELATED_FOO]->(:FooNested {Bar: 'a'})-[:RELATED_BAR]->(:BarNested {Foo: 'a'}),
                     (a)-[:RELATED_FOO]->(:FooNested {Bar: 'a'})-[:RELATED_BAR]->(:BarNested {Foo: 'a'}),
                     (a)-[:RELATED_FOO]->(:FooNested {Bar: 'a'})-[:RELATED_BAR]->(:BarNested {Foo: 'a'}),
@@ -55,8 +53,7 @@ public class Neo4JListFilterTests
         public string? Foo { get; set; }
     }
 
-    public class FooFilterType
-        : FilterInputType<Foo>
+    public class FooFilterType : FilterInputType<Foo>
     {
     }
 
@@ -64,38 +61,41 @@ public class Neo4JListFilterTests
     public async Task Create_ArrayAllObjectStringEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester =
-            await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
+        var tester = await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
 
         // act
         // assert
         const string query1 =
             @"{
-                    root(where: {
-                        barString: {
-                            eq: ""a""
-                        }
-                        fooNested: {
-                            all: {
-                                bar: { eq: ""a"" }
-                            }
-                        }
-                    }){
-                        barString
-                        fooNested {
-                            bar
-                            barNested {
-                                foo
-                            }
+                root(where: {
+                    barString: {
+                        eq: ""a""
+                    }
+                    fooNested: {
+                        all: {
+                            bar: { eq: ""a"" }
                         }
                     }
-                }";
+                }){
+                    barString
+                    fooNested {
+                        bar
+                        barNested {
+                            foo
+                        }
+                    }
+                }
+            }";
 
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(query1)
                 .Create());
 
-        res1.MatchDocumentSnapshot("all");
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1, "all")
+            .MatchAsync();
     }
 }

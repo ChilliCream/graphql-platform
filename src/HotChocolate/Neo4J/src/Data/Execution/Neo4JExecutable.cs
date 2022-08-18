@@ -15,7 +15,7 @@ namespace HotChocolate.Data.Neo4J.Execution;
 /// </summary>
 public class Neo4JExecutable<T>
     : INeo4JExecutable
-        , IExecutable<T>
+    , IExecutable<T>
 {
     private static Node Node => Cypher.NamedNode(typeof(T).Name);
 
@@ -91,7 +91,11 @@ public class Neo4JExecutable<T>
     /// <inheritdoc />
     public INeo4JExecutable WithFiltering(CompoundCondition filters)
     {
-        _filters = filters;
+        if (!filters.IsEmpty)
+        {
+            _filters = filters;
+        }
+
         return this;
     }
 

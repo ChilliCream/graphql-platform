@@ -3,18 +3,14 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Data.MongoDb.Sorting.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Data</RootNamespace>
-    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <NeutralLanguage>en</NeutralLanguage>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Data\HotChocolate.Data.MongoDb.csproj" />
-    <ProjectReference Include="..\..\..\Core\test\Types.Tests\HotChocolate.Types.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Squadron.Mongo" Version="0.15.0" />
-    <PackageReference Include="MongoDB.Driver" Version="2.14.0"/>
+    <PackageReference Include="MongoDB.Driver" Version="2.14.0" />
   </ItemGroup>
 </Project>

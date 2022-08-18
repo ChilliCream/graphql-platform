@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
@@ -97,6 +98,9 @@ public class Selection : ISelection
     public IObjectType DeclaringType { get; }
 
     /// <inheritdoc />
+    public ISelectionSet DeclaringSelectionSet { get; private set; } = default!;
+
+    /// <inheritdoc />
     public IObjectField Field { get; }
 
     /// <inheritdoc />
@@ -183,6 +187,9 @@ public class Selection : ISelection
 
         return false;
     }
+
+    public override string ToString()
+        => SyntaxNode.ToString();
 
     internal void AddSelection(FieldNode selectionSyntax, long includeCondition = 0)
     {
@@ -303,12 +310,17 @@ public class Selection : ISelection
         _flags |= Flags.Stream;
     }
 
-    internal void Seal()
+    internal void Seal(ISelectionSet declaringSelectionSet)
     {
         if ((_flags & Flags.Sealed) != Flags.Sealed)
         {
+            DeclaringSelectionSet = declaringSelectionSet;
             _flags |= Flags.Sealed;
         }
+
+        Debug.Assert(
+            ReferenceEquals(declaringSelectionSet, DeclaringSelectionSet),
+            "Selections can only belong to a single selectionSet.");
     }
 
     private SelectionExecutionStrategy InferStrategy(

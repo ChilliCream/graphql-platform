@@ -1,40 +1,40 @@
-using System.Threading.Tasks;
+using CookieCrumble;
+using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using NetTopologySuite.Geometries;
 using Squadron;
-using Xunit;
 
-namespace HotChocolate.Data.Filters.Spatial;
+namespace HotChocolate.Data.Spatial.Filters;
 
 [Collection("Postgres")]
 public class QueryableFilterVisitorIntersectsTests
     : SchemaCache
 {
     private static readonly Polygon _truePolygon =
-        new Polygon(new LinearRing(new[]
+        new(new LinearRing(new[]
         {
-                new Coordinate(0, 0),
-                new Coordinate(100, 0),
-                new Coordinate(100, 100),
-                new Coordinate(0, 100),
-                new Coordinate(0, 0),
+            new Coordinate(0, 0),
+            new Coordinate(100, 0),
+            new Coordinate(100, 100),
+            new Coordinate(0, 100),
+            new Coordinate(0, 0),
         }));
 
     private static readonly Polygon _falsePolygon =
-        new Polygon(new LinearRing(new[]
+        new(new LinearRing(new[]
         {
-                new Coordinate(1000, 1000),
-                new Coordinate(100000, 1000),
-                new Coordinate(100000, 100000),
-                new Coordinate(1000, 100000),
-                new Coordinate(1000, 1000),
+            new Coordinate(1000, 1000),
+            new Coordinate(100000, 1000),
+            new Coordinate(100000, 100000),
+            new Coordinate(1000, 100000),
+            new Coordinate(1000, 1000),
         }));
 
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { Id = 1, Bar = _truePolygon },
-            new Foo { Id = 2, Bar = _falsePolygon }
-        };
+        new() { Id = 1, Bar = _truePolygon },
+        new() { Id = 2, Bar = _falsePolygon }
+    };
 
     public QueryableFilterVisitorIntersectsTests(PostgreSqlResource<PostgisConfig> resource)
         : base(resource)
@@ -48,7 +48,6 @@ public class QueryableFilterVisitorIntersectsTests
         var tester = await CreateSchemaAsync<Foo, FooFilterType>(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -75,8 +74,6 @@ public class QueryableFilterVisitorIntersectsTests
                         }
                     }")
             .Create());
-
-        res1.MatchSqlSnapshot("true");
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
@@ -105,7 +102,12 @@ public class QueryableFilterVisitorIntersectsTests
                     }")
             .Create());
 
-        res2.MatchSqlSnapshot("false");
+        // assert
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    Snapshot
+                        .Create(), res1, "true"), res2, "false")
+            .MatchAsync();
     }
 
     public class Foo
@@ -115,8 +117,7 @@ public class QueryableFilterVisitorIntersectsTests
         public Polygon Bar { get; set; } = null!;
     }
 
-    public class FooFilterType
-        : FilterInputType<Foo>
+    public class FooFilterType : FilterInputType<Foo>
     {
     }
 }

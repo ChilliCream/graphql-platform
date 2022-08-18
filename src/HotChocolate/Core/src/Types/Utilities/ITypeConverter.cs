@@ -1,5 +1,4 @@
 using System;
-using HotChocolate.Resolvers;
 
 #nullable enable
 

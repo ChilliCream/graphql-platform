@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 
@@ -19,16 +16,16 @@ public class PersistedQueryCache
             Utf8GraphQLParser.Parse(@"{ hero { name } }"));
     }
 
-    public Task<QueryDocument> TryReadQueryAsync(
+    public async Task<QueryDocument?> TryReadQueryAsync(
         string queryId,
         CancellationToken cancellationToken = default)
     {
         if (_cache.TryGetValue(queryId, out var document))
         {
-            return Task.FromResult(new QueryDocument(document));
+            return await Task.FromResult(new QueryDocument(document));
         }
 
-        return Task.FromResult<QueryDocument>(null);
+        return null;
     }
 
     public Task WriteQueryAsync(

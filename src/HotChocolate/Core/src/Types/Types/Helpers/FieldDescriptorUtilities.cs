@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -24,7 +25,7 @@ public static class FieldDescriptorUtilities
     {
         foreach (var fieldDefinition in fieldDefinitions)
         {
-            if (!fieldDefinition.Ignore && fieldDefinition.Name is not null)
+            if (!fieldDefinition.Ignore && !string.IsNullOrEmpty(fieldDefinition.Name))
             {
                 fields[fieldDefinition.Name] = fieldDefinition;
             }
@@ -79,7 +80,7 @@ public static class FieldDescriptorUtilities
                 {
                     var fieldDefinition = createdFieldDefinition(member);
 
-                    if (fieldDefinition.Name is not null &&
+                    if (!string.IsNullOrEmpty(fieldDefinition.Name) &&
                         !handledMembers.Contains(member) &&
                         !fields.ContainsKey(fieldDefinition.Name) &&
                         (includeIgnoredMembers || !fieldDefinition.Ignore))
@@ -95,7 +96,8 @@ public static class FieldDescriptorUtilities
     public static void DiscoverArguments(
         IDescriptorContext context,
         ICollection<ArgumentDefinition> arguments,
-        MemberInfo? member)
+        MemberInfo? member,
+        IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders)
     {
         if (arguments is null)
         {
@@ -110,21 +112,23 @@ public static class FieldDescriptorUtilities
             {
                 foreach (var argument in arguments)
                 {
-                    if (argument.Name is not null)
+                    if (!string.IsNullOrEmpty(argument.Name))
                     {
                         processedNames.Add(argument.Name);
                     }
                 }
 
                 foreach (var parameter in
-                    context.ResolverCompiler.GetArgumentParameters(method.GetParameters()))
+                    context.ResolverCompiler.GetArgumentParameters(
+                        method.GetParameters(),
+                        parameterExpressionBuilders))
                 {
                     var argumentDefinition =
                         ArgumentDescriptor
                             .New(context, parameter)
                             .CreateDefinition();
 
-                    if (argumentDefinition.Name is not null &&
+                    if (!string.IsNullOrEmpty(argumentDefinition.Name) &&
                         processedNames.Add(argumentDefinition.Name))
                     {
                         arguments.Add(argumentDefinition);
@@ -134,7 +138,6 @@ public static class FieldDescriptorUtilities
             finally
             {
                 processedNames.Clear();
-
                 Interlocked.CompareExchange(ref _names, processedNames, null);
             }
         }

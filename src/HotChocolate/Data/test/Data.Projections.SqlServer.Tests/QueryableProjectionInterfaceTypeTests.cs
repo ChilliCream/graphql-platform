@@ -1,11 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using HotChocolate.Data.Projections.Extensions;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
-using Xunit;
 using static HotChocolate.Data.Projections.ProjectionVisitorTestBase;
 
 namespace HotChocolate.Data.Projections;
@@ -14,37 +12,37 @@ public class QueryableProjectionInterfaceTypeTests
 {
     private static readonly AbstractType[] _barEntities =
     {
-            new Bar { Name = "Bar", BarProp = "BarProp" },
-            new Foo { Name = "Foo", FooProp = "FooProp" }
-        };
+        new Bar { Name = "Bar", BarProp = "BarProp" },
+        new Foo { Name = "Foo", FooProp = "FooProp" }
+    };
 
     private static readonly NestedObject[] _barNestedEntities =
     {
-            new() { Nested = new Bar { Name = "Bar", BarProp = "BarProp" } },
-            new() { Nested = new Foo { Name = "Foo", FooProp = "FooProp" } },
-        };
+        new() { Nested = new Bar { Name = "Bar", BarProp = "BarProp" } },
+        new() { Nested = new Foo { Name = "Foo", FooProp = "FooProp" } },
+    };
 
     private static readonly NestedList[] _barListEntities =
     {
-            new()
+        new()
+        {
+            List = new()
             {
-                List = new()
-                {
-                    new Foo { Name = "Foo", FooProp = "FooProp" },
-                    new Bar { Name = "Bar", BarProp = "BarProp" }
-                }
-            },
-            new()
+                new Foo { Name = "Foo", FooProp = "FooProp" },
+                new Bar { Name = "Bar", BarProp = "BarProp" }
+            }
+        },
+        new()
+        {
+            List = new()
             {
-                List = new()
-                {
-                    new Bar { Name = "Bar", BarProp = "BarProp" },
-                    new Foo { Name = "Foo", FooProp = "FooProp" }
-                }
-            },
-        };
+                new Bar { Name = "Bar", BarProp = "BarProp" },
+                new Foo { Name = "Foo", FooProp = "FooProp" }
+            }
+        },
+    };
 
-    private readonly SchemaCache _cache = new SchemaCache();
+    private readonly SchemaCache _cache = new();
 
     [Fact]
     public async Task Create_Interface()
@@ -54,7 +52,6 @@ public class QueryableProjectionInterfaceTypeTests
             _cache.CreateSchema(_barEntities, OnModelCreating, configure: ConfigureSchema);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -72,7 +69,11 @@ public class QueryableProjectionInterfaceTypeTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
@@ -98,7 +99,6 @@ public class QueryableProjectionInterfaceTypeTests
                 });
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -118,7 +118,11 @@ public class QueryableProjectionInterfaceTypeTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
@@ -129,7 +133,6 @@ public class QueryableProjectionInterfaceTypeTests
             .CreateSchema(_barNestedEntities, OnModelCreating, configure: ConfigureSchema);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -149,7 +152,11 @@ public class QueryableProjectionInterfaceTypeTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
@@ -160,7 +167,6 @@ public class QueryableProjectionInterfaceTypeTests
             .CreateSchema(_barListEntities, OnModelCreating, configure: ConfigureSchema);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -180,7 +186,11 @@ public class QueryableProjectionInterfaceTypeTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
@@ -196,7 +206,6 @@ public class QueryableProjectionInterfaceTypeTests
                 usePaging: true);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -216,7 +225,11 @@ public class QueryableProjectionInterfaceTypeTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
@@ -232,7 +245,6 @@ public class QueryableProjectionInterfaceTypeTests
                 useOffsetPaging: true);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -252,7 +264,11 @@ public class QueryableProjectionInterfaceTypeTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
@@ -263,7 +279,6 @@ public class QueryableProjectionInterfaceTypeTests
             _cache.CreateSchema(_barEntities, OnModelCreating, configure: ConfigureSchema);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -277,7 +292,11 @@ public class QueryableProjectionInterfaceTypeTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     private static void OnModelCreating(ModelBuilder modelBuilder)
@@ -291,10 +310,8 @@ public class QueryableProjectionInterfaceTypeTests
     private static void ConfigureSchema(ISchemaBuilder schemaBuilder)
     {
         schemaBuilder
-            .AddType(new ObjectType<Foo>(
-                x => x.Implements<InterfaceType<AbstractType>>()))
-            .AddType(new ObjectType<Bar>(
-                x => x.Implements<InterfaceType<AbstractType>>()));
+            .AddType(new ObjectType<Foo>(x => x.Implements<InterfaceType<AbstractType>>()))
+            .AddType(new ObjectType<Bar>(x => x.Implements<InterfaceType<AbstractType>>()));
     }
 
     public class NestedList

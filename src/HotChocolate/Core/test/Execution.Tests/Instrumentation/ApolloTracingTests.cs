@@ -90,7 +90,7 @@ public class DiagnosticsEventsTests
         var result = await executor.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ a }")
-                .SetProperty(WellKnownContextData.EnableTracing, true)
+                .SetGlobalState(WellKnownContextData.EnableTracing, true)
                 .Create());
 
         // assert

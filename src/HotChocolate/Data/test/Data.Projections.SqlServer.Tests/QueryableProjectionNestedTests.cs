@@ -1,8 +1,7 @@
 using System.Threading.Tasks;
-using HotChocolate.Data.Projections.Extensions;
+using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.EntityFrameworkCore;
-using Xunit;
 
 namespace HotChocolate.Data.Projections;
 
@@ -10,9 +9,9 @@ public class QueryableProjectionNestedTests
 {
     private static readonly Bar[] _barEntities =
     {
-            new() { Foo = new Foo { BarString = "testatest", } },
-            new() { Foo = new Foo { BarString = "testbtest", } }
-        };
+        new() { Foo = new Foo { BarString = "testatest", } },
+        new() { Foo = new Foo { BarString = "testbtest", } }
+    };
 
     private readonly SchemaCache _cache = new SchemaCache();
 
@@ -23,7 +22,6 @@ public class QueryableProjectionNestedTests
         var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -37,7 +35,11 @@ public class QueryableProjectionNestedTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
@@ -47,7 +49,6 @@ public class QueryableProjectionNestedTests
         var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -61,7 +62,11 @@ public class QueryableProjectionNestedTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
@@ -71,7 +76,6 @@ public class QueryableProjectionNestedTests
         var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -85,7 +89,11 @@ public class QueryableProjectionNestedTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
@@ -95,7 +103,6 @@ public class QueryableProjectionNestedTests
         var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -109,7 +116,11 @@ public class QueryableProjectionNestedTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
@@ -119,7 +130,6 @@ public class QueryableProjectionNestedTests
         var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -133,7 +143,11 @@ public class QueryableProjectionNestedTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     private static void OnModelCreating(ModelBuilder modelBuilder)

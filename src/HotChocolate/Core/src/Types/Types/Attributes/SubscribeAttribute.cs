@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Utilities.ThrowHelper;
 

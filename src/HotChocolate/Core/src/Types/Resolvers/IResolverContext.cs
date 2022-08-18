@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Language;
 using HotChocolate.Types;
 
 #nullable enable

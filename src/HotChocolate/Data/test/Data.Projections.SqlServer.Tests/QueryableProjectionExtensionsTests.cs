@@ -1,15 +1,13 @@
-using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Projections.Expressions;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data.Projections;
 
@@ -38,7 +36,7 @@ public class QueryableProjectionExtensionsTests
                 .Create());
 
         // assert
-        res1.ToJson().MatchSnapshot();
+        res1.MatchSnapshot();
     }
 
     [Fact]
@@ -49,7 +47,7 @@ public class QueryableProjectionExtensionsTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddProjections()
-            .CreateExecptionExecutor();
+            .CreateExceptionExecutor();
 
         // act
         var res1 = await executor.ExecuteAsync(
@@ -59,7 +57,10 @@ public class QueryableProjectionExtensionsTests
                 .Create());
 
         // assert
-        res1.MatchException();
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
@@ -70,7 +71,7 @@ public class QueryableProjectionExtensionsTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddProjections()
-            .CreateExecptionExecutor();
+            .CreateExceptionExecutor();
 
         // act
         var res1 = await executor.ExecuteAsync(
@@ -80,7 +81,10 @@ public class QueryableProjectionExtensionsTests
                 .Create());
 
         // assert
-        res1.MatchException();
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     public class Query

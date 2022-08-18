@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
+using CookieCrumble;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using NetTopologySuite.Geometries;
-using Snapshooter.Xunit;
-using Xunit;
 using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
 namespace HotChocolate.Types.Spatial;
@@ -27,21 +24,21 @@ public class GeoJsonMultiPointSerializerTests
 
     private readonly Geometry _geometry = new MultiPoint(new[]
     {
-            new Point(new Coordinate(10, 40)),
-            new Point(new Coordinate(40, 30)),
-            new Point(new Coordinate(20, 20)),
-            new Point(new Coordinate(30, 10)),
-        });
+        new Point(new Coordinate(10, 40)),
+        new Point(new Coordinate(40, 30)),
+        new Point(new Coordinate(20, 20)),
+        new Point(new Coordinate(30, 10)),
+    });
 
     private const string _geometryType = "MultiPoint";
 
     private readonly object _geometryParsed = new[]
     {
-            new[] { 10.0, 40.0 },
-            new[] { 40.0, 30.0 },
-            new[] { 20.0, 20.0 },
-            new[] { 30.0, 10.0 }
-        };
+        new[] { 10.0, 40.0 },
+        new[] { 40.0, 30.0 },
+        new[] { 20.0, 20.0 },
+        new[] { 30.0, 10.0 }
+    };
 
     [Theory]
     [InlineData(GeometryTypeName)]
@@ -292,7 +289,7 @@ public class GeoJsonMultiPointSerializerTests
         var literal = type.ParseResult(serialized);
 
         // assert
-        literal.ToString().MatchSnapshot();
+        literal.MatchSnapshot();
     }
 
     [Theory]
@@ -308,7 +305,7 @@ public class GeoJsonMultiPointSerializerTests
         var literal = inputFormatter.FormatResult(_geometry, type);
 
         // assert
-        literal.ToString().MatchSnapshot();
+        literal.MatchSnapshot();
     }
 
     [Theory]
@@ -352,7 +349,7 @@ public class GeoJsonMultiPointSerializerTests
         var literal = inputFormatter.FormatValue(_geometry, type);
 
         // assert
-        literal.ToString().MatchSnapshot();
+        literal.MatchSnapshot();
     }
 
     [Theory]

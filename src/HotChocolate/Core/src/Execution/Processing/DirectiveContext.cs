@@ -109,8 +109,10 @@ internal sealed class DirectiveContext : IDirectiveContext
     public ValueTask<T> ResolveAsync<T>()
         => _middlewareContext.ResolveAsync<T>();
 
-    public void RegisterForCleanup(Action action)
-        => _middlewareContext.RegisterForCleanup(action);
+    public void RegisterForCleanup(
+        Func<ValueTask> action,
+        CleanAfter cleanAfter = CleanAfter.Resolver)
+        => _middlewareContext.RegisterForCleanup(action, cleanAfter);
 
     public IReadOnlyDictionary<string, ArgumentValue> ReplaceArguments(
         IReadOnlyDictionary<string, ArgumentValue> argumentValues)

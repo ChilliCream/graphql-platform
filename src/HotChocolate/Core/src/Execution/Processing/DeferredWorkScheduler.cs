@@ -2,25 +2,18 @@ using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Instrumentation;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.QueryResultBuilder;
 
 namespace HotChocolate.Execution.Processing;
 
 internal sealed class DeferredWorkScheduler : IDeferredWorkScheduler
 {
-    private readonly IFactory<OperationContextOwner> _operationContextFactory;
-    private readonly IFactory<DeferredWorkStateOwner> _deferredWorkStateFactory;
     private readonly object _stateSync = new();
+    private IFactory<OperationContextOwner> _operationContextFactory = default!;
+    private IFactory<DeferredWorkStateOwner> _deferredWorkStateFactory = default!;
     private OperationContext _parentContext = default!;
     private DeferredWorkStateOwner? _stateOwner;
-
-    public DeferredWorkScheduler(
-        IFactory<OperationContextOwner> operationContextFactory,
-        IFactory<DeferredWorkStateOwner> deferredWorkStateFactory)
-    {
-        _operationContextFactory = operationContextFactory;
-        _deferredWorkStateFactory = deferredWorkStateFactory;
-    }
 
     private DeferredWorkStateOwner StateOwner
     {
@@ -45,20 +38,27 @@ internal sealed class DeferredWorkScheduler : IDeferredWorkScheduler
 
     public void Initialize(OperationContext operationContext)
     {
+        var services = operationContext.Services;
+
         _parentContext = operationContext;
+        _operationContextFactory = services.GetRequiredService<IFactory<OperationContextOwner>>();
+        _deferredWorkStateFactory = services.GetRequiredService<IFactory<DeferredWorkStateOwner>>();
     }
 
     public void InitializeFrom(OperationContext operationContext, DeferredWorkScheduler scheduler)
     {
+        _stateOwner = scheduler.StateOwner;
         _parentContext = operationContext;
-        _stateOwner = scheduler._stateOwner;
+        _operationContextFactory = scheduler._operationContextFactory;
+        _deferredWorkStateFactory = scheduler._deferredWorkStateFactory;
     }
 
     public void Register(DeferredExecutionTask task)
     {
+        var resultId = StateOwner.State.CreateId();
         var taskContextOwner = _operationContextFactory.Create();
         taskContextOwner.OperationContext.InitializeFrom(_parentContext);
-        task.Begin(taskContextOwner, StateOwner.State.CreateId());
+        task.Begin(taskContextOwner, resultId);
     }
 
     public void Complete(DeferredExecutionTaskResult result)

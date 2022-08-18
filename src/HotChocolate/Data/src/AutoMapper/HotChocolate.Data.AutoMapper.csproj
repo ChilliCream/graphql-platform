@@ -4,11 +4,6 @@
     <PackageId>HotChocolate.Data.AutoMapper</PackageId>
     <AssemblyName>HotChocolate.Data.AutoMapper</AssemblyName>
     <RootNamespace>HotChocolate.Data</RootNamespace>
-    <NoWarn>$(NoWarn);CA1062</NoWarn>
-    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <TargetFrameworks Condition="'$(IsMacOsArm)' != 'true'">net6.0; net5.0; netstandard2.1</TargetFrameworks>
-    <TargetFrameworks Condition="'$(IsMacOsArm)' == 'true'">net6.0</TargetFrameworks>
     <Description>Contains extensions for easier integration of AutoMapper into HotChocolate</Description>
   </PropertyGroup>
 

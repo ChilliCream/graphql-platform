@@ -1,8 +1,7 @@
 using System.Threading.Tasks;
-using HotChocolate.Data.Projections.Extensions;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
-using Xunit;
 
 namespace HotChocolate.Data.Projections;
 
@@ -10,10 +9,11 @@ public class QueryableProjectionVisitorExecutableTests
 {
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { Bar = true, Baz = "a" }, new Foo { Bar = false, Baz = "b" }
-        };
+        new() { Bar = true, Baz = "a" },
+        new() { Bar = false, Baz = "b" }
+    };
 
-    private readonly SchemaCache _cache = new SchemaCache();
+    private readonly SchemaCache _cache = new();
 
     [Fact]
     public async Task Create_ProjectsTwoProperties_Expression()
@@ -22,13 +22,16 @@ public class QueryableProjectionVisitorExecutableTests
         var tester = _cache.CreateSchema(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ rootExecutable{ bar baz }}")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
@@ -38,13 +41,16 @@ public class QueryableProjectionVisitorExecutableTests
         var tester = _cache.CreateSchema(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ rootExecutable{ baz }}")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
@@ -60,13 +66,16 @@ public class QueryableProjectionVisitorExecutableTests
                     .Type<ListType<StringType>>()));
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ rootExecutable{ baz foo }}")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     public class Foo

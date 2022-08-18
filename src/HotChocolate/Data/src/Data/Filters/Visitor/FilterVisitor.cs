@@ -54,6 +54,6 @@ public class FilterVisitor<TContext, T>
         TContext context,
         Queue<T> operations,
         FilterCombinator combinator,
-        [NotNullWhen(true)] out T combined) =>
+        [NotNullWhen(true)] out T? combined) =>
         _combinator.TryCombineOperations(context, operations, combinator, out combined);
 }

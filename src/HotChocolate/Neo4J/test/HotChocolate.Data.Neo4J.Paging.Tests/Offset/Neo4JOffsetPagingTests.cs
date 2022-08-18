@@ -1,12 +1,9 @@
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data.Neo4J.Paging;
 
-public class Neo4JOffsetPagingTests
-    : IClassFixture<Neo4JFixture>
+public class Neo4JOffsetPagingTests : IClassFixture<Neo4JFixture>
 {
     private readonly Neo4JFixture _fixture;
 
@@ -16,8 +13,7 @@ public class Neo4JOffsetPagingTests
                 (:Foo {Bar: 'b'}),
                 (:Foo {Bar: 'd'}),
                 (:Foo {Bar: 'e'}),
-                (:Foo {Bar: 'f'})
-        ";
+                (:Foo {Bar: 'f'})";
 
     private sealed class Foo
     {
@@ -33,79 +29,88 @@ public class Neo4JOffsetPagingTests
     public async Task OffsetPaging_SchemaSnapshot()
     {
         // arrange
-        IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo>(FooEntitiesCypher);
-        tester.Schema.Print().MatchSnapshot();
+        var tester = await _fixture.GetOrCreateSchema<Foo>(FooEntitiesCypher);
+        tester.Schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task Simple_StringList_Default_Items()
     {
         // arrange
-        IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo>(FooEntitiesCypher);
+        var tester = await _fixture.GetOrCreateSchema<Foo>(FooEntitiesCypher);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             @"{
-                        root {
-                            items {
-                                bar
-                            }
-                            pageInfo {
-                                hasNextPage
-                                hasPreviousPage
-                            }
-                        }
-                    }");
+                root {
+                    items {
+                        bar
+                    }
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                }
+            }");
 
-        res1.MatchDocumentSnapshot();
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Simple_StringList_Take_2()
     {
         // arrange
-        IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo>(FooEntitiesCypher);
+        var tester = await _fixture.GetOrCreateSchema<Foo>(FooEntitiesCypher);
 
         //act
-        IExecutionResult result = await tester.ExecuteAsync(
+        var result = await tester.ExecuteAsync(
             @"{
-                            root(take: 2) {
-                                items {
-                                    bar
-                                }
-                                pageInfo {
-                                    hasNextPage
-                                    hasPreviousPage
-                                }
-                            }
-                        }");
+                root(take: 2) {
+                    items {
+                        bar
+                    }
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                }
+            }");
 
         // assert
-        result.MatchDocumentSnapshot();
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), result)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Simple_StringList_Take_2_After()
     {
         // arrange
-        IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo>(FooEntitiesCypher);
+        var tester = await _fixture.GetOrCreateSchema<Foo>(FooEntitiesCypher);
 
         // act
-        IExecutionResult result = await tester.ExecuteAsync(
+        var result = await tester.ExecuteAsync(
             @"{
-                            root(take: 2 skip: 2) {
-                                items {
-                                    bar
-                                }
-                                pageInfo {
-                                    hasNextPage
-                                    hasPreviousPage
-                                }
-                            }
-                        }");
+                root(take: 2 skip: 2) {
+                    items {
+                        bar
+                    }
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                }
+            }");
 
         // assert
-        result.MatchDocumentSnapshot();
+        await SnapshotExtensions.Add(
+                Snapshot
+                    .Create(), result)
+            .MatchAsync();
     }
 }

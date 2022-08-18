@@ -260,7 +260,8 @@ public class ObjectField
                     definition.Member?.ReflectedType ??
                     definition.Member?.DeclaringType ??
                     typeof(object),
-                    definition.ResolverType);
+                    definition.ResolverType,
+                    definition.GetParameterExpressionBuilders());
             }
             else if (definition.Member is not null)
             {
@@ -269,7 +270,8 @@ public class ObjectField
                     definition.SourceType ??
                     definition.Member.ReflectedType ??
                     definition.Member.DeclaringType,
-                    definition.ResolverType);
+                    definition.ResolverType,
+                    definition.GetParameterExpressionBuilders());
             }
         }
 

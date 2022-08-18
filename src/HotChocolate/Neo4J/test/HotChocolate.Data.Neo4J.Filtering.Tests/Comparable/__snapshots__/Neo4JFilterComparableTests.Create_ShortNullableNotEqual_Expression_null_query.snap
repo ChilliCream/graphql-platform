@@ -1,1 +1,0 @@
-﻿MATCH (fooCompNullable:FooCompNullable) WHERE fooCompNullable.BarShort <> NULL RETURN fooCompNullable {.BarShort}

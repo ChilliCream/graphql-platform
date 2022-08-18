@@ -1,0 +1,80 @@
+﻿{
+  "activities": [
+    {
+      "OperationName": "ExecuteRequest",
+      "DisplayName": "Execute Request",
+      "Status": "Error",
+      "tags": [
+        {
+          "Key": "graphql.document.id",
+          "Value": "ux0kZGU0Gpe9xyfWzY6tXA=="
+        },
+        {
+          "Key": "graphql.document.hash",
+          "Value": "ux0kZGU0Gpe9xyfWzY6tXA=="
+        },
+        {
+          "Key": "graphql.document.body",
+          "Value": "query SayHelloOperation {\n  sayHello_\n}"
+        },
+        {
+          "Key": "otel.status_code",
+          "Value": "ERROR"
+        }
+      ],
+      "event": [],
+      "activities": [
+        {
+          "OperationName": "ParseDocument",
+          "DisplayName": "Parse Document",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "otel.status_code",
+              "Value": "OK"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "ValidateDocument",
+          "DisplayName": "Validate Document",
+          "Status": "Error",
+          "tags": [
+            {
+              "Key": "otel.status_code",
+              "Value": "ERROR"
+            },
+            {
+              "Key": "graphql.document.id",
+              "Value": "ux0kZGU0Gpe9xyfWzY6tXA=="
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "ux0kZGU0Gpe9xyfWzY6tXA=="
+            }
+          ],
+          "event": [
+            {
+              "Name": "Error",
+              "Tags": [
+                {
+                  "Key": "graphql.error.message",
+                  "Value": "The field `sayHello_` does not exist on the type `SimpleQuery`."
+                },
+                {
+                  "Key": "graphql.error.location.column",
+                  "Value": 27
+                },
+                {
+                  "Key": "graphql.error.location.line",
+                  "Value": 1
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

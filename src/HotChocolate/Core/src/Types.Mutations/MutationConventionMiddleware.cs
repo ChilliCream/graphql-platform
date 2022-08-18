@@ -72,6 +72,6 @@ internal sealed class MutationConventionMiddleware
         }
     }
 
-    internal static object Null { get; } = new object();
+    internal static object Null { get; } = new();
 }
 

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
 

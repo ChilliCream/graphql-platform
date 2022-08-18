@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Concurrent;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;

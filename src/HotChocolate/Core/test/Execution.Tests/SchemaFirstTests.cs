@@ -1,7 +1,5 @@
-using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Tests;
-using HotChocolate.Types;
 using Xunit;
 
 namespace HotChocolate.Execution;

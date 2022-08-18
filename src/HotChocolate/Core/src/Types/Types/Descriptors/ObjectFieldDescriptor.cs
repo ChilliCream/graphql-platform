@@ -33,8 +33,7 @@ public class ObjectFieldDescriptor
     {
         Definition.Name = fieldName;
         Definition.ResultType = typeof(object);
-        Definition.IsParallelExecutable =
-            context.Options.DefaultResolverStrategy is Parallel;
+        Definition.IsParallelExecutable = context.Options.DefaultResolverStrategy is Parallel;
     }
 
     /// <summary>
@@ -165,7 +164,8 @@ public class ObjectFieldDescriptor
             FieldDescriptorUtilities.DiscoverArguments(
                 Context,
                 definition.Arguments,
-                definition.Member);
+                definition.Member,
+                definition.GetParameterExpressionBuilders());
 
             _argumentsInitialized = true;
         }
@@ -194,8 +194,8 @@ public class ObjectFieldDescriptor
 
     /// <inheritdoc />
     [Obsolete("Use `Deprecated`.")]
-    public IObjectFieldDescriptor DeprecationReason(string? reason) =>
-        Deprecated(reason);
+    public IObjectFieldDescriptor DeprecationReason(string? reason)
+        => Deprecated(reason);
 
     /// <inheritdoc />
     public new IObjectFieldDescriptor Deprecated(string? reason)
@@ -265,8 +265,8 @@ public class ObjectFieldDescriptor
     }
 
     /// <inheritdoc />
-    public IObjectFieldDescriptor Resolver(FieldResolverDelegate fieldResolver) =>
-        Resolve(fieldResolver);
+    public IObjectFieldDescriptor Resolver(FieldResolverDelegate fieldResolver)
+        => Resolve(fieldResolver);
 
     /// <inheritdoc />
     public IObjectFieldDescriptor Resolver(
@@ -412,8 +412,8 @@ public class ObjectFieldDescriptor
     /// <returns>An instance of <see cref="DirectiveArgumentDescriptor"/></returns>
     public static ObjectFieldDescriptor New(
         IDescriptorContext context,
-        string fieldName) =>
-        new(context, fieldName);
+        string fieldName)
+        => new(context, fieldName);
 
     /// <summary>
     /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
@@ -427,8 +427,8 @@ public class ObjectFieldDescriptor
         IDescriptorContext context,
         MemberInfo member,
         Type sourceType,
-        Type? resolverType = null) =>
-        new(context, member, sourceType, resolverType);
+        Type? resolverType = null)
+        => new(context, member, sourceType, resolverType);
 
     /// <summary>
     /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
@@ -442,8 +442,8 @@ public class ObjectFieldDescriptor
         IDescriptorContext context,
         LambdaExpression expression,
         Type sourceType,
-        Type? resolverType = null) =>
-        new(context, expression, sourceType, resolverType);
+        Type? resolverType = null)
+        => new(context, expression, sourceType, resolverType);
 
     /// <summary>
     /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
@@ -453,6 +453,6 @@ public class ObjectFieldDescriptor
     /// <returns></returns>
     public static ObjectFieldDescriptor From(
         IDescriptorContext context,
-        ObjectFieldDefinition definition) =>
-        new(context, definition);
+        ObjectFieldDefinition definition)
+        => new(context, definition);
 }

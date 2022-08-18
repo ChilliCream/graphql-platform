@@ -71,7 +71,9 @@ public class TypeModuleTests
 
     public class DummyTypeModule : ITypeModule
     {
+#pragma warning disable CS0067
         public event EventHandler<EventArgs> TypesChanged;
+#pragma warning restore CS0067
 
         public ValueTask<IReadOnlyCollection<ITypeSystemMember>> CreateTypesAsync(
             IDescriptorContext context,

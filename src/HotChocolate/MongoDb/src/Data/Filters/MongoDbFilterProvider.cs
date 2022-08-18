@@ -52,8 +52,7 @@ public class MongoDbFilterProvider : FilterProvider<MongoDbFilterVisitorContext>
 
                 Visitor.Visit(filter, visitorContext);
 
-                if (!visitorContext.TryCreateQuery(out var whereQuery) ||
-                    visitorContext.Errors.Count > 0)
+                if (visitorContext.Errors.Count > 0)
                 {
                     context.Result = Array.Empty<TEntityType>();
                     foreach (var error in visitorContext.Errors)
@@ -63,16 +62,16 @@ public class MongoDbFilterProvider : FilterProvider<MongoDbFilterVisitorContext>
                 }
                 else
                 {
-                    context.LocalContextData =
-                        context.LocalContextData.SetItem(
-                            nameof(FilterDefinition<TEntityType>),
-                            whereQuery);
+                    var query = visitorContext.CreateQuery();
+
+                    context.LocalContextData = context.LocalContextData
+                        .SetItem(nameof(FilterDefinition<TEntityType>), query);
 
                     await next(context).ConfigureAwait(false);
 
                     if (context.Result is IMongoDbExecutable executable)
                     {
-                        context.Result = executable.WithFiltering(whereQuery);
+                        context.Result = executable.WithFiltering(query);
                     }
                 }
             }

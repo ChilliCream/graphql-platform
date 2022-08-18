@@ -1,5 +1,4 @@
 using System;
-using HotChocolate.Language;
 using HotChocolate.Types.Relay;
 
 #nullable enable

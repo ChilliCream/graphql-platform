@@ -1,9 +1,7 @@
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors;
 using NetTopologySuite.Geometries;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.Spatial;
 
@@ -11,10 +9,10 @@ public class GeoJsonLineStringTypeTests
 {
     private readonly LineString _geom = new(new[]
     {
-            new Coordinate(30, 10),
-            new Coordinate(10, 30),
-            new Coordinate(40, 40)
-        });
+        new Coordinate(30, 10),
+        new Coordinate(10, 30),
+        new Coordinate(40, 40)
+    });
 
     [Fact]
     public async Task LineString_Execution_Output()
@@ -74,7 +72,6 @@ public class GeoJsonLineStringTypeTests
                 .Field("test")
                 .Resolve(_geom))
             .Create()
-            .Print()
             .MatchSnapshot();
 
     [Fact]

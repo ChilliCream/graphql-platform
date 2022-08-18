@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Net;
+using System.Threading.Tasks;
 using HotChocolate.Execution.Properties;
 
 namespace HotChocolate.Execution.Processing;
@@ -16,6 +16,7 @@ internal sealed partial class ResultBuilder
     private readonly object _syncExtensions = new();
     private readonly Dictionary<string, object?> _extensions = new();
     private readonly Dictionary<string, object?> _contextData = new();
+    private readonly List<Func<ValueTask>> _cleanupTasks = new();
 
     private ResultMemoryOwner _resultOwner = default!;
     private ObjectResult? _data;
@@ -41,6 +42,20 @@ internal sealed partial class ResultBuilder
         lock (_syncExtensions)
         {
             _contextData[key] = value;
+        }
+    }
+
+    /// <summary>
+    /// Register cleanup tasks that will be executed after resolver execution is finished.
+    /// </summary>
+    /// <param name="action">
+    /// Cleanup action.
+    /// </param>
+    public void RegisterForCleanup(Func<ValueTask> action)
+    {
+        lock (_syncExtensions)
+        {
+            _cleanupTasks.Add(action);
         }
     }
 
@@ -101,7 +116,10 @@ internal sealed partial class ResultBuilder
             CreateExtensionData(_contextData),
             _label,
             _path,
-            _hasNext
+            _hasNext,
+            _cleanupTasks.Count > 0
+                ? _cleanupTasks.ToArray()
+                : Array.Empty<Func<ValueTask>>()
         );
 
         if (_data is not null)
@@ -203,5 +221,3 @@ internal sealed partial class ResultBuilder
         public static readonly ErrorComparer Default = new();
     }
 }
-
-

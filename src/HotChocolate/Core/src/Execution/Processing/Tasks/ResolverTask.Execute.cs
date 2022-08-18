@@ -52,6 +52,12 @@ internal sealed partial class ResolverTask
         finally
         {
             _operationContext.Scheduler.Complete(this);
+
+            if (_resolverContext.HasCleanupTasks)
+            {
+                await _resolverContext.ExecuteCleanupTasksAsync().ConfigureAwait(false);
+            }
+
             _objectPool.Return(this);
         }
     }

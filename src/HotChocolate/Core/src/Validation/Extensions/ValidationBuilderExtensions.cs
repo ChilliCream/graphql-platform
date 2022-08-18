@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using HotChocolate.Validation;
 using HotChocolate.Validation.Options;
-using HotChocolate.Validation.Properties;
 using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection;

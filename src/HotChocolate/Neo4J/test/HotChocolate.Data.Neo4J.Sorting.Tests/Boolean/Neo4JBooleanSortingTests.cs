@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using Squadron;
@@ -25,8 +26,7 @@ public class Neo4JBooleanSortingTests
         public bool Bar { get; set; }
     }
 
-    public class FooBoolSortType
-        : SortInputType<FooBool>
+    public class FooBoolSortType : SortInputType<FooBool>
     {
     }
 
@@ -34,22 +34,25 @@ public class Neo4JBooleanSortingTests
     public async Task Create_Boolean_OrderBy()
     {
         // arrange
-        IRequestExecutor tester =
+        var tester =
             await _fixture.GetOrCreateSchema<FooBool, FooBoolSortType>(_fooEntitiesCypher);
 
         // act
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { bar: ASC}){ bar}}")
                 .Create());
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { bar: DESC}){ bar}}")
                 .Create());
 
         // assert
-        res1.MatchDocumentSnapshot("ASC");
-        res2.MatchDocumentSnapshot("DESC");
+        await SnapshotExtensions.Add(
+                SnapshotExtensions.Add(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
+            .MatchAsync();
     }
 }

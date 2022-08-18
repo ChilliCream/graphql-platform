@@ -37,8 +37,28 @@ public sealed class ListResult : ResultData, IReadOnlyList<object?>
     internal void AddUnsafe(object? item)
         => _buffer[_count++] = item;
 
+    internal void AddUnsafe(ResultData? item)
+    {
+        if (item is not null)
+        {
+            item.Parent = this;
+        }
+
+        _buffer[_count++] = item;
+    }
+
     internal void SetUnsafe(int index, object? item)
         => _buffer[index] = item;
+
+    internal void SetUnsafe(int index, ResultData? item)
+    {
+        if (item is not null)
+        {
+            item.Parent = this;
+        }
+
+        _buffer[index] = item;
+    }
 
     /// <summary>
     /// Ensures that the result object has enough capacity on the buffer

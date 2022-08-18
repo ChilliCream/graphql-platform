@@ -1,8 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
-using HotChocolate.Tests;
-using Snapshooter.Xunit;
-using Xunit;
+using CookieCrumble;
 
 namespace HotChocolate.Data;
 
@@ -24,7 +22,7 @@ public class EntityFrameworkExecutableTests : IClassFixture<AuthorFixture>
 
         // assert
         Assert.IsType<EntityFrameworkExecutable<Author>>(executable);
-        executable.Print().MatchSnapshot();
+        executable.MatchSnapshot();
     }
 
     [Fact]
@@ -40,7 +38,7 @@ public class EntityFrameworkExecutableTests : IClassFixture<AuthorFixture>
 
         // assert
         Assert.IsType<EntityFrameworkExecutable<Author>>(executable);
-        executable.Print().MatchSnapshot();
+        executable.MatchSnapshot();
     }
 
     [Fact]
@@ -52,7 +50,7 @@ public class EntityFrameworkExecutableTests : IClassFixture<AuthorFixture>
             .AsExecutable();
 
         // act
-        object? result = await executable.ToListAsync(default);
+        object result = await executable.ToListAsync(default);
 
         // assert
         new { result, executable = executable.Print() }.MatchSnapshot();
