@@ -3,10 +3,10 @@ User Request
 query Me {
   me {
     name
-    reviews {
+    reviews(first: 1) {
       nodes {
         product {
-          __typename
+          upc
         }
       }
     }
@@ -18,10 +18,10 @@ Request 1
 ---------------
 query Me_1 {
   me: authorById(id: 1) {
-    reviews {
+    reviews(first: 1) {
       nodes {
         product {
-          __typename
+          upc
         }
       }
     }

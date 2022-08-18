@@ -708,8 +708,47 @@ public class ExecutionPlanBuilderTests
                 me {
                     name
                     reviews {
-                        product {
-                            upc
+                        nodes {
+                            product {
+                                upc
+                            }
+                        }
+                    }
+                }
+            }");
+
+        // act
+        var queryPlan = await BuildStoreServiceQueryPlanAsync(request);
+
+        // assert
+        var index = 0;
+        var snapshot = new Snapshot();
+        snapshot.Add(request, "User Request");
+
+        foreach (var executionNode in queryPlan.ExecutionNodes)
+        {
+            if (executionNode is RequestNode rn)
+            {
+                snapshot.Add(rn.Handler.Document, $"Request {++index}");
+            }
+        }
+
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task StoreService_Selection_With_Arguments()
+    {
+        // arrange
+        var request = Parse(
+            @"query Me {
+                me {
+                    name
+                    reviews(first: 1) {
+                        nodes {
+                            product {
+                                upc
+                            }
                         }
                     }
                 }
@@ -775,8 +814,10 @@ public class ExecutionPlanBuilderTests
                 me {
                     name
                     reviews {
-                        product {
-                            __typename
+                        nodes {
+                            product {
+                                __typename
+                            }
                         }
                     }
                 }

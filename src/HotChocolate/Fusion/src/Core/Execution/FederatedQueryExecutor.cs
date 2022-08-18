@@ -41,7 +41,7 @@ internal sealed class FederatedQueryExecutor
         var rootWorkItem = new WorkItem(rootSelectionSet, rootResult);
         context.Fetch.Add(rootWorkItem);
 
-        // introspection
+        // introspection ... needs to be integrated into the execution plan.
         if (context.Plan.HasIntrospectionSelections)
         {
             var rootSelections = rootSelectionSet.Selections;
@@ -67,7 +67,7 @@ internal sealed class FederatedQueryExecutor
             }
         }
 
-        // federated stuff
+        // execute execution plan
         while (context.Fetch.Count > 0)
         {
             await FetchAsync(context, cancellationToken).ConfigureAwait(false);
@@ -150,48 +150,42 @@ internal sealed class FederatedQueryExecutor
         for (var i = 0; i < selections.Count; i++)
         {
             var selection = selections[i];
+            var selectionType = selection.Type;
+            var responseName = selection.ResponseName;
+            var field = selection.Field;
 
-            if (selection.Field.IsIntrospectionField &&
-                (selection.Field.Name.EqualsOrdinal(IntrospectionFields.Schema) ||
-                    selection.Field.Name.EqualsOrdinal(IntrospectionFields.Type)))
+            if (!field.IsIntrospectionField)
             {
-                continue;
-            }
+                var selectionResult = selectionResults[i];
+                var nullable = selection.TypeKind is not TypeKind.NonNull;
+                var namedType = selectionType.NamedType();
 
-            var selectionResult = selectionResults[i];
-            var nullable = selection.TypeKind is not TypeKind.NonNull;
-            var namedType = selection.Type.NamedType();
-
-            if (selection.Type.IsScalarType() || namedType.IsScalarType())
-            {
-                selectionSetResult.SetValueUnsafe(
-                    i,
-                    selection.ResponseName,
-                    selectionResult.Single.Element,
-                    nullable);
+                if (namedType.IsScalarType())
+                {
+                    var value = selectionResult.Single.Element;
+                    selectionSetResult.SetValueUnsafe(i, responseName, value, nullable);
+                }
+                else if (namedType.IsEnumType())
+                {
+                    // we might need to map the enum value!
+                    var value = selectionResult.Single.Element;
+                    selectionSetResult.SetValueUnsafe(i, responseName, value, nullable);
+                }
+                else if (selectionType.IsCompositeType())
+                {
+                    var value = ComposeObject(context, selection, selectionResult);
+                    selectionSetResult.SetValueUnsafe(i, responseName, value);
+                }
+                else
+                {
+                    var value = ComposeList(context, selection, selectionResult, selectionType);
+                    selectionSetResult.SetValueUnsafe(i, responseName, value);
+                }
             }
-            else if (selection.Type.IsEnumType() || namedType.IsEnumType())
+            else if (field.Name.EqualsOrdinal(IntrospectionFields.TypeName))
             {
-                // we might need to map the enum value!
-                selectionSetResult.SetValueUnsafe(
-                    i,
-                    selection.ResponseName,
-                    selectionResult.Single.Element,
-                    nullable);
-            }
-            else if (selection.Type.IsCompositeType())
-            {
-                selectionSetResult.SetValueUnsafe(
-                    i,
-                    selection.ResponseName,
-                    ComposeObject(context, selection, selectionResult));
-            }
-            else
-            {
-                selectionSetResult.SetValueUnsafe(
-                    i,
-                    selection.ResponseName,
-                    ComposeList(context, selection, selectionResult, selection.Type));
+                var value = selection.DeclaringType.Name;
+                selectionSetResult.SetValueUnsafe(i, responseName, value, false);
             }
         }
     }
@@ -300,9 +294,7 @@ internal sealed class FederatedQueryExecutor
         ISelection selection,
         SelectionResult selectionResult,
         ObjectType typeMetadata)
-    {
-        return new List<Argument>();
-    }
+        => Array.Empty<Argument>();
 
     private static void ExtractSelectionResults(
         SelectionResult parent,
