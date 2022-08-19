@@ -1,6 +1,7 @@
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29721.120
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32811.315
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".referenced", ".referenced", "{7637D30E-7339-4D4E-9424-87CF2394D234}"
 EndProject
@@ -86,21 +87,23 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Types.NodaTime
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Types.NodaTime.Tests", "test\Types.NodaTime.Tests\HotChocolate.Types.NodaTime.Tests.csproj", "{414B6DBE-1A3A-42DC-9116-3F9A433C6BBB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.AspNetCore", "..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj", "{4AD904D1-7727-48EF-88D9-7B38D98EB314}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.AspNetCore", "..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj", "{4AD904D1-7727-48EF-88D9-7B38D98EB314}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Types.Mutations", "src\Types.Mutations\HotChocolate.Types.Mutations.csproj", "{2B7E7416-E093-4763-B839-504CBFBC8F1C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Types.Mutations", "src\Types.Mutations\HotChocolate.Types.Mutations.csproj", "{2B7E7416-E093-4763-B839-504CBFBC8F1C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Types.Mutations.Tests", "test\Types.Mutations.Tests\HotChocolate.Types.Mutations.Tests.csproj", "{F6FFA925-8C49-4594-9FF2-8F571C2D6389}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Types.Mutations.Tests", "test\Types.Mutations.Tests\HotChocolate.Types.Mutations.Tests.csproj", "{F6FFA925-8C49-4594-9FF2-8F571C2D6389}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Types", "src\Types\HotChocolate.Types.csproj", "{151FB103-4BCA-41D2-9C8E-C5BDA7A68320}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Types", "src\Types\HotChocolate.Types.csproj", "{151FB103-4BCA-41D2-9C8E-C5BDA7A68320}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Types.Analyzers", "src\Types.Analyzers\HotChocolate.Types.Analyzers.csproj", "{D27B9558-0498-401A-AD3E-9BF15EF66E88}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Types.Analyzers", "src\Types.Analyzers\HotChocolate.Types.Analyzers.csproj", "{D27B9558-0498-401A-AD3E-9BF15EF66E88}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Types.Analyzers.Tests", "test\Types.Analyzers.Tests\HotChocolate.Types.Analyzers.Tests.csproj", "{545245AB-A255-4176-91E6-C837A21648D8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Types.Analyzers.Tests", "test\Types.Analyzers.Tests\HotChocolate.Types.Analyzers.Tests.csproj", "{545245AB-A255-4176-91E6-C837A21648D8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Types.Json", "src\Types.Json\HotChocolate.Types.Json.csproj", "{34F7650B-6135-4C08-9B42-7E7DBA7D186F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Types.Json", "src\Types.Json\HotChocolate.Types.Json.csproj", "{34F7650B-6135-4C08-9B42-7E7DBA7D186F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Types.Json.Tests", "test\Types.Json.Tests\HotChocolate.Types.Json.Tests.csproj", "{935A1DDC-6709-4521-A072-37ACC288371F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Types.Json.Tests", "test\Types.Json.Tests\HotChocolate.Types.Json.Tests.csproj", "{935A1DDC-6709-4521-A072-37ACC288371F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Subscriptions.RabbitMQ", "src\Subscriptions.RabbitMQ\HotChocolate.Subscriptions.RabbitMQ.csproj", "{71CBEE9C-679A-4A1C-8615-AE44D3BE1C90}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -664,6 +667,18 @@ Global
 		{935A1DDC-6709-4521-A072-37ACC288371F}.Release|x64.Build.0 = Release|Any CPU
 		{935A1DDC-6709-4521-A072-37ACC288371F}.Release|x86.ActiveCfg = Release|Any CPU
 		{935A1DDC-6709-4521-A072-37ACC288371F}.Release|x86.Build.0 = Release|Any CPU
+		{71CBEE9C-679A-4A1C-8615-AE44D3BE1C90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71CBEE9C-679A-4A1C-8615-AE44D3BE1C90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71CBEE9C-679A-4A1C-8615-AE44D3BE1C90}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{71CBEE9C-679A-4A1C-8615-AE44D3BE1C90}.Debug|x64.Build.0 = Debug|Any CPU
+		{71CBEE9C-679A-4A1C-8615-AE44D3BE1C90}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{71CBEE9C-679A-4A1C-8615-AE44D3BE1C90}.Debug|x86.Build.0 = Debug|Any CPU
+		{71CBEE9C-679A-4A1C-8615-AE44D3BE1C90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71CBEE9C-679A-4A1C-8615-AE44D3BE1C90}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71CBEE9C-679A-4A1C-8615-AE44D3BE1C90}.Release|x64.ActiveCfg = Release|Any CPU
+		{71CBEE9C-679A-4A1C-8615-AE44D3BE1C90}.Release|x64.Build.0 = Release|Any CPU
+		{71CBEE9C-679A-4A1C-8615-AE44D3BE1C90}.Release|x86.ActiveCfg = Release|Any CPU
+		{71CBEE9C-679A-4A1C-8615-AE44D3BE1C90}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -715,6 +730,7 @@ Global
 		{545245AB-A255-4176-91E6-C837A21648D8} = {7462D089-D350-44D6-8131-896D949A65B7}
 		{34F7650B-6135-4C08-9B42-7E7DBA7D186F} = {37B9D3B1-CA34-4720-9A0B-CFF1E64F52C2}
 		{935A1DDC-6709-4521-A072-37ACC288371F} = {7462D089-D350-44D6-8131-896D949A65B7}
+		{71CBEE9C-679A-4A1C-8615-AE44D3BE1C90} = {37B9D3B1-CA34-4720-9A0B-CFF1E64F52C2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E4D94C77-6657-4630-9D42-0A9AC5153A1B}
