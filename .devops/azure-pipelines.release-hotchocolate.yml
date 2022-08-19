@@ -128,7 +128,7 @@ stages:
               artifactName: test-results
               pathtoPublish: "output/test-results"
       - job: TestHotChocolateFusion
-        displayName: src/HotChocolate/Filters
+        displayName: src/HotChocolate/Fusion
         steps:
           - task: CmdLine@2
             displayName: "Run Tests"
