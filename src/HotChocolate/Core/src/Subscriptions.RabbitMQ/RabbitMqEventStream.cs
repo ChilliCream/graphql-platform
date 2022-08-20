@@ -1,19 +1,42 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Subscriptions.RabbitMQ.Consts;
 using HotChocolate.Subscriptions.RabbitMQ.Serialization;
-using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 namespace HotChocolate.Subscriptions.RabbitMQ;
 
-public class RabbitMqEventStream<TMessage>: ISourceStream<TMessage>
+public class RabbitMQEventStream<TMessage>: ISourceStream<TMessage>
 {
-    public RabbitMqEventStream(ISerializer messageSerializer, ActiveConsumer consumer)
+    class EnumerabeFromChannel : IAsyncEnumerable<TMessage>
+    {
+        public EnumerabeFromChannel(ChannelReader<TMessage> reader)
+        {
+            _reader = reader ?? throw new ArgumentNullException(nameof(reader));
+        }
+
+        public async IAsyncEnumerator<TMessage> GetAsyncEnumerator(CancellationToken cancellationToken = new CancellationToken())
+        {
+            while (await _reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (cancellationToken.IsCancellationRequested)
+                    break;
+
+                while (_reader.TryRead(out TMessage? message))
+                    yield return message!;
+            }
+        }
+
+        private readonly ChannelReader<TMessage> _reader;
+    }
+
+    public RabbitMQEventStream(ISerializer messageSerializer, ActiveConsumer consumer)
     {
         _messageSerializer = messageSerializer ?? throw new ArgumentNullException(nameof(messageSerializer));
 
@@ -24,15 +47,8 @@ public class RabbitMqEventStream<TMessage>: ISourceStream<TMessage>
         _unlisten = consumer.Listen(RecieveAsync);
     }
 
-    public async IAsyncEnumerable<TMessage> ReadEventsAsync()
-    {
-        while (true)
-        {
-            await _channel.Reader.WaitToReadAsync();
-            if (_channel.Reader.TryRead(out TMessage? message))
-                yield return message!;
-        }
-    }
+    public IAsyncEnumerable<TMessage> ReadEventsAsync()
+        => new EnumerabeFromChannel(_channel.Reader);
 
     async IAsyncEnumerable<object> ISourceStream.ReadEventsAsync()
     {
@@ -72,19 +88,15 @@ public class RabbitMqEventStream<TMessage>: ISourceStream<TMessage>
 
     private async Task RecieveAsync(object sender, BasicDeliverEventArgs args)
     {
-        IModel channel = (IModel)sender;
-
         string msg = Encoding.UTF8.GetString(args.Body.ToArray());
+
         if (msg == WellKnownMessages.Completed)
         {
             TryStop();
-        }
-        else
-        {
-            TMessage message = _messageSerializer.Deserialize<TMessage>(msg);
-            await _channel.Writer.WriteAsync(message);
+            return;
         }
 
-        channel.BasicAck(args.DeliveryTag, false);
+        TMessage message = _messageSerializer.DeserializeOrString<TMessage>(msg);
+        await _channel.Writer.WriteAsync(message).ConfigureAwait(false);
     }
 }

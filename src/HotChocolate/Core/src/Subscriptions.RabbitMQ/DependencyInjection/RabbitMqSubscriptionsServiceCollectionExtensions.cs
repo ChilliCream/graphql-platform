@@ -8,9 +8,9 @@ using RabbitMQ.Client;
 
 namespace HotChocolate.Subscriptions.RabbitMQ.DependencyInjection;
 
-public static class RabbitMqSubscriptionsServiceCollectionExtensions
+public static class RabbitMQSubscriptionsServiceCollectionExtensions
 {
-    public static IServiceCollection AddRabbitMqSubscribtions(
+    public static IServiceCollection AddRabbitMQSubscribtions(
         this IServiceCollection services,
         Func<IServiceProvider, IConnection> connection,
         Action<Config>? configure = null)
@@ -20,10 +20,10 @@ public static class RabbitMqSubscriptionsServiceCollectionExtensions
         if (connection is null)
             throw new ArgumentNullException(nameof(connection));
 
-        return services.AddRabbitMqSubscribtions(p => connection(p).CreateModel(), configure);
+        return services.AddRabbitMQSubscribtions(p => connection(p).CreateModel(), configure);
     }
 
-    public static IServiceCollection AddRabbitMqSubscribtions(
+    public static IServiceCollection AddRabbitMQSubscribtions(
         this IServiceCollection services,
         Func<IServiceProvider, IModel> channel,
         Action<Config>? configure = null)
@@ -41,16 +41,16 @@ public static class RabbitMqSubscriptionsServiceCollectionExtensions
         services.TryAddSingleton<IQueueNameFactory, QueueNameFactory>();
 
         services.TryAddSingleton(sp =>
-            ActivatorUtilities.CreateInstance<RabbitMqPubSub>(sp, channel(sp), config));
+            ActivatorUtilities.CreateInstance<RabbitMQPubSub>(sp, channel(sp), config));
         services.TryAddSingleton<ITopicEventSender>(sp =>
-            sp.GetRequiredService<RabbitMqPubSub>());
+            sp.GetRequiredService<RabbitMQPubSub>());
         services.TryAddSingleton<ITopicEventReceiver>(sp =>
-            sp.GetRequiredService<RabbitMqPubSub>());
+            sp.GetRequiredService<RabbitMQPubSub>());
 
         return services;
     }
 
-    public static IRequestExecutorBuilder AddRabbitMqSubscribtions(
+    public static IRequestExecutorBuilder AddRabbitMQSubscribtions(
         this IRequestExecutorBuilder builder,
         Func<IServiceProvider, IConnection> connection,
         Action<Config>? configure = null)
@@ -61,11 +61,11 @@ public static class RabbitMqSubscriptionsServiceCollectionExtensions
         if (connection is null)
             throw new ArgumentNullException(nameof(connection));
 
-        AddRabbitMqSubscribtions(builder.Services, connection, configure);
+        AddRabbitMQSubscribtions(builder.Services, connection, configure);
         return builder;
     }
 
-    public static IRequestExecutorBuilder AddRabbitMqSubscribtions(
+    public static IRequestExecutorBuilder AddRabbitMQSubscribtions(
         this IRequestExecutorBuilder builder,
         Func<IServiceProvider, IModel> channel,
         Action<Config>? configure = null)
@@ -76,7 +76,7 @@ public static class RabbitMqSubscriptionsServiceCollectionExtensions
         if (channel is null)
             throw new ArgumentNullException(nameof(channel));
 
-        AddRabbitMqSubscribtions(builder.Services, channel, configure);
+        AddRabbitMQSubscribtions(builder.Services, channel, configure);
         return builder;
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -13,11 +14,11 @@ using RabbitMQ.Client.Events;
 
 namespace HotChocolate.Subscriptions.RabbitMQ;
 
-public class RabbitMqPubSub
+public class RabbitMQPubSub
     : ITopicEventReceiver
     , ITopicEventSender
 {
-    public RabbitMqPubSub(IModel channel, Config configuration, IExchangeNameFactory exchangeNameFactory,
+    public RabbitMQPubSub(IModel channel, Config configuration, IExchangeNameFactory exchangeNameFactory,
         IQueueNameFactory queueNameFactory, ISerializer serializer)
     {
         _channel = channel ?? throw new ArgumentNullException(nameof(channel));
@@ -32,26 +33,36 @@ public class RabbitMqPubSub
         string exchangeName = _exchangeNameFactory.Create(topic);
         string queueName = _queueNameFactory.Create(exchangeName, _configuration.InstanceName);
 
+        token.ThrowIfCancellationRequested();
+
         TryDeclareExchange(exchangeName);
         TryDeclareAndBindQueue(queueName, exchangeName);
-        
+
+        token.ThrowIfCancellationRequested();
+
         ActiveConsumer consumer = _activeConsumers.GetOrAdd(queueName, newQueue =>
         {
             ActiveConsumer activeConsumer = new(new AsyncEventingBasicConsumer(_channel), () => TryDeleteConsumer(queueName));
-            _channel.BasicConsume(newQueue, false, activeConsumer.Consumer);
+            _channel.BasicConsume(newQueue, true, activeConsumer.Consumer);
             return activeConsumer;
         });
         
-        RabbitMqEventStream<TMessage> stream = new(_serializer, consumer);
+        RabbitMQEventStream<TMessage> stream = new(_serializer, consumer);
         return new(stream);
     }
 
     public ValueTask SendAsync<TTopic, TMessage>(TTopic topic, TMessage message, CancellationToken token = default) where TTopic : notnull
     {
         string exchangeName = _exchangeNameFactory.Create(topic);
+
+        token.ThrowIfCancellationRequested();
+
         TryDeclareExchange(exchangeName);
 
-        _configuration.PublishMessage(_channel, exchangeName, _serializer.Serialize(message));
+        token.ThrowIfCancellationRequested();
+
+        byte[] body = Encoding.UTF8.GetBytes(_serializer.SerializeOrString(message));
+        _configuration.PublishMessage(_channel, exchangeName, body);
 
         return new ValueTask();
     }
@@ -61,7 +72,7 @@ public class RabbitMqPubSub
         string exchangeName = _exchangeNameFactory.Create(topic);
         TryDeclareExchange(exchangeName);
 
-        _configuration.PublishMessage(_channel, exchangeName, WellKnownMessages.Completed);
+        _configuration.PublishMessage(_channel, exchangeName, Encoding.UTF8.GetBytes(WellKnownMessages.Completed));
 
         return new ValueTask();
     }

@@ -8,7 +8,7 @@ public delegate void Declare(IModel channel, string name);
 
 public delegate void Bind(IModel channel, string exchangeName, string queueName);
 
-public delegate void Publish(IModel channel, string exchangeName, string message);
+public delegate void Publish(IModel channel, string exchangeName, byte[] body);
 
 /// <summary>
 /// Override declare methods to change exchange type, queue's durability, exclusivity etc...
@@ -51,11 +51,7 @@ public class Config
         DeclareExchange = (channel, name) => channel.ExchangeDeclare(name, ExchangeType.Direct);
         DeclareQueue = (channel, name) => channel.QueueDeclare(name);
         BindQueue = (channel, exchangeName, queueName) => channel.QueueBind(queueName, exchangeName, "");
-        PublishMessage = (channel, exchangeName, message) =>
-        {
-            byte[] body = Encoding.UTF8.GetBytes(message);
-            channel.BasicPublish(exchangeName, "", null, body);
-        };
+        PublishMessage = (channel, exchangeName, body) => channel.BasicPublish(exchangeName, "", null, body);
         InstanceName = Guid.NewGuid().ToString();
     }
 }

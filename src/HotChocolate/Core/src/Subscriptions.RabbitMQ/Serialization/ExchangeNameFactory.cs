@@ -12,13 +12,8 @@ public class ExchangeNameFactory: IExchangeNameFactory
     public string Create<TTopic>(TTopic topic)
         where TTopic: notnull
     {
-        if (topic is string stringTopic)
-            return stringTopic;
-
-        string topicType = topic.GetType().FullName ?? throw new NullReferenceException("Topic type has to have a name!");
-        string topicObj = _serializer.Serialize(topic);
-
-        return $"{topicType}: {topicObj}";
+        if (topic is null) throw new ArgumentNullException(nameof(topic));
+        return _serializer.SerializeOrString(topic);
     }
 
     private readonly ISerializer _serializer;
