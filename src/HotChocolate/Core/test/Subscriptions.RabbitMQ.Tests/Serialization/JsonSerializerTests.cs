@@ -34,4 +34,20 @@ public class JsonSerializerTests
         Test test = sut.Deserialize<Test>("{\"$type\":\"HotChocolate.Subscriptions.RabbitMQ.Serialization.JsonSerializerTests+Test, HotChocolate.Subscriptions.RabbitMQ.Tests\",\"Foo\":\"Baz\"}");
         Assert.Equal(new Test { Foo = "Baz"}, test);
     }
+
+    [Fact]
+    public void SerialiazeOrString()
+    {
+        ISerializer sut = new JsonSerializer();
+        string result = sut.SerializeOrString("foo");
+        Assert.Equal("foo", result);
+    }
+
+    [Fact]
+    public void DeserialiazeOrString()
+    {
+        ISerializer sut = new JsonSerializer();
+        string result = sut.DeserializeOrString<string>("foo");
+        Assert.Equal("foo", result);
+    }
 }

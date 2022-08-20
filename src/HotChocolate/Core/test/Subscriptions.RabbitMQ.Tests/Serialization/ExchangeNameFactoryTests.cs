@@ -21,7 +21,7 @@ public class ExchangeNameFactoryTests
     public void Create_ClassTopic()
     {
         string exhcnageName = Sut().Create(new Topic { Id = 50 });
-        Assert.Equal("HotChocolate.Subscriptions.RabbitMQ.Serialization.ExchangeNameFactoryTests+Topic: {\"$type\":\"HotChocolate.Subscriptions.RabbitMQ.Serialization.ExchangeNameFactoryTests+Topic, HotChocolate.Subscriptions.RabbitMQ.Tests\",\"Id\":50}", exhcnageName);
+        Assert.Equal("{\"$type\":\"HotChocolate.Subscriptions.RabbitMQ.Serialization.ExchangeNameFactoryTests+Topic, HotChocolate.Subscriptions.RabbitMQ.Tests\",\"Id\":50}", exhcnageName);
     }
 
     [Fact]

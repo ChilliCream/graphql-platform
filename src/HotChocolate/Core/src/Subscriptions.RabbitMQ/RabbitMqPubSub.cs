@@ -107,6 +107,7 @@ public class RabbitMQPubSub
         {
             if (!_declaredExchanges.Contains(name))
             {
+                AsserMax255Bytes(name);
                 _configuration.DeclareExchange(_channel, name);
                 _declaredExchanges.Add(name);
             }
@@ -119,10 +120,17 @@ public class RabbitMQPubSub
         {
             if (!_declaredQueues.Contains(name))
             {
+                AsserMax255Bytes(name);
                 _configuration.DeclareQueue(_channel, name);
                 _configuration.BindQueue(_channel, exchangeName, name);
                 _declaredQueues.Add(name);
             }
         }
+    }
+
+    private void AsserMax255Bytes(string name)
+    {
+        if (Encoding.UTF8.GetBytes(name).Length > 255)
+            throw new ArgumentOutOfRangeException($"Name {name} is above 255 bytes.");
     }
 }
