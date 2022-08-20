@@ -169,7 +169,10 @@ services.AddInMemorySubscriptions();
 
 ## Redis Provider
 
-The Redis subscription provider enables us to run multiple instances of our Hot Chocolate GraphQL server and handle subscription events reliably.
+**InMemory provider distributes events only in a single process.**
+If we have multiple instances of our Hot Chocolate GraphQL server, users subscribed to other instances than the one which published the event won't receive it.
+Redis and other tools address this by being a separate hub to which all instances publish their events and which then redistributes them back.
+Thus Redis subscription provider enables us to run multiple instances and handle subscription events reliably.
 
 In order to use the Redis provider we have to add the `HotChocolate.Subscriptions.Redis` package.
 
@@ -179,7 +182,7 @@ dotnet add package HotChocolate.Subscriptions.Redis
 
 > ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
 
-After we have added the package we can setup the Redis subscription provider.
+After adding the package we can setup the Redis subscription provider.
 
 ```csharp
 services.AddRedisSubscriptions((sp) =>
@@ -187,6 +190,43 @@ services.AddRedisSubscriptions((sp) =>
 ```
 
 Our Redis subscription provider uses the [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis) Redis client underneath.
+
+## RabbitMQ Provider
+
+Where Redis is a database that may be used as a message broker, RabbitMQ is the message broker first and foremost.
+RabbitMQ provides advanced concept and use cases such as message persistance.
+
+In order to use the RabbitMQ provider we have to add the `HotChocolate.Subscriptions.RabbitMQ` package.
+
+```bash
+dotnet add package HotChocolate.Subscriptions.RabbitMQ
+```
+
+After adding the package we can setup the RabbitMQ subscription provider.
+
+```csharp
+services.AddRabbitMQSubscriptions((sp) => {
+    var factory = new ConnectionFactory() {
+        HostName = "localhost",
+    };
+    return factory.CreateConnection();
+});
+```
+
+The way how exchanges and queues are declared and bound together can be overridden in configuration callback.
+
+```csharp
+services.AddRabbitMQSubscriptions(..., opts => {
+    // Now exchanges will be declared as durable
+    opts.DeclareExchange = (channel, name) => channel.ExchangeDeclare(name, ExchangeType.Direct, durable: true);
+    // All queues created by this HotChocolate GraphQL server instance will include this identifier
+    opts.InstanceName = "My test instance";
+});
+```
+
+Naming convention and serialization can be override by implementing `ISerializer`, `IExchangeNameFactory` and `IQueueNameFactory`.
+
+Our RabbitMQ subscription provider uses the [RabbitMQ.Client](https://www.rabbitmq.com/dotnet.html) underneath.
 
 # Publishing Events
 
