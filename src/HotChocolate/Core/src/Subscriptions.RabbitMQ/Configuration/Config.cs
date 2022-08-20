@@ -49,7 +49,7 @@ public class Config
     public Config()
     {
         DeclareExchange = (channel, name) => channel.ExchangeDeclare(name, ExchangeType.Direct);
-        DeclareQueue = (channel, name) => channel.QueueDeclare(name);
+        DeclareQueue = (channel, name) => channel.QueueDeclare(name, exclusive: true);
         BindQueue = (channel, exchangeName, queueName) => channel.QueueBind(queueName, exchangeName, "");
         PublishMessage = (channel, exchangeName, body) => channel.BasicPublish(exchangeName, "", null, body);
         InstanceName = Guid.NewGuid().ToString();
