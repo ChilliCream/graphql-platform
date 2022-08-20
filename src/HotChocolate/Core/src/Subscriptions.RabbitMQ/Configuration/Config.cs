@@ -11,7 +11,9 @@ public delegate void Bind(IModel channel, string exchangeName, string queueName)
 public delegate void Publish(IModel channel, string exchangeName, byte[] body);
 
 /// <summary>
-/// Override declare methods to change exchange type, queue's durability, exclusivity etc...
+/// Alters how RabbitMQPubSub performs ceratin actions.
+/// To alter serialization, or naming conventions override implementation of ISerializer, IExchangeNameFactory or IQueueNameFactory.
+/// Override declare methods to change exchange type, queue durability, exclusivity etc...
 /// Override bind method to change how exchanges and queues connect, ie. setup routing scheme.
 /// Override publish to change how are message published and routed.
 /// </summary>
@@ -35,14 +37,16 @@ public class Config
     public Publish PublishMessage { get; set; }
     /// <summary>
     /// If true, when no ISourceStream is hooked to the consumer object, it will be disposed.
-    /// This will lead to the deletion of a queue (if no other consumers exist) and exhange (if no queues exist) if overriden as autodelete.
+    /// This will lead to the deletion of a queue (if no other consumers exist) and exhange (if no queues exist) if declared as autodelete.
     /// </summary>
     public bool DisposeUnusedConsumers { get; set; }
     /// <summary>
-    /// As there is single exhcnage per HC's topic and each HC instance holds a unique queue to an exchange, multiple HC instances should not share a single queue.
-    /// If multiple HC instances subscribe to a single queue, RabbitMQ will automatically perform round-robin between queue's consumers.
-    /// By default queue is a combination of exhcnage name and instance name.
-    /// If instance name is not set, guid will be generated.
+    /// By default for every exchange each HC instance has own queue (and a consumer).
+    /// Thus each queue has to hold a token identifying instance it belongs to.
+    /// By default queue is named as a compination of exhcnage and instance name.
+    /// Naming conventions can be override in IExchangeNameFactory and IQueueNameFactory.
+    /// 
+    /// If instance name is explicitly not set, guid will be generated.
     /// </summary>
     public string InstanceName { get; set; }
 
