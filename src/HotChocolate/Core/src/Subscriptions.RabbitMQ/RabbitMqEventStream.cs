@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
-using HotChocolate.Subscriptions.RabbitMQ.Consts;
 using HotChocolate.Subscriptions.RabbitMQ.Serialization;
 using RabbitMQ.Client.Events;
 

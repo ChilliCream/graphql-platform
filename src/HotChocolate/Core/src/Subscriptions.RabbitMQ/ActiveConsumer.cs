@@ -5,13 +5,18 @@ namespace HotChocolate.Subscriptions.RabbitMQ;
 
 public class ActiveConsumer
 {
-    public AsyncEventingBasicConsumer Consumer { get; }
+    private int _listeners;
+    private readonly Action _onEmptied;
+    private readonly object _lock = new();
+
 
     public ActiveConsumer(AsyncEventingBasicConsumer consumer, Action onEmptied)
     {
         Consumer = consumer ?? throw new ArgumentNullException(nameof(consumer));
         _onEmptied = onEmptied ?? throw new ArgumentNullException(nameof(onEmptied));
     }
+
+    public AsyncEventingBasicConsumer Consumer { get; }
 
     public Action Listen(AsyncEventHandler<BasicDeliverEventArgs> handler)
     {
@@ -30,12 +35,10 @@ public class ActiveConsumer
                 Consumer.Received -= handler;
 
                 if (_listeners == 0)
+                {
                     _onEmptied();
+                }
             }
         };
     }
-
-    private int _listeners = 0;
-    private readonly Action _onEmptied;
-    private readonly object _lock = new();
 }

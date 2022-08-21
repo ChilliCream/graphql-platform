@@ -19,6 +19,15 @@ public delegate void Publish(IModel channel, string exchangeName, byte[] body);
 /// </summary>
 public class Config
 {
+    public Config()
+    {
+        DeclareExchange = (channel, name) => channel.ExchangeDeclare(name, ExchangeType.Direct);
+        DeclareQueue = (channel, name) => channel.QueueDeclare(name, exclusive: true);
+        BindQueue = (channel, exchangeName, queueName) => channel.QueueBind(queueName, exchangeName, "");
+        PublishMessage = (channel, exchangeName, body) => channel.BasicPublish(exchangeName, "", null, body);
+        InstanceName = Guid.NewGuid().ToString();
+    }
+
     /// <summary>
     /// Override to change exchanges' type, durability, auto deletion etc...
     /// </summary>
@@ -49,13 +58,4 @@ public class Config
     /// If not set, a guid will be generated.
     /// </summary>
     public string InstanceName { get; set; }
-
-    public Config()
-    {
-        DeclareExchange = (channel, name) => channel.ExchangeDeclare(name, ExchangeType.Direct);
-        DeclareQueue = (channel, name) => channel.QueueDeclare(name, exclusive: true);
-        BindQueue = (channel, exchangeName, queueName) => channel.QueueBind(queueName, exchangeName, "");
-        PublishMessage = (channel, exchangeName, body) => channel.BasicPublish(exchangeName, "", null, body);
-        InstanceName = Guid.NewGuid().ToString();
-    }
 }
