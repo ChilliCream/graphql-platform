@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Subscriptions.RabbitMQ.Configuration;
-using HotChocolate.Subscriptions.RabbitMQ.Consts;
 using HotChocolate.Subscriptions.RabbitMQ.Serialization;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -18,8 +17,12 @@ public class RabbitMQPubSub
     : ITopicEventReceiver
     , ITopicEventSender
 {
-    public RabbitMQPubSub(IModel channel, Config configuration, IExchangeNameFactory exchangeNameFactory,
-        IQueueNameFactory queueNameFactory, ISerializer serializer)
+    public RabbitMQPubSub(
+        IModel channel, 
+        Config configuration, 
+        IExchangeNameFactory exchangeNameFactory,
+        IQueueNameFactory queueNameFactory,
+        ISerializer serializer)
     {
         _channel = channel ?? throw new ArgumentNullException(nameof(channel));
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
