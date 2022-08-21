@@ -262,4 +262,56 @@ public class TestGeneration
                 }
             }");
             */
+
+    [Fact]
+    public void UploadScalar() =>
+        AssertResult(
+            CreateIntegrationTest(profiles: new[]
+            {
+                new TransportProfile("Default", TransportType.Http)
+            }),
+            skipWarnings: true,
+            @"
+                query TestUpload(
+                        $single: Upload
+                        $list: [Upload]
+                        $nested: [[Upload]]
+                        $object: TestInput
+                        $objectList: [TestInput]
+                        $objectNested: [[TestInput]]) {
+                    upload(
+                        single: $single
+                        list: $list
+                        nested: $nested
+                        object: $object
+                        objectList: $objectList
+                        objectNested: $objectNested)
+                }
+                ",
+            @"
+                type Query {
+                    upload(
+                        single: Upload
+                        list: [Upload]
+                        nested: [[Upload]]
+                        object: TestInput
+                        objectList: [TestInput]
+                        objectNested: [[TestInput]]): String
+                }
+
+                input TestInput {
+                    bar: BarInput
+                }
+
+                input BarInput {
+                    baz: BazInput
+                }
+
+                input BazInput {
+                    file: Upload
+                }
+
+                scalar Upload
+                ",
+            "extend schema @key(fields: \"id\")");
 }

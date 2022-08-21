@@ -21,7 +21,8 @@ public class QueryOperationDescriptor : OperationDescriptor
         string bodyString,
         string hashAlgorithm,
         string hashValue,
-        RequestStrategy strategy)
+        RequestStrategy strategy,
+        bool hasUpload)
         : base(
             name,
             new RuntimeTypeInfo(CreateQueryServiceName(name), @namespace),
@@ -31,7 +32,8 @@ public class QueryOperationDescriptor : OperationDescriptor
             bodyString,
             hashAlgorithm,
             hashValue,
-            strategy)
+            strategy,
+            hasUpload)
     {
     }
 }

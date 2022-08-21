@@ -16,6 +16,7 @@ public static class OperationDescriptorMapper
     {
         foreach (var modelOperation in model.Operations)
         {
+            var hasUpload = false;
             var arguments = modelOperation.Arguments.Select(
                     arg =>
                     {
@@ -23,6 +24,8 @@ public static class OperationDescriptorMapper
 
                         var namedTypeDescriptor =
                             context.Types.Single(type => type.Name.EqualsOrdinal(typeName));
+
+                        hasUpload = namedTypeDescriptor.HasUpload();
 
                         return new PropertyDescriptor(
                             arg.Name,
@@ -54,7 +57,8 @@ public static class OperationDescriptorMapper
                             bodyString,
                             context.HashProvider.Name,
                             hash,
-                            context.RequestStrategy));
+                            context.RequestStrategy,
+                            hasUpload));
                     break;
 
                 case OperationType.Mutation:
@@ -69,7 +73,8 @@ public static class OperationDescriptorMapper
                             bodyString,
                             context.HashProvider.Name,
                             hash,
-                            context.RequestStrategy));
+                            context.RequestStrategy,
+                            hasUpload));
                     break;
 
                 case OperationType.Subscription:

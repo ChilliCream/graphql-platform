@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Security.Cryptography;
 using StrawberryShake.Helper;
 using StrawberryShake.Internal;
@@ -26,12 +25,14 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
     /// <param name="document">The GraphQL query document containing this operation.</param>
     /// <param name="variables">The request variable values.</param>
     /// <param name="strategy">The request strategy to the connection.</param>
+    /// <param name="files">The files of this request</param>
     public OperationRequest(
         string name,
         IDocument document,
         IReadOnlyDictionary<string, object?>? variables = null,
-        RequestStrategy strategy = RequestStrategy.Default)
-        : this(null, name, document, variables, strategy)
+        RequestStrategy strategy = RequestStrategy.Default,
+        IReadOnlyDictionary<string, Upload?>? files = null)
+        : this(null, name, document, variables, strategy, files)
     {
     }
 
@@ -43,18 +44,21 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
     /// <param name="document">The GraphQL query document containing this operation.</param>
     /// <param name="variables">The request variable values.</param>
     /// <param name="strategy">The request strategy to the connection.</param>
+    /// <param name="files">The files of this request</param>
     public OperationRequest(
         string? id,
         string name,
         IDocument document,
         IReadOnlyDictionary<string, object?>? variables = null,
-        RequestStrategy strategy = RequestStrategy.Default)
+        RequestStrategy strategy = RequestStrategy.Default,
+        IReadOnlyDictionary<string, Upload?>? files = null)
     {
         Id = id;
         Name = name ?? throw new ArgumentNullException(nameof(name));
         Document = document ?? throw new ArgumentNullException(nameof(document));
         Variables = variables ?? ImmutableDictionary<string, object?>.Empty;
         Strategy = strategy;
+        Files = files ?? ImmutableDictionary<string, Upload?>.Empty;
     }
 
     /// <summary>
@@ -67,6 +71,7 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
     /// <param name="extensions">The request extension values.</param>
     /// <param name="contextData">The local context data.</param>
     /// <param name="strategy">The request strategy to the connection.</param>
+    /// <param name="files">The files of the request</param>
     public void Deconstruct(
         out string? id,
         out string name,
@@ -74,7 +79,8 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
         out IReadOnlyDictionary<string, object?> variables,
         out IReadOnlyDictionary<string, object?>? extensions,
         out IReadOnlyDictionary<string, object?>? contextData,
-        out RequestStrategy strategy)
+        out RequestStrategy strategy,
+        out IReadOnlyDictionary<string, Upload?>? files)
     {
         id = Id;
         name = Name;
@@ -83,6 +89,7 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
         extensions = _extensions;
         contextData = _contextData;
         strategy = Strategy;
+        files = Files;
     }
 
     /// <summary>
@@ -104,6 +111,11 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
     /// Gets the request variable values.
     /// </summary>
     public IReadOnlyDictionary<string, object?> Variables { get; }
+
+    /// <summary>
+    /// The files of the request
+    /// </summary>
+    public IReadOnlyDictionary<string, Upload?> Files { get; }
 
     /// <summary>
     /// Gets the request extension values.

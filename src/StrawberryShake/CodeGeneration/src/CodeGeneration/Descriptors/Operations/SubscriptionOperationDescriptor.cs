@@ -30,7 +30,8 @@ public class SubscriptionOperationDescriptor : OperationDescriptor
             bodyString,
             hashAlgorithm,
             hashValue,
-            strategy)
+            strategy,
+            false)
     {
     }
 }

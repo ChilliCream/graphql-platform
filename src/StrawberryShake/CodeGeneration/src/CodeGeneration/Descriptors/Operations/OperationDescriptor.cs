@@ -19,7 +19,8 @@ public abstract class OperationDescriptor : ICodeDescriptor
         string bodyString,
         string hashAlgorithm,
         string hashValue,
-        RequestStrategy strategy)
+        RequestStrategy strategy,
+        bool hasUpload)
     {
         Name = name;
         RuntimeType = runtimeType;
@@ -30,6 +31,7 @@ public abstract class OperationDescriptor : ICodeDescriptor
         HashAlgorithm = hashAlgorithm;
         HashValue = hashValue;
         Strategy = strategy;
+        HasUpload = hasUpload;
         InterfaceType = new("I" + runtimeType.Name, runtimeType.Namespace);
     }
 
@@ -67,6 +69,11 @@ public abstract class OperationDescriptor : ICodeDescriptor
     /// Gets the document hash value.
     /// </summary>
     public string HashValue { get; }
+
+    /// <summary>
+    /// Defines if the operation has any file uploads
+    /// </summary>
+    public bool HasUpload { get; }
 
     /// <summary>
     /// The arguments the operation takes.

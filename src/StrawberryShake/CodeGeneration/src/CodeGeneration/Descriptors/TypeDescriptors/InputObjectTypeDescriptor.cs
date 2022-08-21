@@ -9,11 +9,13 @@ public sealed class InputObjectTypeDescriptor : INamedTypeDescriptor
     public InputObjectTypeDescriptor(
         string name,
         RuntimeTypeInfo runtimeType,
-        string? documentation)
+        string? documentation,
+        bool hasUpload)
     {
         Name = name;
         RuntimeType = runtimeType;
         Documentation = documentation;
+        HasUpload = hasUpload;
     }
 
     /// <summary>
@@ -35,6 +37,11 @@ public sealed class InputObjectTypeDescriptor : INamedTypeDescriptor
     /// The documentation of this type
     /// </summary>
     public string? Documentation { get; }
+
+    /// <summary>
+    /// Defines if the input object or one of its related types has any file uploads
+    /// </summary>
+    public bool HasUpload { get; }
 
     /// <summary>
     /// The properties that result from the requested fields of the operation this ResultType is
