@@ -1,14 +1,12 @@
-using HotChocolate.AspNetCore.Tests.Utilities;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using StrawberryShake.Transport.WebSockets;
 using static StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar.UploadSchemaHelpers;
+using HotChocolate.AspNetCore.Tests.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar;
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory;
 
-public class UploadScalarTest : ServerTestBase
+public class UploadScalarInMemoryTest : ServerTestBase
 {
-    public UploadScalarTest(TestServerFactory serverFactory) : base(serverFactory)
+    public UploadScalarInMemoryTest(TestServerFactory serverFactory) : base(serverFactory)
     {
     }
 
@@ -16,9 +14,7 @@ public class UploadScalarTest : ServerTestBase
     public async Task Execute_UploadScalar_Argument()
     {
         // arrange
-        CancellationToken ct = new CancellationTokenSource(20_000).Token;
-        using IWebHost host = TestServerHelper.CreateServer(Configure, out var port);
-        var client = CreateClient(host, port);
+        var client = CreateClient();
         using var data = CreateStream("a");
 
         // act
@@ -28,8 +24,7 @@ public class UploadScalarTest : ServerTestBase
             null,
             null,
             null,
-            null,
-            cancellationToken: ct);
+            null);
 
         // assert
         Assert.Equal("test-file:a", result.Data!.Upload);
@@ -39,9 +34,7 @@ public class UploadScalarTest : ServerTestBase
     public async Task Execute_UploadScalarList_Argument()
     {
         // arrange
-        CancellationToken ct = new CancellationTokenSource(20_000).Token;
-        using IWebHost host = TestServerHelper.CreateServer(Configure, out var port);
-        var client = CreateClient(host, port);
+        var client = CreateClient();
         using var dataA = CreateStream("a");
         using var dataB = CreateStream("b");
 
@@ -52,8 +45,7 @@ public class UploadScalarTest : ServerTestBase
             null,
             null,
             null,
-            null,
-            cancellationToken: ct);
+            null);
 
         // assert
         Assert.Equal("A:a,B:b", result.Data!.Upload);
@@ -63,9 +55,7 @@ public class UploadScalarTest : ServerTestBase
     public async Task Execute_UploadScalarNested_Argument()
     {
         // arrange
-        CancellationToken ct = new CancellationTokenSource(20_000).Token;
-        using IWebHost host = TestServerHelper.CreateServer(Configure, out var port);
-        var client = CreateClient(host, port);
+        var client = CreateClient();
         using var dataA = CreateStream("a");
         using var dataB = CreateStream("b");
 
@@ -76,8 +66,7 @@ public class UploadScalarTest : ServerTestBase
             new[] { new Upload?[] { new Upload(dataA, "A"), new Upload(dataB, "B") } },
             null,
             null,
-            null,
-            cancellationToken: ct);
+            null);
 
         // assert
         Assert.Equal("A:a,B:b", result.Data!.Upload);
@@ -87,9 +76,7 @@ public class UploadScalarTest : ServerTestBase
     public async Task Execute_Input_Argument()
     {
         // arrange
-        CancellationToken ct = new CancellationTokenSource(20_000).Token;
-        using IWebHost host = TestServerHelper.CreateServer(Configure, out var port);
-        var client = CreateClient(host, port);
+        var client = CreateClient();
         using var data = CreateStream("a");
 
         // act
@@ -105,8 +92,7 @@ public class UploadScalarTest : ServerTestBase
                 }
             },
             null,
-            null,
-            cancellationToken: ct);
+            null);
 
         // assert
         Assert.Equal("test-file:a", result.Data!.Upload);
@@ -116,9 +102,7 @@ public class UploadScalarTest : ServerTestBase
     public async Task Execute_InputList_Argument()
     {
         // arrange
-        CancellationToken ct = new CancellationTokenSource(20_000).Token;
-        using IWebHost host = TestServerHelper.CreateServer(Configure, out var port);
-        var client = CreateClient(host, port);
+        var client = CreateClient();
         using var dataA = CreateStream("a");
         using var dataB = CreateStream("b");
         // act
@@ -144,8 +128,7 @@ public class UploadScalarTest : ServerTestBase
                     }
                 }
             },
-            null,
-            cancellationToken: ct);
+            null);
 
         // assert
         Assert.Equal("A:a,B:b", result.Data!.Upload);
@@ -155,9 +138,7 @@ public class UploadScalarTest : ServerTestBase
     public async Task Execute_InputNested_Argument()
     {
         // arrange
-        CancellationToken ct = new CancellationTokenSource(20_000).Token;
-        using IWebHost host = TestServerHelper.CreateServer(Configure, out var port);
-        var client = CreateClient(host, port);
+        var client = CreateClient();
         using var dataA = CreateStream("a");
         using var dataB = CreateStream("b");
 
@@ -186,49 +167,20 @@ public class UploadScalarTest : ServerTestBase
                             Baz = new BazInput() { File = new Upload(dataB, "B") }
                         }
                     }
-                },
-            },
-            cancellationToken: ct);
+                }
+            });
 
         // assert
         Assert.Equal("A:a,B:b", result.Data!.Upload);
     }
 
-    public static UploadScalarClient CreateClient(IWebHost host, int port)
+    public static UploadScalar_InMemoryClient CreateClient()
     {
         var serviceCollection = new ServiceCollection();
-        serviceCollection.AddHttpClient(
-            UploadScalarClient.ClientName,
-            c => c.BaseAddress = new Uri("http://localhost:" + port + "/graphql"));
-        serviceCollection.AddWebSocketClient(
-            UploadScalarClient.ClientName,
-            c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
-        serviceCollection.AddUploadScalarClient();
+        serviceCollection.AddUploadScalar_InMemoryClient().ConfigureInMemoryClient();
+        var builder = serviceCollection.AddGraphQLServer().AddQueryType();
+        Configure(builder);
         IServiceProvider services = serviceCollection.BuildServiceProvider();
-        return services.GetRequiredService<UploadScalarClient>();
-    }
-
-    [Fact]
-    public async Task Execute_ListWorksWithNull()
-    {
-        // arrange
-        CancellationToken ct = new CancellationTokenSource(20_000).Token;
-        using IWebHost host = TestServerHelper.CreateServer(Configure, out var port);
-        var client = CreateClient(host, port);
-        using var dataA = CreateStream("a");
-        using var dataB = CreateStream("b");
-
-        // act
-        var result = await client.TestUpload.ExecuteAsync(
-            null,
-            new Upload?[] { new Upload(dataA, "A"), null, new Upload(dataB, "B") },
-            null,
-            null,
-            null,
-            null,
-            cancellationToken: ct);
-
-        // assert
-        Assert.Equal("A:a,null,B:b", result.Data!.Upload);
+        return services.GetRequiredService<UploadScalar_InMemoryClient>();
     }
 }
