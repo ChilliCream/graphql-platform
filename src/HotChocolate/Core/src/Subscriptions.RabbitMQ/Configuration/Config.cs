@@ -20,11 +20,11 @@ public delegate void Publish(IModel channel, string exchangeName, byte[] body);
 public class Config
 {
     /// <summary>
-    /// Override to to change exchanges' type, durability, auto deletion etc...
+    /// Override to change exchanges' type, durability, auto deletion etc...
     /// </summary>
     public Declare DeclareExchange { get; set; }
     /// <summary>
-    /// Override to to change queues' type, durability, auto deletion etc...
+    /// Override to change queues' type, durability, auto deletion etc...
     /// </summary>
     public Declare DeclareQueue { get; set; }
     /// <summary>
@@ -46,7 +46,7 @@ public class Config
     /// By default queue is named as a compination of exhcnage and instance name.
     /// Naming conventions can be override in IExchangeNameFactory and IQueueNameFactory.
     /// 
-    /// If instance name is explicitly not set, guid will be generated.
+    /// If not set, a guid will be generated.
     /// </summary>
     public string InstanceName { get; set; }
 
