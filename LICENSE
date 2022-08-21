@@ -2,16 +2,6 @@ MIT License
 
 Copyright (c) 2021 ChilliCream Inc. (Michael & Rafael Staib)
 
-DISCLAIMER: 
-----------------------------------------------------------------------------------
-Covered by the MIT is only the C# source code that is located in the main branch. 
-Minified JavaScript files are excluded from the MIT file since they represent 
-external components from other projects that are just used by our project. 
-
-Further, other branches from our contributors or temporary feature branches 
-are not covered by this license and may contain proprietary code.
-----------------------------------------------------------------------------------
-
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
