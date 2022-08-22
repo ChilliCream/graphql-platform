@@ -23,6 +23,7 @@ public class UploadScalarTest : ServerTestBase
 
         // act
         var result = await client.TestUpload.ExecuteAsync(
+            "foo",
             new Upload(data, "test-file"),
             null,
             null,
@@ -47,6 +48,7 @@ public class UploadScalarTest : ServerTestBase
 
         // act
         var result = await client.TestUpload.ExecuteAsync(
+            "foo",
             null,
             new Upload?[] { new Upload(dataA, "A"), new Upload(dataB, "B") },
             null,
@@ -71,6 +73,7 @@ public class UploadScalarTest : ServerTestBase
 
         // act
         var result = await client.TestUpload.ExecuteAsync(
+            "foo",
             null,
             null,
             new[] { new Upload?[] { new Upload(dataA, "A"), new Upload(dataB, "B") } },
@@ -94,6 +97,7 @@ public class UploadScalarTest : ServerTestBase
 
         // act
         var result = await client.TestUpload.ExecuteAsync(
+            "foo",
             null,
             null,
             null,
@@ -123,6 +127,7 @@ public class UploadScalarTest : ServerTestBase
         using var dataB = CreateStream("b");
         // act
         var result = await client.TestUpload.ExecuteAsync(
+            "foo",
             null,
             null,
             null,
@@ -163,6 +168,7 @@ public class UploadScalarTest : ServerTestBase
 
         // act
         var result = await client.TestUpload.ExecuteAsync(
+            "foo",
             null,
             null,
             null,
@@ -220,6 +226,7 @@ public class UploadScalarTest : ServerTestBase
 
         // act
         var result = await client.TestUpload.ExecuteAsync(
+            "foo",
             null,
             new Upload?[] { new Upload(dataA, "A"), null, new Upload(dataB, "B") },
             null,

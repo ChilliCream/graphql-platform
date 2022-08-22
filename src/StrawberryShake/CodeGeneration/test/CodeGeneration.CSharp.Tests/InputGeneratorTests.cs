@@ -229,4 +229,40 @@ public class InputGeneratorTests
                 ",
             "extend schema @key(fields: \"id\")");
     }
+
+    [Fact]
+    public void Operation_With_FirstNonUpload()
+    {
+        AssertResult(
+            @"query test(
+                    $string: String!
+                    $upload: Upload!) {
+                    foo(string: $string upload: $upload)
+                }",
+            @"type Query {
+                    foo(string: String! upload: Upload!): String
+                }
+
+                scalar Upload
+                ",
+            "extend schema @key(fields: \"id\")");
+    }
+
+    [Fact]
+    public void Operation_With_LastNonUpload()
+    {
+        AssertResult(
+            @"query test(
+                    $upload: Upload!
+                    $string: String!) {
+                    foo(string: $string upload: $upload)
+                }",
+            @"type Query {
+                    foo(string: String! upload: Upload!): String
+                }
+
+                scalar Upload
+                ",
+            "extend schema @key(fields: \"id\")");
+    }
 }

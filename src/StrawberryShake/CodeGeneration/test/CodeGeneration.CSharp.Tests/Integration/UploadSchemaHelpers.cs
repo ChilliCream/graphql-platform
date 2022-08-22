@@ -33,6 +33,7 @@ public static class UploadSchemaHelpers
     public class UploadQueries
     {
         public string Upload(
+            string? nonUpload,
             IFile? single,
             IFile?[]? list,
             IFile?[]?[]? nested,
