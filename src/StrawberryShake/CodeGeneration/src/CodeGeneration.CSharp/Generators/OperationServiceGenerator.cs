@@ -420,7 +420,6 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
             createRequestWithVariables.AddArgument("null");
         }
 
-
         return method
             .AddEmptyLine()
             .AddCode(createRequestWithVariables);
@@ -503,7 +502,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
         }
     }
 
-    public static ICode BuildUploadFileMapper(
+    private static ICode BuildUploadFileMapper(
         ITypeDescriptor typeReference,
         string pathVariable,
         string variable)
