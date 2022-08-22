@@ -264,6 +264,7 @@ public class TestGeneration
             */
     private const string UploadQueries = @"
         query TestUpload(
+                $nonUpload: String
                 $single: Upload
                 $list: [Upload]
                 $nested: [[Upload]]
@@ -271,6 +272,7 @@ public class TestGeneration
                 $objectList: [TestInput]
                 $objectNested: [[TestInput]]) {
             upload(
+                nonUpload: $nonUpload
                 single: $single
                 list: $list
                 nested: $nested
@@ -281,6 +283,7 @@ public class TestGeneration
     private const string UploadSchema = @"
         type Query {
             upload(
+                nonUpload: String
                 single: Upload
                 list: [Upload]
                 nested: [[Upload]]

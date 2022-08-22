@@ -446,7 +446,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
             }
             else if (argument.Type.NamedType() is not ScalarTypeDescriptor { Name: "Upload" })
             {
-                return;
+                continue;
             }
 
             classBuilder

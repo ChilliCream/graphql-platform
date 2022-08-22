@@ -542,8 +542,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemor
     /// <summary>
     /// Represents the operation service of the TestUpload GraphQL operation
     /// <code>
-    /// query TestUpload($single: Upload, $list: [Upload], $nested: [[Upload]], $object: TestInput, $objectList: [TestInput], $objectNested: [[TestInput]]) {
-    ///   upload(single: $single, list: $list, nested: $nested, object: $object, objectList: $objectList, objectNested: $objectNested)
+    /// query TestUpload($nonUpload: String, $single: Upload, $list: [Upload], $nested: [[Upload]], $object: TestInput, $objectList: [TestInput], $objectNested: [[TestInput]]) {
+    ///   upload(nonUpload: $nonUpload, single: $single, list: $list, nested: $nested, object: $object, objectList: $objectList, objectNested: $objectNested)
     /// }
     /// </code>
     /// </summary>
@@ -556,8 +556,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemor
 
         public static TestUploadQueryDocument Instance { get; } = new TestUploadQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x54, 0x65, 0x73, 0x74, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x28, 0x24, 0x73, 0x69, 0x6e, 0x67, 0x6c, 0x65, 0x3a, 0x20, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x2c, 0x20, 0x24, 0x6c, 0x69, 0x73, 0x74, 0x3a, 0x20, 0x5b, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x5d, 0x2c, 0x20, 0x24, 0x6e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x3a, 0x20, 0x5b, 0x5b, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x5d, 0x5d, 0x2c, 0x20, 0x24, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x3a, 0x20, 0x54, 0x65, 0x73, 0x74, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x2c, 0x20, 0x24, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x4c, 0x69, 0x73, 0x74, 0x3a, 0x20, 0x5b, 0x54, 0x65, 0x73, 0x74, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x5d, 0x2c, 0x20, 0x24, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x4e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x3a, 0x20, 0x5b, 0x5b, 0x54, 0x65, 0x73, 0x74, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x5d, 0x5d, 0x29, 0x20, 0x7b, 0x20, 0x75, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x28, 0x73, 0x69, 0x6e, 0x67, 0x6c, 0x65, 0x3a, 0x20, 0x24, 0x73, 0x69, 0x6e, 0x67, 0x6c, 0x65, 0x2c, 0x20, 0x6c, 0x69, 0x73, 0x74, 0x3a, 0x20, 0x24, 0x6c, 0x69, 0x73, 0x74, 0x2c, 0x20, 0x6e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x3a, 0x20, 0x24, 0x6e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x2c, 0x20, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x3a, 0x20, 0x24, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x2c, 0x20, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x4c, 0x69, 0x73, 0x74, 0x3a, 0x20, 0x24, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x4c, 0x69, 0x73, 0x74, 0x2c, 0x20, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x4e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x3a, 0x20, 0x24, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x4e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x29, 0x20, 0x7d};
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "6bf1f196920f143f9b98f6df1876adc9ef634c8c");
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x54, 0x65, 0x73, 0x74, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x28, 0x24, 0x6e, 0x6f, 0x6e, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x3a, 0x20, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x2c, 0x20, 0x24, 0x73, 0x69, 0x6e, 0x67, 0x6c, 0x65, 0x3a, 0x20, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x2c, 0x20, 0x24, 0x6c, 0x69, 0x73, 0x74, 0x3a, 0x20, 0x5b, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x5d, 0x2c, 0x20, 0x24, 0x6e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x3a, 0x20, 0x5b, 0x5b, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x5d, 0x5d, 0x2c, 0x20, 0x24, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x3a, 0x20, 0x54, 0x65, 0x73, 0x74, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x2c, 0x20, 0x24, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x4c, 0x69, 0x73, 0x74, 0x3a, 0x20, 0x5b, 0x54, 0x65, 0x73, 0x74, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x5d, 0x2c, 0x20, 0x24, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x4e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x3a, 0x20, 0x5b, 0x5b, 0x54, 0x65, 0x73, 0x74, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x5d, 0x5d, 0x29, 0x20, 0x7b, 0x20, 0x75, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x28, 0x6e, 0x6f, 0x6e, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x3a, 0x20, 0x24, 0x6e, 0x6f, 0x6e, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x2c, 0x20, 0x73, 0x69, 0x6e, 0x67, 0x6c, 0x65, 0x3a, 0x20, 0x24, 0x73, 0x69, 0x6e, 0x67, 0x6c, 0x65, 0x2c, 0x20, 0x6c, 0x69, 0x73, 0x74, 0x3a, 0x20, 0x24, 0x6c, 0x69, 0x73, 0x74, 0x2c, 0x20, 0x6e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x3a, 0x20, 0x24, 0x6e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x2c, 0x20, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x3a, 0x20, 0x24, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x2c, 0x20, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x4c, 0x69, 0x73, 0x74, 0x3a, 0x20, 0x24, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x4c, 0x69, 0x73, 0x74, 0x2c, 0x20, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x4e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x3a, 0x20, 0x24, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x4e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x29, 0x20, 0x7d};
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "7cd8f1db7bb9937a9b48c70ce9dc152f52782f96");
         public override global::System.String ToString()
         {
 #if NETCOREAPP3_1_OR_GREATER
@@ -572,8 +572,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemor
     /// <summary>
     /// Represents the operation service of the TestUpload GraphQL operation
     /// <code>
-    /// query TestUpload($single: Upload, $list: [Upload], $nested: [[Upload]], $object: TestInput, $objectList: [TestInput], $objectNested: [[TestInput]]) {
-    ///   upload(single: $single, list: $list, nested: $nested, object: $object, objectList: $objectList, objectNested: $objectNested)
+    /// query TestUpload($nonUpload: String, $single: Upload, $list: [Upload], $nested: [[Upload]], $object: TestInput, $objectList: [TestInput], $objectNested: [[TestInput]]) {
+    ///   upload(nonUpload: $nonUpload, single: $single, list: $list, nested: $nested, object: $object, objectList: $objectList, objectNested: $objectNested)
     /// }
     /// </code>
     /// </summary>
@@ -581,19 +581,21 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemor
     public partial class TestUploadQuery : global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.ITestUploadQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<ITestUploadResult> _operationExecutor;
+        private readonly global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _uploadFormatter;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _testInputFormatter;
         public TestUploadQuery(global::StrawberryShake.IOperationExecutor<ITestUploadResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
+            _stringFormatter = serializerResolver.GetInputValueFormatter("String");
             _uploadFormatter = serializerResolver.GetInputValueFormatter("Upload");
             _testInputFormatter = serializerResolver.GetInputValueFormatter("TestInput");
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(ITestUploadResult);
-        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITestUploadResult>> ExecuteAsync(global::StrawberryShake.Upload? single, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload?>? list, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload?>?>? nested, global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput? @object, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput?>? objectList, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput?>?>? objectNested, global::System.Threading.CancellationToken cancellationToken = default)
+        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITestUploadResult>> ExecuteAsync(global::System.String? nonUpload, global::StrawberryShake.Upload? single, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload?>? list, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload?>?>? nested, global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput? @object, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput?>? objectList, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput?>?>? objectNested, global::System.Threading.CancellationToken cancellationToken = default)
         {
-            var request = CreateRequest(single, list, nested, @object, objectList, objectNested);
+            var request = CreateRequest(nonUpload, single, list, nested, @object, objectList, objectNested);
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -711,15 +713,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemor
             }
         }
 
-        public global::System.IObservable<global::StrawberryShake.IOperationResult<ITestUploadResult>> Watch(global::StrawberryShake.Upload? single, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload?>? list, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload?>?>? nested, global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput? @object, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput?>? objectList, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput?>?>? objectNested, global::StrawberryShake.ExecutionStrategy? strategy = null)
+        public global::System.IObservable<global::StrawberryShake.IOperationResult<ITestUploadResult>> Watch(global::System.String? nonUpload, global::StrawberryShake.Upload? single, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload?>? list, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload?>?>? nested, global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput? @object, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput?>? objectList, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput?>?>? objectNested, global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
-            var request = CreateRequest(single, list, nested, @object, objectList, objectNested);
+            var request = CreateRequest(nonUpload, single, list, nested, @object, objectList, objectNested);
             return _operationExecutor.Watch(request, strategy);
         }
 
-        private global::StrawberryShake.OperationRequest CreateRequest(global::StrawberryShake.Upload? single, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload?>? list, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload?>?>? nested, global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput? @object, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput?>? objectList, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput?>?>? objectNested)
+        private global::StrawberryShake.OperationRequest CreateRequest(global::System.String? nonUpload, global::StrawberryShake.Upload? single, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload?>? list, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload?>?>? nested, global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput? @object, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput?>? objectList, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput?>?>? objectNested)
         {
             var variables = new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>();
+            variables.Add("nonUpload", FormatNonUpload(nonUpload));
             variables.Add("single", FormatSingle(single));
             variables.Add("list", FormatList(list));
             variables.Add("nested", FormatNested(nested));
@@ -739,6 +742,18 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemor
         private global::StrawberryShake.OperationRequest CreateRequest(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables, global::System.Collections.Generic.Dictionary<global::System.String, global::StrawberryShake.Upload?> files)
         {
             return new global::StrawberryShake.OperationRequest(id: TestUploadQueryDocument.Instance.Hash.Value, name: "TestUpload", document: TestUploadQueryDocument.Instance, strategy: global::StrawberryShake.RequestStrategy.Default, files: files, variables: variables);
+        }
+
+        private global::System.Object? FormatNonUpload(global::System.String? value)
+        {
+            if (value is null)
+            {
+                return value;
+            }
+            else
+            {
+                return _stringFormatter.Format(value);
+            }
         }
 
         private global::System.Object? FormatSingle(global::StrawberryShake.Upload? value)
@@ -901,16 +916,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemor
     /// <summary>
     /// Represents the operation service of the TestUpload GraphQL operation
     /// <code>
-    /// query TestUpload($single: Upload, $list: [Upload], $nested: [[Upload]], $object: TestInput, $objectList: [TestInput], $objectNested: [[TestInput]]) {
-    ///   upload(single: $single, list: $list, nested: $nested, object: $object, objectList: $objectList, objectNested: $objectNested)
+    /// query TestUpload($nonUpload: String, $single: Upload, $list: [Upload], $nested: [[Upload]], $object: TestInput, $objectList: [TestInput], $objectNested: [[TestInput]]) {
+    ///   upload(nonUpload: $nonUpload, single: $single, list: $list, nested: $nested, object: $object, objectList: $objectList, objectNested: $objectNested)
     /// }
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface ITestUploadQuery : global::StrawberryShake.IOperationRequestFactory
     {
-        global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITestUploadResult>> ExecuteAsync(global::StrawberryShake.Upload? single, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload?>? list, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload?>?>? nested, global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput? @object, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput?>? objectList, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput?>?>? objectNested, global::System.Threading.CancellationToken cancellationToken = default);
-        global::System.IObservable<global::StrawberryShake.IOperationResult<ITestUploadResult>> Watch(global::StrawberryShake.Upload? single, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload?>? list, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload?>?>? nested, global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput? @object, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput?>? objectList, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput?>?>? objectNested, global::StrawberryShake.ExecutionStrategy? strategy = null);
+        global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITestUploadResult>> ExecuteAsync(global::System.String? nonUpload, global::StrawberryShake.Upload? single, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload?>? list, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload?>?>? nested, global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput? @object, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput?>? objectList, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput?>?>? objectNested, global::System.Threading.CancellationToken cancellationToken = default);
+        global::System.IObservable<global::StrawberryShake.IOperationResult<ITestUploadResult>> Watch(global::System.String? nonUpload, global::StrawberryShake.Upload? single, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload?>? list, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload?>?>? nested, global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput? @object, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput?>? objectList, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.TestInput?>?>? objectNested, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
@@ -1025,15 +1040,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemor
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::StrawberryShake.IEntityIdSerializer _idSerializer;
-        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::StrawberryShake.Upload> _uploadParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::StrawberryShake.Upload> _uploadParser;
         public TestUploadBuilder(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer idSerializer, global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.ITestUploadResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
             _idSerializer = idSerializer ?? throw new global::System.ArgumentNullException(nameof(idSerializer));
             ResultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _uploadParser = serializerResolver.GetLeafValueParser<global::System.String, global::StrawberryShake.Upload>("Upload") ?? throw new global::System.ArgumentException("No serializer for type `Upload` found.");
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
+            _uploadParser = serializerResolver.GetLeafValueParser<global::System.String, global::StrawberryShake.Upload>("Upload") ?? throw new global::System.ArgumentException("No serializer for type `Upload` found.");
         }
 
         protected override global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemory.ITestUploadResult> ResultDataFactory { get; }
