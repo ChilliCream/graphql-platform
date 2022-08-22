@@ -191,13 +191,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration
 
         private const string UploadQueries = @"
             query TestUpload(
+                    $nonUpload: String
                     $single: Upload
                     $list: [Upload]
                     $nested: [[Upload]]
                     $object: TestInput
                     $objectList: [TestInput]
                     $objectNested: [[TestInput]]) {
-                upload(
+             upload(
+                    nonUpload: $nonUpload
                     single: $single
                     list: $list
                     nested: $nested
@@ -208,6 +210,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration
         private const string UploadSchema = @"
             type Query {
                 upload(
+                    nonUpload: String
                     single: Upload
                     list: [Upload]
                     nested: [[Upload]]

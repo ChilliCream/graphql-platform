@@ -447,7 +447,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     Name: { Value: "Upload" }
                 })
                 {
-                    return;
+                    continue;
                 }
 
                 classBuilder
