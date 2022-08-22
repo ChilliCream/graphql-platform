@@ -25,8 +25,8 @@ public static partial class TypeDescriptorMapper
                     new InputObjectTypeDescriptor(
                         inputType.Type.Name,
                         new(inputType.Type.Name, context.Namespace),
-                        inputType.Description,
-                        inputType.HasUpload));
+                        inputType.HasUpload,
+                        inputType.Description));
 
                 typeDescriptors.Add(inputType.Name, descriptorModel);
             }

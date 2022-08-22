@@ -9,13 +9,13 @@ public sealed class InputObjectTypeDescriptor : INamedTypeDescriptor
     public InputObjectTypeDescriptor(
         string name,
         RuntimeTypeInfo runtimeType,
-        string? documentation,
-        bool hasUpload)
+        bool hasUpload,
+        string? documentation)
     {
         Name = name;
         RuntimeType = runtimeType;
-        Documentation = documentation;
         HasUpload = hasUpload;
+        Documentation = documentation;
     }
 
     /// <summary>
