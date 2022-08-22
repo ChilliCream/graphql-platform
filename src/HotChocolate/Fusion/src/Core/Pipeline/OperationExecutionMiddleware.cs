@@ -2,6 +2,7 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;
 using Microsoft.Extensions.ObjectPool;
 
@@ -11,6 +12,7 @@ internal sealed class OperationExecutionMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly FederatedQueryExecutor _executor;
+    private readonly ServiceConfiguration _serviceConfig;
     private readonly ISchema _schema;
     private readonly ObjectPool<OperationContext> _operationContextPool;
 
@@ -18,6 +20,7 @@ internal sealed class OperationExecutionMiddleware
         RequestDelegate next,
         ObjectPool<OperationContext> operationContextPool,
         [SchemaService] FederatedQueryExecutor executor,
+        [SchemaService] ServiceConfiguration serviceConfig,
         [SchemaService] ISchema schema)
     {
         _next = next ??
@@ -26,6 +29,8 @@ internal sealed class OperationExecutionMiddleware
             throw new ArgumentNullException(nameof(operationContextPool));
         _executor = executor ??
             throw new ArgumentNullException(nameof(executor));
+        _serviceConfig = serviceConfig ??
+            throw new ArgumentNullException(nameof(serviceConfig));
         _schema = schema ??
             throw new ArgumentNullException(nameof(schema));
     }
@@ -51,12 +56,9 @@ internal sealed class OperationExecutionMiddleware
                 () => new object());  // todo: we can use static representations for these
 
             var federatedQueryContext = new FederatedQueryContext(
-                operationContext,
+                _serviceConfig,
                 queryPlan,
-                new HashSet<ISelectionSet>(
-                    queryPlan.ExecutionNodes
-                        .OfType<RequestNode>()
-                        .Select(t => t.Handler.SelectionSet)));
+                operationContext);
 
             // TODO : just for debug
             if (context.ContextData.ContainsKey(WellKnownContextData.IncludeQueryPlan))
@@ -67,9 +69,9 @@ internal sealed class OperationExecutionMiddleware
                 plan.Add("subGraphRequests", subGraphRequests);
 
                 var index = 0;
-                foreach (var executionNode in queryPlan.ExecutionNodes)
+                foreach (var executionNode in queryPlan.AllNodes)
                 {
-                    if (executionNode is RequestNode rn)
+                    if (executionNode is FetchNode rn)
                     {
                         subGraphRequests.Add(
                             $"subGraphRequest{++index}",
