@@ -58,7 +58,7 @@ public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResour
             }");
 
         // assert
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), result)
             .MatchAsync();
@@ -93,7 +93,7 @@ public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResour
             }");
 
         // assert
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), result)
             .MatchAsync();
@@ -128,7 +128,7 @@ public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResour
             }");
 
         // assert
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), result)
             .MatchAsync();
@@ -163,7 +163,7 @@ public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResour
             }");
 
         // assert
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), result)
             .MatchAsync();
@@ -184,7 +184,7 @@ public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResour
             }");
 
         // assert
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), result)
             .MatchAsync();
@@ -205,7 +205,7 @@ public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResour
             }");
 
         // assert
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), result)
             .MatchAsync();

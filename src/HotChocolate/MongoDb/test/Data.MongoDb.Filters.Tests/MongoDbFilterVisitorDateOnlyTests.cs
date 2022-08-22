@@ -53,8 +53,8 @@ public class MongoDbFilterVisitorDateOnlyTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
                     Snapshot
                         .Create(), res1, "2022-01-16"), res2, "2022-01-15")
             .MatchAsync();
@@ -78,8 +78,8 @@ public class MongoDbFilterVisitorDateOnlyTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
                     Snapshot
                         .Create(), res1, "2022-01-16"), res2, "2022-01-15")
             .MatchAsync();
@@ -109,9 +109,9 @@ public class MongoDbFilterVisitorDateOnlyTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "2022-01-16"), res2, "2022-01-15"), res3, "null")
             .MatchAsync();
@@ -142,9 +142,9 @@ public class MongoDbFilterVisitorDateOnlyTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "2022-01-16"), res2, "2022-01-15"), res3, "null")
             .MatchAsync();

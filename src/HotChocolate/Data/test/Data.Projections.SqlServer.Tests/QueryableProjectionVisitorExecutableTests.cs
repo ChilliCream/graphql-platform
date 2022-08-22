@@ -28,7 +28,7 @@ public class QueryableProjectionVisitorExecutableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), res1)
             .MatchAsync();
@@ -47,7 +47,7 @@ public class QueryableProjectionVisitorExecutableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), res1)
             .MatchAsync();
@@ -72,7 +72,7 @@ public class QueryableProjectionVisitorExecutableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), res1)
             .MatchAsync();
