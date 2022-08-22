@@ -24,4 +24,7 @@ internal sealed class MemberBindingCollection : IEnumerable<MemberBinding>
     public IEnumerator<MemberBinding> GetEnumerator() => _bindings.Values.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    public static MemberBindingCollection Empty { get; } =
+        new(new List<MemberBinding>());
 }

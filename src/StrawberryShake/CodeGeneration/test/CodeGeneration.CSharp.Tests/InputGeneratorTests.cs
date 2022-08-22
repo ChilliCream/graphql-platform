@@ -1,5 +1,4 @@
 using ChilliCream.Testing;
-using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
 namespace StrawberryShake.CodeGeneration.CSharp;
@@ -127,6 +126,106 @@ public class InputGeneratorTests
                     id: ID
                     abstract: String
                 }
+                ",
+            "extend schema @key(fields: \"id\")");
+    }
+
+    [Fact]
+    public void Operation_With_UploadAsArg()
+    {
+        AssertResult(
+            @"query test(
+                        $upload: Upload!
+                        $uploadNullable: Upload
+                        $list: [Upload!]!
+                        $listNullable: [Upload!]
+                        $nestedList: [[Upload!]!]!
+                        $nestedListNullable: [[Upload!]]
+                        ) {
+                    foo(upload: $upload
+                        uploadNullable: $uploadNullable
+                        list: $list
+                        listNullable: $listNullable
+                        nestedList: $nestedList
+                        nestedListNullable: $nestedListNullable
+                        )
+                }",
+            @"type Query {
+                    foo(
+                        upload: Upload!,
+                        uploadNullable: Upload,
+                        list: [Upload!]!,
+                        listNullable: [Upload]
+                        nestedList: [[Upload!]!]!,
+                        nestedListNullable: [[Upload]]
+                        ): String
+                }
+
+                scalar Upload
+                ",
+            "extend schema @key(fields: \"id\")");
+    }
+
+    [Fact]
+    public void Operation_With_UploadInInputObject()
+    {
+        AssertResult(
+            @"query test($input: Test!) {
+                    foo(input: $input)
+                }",
+            @"type Query {
+                    foo(input: Test): String
+                }
+                input Test { foo: Upload! }
+
+                scalar Upload
+                ",
+            "extend schema @key(fields: \"id\")");
+    }
+
+    [Fact]
+    public void Operation_With_UploadInDeepInputObject()
+    {
+        AssertResult(
+            @"query test($input: Test!) {
+                    foo(input: $input)
+                }",
+            @"type Query {
+                    foo(input: Test): String
+                }
+                input Test { foo: Bar! }
+                input Bar { foo: Baz! }
+                input Baz { foo: Qux! }
+                input Qux { foo: Upload! }
+
+                scalar Upload
+                ",
+            "extend schema @key(fields: \"id\")");
+    }
+
+    [Fact]
+    public void Operation_With_ComplexInputTypes()
+    {
+        AssertResult(
+            @"query test($input: User!) {
+                    foo(input: $input)
+                }",
+            @"type Query {
+                    foo(input: User): String
+                }
+
+                input User {
+                    username: String!
+                    address: Address!
+                    profilePicture: Upload!
+                    photos:[Photo]
+                }
+
+                input Photo { data: Upload! metadata: PhotoMetadata }
+                input PhotoMetadata { thumbnail: Upload! }
+                input Address { street: String! }
+
+                scalar Upload
                 ",
             "extend schema @key(fields: \"id\")");
     }

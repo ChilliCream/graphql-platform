@@ -189,9 +189,9 @@ internal sealed class ExecutionPlanBuilder
             null,
             new(binding.Name),
             alias,
-            null,
-            Array.Empty<DirectiveNode>(),
-            Array.Empty<ArgumentNode>(),
+            selection.SyntaxNode.Required,
+            Array.Empty<DirectiveNode>(), // todo : not sure if we should pass down directives.
+            selection.SyntaxNode.Arguments,
             selectionSetNode);
     }
 

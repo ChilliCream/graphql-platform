@@ -30,4 +30,7 @@ internal sealed class ArgumentVariableDefinitionCollection : IEnumerable<Argumen
         => _variableDefinitions.Values.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    public static ArgumentVariableDefinitionCollection Empty { get; } =
+        new(new List<ArgumentVariableDefinition>());
 }

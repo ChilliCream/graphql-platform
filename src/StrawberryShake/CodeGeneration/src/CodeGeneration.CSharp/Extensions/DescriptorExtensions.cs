@@ -15,12 +15,11 @@ public static class DescriptorExtensions
             ? CreateEntityMapperName(descriptor.RuntimeType.Name, descriptor.Name)
             : CreateDataMapperName(descriptor.RuntimeType.Name, descriptor.Name);
 
-    public static RuntimeTypeInfo ExtractType(
-        this INamedTypeDescriptor descriptor)
+    public static RuntimeTypeInfo ExtractType(this INamedTypeDescriptor descriptor)
     {
         return descriptor.IsEntity()
             ? CreateEntityType(descriptor.Name, descriptor.RuntimeType.NamespaceWithoutGlobal)
-            : new (descriptor.Name, descriptor.RuntimeType.NamespaceWithoutGlobal);
+            : new(descriptor.Name, descriptor.RuntimeType.NamespaceWithoutGlobal);
     }
 
     public static TypeSyntax ToTypeSyntax(
@@ -30,7 +29,8 @@ public static class DescriptorExtensions
 
     public static TypeReferenceBuilder ToTypeReference(
         this ITypeDescriptor typeReferenceDescriptor,
-        TypeReferenceBuilder? builder = null)
+        TypeReferenceBuilder? builder = null,
+        bool nonNull = false)
     {
         var actualBuilder = builder ?? TypeReferenceBuilder.New();
 
@@ -38,7 +38,7 @@ public static class DescriptorExtensions
         {
             typeReferenceDescriptor = n.InnerType;
         }
-        else
+        else if (!nonNull)
         {
             actualBuilder.SetIsNullable(true);
         }
@@ -95,7 +95,7 @@ public static class DescriptorExtensions
             INamedTypeDescriptor { Kind: TypeKind.EntityOrData } =>
                 actualBuilder.SetName(TypeNames.EntityIdOrData),
 
-            ComplexTypeDescriptor { ParentRuntimeType: { } parentRuntimeType }  =>
+            ComplexTypeDescriptor { ParentRuntimeType: { } parentRuntimeType } =>
                 actualBuilder.SetName(parentRuntimeType.ToString()),
 
             INamedTypeDescriptor { Kind: TypeKind.Data } d =>

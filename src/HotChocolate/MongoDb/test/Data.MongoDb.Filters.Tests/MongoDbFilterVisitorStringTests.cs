@@ -51,9 +51,9 @@ public class MongoDbFilterVisitorStringTests
                 .Create());
 
         // arrange
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "testatest"), res2, "testbtest"), res3, "null")
             .MatchAsync();
@@ -82,9 +82,9 @@ public class MongoDbFilterVisitorStringTests
                 .Create());
 
         // arrange
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "testatest"), res2, "testbtest"), res3, "null")
             .MatchAsync();
@@ -114,9 +114,9 @@ public class MongoDbFilterVisitorStringTests
                 .Create());
 
         // arrange
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "testatestAndtestb"), res2, "testbtestAndNull"), res3, "testatest")
             .MatchAsync();
@@ -146,9 +146,9 @@ public class MongoDbFilterVisitorStringTests
                 .Create());
 
         // arrange
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "testatestAndtestb"), res2, "testbtestAndNull"), res3, "testatest")
             .MatchAsync();
@@ -177,9 +177,9 @@ public class MongoDbFilterVisitorStringTests
                 .Create());
 
         // arrange
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "a"), res2, "b"), res3, "null")
             .MatchAsync();
@@ -208,9 +208,9 @@ public class MongoDbFilterVisitorStringTests
                 .Create());
 
         // arrange
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "a"), res2, "b"), res3, "null")
             .MatchAsync();
@@ -239,9 +239,9 @@ public class MongoDbFilterVisitorStringTests
                 .Create());
 
         // arrange
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "testa"), res2, "testb"), res3, "null")
             .MatchAsync();
@@ -270,9 +270,9 @@ public class MongoDbFilterVisitorStringTests
                 .Create());
 
         // arrange
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "testa"), res2, "testb"), res3, "null")
             .MatchAsync();
@@ -301,9 +301,9 @@ public class MongoDbFilterVisitorStringTests
                 .Create());
 
         // arrange
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "atest"), res2, "btest"), res3, "null")
             .MatchAsync();
@@ -332,9 +332,9 @@ public class MongoDbFilterVisitorStringTests
                 .Create());
 
         // arrange
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "atest"), res2, "btest"), res3, "null")
             .MatchAsync();
@@ -363,9 +363,9 @@ public class MongoDbFilterVisitorStringTests
                 .Create());
 
         // arrange
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "testatest"), res2, "testbtest"), res3, "null")
             .MatchAsync();
@@ -394,9 +394,9 @@ public class MongoDbFilterVisitorStringTests
                 .Create());
 
         // arrange
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "testatest"), res2, "testbtest"), res3, "null")
             .MatchAsync();
@@ -426,9 +426,9 @@ public class MongoDbFilterVisitorStringTests
                 .Create());
 
         // arrange
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "testatestAndtestb"), res2, "testbtestAndNull"), res3, "testatest")
             .MatchAsync();
@@ -458,9 +458,9 @@ public class MongoDbFilterVisitorStringTests
                 .Create());
 
         // arrange
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "testatestAndtestb"), res2, "testbtestAndNull"), res3, "testatest")
             .MatchAsync();
@@ -489,9 +489,9 @@ public class MongoDbFilterVisitorStringTests
                 .Create());
 
         // arrange
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "a"), res2, "b"), res3, "null")
             .MatchAsync();
@@ -520,9 +520,9 @@ public class MongoDbFilterVisitorStringTests
                 .Create());
 
         // arrange
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "a"), res2, "b"), res3, "null")
             .MatchAsync();
@@ -551,9 +551,9 @@ public class MongoDbFilterVisitorStringTests
                 .Create());
 
         // arrange
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "testa"), res2, "testb"), res3, "null")
             .MatchAsync();
@@ -582,9 +582,9 @@ public class MongoDbFilterVisitorStringTests
                 .Create());
 
         // arrange
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "testa"), res2, "testb"), res3, "null")
             .MatchAsync();
@@ -613,9 +613,9 @@ public class MongoDbFilterVisitorStringTests
                 .Create());
 
         // arrange
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "atest"), res2, "btest"), res3, "null")
             .MatchAsync();
@@ -644,9 +644,9 @@ public class MongoDbFilterVisitorStringTests
                 .Create());
 
         // arrange
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "atest"), res2, "btest"), res3, "null")
             .MatchAsync();

@@ -438,6 +438,15 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
 
         body.AddEmptyLine();
 
+        if (descriptor.Operations.Any(x => x.HasUpload))
+        {
+            body.AddMethodCall()
+                .SetMethodName(AddSingleton)
+                .AddGeneric(ISerializer)
+                .AddGeneric(UploadSerializer)
+                .AddArgument(_services);
+        }
+
         foreach (var enumType in descriptor.EnumTypeDescriptor)
         {
             body.AddMethodCall()
