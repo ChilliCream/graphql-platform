@@ -24,14 +24,14 @@ public sealed class InputObjectTypeModel : ITypeModel
         string name,
         string? description,
         InputObjectType type,
-        IReadOnlyList<InputFieldModel> fields,
-        bool hasUpload)
+        bool hasUpload,
+        IReadOnlyList<InputFieldModel> fields)
     {
         Name = name.EnsureGraphQLName();
         Description = description;
         Type = type ?? throw new ArgumentNullException(nameof(type));
-        Fields = fields ?? throw new ArgumentNullException(nameof(fields));
         HasUpload = hasUpload;
+        Fields = fields ?? throw new ArgumentNullException(nameof(fields));
     }
 
     /// <summary>

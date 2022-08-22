@@ -19,8 +19,8 @@ public abstract class OperationDescriptor : ICodeDescriptor
         string bodyString,
         string hashAlgorithm,
         string hashValue,
-        RequestStrategy strategy,
-        bool hasUpload)
+        bool hasUpload,
+        RequestStrategy strategy)
     {
         Name = name;
         RuntimeType = runtimeType;
@@ -30,8 +30,8 @@ public abstract class OperationDescriptor : ICodeDescriptor
         BodyString = bodyString;
         HashAlgorithm = hashAlgorithm;
         HashValue = hashValue;
-        Strategy = strategy;
         HasUpload = hasUpload;
+        Strategy = strategy;
         InterfaceType = new("I" + runtimeType.Name, runtimeType.Namespace);
     }
 

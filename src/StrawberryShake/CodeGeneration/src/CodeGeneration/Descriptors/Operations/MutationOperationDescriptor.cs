@@ -20,8 +20,8 @@ public class MutationOperationDescriptor : OperationDescriptor
         string bodyString,
         string hashAlgorithm,
         string hashValue,
-        RequestStrategy strategy,
-        bool hasUpload)
+        bool hasUpload,
+        RequestStrategy strategy)
         : base(
             name,
             new RuntimeTypeInfo(CreateMutationServiceName(name), @namespace),
@@ -31,8 +31,8 @@ public class MutationOperationDescriptor : OperationDescriptor
             bodyString,
             hashAlgorithm,
             hashValue,
-            strategy,
-            hasUpload)
+            hasUpload,
+            strategy)
     {
     }
 }

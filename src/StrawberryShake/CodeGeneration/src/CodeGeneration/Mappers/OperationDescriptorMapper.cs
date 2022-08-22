@@ -57,8 +57,8 @@ public static class OperationDescriptorMapper
                             bodyString,
                             context.HashProvider.Name,
                             hash,
-                            context.RequestStrategy,
-                            hasUpload));
+                            hasUpload,
+                            context.RequestStrategy));
                     break;
 
                 case OperationType.Mutation:
@@ -73,8 +73,8 @@ public static class OperationDescriptorMapper
                             bodyString,
                             context.HashProvider.Name,
                             hash,
-                            context.RequestStrategy,
-                            hasUpload));
+                            hasUpload,
+                            context.RequestStrategy));
                     break;
 
                 case OperationType.Subscription:

@@ -66,8 +66,8 @@ public partial class DocumentAnalyzer
                 typeName,
                 inputObjectType.Description,
                 inputObjectType,
-                fields,
-                hasUpload));
+                hasUpload,
+                fields));
     }
 
     private static HashSet<string> CollectTypesWithUploadScalar(
