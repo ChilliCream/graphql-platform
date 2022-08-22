@@ -152,9 +152,9 @@ namespace StrawberryShake.Transport.InMemory
         {
             value = (source, key) switch
             {
-                (Dictionary<string, object?> s, string prop) => s[prop],
-                (List<object> l, int i) => l[i],
-                _ => null,
+                (Dictionary<string, object?> s, string prop) when s.ContainsKey(prop) => s[prop],
+                (List<object> l, int i) when i < l.Count => l[i],
+                _ => null
             };
         }
 

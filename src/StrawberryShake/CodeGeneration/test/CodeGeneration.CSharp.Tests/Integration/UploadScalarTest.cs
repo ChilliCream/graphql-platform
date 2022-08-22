@@ -28,6 +28,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar
 
             // act
             var result = await client.TestUpload.ExecuteAsync(
+                "nonUpload",
                 new Upload(data, "test-file"),
                 null,
                 null,
@@ -52,6 +53,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar
 
             // act
             var result = await client.TestUpload.ExecuteAsync(
+                "nonUpload",
                 null,
                 new Upload?[] { new Upload(dataA, "A"), new Upload(dataB, "B") },
                 null,
@@ -76,6 +78,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar
 
             // act
             var result = await client.TestUpload.ExecuteAsync(
+                "nonUpload",
                 null,
                 null,
                 new[] { new Upload?[] { new Upload(dataA, "A"), new Upload(dataB, "B") } },
@@ -99,6 +102,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar
 
             // act
             var result = await client.TestUpload.ExecuteAsync(
+                "nonUpload",
                 null,
                 null,
                 null,
@@ -128,6 +132,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar
             using var dataB = CreateStream("b");
             // act
             var result = await client.TestUpload.ExecuteAsync(
+                "nonUpload",
                 null,
                 null,
                 null,
@@ -168,6 +173,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar
 
             // act
             var result = await client.TestUpload.ExecuteAsync(
+                "nonUpload",
                 null,
                 null,
                 null,
@@ -225,6 +231,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar
 
             // act
             var result = await client.TestUpload.ExecuteAsync(
+                "nonUpload",
                 null,
                 new Upload?[] { new Upload(dataA, "A"), null, new Upload(dataB, "B") },
                 null,

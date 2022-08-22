@@ -25,7 +25,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             INamedTypeDescriptor namedTypeDescriptor =
                                 context.Types.Single(type => type.Name.Equals(typeName));
 
-                            hasUpload = namedTypeDescriptor.HasUpload();
+                            hasUpload = hasUpload || namedTypeDescriptor.HasUpload();
 
                             return new PropertyDescriptor(
                                 arg.Name,
