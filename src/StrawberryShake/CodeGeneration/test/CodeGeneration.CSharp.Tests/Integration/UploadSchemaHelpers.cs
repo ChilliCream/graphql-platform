@@ -58,30 +58,30 @@ public static class UploadSchemaHelpers
 
             if (objectSingle is not null)
             {
-                return objectSingle.bar!.baz!.file!?.ReadContents() ?? "null";
+                return objectSingle.Bar!.Baz!.File!.ReadContents() ?? "null";
             }
 
             if (objectList is not null)
             {
                 return string.Join(",",
-                    objectList.Select(x => x.bar!.baz!.file!?.ReadContents() ?? "null"));
+                    objectList.Select(x => x?.Bar!.Baz!.File!.ReadContents() ?? "null"));
             }
 
             if (objectNested is not null)
             {
                 return string.Join(",",
                     objectNested.SelectMany(y
-                        => y.Select(x => x.bar!.baz!.file!?.ReadContents() ?? "null")));
+                        => y.Select(x => x?.Bar!.Baz!.File!.ReadContents() ?? "null")));
             }
 
             return "error";
         }
     }
 
-    public record Test(Bar? bar);
+    public record Test(Bar? Bar);
 
-    public record Bar(Baz? baz);
+    public record Bar(Baz? Baz);
 
-    public record Baz(IFile? file);
+    public record Baz(IFile? File);
 
 }
