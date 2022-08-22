@@ -54,7 +54,7 @@ public class Neo4JOffsetPagingTests : IClassFixture<Neo4JFixture>
                 }
             }");
 
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), res1)
             .MatchAsync();
@@ -81,7 +81,7 @@ public class Neo4JOffsetPagingTests : IClassFixture<Neo4JFixture>
             }");
 
         // assert
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), result)
             .MatchAsync();
@@ -108,7 +108,7 @@ public class Neo4JOffsetPagingTests : IClassFixture<Neo4JFixture>
             }");
 
         // assert
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), result)
             .MatchAsync();

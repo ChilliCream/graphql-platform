@@ -64,8 +64,8 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
                 .Create());
 
         // arrange
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
                     Snapshot
                         .Create(), res1, "true"), res2, "false")
             .MatchAsync();
@@ -100,8 +100,8 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
                 .Create());
 
         // arrange
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
                     Snapshot
                         .Create(), res1, "2020-01-11"), res2, "2020-01-12")
             .MatchAsync();
@@ -133,8 +133,8 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
                 .Create());
 
         // arrange
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
                     Snapshot
                         .Create(), res1, "2020-01-11"), res2, "2020-01-12")
             .MatchAsync();
