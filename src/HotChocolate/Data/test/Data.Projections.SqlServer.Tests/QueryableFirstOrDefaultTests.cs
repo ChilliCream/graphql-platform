@@ -126,7 +126,7 @@ public class QueryableFirstOrDefaultTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), res1)
             .MatchAsync();
@@ -158,7 +158,7 @@ public class QueryableFirstOrDefaultTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), res1)
             .MatchAsync();
@@ -189,7 +189,7 @@ public class QueryableFirstOrDefaultTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), res1)
             .MatchAsync();
@@ -221,7 +221,7 @@ public class QueryableFirstOrDefaultTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), res1)
             .MatchAsync();
@@ -252,7 +252,7 @@ public class QueryableFirstOrDefaultTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), res1)
             .MatchAsync();

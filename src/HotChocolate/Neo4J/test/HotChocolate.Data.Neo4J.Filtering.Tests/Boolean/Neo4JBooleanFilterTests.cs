@@ -64,8 +64,8 @@ public class Neo4JBooleanFilterTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
                     Snapshot
                         .Create(), res1, "true"), res2, "false")
             .MatchAsync();
@@ -87,7 +87,7 @@ public class Neo4JBooleanFilterTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), res1, "and")
             .MatchAsync();
@@ -109,7 +109,7 @@ public class Neo4JBooleanFilterTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), res1, "or")
             .MatchAsync();
@@ -136,8 +136,8 @@ public class Neo4JBooleanFilterTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
                     Snapshot
                         .Create(), res1, "true"), res2, "false")
             .MatchAsync();
@@ -171,9 +171,9 @@ public class Neo4JBooleanFilterTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "true"), res2, "false"), res3, "null")
             .MatchAsync();
@@ -207,9 +207,9 @@ public class Neo4JBooleanFilterTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "true"), res2, "false"), res3, "null")
             .MatchAsync();

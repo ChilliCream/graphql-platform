@@ -48,9 +48,9 @@ public class QueryableFilterVisitorEnumTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "BAR"), res2, "FOO"), res3, "null")
             .MatchAsync();
@@ -79,9 +79,9 @@ public class QueryableFilterVisitorEnumTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "BAR"), res2, "FOO"), res3, "null")
             .MatchAsync();
@@ -110,9 +110,9 @@ public class QueryableFilterVisitorEnumTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "BarAndFoo"), res2, "FOO"), res3, "nullAndFoo")
             .MatchAsync();
@@ -141,9 +141,9 @@ public class QueryableFilterVisitorEnumTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "BarAndFoo"), res2, "FOO"), res3, "nullAndFoo")
             .MatchAsync();
@@ -173,9 +173,9 @@ public class QueryableFilterVisitorEnumTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "BAR"), res2, "FOO"), res3, "null")
             .MatchAsync();
@@ -204,9 +204,9 @@ public class QueryableFilterVisitorEnumTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "BAR"), res2, "FOO"), res3, "null")
             .MatchAsync();
@@ -235,9 +235,9 @@ public class QueryableFilterVisitorEnumTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "BarAndFoo"), res2, "FOO"), res3, "nullAndFoo")
             .MatchAsync();
@@ -266,9 +266,9 @@ public class QueryableFilterVisitorEnumTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "BarAndFoo"), res2, "FOO"), res3, "nullAndFoo")
             .MatchAsync();

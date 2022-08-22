@@ -102,8 +102,8 @@ public class QueryableFilterVisitorWithinTests : SchemaCache
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
                     Snapshot
                         .Create(), res1, "true"), res2, "false")
             .MatchAsync();
