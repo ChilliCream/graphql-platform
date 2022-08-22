@@ -22,7 +22,9 @@ public class SchemaIntegrationTests : IClassFixture<Neo4JFixture>
         // arrange
         var tester = await _fixture.Arrange(_database);
 
-        tester.Schema.MatchSnapshot();
+        await Snapshot.Create()
+            .Add(tester.Schema, "Schema")
+            .MatchAsync();
     }
 
     [Fact]

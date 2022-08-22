@@ -20,7 +20,10 @@ public class AnnotationBasedIntegrationTests : IClassFixture<Neo4JFixture>
     public async Task MoviesSchemaIntegrationTests_GetSchema()
     {
         var tester = await _fixture.CreateSchema(_database);
-        tester.Schema.MatchSnapshot();
+
+        await Snapshot.Create()
+            .Add(tester.Schema, "Schema")
+            .MatchAsync();
     }
 
     [Fact]
