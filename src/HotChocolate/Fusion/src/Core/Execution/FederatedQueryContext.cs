@@ -1,33 +1,74 @@
+using System.Collections.Concurrent;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Fusion.Clients;
+using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;
 
 namespace HotChocolate.Fusion.Execution;
 
-internal sealed class FederatedQueryContext
+internal sealed class FederatedQueryContext : IFederationContext
 {
     public FederatedQueryContext(
-        OperationContext operationContext,
-        QueryPlan plan,
-        IReadOnlySet<ISelectionSet> requiresFetch)
+        ServiceConfiguration serviceConfig,
+        QueryPlan queryPlan,
+        OperationContext operationContext)
     {
-        OperationContext = operationContext;
-        Plan = plan;
-        RequiresFetch = requiresFetch;
+        ServiceConfig = serviceConfig ??
+            throw new ArgumentNullException(nameof(serviceConfig));
+        QueryPlan = queryPlan ??
+            throw new ArgumentNullException(nameof(queryPlan));
+        OperationContext = operationContext ??
+            throw new ArgumentNullException(nameof(operationContext));
     }
+
+    public ServiceConfiguration ServiceConfig { get; }
+
+    public QueryPlan QueryPlan { get; }
 
     public OperationContext OperationContext { get; }
 
-    public ISchema Schema => OperationContext.Schema;
+    public ConcurrentQueue<WorkItem> Work { get; } = new();
 
-    public ResultBuilder Result => OperationContext.Result;
+    public Dictionary<QueryPlanNode, List<WorkItem>> WorkByNode { get; } = new();
 
-    public IOperation Operation => OperationContext.Operation;
+    public HashSet<QueryPlanNode> Completed { get; } = new();
 
-    public QueryPlan Plan { get; }
+    public bool NeedsMoreData(ISelectionSet selectionSet)
+        => QueryPlan.HasNodes(selectionSet);
 
-    public IReadOnlySet<ISelectionSet> RequiresFetch { get; }
+    public Task<IReadOnlyList<GraphQLResponse>> ExecuteAsync(
+        string schemaName,
+        IReadOnlyList<GraphQLRequest> request,
+        CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+}
 
-    public List<WorkItem> Fetch { get; } = new();
+internal interface IFederationContext
+{
+    ServiceConfiguration ServiceConfig { get; }
 
-    public Queue<WorkItem> Compose { get; } = new();
+    OperationContext OperationContext { get; }
+
+    ISchema Schema => OperationContext.Schema;
+
+    ResultBuilder Result => OperationContext.Result;
+
+    IOperation Operation => OperationContext.Operation;
+
+    QueryPlan QueryPlan { get; }
+
+    ConcurrentQueue<WorkItem> Work { get; }
+
+    Dictionary<QueryPlanNode, List<WorkItem>> WorkByNode { get; }
+
+    HashSet<QueryPlanNode> Completed { get; }
+
+    bool NeedsMoreData(ISelectionSet selectionSet);
+
+    Task<IReadOnlyList<GraphQLResponse>> ExecuteAsync(
+        string schemaName,
+        IReadOnlyList<GraphQLRequest> request,
+        CancellationToken cancellationToken);
 }

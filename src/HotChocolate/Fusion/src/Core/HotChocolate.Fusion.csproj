@@ -22,5 +22,23 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0-preview.7.22375.6" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0-preview.7.22375.6" />
   </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="FusionResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>FusionResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="FusionResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FusionResources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Execution\FederatedQueryExecutor.Fetch.cs">
+      <DependentUpon>FederatedQueryExecutor.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
   
 </Project>

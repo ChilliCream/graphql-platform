@@ -1,4 +1,5 @@
 using HotChocolate.Execution.Processing;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -7,21 +8,16 @@ internal struct WorkItem
     public WorkItem(
         ISelectionSet selectionSet,
         ObjectResult result)
-        : this(Array.Empty<Argument>(), selectionSet, result) { }
-
-    public WorkItem(
-        IReadOnlyList<Argument> arguments,
-        ISelectionSet selectionSet,
-        ObjectResult result)
     {
-        Arguments = arguments;
         SelectionSet = selectionSet;
-        SelectionResults = Array.Empty<SelectionResult>();
         Result = result;
         SelectionResults = new SelectionResult[selectionSet.Selections.Count];
+        ExportKeys = Array.Empty<string>();
     }
 
-    public IReadOnlyList<Argument> Arguments { get; }
+    public Dictionary<string, IValueNode> VariableValues { get; } = new();
+
+    public IReadOnlyList<string> ExportKeys { get; set; }
 
     public ISelectionSet SelectionSet { get; }
 

@@ -20,31 +20,33 @@ internal sealed class ExecutionPlanBuilder
     {
         foreach (var step in context.Steps)
         {
-            if (step is SelectionExecutionStep executionStep)
+            if (step is SelectionExecutionStep selectionStep)
             {
-                var requestNode = CreateRequestNode(context, executionStep);
-                context.RequestNodes.Add(executionStep, requestNode);
+                var fetchNode = CreateFetchNode(context, selectionStep);
+                context.Nodes.Add(selectionStep, fetchNode);
+            }
+            else if (step is IntrospectionExecutionStep)
+            {
+                var introspectionNode = new IntrospectionNode(context.Operation.RootSelectionSet);
+                context.Nodes.Add(step, introspectionNode);
             }
         }
 
-        foreach (var (step, node) in context.RequestNodes)
+        foreach (var (step, node) in context.Nodes)
         {
             if (step.DependsOn.Count > 0)
             {
                 foreach (var dependency in step.DependsOn)
                 {
-                    node.AddDependency(context.RequestNodes[dependency]);
+                    node.AddDependency(context.Nodes[dependency]);
                 }
             }
         }
 
-        return new QueryPlan(
-            context.RequestNodes.Values,
-            context.Exports.All,
-            context.HasIntrospectionSelections);
+        return new QueryPlan(context.Operation, context.Nodes.Values, context.Exports.All);
     }
 
-    private RequestNode CreateRequestNode(
+    private FetchNode CreateFetchNode(
         QueryPlanContext context,
         SelectionExecutionStep executionStep)
     {
@@ -66,7 +68,7 @@ internal sealed class ExecutionPlanBuilder
                 .ToArray(),
             path);
 
-        return new RequestNode(requestHandler);
+        return new FetchNode(requestHandler);
     }
 
     private (DocumentNode Document, IReadOnlyList<string> Path) CreateRequestDocument(
