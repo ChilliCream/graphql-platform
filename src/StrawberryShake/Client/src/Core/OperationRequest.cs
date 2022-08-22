@@ -30,9 +30,9 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
         string name,
         IDocument document,
         IReadOnlyDictionary<string, object?>? variables = null,
-        RequestStrategy strategy = RequestStrategy.Default,
-        IReadOnlyDictionary<string, Upload?>? files = null)
-        : this(null, name, document, variables, strategy, files)
+        IReadOnlyDictionary<string, Upload?>? files = null,
+        RequestStrategy strategy = RequestStrategy.Default)
+        : this(null, name, document, variables, files,  strategy)
     {
     }
 
@@ -50,15 +50,15 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
         string name,
         IDocument document,
         IReadOnlyDictionary<string, object?>? variables = null,
-        RequestStrategy strategy = RequestStrategy.Default,
-        IReadOnlyDictionary<string, Upload?>? files = null)
+        IReadOnlyDictionary<string, Upload?>? files = null,
+        RequestStrategy strategy = RequestStrategy.Default)
     {
         Id = id;
         Name = name ?? throw new ArgumentNullException(nameof(name));
         Document = document ?? throw new ArgumentNullException(nameof(document));
         Variables = variables ?? ImmutableDictionary<string, object?>.Empty;
-        Strategy = strategy;
         Files = files ?? ImmutableDictionary<string, Upload?>.Empty;
+        Strategy = strategy;
     }
 
     /// <summary>
@@ -79,8 +79,8 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
         out IReadOnlyDictionary<string, object?> variables,
         out IReadOnlyDictionary<string, object?>? extensions,
         out IReadOnlyDictionary<string, object?>? contextData,
-        out RequestStrategy strategy,
-        out IReadOnlyDictionary<string, Upload?>? files)
+        out IReadOnlyDictionary<string, Upload?>? files,
+        out RequestStrategy strategy)
     {
         id = Id;
         name = Name;
@@ -88,8 +88,8 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
         variables = Variables;
         extensions = _extensions;
         contextData = _contextData;
-        strategy = Strategy;
         files = Files;
+        strategy = Strategy;
     }
 
     /// <summary>
