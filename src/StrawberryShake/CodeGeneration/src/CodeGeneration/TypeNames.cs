@@ -61,6 +61,7 @@ namespace StrawberryShake.CodeGeneration
 
         public const string IEquatable = "global::System.IEquatable";
         public const string Type = "global::System.Type";
+        public const string Nullable = "global::System.Nullable";
         public const string JsonElement = "global::System.Text.Json.JsonElement";
         public const string JsonDocument = "global::System.Text.Json.JsonDocument";
         public const string JsonValueKind = "global::System.Text.Json.JsonValueKind";
@@ -134,6 +135,8 @@ namespace StrawberryShake.CodeGeneration
         public const string DependencyInjectionExtensions =  GlobalDependencyInjectionNamespace +"Extensions.ServiceCollectionDescriptorExtensions.";
         public const string QueryBase = StrawberryshakeNamespace + "Razor.QueryBase";
 
+        public const string Upload = StrawberryshakeNamespace +  nameof(Upload);
+
         public const string StringSerializer = StrawberryshakeNamespace + "Serialization.StringSerializer";
         public const string BooleanSerializer = StrawberryshakeNamespace + "Serialization.BooleanSerializer";
         public const string ByteSerializer = StrawberryshakeNamespace + "Serialization.ByteSerializer";
@@ -150,6 +153,7 @@ namespace StrawberryShake.CodeGeneration
         public const string ByteArraySerializer = StrawberryshakeNamespace + "Serialization.ByteArraySerializer";
         public const string TimeSpanSerializer = StrawberryshakeNamespace + "Serialization.TimeSpanSerializer";
         public const string JsonSerializer = StrawberryshakeNamespace + "Serialization.JsonSerializer";
+        public const string UploadSerializer = StrawberryshakeNamespace + "Serialization.UploadSerializer";
 
         public const string IClientBuilder = StrawberryshakeNamespace + "IClientBuilder";
         public const string ClientBuilder = StrawberryshakeNamespace + "ClientBuilder";

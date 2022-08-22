@@ -19,6 +19,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors.Operations
             string bodyString,
             string hashAlgorithm,
             string hashValue,
+            bool hasUpload,
             RequestStrategy strategy)
         {
             Name = name;
@@ -29,6 +30,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors.Operations
             BodyString = bodyString;
             HashAlgorithm = hashAlgorithm;
             HashValue = hashValue;
+            HasUpload = hasUpload;
             Strategy = strategy;
             InterfaceType = new("I" + runtimeType.Name, runtimeType.Namespace);
         }
@@ -67,6 +69,11 @@ namespace StrawberryShake.CodeGeneration.Descriptors.Operations
         /// Gets the document hash value.
         /// </summary>
         public string HashValue { get; }
+
+        /// <summary>
+        /// Defines if the operation has any file uploads
+        /// </summary>
+        public bool HasUpload { get; }
 
         /// <summary>
         /// The arguments the operation takes.

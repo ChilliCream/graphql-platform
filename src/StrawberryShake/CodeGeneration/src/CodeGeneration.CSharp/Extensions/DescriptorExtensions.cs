@@ -37,7 +37,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
 
         public static TypeReferenceBuilder ToTypeReference(
             this ITypeDescriptor typeReferenceDescriptor,
-            TypeReferenceBuilder? builder = null)
+            TypeReferenceBuilder? builder = null,
+            bool nonNull = false)
         {
             TypeReferenceBuilder actualBuilder = builder ?? TypeReferenceBuilder.New();
 
@@ -45,7 +46,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
             {
                 typeReferenceDescriptor = n.InnerType;
             }
-            else
+            else if (!nonNull)
             {
                 actualBuilder.SetIsNullable(true);
             }

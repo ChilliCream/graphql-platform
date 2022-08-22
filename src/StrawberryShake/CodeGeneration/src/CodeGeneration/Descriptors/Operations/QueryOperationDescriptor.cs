@@ -21,6 +21,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors.Operations
             string bodyString,
             string hashAlgorithm,
             string hashValue,
+            bool hasUpload,
             RequestStrategy strategy)
             : base(
                 name,
@@ -31,6 +32,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors.Operations
                 bodyString,
                 hashAlgorithm,
                 hashValue,
+                hasUpload,
                 strategy)
         {
         }

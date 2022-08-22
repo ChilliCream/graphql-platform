@@ -45,6 +45,7 @@ namespace StrawberryShake.CodeGeneration
             { GraphQLWebSocketProtocolFactory, new RuntimeTypeInfo(GraphQLWebSocketProtocolFactory) },
             { JsonElement, new RuntimeTypeInfo(JsonElement, true) },
             { JsonDocument, new RuntimeTypeInfo(JsonDocument) },
+            { Upload, new RuntimeTypeInfo(Upload, true) },
             { String, new RuntimeTypeInfo(String) },
             { Byte, new RuntimeTypeInfo(Byte, true) },
             { ByteArray, new RuntimeTypeInfo(ByteArray, true) },

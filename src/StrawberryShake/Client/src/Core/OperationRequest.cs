@@ -26,13 +26,15 @@ namespace StrawberryShake
         /// <param name="name">The operation name.</param>
         /// <param name="document">The GraphQL query document containing this operation.</param>
         /// <param name="variables">The request variable values.</param>
+        /// <param name="files">The files of this request</param>
         /// <param name="strategy">The request strategy to the connection.</param>
         public OperationRequest(
             string name,
             IDocument document,
             IReadOnlyDictionary<string, object?>? variables = null,
+            IReadOnlyDictionary<string, Upload?>? files = null,
             RequestStrategy strategy = RequestStrategy.Default)
-            : this(null, name, document, variables, strategy)
+            : this(null, name, document, variables, files, strategy)
         {
         }
 
@@ -43,18 +45,21 @@ namespace StrawberryShake
         /// <param name="name">The operation name.</param>
         /// <param name="document">The GraphQL query document containing this operation.</param>
         /// <param name="variables">The request variable values.</param>
+        /// <param name="files">The files of this request</param>
         /// <param name="strategy">The request strategy to the connection.</param>
         public OperationRequest(
             string? id,
             string name,
             IDocument document,
             IReadOnlyDictionary<string, object?>? variables = null,
+            IReadOnlyDictionary<string, Upload?>? files = null,
             RequestStrategy strategy = RequestStrategy.Default)
         {
             Id = id;
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Document = document ?? throw new ArgumentNullException(nameof(document));
             _variables = variables ?? ImmutableDictionary<string, object?>.Empty;
+            Files = files ?? ImmutableDictionary<string, Upload?>.Empty;
             Strategy = strategy;
         }
 
@@ -105,6 +110,11 @@ namespace StrawberryShake
         /// Gets the request variable values.
         /// </summary>
         public IReadOnlyDictionary<string, object?> Variables => _variables;
+
+        /// <summary>
+        /// The files of the request
+        /// </summary>
+        public IReadOnlyDictionary<string, Upload?> Files { get; }
 
         /// <summary>
         /// Gets the request extension values.

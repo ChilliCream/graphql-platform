@@ -30,6 +30,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors.Operations
                 bodyString,
                 hashAlgorithm,
                 hashValue,
+                false,
                 strategy)
         {
         }
