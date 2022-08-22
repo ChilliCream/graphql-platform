@@ -1,6 +1,6 @@
 using Squadron;
 
-namespace HotChocolate.Data.Neo4J.Paging;
+namespace HotChocolate.Data.Neo4J.Testing;
 
 public class Neo4JConfig : Neo4jDefaultOptions
 {

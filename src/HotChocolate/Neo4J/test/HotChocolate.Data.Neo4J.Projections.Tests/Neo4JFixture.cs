@@ -1,36 +1,39 @@
 using System.Collections.Concurrent;
-using HotChocolate.Data.Neo4J.Execution;
+using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 
-namespace HotChocolate.Data.Neo4J.Projections;
+namespace HotChocolate.Data.Neo4J.Projections.Tests;
 
-public class Neo4JFixture : Neo4jResource<Neo4JConfig>
+public class Neo4JFixture : Neo4JFixtureBase
 {
     private readonly ConcurrentDictionary<(Type, object), Task<IRequestExecutor>> _cache = new();
 
-    public Task<IRequestExecutor> GetOrCreateSchema<T>(string cypher)
+    public async Task<IRequestExecutor> Arrange<TEntity>(Neo4JDatabase database, string cypher)
+        where TEntity : class
+    {
+        await ResetDatabase(database, cypher);
+
+        return await GetOrCreateSchema<TEntity>(database, cypher);
+    }
+
+    private Task<IRequestExecutor> GetOrCreateSchema<T>(Neo4JDatabase database, string cypher)
         where T : class
     {
         (Type, string) key = (typeof(T), cypher);
 
         return _cache.GetOrAdd(
             key,
-            _ => CreateSchema<T>(cypher));
+            _ => CreateSchema<T>(database));
     }
 
-    protected async Task<IRequestExecutor> CreateSchema<TEntity>(string cypher)
+    private static async Task<IRequestExecutor> CreateSchema<TEntity>(Neo4JDatabase database)
         where TEntity : class
     {
-        var session = GetAsyncSession();
-        var cursor = await session.RunAsync(cypher);
-        await cursor.ConsumeAsync();
-
         var builder = new ServiceCollection().AddGraphQL();
 
-        return builder
+        return await builder
             .AddNeo4JProjections()
             .AddNeo4JFiltering()
             .AddNeo4JSorting()
@@ -41,28 +44,15 @@ public class Neo4JFixture : Neo4jResource<Neo4JConfig>
                         c.Name("Query");
                         ApplyConfigurationToFieldDescriptor(
                             c.Field(x => x.Root)
-                                .Resolve(new Neo4JExecutable<TEntity>(GetAsyncSession())));
+                                .SetupNeo4JTestField<TEntity>(database.GetAsyncSession));
                     }))
-            .UseRequest(
-                next => async context =>
-                {
-                    await next(context);
-                    if (context.ContextData.TryGetValue("query", out var queryString))
-                    {
-                        context.Result =
-                            QueryResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
-                                .SetContextData("query", queryString)
-                                .Create();
-                    }
-                })
+            .SetupNeo4JTestResponse<TEntity>()
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
             .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync()
-            .Result;
+            .GetRequestExecutorAsync();
     }
 
     private static void ApplyConfigurationToFieldDescriptor(IObjectFieldDescriptor descriptor)
@@ -82,7 +72,7 @@ public class Neo4JFixture : Neo4jResource<Neo4JConfig>
             .UseSorting();
     }
 
-    public class StubObject<T>
+    private class StubObject<T>
     {
         public T Root { get; set; }
     }

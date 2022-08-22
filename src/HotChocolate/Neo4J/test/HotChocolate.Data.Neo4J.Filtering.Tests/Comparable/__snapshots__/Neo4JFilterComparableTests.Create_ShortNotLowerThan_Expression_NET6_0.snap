@@ -61,7 +61,7 @@ MATCH (fooComp:FooComp) WHERE NOT (fooComp.BarShort < 13) RETURN fooComp {.BarSh
 MATCH (fooComp:FooComp) WHERE NOT (fooComp.BarShort < 14) RETURN fooComp {.BarShort}
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

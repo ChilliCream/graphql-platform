@@ -1,68 +1,47 @@
-using System;
 using System.Collections.Concurrent;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Data.Neo4J.Execution;
+using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Types;
-using Neo4j.Driver;
-using Squadron;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Data.Neo4J.Paging;
+namespace HotChocolate.Data.Neo4J.Paging.Tests;
 
-public class Neo4JFixture : Neo4jResource<Neo4JConfig>
+public class Neo4JFixture : Neo4JFixtureBase
 {
     private readonly ConcurrentDictionary<(Type, string), Task<IRequestExecutor>> _cache =
         new();
 
-    public Task<IRequestExecutor> GetOrCreateSchema<T>(string cypher)
+    public async Task<IRequestExecutor> Arrange<TEntity>(Neo4JDatabase database, string cypher)
+        where TEntity : class
+    {
+        await ResetDatabase(database, cypher);
+
+        return await GetOrCreateSchema<TEntity>(database, cypher);
+    }
+
+    private Task<IRequestExecutor> GetOrCreateSchema<T>(Neo4JDatabase database, string cypher)
         where T : class
     {
         (Type, string) key = (typeof(T), cypher);
 
         return _cache.GetOrAdd(
             key,
-            k => CreateSchema<T>(cypher));
+            k => CreateSchema<T>(database));
     }
 
-    private async Task<IRequestExecutor> CreateSchema<TEntity>(string cypher)
+    private static async Task<IRequestExecutor> CreateSchema<TEntity>(Neo4JDatabase database)
         where TEntity : class
     {
-        var session = GetAsyncSession();
-        var cursor = await session.RunAsync(cypher);
-        await cursor.ConsumeAsync();
-
         return await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(
                 c => c
                     .Name("Query")
                     .Field("root")
-                    .Resolve(new Neo4JExecutable<TEntity>(GetAsyncSession()))
-                    .Use(
-                        next => async context =>
-                        {
-                            await next(context);
-                            if (context.Result is IExecutable executable)
-                            {
-                                context.ContextData["query"] = executable.Print();
-                            }
-                        })
+                    .SetupNeo4JTestField<TEntity>(database.GetAsyncSession)
                     .UseOffsetPaging<ObjectType<TEntity>>())
             .AddNeo4JPagingProviders()
-            .UseRequest(
-                next => async context =>
-                {
-                    await next(context);
-                    if (context.ContextData.TryGetValue("query", out var queryString))
-                    {
-                        context.Result =
-                            QueryResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
-                                .SetContextData("query", queryString)
-                                .Create();
-                    }
-                })
+            .SetupNeo4JTestResponse<TEntity>()
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()

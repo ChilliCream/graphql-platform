@@ -1,16 +1,19 @@
 ﻿using CookieCrumble;
 using HotChocolate.Data.Filters;
+using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Data.Neo4J.Filtering.Lists;
+namespace HotChocolate.Data.Neo4J.Filtering.Tests.Lists;
 
-[Collection("Database")]
-public class Neo4JListFilterTests
+[Collection(Neo4JDatabaseCollectionFixture.DefinitionName)]
+public class Neo4JListFilterTests : IClassFixture<Neo4JFixture>
 {
+    private readonly Neo4JDatabase _database;
     private readonly Neo4JFixture _fixture;
 
-    public Neo4JListFilterTests(Neo4JFixture fixture)
+    public Neo4JListFilterTests(Neo4JDatabase database, Neo4JFixture fixture)
     {
+        _database = database;
         _fixture = fixture;
     }
 
@@ -32,36 +35,11 @@ public class Neo4JListFilterTests
                     (e)-[:RELATED_FOO]->(:FooNested {Bar: 'b'})
         ";
 
-    public class Foo
-    {
-        public string BarString { get; set; }
-
-        [Neo4JRelationship("RELATED_FOO")]
-        public List<FooNested> FooNested { get; set; }
-    }
-
-    public class FooNested
-    {
-        public string? Bar { get; set; }
-
-        [Neo4JRelationship("RELATED_BAR")]
-        public List<BarNested> BarNested { get; set; }
-    }
-
-    public class BarNested
-    {
-        public string? Foo { get; set; }
-    }
-
-    public class FooFilterType : FilterInputType<Foo>
-    {
-    }
-
     [Fact]
     public async Task Create_ArrayAllObjectStringEqual_Expression()
     {
         // arrange
-        var tester = await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
+        var tester = await _fixture.Arrange<Foo, FooFilterType>(_database, _fooEntitiesCypher);
 
         // act
         // assert
@@ -94,8 +72,33 @@ public class Neo4JListFilterTests
 
         // assert
         await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1, "all")
+                Snapshot.Create(),
+                res1, "all")
             .MatchAsync();
+    }
+
+    public class Foo
+    {
+        public string BarString { get; set; }
+
+        [Neo4JRelationship("RELATED_FOO")]
+        public List<FooNested> FooNested { get; set; }
+    }
+
+    public class FooNested
+    {
+        public string? Bar { get; set; }
+
+        [Neo4JRelationship("RELATED_BAR")]
+        public List<BarNested> BarNested { get; set; }
+    }
+
+    public class BarNested
+    {
+        public string? Foo { get; set; }
+    }
+
+    public class FooFilterType : FilterInputType<Foo>
+    {
     }
 }

@@ -34,7 +34,7 @@ b Query:
 MATCH (fooString:FooString) WHERE fooString.Bar ENDS WITH 'btest' RETURN fooString {.Bar}
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

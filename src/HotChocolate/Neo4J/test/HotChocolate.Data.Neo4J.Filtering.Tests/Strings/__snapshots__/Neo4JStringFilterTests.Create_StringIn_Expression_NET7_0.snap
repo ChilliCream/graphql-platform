@@ -19,7 +19,7 @@ testatestAndtestb Query:
 MATCH (fooString:FooString) WHERE fooString.Bar IN [ "testatest", "testbtest" ] RETURN fooString {.Bar}
 ---------------
 
-testbtestAndNull Result:
+testbtestAndNull
 ---------------
 {
   "errors": [

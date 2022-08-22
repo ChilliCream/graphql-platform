@@ -1,16 +1,19 @@
 ﻿using CookieCrumble;
+using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Data.Neo4J.Sorting.Boolean;
+namespace HotChocolate.Data.Neo4J.Sorting.Tests.Strings;
 
-[Collection("Database")]
-public class Neo4JStringsSortingTests
+[Collection(Neo4JDatabaseCollectionFixture.DefinitionName)]
+public class Neo4JStringsSortingTests : IClassFixture<Neo4JFixture>
 {
+    private readonly Neo4JDatabase _database;
     private readonly Neo4JFixture _fixture;
 
-    public Neo4JStringsSortingTests(Neo4JFixture fixture)
+    public Neo4JStringsSortingTests(Neo4JDatabase database, Neo4JFixture fixture)
     {
+        _database = database;
         _fixture = fixture;
     }
 
@@ -18,21 +21,13 @@ public class Neo4JStringsSortingTests
             CREATE (:FooString {Bar: 'testatest'}), (:FooString {Bar: 'testbtest'})
         ";
 
-    public class FooString
-    {
-        public string Bar { get; set; }
-    }
-
-    public class FooStringSortType : SortInputType<FooString>
-    {
-    }
-
     [Fact]
     public async Task Sorting_Strings_SchemaSnapshot()
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooString, FooStringSortType>(_fooEntitiesCypher);
+            await _fixture.Arrange<FooString, FooStringSortType>(_database, _fooEntitiesCypher);
+
         tester.Schema.MatchSnapshot();
     }
 
@@ -41,7 +36,7 @@ public class Neo4JStringsSortingTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooString, FooStringSortType>(_fooEntitiesCypher);
+            await _fixture.Arrange<FooString, FooStringSortType>(_database, _fooEntitiesCypher);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -60,5 +55,14 @@ public class Neo4JStringsSortingTests
                     Snapshot
                         .Create(), res1, "ASC"), res2, "DESC")
             .MatchAsync();
+    }
+
+    public class FooString
+    {
+        public string Bar { get; set; }
+    }
+
+    public class FooStringSortType : SortInputType<FooString>
+    {
     }
 }

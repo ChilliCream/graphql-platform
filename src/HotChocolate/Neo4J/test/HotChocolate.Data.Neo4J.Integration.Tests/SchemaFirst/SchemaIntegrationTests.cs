@@ -1,22 +1,35 @@
 using CookieCrumble;
+using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Data.Neo4J.Integration.SchemaFirst;
+namespace HotChocolate.Data.Neo4J.Integration.Tests.SchemaFirst;
 
+[Collection(Neo4JDatabaseCollectionFixture.DefinitionName)]
 public class SchemaIntegrationTests : IClassFixture<Neo4JFixture>
 {
+    private readonly Neo4JDatabase _database;
     private readonly Neo4JFixture _fixture;
 
-    public SchemaIntegrationTests(Neo4JFixture fixture)
+    public SchemaIntegrationTests(Neo4JDatabase database, Neo4JFixture fixture)
     {
+        _database = database;
         _fixture = fixture;
+    }
+
+    [Fact]
+    public async Task MoviesSchemaIntegrationTests_GetSchema()
+    {
+        // arrange
+        var tester = await _fixture.Arrange(_database);
+
+        tester.Schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task MoviesSchemaIntegrationTests()
     {
         // arrange
-        var tester = await _fixture.CreateSchema();
+        var tester = await _fixture.Arrange(_database);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -56,14 +69,24 @@ public class SchemaIntegrationTests : IClassFixture<Neo4JFixture>
                 }
             }");
 
+        var res5 = await tester.ExecuteAsync(@"{
+                actors(order: [{ name : ASC }] skip: 1 take: 2) {
+                    items {
+                        name
+                        actedIn {
+                            title
+                        }
+                    }
+                }
+            }");
+
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create()
-                                .Add(tester.Schema, "MoviesSchema_Snapshot"), res1, "MoviesSchema_Actors_Query"), res2, "MoviesSchema_Name_StartsWith_Actors_Query"), res3, "MoviesSchema_Movies_Query"), res4, "MoviesSchema_Name_Desc_Sort_Actors_Query")
+        await Snapshot.Create()
+            .AddResult(res1, "MoviesSchema_Actors_Query")
+            .AddResult(res2, "MoviesSchema_Name_StartsWith_Actors_Query")
+            .AddResult(res3, "MoviesSchema_Movies_Query")
+            .AddResult(res4, "MoviesSchema_Name_Desc_Sort_Actors_Query")
+            .AddResult(res5, "MoviesSchema_Name_Desc_Sort_Actors_SkipOne_TakeTwo_Query")
             .MatchAsync();
     }
 }

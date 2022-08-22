@@ -51,7 +51,7 @@ MATCH (fooCompNullable:FooCompNullable) WHERE NOT (fooCompNullable.BarShort >= 1
 MATCH (fooCompNullable:FooCompNullable) WHERE NOT (fooCompNullable.BarShort >= 14) RETURN fooCompNullable {.BarShort}
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

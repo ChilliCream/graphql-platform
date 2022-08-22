@@ -1,13 +1,35 @@
+Result:
+---------------
 {
-  "errors": [
-    {
-      "message": "The provided source is not supported for Neo4j paging",
-      "extensions": {
-        "code": "HC0025"
+  "data": {
+    "root": {
+      "items": [
+        {
+          "bar": "a"
+        },
+        {
+          "bar": "b"
+        },
+        {
+          "bar": "d"
+        },
+        {
+          "bar": "e"
+        },
+        {
+          "bar": "f"
+        }
+      ],
+      "pageInfo": {
+        "hasNextPage": false,
+        "hasPreviousPage": false
       }
     }
-  ],
-  "data": {
-    "root": null
   }
 }
+---------------
+
+Query:
+---------------
+MATCH (foo:Foo) RETURN foo LIMIT 11
+---------------

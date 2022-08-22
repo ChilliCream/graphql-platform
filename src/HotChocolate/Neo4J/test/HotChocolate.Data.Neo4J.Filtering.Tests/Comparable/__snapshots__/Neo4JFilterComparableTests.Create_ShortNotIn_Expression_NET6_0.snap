@@ -19,32 +19,22 @@ MATCH (fooComp:FooComp) WHERE NOT (fooComp.BarShort IN [ 12, 13 ]) RETURN fooCom
 13and14 Result:
 ---------------
 {
-  "errors": [
-    {
-      "message": "The provided value for filter \u0060nin\u0060 of type ShortOperationFilterInput is invalid. Null values are not supported.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 34
-        }
-      ],
-      "path": [
-        "root"
-      ],
-      "extensions": {
-        "code": "HC0026",
-        "expectedType": "[Short!]",
-        "filterType": "ShortOperationFilterInput"
-      }
-    }
-  ],
   "data": {
-    "root": []
+    "root": [
+      {
+        "barShort": 12
+      }
+    ]
   }
 }
 ---------------
 
-nullAnd14 Result:
+13and14 Query:
+---------------
+MATCH (fooComp:FooComp) WHERE NOT (fooComp.BarShort IN [ 13, 14 ]) RETURN fooComp {.BarShort}
+---------------
+
+nullAnd14
 ---------------
 {
   "errors": [

@@ -1,27 +1,22 @@
-﻿using CookieCrumble;
+using CookieCrumble;
 using HotChocolate.Data.Filters;
+using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Data.Neo4J.Filtering;
+namespace HotChocolate.Data.Neo4J.Filtering.Tests.Strings;
 
-[Collection("Database")]
-public class Neo4JStringFilterTests
+[Collection(Neo4JDatabaseCollectionFixture.DefinitionName)]
+public class Neo4JStringFilterTests : IClassFixture<Neo4JFixture>
 {
+    private readonly Neo4JDatabase _database;
     private readonly Neo4JFixture _fixture;
 
-    public Neo4JStringFilterTests(Neo4JFixture fixture)
+    public Neo4JStringFilterTests(Neo4JDatabase database, Neo4JFixture fixture)
     {
+        _database = database;
         _fixture = fixture;
     }
 
-    public class FooString
-    {
-        public string Bar { get; set; }
-    }
-
-    public class FooStringFilterType : FilterInputType<FooString>
-    {
-    }
 
     private string _fooEntitiesCypher =
         @"CREATE (:FooString {Bar: 'testatest'}), (:FooString {Bar: 'testbtest'})";
@@ -32,21 +27,12 @@ public class Neo4JStringFilterTests
                 (:FooStringNullable {Bar: 'testbtest'}),
                 (:FooStringNullable {Bar: NULL})";
 
-    public class FooStringNullable
-    {
-        public string? Bar { get; set; }
-    }
-
-    public class FooStringNullableFilterType : FilterInputType<FooStringNullable>
-    {
-    }
-
     [Fact]
     public async Task Create_StringEqual_Expression()
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooString, FooStringFilterType>(_fooEntitiesCypher);
+            await _fixture.Arrange<FooString, FooStringFilterType>(_database, _fooEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { bar: { eq: \"testatest\"}}){ bar }}";
@@ -81,7 +67,7 @@ public class Neo4JStringFilterTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooString, FooStringFilterType>(_fooEntitiesCypher);
+            await _fixture.Arrange<FooString, FooStringFilterType>(_database, _fooEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { bar: { neq: \"testatest\"}}){ bar }}";
@@ -116,7 +102,7 @@ public class Neo4JStringFilterTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooString, FooStringFilterType>(_fooEntitiesCypher);
+            await _fixture.Arrange<FooString, FooStringFilterType>(_database, _fooEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { bar: { startsWith: \"testa\" }}){ bar }}";
@@ -151,7 +137,7 @@ public class Neo4JStringFilterTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooString, FooStringFilterType>(_fooEntitiesCypher);
+            await _fixture.Arrange<FooString, FooStringFilterType>(_database, _fooEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { bar: { nstartsWith: \"testa\" }}){ bar}}";
@@ -186,7 +172,7 @@ public class Neo4JStringFilterTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooString, FooStringFilterType>(_fooEntitiesCypher);
+            await _fixture.Arrange<FooString, FooStringFilterType>(_database, _fooEntitiesCypher);
 
         // act
         const string query1 =
@@ -222,7 +208,7 @@ public class Neo4JStringFilterTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooString, FooStringFilterType>(_fooEntitiesCypher);
+            await _fixture.Arrange<FooString, FooStringFilterType>(_database, _fooEntitiesCypher);
 
         // act
         const string query1 =
@@ -258,7 +244,7 @@ public class Neo4JStringFilterTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooString, FooStringFilterType>(_fooEntitiesCypher);
+            await _fixture.Arrange<FooString, FooStringFilterType>(_database, _fooEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { bar: { contains: \"a\" }}){ bar}}";
@@ -293,7 +279,7 @@ public class Neo4JStringFilterTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooString, FooStringFilterType>(_fooEntitiesCypher);
+            await _fixture.Arrange<FooString, FooStringFilterType>(_database, _fooEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { bar: { ncontains: \"a\" }}){ bar}}";
@@ -328,7 +314,7 @@ public class Neo4JStringFilterTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooString, FooStringFilterType>(_fooEntitiesCypher);
+            await _fixture.Arrange<FooString, FooStringFilterType>(_database, _fooEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { bar: { endsWith: \"atest\" }}){ bar }}";
@@ -363,7 +349,7 @@ public class Neo4JStringFilterTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooString, FooStringFilterType>(_fooEntitiesCypher);
+            await _fixture.Arrange<FooString, FooStringFilterType>(_database, _fooEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { bar: { nendsWith: \"atest\" }}){ bar }}";
@@ -398,8 +384,7 @@ public class Neo4JStringFilterTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooStringNullable, FooStringNullableFilterType>(
-                _fooNullableEntitiesCypher);
+            await _fixture.Arrange<FooStringNullable, FooStringNullableFilterType>(_database, _fooNullableEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { bar: { eq: \"testatest\"}}){ bar }}";
@@ -434,8 +419,8 @@ public class Neo4JStringFilterTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooStringNullable, FooStringNullableFilterType>(
-                _fooNullableEntitiesCypher);
+            await _fixture.Arrange<FooStringNullable, FooStringNullableFilterType>(
+                _database, _fooNullableEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { bar: { neq: \"testatest\"}}){ bar }}";
@@ -470,8 +455,8 @@ public class Neo4JStringFilterTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooStringNullable, FooStringNullableFilterType>(
-                _fooNullableEntitiesCypher);
+            await _fixture.Arrange<FooStringNullable, FooStringNullableFilterType>(
+                _database, _fooNullableEntitiesCypher);
 
         // act
         const string query1 =
@@ -507,8 +492,8 @@ public class Neo4JStringFilterTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooStringNullable, FooStringNullableFilterType>(
-                _fooNullableEntitiesCypher);
+            await _fixture.Arrange<FooStringNullable, FooStringNullableFilterType>(
+                _database, _fooNullableEntitiesCypher);
 
         // act
         const string query1 =
@@ -544,8 +529,8 @@ public class Neo4JStringFilterTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooStringNullable, FooStringNullableFilterType>(
-                _fooNullableEntitiesCypher);
+            await _fixture.Arrange<FooStringNullable, FooStringNullableFilterType>(
+                _database, _fooNullableEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { bar: { contains: \"a\" }}){ bar}}";
@@ -580,8 +565,8 @@ public class Neo4JStringFilterTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooStringNullable, FooStringNullableFilterType>(
-                _fooNullableEntitiesCypher);
+            await _fixture.Arrange<FooStringNullable, FooStringNullableFilterType>(
+                _database, _fooNullableEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { bar: { ncontains: \"a\" }}){ bar }}";
@@ -616,8 +601,8 @@ public class Neo4JStringFilterTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooStringNullable, FooStringNullableFilterType>(
-                _fooNullableEntitiesCypher);
+            await _fixture.Arrange<FooStringNullable, FooStringNullableFilterType>(
+                _database, _fooNullableEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { bar: { startsWith: \"testa\" }}){ bar }}";
@@ -652,8 +637,8 @@ public class Neo4JStringFilterTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooStringNullable, FooStringNullableFilterType>(
-                _fooNullableEntitiesCypher);
+            await _fixture.Arrange<FooStringNullable, FooStringNullableFilterType>(
+                _database, _fooNullableEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { bar: { nstartsWith: \"testa\" }}){ bar}}";
@@ -688,8 +673,8 @@ public class Neo4JStringFilterTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooStringNullable, FooStringNullableFilterType>(
-                _fooNullableEntitiesCypher);
+            await _fixture.Arrange<FooStringNullable, FooStringNullableFilterType>(
+                _database, _fooNullableEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { bar: { endsWith: \"atest\" }}){ bar }}";
@@ -724,8 +709,8 @@ public class Neo4JStringFilterTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooStringNullable, FooStringNullableFilterType>(
-                _fooNullableEntitiesCypher);
+            await _fixture.Arrange<FooStringNullable, FooStringNullableFilterType>(
+                _database, _fooNullableEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { bar: { nendsWith: \"atest\" }}){ bar }}";
@@ -753,5 +738,23 @@ public class Neo4JStringFilterTests
                         Snapshot
                             .Create(), res1, "atest"), res2, "btest"), res3, "null")
             .MatchAsync();
+    }
+
+    public class FooString
+    {
+        public string Bar { get; set; }
+    }
+
+    public class FooStringFilterType : FilterInputType<FooString>
+    {
+    }
+
+    public class FooStringNullable
+    {
+        public string? Bar { get; set; }
+    }
+
+    public class FooStringNullableFilterType : FilterInputType<FooStringNullable>
+    {
     }
 }

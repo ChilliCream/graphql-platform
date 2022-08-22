@@ -1,8 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.Data.Neo4J.Integration.Tests</AssemblyName>
-    <RootNamespace>HotChocolate.Data.Neo4J.Integration</RootNamespace>
 
     <!-- Outputs the generated code to the bin directory.  -->
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
@@ -16,7 +15,11 @@
     <ProjectReference Include="..\..\src\Data\HotChocolate.Data.Neo4J.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Abstractions\HotChocolate.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
-    <ProjectReference Include="..\..\..\Analyzers\src\Analyzers\HotChocolate.Analyzers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+    <ProjectReference Include="..\..\..\Analyzers\src\Analyzers\HotChocolate.Analyzers.csproj"
+                      ReferenceOutputAssembly="false"
+                      OutputItemType="Analyzer"
+                      SetTargetFramework="TargetFramework=netstandard2.0" />
+    <ProjectReference Include="..\HotChocolate.Data.Neo4J.Testing\HotChocolate.Data.Neo4J.Testing.csproj" />
   </ItemGroup>
 
   <!--This item group needs to be in the consuming project.-->

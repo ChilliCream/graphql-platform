@@ -1,17 +1,17 @@
 type Movie {
   title: String!
-  generes: [Actor!]!
+  genres: [Actor!]!
     @relationship(name: "ACTED_IN", direction: IN)
 }
 
 type Actor {
   name: String!
-  actedIn: [Movie!]! 
+  actedIn: [Movie!]!
     @relationship(name: "ACTED_IN", direction: OUT)
 }
 
 schema
-  @paging(kind: NONE) 
+  @paging(kind: OFFSET)
   @filtering
   @sorting
 {

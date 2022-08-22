@@ -5,7 +5,7 @@
     "neo4j": {
       "name": "Movie",
       "databaseName": "neo4j",
-      "namespace": "HotChocolate.Data.Neo4J.Integration.SchemaFirst"
+      "namespace": "HotChocolate.Data.Neo4J.Integration.Tests.SchemaFirst"
     }
   }
 }

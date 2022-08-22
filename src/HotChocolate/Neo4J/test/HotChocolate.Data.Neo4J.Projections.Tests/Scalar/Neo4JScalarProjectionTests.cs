@@ -1,15 +1,18 @@
 ﻿using CookieCrumble;
+using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Data.Neo4J.Projections.Scalar;
+namespace HotChocolate.Data.Neo4J.Projections.Tests.Scalar;
 
-[Collection("Database")]
-public class Neo4JScalarProjectionTest
+[Collection(Neo4JDatabaseCollectionFixture.DefinitionName)]
+public class Neo4JScalarProjectionTest : IClassFixture<Neo4JFixture>
 {
+    private readonly Neo4JDatabase _database;
     private readonly Neo4JFixture _fixture;
 
-    public Neo4JScalarProjectionTest(Neo4JFixture fixture)
+    public Neo4JScalarProjectionTest(Neo4JDatabase database, Neo4JFixture fixture)
     {
+        _database = database;
         _fixture = fixture;
     }
 
@@ -17,17 +20,11 @@ public class Neo4JScalarProjectionTest
             CREATE (:FooScalar {Bar: true, Baz: 'a'}), (:FooScalar {Bar: false, Baz: 'b'})
         ";
 
-    public class FooScalar
-    {
-        public bool Bar { get; set; }
-        public string Baz { get; set; } = null!;
-    }
-
     [Fact]
     public async Task Create_ProjectsTwoProperties_Expression()
     {
         // arrange
-        var tester = await _fixture.GetOrCreateSchema<FooScalar>(_fooEntitiesCypher);
+        var tester = await _fixture.Arrange<FooScalar>(_database, _fooEntitiesCypher);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -46,7 +43,7 @@ public class Neo4JScalarProjectionTest
     public async Task Create_ProjectsOneProperty_Expression()
     {
         // arrange
-        var tester = await _fixture.GetOrCreateSchema<FooScalar>(_fooEntitiesCypher);
+        var tester = await _fixture.Arrange<FooScalar>(_database, _fooEntitiesCypher);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -59,5 +56,11 @@ public class Neo4JScalarProjectionTest
                 Snapshot
                     .Create(), res1)
             .MatchAsync();
+    }
+
+    public class FooScalar
+    {
+        public bool Bar { get; set; }
+        public string Baz { get; set; } = null!;
     }
 }

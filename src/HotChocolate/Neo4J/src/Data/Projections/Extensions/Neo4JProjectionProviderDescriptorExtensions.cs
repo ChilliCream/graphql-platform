@@ -33,6 +33,7 @@ public static class Neo4JProjectionProviderDescriptorExtensions
 
         descriptor.RegisterFieldHandler<Neo4JProjectionScalarHandler>();
         descriptor.RegisterFieldHandler<Neo4JProjectionFieldHandler>();
+        descriptor.RegisterOptimizer<QueryablePagingProjectionOptimizer>();
         descriptor.RegisterOptimizer<IsProjectedProjectionOptimizer>();
         return descriptor;
     }

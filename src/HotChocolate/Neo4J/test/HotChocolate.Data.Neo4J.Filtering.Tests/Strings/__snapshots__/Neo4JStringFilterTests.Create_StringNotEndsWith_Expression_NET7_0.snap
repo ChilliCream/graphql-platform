@@ -34,7 +34,7 @@ btest Query:
 MATCH (fooString:FooString) WHERE NOT (fooString.Bar ENDS WITH 'btest') RETURN fooString {.Bar}
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

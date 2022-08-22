@@ -1,15 +1,16 @@
-using System.Diagnostics;
 using HotChocolate.Data.Neo4J.Execution;
+using HotChocolate.Data.Neo4J.Integration.Tests.AnnotationBased.Models;
 using HotChocolate.Types;
 using Neo4j.Driver;
 
-namespace HotChocolate.Data.Neo4J.Integration.AnnotationBased;
+namespace HotChocolate.Data.Neo4J.Integration.Tests.AnnotationBased.Schema;
 
 [ExtendObjectType("Query")]
 public class Queries
 {
     [GraphQLName("actors")]
     [UseNeo4JDatabase(databaseName: "neo4j")]
+    [UseOffsetPaging]
     [UseProjection]
     [UseFiltering]
     [UseSorting]
@@ -19,6 +20,7 @@ public class Queries
 
     [GraphQLName("movies")]
     [UseNeo4JDatabase(databaseName: "neo4j")]
+    [UseOffsetPaging]
     [UseProjection]
     [UseFiltering]
     [UseSorting]

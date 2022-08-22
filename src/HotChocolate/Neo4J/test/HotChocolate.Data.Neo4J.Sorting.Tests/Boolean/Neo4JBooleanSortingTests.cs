@@ -1,19 +1,19 @@
-﻿using System.Threading.Tasks;
-using CookieCrumble;
+﻿using CookieCrumble;
+using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
-using Squadron;
-using Xunit;
 
-namespace HotChocolate.Data.Neo4J.Sorting.Boolean;
+namespace HotChocolate.Data.Neo4J.Sorting.Tests.Boolean;
 
-[Collection("Database")]
-public class Neo4JBooleanSortingTests
+[Collection(Neo4JDatabaseCollectionFixture.DefinitionName)]
+public class Neo4JBooleanSortingTests : IClassFixture<Neo4JFixture>
 {
+    private readonly Neo4JDatabase _database;
     private readonly Neo4JFixture _fixture;
 
-    public Neo4JBooleanSortingTests(Neo4JFixture fixture)
+    public Neo4JBooleanSortingTests(Neo4JDatabase database, Neo4JFixture fixture)
     {
+        _database = database;
         _fixture = fixture;
     }
 
@@ -21,21 +21,12 @@ public class Neo4JBooleanSortingTests
             CREATE (:FooBool {Bar: true}), (:FooBool {Bar: false})
         ";
 
-    public class FooBool
-    {
-        public bool Bar { get; set; }
-    }
-
-    public class FooBoolSortType : SortInputType<FooBool>
-    {
-    }
-
     [Fact]
     public async Task Create_Boolean_OrderBy()
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooBool, FooBoolSortType>(_fooEntitiesCypher);
+            await _fixture.Arrange<FooBool, FooBoolSortType>(_database, _fooEntitiesCypher);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -54,5 +45,14 @@ public class Neo4JBooleanSortingTests
                     Snapshot
                         .Create(), res1, "ASC"), res2, "DESC")
             .MatchAsync();
+    }
+
+    public class FooBool
+    {
+        public bool Bar { get; set; }
+    }
+
+    public class FooBoolSortType : SortInputType<FooBool>
+    {
     }
 }

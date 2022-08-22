@@ -61,7 +61,7 @@ MATCH (fooCompNullable:FooCompNullable) WHERE fooCompNullable.BarShort >= 13 RET
 MATCH (fooCompNullable:FooCompNullable) WHERE fooCompNullable.BarShort >= 14 RETURN fooCompNullable {.BarShort}
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

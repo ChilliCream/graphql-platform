@@ -1,11 +1,20 @@
 using CookieCrumble;
+using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Data.Neo4J.Paging;
+namespace HotChocolate.Data.Neo4J.Paging.Tests.Offset;
 
+[Collection(Neo4JDatabaseCollectionFixture.DefinitionName)]
 public class Neo4JOffsetPagingTests : IClassFixture<Neo4JFixture>
 {
+    private readonly Neo4JDatabase _database;
     private readonly Neo4JFixture _fixture;
+
+    public Neo4JOffsetPagingTests(Neo4JDatabase database, Neo4JFixture fixture)
+    {
+        _database = database;
+        _fixture = fixture;
+    }
 
     private const string FooEntitiesCypher = @"
             CREATE
@@ -15,21 +24,11 @@ public class Neo4JOffsetPagingTests : IClassFixture<Neo4JFixture>
                 (:Foo {Bar: 'e'}),
                 (:Foo {Bar: 'f'})";
 
-    private sealed class Foo
-    {
-        public string Bar { get; set; } = default!;
-    }
-
-    public Neo4JOffsetPagingTests(Neo4JFixture fixture)
-    {
-        _fixture = fixture;
-    }
-
     [Fact]
     public async Task OffsetPaging_SchemaSnapshot()
     {
         // arrange
-        var tester = await _fixture.GetOrCreateSchema<Foo>(FooEntitiesCypher);
+        var tester = await _fixture.Arrange<Foo>(_database, FooEntitiesCypher);
         tester.Schema.MatchSnapshot();
     }
 
@@ -37,10 +36,9 @@ public class Neo4JOffsetPagingTests : IClassFixture<Neo4JFixture>
     public async Task Simple_StringList_Default_Items()
     {
         // arrange
-        var tester = await _fixture.GetOrCreateSchema<Foo>(FooEntitiesCypher);
+        var tester = await _fixture.Arrange<Foo>(_database, FooEntitiesCypher);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             @"{
                 root {
@@ -64,7 +62,7 @@ public class Neo4JOffsetPagingTests : IClassFixture<Neo4JFixture>
     public async Task Simple_StringList_Take_2()
     {
         // arrange
-        var tester = await _fixture.GetOrCreateSchema<Foo>(FooEntitiesCypher);
+        var tester = await _fixture.Arrange<Foo>(_database, FooEntitiesCypher);
 
         //act
         var result = await tester.ExecuteAsync(
@@ -91,7 +89,7 @@ public class Neo4JOffsetPagingTests : IClassFixture<Neo4JFixture>
     public async Task Simple_StringList_Take_2_After()
     {
         // arrange
-        var tester = await _fixture.GetOrCreateSchema<Foo>(FooEntitiesCypher);
+        var tester = await _fixture.Arrange<Foo>(_database, FooEntitiesCypher);
 
         // act
         var result = await tester.ExecuteAsync(
@@ -112,5 +110,10 @@ public class Neo4JOffsetPagingTests : IClassFixture<Neo4JFixture>
                 Snapshot
                     .Create(), result)
             .MatchAsync();
+    }
+
+    private sealed class Foo
+    {
+        public string Bar { get; set; } = default!;
     }
 }

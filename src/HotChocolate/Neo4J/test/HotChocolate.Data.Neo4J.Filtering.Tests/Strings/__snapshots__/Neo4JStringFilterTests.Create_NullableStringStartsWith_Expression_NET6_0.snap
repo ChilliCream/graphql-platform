@@ -34,7 +34,7 @@ testb Query:
 MATCH (fooStringNullable:FooStringNullable) WHERE fooStringNullable.Bar STARTS WITH 'testb' RETURN fooStringNullable {.Bar}
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

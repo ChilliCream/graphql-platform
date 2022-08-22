@@ -34,7 +34,7 @@ b Query:
 MATCH (fooStringNullable:FooStringNullable) WHERE NOT (fooStringNullable.Bar CONTAINS 'b') RETURN fooStringNullable {.Bar}
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

@@ -1,15 +1,12 @@
-using System.Threading.Tasks;
+using HotChocolate.Data.Neo4J.Integration.Tests.AnnotationBased.Schema;
+using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
-using Neo4j.Driver;
-using Squadron;
 
-namespace HotChocolate.Data.Neo4J.Integration.AnnotationBased;
+namespace HotChocolate.Data.Neo4J.Integration.Tests.AnnotationBased;
 
-public class Neo4JFixture : Neo4jResource<Neo4JConfig>
+public class Neo4JFixture : Neo4JFixtureBase
 {
-    private bool _databaseSeeded;
-
     private string seedCypher = @"
             CREATE (TheMatrix:Movie {Title:'The Matrix', Released:1999, Tagline:'Welcome to the Real World'})
             CREATE (Keanu:Actor {Name:'Keanu Reeves', Born:1964})
@@ -52,17 +49,16 @@ public class Neo4JFixture : Neo4jResource<Neo4JConfig>
               (JoelS)-[:PRODUCED]->(TheMatrixRevolutions)
         ";
 
-    public async Task<IRequestExecutor> CreateSchema()
+    public async Task<IRequestExecutor> CreateSchema(Neo4JDatabase database)
     {
-        var session = GetAsyncSession();
-        var cursor = await session.RunAsync(seedCypher);
-        await cursor.ConsumeAsync();
+        await ResetDatabase(database, seedCypher);
 
         return await new ServiceCollection()
-            .AddSingleton(Driver)
+            .AddSingleton(database.Driver)
             .AddGraphQL()
             .AddQueryType(d => d.Name("Query"))
             .AddType<Queries>()
+            .AddNeo4JPagingProviders()
             .AddNeo4JProjections()
             .AddNeo4JFiltering()
             .AddNeo4JSorting()

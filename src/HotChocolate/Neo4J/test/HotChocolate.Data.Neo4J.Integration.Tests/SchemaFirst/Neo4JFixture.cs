@@ -1,12 +1,11 @@
 using System.Threading.Tasks;
+using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
-using Neo4j.Driver;
-using Squadron;
 
-namespace HotChocolate.Data.Neo4J.Integration.SchemaFirst;
+namespace HotChocolate.Data.Neo4J.Integration.Tests.SchemaFirst;
 
-public class Neo4JFixture : Neo4jResource<Neo4JConfig>
+public class Neo4JFixture : Neo4JFixtureBase
 {
     private readonly string _seedCypher = @"
         CREATE (TheMatrix:Movie {Title:'The Matrix', Released:1999, Tagline:'Welcome to the Real World'})
@@ -49,14 +48,12 @@ public class Neo4JFixture : Neo4jResource<Neo4JConfig>
           (LanaW)-[:DIRECTED]->(TheMatrixRevolutions),
           (JoelS)-[:PRODUCED]->(TheMatrixRevolutions)";
 
-    public async Task<IRequestExecutor> CreateSchema()
+    public async Task<IRequestExecutor> Arrange(Neo4JDatabase database)
     {
-        var session = GetAsyncSession();
-        var cursor = await session.RunAsync(_seedCypher);
-        await cursor.ConsumeAsync();
+        await ResetDatabase(database, _seedCypher);
 
         return await new ServiceCollection()
-            .AddSingleton(Driver)
+            .AddSingleton(database.Driver)
             .AddGraphQL()
             .AddQueryType()
             .AddMovieTypes()

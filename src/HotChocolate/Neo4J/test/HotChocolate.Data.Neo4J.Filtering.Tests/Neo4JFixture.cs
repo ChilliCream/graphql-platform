@@ -1,72 +1,52 @@
-using System;
 using System.Collections.Concurrent;
-using System.Threading.Tasks;
 using HotChocolate.Data.Filters;
-using HotChocolate.Data.Neo4J.Execution;
+using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Neo4j.Driver;
-using Squadron;
 
-namespace HotChocolate.Data.Neo4J.Filtering;
+namespace HotChocolate.Data.Neo4J.Filtering.Tests;
 
-public class Neo4JFixture : Neo4jResource<Neo4JConfig>
+public class Neo4JFixture : Neo4JFixtureBase
 {
-    private readonly ConcurrentDictionary<(Type, object), Task<IRequestExecutor>> _cache =
-        new ConcurrentDictionary<(Type, object), Task<IRequestExecutor>>();
+    private readonly ConcurrentDictionary<(Type, string), Task<IRequestExecutor>> _cache =
+        new();
 
-    public Task<IRequestExecutor> GetOrCreateSchema<T, TType>(string cypher)
-        where T : class
-        where TType : FilterInputType<T>
+    public async Task<IRequestExecutor> Arrange<TEntity, TFilter>(Neo4JDatabase database, string cypher)
+        where TEntity : class
+        where TFilter : FilterInputType
     {
-        (Type, Type) key = (typeof(T), typeof(TType));
-        return _cache.GetOrAdd(
-            key,
-            _ => CreateSchema<T, TType>(cypher));
+        await ResetDatabase(database, cypher);
+
+        return await GetOrCreateSchema<TEntity, TFilter>(database, cypher);
     }
 
-    private async Task<IRequestExecutor> CreateSchema<TEntity, T>(string cypher)
+    private Task<IRequestExecutor> GetOrCreateSchema<TEntity, TFilter>(Neo4JDatabase database, string cypher)
         where TEntity : class
-        where T : FilterInputType<TEntity>
+        where TFilter : FilterInputType
     {
-        var session = GetAsyncSession();
-        var cursor = await session.RunAsync(cypher);
-        await cursor.ConsumeAsync();
+        (Type, string) key = (typeof(TEntity), cypher);
 
+        return _cache.GetOrAdd(
+            key,
+            k => CreateSchema<TEntity, TFilter>(database));
+    }
+
+    private static async Task<IRequestExecutor> CreateSchema<TEntity, TFilter>(Neo4JDatabase database)
+        where TEntity : class
+    {
         return await new ServiceCollection()
             .AddGraphQL()
             .AddNeo4JProjections()
-            .AddFiltering(x => x.BindRuntimeType<TEntity, T>().AddNeo4JDefaults())
+            .AddFiltering(x => x.BindRuntimeType(typeof(TEntity), typeof(TFilter)).AddNeo4JDefaults())
             .AddQueryType(
                 c => c
                     .Name("Query")
                     .Field("root")
-                    .Resolve(new Neo4JExecutable<TEntity>(GetAsyncSession()))
-                    .Use(
-                        next => async context =>
-                        {
-                            await next(context);
-                            if (context.Result is IExecutable executable)
-                            {
-                                context.ContextData["query"] = executable.Print();
-                            }
-                        })
-                    .UseFiltering<T>()
+                    .SetupNeo4JTestField<TEntity>(database.GetAsyncSession)
+                    .UseFiltering<TFilter>()
                     .UseProjection())
-            .UseRequest(
-                next => async context =>
-                {
-                    await next(context);
-                    if (context.ContextData.TryGetValue("query", out var queryString))
-                    {
-                        context.Result =
-                            QueryResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
-                                .SetContextData("query", queryString)
-                                .Create();
-                    }
-                })
+            .SetupNeo4JTestResponse<TEntity>()
             .UseDefaultPipeline()
             .ModifyOptions(o => o.ValidatePipelineOrder = false)
             .Services

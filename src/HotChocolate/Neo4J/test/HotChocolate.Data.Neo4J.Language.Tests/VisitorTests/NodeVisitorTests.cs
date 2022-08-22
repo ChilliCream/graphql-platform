@@ -1,6 +1,6 @@
 using CookieCrumble;
 
-namespace HotChocolate.Data.Neo4J.Language;
+namespace HotChocolate.Data.Neo4J.Language.Tests.VisitorTests;
 
 public class NodeVisitorTests
 {

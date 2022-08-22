@@ -12,7 +12,7 @@ testatestAndtestb Query:
 MATCH (fooString:FooString) WHERE NOT (fooString.Bar IN [ "testatest", "testbtest" ]) RETURN fooString {.Bar}
 ---------------
 
-testbtestAndNull Result:
+testbtestAndNull
 ---------------
 {
   "errors": [

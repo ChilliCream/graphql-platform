@@ -34,7 +34,7 @@ testbtest Query:
 MATCH (fooString:FooString) WHERE fooString.Bar <> 'testbtest' RETURN fooString {.Bar}
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

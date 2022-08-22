@@ -1,16 +1,19 @@
 ﻿using CookieCrumble;
+using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Data.Neo4J.Sorting.Boolean;
+namespace HotChocolate.Data.Neo4J.Sorting.Tests.Comparables;
 
-[Collection("Database")]
-public class Neo4JComparablesSortingTests
+[Collection(Neo4JDatabaseCollectionFixture.DefinitionName)]
+public class Neo4JComparablesSortingTests : IClassFixture<Neo4JFixture>
 {
+    private readonly Neo4JDatabase _database;
     private readonly Neo4JFixture _fixture;
 
-    public Neo4JComparablesSortingTests(Neo4JFixture fixture)
+    public Neo4JComparablesSortingTests(Neo4JDatabase database, Neo4JFixture fixture)
     {
+        _database = database;
         _fixture = fixture;
     }
 
@@ -18,21 +21,12 @@ public class Neo4JComparablesSortingTests
             CREATE (:FooComp {Bar: 12}), (:FooComp {Bar: 14}), (:FooComp {Bar: 13})
         ";
 
-    public class FooComp
-    {
-        public short Bar { get; set; }
-    }
-
-    public class FooCompSortType : SortInputType<FooComp>
-    {
-    }
-
     [Fact]
     public async Task Create_Short_OrderBy()
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooComp, FooCompSortType>(_fooEntitiesCypher);
+            await _fixture.Arrange<FooComp, FooCompSortType>(_database, _fooEntitiesCypher);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -51,5 +45,14 @@ public class Neo4JComparablesSortingTests
                     Snapshot
                         .Create(), res1, "ASC"), res2, "DESC")
             .MatchAsync();
+    }
+
+    public class FooComp
+    {
+        public short Bar { get; set; }
+    }
+
+    public class FooCompSortType : SortInputType<FooComp>
+    {
     }
 }

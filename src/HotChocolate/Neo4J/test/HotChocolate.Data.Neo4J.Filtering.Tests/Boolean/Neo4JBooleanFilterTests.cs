@@ -1,18 +1,19 @@
-﻿using System.Threading.Tasks;
-using CookieCrumble;
+﻿using CookieCrumble;
 using HotChocolate.Data.Filters;
+using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Execution;
-using Xunit;
 
-namespace HotChocolate.Data.Neo4J.Filtering;
+namespace HotChocolate.Data.Neo4J.Filtering.Tests.Boolean;
 
-[Collection("Database")]
-public class Neo4JBooleanFilterTests
+[Collection(Neo4JDatabaseCollectionFixture.DefinitionName)]
+public class Neo4JBooleanFilterTests : IClassFixture<Neo4JFixture>
 {
+    private readonly Neo4JDatabase _database;
     private readonly Neo4JFixture _fixture;
 
-    public Neo4JBooleanFilterTests(Neo4JFixture fixture)
+    public Neo4JBooleanFilterTests(Neo4JDatabase database, Neo4JFixture fixture)
     {
+        _database = database;
         _fixture = fixture;
     }
 
@@ -25,30 +26,12 @@ public class Neo4JBooleanFilterTests
             (:FooBoolNullable {Bar: false}),
             (:FooBoolNullable {Bar: NULL})";
 
-    public class FooBool
-    {
-        public bool Bar { get; set; }
-    }
-
-    public class FooBoolNullable
-    {
-        public bool? Bar { get; set; }
-    }
-
-    public class FooBoolFilterType : FilterInputType<FooBool>
-    {
-    }
-
-    public class FooBoolNullableFilterType : FilterInputType<FooBoolNullable>
-    {
-    }
-
     [Fact]
     public async Task Create_BooleanEqual_Expression()
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooBool, FooBoolFilterType>(_fooEntitiesCypher);
+            await _fixture.Arrange<FooBool, FooBoolFilterType>(_database, _fooEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { bar: { eq: true}}){ bar }}";
@@ -66,8 +49,9 @@ public class Neo4JBooleanFilterTests
         // assert
         await SnapshotExtensions.AddResult(
                 SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "true"), res2, "false")
+                    Snapshot.Create(),
+                    res1, "true"),
+                res2, "false")
             .MatchAsync();
     }
 
@@ -76,11 +60,12 @@ public class Neo4JBooleanFilterTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooBool, FooBoolFilterType>(_fooEntitiesCypher);
+            await _fixture.Arrange<FooBool, FooBoolFilterType>(_database, _fooEntitiesCypher);
 
         // act
         const string query1 =
             "{ root(where: {and: [{ bar: { eq: true}}, { bar: { eq: false}}]} ){ bar }}";
+
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(query1)
@@ -88,8 +73,8 @@ public class Neo4JBooleanFilterTests
 
         // assert
         await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1, "and")
+                Snapshot.Create(),
+                res1, "and")
             .MatchAsync();
     }
 
@@ -98,7 +83,7 @@ public class Neo4JBooleanFilterTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooBool, FooBoolFilterType>(_fooEntitiesCypher);
+            await _fixture.Arrange<FooBool, FooBoolFilterType>(_database, _fooEntitiesCypher);
 
         // act
         const string query1 =
@@ -110,8 +95,8 @@ public class Neo4JBooleanFilterTests
 
         // assert
         await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1, "or")
+                Snapshot.Create(),
+                res1, "or")
             .MatchAsync();
     }
 
@@ -120,7 +105,7 @@ public class Neo4JBooleanFilterTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooBool, FooBoolFilterType>(_fooEntitiesCypher);
+            await _fixture.Arrange<FooBool, FooBoolFilterType>(_database, _fooEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { bar: { neq: true}}){ bar}}";
@@ -138,8 +123,9 @@ public class Neo4JBooleanFilterTests
         // assert
         await SnapshotExtensions.AddResult(
                 SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "true"), res2, "false")
+                    Snapshot.Create(),
+                    res1, "true"),
+                res2, "false")
             .MatchAsync();
     }
 
@@ -148,8 +134,8 @@ public class Neo4JBooleanFilterTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooBoolNullable, FooBoolNullableFilterType>(
-                _fooEntitiesNullableCypher);
+            await _fixture.Arrange<FooBoolNullable, FooBoolNullableFilterType>(
+                _database, _fooEntitiesNullableCypher);
 
         // act
         const string query1 = "{ root(where: { bar: { eq: true}}){ bar }}";
@@ -174,8 +160,10 @@ public class Neo4JBooleanFilterTests
         await SnapshotExtensions.AddResult(
                 SnapshotExtensions.AddResult(
                     SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "true"), res2, "false"), res3, "null")
+                        Snapshot.Create(),
+                        res1, "true"),
+                    res2, "false"),
+                res3, "null")
             .MatchAsync();
     }
 
@@ -184,8 +172,8 @@ public class Neo4JBooleanFilterTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooBoolNullable, FooBoolNullableFilterType>(
-                _fooEntitiesNullableCypher);
+            await _fixture.Arrange<FooBoolNullable, FooBoolNullableFilterType>(
+                _database, _fooEntitiesNullableCypher);
 
         // act
         const string query1 = "{ root(where: { bar: { neq: true}}){ bar }}";
@@ -210,8 +198,28 @@ public class Neo4JBooleanFilterTests
         await SnapshotExtensions.AddResult(
                 SnapshotExtensions.AddResult(
                     SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "true"), res2, "false"), res3, "null")
+                        Snapshot.Create(),
+                        res1, "true"),
+                    res2, "false"),
+                res3, "null")
             .MatchAsync();
+    }
+
+    public class FooBool
+    {
+        public bool Bar { get; set; }
+    }
+
+    public class FooBoolNullable
+    {
+        public bool? Bar { get; set; }
+    }
+
+    public class FooBoolFilterType : FilterInputType<FooBool>
+    {
+    }
+
+    public class FooBoolNullableFilterType : FilterInputType<FooBoolNullable>
+    {
     }
 }

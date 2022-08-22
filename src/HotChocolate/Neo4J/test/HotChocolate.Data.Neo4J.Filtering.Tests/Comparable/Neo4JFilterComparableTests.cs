@@ -1,17 +1,20 @@
 using CookieCrumble;
 using HotChocolate.Data.Filters;
+using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 
-namespace HotChocolate.Data.Neo4J.Filtering;
+namespace HotChocolate.Data.Neo4J.Filtering.Tests.Comparable;
 
-[Collection("Database")]
-public class Neo4JFilterComparableTests
+[Collection(Neo4JDatabaseCollectionFixture.DefinitionName)]
+public class Neo4JFilterComparableTests : IClassFixture<Neo4JFixture>
 {
+    private readonly Neo4JDatabase _database;
     private readonly Neo4JFixture _fixture;
 
-    public Neo4JFilterComparableTests(Neo4JFixture fixture)
+    public Neo4JFilterComparableTests(Neo4JDatabase database, Neo4JFixture fixture)
     {
+        _database = database;
         _fixture = fixture;
     }
 
@@ -25,44 +28,12 @@ public class Neo4JFilterComparableTests
             (:FooCompNullable {BarShort: 14}),
             (:FooCompNullable {BarShort: 13})";
 
-    public class FooComp
-    {
-        public short BarShort { get; set; }
-
-        public int BarInt { get; set; }
-
-        public long BarLong { get; set; }
-
-        public float BarFloat { get; set; }
-
-        public double BarDouble { get; set; }
-
-        public decimal BarDecimal { get; set; }
-
-        public DateTime BarDateTime { get; set; }
-    }
-
-    public class FooCompNullable
-    {
-        public short? BarShort { get; set; }
-
-        public DateTime? BarDateTime { get; set; }
-    }
-
-    public class FooCompFilterType : FilterInputType<FooComp>
-    {
-    }
-
-    public class FooCompNullableFilterType : FilterInputType<FooCompNullable>
-    {
-    }
-
     [Fact]
     public async Task Create_ShortEqual_Expression()
     {
         // arrange
-        var tester = await _fixture.GetOrCreateSchema<FooComp, FooCompFilterType>(
-            _fooEntitiesCypher);
+        var tester = await _fixture.Arrange<FooComp, FooCompFilterType>(
+            _database, _fooEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { barShort: { eq: 12}}){ barShort }}";
@@ -87,8 +58,10 @@ public class Neo4JFilterComparableTests
         await SnapshotExtensions.AddResult(
                 SnapshotExtensions.AddResult(
                     SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "12"), res2, "13"), res3, "null")
+                        Snapshot.Create(),
+                        res1, "12"),
+                    res2, "13"),
+                res3, "null")
             .MatchAsync();
     }
 
@@ -96,8 +69,8 @@ public class Neo4JFilterComparableTests
     public async Task Create_ShortNotEqual_Expression()
     {
         // arrange
-        var tester = await _fixture.GetOrCreateSchema<FooComp, FooCompFilterType>(
-            _fooEntitiesCypher);
+        var tester = await _fixture.Arrange<FooComp, FooCompFilterType>(
+            _database, _fooEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { barShort: { neq: 12}}){ barShort }}";
@@ -122,8 +95,10 @@ public class Neo4JFilterComparableTests
         await SnapshotExtensions.AddResult(
                 SnapshotExtensions.AddResult(
                     SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "12"), res2, "13"), res3, "null")
+                        Snapshot.Create(),
+                        res1, "12"),
+                    res2, "13"),
+                res3, "null")
             .MatchAsync();
     }
 
@@ -131,8 +106,8 @@ public class Neo4JFilterComparableTests
     public async Task Create_ShortGreaterThan_Expression()
     {
         // arrange
-        var tester = await _fixture.GetOrCreateSchema<FooComp, FooCompFilterType>(
-            _fooEntitiesCypher);
+        var tester = await _fixture.Arrange<FooComp, FooCompFilterType>(
+            _database, _fooEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { barShort: { gt: 12}}){ barShort}}";
@@ -164,8 +139,11 @@ public class Neo4JFilterComparableTests
                 SnapshotExtensions.AddResult(
                     SnapshotExtensions.AddResult(
                         SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+                            Snapshot.Create(),
+                            res1, "12"),
+                        res2, "13"),
+                    res3, "14"),
+                res4, "null")
             .MatchAsync();
     }
 
@@ -173,8 +151,8 @@ public class Neo4JFilterComparableTests
     public async Task Create_ShortNotGreaterThan_Expression()
     {
         // arrange
-        var tester = await _fixture.GetOrCreateSchema<FooComp, FooCompFilterType>(
-            _fooEntitiesCypher);
+        var tester = await _fixture.Arrange<FooComp, FooCompFilterType>(
+            _database, _fooEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { barShort: { ngt: 12}}){ barShort}}";
@@ -206,8 +184,11 @@ public class Neo4JFilterComparableTests
                 SnapshotExtensions.AddResult(
                     SnapshotExtensions.AddResult(
                         SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+                            Snapshot.Create(),
+                            res1, "12"),
+                        res2, "13"),
+                    res3, "14"),
+                res4, "null")
             .MatchAsync();
     }
 
@@ -215,8 +196,8 @@ public class Neo4JFilterComparableTests
     public async Task Create_ShortGreaterThanOrEquals_Expression()
     {
         // arrange
-        var tester = await _fixture.GetOrCreateSchema<FooComp, FooCompFilterType>(
-            _fooEntitiesCypher);
+        var tester = await _fixture.Arrange<FooComp, FooCompFilterType>(
+            _database, _fooEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { barShort: { gte: 12}}){ barShort}}";
@@ -248,8 +229,11 @@ public class Neo4JFilterComparableTests
                 SnapshotExtensions.AddResult(
                     SnapshotExtensions.AddResult(
                         SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+                            Snapshot.Create(),
+                            res1, "12"),
+                        res2, "13"),
+                    res3, "14"),
+                res4, "null")
             .MatchAsync();
     }
 
@@ -257,8 +241,8 @@ public class Neo4JFilterComparableTests
     public async Task Create_ShortNotGreaterThanOrEquals_Expression()
     {
         // arrange
-        var tester = await _fixture.GetOrCreateSchema<FooComp, FooCompFilterType>(
-            _fooEntitiesCypher);
+        var tester = await _fixture.Arrange<FooComp, FooCompFilterType>(
+            _database, _fooEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { barShort: { ngte: 12}}){ barShort}}";
@@ -290,8 +274,11 @@ public class Neo4JFilterComparableTests
                 SnapshotExtensions.AddResult(
                     SnapshotExtensions.AddResult(
                         SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+                            Snapshot.Create(),
+                            res1, "12"),
+                        res2, "13"),
+                    res3, "14"),
+                res4, "null")
             .MatchAsync();
     }
 
@@ -299,8 +286,8 @@ public class Neo4JFilterComparableTests
     public async Task Create_ShortLowerThan_Expression()
     {
         // arrange
-        var tester = await _fixture.GetOrCreateSchema<FooComp, FooCompFilterType>(
-            _fooEntitiesCypher);
+        var tester = await _fixture.Arrange<FooComp, FooCompFilterType>(
+            _database, _fooEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { barShort: { lt: 12}}){ barShort }}";
@@ -332,8 +319,11 @@ public class Neo4JFilterComparableTests
                 SnapshotExtensions.AddResult(
                     SnapshotExtensions.AddResult(
                         SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+                            Snapshot.Create(),
+                            res1, "12"),
+                        res2, "13"),
+                    res3, "14"),
+                res4, "null")
             .MatchAsync();
     }
 
@@ -341,8 +331,8 @@ public class Neo4JFilterComparableTests
     public async Task Create_ShortNotLowerThan_Expression()
     {
         // arrange
-        var tester = await _fixture.GetOrCreateSchema<FooComp, FooCompFilterType>(
-            _fooEntitiesCypher);
+        var tester = await _fixture.Arrange<FooComp, FooCompFilterType>(
+            _database, _fooEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { barShort: { nlt: 12}}){ barShort }}";
@@ -374,8 +364,11 @@ public class Neo4JFilterComparableTests
                 SnapshotExtensions.AddResult(
                     SnapshotExtensions.AddResult(
                         SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+                            Snapshot.Create(),
+                            res1, "12"),
+                        res2, "13"),
+                    res3, "14"),
+                res4, "null")
             .MatchAsync();
     }
 
@@ -383,8 +376,8 @@ public class Neo4JFilterComparableTests
     public async Task Create_ShortLowerThanOrEquals_Expression()
     {
         // arrange
-        var tester = await _fixture.GetOrCreateSchema<FooComp, FooCompFilterType>(
-            _fooEntitiesCypher);
+        var tester = await _fixture.Arrange<FooComp, FooCompFilterType>(
+            _database, _fooEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { barShort: { lte: 12}}){ barShort}}";
@@ -416,8 +409,11 @@ public class Neo4JFilterComparableTests
                 SnapshotExtensions.AddResult(
                     SnapshotExtensions.AddResult(
                         SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+                            Snapshot.Create(),
+                            res1, "12"),
+                        res2, "13"),
+                    res3, "14"),
+                res4, "null")
             .MatchAsync();
     }
 
@@ -425,8 +421,8 @@ public class Neo4JFilterComparableTests
     public async Task Create_ShortNotLowerThanOrEquals_Expression()
     {
         // arrange
-        var tester = await _fixture.GetOrCreateSchema<FooComp, FooCompFilterType>(
-            _fooEntitiesCypher);
+        var tester = await _fixture.Arrange<FooComp, FooCompFilterType>(
+            _database, _fooEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { barShort: { nlte: 12}}){ barShort}}";
@@ -458,8 +454,11 @@ public class Neo4JFilterComparableTests
                 SnapshotExtensions.AddResult(
                     SnapshotExtensions.AddResult(
                         SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+                            Snapshot.Create(),
+                            res1, "12"),
+                        res2, "13"),
+                    res3, "14"),
+                res4, "null")
             .MatchAsync();
     }
 
@@ -467,7 +466,7 @@ public class Neo4JFilterComparableTests
     public async Task Create_ShortIn_Expression()
     {
         // arrange
-        var tester = await _fixture.GetOrCreateSchema<FooComp, FooCompFilterType>(_fooEntitiesCypher);
+        var tester = await _fixture.Arrange<FooComp, FooCompFilterType>(_database, _fooEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { barShort: { in: [ 12, 13 ]}}){ barShort }}";
@@ -492,8 +491,10 @@ public class Neo4JFilterComparableTests
         await SnapshotExtensions.AddResult(
                 SnapshotExtensions.AddResult(
                     SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "12and13"), res2, "13and14"), res3, "13and14")
+                        Snapshot.Create(),
+                        res1, "12and13"),
+                    res2, "13and14"),
+                res3, "13and14")
             .MatchAsync();
     }
 
@@ -502,7 +503,7 @@ public class Neo4JFilterComparableTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooComp, FooCompFilterType>(_fooEntitiesCypher);
+            await _fixture.Arrange<FooComp, FooCompFilterType>(_database, _fooEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { barShort: { nin: [ 12, 13 ]}}){ barShort }}";
@@ -527,8 +528,10 @@ public class Neo4JFilterComparableTests
         await SnapshotExtensions.AddResult(
                 SnapshotExtensions.AddResult(
                     SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "12and13"), res2, "13and14"), res3, "nullAnd14")
+                        Snapshot.Create(),
+                        res1, "12and13"),
+                    res2, "13and14"),
+                res3, "nullAnd14")
             .MatchAsync();
     }
 
@@ -537,8 +540,8 @@ public class Neo4JFilterComparableTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooCompNullable, FooCompNullableFilterType>(
-                _fooNullableEntitiesCypher);
+            await _fixture.Arrange<FooCompNullable, FooCompNullableFilterType>(
+                _database, _fooNullableEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { barShort: { eq: 12}}){ barShort }}";
@@ -563,8 +566,10 @@ public class Neo4JFilterComparableTests
         await SnapshotExtensions.AddResult(
                 SnapshotExtensions.AddResult(
                     SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "12"), res2, "13"), res3, "null")
+                        Snapshot.Create(),
+                        res1, "12"),
+                    res2, "13"),
+                res3, "null")
             .MatchAsync();
     }
 
@@ -573,8 +578,8 @@ public class Neo4JFilterComparableTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooCompNullable, FooCompNullableFilterType>(
-                _fooNullableEntitiesCypher);
+            await _fixture.Arrange<FooCompNullable, FooCompNullableFilterType>(
+                _database, _fooNullableEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { barShort: { neq: 12}}){ barShort }}";
@@ -599,8 +604,10 @@ public class Neo4JFilterComparableTests
         await SnapshotExtensions.AddResult(
                 SnapshotExtensions.AddResult(
                     SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "12"), res2, "13"), res3, "null")
+                        Snapshot.Create(),
+                        res1, "12"),
+                    res2, "13"),
+                res3, "null")
             .MatchAsync();
     }
 
@@ -609,8 +616,8 @@ public class Neo4JFilterComparableTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooCompNullable, FooCompNullableFilterType>(
-                _fooNullableEntitiesCypher);
+            await _fixture.Arrange<FooCompNullable, FooCompNullableFilterType>(
+                _database, _fooNullableEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { barShort: { gt: 12}}){ barShort }}";
@@ -642,8 +649,11 @@ public class Neo4JFilterComparableTests
                 SnapshotExtensions.AddResult(
                     SnapshotExtensions.AddResult(
                         SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+                            Snapshot.Create(),
+                            res1, "12"),
+                        res2, "13"),
+                    res3, "14"),
+                res4, "null")
             .MatchAsync();
     }
 
@@ -652,8 +662,8 @@ public class Neo4JFilterComparableTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooCompNullable, FooCompNullableFilterType>(
-                _fooNullableEntitiesCypher);
+            await _fixture.Arrange<FooCompNullable, FooCompNullableFilterType>(
+                _database, _fooNullableEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { barShort: { ngt: 12}}){ barShort }}";
@@ -685,8 +695,11 @@ public class Neo4JFilterComparableTests
                 SnapshotExtensions.AddResult(
                     SnapshotExtensions.AddResult(
                         SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+                            Snapshot.Create(),
+                            res1, "12"),
+                        res2, "13"),
+                    res3, "14"),
+                res4, "null")
             .MatchAsync();
     }
 
@@ -695,8 +708,8 @@ public class Neo4JFilterComparableTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooCompNullable, FooCompNullableFilterType>(
-                _fooNullableEntitiesCypher);
+            await _fixture.Arrange<FooCompNullable, FooCompNullableFilterType>(
+                _database, _fooNullableEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { barShort: { gte: 12}}){ barShort }}";
@@ -728,8 +741,11 @@ public class Neo4JFilterComparableTests
                 SnapshotExtensions.AddResult(
                     SnapshotExtensions.AddResult(
                         SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+                            Snapshot.Create(),
+                            res1, "12"),
+                        res2, "13"),
+                    res3, "14"),
+                res4, "null")
             .MatchAsync();
     }
 
@@ -738,8 +754,8 @@ public class Neo4JFilterComparableTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooCompNullable, FooCompNullableFilterType>(
-                _fooNullableEntitiesCypher);
+            await _fixture.Arrange<FooCompNullable, FooCompNullableFilterType>(
+                _database, _fooNullableEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { barShort: { ngte: 12}}){ barShort}}";
@@ -771,8 +787,11 @@ public class Neo4JFilterComparableTests
                 SnapshotExtensions.AddResult(
                     SnapshotExtensions.AddResult(
                         SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+                            Snapshot.Create(),
+                            res1, "12"),
+                        res2, "13"),
+                    res3, "14"),
+                res4, "null")
             .MatchAsync();
     }
 
@@ -781,8 +800,8 @@ public class Neo4JFilterComparableTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooCompNullable, FooCompNullableFilterType>(
-                _fooNullableEntitiesCypher);
+            await _fixture.Arrange<FooCompNullable, FooCompNullableFilterType>(
+                _database, _fooNullableEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { barShort: { lt: 12}}){ barShort }}";
@@ -824,8 +843,8 @@ public class Neo4JFilterComparableTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooCompNullable, FooCompNullableFilterType>(
-                _fooNullableEntitiesCypher);
+            await _fixture.Arrange<FooCompNullable, FooCompNullableFilterType>(
+                _database, _fooNullableEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { barShort: { nlt: 12}}){ barShort }}";
@@ -857,8 +876,11 @@ public class Neo4JFilterComparableTests
                 SnapshotExtensions.AddResult(
                     SnapshotExtensions.AddResult(
                         SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+                            Snapshot.Create(),
+                            res1, "12"),
+                        res2, "13"),
+                    res3, "14"),
+                res4, "null")
             .MatchAsync();
     }
 
@@ -867,8 +889,8 @@ public class Neo4JFilterComparableTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooCompNullable, FooCompNullableFilterType>(
-                _fooNullableEntitiesCypher);
+            await _fixture.Arrange<FooCompNullable, FooCompNullableFilterType>(
+                _database, _fooNullableEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { barShort: { lte: 12}}){ barShort }}";
@@ -910,8 +932,8 @@ public class Neo4JFilterComparableTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooCompNullable, FooCompNullableFilterType>(
-                _fooNullableEntitiesCypher);
+            await _fixture.Arrange<FooCompNullable, FooCompNullableFilterType>(
+                _database, _fooNullableEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { barShort: { nlte: 12}}){ barShort }}";
@@ -953,8 +975,8 @@ public class Neo4JFilterComparableTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooCompNullable, FooCompNullableFilterType>(
-                _fooNullableEntitiesCypher);
+            await _fixture.Arrange<FooCompNullable, FooCompNullableFilterType>(
+                _database, _fooNullableEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { barShort: { in: [ 12, 13 ]}}){ barShort }}";
@@ -979,8 +1001,10 @@ public class Neo4JFilterComparableTests
         await SnapshotExtensions.AddResult(
                 SnapshotExtensions.AddResult(
                     SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "12and13"), res2, "13and14"), res3, "13andNull")
+                        Snapshot.Create(),
+                        res1, "12and13"),
+                    res2, "13and14"),
+                res3, "13andNull")
             .MatchAsync();
     }
 
@@ -989,8 +1013,8 @@ public class Neo4JFilterComparableTests
     {
         // arrange
         var tester =
-            await _fixture.GetOrCreateSchema<FooCompNullable, FooCompNullableFilterType>(
-                _fooNullableEntitiesCypher);
+            await _fixture.Arrange<FooCompNullable, FooCompNullableFilterType>(
+                _database, _fooNullableEntitiesCypher);
 
         // arrange
         const string query1 = "{ root(where: { barShort: { nin: [ 12, 13 ]}}){ barShort }}";
@@ -1015,8 +1039,10 @@ public class Neo4JFilterComparableTests
         await SnapshotExtensions.AddResult(
                 SnapshotExtensions.AddResult(
                     SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "12and13"), res2, "13and14"), res3, "13andNull")
+                        Snapshot.Create(),
+                        res1, "12and13"),
+                    res2, "13and14"),
+                res3, "13andNull")
             .MatchAsync();
     }
 
@@ -1058,5 +1084,37 @@ public class Neo4JFilterComparableTests
 
         // assert
         schema.MatchSnapshot();
+    }
+
+    public class FooComp
+    {
+        public short BarShort { get; set; }
+
+        public int BarInt { get; set; }
+
+        public long BarLong { get; set; }
+
+        public float BarFloat { get; set; }
+
+        public double BarDouble { get; set; }
+
+        public decimal BarDecimal { get; set; }
+
+        public DateTime BarDateTime { get; set; }
+    }
+
+    public class FooCompNullable
+    {
+        public short? BarShort { get; set; }
+
+        public DateTime? BarDateTime { get; set; }
+    }
+
+    public class FooCompFilterType : FilterInputType<FooComp>
+    {
+    }
+
+    public class FooCompNullableFilterType : FilterInputType<FooCompNullable>
+    {
     }
 }
