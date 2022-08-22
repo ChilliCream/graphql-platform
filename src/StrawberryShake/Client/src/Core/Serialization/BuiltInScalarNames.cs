@@ -15,6 +15,7 @@ namespace StrawberryShake.Serialization
         public const string Decimal = nameof(Decimal);
         public const string Url = nameof(Url);
         public const string UUID = nameof(UUID);
+        public const string Upload = nameof(Upload);
         public const string Byte = nameof(Byte);
         public const string ByteArray = nameof(ByteArray);
         public const string Any = nameof(Any);

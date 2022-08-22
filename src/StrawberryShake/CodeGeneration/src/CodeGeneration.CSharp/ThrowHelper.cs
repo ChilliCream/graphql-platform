@@ -1,6 +1,7 @@
 using System;
 using HotChocolate;
 using StrawberryShake.CodeGeneration.Descriptors.Operations;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.Tools.Configuration;
 
 namespace StrawberryShake.CodeGeneration.CSharp
@@ -22,6 +23,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 ErrorBuilder
                     .New()
                     .SetMessage("{0} is not a valid operation kind", descriptor.GetType())
+                    .Build());
+        }
+
+        public static Exception OperationServiceGenerator_HasNoUploadScalar(
+            ITypeDescriptor descriptor)
+        {
+            return new CodeGeneratorException(
+                ErrorBuilder
+                    .New()
+                    .SetMessage(
+                        "Could not generate the upload mapper for {0}. No uploadable fields found",
+                        descriptor.Name)
                     .Build());
         }
     }

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using HotChocolate;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
@@ -10,6 +9,7 @@ using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
 using StrawberryShake.Tools.Configuration;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
+using static StrawberryShake.CodeGeneration.TypeNames;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
@@ -447,6 +447,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             body.AddEmptyLine();
 
+            if (descriptor.Operations.Any(x => x.HasUpload))
+            {
+                body.AddMethodCall()
+                    .SetMethodName(AddSingleton)
+                    .AddGeneric(ISerializer)
+                    .AddGeneric(UploadSerializer)
+                    .AddArgument(_services);
+            }
+
             foreach (var enumType in descriptor.EnumTypeDescriptor)
             {
                 body.AddMethodCall()
@@ -754,9 +763,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                                 .New()
                                 .SetCode(MethodCallBuilder
                                     .Inline()
-                                    .SetMethodName(
-                                        _clientFactory,
-                                        nameof(IHttpClientFactory.CreateClient))
+                                    .SetMethodName(_clientFactory, "CreateClient")
                                     .AddArgument(clientName.AsStringToken()))))));
 
         private static ICode RegisterConnection(TransportType transportProfile, string clientName)

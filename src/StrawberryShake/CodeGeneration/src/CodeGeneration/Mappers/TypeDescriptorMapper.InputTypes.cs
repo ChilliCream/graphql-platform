@@ -26,7 +26,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         inputType,
                         new InputObjectTypeDescriptor(
                             inputType.Type.Name,
-                            new (inputType.Type.Name, context.Namespace),
+                            new(inputType.Type.Name, context.Namespace),
+                            inputType.HasUpload,
                             inputType.Description));
 
                     typeDescriptors.Add(inputType.Name, descriptorModel);

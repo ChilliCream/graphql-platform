@@ -14,6 +14,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
     {
         public static void Map(ClientModel model, IMapperContext context)
         {
+            var hasUpload = false;
             foreach (OperationModel modelOperation in model.Operations)
             {
                 var arguments = modelOperation.Arguments.Select(
@@ -23,6 +24,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
                             INamedTypeDescriptor namedTypeDescriptor =
                                 context.Types.Single(type => type.Name.Equals(typeName));
+
+                            hasUpload = namedTypeDescriptor.HasUpload();
 
                             return new PropertyDescriptor(
                                 arg.Name,
@@ -54,6 +57,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                                 bodyString,
                                 context.HashProvider.Name,
                                 hash,
+                                hasUpload,
                                 context.RequestStrategy));
                         break;
 
@@ -69,6 +73,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                                 bodyString,
                                 context.HashProvider.Name,
                                 hash,
+                                hasUpload,
                                 context.RequestStrategy));
                         break;
 

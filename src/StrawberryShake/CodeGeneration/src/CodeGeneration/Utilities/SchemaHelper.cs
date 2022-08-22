@@ -247,6 +247,11 @@ namespace StrawberryShake.CodeGeneration.Utilities
                 typeName: ScalarNames.Any,
                 runtimeType: TypeNames.JsonDocument,
                 serializationType: TypeNames.JsonElement);
+            TryAddLeafType(
+                leafTypes,
+                typeName: "Upload",
+                runtimeType: TypeNames.Upload,
+                serializationType: TypeNames.String);
 
             // register aliases
             schemaBuilder.AddType(new UrlType());
