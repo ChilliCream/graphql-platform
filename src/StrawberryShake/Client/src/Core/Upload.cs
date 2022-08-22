@@ -5,7 +5,7 @@ namespace StrawberryShake;
 /// <summary>
 /// Wrapper to upload a file to a GraphQL Server
 /// </summary>
-public struct Upload
+public readonly struct Upload
 {
     /// <summary>
     /// Creates a new instance of Upload
