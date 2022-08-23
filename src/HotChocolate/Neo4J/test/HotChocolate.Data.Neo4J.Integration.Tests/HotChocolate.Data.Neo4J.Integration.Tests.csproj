@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.Data.Neo4J.Integration.Tests</AssemblyName>
@@ -15,10 +15,7 @@
     <ProjectReference Include="..\..\src\Data\HotChocolate.Data.Neo4J.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Abstractions\HotChocolate.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
-    <ProjectReference Include="..\..\..\Analyzers\src\Analyzers\HotChocolate.Analyzers.csproj"
-                      ReferenceOutputAssembly="false"
-                      OutputItemType="Analyzer"
-                      SetTargetFramework="TargetFramework=netstandard2.0" />
+    <ProjectReference Include="..\..\..\Analyzers\src\Analyzers\HotChocolate.Analyzers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" SetTargetFramework="TargetFramework=netstandard2.0" />
     <ProjectReference Include="..\HotChocolate.Data.Neo4J.Testing\HotChocolate.Data.Neo4J.Testing.csproj" />
   </ItemGroup>
 

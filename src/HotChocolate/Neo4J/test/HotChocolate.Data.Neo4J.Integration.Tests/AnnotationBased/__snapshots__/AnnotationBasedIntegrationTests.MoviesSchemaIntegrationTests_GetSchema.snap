@@ -4,7 +4,7 @@ schema {
 
 type Actor {
   name: String!
-  actedIn: [Movie!]!
+  actedIn(order: [MovieSortInput!]): [Movie!]!
 }
 
 "A segment of a collection."

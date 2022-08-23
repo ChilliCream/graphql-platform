@@ -6,5 +6,6 @@ public class Actor
     public string Name { get; set; }
 
     [Neo4JRelationship("ACTED_IN")]
+    [UseSorting]
     public List<Movie> ActedIn { get; set; }
 }

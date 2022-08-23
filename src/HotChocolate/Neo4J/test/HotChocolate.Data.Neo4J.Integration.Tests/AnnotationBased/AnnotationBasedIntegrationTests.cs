@@ -78,7 +78,7 @@ public class AnnotationBasedIntegrationTests : IClassFixture<Neo4JFixture>
                 actors(order: [{ name : ASC }] skip: 1 take: 2) {
                     items {
                         name
-                        actedIn {
+                        actedIn(order: [{ title : ASC }]) {
                             title
                         }
                     }
