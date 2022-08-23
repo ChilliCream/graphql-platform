@@ -25,10 +25,10 @@ MATCH (fooCompNullable:FooCompNullable) WHERE fooCompNullable.BarShort IN [ 12, 
   "data": {
     "root": [
       {
-        "barShort": 14
+        "barShort": 13
       },
       {
-        "barShort": 13
+        "barShort": 14
       }
     ]
   }

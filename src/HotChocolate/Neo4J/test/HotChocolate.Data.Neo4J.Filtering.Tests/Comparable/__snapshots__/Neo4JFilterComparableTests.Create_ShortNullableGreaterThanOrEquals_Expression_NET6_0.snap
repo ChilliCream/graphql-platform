@@ -7,10 +7,10 @@
         "barShort": 12
       },
       {
-        "barShort": 14
+        "barShort": 13
       },
       {
-        "barShort": 13
+        "barShort": 14
       }
     ]
   }
@@ -28,10 +28,10 @@ MATCH (fooCompNullable:FooCompNullable) WHERE fooCompNullable.BarShort >= 12 RET
   "data": {
     "root": [
       {
-        "barShort": 14
+        "barShort": 13
       },
       {
-        "barShort": 13
+        "barShort": 14
       }
     ]
   }

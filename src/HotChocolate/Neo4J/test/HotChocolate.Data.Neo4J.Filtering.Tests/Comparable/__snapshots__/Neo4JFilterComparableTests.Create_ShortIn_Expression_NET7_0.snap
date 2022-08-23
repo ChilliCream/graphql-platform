@@ -25,10 +25,10 @@ MATCH (fooComp:FooComp) WHERE fooComp.BarShort IN [ 12, 13 ] RETURN fooComp {.Ba
   "data": {
     "root": [
       {
-        "barShort": 14
+        "barShort": 13
       },
       {
-        "barShort": 13
+        "barShort": 14
       }
     ]
   }

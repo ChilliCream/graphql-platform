@@ -19,14 +19,14 @@ public class Neo4JFilterComparableTests : IClassFixture<Neo4JFixture>
     }
 
     private const string _fooEntitiesCypher =
-        "CREATE (:FooComp {BarShort: 12}), (:FooComp {BarShort: 14}), (:FooComp {BarShort: 13})";
+        "CREATE (:FooComp {BarShort: 12}), (:FooComp {BarShort: 13}), (:FooComp {BarShort: 14})";
 
     private const string _fooNullableEntitiesCypher =
         @"CREATE
             (:FooCompNullable {BarShort: 12}),
             (:FooCompNullable {BarShort: NULL}),
-            (:FooCompNullable {BarShort: 14}),
-            (:FooCompNullable {BarShort: 13})";
+            (:FooCompNullable {BarShort: 13}),
+            (:FooCompNullable {BarShort: 14})";
 
     [Fact]
     public async Task Create_ShortEqual_Expression()

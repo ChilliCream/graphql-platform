@@ -46,10 +46,10 @@ MATCH (fooComp:FooComp) WHERE fooComp.BarShort <= 13 RETURN fooComp {.BarShort}
         "barShort": 12
       },
       {
-        "barShort": 14
+        "barShort": 13
       },
       {
-        "barShort": 13
+        "barShort": 14
       }
     ]
   }
