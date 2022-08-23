@@ -281,7 +281,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     foo_bar_baz: String
                     foo(string: String! upload: Upload!): String
                 }
-
                 scalar Upload
                 ",
                 "extend schema @key(fields: \"id\")");
