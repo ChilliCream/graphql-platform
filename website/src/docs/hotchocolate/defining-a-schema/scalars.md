@@ -174,6 +174,28 @@ public class Startup
 
 Notice how our code uses `int` for the `Id`, but in a request / response it would be serialized as a `string`. This allows us to switch the CLR type of our `Id`, without affecting the schema and our clients.
 
+# GraphQL Community Scalars
+
+The website https://www.graphql-scalars.com/ hosts specifications for GraphQL scalars defined by the community. The community scalars use the `@specifiedBy` directive to point to the spec that is implemented.
+
+```graphql
+scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
+```
+
+## DateTime Type
+
+A custom GraphQL scalar which represents an exact point in time. This point in time is specified by having an offset to UTC and does not use time zone.
+
+The DateTime scalar is based RFC3339.
+
+```SDL
+scalar DateTime @specifiedBy(url: "https://www.graphql-scalars.com/date-time/")
+```
+
+<iframe width="560" height="315"
+src="https://www.youtube.com/embed/gO3bNKBmXZM"frameborder="0"
+allowfullscreen></iframe>
+
 # .NET Scalars
 
 In addition to the scalars defined by the specification, Hot Chocolate also supports the following set of scalar types:
@@ -186,7 +208,6 @@ In addition to the scalars defined by the specification, Hot Chocolate also supp
 | `Long`      | Signed 64-bit numeric non-fractional value                   |
 | `Decimal`   | .NET Floating Point Type                                     |
 | `Url`       | Url                                                          |
-| `DateTime`  | ISO-8601 date time                                           |
 | `Date`      | ISO-8601 date                                                |
 | `TimeSpan`  | ISO-8601 duration                                            |
 | `Uuid`      | GUID                                                         |
