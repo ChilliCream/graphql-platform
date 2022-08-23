@@ -22,5 +22,5 @@ Result:
 
 Query:
 ---------------
-MATCH (foo:Foo) RETURN foo LIMIT 3
+MATCH (foo:Foo) RETURN foo ORDER BY foo ASC LIMIT 3
 ---------------

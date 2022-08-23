@@ -9,7 +9,7 @@ testatestAndtestb Result:
 
 testatestAndtestb Query:
 ---------------
-MATCH (fooStringNullable:FooStringNullable) WHERE NOT (fooStringNullable.Bar IN [ "testatest", "testbtest" ]) RETURN fooStringNullable {.Bar}
+MATCH (fooStringNullable:FooStringNullable) WHERE NOT (fooStringNullable.Bar IN [ "testatest", "testbtest" ]) RETURN fooStringNullable {.Bar} ORDER BY fooStringNullable {.Bar} ASC
 ---------------
 
 testbtestAndNull Result:
@@ -23,7 +23,7 @@ testbtestAndNull Result:
 
 testbtestAndNull Query:
 ---------------
-MATCH (fooStringNullable:FooStringNullable) WHERE NOT (fooStringNullable.Bar IN [ "testbtest", null ]) RETURN fooStringNullable {.Bar}
+MATCH (fooStringNullable:FooStringNullable) WHERE NOT (fooStringNullable.Bar IN [ "testbtest", null ]) RETURN fooStringNullable {.Bar} ORDER BY fooStringNullable {.Bar} ASC
 ---------------
 
 testatest Result:
@@ -41,5 +41,5 @@ testatest Result:
 
 testatest Query:
 ---------------
-MATCH (fooStringNullable:FooStringNullable) WHERE NOT (fooStringNullable.Bar IN [ "testatest" ]) RETURN fooStringNullable {.Bar}
+MATCH (fooStringNullable:FooStringNullable) WHERE NOT (fooStringNullable.Bar IN [ "testatest" ]) RETURN fooStringNullable {.Bar} ORDER BY fooStringNullable {.Bar} ASC
 ---------------

@@ -13,7 +13,7 @@ testatest Result:
 
 testatest Query:
 ---------------
-MATCH (fooString:FooString) WHERE fooString.Bar <> 'testatest' RETURN fooString {.Bar}
+MATCH (fooString:FooString) WHERE fooString.Bar <> 'testatest' RETURN fooString {.Bar} ORDER BY fooString {.Bar} ASC
 ---------------
 
 testbtest Result:
@@ -31,7 +31,7 @@ testbtest Result:
 
 testbtest Query:
 ---------------
-MATCH (fooString:FooString) WHERE fooString.Bar <> 'testbtest' RETURN fooString {.Bar}
+MATCH (fooString:FooString) WHERE fooString.Bar <> 'testbtest' RETURN fooString {.Bar} ORDER BY fooString {.Bar} ASC
 ---------------
 
 null

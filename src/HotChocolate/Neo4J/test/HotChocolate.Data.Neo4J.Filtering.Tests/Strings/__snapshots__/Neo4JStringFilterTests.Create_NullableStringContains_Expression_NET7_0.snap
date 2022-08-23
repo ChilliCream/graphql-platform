@@ -13,7 +13,7 @@ a Result:
 
 a Query:
 ---------------
-MATCH (fooStringNullable:FooStringNullable) WHERE fooStringNullable.Bar CONTAINS 'a' RETURN fooStringNullable {.Bar}
+MATCH (fooStringNullable:FooStringNullable) WHERE fooStringNullable.Bar CONTAINS 'a' RETURN fooStringNullable {.Bar} ORDER BY fooStringNullable {.Bar} ASC
 ---------------
 
 b Result:
@@ -31,7 +31,7 @@ b Result:
 
 b Query:
 ---------------
-MATCH (fooStringNullable:FooStringNullable) WHERE fooStringNullable.Bar CONTAINS 'b' RETURN fooStringNullable {.Bar}
+MATCH (fooStringNullable:FooStringNullable) WHERE fooStringNullable.Bar CONTAINS 'b' RETURN fooStringNullable {.Bar} ORDER BY fooStringNullable {.Bar} ASC
 ---------------
 
 null

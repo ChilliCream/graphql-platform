@@ -16,5 +16,5 @@ Result:
 
 Query:
 ---------------
-MATCH (fooScalar:FooScalar) RETURN fooScalar {.Baz}
+MATCH (fooScalar:FooScalar) RETURN fooScalar {.Baz} ORDER BY fooScalar {.Baz} ASC
 ---------------

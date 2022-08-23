@@ -4,10 +4,10 @@ or Result:
   "data": {
     "root": [
       {
-        "bar": true
+        "bar": false
       },
       {
-        "bar": false
+        "bar": true
       }
     ]
   }
@@ -16,5 +16,5 @@ or Result:
 
 or Query:
 ---------------
-MATCH (fooBool:FooBool) WHERE (fooBool.Bar = True OR fooBool.Bar = False) RETURN fooBool {.Bar}
+MATCH (fooBool:FooBool) WHERE (fooBool.Bar = True OR fooBool.Bar = False) RETURN fooBool {.Bar} ORDER BY fooBool {.Bar} ASC
 ---------------

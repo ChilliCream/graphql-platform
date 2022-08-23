@@ -19,5 +19,5 @@ Result:
 
 Query:
 ---------------
-MATCH (fooRel:FooRel) RETURN fooRel {.BarBool, .BarString, Bars: [(fooRel:FooRel)-[:RELATED_TO]->(bar:Bar) | bar {.Name}]}
+MATCH (fooRel:FooRel) RETURN fooRel {.BarBool, .BarString, Bars: [(fooRel:FooRel)-[:RELATED_TO]->(bar:Bar) | bar {.Name}]} ORDER BY fooRel {.BarBool, .BarString, Bars: [(fooRel:FooRel)-[:RELATED_TO]->(bar:Bar) | bar {.Name}]} ASC
 ---------------

@@ -9,5 +9,5 @@ and Result:
 
 and Query:
 ---------------
-MATCH (fooBool:FooBool) WHERE (fooBool.Bar = True AND fooBool.Bar = False) RETURN fooBool {.Bar}
+MATCH (fooBool:FooBool) WHERE (fooBool.Bar = True AND fooBool.Bar = False) RETURN fooBool {.Bar} ORDER BY fooBool {.Bar} ASC
 ---------------

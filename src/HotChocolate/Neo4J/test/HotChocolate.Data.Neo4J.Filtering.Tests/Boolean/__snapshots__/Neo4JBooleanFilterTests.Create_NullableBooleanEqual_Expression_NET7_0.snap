@@ -13,7 +13,7 @@ true Result:
 
 true Query:
 ---------------
-MATCH (fooBoolNullable:FooBoolNullable) WHERE fooBoolNullable.Bar = True RETURN fooBoolNullable {.Bar}
+MATCH (fooBoolNullable:FooBoolNullable) WHERE fooBoolNullable.Bar = True RETURN fooBoolNullable {.Bar} ORDER BY fooBoolNullable {.Bar} ASC
 ---------------
 
 false Result:
@@ -31,7 +31,7 @@ false Result:
 
 false Query:
 ---------------
-MATCH (fooBoolNullable:FooBoolNullable) WHERE fooBoolNullable.Bar = False RETURN fooBoolNullable {.Bar}
+MATCH (fooBoolNullable:FooBoolNullable) WHERE fooBoolNullable.Bar = False RETURN fooBoolNullable {.Bar} ORDER BY fooBoolNullable {.Bar} ASC
 ---------------
 
 null Result:
@@ -45,5 +45,5 @@ null Result:
 
 null Query:
 ---------------
-MATCH (fooBoolNullable:FooBoolNullable) WHERE fooBoolNullable.Bar = NULL RETURN fooBoolNullable {.Bar}
+MATCH (fooBoolNullable:FooBoolNullable) WHERE fooBoolNullable.Bar = NULL RETURN fooBoolNullable {.Bar} ORDER BY fooBoolNullable {.Bar} ASC
 ---------------

@@ -1,1 +1,1 @@
-MATCH (b:Bike) RETURN  AS bikeb
+MATCH (b:Bike) RETURN  AS bikeb ORDER BY  AS bikeb ASC

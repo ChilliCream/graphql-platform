@@ -16,7 +16,7 @@
 
 12 Query:
 ---------------
-MATCH (fooComp:FooComp) WHERE fooComp.BarShort <> 12 RETURN fooComp {.BarShort}
+MATCH (fooComp:FooComp) WHERE fooComp.BarShort <> 12 RETURN fooComp {.BarShort} ORDER BY fooComp {.BarShort} ASC
 ---------------
 
 13 Result:
@@ -37,7 +37,7 @@ MATCH (fooComp:FooComp) WHERE fooComp.BarShort <> 12 RETURN fooComp {.BarShort}
 
 13 Query:
 ---------------
-MATCH (fooComp:FooComp) WHERE fooComp.BarShort <> 13 RETURN fooComp {.BarShort}
+MATCH (fooComp:FooComp) WHERE fooComp.BarShort <> 13 RETURN fooComp {.BarShort} ORDER BY fooComp {.BarShort} ASC
 ---------------
 
 null

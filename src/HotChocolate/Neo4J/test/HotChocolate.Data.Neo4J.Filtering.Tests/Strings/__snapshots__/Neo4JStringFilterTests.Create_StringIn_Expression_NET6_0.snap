@@ -16,7 +16,7 @@ testatestAndtestb Result:
 
 testatestAndtestb Query:
 ---------------
-MATCH (fooString:FooString) WHERE fooString.Bar IN [ "testatest", "testbtest" ] RETURN fooString {.Bar}
+MATCH (fooString:FooString) WHERE fooString.Bar IN [ "testatest", "testbtest" ] RETURN fooString {.Bar} ORDER BY fooString {.Bar} ASC
 ---------------
 
 testbtestAndNull
@@ -62,5 +62,5 @@ testatest Result:
 
 testatest Query:
 ---------------
-MATCH (fooString:FooString) WHERE fooString.Bar IN [ "testatest" ] RETURN fooString {.Bar}
+MATCH (fooString:FooString) WHERE fooString.Bar IN [ "testatest" ] RETURN fooString {.Bar} ORDER BY fooString {.Bar} ASC
 ---------------

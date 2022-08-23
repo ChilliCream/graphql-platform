@@ -13,7 +13,7 @@ a Result:
 
 a Query:
 ---------------
-MATCH (fooString:FooString) WHERE fooString.Bar CONTAINS 'a' RETURN fooString {.Bar}
+MATCH (fooString:FooString) WHERE fooString.Bar CONTAINS 'a' RETURN fooString {.Bar} ORDER BY fooString {.Bar} ASC
 ---------------
 
 b Result:
@@ -31,7 +31,7 @@ b Result:
 
 b Query:
 ---------------
-MATCH (fooString:FooString) WHERE fooString.Bar CONTAINS 'b' RETURN fooString {.Bar}
+MATCH (fooString:FooString) WHERE fooString.Bar CONTAINS 'b' RETURN fooString {.Bar} ORDER BY fooString {.Bar} ASC
 ---------------
 
 null

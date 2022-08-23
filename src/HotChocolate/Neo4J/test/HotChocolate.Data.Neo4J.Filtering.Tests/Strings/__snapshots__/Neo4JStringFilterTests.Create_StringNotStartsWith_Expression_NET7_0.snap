@@ -13,7 +13,7 @@ testa Result:
 
 testa Query:
 ---------------
-MATCH (fooString:FooString) WHERE NOT (fooString.Bar STARTS WITH 'testa') RETURN fooString {.Bar}
+MATCH (fooString:FooString) WHERE NOT (fooString.Bar STARTS WITH 'testa') RETURN fooString {.Bar} ORDER BY fooString {.Bar} ASC
 ---------------
 
 testb Result:
@@ -31,7 +31,7 @@ testb Result:
 
 testb Query:
 ---------------
-MATCH (fooString:FooString) WHERE NOT (fooString.Bar STARTS WITH 'testb') RETURN fooString {.Bar}
+MATCH (fooString:FooString) WHERE NOT (fooString.Bar STARTS WITH 'testb') RETURN fooString {.Bar} ORDER BY fooString {.Bar} ASC
 ---------------
 
 null

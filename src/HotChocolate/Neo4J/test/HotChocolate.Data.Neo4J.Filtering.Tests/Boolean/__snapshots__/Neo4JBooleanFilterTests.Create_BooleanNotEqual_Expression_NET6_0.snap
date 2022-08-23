@@ -13,7 +13,7 @@ true Result:
 
 true Query:
 ---------------
-MATCH (fooBool:FooBool) WHERE fooBool.Bar <> True RETURN fooBool {.Bar}
+MATCH (fooBool:FooBool) WHERE fooBool.Bar <> True RETURN fooBool {.Bar} ORDER BY fooBool {.Bar} ASC
 ---------------
 
 false Result:
@@ -31,5 +31,5 @@ false Result:
 
 false Query:
 ---------------
-MATCH (fooBool:FooBool) WHERE fooBool.Bar <> False RETURN fooBool {.Bar}
+MATCH (fooBool:FooBool) WHERE fooBool.Bar <> False RETURN fooBool {.Bar} ORDER BY fooBool {.Bar} ASC
 ---------------

@@ -4,12 +4,12 @@ Result:
   "data": {
     "root": [
       {
-        "bar": true,
-        "baz": "a"
-      },
-      {
         "bar": false,
         "baz": "b"
+      },
+      {
+        "bar": true,
+        "baz": "a"
       }
     ]
   }
@@ -18,5 +18,5 @@ Result:
 
 Query:
 ---------------
-MATCH (fooScalar:FooScalar) RETURN fooScalar {.Bar, .Baz}
+MATCH (fooScalar:FooScalar) RETURN fooScalar {.Bar, .Baz} ORDER BY fooScalar {.Bar, .Baz} ASC
 ---------------

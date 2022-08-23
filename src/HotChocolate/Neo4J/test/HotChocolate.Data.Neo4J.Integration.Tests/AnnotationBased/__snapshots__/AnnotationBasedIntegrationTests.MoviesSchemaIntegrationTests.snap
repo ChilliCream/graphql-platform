@@ -5,20 +5,6 @@ MoviesSchema_Actors_Query
     "actors": {
       "items": [
         {
-          "name": "Keanu Reeves",
-          "actedIn": [
-            {
-              "title": "The Matrix Revolutions"
-            },
-            {
-              "title": "The Matrix Reloaded"
-            },
-            {
-              "title": "The Matrix"
-            }
-          ]
-        },
-        {
           "name": "Carrie-Anne Moss",
           "actedIn": [
             {
@@ -33,14 +19,8 @@ MoviesSchema_Actors_Query
           ]
         },
         {
-          "name": "Laurence Fishburne",
+          "name": "Emil Eifrem",
           "actedIn": [
-            {
-              "title": "The Matrix Revolutions"
-            },
-            {
-              "title": "The Matrix Reloaded"
-            },
             {
               "title": "The Matrix"
             }
@@ -61,24 +41,44 @@ MoviesSchema_Actors_Query
           ]
         },
         {
-          "name": "Lilly Wachowski",
+          "name": "Joel Silver",
           "actedIn": []
+        },
+        {
+          "name": "Keanu Reeves",
+          "actedIn": [
+            {
+              "title": "The Matrix Revolutions"
+            },
+            {
+              "title": "The Matrix Reloaded"
+            },
+            {
+              "title": "The Matrix"
+            }
+          ]
         },
         {
           "name": "Lana Wachowski",
           "actedIn": []
         },
         {
-          "name": "Joel Silver",
-          "actedIn": []
-        },
-        {
-          "name": "Emil Eifrem",
+          "name": "Laurence Fishburne",
           "actedIn": [
+            {
+              "title": "The Matrix Revolutions"
+            },
+            {
+              "title": "The Matrix Reloaded"
+            },
             {
               "title": "The Matrix"
             }
           ]
+        },
+        {
+          "name": "Lilly Wachowski",
+          "actedIn": []
         }
       ]
     }

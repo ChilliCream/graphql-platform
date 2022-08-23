@@ -1,1 +1,1 @@
-MATCH (u:User)-[:OWNS]->(b:Bike) RETURN b, u
+MATCH (u:User)-[:OWNS]->(b:Bike) RETURN b, u ORDER BY b ASC, u ASC

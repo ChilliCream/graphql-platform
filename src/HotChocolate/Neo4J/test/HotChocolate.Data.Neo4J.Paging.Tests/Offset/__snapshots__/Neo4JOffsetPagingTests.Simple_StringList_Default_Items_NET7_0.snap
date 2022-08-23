@@ -31,5 +31,5 @@ Result:
 
 Query:
 ---------------
-MATCH (foo:Foo) RETURN foo LIMIT 11
+MATCH (foo:Foo) RETURN foo ORDER BY foo ASC LIMIT 11
 ---------------

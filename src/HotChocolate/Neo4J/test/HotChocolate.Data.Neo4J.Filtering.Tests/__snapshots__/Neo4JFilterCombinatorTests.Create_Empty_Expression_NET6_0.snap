@@ -4,10 +4,10 @@ Result:
   "data": {
     "root": [
       {
-        "bar": true
+        "bar": false
       },
       {
-        "bar": false
+        "bar": true
       }
     ]
   }
@@ -16,5 +16,5 @@ Result:
 
 Query:
 ---------------
-MATCH (fooBool:FooBool) RETURN fooBool {.Bar}
+MATCH (fooBool:FooBool) RETURN fooBool {.Bar} ORDER BY fooBool {.Bar} ASC
 ---------------

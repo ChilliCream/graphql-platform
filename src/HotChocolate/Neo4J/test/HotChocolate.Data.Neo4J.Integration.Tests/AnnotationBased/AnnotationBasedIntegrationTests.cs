@@ -34,10 +34,10 @@ public class AnnotationBasedIntegrationTests : IClassFixture<Neo4JFixture>
 
         // act
         var res1 = await tester.ExecuteAsync(@"{
-                actors {
+                actors(order: [{ name : ASC }]) {
                     items {
                         name
-                        actedIn {
+                        actedIn(order: [{ title : ASC }]) {
                             title
                         }
                     }
@@ -45,10 +45,10 @@ public class AnnotationBasedIntegrationTests : IClassFixture<Neo4JFixture>
             }");
 
         var res2 = await tester.ExecuteAsync(@"{
-                actors (where : {name : { startsWith : ""Keanu"" }}) {
+                actors (where : {name : { startsWith : ""Keanu"" }} order: [{ name : ASC }]) {
                     items {
                         name
-                        actedIn {
+                        actedIn(order: [{ title : ASC }]) {
                             title
                         }
                     }
@@ -56,7 +56,7 @@ public class AnnotationBasedIntegrationTests : IClassFixture<Neo4JFixture>
             }");
 
         var res3 = await tester.ExecuteAsync(@"{
-                movies {
+                movies(order: [{ title : ASC }]) {
                     items {
                         title
                     }
@@ -67,7 +67,7 @@ public class AnnotationBasedIntegrationTests : IClassFixture<Neo4JFixture>
                 actors(order: [{ name : ASC }]) {
                     items {
                         name
-                        actedIn {
+                        actedIn(order: [{ title : ASC }]) {
                             title
                         }
                     }

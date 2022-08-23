@@ -13,7 +13,7 @@ atest Result:
 
 atest Query:
 ---------------
-MATCH (fooString:FooString) WHERE NOT (fooString.Bar ENDS WITH 'atest') RETURN fooString {.Bar}
+MATCH (fooString:FooString) WHERE NOT (fooString.Bar ENDS WITH 'atest') RETURN fooString {.Bar} ORDER BY fooString {.Bar} ASC
 ---------------
 
 btest Result:
@@ -31,7 +31,7 @@ btest Result:
 
 btest Query:
 ---------------
-MATCH (fooString:FooString) WHERE NOT (fooString.Bar ENDS WITH 'btest') RETURN fooString {.Bar}
+MATCH (fooString:FooString) WHERE NOT (fooString.Bar ENDS WITH 'btest') RETURN fooString {.Bar} ORDER BY fooString {.Bar} ASC
 ---------------
 
 null

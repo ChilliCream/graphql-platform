@@ -13,7 +13,7 @@ atest Result:
 
 atest Query:
 ---------------
-MATCH (fooStringNullable:FooStringNullable) WHERE fooStringNullable.Bar ENDS WITH 'atest' RETURN fooStringNullable {.Bar}
+MATCH (fooStringNullable:FooStringNullable) WHERE fooStringNullable.Bar ENDS WITH 'atest' RETURN fooStringNullable {.Bar} ORDER BY fooStringNullable {.Bar} ASC
 ---------------
 
 btest Result:
@@ -31,7 +31,7 @@ btest Result:
 
 btest Query:
 ---------------
-MATCH (fooStringNullable:FooStringNullable) WHERE fooStringNullable.Bar ENDS WITH 'btest' RETURN fooStringNullable {.Bar}
+MATCH (fooStringNullable:FooStringNullable) WHERE fooStringNullable.Bar ENDS WITH 'btest' RETURN fooStringNullable {.Bar} ORDER BY fooStringNullable {.Bar} ASC
 ---------------
 
 null

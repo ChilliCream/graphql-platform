@@ -13,7 +13,7 @@
 
 12 Query:
 ---------------
-MATCH (fooCompNullable:FooCompNullable) WHERE fooCompNullable.BarShort = 12 RETURN fooCompNullable {.BarShort}
+MATCH (fooCompNullable:FooCompNullable) WHERE fooCompNullable.BarShort = 12 RETURN fooCompNullable {.BarShort} ORDER BY fooCompNullable {.BarShort} ASC
 ---------------
 
 13 Result:
@@ -31,7 +31,7 @@ MATCH (fooCompNullable:FooCompNullable) WHERE fooCompNullable.BarShort = 12 RETU
 
 13 Query:
 ---------------
-MATCH (fooCompNullable:FooCompNullable) WHERE fooCompNullable.BarShort = 13 RETURN fooCompNullable {.BarShort}
+MATCH (fooCompNullable:FooCompNullable) WHERE fooCompNullable.BarShort = 13 RETURN fooCompNullable {.BarShort} ORDER BY fooCompNullable {.BarShort} ASC
 ---------------
 
 null Result:
@@ -45,5 +45,5 @@ null Result:
 
 null Query:
 ---------------
-MATCH (fooCompNullable:FooCompNullable) WHERE fooCompNullable.BarShort = NULL RETURN fooCompNullable {.BarShort}
+MATCH (fooCompNullable:FooCompNullable) WHERE fooCompNullable.BarShort = NULL RETURN fooCompNullable {.BarShort} ORDER BY fooCompNullable {.BarShort} ASC
 ---------------
