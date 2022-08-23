@@ -38,7 +38,10 @@ internal sealed class ExecutionPlanBuilder
             }
         }
 
-        return new QueryPlan(context.RequestNodes.Values, context.Exports.All);
+        return new QueryPlan(
+            context.RequestNodes.Values,
+            context.Exports.All,
+            context.HasIntrospectionSelections);
     }
 
     private RequestNode CreateRequestNode(
@@ -84,7 +87,8 @@ internal sealed class ExecutionPlanBuilder
 
             var (rootResolver, p) = executionStep.Resolver.CreateSelection(
                 context.VariableValues,
-                rootSelectionSetNode);
+                rootSelectionSetNode,
+                null);
 
             rootSelectionSetNode = new SelectionSetNode(new[] { rootResolver });
             path = p;
@@ -143,9 +147,10 @@ internal sealed class ExecutionPlanBuilder
                     rootSelection.Resolver,
                     executionStep.Variables);
 
-                var (s, p) = rootSelection.Resolver.CreateSelection(
+                var (s, _) = rootSelection.Resolver.CreateSelection(
                     context.VariableValues,
-                    selectionSetNode);
+                    selectionSetNode,
+                    rootSelection.Selection.ResponseName);
                 selectionNode = s;
             }
 
@@ -184,9 +189,9 @@ internal sealed class ExecutionPlanBuilder
             null,
             new(binding.Name),
             alias,
-            null,
-            Array.Empty<DirectiveNode>(),
-            Array.Empty<ArgumentNode>(),
+            selection.SyntaxNode.Required,
+            Array.Empty<DirectiveNode>(), // todo : not sure if we should pass down directives.
+            selection.SyntaxNode.Arguments,
             selectionSetNode);
     }
 

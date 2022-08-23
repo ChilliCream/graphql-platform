@@ -51,9 +51,9 @@ public class MongoDbOffsetPagingAggregateTests : IClassFixture<MongoResource>
             }");
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(result)
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), result)
             .MatchAsync();
     }
 
@@ -78,9 +78,9 @@ public class MongoDbOffsetPagingAggregateTests : IClassFixture<MongoResource>
             }");
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(result)
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), result)
             .MatchAsync();
     }
 
@@ -105,9 +105,9 @@ public class MongoDbOffsetPagingAggregateTests : IClassFixture<MongoResource>
             }");
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(result)
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), result)
             .MatchAsync();
     }
 
@@ -132,9 +132,9 @@ public class MongoDbOffsetPagingAggregateTests : IClassFixture<MongoResource>
             }");
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(result)
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), result)
             .MatchAsync();
     }
 
@@ -153,9 +153,9 @@ public class MongoDbOffsetPagingAggregateTests : IClassFixture<MongoResource>
             }");
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(result)
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), result)
             .MatchAsync();
     }
 

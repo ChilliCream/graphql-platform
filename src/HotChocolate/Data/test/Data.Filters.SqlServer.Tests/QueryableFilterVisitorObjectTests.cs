@@ -138,11 +138,11 @@ public class QueryableFilterVisitorObjectTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "12")
-            .AddSqlFrom(res2, "13")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "12"), res2, "13"), res3, "null")
             .MatchAsync();
     }
 
@@ -175,11 +175,11 @@ public class QueryableFilterVisitorObjectTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "12and13")
-            .AddSqlFrom(res2, "13and14")
-            .AddSqlFrom(res3, "nullAnd14")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "12and13"), res2, "13and14"), res3, "nullAnd14")
             .MatchAsync();
     }
 
@@ -212,11 +212,11 @@ public class QueryableFilterVisitorObjectTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "12")
-            .AddSqlFrom(res2, "13")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "12"), res2, "13"), res3, "null")
             .MatchAsync();
     }
 
@@ -249,11 +249,11 @@ public class QueryableFilterVisitorObjectTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "12and13")
-            .AddSqlFrom(res2, "13and14")
-            .AddSqlFrom(res3, "13andNull")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "12and13"), res2, "13and14"), res3, "13andNull")
             .MatchAsync();
     }
 
@@ -279,10 +279,10 @@ public class QueryableFilterVisitorObjectTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "true")
-            .AddSqlFrom(res2, "false")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "true"), res2, "false")
             .MatchAsync();
     }
 
@@ -315,11 +315,11 @@ public class QueryableFilterVisitorObjectTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "true")
-            .AddSqlFrom(res2, "false")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "true"), res2, "false"), res3, "null")
             .MatchAsync();
     }
 
@@ -352,11 +352,11 @@ public class QueryableFilterVisitorObjectTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "BAR")
-            .AddSqlFrom(res2, "FOO")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "BAR"), res2, "FOO"), res3, "null")
             .MatchAsync();
     }
 
@@ -389,11 +389,11 @@ public class QueryableFilterVisitorObjectTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "BarAndFoo")
-            .AddSqlFrom(res2, "FOO")
-            .AddSqlFrom(res3, "nullAndFoo")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "BarAndFoo"), res2, "FOO"), res3, "nullAndFoo")
             .MatchAsync();
     }
 
@@ -427,11 +427,11 @@ public class QueryableFilterVisitorObjectTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "BAR")
-            .AddSqlFrom(res2, "FOO")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "BAR"), res2, "FOO"), res3, "null")
             .MatchAsync();
     }
 
@@ -464,11 +464,11 @@ public class QueryableFilterVisitorObjectTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "BarAndFoo")
-            .AddSqlFrom(res2, "FOO")
-            .AddSqlFrom(res3, "nullAndFoo")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "BarAndFoo"), res2, "FOO"), res3, "nullAndFoo")
             .MatchAsync();
     }
 
@@ -500,11 +500,11 @@ public class QueryableFilterVisitorObjectTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "testatest")
-            .AddSqlFrom(res2, "testbtest")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "testatest"), res2, "testbtest"), res3, "null")
             .MatchAsync();
     }
 
@@ -538,11 +538,11 @@ public class QueryableFilterVisitorObjectTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "testatestAndtestb")
-            .AddSqlFrom(res2, "testbtestAndNull")
-            .AddSqlFrom(res3, "testatest")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "testatestAndtestb"), res2, "testbtestAndNull"), res3, "testatest")
             .MatchAsync();
     }
 
@@ -578,11 +578,11 @@ public class QueryableFilterVisitorObjectTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "a")
-            .AddSqlFrom(res2, "b")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "a"), res2, "b"), res3, "null")
             .MatchAsync();
     }
 
@@ -615,11 +615,11 @@ public class QueryableFilterVisitorObjectTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "false")
-            .AddSqlFrom(res2, "true")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "false"), res2, "true"), res3, "null")
             .MatchAsync();
     }
 

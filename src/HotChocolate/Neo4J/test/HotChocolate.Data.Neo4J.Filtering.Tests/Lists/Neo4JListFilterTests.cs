@@ -93,9 +93,9 @@ public class Neo4JListFilterTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "all")
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), res1, "all")
             .MatchAsync();
     }
 }

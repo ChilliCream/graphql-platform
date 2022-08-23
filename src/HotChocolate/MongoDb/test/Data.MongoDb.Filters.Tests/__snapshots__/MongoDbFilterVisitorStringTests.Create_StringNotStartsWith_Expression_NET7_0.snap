@@ -34,7 +34,7 @@ testb Query:
 find({ "Bar" : { "$not" : { "$regex" : /^testb/ } } })
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

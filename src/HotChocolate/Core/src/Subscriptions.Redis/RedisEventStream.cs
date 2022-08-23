@@ -7,8 +7,7 @@ using StackExchange.Redis;
 
 namespace HotChocolate.Subscriptions.Redis;
 
-public class RedisEventStream<TMessage>
-    : ISourceStream<TMessage>
+public class RedisEventStream<TMessage> : ISourceStream<TMessage>
 {
     private readonly ChannelMessageQueue _channel;
     private readonly IMessageSerializer _messageSerializer;
@@ -66,8 +65,7 @@ public class RedisEventStream<TMessage>
         }
     }
 
-    private sealed class EnumerateMessages<T>
-        : IAsyncEnumerable<T>
+    private sealed class EnumerateMessages<T> : IAsyncEnumerable<T>
     {
         private readonly ChannelMessageQueue _channel;
         private readonly Func<string, T> _messageSerializer;
@@ -85,8 +83,7 @@ public class RedisEventStream<TMessage>
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                ChannelMessage message = await _channel.ReadAsync(cancellationToken)
-                    .ConfigureAwait(false);
+                var message = await _channel.ReadAsync(cancellationToken).ConfigureAwait(false);
                 string body = message.Message;
 
                 if (body.Equals(RedisPubSub.Completed, StringComparison.Ordinal))

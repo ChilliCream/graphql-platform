@@ -50,10 +50,10 @@ public class MongoDbSortVisitorEnumTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "ASC")
-            .AddSqlFrom(res2, "DESC")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
             .MatchAsync();
     }
 
@@ -76,10 +76,10 @@ public class MongoDbSortVisitorEnumTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "ASC")
-            .AddSqlFrom(res2, "DESC")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
             .MatchAsync();
     }
 

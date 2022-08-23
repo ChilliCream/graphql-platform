@@ -7,27 +7,31 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Clients;
 
+// note: should the GraphQL client handle the capabilities?
+// meaning the execution engine should just use batching and
+// all and the client decides to batch if batching is available?
 public sealed class GraphQLHttpClient : IGraphQLClient
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly JsonRequestFormatter _formatter = new();
+    private readonly HttpClient _client;
 
     public GraphQLHttpClient(string schemaName, IHttpClientFactory httpClientFactory)
     {
         _httpClientFactory = httpClientFactory;
         SchemaName = schemaName;
+        _client =_httpClientFactory.CreateClient(SchemaName);
     }
 
+    // TODO: naming? SubGraphName?
     public string SchemaName { get; }
 
     public async Task<GraphQLResponse> ExecuteAsync(GraphQLRequest request, CancellationToken cancellationToken)
     {
         // todo : this is just a naive dummy implementation
         using var writer = new ArrayWriter();
-        using var client = _httpClientFactory.CreateClient(SchemaName);
         using var requestMessage = CreateRequestMessage(writer, request);
-        using var responseMessage = await client.SendAsync(requestMessage, cancellationToken);
-        var s = await responseMessage.Content.ReadAsStringAsync(cancellationToken);
+        using var responseMessage = await _client.SendAsync(requestMessage, cancellationToken);
         responseMessage.EnsureSuccessStatusCode(); // TODO : remove for production
 
         await using var contentStream = await responseMessage.Content.ReadAsStreamAsync(cancellationToken);

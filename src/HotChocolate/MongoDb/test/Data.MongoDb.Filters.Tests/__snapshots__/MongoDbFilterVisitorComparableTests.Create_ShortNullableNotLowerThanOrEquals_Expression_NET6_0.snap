@@ -61,7 +61,7 @@ find({ "BarShort" : { "$not" : { "$lte" : 13 } } })
 find({ "BarShort" : { "$not" : { "$lte" : 14 } } })
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

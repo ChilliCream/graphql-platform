@@ -55,7 +55,7 @@ true Query:
 find({ "Foo.ObjectArray" : { "$exists" : true, "$nin" : [[], null] } })
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

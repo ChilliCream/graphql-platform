@@ -40,18 +40,19 @@ public static class SnapshotExtensions
             postFix,
             formatter: SnapshotValueFormatters.PlainText);
 
-    public static Snapshot AddSqlFrom(
+    public static Snapshot AddResult(
         this Snapshot snapshot,
         IExecutionResult result,
         string? name = null)
     {
-        snapshot.SetPostFix(TestEnvironment.TargetFramework);
-        snapshot.Add(result.ToJson(), string.IsNullOrEmpty(name) ? "Result:" : $"{name} Result:");
-
         if (result.ContextData is null)
         {
+            snapshot.Add(result.ToJson(), name);
             return snapshot;
         }
+
+        snapshot.Add(result.ToJson(), string.IsNullOrEmpty(name) ? "Result:" : $"{name} Result:");
+        snapshot.SetPostFix(TestEnvironment.TargetFramework);
 
         if (result.ContextData.TryGetValue("query", out var queryResult) &&
             queryResult is string queryString &&
@@ -79,19 +80,11 @@ public static class SnapshotExtensions
                 SnapshotValueFormatters.PlainText);
         }
 
-        return snapshot;
-    }
-
-    public static Snapshot AddExceptionFrom(
-        this Snapshot snapshot,
-        IExecutionResult result)
-    {
-        snapshot.Add(result, "Result:");
-        if (result.ContextData is { } &&
-            result.ContextData.TryGetValue("ex", out var queryResult))
+        if (result.ContextData.TryGetValue("ex", out var exception))
         {
-            snapshot.Add(queryResult, "Exception:");
+            snapshot.Add(exception, "Exception:");
         }
+
         return snapshot;
     }
 }

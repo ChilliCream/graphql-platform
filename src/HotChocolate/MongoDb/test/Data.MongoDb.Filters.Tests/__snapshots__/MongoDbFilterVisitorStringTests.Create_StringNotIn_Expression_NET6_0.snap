@@ -12,7 +12,7 @@ testatestAndtestb Query:
 find({ "Bar" : { "$nin" : ["testatest", "testbtest"] } })
 ---------------
 
-testbtestAndNull Result:
+testbtestAndNull
 ---------------
 {
   "errors": [

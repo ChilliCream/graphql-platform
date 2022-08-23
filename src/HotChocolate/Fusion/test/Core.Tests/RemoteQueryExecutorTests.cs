@@ -1,7 +1,7 @@
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Fusion.Clients;
+using HotChocolate.Execution.Serialization;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Utilities;
@@ -64,48 +64,36 @@ public class RemoteQueryExecutorTests
 
         var clientFactory = new MockHttpClientFactory(clients);
 
-        const string sdl = @"
-            type Query {
-                personById(id: ID!) : Person
-            }
-
-            type Person {
-                id: ID!
-                name: String!
-                bio: String
-                friends: [Person!]
-            }";
-
         const string serviceConfiguration = @"
             type Query {
               personById(id: ID!): Person
                 @variable(name: ""personId"", argument: ""id"")
-                @fetch(from: ""a"", select: ""personById(id: $personId) { ... Person }"")
-                @fetch(from: ""b"", select: ""personById(id: $personId) { ... Person }"")
+                @fetch(schema: ""a"", select: ""personById(id: $personId) { ... Person }"")
+                @fetch(schema: ""b"", select: ""personById(id: $personId) { ... Person }"")
             }
 
             type Person
-              @variable(name: ""personId"", select: ""id"" from: ""a"" type: ""Int!"")
-              @variable(name: ""personId"", select: ""id"" from: ""b"" type: ""Int!"")
-              @fetch(from: ""a"", select: ""personById(id: $personId) { ... Person }"")
-              @fetch(from: ""b"", select: ""personById(id: $personId) { ... Person }"") {
+              @variable(name: ""personId"", select: ""id"" schema: ""a"" type: ""Int!"")
+              @variable(name: ""personId"", select: ""id"" schema: ""b"" type: ""Int!"")
+              @fetch(schema: ""a"", select: ""personById(id: $personId) { ... Person }"")
+              @fetch(schema: ""b"", select: ""personById(id: $personId) { ... Person }"") {
 
               id: ID!
-                @bind(to: ""a"")
-                @bind(to: ""b"")
-                @bind(to: ""c"")
+                @source(schema: ""a"")
+                @source(schema: ""b"")
+                @source(schema: ""c"")
               name: String!
-                @bind(to: ""a"")
+                @source(schema: ""a"")
               bio: String
-                @bind(to: ""b"")
+                @source(schema: ""b"")
 
               friends: [Person!]
-                @bind(to: ""a"")
+                @source(schema: ""a"")
             }
 
             schema
-              @httpClient(name: ""a"" baseAddress: ""https://a/graphql"")
-              @httpClient(name: ""b"" baseAddress: ""https://b/graphql"") {
+              @httpClient(schema: ""a"" baseAddress: ""https://a/graphql"")
+              @httpClient(schema: ""b"" baseAddress: ""https://b/graphql"") {
               query: Query
             }";
 
@@ -120,10 +108,9 @@ public class RemoteQueryExecutorTests
                 }
             }");
 
-        var executor = await new ServiceCollection()
+         var executor = await new ServiceCollection()
             .AddSingleton<IHttpClientFactory>(clientFactory)
-            .AddGraphQLServer()
-            .AddGraphQLGateway(serviceConfiguration, sdl)
+            .AddFusionGatewayServer(serviceConfiguration)
             .BuildRequestExecutorAsync();
 
         // act
@@ -140,15 +127,18 @@ public class RemoteQueryExecutorTests
 
         snapshot.Add(request, "User Request");
 
-        /*
-        foreach (var executionNode in queryPlan.ExecutionNodes)
+        if (result.ContextData is not null &&
+            result.ContextData.TryGetValue("queryPlan", out var value) &&
+            value is QueryPlan queryPlan)
         {
-            if (executionNode is RequestNode rn)
+            foreach (var executionNode in queryPlan.ExecutionNodes)
             {
-                snapshot.Add(rn.Handler.Document, $"Request {++index}");
+                if (executionNode is RequestNode rn)
+                {
+                    snapshot.Add(rn.Handler.Document, $"Request {++index}");
+                }
             }
         }
-        */
 
         snapshot.Add(formatter.Format((QueryResult)result), "Result");
 

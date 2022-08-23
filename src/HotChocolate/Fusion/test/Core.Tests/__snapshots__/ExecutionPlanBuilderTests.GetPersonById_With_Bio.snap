@@ -11,7 +11,7 @@ query GetPersonById {
 Request 1
 ---------------
 query GetPersonById_1 {
-  node(id: 1) {
+  personById: node(id: 1) {
     ... on Person {
       id
       bio

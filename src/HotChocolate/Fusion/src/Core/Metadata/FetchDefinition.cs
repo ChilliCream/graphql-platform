@@ -1,6 +1,6 @@
-using System.ComponentModel.Design;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Metadata;
 
@@ -33,9 +33,10 @@ internal sealed class FetchDefinition
 
     public (ISelectionNode selectionNode, IReadOnlyList<string> Path) CreateSelection(
         IReadOnlyDictionary<string, IValueNode> variables,
-        SelectionSetNode? selectionSet)
+        SelectionSetNode? selectionSet,
+        string? responseName)
     {
-        var context = new FetchRewriterContext(Placeholder, variables, selectionSet);
+        var context = new FetchRewriterContext(Placeholder, variables, selectionSet, responseName);
         var selection = _rewriter.Rewrite(Select, context);
 
         if (Placeholder is null && selectionSet is not null)
@@ -54,6 +55,24 @@ internal sealed class FetchDefinition
 
     private class FetchRewriter : SyntaxRewriter<FetchRewriterContext>
     {
+        protected override FieldNode? RewriteField(FieldNode node, FetchRewriterContext context)
+        {
+            var result = base.RewriteField(node, context);
+
+            if (result is not null && context.PlaceholderFound)
+            {
+                context.PlaceholderFound = false;
+
+                if (context.ResponseName is not null &&
+                    !node.Name.Value.EqualsOrdinal(context.ResponseName))
+                {
+                    return result.WithAlias(new NameNode(context.ResponseName));
+                }
+            }
+
+            return result;
+        }
+
         protected override SelectionSetNode? RewriteSelectionSet(
             SelectionSetNode node,
             FetchRewriterContext context)
@@ -75,8 +94,15 @@ internal sealed class FetchDefinition
                         }
 
                         // preserve selection path, so we are later able to unwrap the result.
-                        context.SelectionPath = context.Path.ToArray();
+                        var path = context.Path.ToArray();
+                        context.SelectionPath = path;
+                        context.PlaceholderFound = true;
                         rewrittenList = new List<ISelectionNode>();
+
+                        if (context.ResponseName is not null)
+                        {
+                            path[^1] = context.ResponseName;
+                        }
 
                         for (var j = 0; j < i; j++)
                         {
@@ -139,16 +165,22 @@ internal sealed class FetchDefinition
         public FetchRewriterContext(
             FragmentSpreadNode? placeholder,
             IReadOnlyDictionary<string, IValueNode> variables,
-            SelectionSetNode? selectionSet)
+            SelectionSetNode? selectionSet,
+            string? responseName)
         {
             Placeholder = placeholder;
             Variables = variables;
             SelectionSet = selectionSet;
+            ResponseName = responseName;
         }
+
+        public string? ResponseName { get; }
 
         public Stack<string> Path { get; } = new();
 
         public FragmentSpreadNode? Placeholder { get; }
+
+        public bool PlaceholderFound { get; set; }
 
         public IReadOnlyDictionary<string, IValueNode> Variables { get; }
 
