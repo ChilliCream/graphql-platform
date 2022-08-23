@@ -34,7 +34,7 @@ b Query:
 find({ "Bar" : { "$not" : { "$regex" : /b/ } } })
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

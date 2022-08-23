@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -129,27 +127,5 @@ internal sealed class DeferredWorkState
         _deliverable.Clear();
         _taskId = 0;
         _delivered = 0;
-    }
-}
-
-internal sealed class DeferredWorkStateOwner : IDisposable
-{
-    private readonly ObjectPool<DeferredWorkState> _statePool;
-    private int _disposed = 0;
-
-    public DeferredWorkStateOwner(DeferredWorkState state, ObjectPool<DeferredWorkState> statePool)
-    {
-        State = state ?? throw new ArgumentNullException(nameof(state));
-        _statePool = statePool ?? throw new ArgumentNullException(nameof(statePool));
-    }
-
-    public DeferredWorkState State { get; }
-
-    public void Dispose()
-    {
-        if (_disposed == 0 && Interlocked.CompareExchange(ref _disposed, 0, 1) == 0)
-        {
-            _statePool.Return(State);
-        }
     }
 }

@@ -57,11 +57,11 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
             .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "Sam_Sampleman")
-            .AddSqlFrom(res2, "NoMatch")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "Sam_Sampleman"), res2, "NoMatch"), res3, "null")
             .MatchAsync();
     }
 
@@ -88,11 +88,11 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
             .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "1")
-            .AddSqlFrom(res2, "0")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "1"), res2, "0"), res3, "null")
             .MatchAsync();
     }
 

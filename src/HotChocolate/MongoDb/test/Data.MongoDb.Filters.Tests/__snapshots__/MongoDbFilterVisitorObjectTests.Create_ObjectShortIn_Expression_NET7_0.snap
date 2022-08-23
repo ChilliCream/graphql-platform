@@ -26,32 +26,29 @@ find({ "Foo.BarShort" : { "$in" : [12, 13] } })
 13and14 Result:
 ---------------
 {
-  "errors": [
-    {
-      "message": "The provided value for filter \u0060in\u0060 of type ShortOperationFilterInput is invalid. Null values are not supported.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 40
-        }
-      ],
-      "path": [
-        "root"
-      ],
-      "extensions": {
-        "code": "HC0026",
-        "expectedType": "[Short!]",
-        "filterType": "ShortOperationFilterInput"
-      }
-    }
-  ],
   "data": {
-    "root": []
+    "root": [
+      {
+        "foo": {
+          "barShort": 14
+        }
+      },
+      {
+        "foo": {
+          "barShort": 13
+        }
+      }
+    ]
   }
 }
 ---------------
 
-nullAnd14 Result:
+13and14 Query:
+---------------
+find({ "Foo.BarShort" : { "$in" : [13, 14] } })
+---------------
+
+nullAnd14
 ---------------
 {
   "errors": [

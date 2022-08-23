@@ -41,13 +41,13 @@ public class MockHttpRequestData : HttpRequestData, IDisposable
 
         //Ensure we marshall across all Headers from the HttpContext provided...
         if (requestHeaders?.Any() == true)
-            foreach ((var key, IEnumerable<string>? values) in requestHeaders)
+            foreach ((var key, var values) in requestHeaders)
                 Headers.TryAddWithoutValidation(key, values);
 
         //Because we are mocking this manually we must handle cookies explicitly...
-        if (Headers.TryGetValues(HeaderNames.Cookie, out IEnumerable<string>? cookieHeaders))
+        if (Headers.TryGetValues(HeaderNames.Cookie, out var cookieHeaders))
         {
-            IList<CookieHeaderValue> parsedCookieHeaders = CookieHeaderValue.ParseList(cookieHeaders.ToList());
+            var parsedCookieHeaders = CookieHeaderValue.ParseList(cookieHeaders.ToList());
             _cookiesList.AddRange(parsedCookieHeaders.Select(h => new HttpCookie(h.Name.ToString(), h.Value.ToString())));
         }
     }

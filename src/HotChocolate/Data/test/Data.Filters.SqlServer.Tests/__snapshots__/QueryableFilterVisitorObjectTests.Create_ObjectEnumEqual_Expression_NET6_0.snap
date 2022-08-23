@@ -53,7 +53,7 @@ INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
 WHERE "f"."BarEnum" = @__p_0
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

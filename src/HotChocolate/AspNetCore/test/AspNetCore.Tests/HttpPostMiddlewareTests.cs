@@ -192,7 +192,10 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             name
                         }
                     }",
-                Variables = new Dictionary<string, object> { { "episode", "NEW_HOPE" } }
+                Variables = new Dictionary<string, object?>
+                {
+                    { "episode", "NEW_HOPE" }
+                }
             });
 
         // assert
@@ -215,7 +218,10 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             name
                         }
                     }",
-                Variables = new Dictionary<string, object> { { "id", "1000" } }
+                Variables = new Dictionary<string, object?>
+                {
+                    { "id", "1000" }
+                }
             });
 
         // assert
@@ -258,7 +264,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
         var server = CreateStarWarsServer(
             configureServices: s => s
                 .AddGraphQLServer()
-                    .AddDiagnosticEventListener(sp => listenerA));
+                    .AddDiagnosticEventListener(_ => listenerA));
 
         // act
         await server.PostRawAsync(new ClientQueryRequest
@@ -290,8 +296,8 @@ public class HttpPostMiddlewareTests : ServerTestBase
         var server = CreateStarWarsServer(
             configureServices: s => s
                 .AddGraphQLServer()
-                    .AddDiagnosticEventListener(sp => listenerA)
-                    .AddDiagnosticEventListener(sp => listenerB));
+                    .AddDiagnosticEventListener(_ => listenerA)
+                    .AddDiagnosticEventListener(_ => listenerB));
 
         // act
         await server.PostRawAsync(new ClientQueryRequest
@@ -362,7 +368,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             }
                         }
                     }",
-                Variables = new Dictionary<string, object>
+                Variables = new Dictionary<string, object?>
                 {
                     ["if"] = true
                 }
@@ -393,7 +399,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             }
                         }
                     }",
-                Variables = new Dictionary<string, object>
+                Variables = new Dictionary<string, object?>
                 {
                     ["if"] = false
                 }
@@ -450,16 +456,16 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             commentary
                         }
                     }",
-                Variables = new Dictionary<string, object>
+                Variables = new Dictionary<string, object?>
                 {
-                        { "ep", "EMPIRE" },
+                    { "ep", "EMPIRE" },
+                    {
+                        "review",
+                        new Dictionary<string, object>
                         {
-                            "review",
-                            new Dictionary<string, object>
-                            {
-                                { "stars", 5 }, { "commentary", "This is a great movie!" },
-                            }
+                            { "stars", 5 }, { "commentary", "This is a great movie!" },
                         }
+                    }
                 }
             });
 
@@ -486,15 +492,16 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             commentary
                         }
                     }",
-                Variables = new Dictionary<string, object>
+                Variables = new Dictionary<string, object?>
                 {
+                    {
+                        "review",
+                        new Dictionary<string, object?>
                         {
-                            "review",
-                            new Dictionary<string, object>
-                            {
-                                { "stars", 5 }, { "commentary", "This is a great movie!" },
-                            }
+                            { "stars", 5 },
+                            { "commentary", "This is a great movie!" },
                         }
+                    }
                 }
             });
 
@@ -525,11 +532,11 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             commentary
                         }
                     }",
-                Variables = new Dictionary<string, object>
+                Variables = new Dictionary<string, object?>
                 {
-                        { "ep", "EMPIRE" },
-                        { "stars", 5 },
-                        { "commentary", "This is a great movie!" }
+                    { "ep", "EMPIRE" },
+                    { "stars", 5 },
+                    { "commentary", "This is a great movie!" }
                 }
             });
 
@@ -561,11 +568,11 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             commentary
                         }
                     }",
-                Variables = new Dictionary<string, object>
+                Variables = new Dictionary<string, object?>
                 {
-                        { "ep", "EMPIRE" },
-                        { "stars", 5 },
-                        { "commentary", "This is a great movie!" }
+                    { "ep", "EMPIRE" },
+                    { "stars", 5 },
+                    { "commentary", "This is a great movie!" }
                 }
             });
 
@@ -621,7 +628,10 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             name
                         }
                     }",
-                Variables = new Dictionary<string, object> { { "episode", "NEW_HOPE" } }
+                Variables = new Dictionary<string, object?>
+                {
+                    { "episode", "NEW_HOPE" }
+                }
             });
 
         // assert
@@ -658,14 +668,18 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
-                        query ($d: Float) {
-                             double_arg(d: $d)
-                        }",
-                Variables = new Dictionary<string, object> { { "d", 1.539 } }
-            },
+            await server.PostAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
+                            query ($d: Float) {
+                                 double_arg(d: $d)
+                            }",
+                    Variables = new Dictionary<string, object?>
+                    {
+                        { "d", 1.539 }
+                    }
+                },
                 "/arguments");
 
         // assert
@@ -680,14 +694,18 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
-                        query ($d: Float) {
-                             double_arg(d: $d)
-                        }",
-                Variables = new Dictionary<string, object> { { "d", double.MaxValue } }
-            },
+            await server.PostAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
+                            query ($d: Float) {
+                                 double_arg(d: $d)
+                            }",
+                    Variables = new Dictionary<string, object?>
+                    {
+                        { "d", double.MaxValue }
+                    }
+                },
                 "/arguments");
 
         // assert
@@ -708,7 +726,10 @@ public class HttpPostMiddlewareTests : ServerTestBase
                         query ($d: Float) {
                              double_arg(d: $d)
                         }",
-                Variables = new Dictionary<string, object> { { "d", double.MinValue } }
+                Variables = new Dictionary<string, object?>
+                {
+                    { "d", double.MinValue }
+                }
             },
                 "/arguments");
 
@@ -724,14 +745,18 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
-                        query ($d: Decimal) {
-                             decimal_arg(d: $d)
-                        }",
-                Variables = new Dictionary<string, object> { { "d", decimal.MaxValue } }
-            },
+            await server.PostAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
+                            query ($d: Decimal) {
+                                 decimal_arg(d: $d)
+                            }",
+                    Variables = new Dictionary<string, object?>
+                    {
+                        { "d", decimal.MaxValue }
+                    }
+                },
                 "/arguments");
 
         // assert
@@ -746,14 +771,18 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
-                        query ($d: Decimal) {
-                             decimal_arg(d: $d)
-                        }",
-                Variables = new Dictionary<string, object> { { "d", decimal.MinValue } }
-            },
+            await server.PostAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
+                            query ($d: Decimal) {
+                                 decimal_arg(d: $d)
+                            }",
+                    Variables = new Dictionary<string, object?>
+                    {
+                        { "d", decimal.MinValue }
+                    }
+                },
                 "/arguments");
 
         // assert

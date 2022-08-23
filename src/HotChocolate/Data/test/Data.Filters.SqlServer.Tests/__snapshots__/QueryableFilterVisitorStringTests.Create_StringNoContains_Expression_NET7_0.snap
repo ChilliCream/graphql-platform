@@ -42,7 +42,7 @@ FROM "Data" AS "d"
 WHERE NOT (@__p_0 = '' OR instr("d"."Bar", @__p_0) > 0)
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

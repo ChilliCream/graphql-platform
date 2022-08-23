@@ -20,13 +20,13 @@ public class IsolatedProcessEndToEndTests
             graphQL.AddQueryType(d => d.Name("Query").Field("person").Resolve("Luke Skywalker"));
         });
 
-        IHost host = hostBuilder.Build();
+        var host = hostBuilder.Build();
 
         //The executor should resolve without error as a Required service...
-        IGraphQLRequestExecutor requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
+        var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
 
         //Build an HttpRequestData that is valid for the Isolated Process to execute with...
-        HttpRequestData httpRequestData = TestHttpRequestDataHelper.NewGraphQLHttpRequestData(host.Services, @"
+        var httpRequestData = TestHttpRequestDataHelper.NewGraphQLHttpRequestData(host.Services, @"
             query {
                 person
             }
@@ -34,7 +34,7 @@ public class IsolatedProcessEndToEndTests
 
         //Execute Query Test for end-to-end validation...
         //NOTE: This uses the new Az Func Isolated Process extension to execute via HttpRequestData...
-        HttpResponseData httpResponseData = await requestExecutor.ExecuteAsync(httpRequestData).ConfigureAwait(false);
+        var httpResponseData = await requestExecutor.ExecuteAsync(httpRequestData).ConfigureAwait(false);
 
         //Read, Parse & Validate the response...
         var resultContent = await httpResponseData.ReadResponseContentAsync().ConfigureAwait(false);

@@ -6,17 +6,20 @@ namespace HotChocolate.AzureFunctions.IsolatedProcess;
 
 public static class HttpRequestDataExtensions
 {
-    public static string GetContentType(this HttpRequestData httpRequestData, string defaultValue = GraphQLAzureFunctionsConstants.DefaultJsonContentType)
+    public static string GetContentType(
+        this HttpRequestData httpRequestData,
+        string defaultValue = GraphQLAzureFunctionsConstants.DefaultJsonContentType)
     {
-        var contentType = httpRequestData.Headers.TryGetValues(HeaderNames.ContentType, out IEnumerable<string>? contentTypeHeaders)
+        var contentType = httpRequestData.Headers.TryGetValues(
+            HeaderNames.ContentType,
+            out var contentTypeHeaders)
             ? contentTypeHeaders.FirstOrDefault()
             : defaultValue;
 
         return contentType ?? defaultValue;
     }
 
-    public static async Task<string?> ReadResponseContentAsync(this HttpResponseData httpResponseData)
-    {
-        return await httpResponseData.Body.ReadStreamAsStringAsync().ConfigureAwait(false);
-    }
+    public static async Task<string?> ReadResponseContentAsync(
+        this HttpResponseData httpResponseData)
+        => await httpResponseData.Body.ReadStreamAsStringAsync().ConfigureAwait(false);
 }

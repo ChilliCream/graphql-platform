@@ -172,7 +172,7 @@ public class OperationRequestTests
         IReadOnlyDictionary<string, object?>? ext;
         IReadOnlyDictionary<string, object?>? contextData;
         RequestStrategy strategy;
-        (id, name, doc, vars, ext, contextData, strategy) = request;
+        (id, name, doc, vars, ext, contextData, _, strategy) = request;
 
         // assert
         Assert.Equal(request.Id, id);

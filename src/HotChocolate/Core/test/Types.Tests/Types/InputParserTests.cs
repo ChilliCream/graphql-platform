@@ -442,6 +442,30 @@ public class InputParserTests
         runtimeValue.MatchSnapshot();
     }
 
+    [Fact]
+    public void Force_NonNull_Struct_To_Be_Optional()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddInputObjectType<Test4Input>(d => d.Field(t => t.Field2).Type<IntType>())
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
+
+        var type = schema.GetType<InputObjectType>("Test4Input");
+
+        var fieldData = new Dictionary<string, object?>
+        {
+            { "field1", "abc" }
+        };
+
+        // act
+        var parser = new InputParser(new DefaultTypeConverter());
+        var runtimeValue = parser.ParseResult(fieldData, type, Path.Root);
+
+        // assert
+        Assert.IsType<Test4Input>(runtimeValue).MatchSnapshot();
+    }
+
     public class TestInput
     {
         public string? Field1 { get; set; }
@@ -505,5 +529,12 @@ public class InputParserTests
         public int? B { get; set; }
 
         public string? C { get; set; }
+    }
+
+    public class Test4Input
+    {
+        public string Field1 { get; set; } = default!;
+
+        public int Field2 { get; set; } = default!;
     }
 }

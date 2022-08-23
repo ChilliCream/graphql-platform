@@ -6,24 +6,22 @@ namespace HotChocolate.Fusion.Execution;
 internal sealed class FederatedQueryContext
 {
     public FederatedQueryContext(
-        ISchema schema,
-        ResultBuilder result,
-        IOperation operation,
+        OperationContext operationContext,
         QueryPlan plan,
         IReadOnlySet<ISelectionSet> requiresFetch)
     {
-        Schema = schema;
-        Result = result;
-        Operation = operation;
+        OperationContext = operationContext;
         Plan = plan;
         RequiresFetch = requiresFetch;
     }
 
-    public ISchema Schema { get; }
+    public OperationContext OperationContext { get; }
 
-    public ResultBuilder Result { get; }
+    public ISchema Schema => OperationContext.Schema;
 
-    public IOperation Operation { get; }
+    public ResultBuilder Result => OperationContext.Result;
+
+    public IOperation Operation => OperationContext.Operation;
 
     public QueryPlan Plan { get; }
 
