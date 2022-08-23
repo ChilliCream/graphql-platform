@@ -28,9 +28,9 @@ public class IsolatedProcessHostBuilderTests
         if(hostBuilder is null)
             throw new ArgumentNullException(nameof(hostBuilder));
 
-        IHost host = hostBuilder.Build();
+        var host = hostBuilder.Build();
 
         //The executor should resolve without error as a Required service...
-        IGraphQLRequestExecutor requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
+        var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
     }
 }
