@@ -14,9 +14,10 @@ namespace StrawberryShake.CodeGeneration.Mappers
     {
         public static void Map(ClientModel model, IMapperContext context)
         {
-            var hasUpload = false;
             foreach (OperationModel modelOperation in model.Operations)
             {
+                var hasUpload = false;
+
                 var arguments = modelOperation.Arguments.Select(
                         arg =>
                         {

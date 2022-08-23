@@ -264,5 +264,27 @@ namespace StrawberryShake.CodeGeneration.CSharp
                  ",
                 "extend schema @key(fields: \"id\")");
         }
+
+        [Fact]
+        public void MultipleOperations_WithAndWithoutUpload()
+        {
+            AssertResult(
+                @"
+                query test(
+                     $upload: Upload!
+                     $string: String!) {
+                     foo(string: $string upload: $upload)
+                 }
+                query GetSomething { foo_bar_baz }
+                ",
+                @"type Query {
+                    foo_bar_baz: String
+                    foo(string: String! upload: Upload!): String
+                }
+
+                scalar Upload
+                ",
+                "extend schema @key(fields: \"id\")");
+        }
     }
 }
