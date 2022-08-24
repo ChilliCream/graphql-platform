@@ -7,17 +7,18 @@ internal struct WorkItem
 {
     public WorkItem(
         ISelectionSet selectionSet,
-        ObjectResult result)
+        ObjectResult result, 
+        IReadOnlyList<string> exportKeys)
     {
         SelectionSet = selectionSet;
         Result = result;
         SelectionResults = new SelectionResult[selectionSet.Selections.Count];
-        ExportKeys = Array.Empty<string>();
+        ExportKeys = exportKeys;
     }
 
     public Dictionary<string, IValueNode> VariableValues { get; } = new();
 
-    public IReadOnlyList<string> ExportKeys { get; set; }
+    public IReadOnlyList<string> ExportKeys { get; }
 
     public ISelectionSet SelectionSet { get; }
 

@@ -143,11 +143,7 @@ internal static class ExecutorUtils
 
         if (context.NeedsMoreData(selectionSet))
         {
-            context.State.RegisterState(
-                new WorkItem(selectionSet, result)
-                {
-                    SelectionResults = { [0] = selectionResult }
-                });
+            context.RegisterState(selectionSet, result, selectionResult);
         }
         else
         {

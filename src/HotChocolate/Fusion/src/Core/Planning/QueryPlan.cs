@@ -32,26 +32,11 @@ internal sealed class QueryPlan
     public IReadOnlyList<string> GetExportKeys(ISelectionSet selectionSet)
         => _exportKeysLookup.TryGetValue(selectionSet, out var keys) ? keys : Array.Empty<string>();
 
-    public Task ExecuteAsync(
+    public async Task ExecuteAsync(
         IFederationContext context,
         CancellationToken cancellationToken)
     {
-        context.BeginExecution();
-        return ExecuteInternalAsync(context, cancellationToken);
-    }
-
-    private async Task ExecuteInternalAsync(
-        IFederationContext context,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            await RootNode.ExecuteAsync(context, cancellationToken);
-        }
-        finally
-        {
-            context.CompletedExecution();
-        }
+        await RootNode.ExecuteAsync(context, cancellationToken);
     }
 
     public void Format(IBufferWriter<byte> writer)
@@ -59,6 +44,7 @@ internal sealed class QueryPlan
         var jsonOptions = new JsonWriterOptions { Indented = true };
         using var jsonWriter = new Utf8JsonWriter(writer, jsonOptions);
         Format(jsonWriter);
+        jsonWriter.Flush();
     }
 
     public void Format(Utf8JsonWriter writer)
@@ -85,9 +71,8 @@ internal sealed class QueryPlan
         using var jsonWriter = new Utf8JsonWriter(bufferWriter, jsonOptions);
 
         Format(jsonWriter);
+        jsonWriter.Flush();
 
         return Encoding.UTF8.GetString(bufferWriter.WrittenSpan);
     }
 }
-
-

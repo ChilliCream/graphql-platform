@@ -1,3 +1,4 @@
+#if NET6_0_OR_GREATER
 using System.Buffers;
 using HotChocolate.Fusion.Planning;
 
@@ -10,3 +11,4 @@ internal sealed class QueryPlanSnapshotValueFormatter : SnapshotValueFormatter<Q
         value.Format(snapshot);
     }
 }
+#endif

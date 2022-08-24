@@ -19,31 +19,17 @@ internal abstract class QueryPlanNode
 
     public IReadOnlyList<QueryPlanNode> Nodes => _nodes;
 
-    internal Task ExecuteAsync(
+    internal async Task ExecuteAsync(
         IFederationContext context,
         CancellationToken cancellationToken)
     {
-        context.BeginExecution();
-        return ExecuteInternalAsync(context, context.State, cancellationToken);
-    }
+        var state = context.State;
 
-    private async Task ExecuteInternalAsync(
-        IFederationContext context,
-        IExecutionState state,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            await OnExecuteAsync(context, state, cancellationToken).ConfigureAwait(false);
+        await OnExecuteAsync(context, state, cancellationToken).ConfigureAwait(false);
 
-            if (_nodes.Count > 0)
-            {
-                await OnExecuteNodesAsync(context, state, cancellationToken).ConfigureAwait(false);
-            }
-        }
-        finally
+        if (_nodes.Count > 0)
         {
-            context.CompletedExecution();
+            await OnExecuteNodesAsync(context, state, cancellationToken).ConfigureAwait(false);
         }
     }
 

@@ -8,10 +8,13 @@ namespace HotChocolate.Fusion.Execution;
 
 internal sealed class FederatedQueryContext : IFederationContext
 {
+    private readonly GraphQLClientFactory _clientFactory;
+
     public FederatedQueryContext(
         ServiceConfiguration serviceConfig,
         QueryPlan queryPlan,
-        OperationContext operationContext)
+        OperationContext operationContext,
+        GraphQLClientFactory clientFactory)
     {
         ServiceConfig = serviceConfig ??
             throw new ArgumentNullException(nameof(serviceConfig));
@@ -19,6 +22,7 @@ internal sealed class FederatedQueryContext : IFederationContext
             throw new ArgumentNullException(nameof(queryPlan));
         OperationContext = operationContext ??
             throw new ArgumentNullException(nameof(operationContext));
+        _clientFactory = clientFactory;
     }
 
     public ServiceConfiguration ServiceConfig { get; }
@@ -38,47 +42,22 @@ internal sealed class FederatedQueryContext : IFederationContext
     public bool NeedsMoreData(ISelectionSet selectionSet)
         => QueryPlan.HasNodes(selectionSet);
 
-    public Task<IReadOnlyList<GraphQLResponse>> ExecuteAsync(
+    // TODO : implement batching here
+    public async Task<IReadOnlyList<GraphQLResponse>> ExecuteAsync(
         string schemaName,
-        IReadOnlyList<GraphQLRequest> request,
+        IReadOnlyList<GraphQLRequest> requests,
         CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var client = _clientFactory.Create(schemaName);
+        var responses = new GraphQLResponse[requests.Count];
+
+        for (var i = 0; i < requests.Count; i++)
+        {
+            responses[i] =
+                await client.ExecuteAsync(requests[i], cancellationToken)
+                    .ConfigureAwait(false);
+        }
+
+        return responses;
     }
-
-    public void BeginExecution()
-    {
-    }
-
-    public void CompletedExecution()
-    {
-    }
-}
-
-internal interface IFederationContext
-{
-    ServiceConfiguration ServiceConfig { get; }
-
-    OperationContext OperationContext { get; }
-
-    ISchema Schema => OperationContext.Schema;
-
-    ResultBuilder Result => OperationContext.Result;
-
-    IOperation Operation => OperationContext.Operation;
-
-    QueryPlan QueryPlan { get; }
-
-    IExecutionState State { get; }
-
-    bool NeedsMoreData(ISelectionSet selectionSet);
-
-    Task<IReadOnlyList<GraphQLResponse>> ExecuteAsync(
-        string schemaName,
-        IReadOnlyList<GraphQLRequest> request,
-        CancellationToken cancellationToken);
-
-    void BeginExecution();
-
-    void CompletedExecution();
 }

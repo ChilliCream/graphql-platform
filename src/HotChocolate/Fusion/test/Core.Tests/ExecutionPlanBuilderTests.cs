@@ -743,6 +743,35 @@ public class ExecutionPlanBuilderTests
         await snapshot.MatchAsync();
     }
 
+    [Fact]
+    public async Task StoreService_Immutable()
+    {
+        // arrange
+        var request = Parse(
+            @"query GetMe {
+              me {
+                username
+              }
+              userById(id: 2) {
+                name
+                reviews {
+                  nodes {
+                    id
+                  }
+                }
+              }
+            }");
+
+        // act
+        var queryPlan = await BuildStoreServiceQueryPlanAsync(request);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(request, "User Request");
+        snapshot.Add(queryPlan, "Query Plan");
+        await snapshot.MatchAsync();
+    }
+
     private static async Task<QueryPlan> BuildStoreServiceQueryPlanAsync(DocumentNode request)
     {
         // arrange

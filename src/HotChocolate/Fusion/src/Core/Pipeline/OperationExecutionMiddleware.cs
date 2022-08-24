@@ -4,6 +4,7 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Serialization;
 using HotChocolate.Fetching;
+using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;
@@ -18,12 +19,14 @@ internal sealed class OperationExecutionMiddleware
     private readonly ServiceConfiguration _serviceConfig;
     private readonly ISchema _schema;
     private readonly ObjectPool<OperationContext> _operationContextPool;
+    private readonly GraphQLClientFactory _clientFactory;
 
     public OperationExecutionMiddleware(
         RequestDelegate next,
         ObjectPool<OperationContext> operationContextPool,
         [SchemaService] FederatedQueryExecutor executor,
         [SchemaService] ServiceConfiguration serviceConfig,
+        [SchemaService] GraphQLClientFactory clientFactory,
         [SchemaService] ISchema schema)
     {
         _next = next ??
@@ -35,6 +38,8 @@ internal sealed class OperationExecutionMiddleware
         _serviceConfig = serviceConfig ??
             throw new ArgumentNullException(nameof(serviceConfig));
         _schema = schema ??
+            throw new ArgumentNullException(nameof(schema));
+        _clientFactory = clientFactory ??
             throw new ArgumentNullException(nameof(schema));
     }
 
@@ -61,15 +66,14 @@ internal sealed class OperationExecutionMiddleware
             var federatedQueryContext = new FederatedQueryContext(
                 _serviceConfig,
                 queryPlan,
-                operationContext);
+                operationContext,
+                _clientFactory);
 
             if (context.ContextData.ContainsKey(WellKnownContextData.IncludeQueryPlan))
             {
                 var bufferWriter = new ArrayBufferWriter<byte>();
-                var jsonOptions = new JsonWriterOptions { Indented = false };
-                await using var jsonWriter = new Utf8JsonWriter(bufferWriter, jsonOptions);
-
-                queryPlan.Format(jsonWriter);
+                
+                queryPlan.Format(bufferWriter);
 
                 operationContext.Result.SetExtension(
                     "queryPlan",

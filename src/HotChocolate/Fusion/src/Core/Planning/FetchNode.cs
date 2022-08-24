@@ -59,19 +59,22 @@ internal sealed class FetchNode : QueryPlanNode
         {
             var schemaName = SchemaName;
             var requests = new GraphQLRequest[values.Count];
+            var selections = values[0].SelectionSet.Selections;
 
             // first we will create a request for all of our work items.
             for (var i = 0; i < values.Count; i++)
             {
-                requests[i] = CreateRequest(values[i].VariableValues);
+                var value = values[i];
+                ExtractPartialResult(value);
+                requests[i] = CreateRequest(value.VariableValues);
             }
 
             // once we have the requests, we will enqueue them for execution with the execution engine.
             // the execution engine will batch these requests if possible.
             var responses = await context.ExecuteAsync(
-                    schemaName,
-                    requests,
-                    cancellationToken)
+                schemaName,
+                requests,
+                cancellationToken)
                 .ConfigureAwait(false);
 
             // before we extract the data from the responses we will enqueue the responses for cleanup
@@ -88,9 +91,6 @@ internal sealed class FetchNode : QueryPlanNode
                     }
                     return default!;
                 });
-
-            // At this section we are extracting the result from the response data.
-            var selections = values[0].SelectionSet.Selections;
 
             for (var i = 0; i < requests.Length; i++)
             {

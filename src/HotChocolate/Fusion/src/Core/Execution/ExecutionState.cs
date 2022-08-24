@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Processing;
-using static HotChocolate.Fusion.Execution.ExecutorUtils;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -95,6 +94,7 @@ internal sealed class ExecutionState : IExecutionState
 
         if (values is not null)
         {
+            taken = false;
             Monitor.Enter(values, ref taken);
 
             try
