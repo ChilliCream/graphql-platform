@@ -12,6 +12,11 @@ namespace HotChocolate.Execution.Processing;
 public interface ISelectionSet
 {
     /// <summary>
+    /// Gets an operation unique selection-set identifier of this selection.
+    /// </summary>
+    int Id { get; }
+
+    /// <summary>
     /// Defines if this list needs post processing for skip and include.
     /// </summary>
     bool IsConditional { get; }

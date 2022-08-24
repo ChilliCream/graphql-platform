@@ -1,101 +1,93 @@
+using System.Buffers;
+using System.Text;
 using HotChocolate.Execution.Processing;
+using System.Text.Json;
+using HotChocolate.Fusion.Execution;
 
 namespace HotChocolate.Fusion.Planning;
 
 internal sealed class QueryPlan
 {
-    private readonly SelectionSetInfo _empty = new(0, Array.Empty<string>());
-    private readonly Dictionary<ISelectionSet, SelectionSetInfo> _selectionSetInfos = new();
-    private readonly HashSet<ISelectionSet> _hasNodes = new();
-    private readonly QueryPlanNode[] _allNodes;
+    private readonly IOperation _operation;
+    private readonly IReadOnlyDictionary<ISelectionSet, string[]> _exportKeysLookup;
+    private readonly IReadOnlySet<ISelectionSet> _hasNodes;
 
     public QueryPlan(
         IOperation operation,
-        IEnumerable<QueryPlanNode> executionNodes,
-        IEnumerable<ExportDefinition> exportDefinitions)
+        QueryPlanNode rootNode,
+        IReadOnlyDictionary<ISelectionSet, string[]> exportKeysLookup,
+        IReadOnlySet<ISelectionSet> hasNodes)
     {
-        _allNodes = executionNodes.ToArray();
-
-        foreach (var groupedKeys in exportDefinitions.GroupBy(t => t.SelectionSet, t => t.StateKey))
-        {
-            var nodesCount = 0;
-
-            foreach (var node in _allNodes)
-            {
-                if (node.AppliesTo(groupedKeys.Key))
-                {
-                    nodesCount++;
-                }
-            }
-
-            _selectionSetInfos.Add(groupedKeys.Key, new(nodesCount, groupedKeys.ToArray()));
-        }
-
-        foreach (var selectionSet in operation)
-        {
-            foreach (var node in _allNodes)
-            {
-                if (node.AppliesTo(selectionSet))
-                {
-                    _hasNodes.Add(selectionSet);
-                    break;
-                }
-            }
-        }
+        _operation = operation;
+        _exportKeysLookup = exportKeysLookup;
+        _hasNodes = hasNodes;
+        RootNode = rootNode;
     }
 
-    /// <summary>
-    /// Gets all the nodes of this query plan.
-    /// </summary>
-    public IReadOnlyList<QueryPlanNode> AllNodes => _allNodes;
-
-    /// <summary>
-    /// Gets an info for the specified selection-set outlining the number of executable nodes
-    /// and the state that these export.
-    /// </summary>
-    /// <param name="selectionSet">
-    /// The selection-set for which the info shall be resolved.
-    /// </param>
-    /// <returns>
-    /// Returns an info for the specified selection-set outlining the number of executable nodes
-    /// and the state that these export.
-    /// </returns>
-    public SelectionSetInfo GetSelectionSetInfo(ISelectionSet selectionSet)
-        => _selectionSetInfos.TryGetValue(selectionSet, out var value)
-            ? value
-            : _empty;
-
-    public IEnumerable<QueryPlanNode> GetNodes(ISelectionSet selectionSet)
-    {
-        foreach (var node in _allNodes)
-        {
-            if (node.AppliesTo(selectionSet))
-            {
-                yield return node;
-            }
-        }
-    }
+    public QueryPlanNode RootNode { get; }
 
     public bool HasNodes(ISelectionSet selectionSet)
         => _hasNodes.Contains(selectionSet);
 
-    /// <summary>
-    /// Gets the next executable nodes;
-    /// </summary>
-    /// <param name="completed">
-    /// A set containing the already processed nodes.
-    /// </param>
-    /// <returns>
-    /// Returns the nodes that need to be executed next.
-    /// </returns>
-    public IEnumerable<QueryPlanNode> GetNextNodes(ISet<QueryPlanNode> completed)
+    public IReadOnlyList<string> GetExportKeys(ISelectionSet selectionSet)
+        => _exportKeysLookup.TryGetValue(selectionSet, out var keys) ? keys : Array.Empty<string>();
+
+    public Task ExecuteAsync(
+        IFederationContext context,
+        CancellationToken cancellationToken)
     {
-        foreach (var node in _allNodes)
+        context.BeginExecution();
+        return ExecuteInternalAsync(context, cancellationToken);
+    }
+
+    private async Task ExecuteInternalAsync(
+        IFederationContext context,
+        CancellationToken cancellationToken)
+    {
+        try
         {
-            if (!completed.Contains(node) && completed.IsSupersetOf(node.DependsOn))
-            {
-                yield return node;
-            }
+            await RootNode.ExecuteAsync(context, cancellationToken);
+        }
+        finally
+        {
+            context.CompletedExecution();
         }
     }
+
+    public void Format(IBufferWriter<byte> writer)
+    {
+        var jsonOptions = new JsonWriterOptions { Indented = true };
+        using var jsonWriter = new Utf8JsonWriter(writer, jsonOptions);
+        Format(jsonWriter);
+    }
+
+    public void Format(Utf8JsonWriter writer)
+    {
+        writer.WriteStartObject();
+
+        writer.WriteString("document", _operation.Document.ToString());
+
+        if (!string.IsNullOrEmpty(_operation.Name))
+        {
+            writer.WriteString("operation", _operation.Name);
+        }
+
+        writer.WritePropertyName("rootNode");
+        RootNode.Format(writer);
+
+        writer.WriteEndObject();
+    }
+
+    public override string ToString()
+    {
+        var bufferWriter = new ArrayBufferWriter<byte>();
+        var jsonOptions = new JsonWriterOptions { Indented = true };
+        using var jsonWriter = new Utf8JsonWriter(bufferWriter, jsonOptions);
+
+        Format(jsonWriter);
+
+        return Encoding.UTF8.GetString(bufferWriter.WrittenSpan);
+    }
 }
+
+

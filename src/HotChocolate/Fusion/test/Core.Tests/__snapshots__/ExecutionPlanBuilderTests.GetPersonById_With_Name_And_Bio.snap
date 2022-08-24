@@ -9,23 +9,45 @@ query GetPersonById {
 }
 ---------------
 
-Request 1
+Query Plan
 ---------------
-query GetPersonById_1 {
-  personById(id: 1) {
-    id
-    name
-  }
-}
----------------
-
-Request 2
----------------
-query GetPersonById_2 {
-  node(id: 1) {
-    ... on Person {
-      bio
-    }
+{
+  "document": "query GetPersonById {\n  personById(id: 1) {\n    id\n    name\n    bio\n  }\n}",
+  "operation": "GetPersonById",
+  "rootNode": {
+    "type": "Serial",
+    "nodes": [
+      {
+        "type": "Parallel",
+        "nodes": [
+          {
+            "type": "Fetch",
+            "schemaName": "a",
+            "document": "query GetPersonById_1 {\n  personById(id: 1) {\n    id\n    name\n  }\n}",
+            "selectionSetId": 0,
+            "path": [],
+            "requires": []
+          },
+          {
+            "type": "Fetch",
+            "schemaName": "b",
+            "document": "query GetPersonById_2 {\n  node(id: 1) {\n    ... on Person {\n      bio\n    }\n  }\n}",
+            "selectionSetId": 1,
+            "path": [
+              "node"
+            ],
+            "requires": []
+          }
+        ]
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          0,
+          1
+        ]
+      }
+    ]
   }
 }
 ---------------

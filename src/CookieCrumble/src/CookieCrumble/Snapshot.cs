@@ -27,6 +27,7 @@ public sealed class Snapshot
             new SchemaSnapshotValueFormatter(),
             new ExceptionSnapshotValueFormatter(),
             new SchemaErrorSnapshotValueFormatter(),
+            new QueryPlanSnapshotValueFormatter(),
         });
     private static readonly JsonSnapshotValueFormatter _defaultFormatter = new();
 

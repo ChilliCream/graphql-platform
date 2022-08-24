@@ -78,6 +78,7 @@ internal sealed class SelectionVariants : ISelectionVariants
     }
 
     internal void AddSelectionSet(
+        int id,
         ObjectType typeContext,
         Selection[] selections,
         Fragment[]? fragments,
@@ -88,7 +89,7 @@ internal sealed class SelectionVariants : ISelectionVariants
             throw new NotSupportedException(SelectionVariants_ReadOnly);
         }
 
-        var selectionSet = new SelectionSet(selections, fragments, isConditional);
+        var selectionSet = new SelectionSet(id, selections, fragments, isConditional);
 
         if (_map is not null)
         {

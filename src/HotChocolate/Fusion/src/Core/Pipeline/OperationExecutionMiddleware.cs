@@ -1,5 +1,8 @@
+using System.Buffers;
+using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Execution.Serialization;
 using HotChocolate.Fetching;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Metadata;
@@ -60,26 +63,17 @@ internal sealed class OperationExecutionMiddleware
                 queryPlan,
                 operationContext);
 
-            // TODO : just for debug
             if (context.ContextData.ContainsKey(WellKnownContextData.IncludeQueryPlan))
             {
-                var subGraphRequests = new OrderedDictionary<string, object?>();
-                var plan = new OrderedDictionary<string, object?>();
-                plan.Add("userRequest", context.Document?.ToString());
-                plan.Add("subGraphRequests", subGraphRequests);
+                var bufferWriter = new ArrayBufferWriter<byte>();
+                var jsonOptions = new JsonWriterOptions { Indented = false };
+                await using var jsonWriter = new Utf8JsonWriter(bufferWriter, jsonOptions);
 
-                var index = 0;
-                foreach (var executionNode in queryPlan.AllNodes)
-                {
-                    if (executionNode is FetchNode rn)
-                    {
-                        subGraphRequests.Add(
-                            $"subGraphRequest{++index}",
-                            rn.Handler.Document.ToString());
-                    }
-                }
+                queryPlan.Format(jsonWriter);
 
-                operationContext.Result.SetExtension("queryPlan", plan);
+                operationContext.Result.SetExtension(
+                    "queryPlan",
+                    new RawJsonValue(bufferWriter.WrittenMemory));
             }
 
             // we store the context on the result for unit tests.

@@ -25,6 +25,8 @@ internal sealed class FederatedQueryContext : IFederationContext
 
     public QueryPlan QueryPlan { get; }
 
+    public IExecutionState State { get; } = new ExecutionState();
+
     public OperationContext OperationContext { get; }
 
     public ConcurrentQueue<WorkItem> Work { get; } = new();
@@ -43,6 +45,14 @@ internal sealed class FederatedQueryContext : IFederationContext
     {
         throw new NotImplementedException();
     }
+
+    public void BeginExecution()
+    {
+    }
+
+    public void CompletedExecution()
+    {
+    }
 }
 
 internal interface IFederationContext
@@ -59,11 +69,7 @@ internal interface IFederationContext
 
     QueryPlan QueryPlan { get; }
 
-    ConcurrentQueue<WorkItem> Work { get; }
-
-    Dictionary<QueryPlanNode, List<WorkItem>> WorkByNode { get; }
-
-    HashSet<QueryPlanNode> Completed { get; }
+    IExecutionState State { get; }
 
     bool NeedsMoreData(ISelectionSet selectionSet);
 
@@ -71,4 +77,8 @@ internal interface IFederationContext
         string schemaName,
         IReadOnlyList<GraphQLRequest> request,
         CancellationToken cancellationToken);
+
+    void BeginExecution();
+
+    void CompletedExecution();
 }

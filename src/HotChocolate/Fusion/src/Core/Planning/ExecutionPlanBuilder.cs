@@ -27,49 +27,94 @@ internal sealed class ExecutionPlanBuilder
             }
             else if (step is IntrospectionExecutionStep)
             {
-                var introspectionNode = new IntrospectionNode(context.Operation.RootSelectionSet);
+                var introspectionNode = new IntrospectionNode(
+                    context.CreateNodeId(),
+                    context.Operation.RootSelectionSet);
                 context.Nodes.Add(step, introspectionNode);
+                context.HasNodes.Add(context.Operation.RootSelectionSet);
             }
         }
 
-        foreach (var (step, node) in context.Nodes)
+        var rootNode = BuildQueryTree(context);
+
+        return new QueryPlan(
+            context.Operation,
+            rootNode,
+            context.Exports.All
+                .GroupBy(t => t.SelectionSet)
+                .ToDictionary(t => t.Key, t => t.Select(x=> x.StateKey).ToArray()),
+            context.HasNodes);
+    }
+
+    private QueryPlanNode BuildQueryTree(QueryPlanContext context)
+    {
+        var completed = new HashSet<IExecutionStep>();
+        var current = context.Nodes.Where(t => t.Key.DependsOn.Count is 0).ToArray();
+        var parent = new SerialNode(context.CreateNodeId());
+
+        while (current.Length > 0)
         {
-            if (step.DependsOn.Count > 0)
+            if (current.Length is 1)
             {
-                foreach (var dependency in step.DependsOn)
-                {
-                    node.AddDependency(context.Nodes[dependency]);
-                }
+                var node = current[0];
+                var selectionSet = ResolveSelectionSet(context, node.Key);
+                var compose = new ComposeNode(context.CreateNodeId(), selectionSet);
+                parent.AddNode(node.Value);
+                parent.AddNode(compose);
+                context.Nodes.Remove(node.Key);
+                completed.Add(node.Key);
             }
+            else
+            {
+                var parallel = new ParallelNode(context.CreateNodeId());
+                var selectionSets = new List<ISelectionSet>();
+
+                foreach (var node in current)
+                {
+                    selectionSets.Add(ResolveSelectionSet(context, node.Key));
+                    parallel.AddNode(node.Value);
+                    context.Nodes.Remove(node.Key);
+                    completed.Add(node.Key);
+                }
+
+                var compose = new ComposeNode(context.CreateNodeId(), selectionSets);
+
+                parent.AddNode(parallel);
+                parent.AddNode(compose);
+            }
+
+            current = context.Nodes.Where(t => completed.IsSupersetOf(t.Key.DependsOn)).ToArray();
         }
 
-        return new QueryPlan(context.Operation, context.Nodes.Values, context.Exports.All);
+        return parent;
     }
 
     private FetchNode CreateFetchNode(
         QueryPlanContext context,
         SelectionExecutionStep executionStep)
     {
-        var selectionSet = executionStep.ParentSelection is null
+        var selectionSet = ResolveSelectionSet(context, executionStep);
+        var (requestDocument, path) = CreateRequestDocument(context, executionStep);
+
+        context.HasNodes.Add(selectionSet);
+
+        return new FetchNode(
+            context.CreateNodeId(),
+            executionStep.SchemaName,
+            requestDocument,
+            selectionSet,
+            executionStep.Variables.Values.ToArray(),
+            path);
+    }
+
+    private ISelectionSet ResolveSelectionSet(
+        QueryPlanContext context,
+        IExecutionStep executionStep)
+        => executionStep.ParentSelection is null
             ? context.Operation.RootSelectionSet
             : context.Operation.GetSelectionSet(
                 executionStep.ParentSelection,
                 _schema.GetType<Types.ObjectType>(executionStep.SelectionSetType.Name));
-
-        var (requestDocument, path) = CreateRequestDocument(context, executionStep);
-
-        var requestHandler = new RequestHandler(
-            executionStep.SchemaName,
-            requestDocument,
-            selectionSet,
-            // do we need the type?
-            executionStep.Variables.Values
-                .Select(t => new RequiredState(t, null!, false))
-                .ToArray(),
-            path);
-
-        return new FetchNode(requestHandler);
-    }
 
     private (DocumentNode Document, IReadOnlyList<string> Path) CreateRequestDocument(
         QueryPlanContext context,

@@ -8,9 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Tests" />
+    <InternalsVisibleTo Include="CookieCrumble" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
-    <InternalsVisibleTo Include="HotChocolate.Fusion.Tests" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
@@ -35,9 +39,6 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>FusionResources.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Execution\FederatedQueryExecutor.Fetch.cs">
-      <DependentUpon>FederatedQueryExecutor.cs</DependentUpon>
     </Compile>
   </ItemGroup>
   

@@ -1,32 +1,79 @@
-using HotChocolate.Execution.Processing;
+using System.Text.Json;
 using HotChocolate.Fusion.Execution;
 
 namespace HotChocolate.Fusion.Planning;
 
-public abstract class QueryPlanNode
+internal abstract class QueryPlanNode
 {
-    private readonly List<QueryPlanNode> _dependsOn = new();
+    private readonly List<QueryPlanNode> _nodes = new();
     private bool _isReadOnly;
 
-    public IReadOnlyList<QueryPlanNode> DependsOn => _dependsOn;
+    protected QueryPlanNode(int id)
+    {
+        Id = id;
+    }
 
-    public abstract bool AppliesTo(ISelectionSet selectionSet);
+    public int Id { get; }
 
-    internal abstract Task ExecuteAsync(
+    public abstract QueryPlanNodeKind Kind { get; }
+
+    public IReadOnlyList<QueryPlanNode> Nodes => _nodes;
+
+    internal Task ExecuteAsync(
         IFederationContext context,
-        IReadOnlyList<WorkItem> workItems,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken)
+    {
+        context.BeginExecution();
+        return ExecuteInternalAsync(context, context.State, cancellationToken);
+    }
 
-    internal void AddDependency(QueryPlanNode node)
+    private async Task ExecuteInternalAsync(
+        IFederationContext context,
+        IExecutionState state,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await OnExecuteAsync(context, state, cancellationToken).ConfigureAwait(false);
+
+            if (_nodes.Count > 0)
+            {
+                await OnExecuteNodesAsync(context, state, cancellationToken).ConfigureAwait(false);
+            }
+        }
+        finally
+        {
+            context.CompletedExecution();
+        }
+    }
+
+    protected virtual Task OnExecuteAsync(
+        IFederationContext context,
+        IExecutionState state,
+        CancellationToken cancellationToken)
+        => Task.CompletedTask;
+
+    protected virtual async Task OnExecuteNodesAsync(
+        IFederationContext context,
+        IExecutionState state,
+        CancellationToken cancellationToken)
+    {
+        for (var i = 0; i < _nodes.Count; i++)
+        {
+            await _nodes[i].ExecuteAsync(context, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    internal void AddNode(QueryPlanNode node)
     {
         if (_isReadOnly)
         {
             throw new InvalidOperationException("The execution node is read-only.");
         }
 
-        if (!_dependsOn.Contains(node))
+        if (!_nodes.Contains(node))
         {
-            _dependsOn.Add(node);
+            _nodes.Add(node);
         }
     }
 
@@ -40,4 +87,34 @@ public abstract class QueryPlanNode
     }
 
     protected virtual void OnSeal() { }
+
+    internal void Format(Utf8JsonWriter writer)
+    {
+        writer.WriteStartObject();
+        writer.WriteString("type", Kind.ToString());
+        FormatNodesProperty(writer);
+        FormatProperties(writer);
+        writer.WriteEndObject();
+    }
+
+    protected virtual void FormatProperties(Utf8JsonWriter writer)
+    {
+    }
+
+    private void FormatNodesProperty(Utf8JsonWriter writer)
+    {
+        if (_nodes.Count > 0)
+        {
+            writer.WritePropertyName("nodes");
+
+            writer.WriteStartArray();
+
+            foreach (var node in _nodes)
+            {
+                node.Format(writer);
+            }
+
+            writer.WriteEndArray();
+        }
+    }
 }

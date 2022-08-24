@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text.Json;
 using HotChocolate.Execution.Processing;
@@ -144,7 +143,7 @@ internal static class ExecutorUtils
 
         if (context.NeedsMoreData(selectionSet))
         {
-            context.Work.Enqueue(
+            context.State.RegisterState(
                 new WorkItem(selectionSet, result)
                 {
                     SelectionResults = { [0] = selectionResult }
