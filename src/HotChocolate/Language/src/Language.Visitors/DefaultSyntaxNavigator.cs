@@ -31,7 +31,7 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
     /// <inheritdoc cref="ISyntaxNavigator.Pop"/>
     public ISyntaxNode Pop()
     {
-        if (!TryPop(out ISyntaxNode? node))
+        if (!TryPop(out var node))
         {
             throw new InvalidOperationException(DefaultSyntaxNavigator_Pop_StackEmpty);
         }
@@ -42,7 +42,7 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
     /// <inheritdoc cref="ISyntaxNavigator.Peek()"/>
     public ISyntaxNode Peek()
     {
-        if (!TryPeek(out ISyntaxNode? node))
+        if (!TryPeek(out var node))
         {
             throw new InvalidOperationException(DefaultSyntaxNavigator_Pop_StackEmpty);
         }
@@ -159,7 +159,7 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
 
         for (var i = _ancestors.Count - 1; i >= 0; i--)
         {
-            ISyntaxNode node = _ancestors[i];
+            var node = _ancestors[i];
 
             if (node.Kind is SyntaxKind.ScalarTypeDefinition
                 or SyntaxKind.EnumTypeDefinition
@@ -197,7 +197,7 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
         NameNode? field = null;
         NameNode? arg = null;
 
-        ISyntaxNode next = _coordinate[--p];
+        var next = _coordinate[--p];
 
         if (next is DirectiveDefinitionNode directiveDefinition)
         {

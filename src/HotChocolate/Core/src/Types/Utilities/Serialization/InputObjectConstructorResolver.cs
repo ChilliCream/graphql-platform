@@ -15,9 +15,9 @@ internal static class InputObjectConstructorResolver
         Type type,
         IReadOnlyDictionary<string, InputField> fields)
     {
-        ConstructorInfo[] constructors = type.GetConstructors(
+        var constructors = type.GetConstructors(
             BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-        ConstructorInfo? defaultConstructor = constructors.FirstOrDefault(
+        var defaultConstructor = constructors.FirstOrDefault(
             t => t.GetParameters().Length == 0);
 
         if (fields.Values.All(t => t.Property!.CanWrite))
@@ -38,7 +38,7 @@ internal static class InputObjectConstructorResolver
 
         if (constructors.Length > 0)
         {
-            foreach (ConstructorInfo constructor in
+            foreach (var constructor in
                 constructors.OrderByDescending(t => t.GetParameters().Length))
             {
                 if (IsCompatibleConstructor(constructor, fields, required))
@@ -71,9 +71,9 @@ internal static class InputObjectConstructorResolver
         IReadOnlyDictionary<string, InputField> fields,
         ISet<string> required)
     {
-        foreach (ParameterInfo? parameter in parameters)
+        foreach (var parameter in parameters)
         {
-            if (fields.TryGetParameter(parameter, out InputField? field) &&
+            if (fields.TryGetParameter(parameter, out var field) &&
                 parameter.ParameterType == field.Property!.PropertyType)
             {
                 required.Remove(field.Name);
@@ -93,7 +93,7 @@ internal static class InputObjectConstructorResolver
     {
         required.Clear();
 
-        foreach (KeyValuePair<string, InputField> item in fields)
+        foreach (var item in fields)
         {
             if (!item.Value.Property!.CanWrite)
             {
@@ -107,8 +107,8 @@ internal static class InputObjectConstructorResolver
         ParameterInfo parameter,
         [NotNullWhen(true)] out InputField? field)
     {
-        string name = parameter.Name!;
-        string alternativeName = GetAlternativeParameterName(parameter.Name!);
+        var name = parameter.Name!;
+        var alternativeName = GetAlternativeParameterName(parameter.Name!);
 
         return (fields.TryGetValue(alternativeName, out field) ||
             fields.TryGetValue(name, out field));

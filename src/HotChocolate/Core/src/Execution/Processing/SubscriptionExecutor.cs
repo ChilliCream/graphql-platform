@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Processing.Plan;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
 
@@ -26,7 +25,6 @@ internal sealed partial class SubscriptionExecutor
 
     public async Task<IExecutionResult> ExecuteAsync(
         IRequestContext requestContext,
-        QueryPlan queryPlan,
         Func<object?> resolveQueryValue)
     {
         if (requestContext is null)
@@ -34,17 +32,12 @@ internal sealed partial class SubscriptionExecutor
             throw new ArgumentNullException(nameof(requestContext));
         }
 
-        if (queryPlan is null)
-        {
-            throw new ArgumentNullException(nameof(queryPlan));
-        }
-
         if (requestContext.Operation is null || requestContext.Variables is null)
         {
             throw SubscriptionExecutor_ContextInvalidState();
         }
 
-        ISelectionSet selectionSet = requestContext.Operation.GetRootSelectionSet();
+        var selectionSet = requestContext.Operation.RootSelectionSet;
 
         if (selectionSet.Selections.Count != 1)
         {
@@ -64,7 +57,6 @@ internal sealed partial class SubscriptionExecutor
                 _operationContextPool,
                 _queryExecutor,
                 requestContext,
-                queryPlan,
                 requestContext.Operation.RootType,
                 selectionSet,
                 resolveQueryValue,
@@ -91,8 +83,8 @@ internal sealed partial class SubscriptionExecutor
         catch (Exception ex)
         {
             requestContext.Exception = ex;
-            IErrorBuilder errorBuilder = requestContext.ErrorHandler.CreateUnexpectedError(ex);
-            IError error = requestContext.ErrorHandler.Handle(errorBuilder.Build());
+            var errorBuilder = requestContext.ErrorHandler.CreateUnexpectedError(ex);
+            var error = requestContext.ErrorHandler.Handle(errorBuilder.Build());
 
             if (subscription is not null)
             {

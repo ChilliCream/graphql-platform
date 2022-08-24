@@ -15,7 +15,21 @@ internal class ObserverSession : IDisposable
 
     public RequestSession RequestSession { get; }
 
-    public bool HasStoreSession => _storeSession is not null;
+    public bool HasStoreSession
+    {
+        get
+        {
+            if (_storeSession is not null)
+            {
+                return true;
+            }
+
+            lock (_sync)
+            {
+                return _storeSession is not null;
+            }
+        }
+    }
 
     public void SetStoreSession(IDisposable storeSession)
     {

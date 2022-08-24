@@ -1,6 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using CookieCrumble;
 using HotChocolate.Execution;
-using Xunit;
 
 namespace HotChocolate.Data.Neo4J.Projections.Scalar;
 
@@ -28,31 +27,37 @@ public class Neo4JScalarProjectionTest
     public async Task Create_ProjectsTwoProperties_Expression()
     {
         // arrange
-        IRequestExecutor tester = await _fixture.GetOrCreateSchema<FooScalar>(_fooEntitiesCypher);
+        var tester = await _fixture.GetOrCreateSchema<FooScalar>(_fooEntitiesCypher);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ bar baz }}")
                 .Create());
 
-        res1.MatchDocumentSnapshot();
+        // assert
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ProjectsOneProperty_Expression()
     {
         // arrange
-        IRequestExecutor tester = await _fixture.GetOrCreateSchema<FooScalar>(_fooEntitiesCypher);
+        var tester = await _fixture.GetOrCreateSchema<FooScalar>(_fooEntitiesCypher);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root{ baz }}")
                 .Create());
 
-        res1.MatchDocumentSnapshot();
+        // assert
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 }

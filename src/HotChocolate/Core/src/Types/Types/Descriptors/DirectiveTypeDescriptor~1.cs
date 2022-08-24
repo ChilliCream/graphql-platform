@@ -35,7 +35,7 @@ public class DirectiveTypeDescriptor<T>
     Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
 
     protected override void OnCompleteArguments(
-        IDictionary<NameString, DirectiveArgumentDefinition> arguments,
+        IDictionary<string, DirectiveArgumentDefinition> arguments,
         ISet<PropertyInfo> handledProperties)
     {
         if (Definition.Arguments.IsImplicitBinding())
@@ -59,7 +59,7 @@ public class DirectiveTypeDescriptor<T>
         return this;
     }
 
-    public new IDirectiveTypeDescriptor<T> Name(NameString value)
+    public new IDirectiveTypeDescriptor<T> Name(string value)
     {
         base.Name(value);
         return this;
@@ -94,7 +94,7 @@ public class DirectiveTypeDescriptor<T>
 
         if (property.ExtractMember() is PropertyInfo p)
         {
-            DirectiveArgumentDescriptor descriptor =
+            var descriptor =
             Arguments.FirstOrDefault(t => t.Definition.Property == p);
             if (descriptor is { })
             {

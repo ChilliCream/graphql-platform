@@ -113,7 +113,7 @@ DISCOVER:
 
         if (_errors.Count == 0 && _unregistered.Count == 0)
         {
-            foreach (ITypeReference typeReference in
+            foreach (var typeReference in
                 _interceptor.RegisterMoreTypes(_typeRegistry.Types))
             {
                 if (processed.Add(typeReference))
@@ -142,7 +142,7 @@ DISCOVER:
     {
         while (_unregistered.Count > 0)
         {
-            foreach (ITypeReference? typeRef in _unregistered)
+            foreach (var typeRef in _unregistered)
             {
                 _handlers[(int)typeRef.Kind].Handle(_typeRegistrar, typeRef);
             }
@@ -156,21 +156,21 @@ DISCOVER:
     {
         var inferred = false;
 
-        foreach (ITypeReference? typeRef in _typeRegistrar.Unresolved)
+        foreach (var typeRef in _typeRegistrar.Unresolved)
         {
             if (typeRef is ExtendedTypeReference unresolvedType)
             {
-                if (Scalars.TryGetScalar(unresolvedType.Type.Type, out Type? scalarType))
+                if (Scalars.TryGetScalar(unresolvedType.Type.Type, out var scalarType))
                 {
                     inferred = true;
 
-                    ExtendedTypeReference typeReference = _typeInspector.GetTypeRef(scalarType);
+                    var typeReference = _typeInspector.GetTypeRef(scalarType);
                     _unregistered.Add(typeReference);
                     _resolved.Add(unresolvedType);
                     _typeRegistry.TryRegister(unresolvedType, typeReference);
                 }
                 else if (SchemaTypeResolver.TryInferSchemaType(
-                    _typeInspector, unresolvedType, out ExtendedTypeReference? schemaType))
+                    _typeInspector, unresolvedType, out var schemaType))
                 {
                     inferred = true;
                     _unregistered.Add(schemaType);
@@ -181,7 +181,7 @@ DISCOVER:
 
         if (_resolved.Count > 0)
         {
-            foreach (ITypeReference typeRef in _resolved)
+            foreach (var typeRef in _resolved)
             {
                 _typeRegistrar.MarkResolved(typeRef);
             }
@@ -192,7 +192,7 @@ DISCOVER:
 
     private void CollectErrors()
     {
-        foreach (RegisteredType type in _typeRegistry.Types)
+        foreach (var type in _typeRegistry.Types)
         {
             if (type.Errors.Count == 0)
             {
@@ -204,13 +204,13 @@ DISCOVER:
 
         if (_errors.Count == 0 && _typeRegistrar.Unresolved.Count > 0)
         {
-            foreach (ITypeReference unresolvedReference in _typeRegistrar.Unresolved)
+            foreach (var unresolvedReference in _typeRegistrar.Unresolved)
             {
                 var types = _typeRegistry.Types.Where(
                     t => t.Dependencies.Select(d => d.TypeReference)
                         .Any(r => r.Equals(unresolvedReference))).ToList();
 
-                ISchemaErrorBuilder builder =
+                var builder =
                      SchemaErrorBuilder.New()
                         .SetMessage(
                             TypeResources.TypeRegistrar_TypesInconsistent,

@@ -11,9 +11,9 @@ public ref partial struct Utf8GraphQLParser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private NameNode ParseName()
     {
-        TokenInfo start = Start();
+        var start = Start();
         var name = ExpectName();
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new NameNode
         (
@@ -164,7 +164,7 @@ public ref partial struct Utf8GraphQLParser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private StringValueNode? TakeDescription()
     {
-        StringValueNode? description = _description;
+        var description = _description;
         _description = null;
         return description;
     }

@@ -23,7 +23,7 @@ public ref partial struct Utf8GraphQLRequestParser
         var length = checked(sourceText.Length * 4);
         byte[]? source = null;
 
-        Span<byte> sourceSpan = length <= GraphQLConstants.StackallocThreshold
+        var sourceSpan = length <= GraphQLConstants.StackallocThreshold
             ? stackalloc byte[length]
             : source = ArrayPool<byte>.Shared.Rent(length);
 
@@ -64,7 +64,7 @@ public ref partial struct Utf8GraphQLRequestParser
         var length = checked(sourceText.Length * 4);
         byte[]? source = null;
 
-        Span<byte> sourceSpan = length <= GraphQLConstants.StackallocThreshold
+        var sourceSpan = length <= GraphQLConstants.StackallocThreshold
             ? stackalloc byte[length]
             : source = ArrayPool<byte>.Shared.Rent(length);
 
@@ -108,7 +108,7 @@ public ref partial struct Utf8GraphQLRequestParser
         var length = checked(sourceText.Length * 4);
         byte[]? source = null;
 
-        Span<byte> sourceSpan = length <= GraphQLConstants.StackallocThreshold
+        var sourceSpan = length <= GraphQLConstants.StackallocThreshold
             ? stackalloc byte[length]
             : source = ArrayPool<byte>.Shared.Rent(length);
 
@@ -152,7 +152,7 @@ public ref partial struct Utf8GraphQLRequestParser
         var length = checked(sourceText.Length * 4);
         byte[]? source = null;
 
-        Span<byte> sourceSpan = length <= GraphQLConstants.StackallocThreshold
+        var sourceSpan = length <= GraphQLConstants.StackallocThreshold
             ? stackalloc byte[length]
             : source = ArrayPool<byte>.Shared.Rent(length);
 
@@ -196,7 +196,7 @@ public ref partial struct Utf8GraphQLRequestParser
         var length = checked(sourceText.Length * 4);
         byte[]? source = null;
 
-        Span<byte> sourceSpan = length <= GraphQLConstants.StackallocThreshold
+        var sourceSpan = length <= GraphQLConstants.StackallocThreshold
             ? stackalloc byte[length]
             : source = ArrayPool<byte>.Shared.Rent(length);
 

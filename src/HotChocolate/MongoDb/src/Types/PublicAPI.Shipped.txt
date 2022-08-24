@@ -1,9 +1,0 @@
-#nullable enable
-HotChocolate.Types.MongoDb.MongoDbScalarNames
-HotChocolate.Types.MongoDb.ObjectIdType
-HotChocolate.Types.MongoDb.ObjectIdType.ObjectIdType() -> void
-HotChocolate.Types.MongoDb.ObjectIdType.ObjectIdType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
-override HotChocolate.Types.MongoDb.ObjectIdType.ParseLiteral(HotChocolate.Language.StringValueNode! valueSyntax) -> MongoDB.Bson.ObjectId
-override HotChocolate.Types.MongoDb.ObjectIdType.ParseResult(object? resultValue) -> HotChocolate.Language.IValueNode!
-override HotChocolate.Types.MongoDb.ObjectIdType.ParseValue(MongoDB.Bson.ObjectId runtimeValue) -> HotChocolate.Language.StringValueNode!
-static readonly HotChocolate.Types.MongoDb.MongoDbScalarNames.ObjectId -> string!

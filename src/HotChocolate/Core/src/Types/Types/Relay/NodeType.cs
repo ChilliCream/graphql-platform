@@ -18,8 +18,8 @@ public class NodeType : InterfaceType<INode>
 
     public static class Names
     {
-        public static NameString Node { get; } = "Node";
+        public static string Node => "Node";
 
-        public static NameString Id { get; } = "id";
+        public static string Id => "id";
     }
 }

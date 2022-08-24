@@ -3,27 +3,26 @@ using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.Types.Filters
+namespace HotChocolate.Types.Filters;
+
+[Obsolete("Use HotChocolate.Data.")]
+internal class IgnoredFilterFieldDescriptor
+    : FilterFieldDescriptorBase
 {
-    [Obsolete("Use HotChocolate.Data.")]
-    internal class IgnoredFilterFieldDescriptor
-       : FilterFieldDescriptorBase
+    public IgnoredFilterFieldDescriptor(
+        IDescriptorContext context,
+        PropertyInfo property)
+        : base(context, property)
     {
-        public IgnoredFilterFieldDescriptor(
-            IDescriptorContext context,
-            PropertyInfo property)
-            : base(context, property)
-        {
-            Definition.Ignore = true;
-        }
+        Definition.Ignore = true;
+    }
 
-        protected override ISet<FilterOperationKind> AllowedOperations { get; } =
-            new HashSet<FilterOperationKind>();
+    protected override ISet<FilterOperationKind> AllowedOperations { get; } =
+        new HashSet<FilterOperationKind>();
 
-        protected override FilterOperationDefintion CreateOperationDefinition(
-            FilterOperationKind operationKind)
-        {
-            throw new NotSupportedException();
-        }
+    protected override FilterOperationDefintion CreateOperationDefinition(
+        FilterOperationKind operationKind)
+    {
+        throw new NotSupportedException();
     }
 }

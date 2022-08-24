@@ -9,7 +9,7 @@ public ref partial struct Utf8GraphQLParser
 
     private ITypeSystemExtensionNode ParseTypeExtension()
     {
-        TokenInfo start = Start();
+        var start = Start();
 
         // extensions do not have a description
         TakeDescription();
@@ -67,9 +67,9 @@ public ref partial struct Utf8GraphQLParser
     {
         MoveNext();
 
-        List<DirectiveNode> directives = ParseDirectives(true);
+        var directives = ParseDirectives(true);
 
-        List<OperationTypeDefinitionNode> operationTypeDefinitions =
+        var operationTypeDefinitions =
             ParseOperationTypeDefs();
 
         if (directives.Count == 0 && operationTypeDefinitions.Count == 0)
@@ -77,7 +77,7 @@ public ref partial struct Utf8GraphQLParser
             throw Unexpected(_reader.Kind);
         }
 
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new SchemaExtensionNode
         (
@@ -115,13 +115,13 @@ public ref partial struct Utf8GraphQLParser
     {
         MoveNext();
 
-        NameNode name = ParseName();
-        List<DirectiveNode> directives = ParseDirectives(true);
+        var name = ParseName();
+        var directives = ParseDirectives(true);
         if (directives.Count == 0)
         {
             throw Unexpected(_reader.Kind);
         }
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new ScalarTypeExtensionNode
         (
@@ -136,11 +136,11 @@ public ref partial struct Utf8GraphQLParser
     {
         MoveNext();
 
-        NameNode name = ParseName();
-        List<NamedTypeNode> interfaces = ParseImplementsInterfaces();
-        List<DirectiveNode> directives = ParseDirectives(true);
-        List<FieldDefinitionNode> fields = ParseFieldsDefinition();
-        Location? location = CreateLocation(in start);
+        var name = ParseName();
+        var interfaces = ParseImplementsInterfaces();
+        var directives = ParseDirectives(true);
+        var fields = ParseFieldsDefinition();
+        var location = CreateLocation(in start);
 
         if (interfaces.Count == 0
             && directives.Count == 0
@@ -164,11 +164,11 @@ public ref partial struct Utf8GraphQLParser
     {
         MoveNext();
 
-        NameNode name = ParseName();
-        List<NamedTypeNode> interfaces = ParseImplementsInterfaces();
-        List<DirectiveNode> directives = ParseDirectives(true);
-        List<FieldDefinitionNode> fields = ParseFieldsDefinition();
-        Location? location = CreateLocation(in start);
+        var name = ParseName();
+        var interfaces = ParseImplementsInterfaces();
+        var directives = ParseDirectives(true);
+        var fields = ParseFieldsDefinition();
+        var location = CreateLocation(in start);
 
         if (directives.Count == 0
             && fields.Count == 0)
@@ -191,10 +191,10 @@ public ref partial struct Utf8GraphQLParser
     {
         MoveNext();
 
-        NameNode name = ParseName();
-        List<DirectiveNode> directives = ParseDirectives(true);
-        List<NamedTypeNode> types = ParseUnionMemberTypes();
-        Location? location = CreateLocation(in start);
+        var name = ParseName();
+        var directives = ParseDirectives(true);
+        var types = ParseUnionMemberTypes();
+        var location = CreateLocation(in start);
 
         if (directives.Count == 0 && types.Count == 0)
         {
@@ -214,10 +214,10 @@ public ref partial struct Utf8GraphQLParser
     {
         MoveNext();
 
-        NameNode name = ParseName();
-        List<DirectiveNode> directives = ParseDirectives(true);
-        List<EnumValueDefinitionNode> values = ParseEnumValuesDefinition();
-        Location? location = CreateLocation(in start);
+        var name = ParseName();
+        var directives = ParseDirectives(true);
+        var values = ParseEnumValuesDefinition();
+        var location = CreateLocation(in start);
 
         if (directives.Count == 0 && values.Count == 0)
         {
@@ -238,11 +238,11 @@ public ref partial struct Utf8GraphQLParser
     {
         MoveNext();
 
-        NameNode name = ParseName();
-        List<DirectiveNode> directives = ParseDirectives(true);
-        List<InputValueDefinitionNode> fields =
+        var name = ParseName();
+        var directives = ParseDirectives(true);
+        var fields =
             ParseInputFieldsDefinition();
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         if (directives.Count == 0 && fields.Count == 0)
         {

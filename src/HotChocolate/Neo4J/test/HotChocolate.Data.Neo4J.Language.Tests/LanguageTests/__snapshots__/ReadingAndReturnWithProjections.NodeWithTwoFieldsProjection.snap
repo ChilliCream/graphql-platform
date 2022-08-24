@@ -1,1 +1,1 @@
-﻿MATCH (u:User) RETURN u {.name, .email}
+MATCH (u:User) RETURN u {.name, .email}

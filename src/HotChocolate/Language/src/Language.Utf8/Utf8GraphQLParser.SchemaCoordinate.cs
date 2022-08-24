@@ -15,7 +15,7 @@ public ref partial struct Utf8GraphQLParser
     /// </summary>
     private SchemaCoordinateNode ParseSingleSchemaCoordinate()
     {
-        SchemaCoordinateNode node = ParseSchemaCoordinate();
+        var node = ParseSchemaCoordinate();
         Expect(TokenKind.EndOfFile);
         return node;
     }
@@ -32,10 +32,10 @@ public ref partial struct Utf8GraphQLParser
     /// </summary>
     private SchemaCoordinateNode ParseSchemaCoordinate()
     {
-        TokenInfo start = Start();
+        var start = Start();
 
         var ofDirective = SkipAt();
-        NameNode name = ParseName();
+        var name = ParseName();
         NameNode? memberName = null;
         NameNode? argumentName = null;
 
@@ -57,7 +57,7 @@ public ref partial struct Utf8GraphQLParser
             ExpectRightParenthesis();
         }
 
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new SchemaCoordinateNode
         (

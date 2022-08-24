@@ -21,8 +21,4 @@
     <ProjectReference Include="..\Subscriptions.InMemory\HotChocolate.Subscriptions.InMemory.csproj" />
   </ItemGroup>
 
-  <PropertyGroup>
-    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
-  </PropertyGroup>
-
 </Project>

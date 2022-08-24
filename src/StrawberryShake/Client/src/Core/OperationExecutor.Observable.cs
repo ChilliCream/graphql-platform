@@ -51,7 +51,7 @@ public partial class OperationExecutor<TData, TResult>
                 observer.OnNext(result);
             }
 
-            IDisposable session = _operationStore.Watch<TResult>(_request).Subscribe(observer);
+            var session = _operationStore.Watch<TResult>(_request).Subscribe(observer);
 
             if (_strategy is not ExecutionStrategy.CacheFirst || !hasResultInStore)
             {
@@ -73,13 +73,27 @@ public partial class OperationExecutor<TData, TResult>
             IObserver<IOperationResult<TResult>> observer,
             ObserverSession session)
         {
+            var storeSession =
+                _operationStore
+                    .Watch<TResult>(_request)
+                    .Subscribe(observer);
             try
             {
-                CancellationToken token = session.RequestSession.Token;
-                IOperationResultBuilder<TData, TResult> resultBuilder = _resultBuilder();
-                IResultPatcher<TData> resultPatcher = _resultPatcher();
+                session.SetStoreSession(storeSession);
+            }
+            catch (ObjectDisposedException)
+            {
+                storeSession.Dispose();
+                throw;
+            }
 
-                await foreach (Response<TData>? response in
+            try
+            {
+                var token = session.RequestSession.Token;
+                var resultBuilder = _resultBuilder();
+                var resultPatcher = _resultPatcher();
+
+                await foreach (var response in
                     _connection.ExecuteAsync(_request)
                         .WithCancellation(token)
                         .ConfigureAwait(false))
@@ -89,37 +103,16 @@ public partial class OperationExecutor<TData, TResult>
                         return;
                     }
 
-                    IOperationResult<TResult>? result;
                     if (response.IsPatch)
                     {
-                        Response<TData> patched = resultPatcher.PatchResponse(response);
-                        result = resultBuilder.Build(patched);
+                        var patched = resultPatcher.PatchResponse(response);
+                        resultBuilder.Build(patched);
                     }
                     else
                     {
                         resultPatcher.SetResponse(response);
-                        result = resultBuilder.Build(response);
+                        var result = resultBuilder.Build(response);
                         _operationStore.Set(_request, result);
-                    }
-
-                    if (!session.HasStoreSession)
-                    {
-                        observer.OnNext(result);
-
-                        IDisposable storeSession =
-                            _operationStore
-                                .Watch<TResult>(_request)
-                                .Subscribe(observer);
-
-                        try
-                        {
-                            session.SetStoreSession(storeSession);
-                        }
-                        catch (ObjectDisposedException)
-                        {
-                            storeSession.Dispose();
-                            throw;
-                        }
                     }
                 }
             }
@@ -132,7 +125,7 @@ public partial class OperationExecutor<TData, TResult>
                 // call observer's OnCompleted method to notify observer
                 // there is no further data is available.
                 observer.OnCompleted();
-                
+
                 // after all the transport logic is finished we will dispose
                 // the request session.
                 session.RequestSession.Dispose();

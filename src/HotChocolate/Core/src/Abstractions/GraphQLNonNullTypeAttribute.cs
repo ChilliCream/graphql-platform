@@ -8,8 +8,7 @@ namespace HotChocolate;
     AttributeTargets.Property
     | AttributeTargets.Method
     | AttributeTargets.Parameter)]
-public sealed class GraphQLNonNullTypeAttribute
-    : Attribute
+public sealed class GraphQLNonNullTypeAttribute : Attribute
 {
     public GraphQLNonNullTypeAttribute()
     {
@@ -18,10 +17,8 @@ public sealed class GraphQLNonNullTypeAttribute
 
     public GraphQLNonNullTypeAttribute(params bool[] nullable)
     {
-        Nullable = nullable.Length == 0
-            ? new[] { false }
-            : nullable;
+        Nullable = nullable.Length == 0 ? new[] { false } : nullable;
     }
 
-    public bool[] Nullable { get; }
+    internal bool[] Nullable { get; }
 }

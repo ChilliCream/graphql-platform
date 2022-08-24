@@ -2,6 +2,7 @@ using System;
 using HotChocolate.Internal;
 using HotChocolate.Types.Pagination;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
 
 /// <summary>

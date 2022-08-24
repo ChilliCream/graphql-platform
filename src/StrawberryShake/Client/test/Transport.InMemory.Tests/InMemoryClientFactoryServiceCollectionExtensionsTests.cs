@@ -15,11 +15,11 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
     {
         // arrange
         IServiceCollection serviceCollection = default!;
-        string name = "Foo";
+        var name = "Foo";
 
         // act
         // act
-        Exception? ex = Record.Exception(() => serviceCollection.AddInMemoryClient(name));
+        var ex = Record.Exception(() => serviceCollection.AddInMemoryClient(name));
 
         // assert
         Assert.IsType<ArgumentNullException>(ex);
@@ -34,7 +34,7 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
 
         // act
         // act
-        Exception? ex = Record.Exception(() => serviceCollection.AddInMemoryClient(name));
+        var ex = Record.Exception(() => serviceCollection.AddInMemoryClient(name));
 
         // assert
         Assert.IsType<ArgumentNullException>(ex);
@@ -48,7 +48,7 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
         collection
             .AddInMemoryClient("Foo")
             .ConfigureInMemoryClient(x => x.SchemaName = "Bar");
-        IOptionsMonitor<InMemoryClientFactoryOptions> monitor = collection
+        var monitor = collection
             .BuildServiceProvider()
             .GetRequiredService<IOptionsMonitor<InMemoryClientFactoryOptions>>();
         var stubClient = new InMemoryClient("bar");
@@ -57,7 +57,7 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
         await monitor.Get("Foo").InMemoryClientActions.Single()(stubClient, default);
 
         // assert
-        Assert.Equal("Bar", stubClient.SchemaName.Value);
+        Assert.Equal("Bar", stubClient.SchemaName);
     }
 
     [Fact]
@@ -65,11 +65,11 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
     {
         // arrange
         IServiceCollection serviceCollection = default!;
-        string name = "Foo";
+        var name = "Foo";
         Action<IInMemoryClient> action = x => x.SchemaName = "Bar";
 
         // act
-        Exception? ex = Record.Exception(() =>
+        var ex = Record.Exception(() =>
             serviceCollection.AddInMemoryClient(name, action));
 
         // assert
@@ -85,7 +85,7 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
         Action<IInMemoryClient> action = x => x.SchemaName = "Bar";
 
         // act
-        Exception? ex = Record.Exception(() =>
+        var ex = Record.Exception(() =>
             serviceCollection.AddInMemoryClient(name, action));
 
         // assert
@@ -97,11 +97,11 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
     {
         // arrange
         IServiceCollection serviceCollection = new ServiceCollection();
-        string name = "Foo";
+        var name = "Foo";
         Action<IInMemoryClient> action = null!;
 
         // act
-        Exception? ex = Record.Exception(() =>
+        var ex = Record.Exception(() =>
             serviceCollection.AddInMemoryClient(name, action));
 
         // assert
@@ -115,7 +115,7 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
         var collection = new ServiceCollection();
         collection
             .AddInMemoryClient("Foo", x => x.SchemaName = "Bar");
-        IOptionsMonitor<InMemoryClientFactoryOptions> monitor = collection
+        var monitor = collection
             .BuildServiceProvider()
             .GetRequiredService<IOptionsMonitor<InMemoryClientFactoryOptions>>();
         var stubClient = new InMemoryClient("bar");
@@ -124,7 +124,7 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
         await monitor.Get("Foo").InMemoryClientActions.Single()(stubClient, default);
 
         // assert
-        Assert.Equal("Bar", stubClient.SchemaName.Value);
+        Assert.Equal("Bar", stubClient.SchemaName);
     }
 
 
@@ -133,11 +133,11 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
     {
         // arrange
         IServiceCollection serviceCollection = default!;
-        string name = "Foo";
+        var name = "Foo";
         Action<IServiceProvider, IInMemoryClient> action = (_, x) => x.SchemaName = "Bar";
 
         // act
-        Exception? ex = Record.Exception(() =>
+        var ex = Record.Exception(() =>
             serviceCollection.AddInMemoryClient(name, action));
 
         // assert
@@ -153,7 +153,7 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
         Action<IServiceProvider, IInMemoryClient> action = (_, x) => x.SchemaName = "Bar";
 
         // act
-        Exception? ex = Record.Exception(() =>
+        var ex = Record.Exception(() =>
             serviceCollection.AddInMemoryClient(name, action));
 
         // assert
@@ -165,11 +165,11 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
     {
         // arrange
         IServiceCollection serviceCollection = new ServiceCollection();
-        string name = "Foo";
+        var name = "Foo";
         Action<IServiceProvider, IInMemoryClient> action = null!;
 
         // act
-        Exception? ex = Record.Exception(() =>
+        var ex = Record.Exception(() =>
             serviceCollection.AddInMemoryClient(name, action));
 
         // assert
@@ -183,7 +183,7 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
         var collection = new ServiceCollection();
         collection
             .AddInMemoryClient("Foo", (_, x) => x.SchemaName = "Bar");
-        IOptionsMonitor<InMemoryClientFactoryOptions> monitor = collection
+        var monitor = collection
             .BuildServiceProvider()
             .GetRequiredService<IOptionsMonitor<InMemoryClientFactoryOptions>>();
         var stubClient = new InMemoryClient("bar");
@@ -192,7 +192,7 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
         await monitor.Get("Foo").InMemoryClientActions.Single()(stubClient, default);
 
         // assert
-        Assert.Equal("Bar", stubClient.SchemaName.Value);
+        Assert.Equal("Bar", stubClient.SchemaName);
     }
 
     [Fact]
@@ -200,7 +200,7 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
     {
         // arrange
         IServiceCollection serviceCollection = default!;
-        string name = "Foo";
+        var name = "Foo";
         Func<IInMemoryClient, CancellationToken, ValueTask> action = (x, _) =>
         {
             x.SchemaName = "Bar";
@@ -208,7 +208,7 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
         };
 
         // act
-        Exception? ex = Record.Exception(() =>
+        var ex = Record.Exception(() =>
             serviceCollection.AddInMemoryClientAsync(name, action));
 
         // assert
@@ -228,7 +228,7 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
         };
 
         // act
-        Exception? ex = Record.Exception(() =>
+        var ex = Record.Exception(() =>
             serviceCollection.AddInMemoryClientAsync(name, action));
 
         // assert
@@ -240,11 +240,11 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
     {
         // arrange
         IServiceCollection serviceCollection = new ServiceCollection();
-        string name = "Foo";
+        var name = "Foo";
         Func<IInMemoryClient, CancellationToken, ValueTask> action = null!;
 
         // act
-        Exception? ex = Record.Exception(() =>
+        var ex = Record.Exception(() =>
             serviceCollection.AddInMemoryClientAsync(name, action));
 
         // assert
@@ -263,7 +263,7 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
                     x.SchemaName = "Bar";
                     return default;
                 });
-        IOptionsMonitor<InMemoryClientFactoryOptions> monitor = collection
+        var monitor = collection
             .BuildServiceProvider()
             .GetRequiredService<IOptionsMonitor<InMemoryClientFactoryOptions>>();
         var stubClient = new InMemoryClient("bar");
@@ -272,7 +272,7 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
         await monitor.Get("Foo").InMemoryClientActions.Single()(stubClient, default);
 
         // assert
-        Assert.Equal("Bar", stubClient.SchemaName.Value);
+        Assert.Equal("Bar", stubClient.SchemaName);
     }
 
 
@@ -281,7 +281,7 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
     {
         // arrange
         IServiceCollection serviceCollection = default!;
-        string name = "Foo";
+        var name = "Foo";
         Func<IServiceProvider, IInMemoryClient, CancellationToken, ValueTask> action =
             (_, x, _) =>
             {
@@ -290,7 +290,7 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
             };
 
         // act
-        Exception? ex = Record.Exception(() =>
+        var ex = Record.Exception(() =>
             serviceCollection.AddInMemoryClientAsync(name, action));
 
         // assert
@@ -311,7 +311,7 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
             };
 
         // act
-        Exception? ex = Record.Exception(() =>
+        var ex = Record.Exception(() =>
             serviceCollection.AddInMemoryClientAsync(name, action));
 
         // assert
@@ -323,11 +323,11 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
     {
         // arrange
         IServiceCollection serviceCollection = new ServiceCollection();
-        string name = "Foo";
+        var name = "Foo";
         Func<IServiceProvider, IInMemoryClient, CancellationToken, ValueTask> action = null!;
 
         // act
-        Exception? ex = Record.Exception(() =>
+        var ex = Record.Exception(() =>
             serviceCollection.AddInMemoryClientAsync(name, action));
 
         // assert
@@ -346,7 +346,7 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
                     x.SchemaName = "Bar";
                     return default;
                 });
-        IOptionsMonitor<InMemoryClientFactoryOptions> monitor = collection
+        var monitor = collection
             .BuildServiceProvider()
             .GetRequiredService<IOptionsMonitor<InMemoryClientFactoryOptions>>();
         var stubClient = new InMemoryClient("bar");
@@ -355,6 +355,6 @@ public class InMemoryClientFactoryServiceCollectionExtensionsTests
         await monitor.Get("Foo").InMemoryClientActions.Single()(stubClient, default);
 
         // assert
-        Assert.Equal("Bar", stubClient.SchemaName.Value);
+        Assert.Equal("Bar", stubClient.SchemaName);
     }
 }

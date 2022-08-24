@@ -35,7 +35,7 @@ public sealed class ArgumentValue : IInputFieldInfo
     /// The syntax value representation.
     /// </param>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="argument"/> or <param name="valueLiteral"></param> is <c>null</c>.
+    /// <paramref name="argument"/> or <paramref name="valueLiteral" /> is <c>null</c>.
     /// </exception>
     public ArgumentValue(
         IInputFieldInfo argument,
@@ -61,7 +61,7 @@ public sealed class ArgumentValue : IInputFieldInfo
     /// <param name="argument">The argument.</param>
     /// <param name="error">The argument value error.</param>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="argument"/> or <param name="error"></param> is <c>null</c>.
+    /// <paramref name="argument"/> or <paramref name="error" /> is <c>null</c>.
     /// </exception>
     public ArgumentValue(IInputFieldInfo argument, IError error)
     {
@@ -77,7 +77,7 @@ public sealed class ArgumentValue : IInputFieldInfo
     /// <summary>
     /// Gets the argument name.
     /// </summary>
-    public NameString Name => _argument.Name;
+    public string Name => _argument.Name;
 
     /// <summary>
     /// Gets the argument field coordinate.

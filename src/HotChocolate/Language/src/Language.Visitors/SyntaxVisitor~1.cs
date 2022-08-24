@@ -67,8 +67,8 @@ public partial class SyntaxVisitor<TContext>
         where TNode : notnull, ISyntaxNode
         where TParent : ISyntaxNode?
     {
-        TContext? localContext = OnBeforeEnter(node, parent, context);
-        ISyntaxVisitorAction? result = Enter(node, localContext);
+        var localContext = OnBeforeEnter(node, parent, context);
+        var result = Enter(node, localContext);
         localContext = OnAfterEnter(node, parent, localContext, result);
 
         if (result.Kind == SyntaxVisitorActionKind.Continue)

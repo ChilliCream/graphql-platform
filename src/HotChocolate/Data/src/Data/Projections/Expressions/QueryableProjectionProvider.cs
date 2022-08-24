@@ -26,7 +26,7 @@ public class QueryableProjectionProvider : ProjectionProvider
 
     public override FieldMiddleware CreateExecutor<TEntityType>()
     {
-        ApplyProjection applyProjection = CreateApplicatorAsync<TEntityType>();
+        var applyProjection = CreateApplicatorAsync<TEntityType>();
 
         return next => context => ExecuteAsync(next, context);
 
@@ -55,7 +55,7 @@ public class QueryableProjectionProvider : ProjectionProvider
 
             // if projections are already applied we can skip
             var skipProjection =
-            context.LocalContextData.TryGetValue(SkipProjectionKey, out object? skip) &&
+            context.LocalContextData.TryGetValue(SkipProjectionKey, out var skip) &&
             skip is true;
 
             // ensure sorting is only applied once
@@ -75,7 +75,7 @@ public class QueryableProjectionProvider : ProjectionProvider
             var visitor = new QueryableProjectionVisitor();
             visitor.Visit(visitorContext);
 
-            Expression<Func<TEntityType, TEntityType>> projection =
+            var projection =
                 visitorContext.Project<TEntityType>();
 
             input = input switch

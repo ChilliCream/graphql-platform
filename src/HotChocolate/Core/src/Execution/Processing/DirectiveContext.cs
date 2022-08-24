@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
@@ -22,14 +21,33 @@ internal sealed class DirectiveContext : IDirectiveContext
 
     public IDirective Directive { get; }
 
-    public object? Result
-    {
-        get => _middlewareContext.Result;
-        set => _middlewareContext.Result = value;
-    }
+   public ISchema Schema => _middlewareContext.Schema;
 
-    public bool IsResultModified =>
-        _middlewareContext.IsResultModified;
+    public IObjectType ObjectType => _middlewareContext.ObjectType;
+
+    public IOperation Operation => _middlewareContext.Operation;
+
+    public ISelection Selection => _middlewareContext.Selection;
+
+    public IVariableValueCollection Variables => _middlewareContext.Variables;
+
+    public Path Path => _middlewareContext.Path;
+
+    public T Parent<T>() => _middlewareContext.Parent<T>();
+
+    public T ArgumentValue<T>(string name) => _middlewareContext.ArgumentValue<T>(name);
+
+    public TValueNode ArgumentLiteral<TValueNode>(string name) where TValueNode : IValueNode
+        => _middlewareContext.ArgumentLiteral<TValueNode>(name);
+
+    public Optional<T> ArgumentOptional<T>(string name)
+        => _middlewareContext.ArgumentOptional<T>(name);
+
+    public ValueKind ArgumentKind(string name) => _middlewareContext.ArgumentKind(name);
+
+    public T Service<T>() => _middlewareContext.Service<T>();
+
+    public T Resolver<T>() => _middlewareContext.Resolver<T>();
 
     public IServiceProvider Services
     {
@@ -37,47 +55,11 @@ internal sealed class DirectiveContext : IDirectiveContext
         set => _middlewareContext.Services = value;
     }
 
-    public ISchema Schema =>
-        _middlewareContext.Schema;
+    public string ResponseName => _middlewareContext.ResponseName;
 
-    public IObjectType RootType =>
-        _middlewareContext.RootType;
+    public bool HasErrors => _middlewareContext.HasErrors;
 
-    public IObjectType ObjectType =>
-        _middlewareContext.ObjectType;
-
-    [Obsolete("Use Selection.Field or Selection.Type.")]
-    public IObjectField Field =>
-        _middlewareContext.Field;
-
-    public DocumentNode Document => _middlewareContext.Document;
-
-    public DocumentNode QueryDocument => Document;
-
-    public OperationDefinitionNode Operation =>
-        _middlewareContext.Operation;
-
-    [Obsolete("Use Selection.SyntaxNode")]
-    public FieldNode FieldSelection =>
-        _middlewareContext.FieldSelection;
-
-    public IFieldSelection Selection =>
-        _middlewareContext.Selection;
-
-    public Path Path =>
-        _middlewareContext.Path;
-
-    public bool HasErrors =>
-        _middlewareContext.HasErrors;
-
-    public CancellationToken CancellationToken =>
-        RequestAborted;
-
-    public CancellationToken RequestAborted =>
-        _middlewareContext.RequestAborted;
-
-    public IDictionary<string, object?> ContextData =>
-        _middlewareContext.ContextData;
+    public IDictionary<string, object?> ContextData => _middlewareContext.ContextData;
 
     public IImmutableDictionary<string, object?> ScopedContextData
     {
@@ -85,17 +67,30 @@ internal sealed class DirectiveContext : IDirectiveContext
         set => _middlewareContext.ScopedContextData = value;
     }
 
-    public NameString ResponseName =>
-        _middlewareContext.ResponseName;
-
-    public IVariableValueCollection Variables =>
-        _middlewareContext.Variables;
-
     public IImmutableDictionary<string, object?> LocalContextData
     {
         get => _middlewareContext.LocalContextData;
         set => _middlewareContext.LocalContextData = value;
     }
+
+    public CancellationToken RequestAborted => _middlewareContext.RequestAborted;
+
+    public object Service(Type service) => _middlewareContext.Service(service);
+
+    public void ReportError(string errorMessage) => _middlewareContext.ReportError(errorMessage);
+
+    public void ReportError(IError error) => _middlewareContext.ReportError(error);
+
+    public void ReportError(Exception exception, Action<IErrorBuilder>? configure = null)
+        => _middlewareContext.ReportError(exception, configure);
+
+    public IReadOnlyList<ISelection> GetSelections(
+        IObjectType typeContext,
+        ISelection? selection = null,
+        bool allowInternals = false)
+        => _middlewareContext.GetSelections(typeContext, selection, allowInternals);
+
+    public T GetQueryRoot<T>() => _middlewareContext.GetQueryRoot<T>();
 
     public IType? ValueType
     {
@@ -103,61 +98,23 @@ internal sealed class DirectiveContext : IDirectiveContext
         set => _middlewareContext.ValueType = value;
     }
 
-    [Obsolete(
-        "Use ArgumentValue<T>(name) or " +
-        "ArgumentLiteral<TValueNode>(name) or " +
-        "ArgumentOptional<T>(name).")]
-    [return: MaybeNull]
-    public T Argument<T>(NameString name) =>
-        _middlewareContext.Argument<T>(name);
+    public object? Result
+    {
+        get => _middlewareContext.Result;
+        set => _middlewareContext.Result = value;
+    }
 
-    public T Parent<T>() => _middlewareContext.Parent<T>();
+    public bool IsResultModified => _middlewareContext.IsResultModified;
 
-    public void ReportError(string errorMessage) =>
-        _middlewareContext.ReportError(errorMessage);
+    public ValueTask<T> ResolveAsync<T>()
+        => _middlewareContext.ResolveAsync<T>();
 
-    public void ReportError(IError error) =>
-        _middlewareContext.ReportError(error);
+    public void RegisterForCleanup(
+        Func<ValueTask> action,
+        CleanAfter cleanAfter = CleanAfter.Resolver)
+        => _middlewareContext.RegisterForCleanup(action, cleanAfter);
 
-    public void ReportError(Exception exception, Action<IErrorBuilder>? configure = null) =>
-        _middlewareContext.ReportError(exception, configure);
-
-    public T Resolver<T>() =>
-        _middlewareContext.Resolver<T>();
-
-    public T Service<T>() =>
-        _middlewareContext.Service<T>();
-
-    public object Service(Type service) =>
-        _middlewareContext.Service(service);
-
-    public ValueTask<T> ResolveAsync<T>() =>
-        _middlewareContext.ResolveAsync<T>();
-
-    public void RegisterForCleanup(Action action) =>
-        _middlewareContext.RegisterForCleanup(action);
-
-    public IReadOnlyDictionary<NameString, ArgumentValue> ReplaceArguments(
-        IReadOnlyDictionary<NameString, ArgumentValue> argumentValues) =>
-        _middlewareContext.ReplaceArguments(argumentValues);
-
-    public ValueKind ArgumentKind(NameString name) =>
-        _middlewareContext.ArgumentKind(name);
-
-    public T ArgumentValue<T>(NameString name) =>
-        _middlewareContext.ArgumentValue<T>(name);
-
-    public T ArgumentLiteral<T>(NameString name) where T : IValueNode =>
-        _middlewareContext.ArgumentLiteral<T>(name);
-
-    public Optional<T> ArgumentOptional<T>(NameString name) =>
-        _middlewareContext.ArgumentOptional<T>(name);
-
-    public IReadOnlyList<IFieldSelection> GetSelections(
-        ObjectType typeContext,
-        SelectionSetNode? selectionSet = null,
-        bool allowInternals = false) =>
-        _middlewareContext.GetSelections(typeContext, selectionSet, allowInternals);
-
-    public T GetQueryRoot<T>() => _middlewareContext.GetQueryRoot<T>();
+    public IReadOnlyDictionary<string, ArgumentValue> ReplaceArguments(
+        IReadOnlyDictionary<string, ArgumentValue> argumentValues)
+        => _middlewareContext.ReplaceArguments(argumentValues);
 }

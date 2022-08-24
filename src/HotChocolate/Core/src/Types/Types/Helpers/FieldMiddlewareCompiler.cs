@@ -52,7 +52,7 @@ internal static class FieldMiddlewareCompiler
         IReadOnlyList<FieldMiddleware> components,
         FieldDelegate first)
     {
-        FieldDelegate next = first;
+        var next = first;
 
         for (var i = components.Count - 1; i >= 0; i--)
         {
@@ -66,7 +66,7 @@ internal static class FieldMiddlewareCompiler
         IReadOnlyList<FieldMiddlewareDefinition> components,
         FieldDelegate first)
     {
-        FieldDelegate next = first;
+        var next = first;
 
         for (var i = components.Count - 1; i >= 0; i--)
         {
@@ -80,7 +80,7 @@ internal static class FieldMiddlewareCompiler
         IReadOnlyList<ResultConverterDefinition> components,
         FieldDelegate first)
     {
-        FieldDelegate next = first;
+        var next = first;
 
         for (var i = components.Count - 1; i >= 0; i--)
         {
@@ -94,7 +94,7 @@ internal static class FieldMiddlewareCompiler
         IReadOnlyList<ResultConverterDefinition> components,
         PureFieldDelegate first)
     {
-        PureFieldDelegate next = first;
+        var next = first;
 
         for (var i = components.Count - 1; i >= 0; i--)
         {

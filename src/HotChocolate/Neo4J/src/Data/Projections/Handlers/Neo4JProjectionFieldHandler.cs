@@ -9,8 +9,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Data.Neo4J.Projections;
 
 /// <inheritdoc/>
-public class Neo4JProjectionFieldHandler
-    : Neo4JProjectionHandlerBase
+public class Neo4JProjectionFieldHandler : Neo4JProjectionHandlerBase
 {
     /// <inheritdoc/>
     public override bool CanHandle(ISelection selection) =>
@@ -33,7 +32,7 @@ public class Neo4JProjectionFieldHandler
             context.RelationshipTypes.Push(rel);
         }
 
-        context.StartNodes.Push(Cypher.NamedNode(selection.DeclaringType.Name.Value));
+        context.StartNodes.Push(Cypher.NamedNode(selection.DeclaringType.Name));
 
         if (context.RelationshipProjections.ContainsKey(context.CurrentLevel))
         {
@@ -59,16 +58,15 @@ public class Neo4JProjectionFieldHandler
     {
         if (context.StartNodes.Any())
         {
-            object field = context.RelationshipProjections[context.CurrentLevel].Dequeue();
+            var field = context.RelationshipProjections[context.CurrentLevel].Dequeue();
 
-            context.TryCreateRelationshipProjection(out PatternComprehension? projections);
+            context.TryCreateRelationshipProjection(out var projections);
 
             switch (context.CurrentLevel)
             {
                 case > 1:
                     context.RelationshipProjections[context.CurrentLevel - 1].Enqueue(field);
-                    context.RelationshipProjections[context.CurrentLevel - 1]
-                        .Enqueue(projections);
+                    context.RelationshipProjections[context.CurrentLevel - 1].Enqueue(projections);
                     break;
                 case 1:
                     context.Projections.Push(field);

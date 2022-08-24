@@ -97,7 +97,7 @@ public class FilterInputType
             index++;
         }
 
-        foreach (InputFieldDefinition fieldDefinition in
+        foreach (var fieldDefinition in
             definition.Fields.Where(t => !t.Ignore))
         {
             switch (fieldDefinition)
@@ -142,7 +142,7 @@ public class FilterInputType
             throw new ArgumentNullException(nameof(filterType));
         }
 
-        FilterInputTypeDefinition filterTypeDefinition = explicitDefinition ?? new()
+        var filterTypeDefinition = explicitDefinition ?? new()
         {
             EntityType = typeof(object)
         };
@@ -151,7 +151,7 @@ public class FilterInputType
         // to declare the types of operations
         foreach (var field in sourceTypeDefinition.Fields.OfType<FilterOperationFieldDefinition>())
         {
-            FilterOperationFieldDefinition? userDefinedField = filterTypeDefinition.Fields
+            var userDefinedField = filterTypeDefinition.Fields
                 .OfType<FilterOperationFieldDefinition>()
                 .FirstOrDefault(x => x.Id == field.Id);
 
@@ -216,13 +216,13 @@ public class FilterInputType
             ITypeCompletionContext context,
             FilterInputTypeDefinition definition)
         {
-            if (definition.Name.HasValue)
+            if (definition.IsNamed)
             {
                 return;
             }
 
-            IFilterInputType parentFilterType = context.GetType<IFilterInputType>(filterType);
-            IFilterConvention convention = context.GetFilterConvention(context.Scope);
+            var parentFilterType = context.GetType<IFilterInputType>(filterType);
+            var convention = context.GetFilterConvention(context.Scope);
             definition.Name = convention.GetTypeName(parentFilterType, fieldDefinition);
         }
 
@@ -239,7 +239,7 @@ public class FilterInputType
             foreach (var userDefinedField in
                     filterTypeDefinition.Fields.OfType<FilterOperationFieldDefinition>())
             {
-                FilterOperationFieldDefinition? sourceField = sourceTypeDefinition.Fields
+                var sourceField = sourceTypeDefinition.Fields
                     .OfType<FilterOperationFieldDefinition>()
                     .FirstOrDefault(x => x.Id == userDefinedField.Id);
 
@@ -254,7 +254,7 @@ public class FilterInputType
             // this does not make sense
             if (definition.Fields.Count == 0 && definition is { UseAnd: false, UseOr: false })
             {
-                IFilterInputType parentType = context.GetType<IFilterInputType>(filterType);
+                var parentType = context.GetType<IFilterInputType>(filterType);
                 context.ReportError(
                     ErrorHelper.Filtering_InlineFilterTypeHadNoFields(
                         definition,

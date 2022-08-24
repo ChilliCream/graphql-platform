@@ -101,7 +101,7 @@ internal abstract class GeoJsonInputObjectSerializer<T>
         return runtimeValue is T t &&
             GeoJsonTypeSerializer.Default.TryParseString(
                 t.GeometryType,
-                out GeoJsonGeometryType g) &&
+                out var g) &&
             g == _geometryType;
     }
 
@@ -119,7 +119,7 @@ internal abstract class GeoJsonInputObjectSerializer<T>
 
         if (valueSyntax is ObjectValueNode obj)
         {
-            (GeoJsonGeometryType geometryType, var coordinates, var crs) =
+            (var geometryType, var coordinates, var crs) =
                 ParseFields(type, obj);
 
             if (geometryType != _geometryType)
@@ -240,7 +240,7 @@ internal abstract class GeoJsonInputObjectSerializer<T>
 
                 case IReadOnlyDictionary<string, object> dict:
                     {
-                        (GeoJsonGeometryType geometryType, var coordinates, var crs) =
+                        (var geometryType, var coordinates, var crs) =
                             ParseFields(type, dict);
 
                         if (geometryType != _geometryType)

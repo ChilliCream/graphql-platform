@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -113,7 +113,7 @@ public partial class ObjectType
     /// The result that shall be checked.
     /// </param>
     /// <returns>
-    /// <c>true</c> if the <see cref="resolverResult"/> is an instance of this type;
+    /// <c>true</c> if the <see cref="context"/> is an instance of this type;
     /// otherwise, <c>false</c>.
     /// </returns>
     [Obsolete("Use IsInstanceOfType")]
@@ -121,8 +121,23 @@ public partial class ObjectType
         => IsInstanceOfType(context, resolverResult);
 
     /// <inheritdoc />
-    public bool IsImplementing(NameString interfaceTypeName)
-        => _implements.Any(t => t.Name.Equals(interfaceTypeName));
+    public bool IsImplementing(string interfaceTypeName)
+    {
+        if (string.IsNullOrEmpty(interfaceTypeName))
+        {
+            throw new ArgumentNullException(nameof(interfaceTypeName));
+        }
+
+        for (var i = 0; i < _implements.Length; i++)
+        {
+            if(interfaceTypeName.EqualsOrdinal(_implements[i].Name))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     /// <summary>
     /// Defines if this type is implementing the
@@ -136,7 +151,7 @@ public partial class ObjectType
 
     /// <inheritdoc />
     public bool IsImplementing(IInterfaceType interfaceType)
-        => interfaceType is InterfaceType i && _implements.Contains(i);
+        => interfaceType is InterfaceType casted && IsImplementing(casted);
 
     /// <summary>
     /// Override this to configure the type.

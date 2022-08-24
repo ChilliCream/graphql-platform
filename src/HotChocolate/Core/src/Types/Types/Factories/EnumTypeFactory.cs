@@ -12,7 +12,7 @@ internal sealed class EnumTypeFactory
     public EnumType Create(IDescriptorContext context, EnumTypeDefinitionNode node)
     {
         var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
-        Stack<IDefinition> path = context.GetOrCreateDefinitionStack();
+        var path = context.GetOrCreateDefinitionStack();
         path.Clear();
 
         var typeDefinition = new EnumTypeDefinition(
@@ -35,7 +35,7 @@ internal sealed class EnumTypeFactory
     public EnumTypeExtension Create(IDescriptorContext context, EnumTypeExtensionNode node)
     {
         var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
-        Stack<IDefinition> path = context.GetOrCreateDefinitionStack();
+        var path = context.GetOrCreateDefinitionStack();
         path.Clear();
 
         var typeDefinition = new EnumTypeDefinition(node.Name.Value);
@@ -57,7 +57,7 @@ internal sealed class EnumTypeFactory
     {
         path.Push(parent);
 
-        foreach (EnumValueDefinitionNode value in values)
+        foreach (var value in values)
         {
             var valueDefinition = new EnumValueDefinition(
                 value.Name.Value,

@@ -1,8 +1,7 @@
-using System;
+using CookieCrumble;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
-using Xunit;
+
 
 namespace HotChocolate.Data.Filters.Expressions;
 
@@ -13,12 +12,11 @@ public class QueryableFilterVisitorComparableTests
     public void Create_ShortEqual_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-            "{ barShort: { eq: 12 }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ barShort: { eq: 12 }}");
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { BarShort = 12 };
@@ -32,13 +30,11 @@ public class QueryableFilterVisitorComparableTests
     public void Create_ShortNotEqual_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-            "{ barShort: { neq: 12 }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ barShort: { neq: 12 }}");
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
-
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { BarShort = 13 };
@@ -53,12 +49,12 @@ public class QueryableFilterVisitorComparableTests
     public void Create_ShortGreaterThan_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ barShort: { gt: 12 }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { BarShort = 11 };
@@ -75,12 +71,12 @@ public class QueryableFilterVisitorComparableTests
     public void Create_ShortNotGreaterThan_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ barShort: { ngt: 12 }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { BarShort = 11 };
@@ -98,12 +94,12 @@ public class QueryableFilterVisitorComparableTests
     public void Create_ShortGreaterThanOrEquals_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ barShort: { gte: 12 }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { BarShort = 11 };
@@ -120,12 +116,12 @@ public class QueryableFilterVisitorComparableTests
     public void Create_ShortNotGreaterThanOrEquals_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ barShort: { ngte: 12 }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { BarShort = 11 };
@@ -144,12 +140,12 @@ public class QueryableFilterVisitorComparableTests
     public void Create_ShortLowerThan_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ barShort: { lt: 12 }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { BarShort = 11 };
@@ -166,12 +162,12 @@ public class QueryableFilterVisitorComparableTests
     public void Create_ShortNotLowerThan_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ barShort: { nlt: 12 }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { BarShort = 11 };
@@ -189,12 +185,11 @@ public class QueryableFilterVisitorComparableTests
     public void Create_ShortLowerThanOrEquals_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-            "{ barShort: { lte: 12 }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ barShort: { lte: 12 }}");
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { BarShort = 11 };
@@ -211,12 +206,11 @@ public class QueryableFilterVisitorComparableTests
     public void Create_ShortNotLowerThanOrEquals_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-            "{ barShort: { nlte: 12 }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ barShort: { nlte: 12 }}");
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { BarShort = 11 };
@@ -233,12 +227,11 @@ public class QueryableFilterVisitorComparableTests
     public void Create_ShortIn_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-            "{ barShort: { in: [13, 14] }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ barShort: { in: [13, 14] }}");
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { BarShort = 13 };
@@ -252,12 +245,11 @@ public class QueryableFilterVisitorComparableTests
     public void Create_ShortNotIn_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-            "{ barShort: { nin: [13, 14] }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ barShort: { nin: [13, 14] }}");
+        var tester = CreateProviderTester(new FooFilterInput());
 
         // act
-        Func<Foo, bool>? func = tester.Build<Foo>(value);
+        var func = tester.Build<Foo>(value);
 
         // assert
         var a = new Foo { BarShort = 12 };
@@ -271,12 +263,11 @@ public class QueryableFilterVisitorComparableTests
     public void Create_NullableShortEqual_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-            "{ barShort: { eq: 12 }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ barShort: { eq: 12 }}");
+        var tester = CreateProviderTester(new FooNullableFilterInput());
 
         // act
-        Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
+        var func = tester.Build<FooNullable>(value);
 
         // assert
         var a = new FooNullable { BarShort = 12 };
@@ -293,13 +284,11 @@ public class QueryableFilterVisitorComparableTests
     public void Create_NullableShortNotEqual_Expression()
     {
         // arrange
-        // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-            "{ barShort: { neq: 12 }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ barShort: { neq: 12 }}");
+        var tester = CreateProviderTester(new FooNullableFilterInput());
 
         // act
-        Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
+        var func = tester.Build<FooNullable>(value);
 
         // assert
         var a = new FooNullable { BarShort = 13 };
@@ -317,12 +306,12 @@ public class QueryableFilterVisitorComparableTests
     public void Create_NullableShortGreaterThan_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ barShort: { gt: 12 }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
+        var tester = CreateProviderTester(new FooNullableFilterInput());
 
         // act
-        Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
+        var func = tester.Build<FooNullable>(value);
 
         // assert
         var a = new FooNullable { BarShort = 11 };
@@ -342,12 +331,12 @@ public class QueryableFilterVisitorComparableTests
     public void Create_NullableShortNotGreaterThan_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ barShort: { ngt: 12 }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
+        var tester = CreateProviderTester(new FooNullableFilterInput());
 
         // act
-        Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
+        var func = tester.Build<FooNullable>(value);
 
         // assert
         var a = new FooNullable { BarShort = 11 };
@@ -367,12 +356,12 @@ public class QueryableFilterVisitorComparableTests
     public void Create_NullableShortGreaterThanOrEquals_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ barShort: { gte: 12 }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
+        var tester = CreateProviderTester(new FooNullableFilterInput());
 
         // act
-        Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
+        var func = tester.Build<FooNullable>(value);
 
         // assert
         var a = new FooNullable { BarShort = 11 };
@@ -392,12 +381,12 @@ public class QueryableFilterVisitorComparableTests
     public void Create_NullableShortNotGreaterThanOrEquals_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ barShort: { ngte: 12 }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
+        var tester = CreateProviderTester(new FooNullableFilterInput());
 
         // act
-        Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
+        var func = tester.Build<FooNullable>(value);
 
         // assert
         var a = new FooNullable { BarShort = 11 };
@@ -419,12 +408,12 @@ public class QueryableFilterVisitorComparableTests
     public void Create_NullableShortLowerThan_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ barShort: { lt: 12 }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
+        var tester = CreateProviderTester(new FooNullableFilterInput());
 
         // act
-        Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
+        var func = tester.Build<FooNullable>(value);
 
         // assert
         var a = new FooNullable { BarShort = 11 };
@@ -444,12 +433,12 @@ public class QueryableFilterVisitorComparableTests
     public void Create_NullableShortNotLowerThan_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ barShort: { nlt: 12 }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
+        var tester = CreateProviderTester(new FooNullableFilterInput());
 
         // act
-        Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
+        var func = tester.Build<FooNullable>(value);
 
         // assert
         var a = new FooNullable { BarShort = 11 };
@@ -470,12 +459,12 @@ public class QueryableFilterVisitorComparableTests
     public void Create_NullableShortLowerThanOrEquals_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ barShort: { lte: 12 }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
+        var tester = CreateProviderTester(new FooNullableFilterInput());
 
         // act
-        Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
+        var func = tester.Build<FooNullable>(value);
 
         // assert
         var a = new FooNullable { BarShort = 11 };
@@ -495,12 +484,12 @@ public class QueryableFilterVisitorComparableTests
     public void Create_NullableShortNotLowerThanOrEquals_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ barShort: { nlte: 12 }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
+        var tester = CreateProviderTester(new FooNullableFilterInput());
 
         // act
-        Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
+        var func = tester.Build<FooNullable>(value);
 
         // assert
         var a = new FooNullable { BarShort = 11 };
@@ -520,12 +509,12 @@ public class QueryableFilterVisitorComparableTests
     public void Create_NullableShortIn_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ barShort: { in: [13, 14] }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
+        var tester = CreateProviderTester(new FooNullableFilterInput());
 
         // act
-        Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
+        var func = tester.Build<FooNullable>(value);
 
         // assert
         var a = new FooNullable { BarShort = 13 };
@@ -542,12 +531,12 @@ public class QueryableFilterVisitorComparableTests
     public void Create_NullableShortNotIn_Expression()
     {
         // arrange
-        IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
             "{ barShort: { nin: [13, 14] }}");
-        ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
+        var tester = CreateProviderTester(new FooNullableFilterInput());
 
         // act
-        Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
+        var func = tester.Build<FooNullable>(value);
 
         // assert
         var a = new FooNullable { BarShort = 12 };
@@ -565,10 +554,10 @@ public class QueryableFilterVisitorComparableTests
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(new FilterInputType<EntityWithTypeAttribute>());
+        var schema = CreateSchema(new FilterInputType<EntityWithTypeAttribute>());
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     public class Foo

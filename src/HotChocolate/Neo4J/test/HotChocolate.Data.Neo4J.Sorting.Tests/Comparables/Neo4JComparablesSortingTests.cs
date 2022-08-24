@@ -1,8 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
-using Squadron;
-using Xunit;
 
 namespace HotChocolate.Data.Neo4J.Sorting.Boolean;
 
@@ -25,8 +23,7 @@ public class Neo4JComparablesSortingTests
         public short Bar { get; set; }
     }
 
-    public class FooCompSortType
-        : SortInputType<FooComp>
+    public class FooCompSortType : SortInputType<FooComp>
     {
     }
 
@@ -34,22 +31,25 @@ public class Neo4JComparablesSortingTests
     public async Task Create_Short_OrderBy()
     {
         // arrange
-        IRequestExecutor tester =
+        var tester =
             await _fixture.GetOrCreateSchema<FooComp, FooCompSortType>(_fooEntitiesCypher);
 
         // act
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { bar: ASC}){ bar}}")
                 .Create());
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { bar: DESC}){ bar}}")
                 .Create());
 
         // assert
-        res1.MatchDocumentSnapshot("ASC");
-        res2.MatchDocumentSnapshot("DESC");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
+            .MatchAsync();
     }
 }

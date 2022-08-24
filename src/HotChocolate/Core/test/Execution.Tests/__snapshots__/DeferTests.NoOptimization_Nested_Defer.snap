@@ -3,15 +3,10 @@
     "hero": {
       "id": "2001"
     }
-  },
-  "hasNext": true
+  }
 }
 
 {
-  "label": "friends",
-  "path": [
-    "hero"
-  ],
   "data": {
     "friends": {
       "nodes": [
@@ -26,46 +21,24 @@
         }
       ]
     }
-  },
-  "hasNext": true
+  }
 }
 
 {
-  "path": [
-    "hero",
-    "friends",
-    "nodes",
-    0
-  ],
   "data": {
     "name": "Luke Skywalker"
-  },
-  "hasNext": true
+  }
 }
 
 {
-  "path": [
-    "hero",
-    "friends",
-    "nodes",
-    1
-  ],
   "data": {
     "name": "Han Solo"
-  },
-  "hasNext": true
+  }
 }
 
 {
-  "path": [
-    "hero",
-    "friends",
-    "nodes",
-    2
-  ],
   "data": {
     "name": "Leia Organa"
-  },
-  "hasNext": false
+  }
 }
 

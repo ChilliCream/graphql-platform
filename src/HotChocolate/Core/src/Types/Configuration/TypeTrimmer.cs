@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -33,17 +34,17 @@ internal sealed class TypeTrimmer
 
     public IReadOnlyCollection<TypeSystemObjectBase> Trim()
     {
-        foreach (DirectiveType? directiveType in _discoveredTypes.OfType<DirectiveType>())
+        foreach (var directiveType in _discoveredTypes.OfType<DirectiveType>())
         {
             if (directiveType.IsExecutableDirective ||
-                directiveType.Name.Equals(WellKnownDirectives.Deprecated))
+                directiveType.Name.EqualsOrdinal(WellKnownDirectives.Deprecated))
             {
                 _touched.Add(directiveType);
                 VisitDirective(directiveType);
             }
         }
 
-        foreach (ObjectType rootType in _rootTypes)
+        foreach (var rootType in _rootTypes)
         {
             VisitRoot(rootType);
         }
@@ -102,7 +103,7 @@ internal sealed class TypeTrimmer
     {
         VisitDirectives(type);
 
-        foreach (IEnumValue value in type.Values)
+        foreach (var value in type.Values)
         {
             VisitDirectives(value);
         }
@@ -112,17 +113,17 @@ internal sealed class TypeTrimmer
     {
         VisitDirectives(type);
 
-        foreach (InterfaceType interfaceType in type.Implements)
+        foreach (var interfaceType in type.Implements)
         {
             Visit(interfaceType);
         }
 
-        foreach (ObjectField field in type.Fields)
+        foreach (var field in type.Fields)
         {
             VisitDirectives(field);
             Visit((TypeSystemObjectBase)field.Type.NamedType());
 
-            foreach (Argument argument in field.Arguments)
+            foreach (var argument in field.Arguments)
             {
                 VisitDirectives(argument);
                 Visit((TypeSystemObjectBase)argument.Type.NamedType());
@@ -134,7 +135,7 @@ internal sealed class TypeTrimmer
     {
         VisitDirectives(type);
 
-        foreach (ObjectType objectType in type.Types.Values)
+        foreach (var objectType in type.Types.Values)
         {
             Visit(objectType);
         }
@@ -144,19 +145,19 @@ internal sealed class TypeTrimmer
     {
         VisitDirectives(type);
 
-        foreach (InterfaceField field in type.Fields)
+        foreach (var field in type.Fields)
         {
             VisitDirectives(field);
             Visit((TypeSystemObjectBase)field.Type.NamedType());
 
-            foreach (Argument argument in field.Arguments)
+            foreach (var argument in field.Arguments)
             {
                 VisitDirectives(argument);
                 Visit((TypeSystemObjectBase)argument.Type.NamedType());
             }
         }
 
-        foreach (IComplexOutputType complexType in
+        foreach (var complexType in
             _discoveredTypes.OfType<IComplexOutputType>())
         {
             if (complexType.IsImplementing(type))
@@ -170,7 +171,7 @@ internal sealed class TypeTrimmer
     {
         VisitDirectives(type);
 
-        foreach (InputField field in type.Fields)
+        foreach (var field in type.Fields)
         {
             VisitDirectives(field);
             Visit((TypeSystemObjectBase)field.Type.NamedType());
@@ -179,7 +180,7 @@ internal sealed class TypeTrimmer
 
     private void VisitDirective(DirectiveType type)
     {
-        foreach (Argument argument in type.Arguments)
+        foreach (var argument in type.Arguments)
         {
             VisitDirectives(argument);
             Visit((TypeSystemObjectBase)argument.Type.NamedType());
@@ -188,7 +189,7 @@ internal sealed class TypeTrimmer
 
     private void VisitDirectives(IHasDirectives hasDirectives)
     {
-        foreach (DirectiveType type in hasDirectives.Directives.Select(t => t.Type))
+        foreach (var type in hasDirectives.Directives.Select(t => t.Type))
         {
             Visit(type);
         }

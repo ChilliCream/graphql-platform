@@ -3,6 +3,7 @@ using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Types.Relay;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class SchemaRequestExecutorBuilderExtensions
@@ -60,7 +61,9 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// Enables rewriting of mutation payloads to provide access to a query root field.
     /// </summary>
     /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-    /// <param name="configureOptions">A delegate to configure the <see cref="MutationPayloadOptions"/>.</param>
+    /// <param name="configureOptions">
+    /// A delegate to configure the <see cref="MutationPayloadOptions"/>.
+    /// </param>
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
     /// and its execution.

@@ -1,0 +1,47 @@
+testatest
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "Rm9vTnVsbGFibGUKZHRlc3RidGVzdA=="
+      },
+      {
+        "bar": null
+      }
+    ]
+  }
+}
+---------------
+
+testbtest
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "Rm9vTnVsbGFibGUKZHRlc3RhdGVzdA=="
+      },
+      {
+        "bar": null
+      }
+    ]
+  }
+}
+---------------
+
+null
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "Rm9vTnVsbGFibGUKZHRlc3RhdGVzdA=="
+      },
+      {
+        "bar": "Rm9vTnVsbGFibGUKZHRlc3RidGVzdA=="
+      }
+    ]
+  }
+}
+---------------

@@ -255,6 +255,12 @@ namespace HotChocolate.Validation.Properties {
             }
         }
         
+        internal static string ErrorHelper_SubscriptionNoTopLevelIntrospectionField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_SubscriptionNoTopLevelIntrospectionField", resourceCulture);
+            }
+        }
+        
         internal static string ErrorHelper_MaxOperationComplexity {
             get {
                 return ResourceManager.GetString("ErrorHelper_MaxOperationComplexity", resourceCulture);
@@ -266,7 +272,7 @@ namespace HotChocolate.Validation.Properties {
                 return ResourceManager.GetString("ErrorHelper_MaxExecutionDepth", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_DirectiveMustBeUniqueInLocation {
             get {
                 return ResourceManager.GetString("ErrorHelper_DirectiveMustBeUniqueInLocation", resourceCulture);

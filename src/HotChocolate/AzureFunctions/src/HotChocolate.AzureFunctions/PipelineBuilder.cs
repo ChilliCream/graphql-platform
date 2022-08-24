@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.AspNetCore;
+using HotChocolate.Utilities;
 using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AzureFunctions;
@@ -14,7 +15,7 @@ internal class PipelineBuilder
     private static readonly ParameterExpression _next =
         Expression.Parameter(typeof(RequestDelegate), "next");
     private static readonly ConstantExpression _schemaName =
-        Expression.Constant(Schema.DefaultName, typeof(NameString));
+        Expression.Constant(Schema.DefaultName, typeof(string));
     private static readonly ConstantExpression _routing =
         Expression.Constant(MiddlewareRoutingType.Integrated, typeof(MiddlewareRoutingType));
     private static readonly MethodInfo _getService =
@@ -54,7 +55,7 @@ internal class PipelineBuilder
         for (var i = _components.Count - 1; i >= 0; i--)
         {
             (Type Type, object[] Args) component = _components[i];
-            ConstructorInfo[] constructors = component.Type.GetConstructors();
+            var constructors = component.Type.GetConstructors();
 
             if (constructors.Length != 1)
             {
@@ -62,7 +63,7 @@ internal class PipelineBuilder
                     "A middleware must have a single public constructor.");
             }
 
-            MethodInfo? invokeMethod = TryResolveInvoke(component.Type);
+            var invokeMethod = TryResolveInvoke(component.Type);
 
             if (invokeMethod is null)
             {
@@ -71,9 +72,7 @@ internal class PipelineBuilder
                     "`Task` and has a single parameter `HttpContext`.");
             }
 
-            Func<IServiceProvider, RequestDelegate, RequestDelegate> next =
-                CompileFactory(constructors[0], invokeMethod, component.Args);
-
+            var next = CompileFactory(constructors[0], invokeMethod, component.Args);
             pipeline = next(services, pipeline);
         }
 
@@ -87,7 +86,7 @@ internal class PipelineBuilder
     {
         var list = new List<Expression>();
 
-        foreach (ParameterInfo parameter in constructor.GetParameters())
+        foreach (var parameter in constructor.GetParameters())
         {
             if (parameter.ParameterType == typeof(RequestDelegate))
             {
@@ -97,7 +96,8 @@ internal class PipelineBuilder
             {
                 list.Add(_services);
             }
-            else if (parameter.ParameterType == typeof(NameString))
+            else if (parameter.Name.EqualsOrdinal("schemaName") &&
+                parameter.ParameterType == typeof(string))
             {
                 list.Add(_schemaName);
             }

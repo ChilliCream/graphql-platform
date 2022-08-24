@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Resolvers;
-using HotChocolate.Types;
+using HotChocolate.Execution.Internal;
 
 namespace HotChocolate.Execution.Processing.Tasks;
 
@@ -18,6 +17,20 @@ internal sealed partial class ResolverTask
             {
                 var success = await TryExecuteAsync(cancellationToken).ConfigureAwait(false);
                 CompleteValue(success, cancellationToken);
+
+                switch (_taskBuffer.Count)
+                {
+                    case 0:
+                        break;
+
+                    case 1:
+                        _operationContext.Scheduler.Register(_taskBuffer[0]);
+                        break;
+
+                    default:
+                        _operationContext.Scheduler.Register(_taskBuffer);
+                        break;
+                }
             }
 
             Status = _completionStatus;
@@ -36,9 +49,17 @@ internal sealed partial class ResolverTask
             Status = ExecutionTaskStatus.Faulted;
             _resolverContext.Result = null;
         }
+        finally
+        {
+            _operationContext.Scheduler.Complete(this);
 
-        _operationContext.Scheduler.Complete(this);
-        _objectPool.Return(this);
+            if (_resolverContext.HasCleanupTasks)
+            {
+                await _resolverContext.ExecuteCleanupTasksAsync().ConfigureAwait(false);
+            }
+
+            _objectPool.Return(this);
+        }
     }
 
     private async ValueTask<bool> TryExecuteAsync(CancellationToken cancellationToken)
@@ -65,9 +86,7 @@ internal sealed partial class ResolverTask
 
             // if this field has arguments that contain variables we first need to coerce them
             // before we can start executing the resolver.
-            if (Selection.Arguments.TryCoerceArguments(
-                _resolverContext,
-                out IReadOnlyDictionary<NameString, ArgumentValue>? coercedArgs))
+            if (Selection.Arguments.TryCoerceArguments(_resolverContext, out var coercedArgs))
             {
                 _resolverContext.Arguments = coercedArgs;
                 await ExecuteResolverPipelineAsync(cancellationToken).ConfigureAwait(false);
@@ -94,12 +113,14 @@ internal sealed partial class ResolverTask
     {
         await _resolverContext.ResolverPipeline!(_resolverContext).ConfigureAwait(false);
 
-        if (_resolverContext.Result is null)
+        var result = _resolverContext.Result;
+
+        if (result is null)
         {
             return;
         }
 
-        if (_resolverContext.Result is IError error)
+        if (result is IError error)
         {
             _resolverContext.ReportError(error);
             _resolverContext.Result = null;
@@ -107,30 +128,20 @@ internal sealed partial class ResolverTask
         }
 
         // if we are not a list we do not need any further result processing.
-        if (!Selection.IsList)
+        if (!_selection.IsList)
         {
             return;
         }
 
-        if (Selection.IsStreamable)
+        if (_selection.HasStreamDirective(_operationContext.IncludeFlags))
         {
-            StreamDirective streamDirective =
-                Selection.SyntaxNode.Directives.GetStreamDirective(
-                    _resolverContext.Variables)!;
-            if (streamDirective.If)
-            {
-                _resolverContext.Result =
-                    await CreateStreamResultAsync(streamDirective)
-                        .ConfigureAwait(false);
-                return;
-            }
+            _resolverContext.Result = await CreateStreamResultAsync(result).ConfigureAwait(false);
+            return;
         }
 
-        if (Selection.MaybeStream)
+        if (_selection.HasStreamResult)
         {
-            _resolverContext.Result =
-                await CreateListFromStreamAsync()
-                    .ConfigureAwait(false);
+            _resolverContext.Result = await CreateListFromStreamAsync(result).ConfigureAwait(false);
             return;
         }
 
@@ -162,11 +173,11 @@ internal sealed partial class ResolverTask
         }
     }
 
-    private async ValueTask<List<object?>> CreateStreamResultAsync(
-        StreamDirective streamDirective)
+    private async ValueTask<List<object?>> CreateStreamResultAsync(object result)
     {
-        IAsyncEnumerable<object?> enumerable = Selection.CreateStream(_resolverContext.Result!);
-        IAsyncEnumerator<object?> enumerator = enumerable.GetAsyncEnumerator();
+        var stream = StreamHelper.CreateStream(result);
+        var streamDirective = _selection.GetStreamDirective(_resolverContext.Variables)!;
+        var enumerator = stream.GetAsyncEnumerator(_resolverContext.RequestAborted);
         var next = true;
 
         try
@@ -194,11 +205,11 @@ internal sealed partial class ResolverTask
             {
                 // if the stream has more items than the initial requested items then we will
                 // defer the rest of the stream.
-                _operationContext.Scheduler.DeferredWork.Register(
+                _operationContext.DeferredScheduler.Register(
                     new DeferredStream(
                         Selection,
                         streamDirective.Label,
-                        _resolverContext.Path,
+                        _resolverContext.Path.Clone(),
                         _resolverContext.Parent<object>(),
                         count - 1,
                         enumerator,
@@ -219,9 +230,9 @@ internal sealed partial class ResolverTask
         }
     }
 
-    private async ValueTask<List<object?>> CreateListFromStreamAsync()
+    private async ValueTask<List<object?>> CreateListFromStreamAsync(object result)
     {
-        IAsyncEnumerable<object?> enumerable = Selection.CreateStream(_resolverContext.Result!);
+        var enumerable = StreamHelper.CreateStream(result);
         var list = new List<object?>();
 
         await foreach (var item in enumerable
@@ -233,6 +244,7 @@ internal sealed partial class ResolverTask
 
         return list;
     }
+
 
     public void CompleteUnsafe()
     {

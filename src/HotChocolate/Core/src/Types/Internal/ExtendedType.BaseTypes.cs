@@ -42,7 +42,7 @@ internal sealed partial class ExtendedType
                 return true;
             }
 
-            foreach (Type baseType in _baseTypes)
+            foreach (var baseType in _baseTypes)
             {
                 if (baseType.IsAssignableFrom(type))
                 {

@@ -14,8 +14,8 @@ internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
     private readonly Dictionary<ITypeSystemObject, TypeInfo> _typeInfos = new();
     private readonly Dictionary<Type, TypeInfo> _allInterfaceRuntimeTypes = new();
     private readonly HashSet<Type> _interfaceRuntimeTypes = new();
-    private readonly HashSet<NameString> _completed = new();
-    private readonly HashSet<NameString> _completedFields = new();
+    private readonly HashSet<string> _completed = new();
+    private readonly HashSet<string> _completedFields = new();
     private readonly Queue<InterfaceType> _backlog = new();
 
     public override bool TriggerAggregations => true;
@@ -38,7 +38,7 @@ internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
     {
         // after all types have been initialized we will index the runtime
         // types of all interfaces.
-        foreach (TypeInfo interfaceTypeInfo in _typeInfos.Values
+        foreach (var interfaceTypeInfo in _typeInfos.Values
             .Where(t => t.Definition.RuntimeType is { } rt &&
                 rt != typeof(object) &&
                 t.Definition is InterfaceTypeDefinition))
@@ -52,7 +52,7 @@ internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
         }
 
         // we now will use the runtime types to infer interface usage ...
-        foreach (TypeInfo typeInfo in _typeInfos.Values.Where(IsRelevant))
+        foreach (var typeInfo in _typeInfos.Values.Where(IsRelevant))
         {
             _interfaceRuntimeTypes.Clear();
 
@@ -65,12 +65,12 @@ internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
             {
                 // if we detect that this type implements an interface,
                 // we will register it as a dependency.
-                foreach (Type interfaceRuntimeType in _interfaceRuntimeTypes)
+                foreach (var interfaceRuntimeType in _interfaceRuntimeTypes)
                 {
-                    TypeInfo interfaceTypeInfo = _allInterfaceRuntimeTypes[interfaceRuntimeType];
+                    var interfaceTypeInfo = _allInterfaceRuntimeTypes[interfaceRuntimeType];
                     var interfaceTypeDependency = new TypeDependency(
-                        interfaceTypeInfo.Context.TypeReference, 
-                        TypeDependencyKind.Completed); 
+                        interfaceTypeInfo.Context.TypeReference,
+                        TypeDependencyKind.Completed);
 
                     typeInfo.Context.Dependencies.Add(interfaceTypeDependency);
                     typeInfo.Definition.Interfaces.Add(interfaceTypeDependency.TypeReference);
@@ -88,8 +88,8 @@ internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
             return true;
         }
 
-        Type? runtimeType = typeInfo.Definition.RuntimeType;
-        return runtimeType is not null && runtimeType != typeof(object);
+        var runtimeType = typeInfo.Definition.RuntimeType;
+        return runtimeType != typeof(object);
     }
 
     private Type GetRuntimeType(TypeInfo typeInfo)
@@ -113,7 +113,7 @@ internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
             _completedFields.Clear();
             _backlog.Clear();
 
-            foreach (ITypeReference? interfaceRef in typeDef.Interfaces)
+            foreach (var interfaceRef in typeDef.Interfaces)
             {
                 if (completionContext.TryGetType(
                     interfaceRef,
@@ -124,7 +124,7 @@ internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
                 }
             }
 
-            foreach (InterfaceFieldDefinition? field in typeDef.Fields)
+            foreach (var field in typeDef.Fields)
             {
                 _completedFields.Add(field.Name);
             }
@@ -138,7 +138,7 @@ internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
             _completedFields.Clear();
             _backlog.Clear();
 
-            foreach (ITypeReference? interfaceRef in objectTypeDef.Interfaces)
+            foreach (var interfaceRef in objectTypeDef.Interfaces)
             {
                 if (completionContext.TryGetType(
                     interfaceRef,
@@ -149,7 +149,7 @@ internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
                 }
             }
 
-            foreach (ObjectFieldDefinition? field in objectTypeDef.Fields)
+            foreach (var field in objectTypeDef.Fields)
             {
                 _completedFields.Add(field.Name);
             }
@@ -162,13 +162,13 @@ internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
     {
         while (_backlog.Count > 0)
         {
-            InterfaceType current = _backlog.Dequeue();
-            TypeInfo typeInfo = _typeInfos[current];
+            var current = _backlog.Dequeue();
+            var typeInfo = _typeInfos[current];
             definition.Interfaces.Add(TypeReference.Create(current));
 
             if (definition is InterfaceTypeDefinition interfaceDef)
             {
-                foreach (InterfaceFieldDefinition? field in ((InterfaceTypeDefinition)typeInfo.Definition).Fields)
+                foreach (var field in ((InterfaceTypeDefinition)typeInfo.Definition).Fields)
                 {
                     if (_completedFields.Add(field.Name))
                     {
@@ -177,7 +177,7 @@ internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
                 }
             }
 
-            foreach (InterfaceType? interfaceType in current.Implements)
+            foreach (var interfaceType in current.Implements)
             {
                 if (_completed.Add(interfaceType.Name))
                 {
@@ -197,7 +197,7 @@ internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
             return;
         }
 
-        foreach (Type interfaceType in runtimeType.GetInterfaces())
+        foreach (var interfaceType in runtimeType.GetInterfaces())
         {
             if (allInterfaces.Contains(interfaceType))
             {
@@ -220,6 +220,6 @@ internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
 
         public IComplexOutputTypeDefinition Definition { get; }
 
-        public override string? ToString() => Definition.Name;
+        public override string ToString() => Definition.Name;
     }
 }

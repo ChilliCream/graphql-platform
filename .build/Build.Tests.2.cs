@@ -1,7 +1,5 @@
-using System.Collections.Generic;
 using Nuke.Common;
 using Nuke.Common.IO;
-using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
@@ -48,6 +46,10 @@ partial class Build
     Target TestHotChocolateFilters => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Filters" / "HotChocolate.Filters.sln"));
+
+    Target TestHotChocolateFusion => _ => _
+        .Produces(TestResultDirectory / "*.trx")
+        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Fusion" / "HotChocolate.Fusion.sln"));
 
     Target TestHotChocolateLanguage => _ => _
         .Produces(TestResultDirectory / "*.trx")
@@ -105,7 +107,7 @@ partial class Build
             .SetProjectFile(solutionFile)
             .SetConfiguration(Debug));
 
-        IEnumerable<Project> testProjects = ParseSolution(solutionFile).GetProjects("*.Tests");
+        var testProjects = ParseSolution(solutionFile).GetProjects("*.Tests");
 
         try
         {

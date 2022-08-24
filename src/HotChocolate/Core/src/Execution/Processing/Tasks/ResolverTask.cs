@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Types;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing.Tasks;
@@ -14,7 +12,7 @@ internal sealed partial class ResolverTask : IExecutionTask
     private readonly ObjectPool<ResolverTask> _objectPool;
     private readonly MiddlewareContext _resolverContext = new();
     private readonly List<ResolverTask> _taskBuffer = new();
-    private IOperationContext _operationContext = default!;
+    private OperationContext _operationContext = default!;
     private ISelection _selection = default!;
     private ExecutionTaskStatus _completionStatus = ExecutionTaskStatus.Completed;
     private Task? _task;
@@ -54,12 +52,7 @@ internal sealed partial class ResolverTask : IExecutionTask
     /// <summary>
     /// Gets access to the internal result map into which the task will write the result.
     /// </summary>
-    public ResultMap ResultMap { get; private set; } = default!;
-
-    /// <summary>
-    /// Gets the completed value of this task.
-    /// </summary>
-    public object? CompletedValue { get; private set; }
+    public ObjectResult ParentResult { get; private set; } = default!;
 
     /// <inheritdoc />
     public object? State { get; set; }
@@ -70,11 +63,6 @@ internal sealed partial class ResolverTask : IExecutionTask
     /// <inheritdoc />
     public bool IsRegistered { get; set; }
 
-    /// <summary>
-    /// Tasks that were created through the field completion.
-    /// </summary>
-    public List<ResolverTask> ChildTasks => _taskBuffer;
-
     /// <inheritdoc />
     public void BeginExecute(CancellationToken cancellationToken)
     {
@@ -83,134 +71,6 @@ internal sealed partial class ResolverTask : IExecutionTask
     }
 
     /// <inheritdoc />
-    public Task WaitForCompletionAsync(CancellationToken cancellationToken) =>
-        _task ?? Task.CompletedTask;
-
-    /// <summary>
-    /// Completes the resolver result.
-    /// </summary>
-    /// <param name="success">Defines if the resolver succeeded without errors.</param>
-    /// <param name="cancellationToken">The execution cancellation token.</param>
-    private void CompleteValue(bool success, CancellationToken cancellationToken)
-    {
-        object? completedValue = null;
-
-        try
-        {
-            // we will only try to complete the resolver value if there are no known errors.
-            if (success)
-            {
-                if (ValueCompletion.TryComplete(
-                    _operationContext,
-                    _resolverContext,
-                    (ISelection)_resolverContext.Selection,
-                    _resolverContext.Path,
-                    _selection.Type,
-                    _resolverContext.ResponseName,
-                    _resolverContext.ResponseIndex,
-                    _resolverContext.Result,
-                    _taskBuffer,
-                    out completedValue) &&
-                    _selection.TypeKind is not TypeKind.Scalar and not TypeKind.Enum &&
-                    completedValue is IHasResultDataParent result)
-                {
-                    result.Parent = _resolverContext.ResultMap;
-                }
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // If we run into this exception the request was aborted.
-            // In this case we do nothing and just return.
-            _completionStatus = ExecutionTaskStatus.Faulted;
-            _resolverContext.Result = null;
-            return;
-        }
-        catch (Exception ex)
-        {
-            _resolverContext.Result = null;
-
-            if (!cancellationToken.IsCancellationRequested)
-            {
-                _resolverContext.ReportError(ex);
-                completedValue = null;
-            }
-        }
-
-        CompletedValue = completedValue;
-        var isNonNullType = _selection.Type.IsNonNullType();
-
-        if (completedValue is null && isNonNullType)
-        {
-            // if we detect a non-null violation we will stash it for later.
-            // the non-null propagation is delayed so that we can parallelize better.
-            _completionStatus = ExecutionTaskStatus.Faulted;
-            _operationContext.Result.AddNonNullViolation(
-                _resolverContext.Selection.SyntaxNode,
-                _resolverContext.Path,
-                _resolverContext.ResultMap);
-            _taskBuffer.Clear();
-        }
-        else
-        {
-            _resolverContext.ResultMap.SetValue(
-                _resolverContext.ResponseIndex,
-                _resolverContext.ResponseName,
-                completedValue,
-                !isNonNullType);
-        }
-    }
-
-    /// <summary>
-    /// Initializes this task after it is retrieved from its pool.
-    /// </summary>
-    public void Initialize(
-        IOperationContext operationContext,
-        ISelection selection,
-        ResultMap resultMap,
-        int responseIndex,
-        object? parent,
-        Path path,
-        IImmutableDictionary<string, object?> scopedContextData)
-    {
-        _operationContext = operationContext;
-        _selection = selection;
-        _resolverContext.Initialize(
-            operationContext,
-            selection,
-            resultMap,
-            responseIndex,
-            parent,
-            path,
-            scopedContextData);
-        ResultMap = resultMap;
-    }
-
-    /// <summary>
-    /// Resets the resolver task before returning it to the pool.
-    /// </summary>
-    /// <returns></returns>
-    internal bool Reset()
-    {
-        _completionStatus = ExecutionTaskStatus.Completed;
-        _operationContext = default!;
-        _selection = default!;
-        _resolverContext.Clean();
-        ResultMap = default!;
-        CompletedValue = null;
-        Status = ExecutionTaskStatus.WaitingToRun;
-        IsSerial = false;
-        IsRegistered = false;
-        Next = null;
-        Previous = null;
-        State = null;
-        _taskBuffer.Clear();
-        return true;
-    }
-
-    /// <summary>
-    /// Returns the task back to the pool.
-    /// </summary>
-    internal void Return()
-        => _objectPool.Return(this);
+    public Task WaitForCompletionAsync(CancellationToken cancellationToken)
+        => _task ?? Task.CompletedTask;
 }

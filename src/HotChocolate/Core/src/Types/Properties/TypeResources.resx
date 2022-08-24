@@ -812,6 +812,9 @@ Type: `{0}`</value>
   <data name="ConnectionType_Edges_Description" xml:space="preserve">
     <value>A list of edges.</value>
   </data>
+  <data name="ConnectionType_TotalCount_Description" xml:space="preserve">
+    <value>Identifies the total count of items in the connection.</value>
+  </data>
   <data name="CollectionSegmentType_PageInfo_Description" xml:space="preserve">
     <value>Information to aid in pagination.</value>
   </data>
@@ -863,5 +866,14 @@ Type: `{0}`</value>
   </data>
   <data name="SchemaTypes_DefinitionInvalid" xml:space="preserve">
     <value>The schema types definition is in an invalid state.</value>
+  </data>
+  <data name="InputObjectTypeDescriptor_OnlyProperties" xml:space="preserve">
+    <value>Only properties are allowed for input types.</value>
+  </data>
+  <data name="InterfaceTypeDescriptor_MustBePropertyOrMethod" xml:space="preserve">
+    <value>A field of an interface can only be inferred from a property or a method.</value>
+  </data>
+  <data name="ThrowHelper_FieldBase_Sealed" xml:space="preserve">
+    <value>The field is already sealed and cannot be mutated.</value>
   </data>
 </root>

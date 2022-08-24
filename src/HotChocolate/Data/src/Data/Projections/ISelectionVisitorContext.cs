@@ -10,8 +10,6 @@ public interface ISelectionVisitorContext
 {
     Stack<ISelection> Selection { get; }
 
-    Stack<SelectionSetNode?> SelectionSetNodes { get; }
-
     Stack<INamedType?> ResolvedType { get; }
 
     IResolverContext Context { get; }

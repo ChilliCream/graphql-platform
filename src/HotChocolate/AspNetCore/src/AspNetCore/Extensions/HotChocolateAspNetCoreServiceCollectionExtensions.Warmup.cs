@@ -1,6 +1,7 @@
 using HotChocolate.AspNetCore.Warmup;
 using HotChocolate.Execution.Configuration;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class HotChocolateAspNetCoreServiceCollectionExtensions

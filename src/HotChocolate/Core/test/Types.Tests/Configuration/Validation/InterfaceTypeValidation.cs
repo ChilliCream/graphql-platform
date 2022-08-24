@@ -1,13 +1,13 @@
 using Xunit;
 
-namespace HotChocolate.Configuration.Validation
+namespace HotChocolate.Configuration.Validation;
+
+public class InterfaceTypeValidation : TypeValidationTestBase
 {
-    public class InterfaceTypeValidation : TypeValidationTestBase
+    [Fact]
+    public void Fields_With_Two_Underscores_Are_Not_Allowed()
     {
-        [Fact]
-        public void Fields_With_Two_Underscores_Are_Not_Allowed()
-        {
-            ExpectError(@"
+        ExpectError(@"
                 type Query {
                     foo : FooInterface
                 }
@@ -20,12 +20,12 @@ namespace HotChocolate.Configuration.Validation
                     __foo : String
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void Arguments_With_Two_Underscores_Are_Not_Allowed()
-        {
-            ExpectError(@"
+    [Fact]
+    public void Arguments_With_Two_Underscores_Are_Not_Allowed()
+    {
+        ExpectError(@"
                 type Query {
                     foo : FooInterface
                 }
@@ -38,12 +38,12 @@ namespace HotChocolate.Configuration.Validation
                     foo(__bar: String) : String
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void Field_Is_Not_Implemented()
-        {
-            ExpectError(@"
+    [Fact]
+    public void Field_Is_Not_Implemented()
+    {
+        ExpectError(@"
                 type Query {
                     foo: Foo
                 }
@@ -68,6 +68,5 @@ namespace HotChocolate.Configuration.Validation
                     cde: String
                 }
             ");
-        }
     }
 }

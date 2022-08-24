@@ -8,6 +8,10 @@
 }
 
 {
+  "hasNext": false
+}
+
+{
   "label": "friends",
   "path": [
     "hero"
@@ -38,38 +42,10 @@
     "hero",
     "friends",
     "nodes",
-    1
-  ],
-  "data": {
-    "id": "1002",
-    "name": "Han Solo"
-  },
-  "hasNext": true
-}
-
-{
-  "path": [
-    "hero",
-    "friends",
-    "nodes",
     0,
     "friends",
     "nodes",
     1
-  ],
-  "data": {
-    "id": "1003",
-    "name": "Leia Organa"
-  },
-  "hasNext": true
-}
-
-{
-  "path": [
-    "hero",
-    "friends",
-    "nodes",
-    2
   ],
   "data": {
     "id": "1003",
@@ -113,6 +89,30 @@
 }
 
 {
-  "hasNext": false
+  "path": [
+    "hero",
+    "friends",
+    "nodes",
+    1
+  ],
+  "data": {
+    "id": "1002",
+    "name": "Han Solo"
+  },
+  "hasNext": true
+}
+
+{
+  "path": [
+    "hero",
+    "friends",
+    "nodes",
+    2
+  ],
+  "data": {
+    "id": "1003",
+    "name": "Leia Organa"
+  },
+  "hasNext": true
 }
 

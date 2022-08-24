@@ -1,11 +1,8 @@
 using System.Security.Claims;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
-using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.AspNetCore.Authorization;
 
@@ -14,9 +11,7 @@ public class AuthorizeSchemaTests
     [Fact]
     public async Task AuthorizeOnExtension()
     {
-        Snapshot.FullName();
-
-        await new ServiceCollection()
+        var result = await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType()
             .AddTypeExtension<QueryExtensions>()
@@ -26,8 +21,9 @@ public class AuthorizeSchemaTests
                     .New()
                     .SetQuery("{ bar }")
                     .AddGlobalState(nameof(ClaimsPrincipal), new ClaimsPrincipal())
-                    .Create())
-            .MatchSnapshotAsync();
+                    .Create());
+
+        result.MatchSnapshot();
     }
 
     [Authorize]

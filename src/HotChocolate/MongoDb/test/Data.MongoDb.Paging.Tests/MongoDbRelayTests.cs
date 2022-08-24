@@ -1,13 +1,10 @@
-using System.Threading.Tasks;
-using HotChocolate.Data.MongoDb.Filters;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data.MongoDb.Paging;
 
@@ -16,55 +13,57 @@ public class MongoDbRelayTests
     [Fact]
     public async Task Return_BsonId()
     {
-        Snapshot.FullName();
-
-        IRequestExecutor executor = await new ServiceCollection()
+        // arrange
+        var executor = await new ServiceCollection()
             .AddTransient<OffsetPagingProvider, MongoDbOffsetPagingProvider>()
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddType<FooType>()
-#pragma warning disable CS8622
-                .AddTypeConverter<ObjectId, string>(x => x.ToString())
-#pragma warning restore CS8622
-                .BuildRequestExecutorAsync();
+            .AddTypeConverter<ObjectId, string>(x => x.ToString())
+            .BuildRequestExecutorAsync();
 
-        IExecutionResult result = await executor
-            .ExecuteAsync(@"
-                    {
-                        foo {
-                           id
-                        }
-                    }");
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                foo {
+                   id
+                }
+            }");
 
-        result.ToJson().MatchSnapshot();
+        // assert
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), result)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Return_Node()
     {
-        Snapshot.FullName();
-
-        IRequestExecutor executor = await new ServiceCollection()
+        // arrange
+        var executor = await new ServiceCollection()
             .AddTransient<OffsetPagingProvider, MongoDbOffsetPagingProvider>()
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddType<FooType>()
-#pragma warning disable CS8622
-                .AddTypeConverter<ObjectId, string>(x => x.ToString())
+            .AddTypeConverter<ObjectId, string>(x => x.ToString())
             .AddTypeConverter<string, ObjectId>(x => ObjectId.Parse(x.ToString()))
-#pragma warning restore CS8622
-                .AddGlobalObjectIdentification()
+            .AddGlobalObjectIdentification()
             .BuildRequestExecutorAsync();
 
-        IExecutionResult result = await executor
-            .ExecuteAsync(@"
-                    {
-                        node(id:""Rm9vCmQ2MGRmMTYyZWQwNzY2ZTE1Y2NlNmIxMGU="") {
-                           id
-                        }
-                    }");
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                node(id:""Rm9vCmQ2MGRmMTYyZWQwNzY2ZTE1Y2NlNmIxMGU="") {
+                   id
+                }
+            }");
 
-        result.ToJson().MatchSnapshot();
+        // assert
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), result)
+            .MatchAsync();
     }
 
     public class Query

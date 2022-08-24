@@ -1,4 +1,3 @@
-using HotChocolate;
 using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models;
@@ -11,7 +10,7 @@ public interface IFieldModel
     /// <summary>
     /// Gets the member name.
     /// </summary>
-    NameString Name { get; }
+    string Name { get; }
 
     /// <summary>
     /// Gets the member xml documentation summary.

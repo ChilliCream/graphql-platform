@@ -1,5 +1,4 @@
 using HotChocolate.AspNetCore.Serialization;
-using Xunit;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -12,8 +11,7 @@ public class ServiceCollectionExtensionTests
         var serviceCollection = new ServiceCollection();
 
         // act
-        HotChocolateAspNetCoreServiceCollectionExtensions
-            .AddHttpResultSerializer<DefaultHttpResultSerializer>(serviceCollection);
+        serviceCollection.AddHttpResultSerializer<DefaultHttpResultSerializer>();
 
         // assert
         Assert.Collection(

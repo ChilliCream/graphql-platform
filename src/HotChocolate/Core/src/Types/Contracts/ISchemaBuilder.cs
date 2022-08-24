@@ -113,7 +113,7 @@ public interface ISchemaBuilder
     /// This type must inherit from <see cref="ObjectType{T}"/> or be a class.
     /// </param>
     /// <param name="operation">
-    /// The operation type that <see cref="rootType"/> represents.
+    /// The operation type that <paramref name="rootType"/> represents.
     /// </param>
     /// <returns>
     /// Returns the schema builder to chain in further configuration.
@@ -122,7 +122,7 @@ public interface ISchemaBuilder
     /// <paramref name="rootType"/> is null.
     /// </exception>
     /// <exception cref="ArgumentException">
-    /// - <see cref="rootType"/> is either not a class or is not inheriting from
+    /// - <paramref name="rootType"/> is either not a class or is not inheriting from
     /// <see cref="ObjectType{T}"/>.
     ///
     /// - A root type for the specified <paramref name="operation"/> was already set.
@@ -136,7 +136,7 @@ public interface ISchemaBuilder
     /// An instance of <see cref="ObjectType"/> that represents a root type.
     /// </param>
     /// <param name="operation">
-    /// The operation type that <see cref="rootType"/> represents.
+    /// The operation type that <paramref name="rootType"/> represents.
     /// </param>
     /// <returns>
     /// Returns the schema builder to chain in further configuration.

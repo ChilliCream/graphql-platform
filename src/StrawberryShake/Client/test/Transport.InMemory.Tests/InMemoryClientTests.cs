@@ -18,10 +18,10 @@ public class InMemoryClientTests
     public void Constructor_AllArgs_NoException()
     {
         // arrange
-        string name = "Foo";
+        var name = "Foo";
 
         // act
-        Exception? ex = Record.Exception(() => new InMemoryClient(name));
+        var ex = Record.Exception(() => new InMemoryClient(name));
 
         // assert
         Assert.Null(ex);
@@ -34,7 +34,7 @@ public class InMemoryClientTests
         string name = null!;
 
         // act
-        Exception? ex = Record.Exception(() => new InMemoryClient(name));
+        var ex = Record.Exception(() => new InMemoryClient(name));
 
         // assert
         Assert.IsType<ArgumentException>(ex);
@@ -47,7 +47,7 @@ public class InMemoryClientTests
         var client = new InMemoryClient("Foo");
 
         // act
-        Exception? ex =
+        var ex =
             await Record.ExceptionAsync(async () => await client.ExecuteAsync(null!));
 
         // assert
@@ -63,7 +63,7 @@ public class InMemoryClientTests
             new OperationRequest("foo", new StubDocument());
 
         // act
-        Exception? ex =
+        var ex =
             await Record.ExceptionAsync(async () =>
                 await client.ExecuteAsync(operationRequest));
 

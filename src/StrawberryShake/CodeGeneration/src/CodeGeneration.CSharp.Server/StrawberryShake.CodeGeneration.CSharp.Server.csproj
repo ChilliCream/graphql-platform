@@ -27,18 +27,11 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>ServerResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="ServerResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>ServerResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
-
-  <PropertyGroup>
-    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
-  </PropertyGroup>
-
+  
 </Project>

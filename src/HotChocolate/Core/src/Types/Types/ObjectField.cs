@@ -7,6 +7,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
+using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ErrorHelper;
 
 #nullable enable
@@ -32,8 +33,6 @@ public class ObjectField
         Resolver = definition.Resolver!;
         ResolverExpression = definition.Expression;
         SubscribeResolver = definition.SubscribeResolver;
-        IsIntrospectionField = definition.IsIntrospectionField;
-        IsParallelExecutable = definition.IsParallelExecutable;
     }
 
     /// <summary>
@@ -46,7 +45,31 @@ public class ObjectField
     /// <summary>
     /// Defines if this field can be executed in parallel with other fields.
     /// </summary>
-    public bool IsParallelExecutable { get; private set; }
+    public bool IsParallelExecutable
+    {
+        get
+        {
+            return (Flags & FieldFlags.ParallelExecutable) == FieldFlags.ParallelExecutable;
+        }
+        private set
+        {
+            if (value)
+            {
+                Flags |= FieldFlags.ParallelExecutable;
+            }
+            else
+            {
+                Flags &= ~FieldFlags.ParallelExecutable;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Defines that the resolver pipeline returns an
+    /// <see cref="IAsyncEnumerable{T}"/> as its result.
+    /// </summary>
+    public bool HasStreamResult
+        => (Flags & FieldFlags.Stream) == FieldFlags.Stream;
 
     /// <summary>
     /// Gets the field resolver middleware.
@@ -103,16 +126,6 @@ public class ObjectField
     /// </summary>
     public Expression? ResolverExpression { get; }
 
-    /// <summary>
-    /// Defines if this field as a introspection field.
-    /// </summary>
-    public override bool IsIntrospectionField { get; }
-
-    /// <summary>
-    /// Defines that the result of this field might be a stream.
-    /// </summary>
-    public bool MaybeStream { get; private set; }
-
     protected override void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
@@ -122,15 +135,6 @@ public class ObjectField
 
         CompleteExecutableDirectives(context);
         CompleteResolver(context, definition);
-
-        // going forward we should rework the list detection in the ExtendedType to already
-        // provide us with the info if a type is an async enumerable.
-        if (Type.IsListType() &&
-            definition.ResultType is { IsGenericType: true } resultType &&
-            context.TypeInspector.GetType(resultType).Definition == typeof(IAsyncEnumerable<>))
-        {
-            MaybeStream = true;
-        }
     }
 
     private void CompleteExecutableDirectives(
@@ -150,13 +154,12 @@ public class ObjectField
         IEnumerable<IDirective> directives)
     {
         List<IDirective>? executableDirectives = null;
-        foreach (IDirective directive in directives.Where(t => t.Type.HasMiddleware))
+        foreach (var directive in directives.Where(t => t.Type.HasMiddleware))
         {
             executableDirectives ??= new List<IDirective>(_executableDirectives);
             if (!processed.Add(directive.Name) && !directive.Type.IsRepeatable)
             {
-                IDirective remove = executableDirectives
-                    .First(t => t.Name.Equals(directive.Name));
+                var remove = executableDirectives.First(t => t.Name.EqualsOrdinal(directive.Name));
                 executableDirectives.Remove(remove);
             }
             executableDirectives.Add(directive);
@@ -173,15 +176,14 @@ public class ObjectField
         ObjectFieldDefinition definition)
     {
         var isIntrospectionField = IsIntrospectionField || DeclaringType.IsIntrospectionType();
-        IReadOnlyList<FieldMiddlewareDefinition> fieldMiddlewareDefinitions =
-            definition.GetMiddlewareDefinitions();
-        IReadOnlySchemaOptions options = context.DescriptorContext.Options;
+        var fieldMiddlewareDefinitions = definition.GetMiddlewareDefinitions();
+        var options = context.DescriptorContext.Options;
 
         var skipMiddleware =
-            options.FieldMiddleware != FieldMiddlewareApplication.AllFields &&
+            options.FieldMiddleware is not FieldMiddlewareApplication.AllFields &&
             isIntrospectionField;
 
-        FieldResolverDelegates resolvers = CompileResolver(context, definition);
+        var resolvers = CompileResolver(context, definition);
 
         Resolver = resolvers.Resolver;
 
@@ -236,7 +238,7 @@ public class ObjectField
         ITypeCompletionContext context,
         ObjectFieldDefinition definition)
     {
-        FieldResolverDelegates resolvers = definition.Resolvers;
+        var resolvers = definition.Resolvers;
 
         if (!resolvers.HasResolvers)
         {
@@ -258,7 +260,8 @@ public class ObjectField
                     definition.Member?.ReflectedType ??
                     definition.Member?.DeclaringType ??
                     typeof(object),
-                    definition.ResolverType);
+                    definition.ResolverType,
+                    definition.GetParameterExpressionBuilders());
             }
             else if (definition.Member is not null)
             {
@@ -267,7 +270,8 @@ public class ObjectField
                     definition.SourceType ??
                     definition.Member.ReflectedType ??
                     definition.Member.DeclaringType,
-                    definition.ResolverType);
+                    definition.ResolverType,
+                    definition.GetParameterExpressionBuilders());
             }
         }
 

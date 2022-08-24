@@ -2,7 +2,6 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Primitives;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Language;
@@ -24,7 +23,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
         IHttpResultSerializer resultSerializer,
         IHttpRequestParser requestParser,
         IServerDiagnosticEvents diagnosticEvents,
-        NameString schemaName,
+        string schemaName,
         IOptions<FormOptions> formOptions)
         : base(
             next,
@@ -45,7 +44,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
         {
             if (!IsDefaultSchema)
             {
-                context.Items[WellKnownContextData.SchemaName] = SchemaName.Value;
+                context.Items[WellKnownContextData.SchemaName] = SchemaName;
             }
 
             using (DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpMultiPart))
@@ -78,11 +77,11 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
         }
 
         // Parse the string values of interest from the IFormCollection
-        HttpMultipartRequest multipartRequest = ParseMultipartRequest(form);
-        IReadOnlyList<GraphQLRequest> requests = RequestParser.ReadOperationsRequest(
+        var multipartRequest = ParseMultipartRequest(form);
+        var requests = RequestParser.ReadOperationsRequest(
             multipartRequest.Operations);
 
-        foreach (GraphQLRequest? graphQLRequest in requests)
+        foreach (var graphQLRequest in requests)
         {
             InsertFilesIntoRequest(graphQLRequest, multipartRequest.FileMap);
         }
@@ -95,7 +94,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
         string? operations = null;
         Dictionary<string, string[]>? map = null;
 
-        foreach (KeyValuePair<string, StringValues> field in form)
+        foreach (var field in form)
         {
             if (field.Key == _operations)
             {
@@ -135,7 +134,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
         }
 
         // Validate file mappings and bring them in an easy to use format
-        IDictionary<string, IFile> pathToFileMap = MapFilesToObjectPaths(map, form.Files);
+        var pathToFileMap = MapFilesToObjectPaths(map, form.Files);
 
         return new HttpMultipartRequest(operations, pathToFileMap);
     }
@@ -146,14 +145,14 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
     {
         var pathToFileMap = new Dictionary<string, IFile>();
 
-        foreach ((string filename, string[] objectPaths) in map)
+        foreach (var (filename, objectPaths) in map)
         {
             if (objectPaths is null || objectPaths.Length < 1)
             {
                 throw ThrowHelper.HttpMultipartMiddleware_NoObjectPath(filename);
             }
 
-            IFormFile? file = filename is { Length: > 0 }
+            var file = filename is { Length: > 0 }
                 ? files.GetFile(filename)
                 : null;
 
@@ -181,7 +180,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
                 HttpMultipartMiddleware_InsertFilesIntoRequest_VariablesImmutable);
         }
 
-        foreach ((string objectPath, IFile file) in fileMap)
+        foreach (var (objectPath, file) in fileMap)
         {
             var path = VariablePath.Parse(objectPath);
 
@@ -233,8 +232,8 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
                 throw ThrowHelper.HttpMultipartMiddleware_VariableNotFound(objectPath);
             }
 
-            ObjectFieldNode[] fields = ov.Fields.ToArray();
-            ObjectFieldNode field = fields[pos];
+            var fields = ov.Fields.ToArray();
+            var field = fields[pos];
             fields[pos] = field.WithValue(
                 key.Next is not null
                     ? RewriteVariable(objectPath, key.Next, field.Value, file)
@@ -244,8 +243,8 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
 
         if (segment is IndexPathSegment index && value is ListValueNode lv)
         {
-            IValueNode[] items = lv.Items.ToArray();
-            IValueNode item = items[index.Value];
+            var items = lv.Items.ToArray();
+            var item = items[index.Value];
             items[index.Value] = index.Next is not null
                 ? RewriteVariable(objectPath, index.Next, item, file)
                 : file;

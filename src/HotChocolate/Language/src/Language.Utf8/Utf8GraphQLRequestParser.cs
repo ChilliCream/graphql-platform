@@ -33,7 +33,7 @@ public ref partial struct Utf8GraphQLRequestParser
 
         if (_reader.Kind == TokenKind.LeftBrace)
         {
-            GraphQLRequest singleRequest = ParseRequest();
+            var singleRequest = ParseRequest();
             return new[] { singleRequest };
         }
 
@@ -138,7 +138,7 @@ public ref partial struct Utf8GraphQLRequestParser
 
     private void ParseRequestProperty(ref Request request)
     {
-        ReadOnlySpan<byte> fieldName = _reader.Expect(TokenKind.String);
+        var fieldName = _reader.Expect(TokenKind.String);
         _reader.Expect(TokenKind.Colon);
 
         switch (fieldName[0])
@@ -194,7 +194,7 @@ public ref partial struct Utf8GraphQLRequestParser
 
     private void ParseMessageProperty(ref Message message)
     {
-        ReadOnlySpan<byte> fieldName = _reader.Expect(TokenKind.String);
+        var fieldName = _reader.Expect(TokenKind.String);
         _reader.Expect(TokenKind.Colon);
 
         switch (fieldName[0])
@@ -236,7 +236,7 @@ public ref partial struct Utf8GraphQLRequestParser
 
         byte[]? unescapedArray = null;
 
-        Span<byte> unescapedSpan = length <= GraphQLConstants.StackallocThreshold
+        var unescapedSpan = length <= GraphQLConstants.StackallocThreshold
             ? stackalloc byte[length]
             : (unescapedArray = ArrayPool<byte>.Shared.Rent(length));
 
@@ -304,7 +304,7 @@ public ref partial struct Utf8GraphQLRequestParser
         var length = checked(sourceText.Length * 4);
         byte[]? source = null;
 
-        Span<byte> sourceSpan = length <= GraphQLConstants.StackallocThreshold
+        var sourceSpan = length <= GraphQLConstants.StackallocThreshold
             ? stackalloc byte[length]
             : source = ArrayPool<byte>.Shared.Rent(length);
 

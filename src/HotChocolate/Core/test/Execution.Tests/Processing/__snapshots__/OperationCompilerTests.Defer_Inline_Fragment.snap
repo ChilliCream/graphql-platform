@@ -1,0 +1,29 @@
+﻿{
+  hero(episode: EMPIRE) {
+    name
+    ... @defer {
+      id
+    }
+  }
+}
+
+---------------------------------------------------------
+
+{
+  ... on Query {
+    hero(episode: EMPIRE) @__execute(id: 0, kind: PURE, type: COMPOSITE) {
+      ... on Human {
+        name @__execute(id: 1, kind: PURE, type: LEAF)
+        ... Fragment_0 @defer
+      }
+      ... on Droid {
+        name @__execute(id: 3, kind: PURE, type: LEAF)
+        ... Fragment_0 @defer
+      }
+    }
+  }
+}
+
+fragment Fragment_0 on Human {
+  id @__execute(id: 2, kind: PURE, type: LEAF)
+}

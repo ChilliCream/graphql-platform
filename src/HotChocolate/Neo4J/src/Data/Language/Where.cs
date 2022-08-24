@@ -23,7 +23,7 @@ public class Where : Visitable
 
     public override ClauseKind Kind => ClauseKind.Where;
 
-    public Exists Exists { get; }
+    public Exists? Exists { get; }
 
     public Condition Condition { get; }
 

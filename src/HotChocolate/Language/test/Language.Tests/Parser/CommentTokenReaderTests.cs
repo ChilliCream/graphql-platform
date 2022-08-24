@@ -14,7 +14,7 @@ public class CommentTokenReaderTests
     private void ReadToken(string sourceText)
     {
         // arrange
-        byte[] source = Encoding.UTF8.GetBytes(sourceText);
+        var source = Encoding.UTF8.GetBytes(sourceText);
         var reader = new Utf8GraphQLReader(source);
 
         // act
@@ -29,7 +29,7 @@ public class CommentTokenReaderTests
     private void EmptyComment()
     {
         // arrange
-        byte[] source = Encoding.UTF8.GetBytes("#\n");
+        var source = Encoding.UTF8.GetBytes("#\n");
         var reader = new Utf8GraphQLReader(source);
 
         // act

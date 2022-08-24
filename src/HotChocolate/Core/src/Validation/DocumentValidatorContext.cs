@@ -102,9 +102,9 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
 
     public IList<FieldInfo> RentFieldInfoList()
     {
-        FieldInfoListBuffer buffer = _buffers.Peek();
+        var buffer = _buffers.Peek();
 
-        if (!buffer.TryPop(out IList<FieldInfo>? list))
+        if (!buffer.TryPop(out var list))
         {
             buffer = _fieldInfoPool.Get();
             _buffers.Push(buffer);
@@ -162,7 +162,7 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
     {
         if (_buffers.Count > 1)
         {
-            FieldInfoListBuffer buffer = _buffers.Pop();
+            var buffer = _buffers.Pop();
             buffer.Clear();
 
             for (var i = 0; i < _buffers.Count; i++)

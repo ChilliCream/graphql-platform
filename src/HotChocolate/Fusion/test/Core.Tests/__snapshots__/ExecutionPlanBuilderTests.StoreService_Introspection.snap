@@ -1,0 +1,7 @@
+query Intro {
+  __schema {
+    types {
+      name
+    }
+  }
+}

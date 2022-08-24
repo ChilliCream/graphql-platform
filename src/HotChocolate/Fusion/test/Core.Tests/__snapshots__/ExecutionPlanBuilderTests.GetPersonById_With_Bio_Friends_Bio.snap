@@ -1,0 +1,44 @@
+User Request
+---------------
+query GetPersonById {
+  personById(id: 1) {
+    bio
+    friends {
+      bio
+    }
+  }
+}
+---------------
+
+Request 1
+---------------
+query GetPersonById_1 {
+  personById(id: 1) {
+    friends {
+      __fusion_exports__1: id
+    }
+  }
+}
+---------------
+
+Request 2
+---------------
+query GetPersonById_2($__fusion_exports__1: ID!) {
+  node(id: $__fusion_exports__1) {
+    ... on Person {
+      bio
+    }
+  }
+}
+---------------
+
+Request 3
+---------------
+query GetPersonById_3 {
+  node(id: 1) {
+    ... on Person {
+      bio
+    }
+  }
+}
+---------------

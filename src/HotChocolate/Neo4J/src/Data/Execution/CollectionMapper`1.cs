@@ -12,7 +12,7 @@ internal class CollectionMapper<TResult> : ICollectionMapper
         var to = (ICollection<TResult>)TranslateListWithElements<TResult>
             .CreateInstance(toInstanceOfType);
 
-        foreach (object item in fromList)
+        foreach (var item in fromList)
         {
             to.Add(ValueMapper.MapValue<TResult>(item));
         }

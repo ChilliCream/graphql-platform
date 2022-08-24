@@ -1,1 +1,0 @@
-﻿find({ "$or" : [{ "Foo.ObjectArray" : { "$exists" : true, "$in" : [[], null] } }, { "Foo.ObjectArray" : { "$exists" : false } }] })

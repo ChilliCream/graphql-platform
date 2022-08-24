@@ -28,7 +28,7 @@ The execution engine picks up the `IExecutable` and executes it efficiently.
 [UseProjection]
 [UseSorting]
 [UseFiltering]
-public IExecutable<Person> GetPersons([ScopedService] IAsyncSession session) => new(session);
+public IExecutable<Person> GetPersons([ScopedService] IAsyncSession session) => new Neo4JExecutable<Person>(session);
 ```
 
 # Filtering
@@ -88,7 +88,7 @@ services
 
 > To use Neo4J Sorting alongside with `IQueryable`/`IEnumerable`, you have to register the Neo4J convention under a different scope.
 > You can specify the scope on the schema builder by executing `AddNeo4JSorting("yourScope")`.
-> You then have to specify this scope on each method you use MongoDb Sorting: `[UseSorting(Scope = "yourScope")]` or `UseSorting(scope = "yourScope")`
+> You then have to specify this scope on each method you use Neo4J Sorting: `[UseSorting(Scope = "yourScope")]` or `UseSorting(scope = "yourScope")`
 
 Your sorting is now converted to cypher and applied to the executable.
 
@@ -127,7 +127,7 @@ services
 
 > To use Neo4J Projections alongside with `IQueryable`/`IEnumerable`, you have to register the Neo4J convention under a different scope.
 > You can specify the scope on the schema builder by executing `AddNeo4JProjections("yourScope")`.
-> You then have to specify this scope on each method you use MongoDb Projections: `[UseProjections(Scope = "yourScope")]` or `UseProjections(scope = "yourScope")`
+> You then have to specify this scope on each method you use Neo4J Projections: `[UseProjections(Scope = "yourScope")]` or `UseProjections(scope = "yourScope")`
 
 _GraphQL Query:_
 
@@ -152,7 +152,7 @@ RETURN person {.name}
 
 # Paging
 
-In order to use pagination with MongoDB, we have to register the MongoDB specific pagination providers.
+In order to use pagination with Neo4J, we have to register the Neo4J specific pagination providers.
 
 ```csharp
 services
@@ -164,13 +164,13 @@ services
 
 ## Cursor Pagination
 
-To use cursor based pagination annoate you resolver with `[UseNeo4JPaging]` or `.UseNeo4JPaging()`
+To use cursor based pagination annotate you resolver with `[UseNeo4JPaging]` or `.UseNeo4JPaging()`
 
 ```csharp
 [UseNeo4JDatabase("neo4j")]
 [UsePaging]
 [UseProjection]
-public IExecutable<Person> GetPersons([ScopedService] IAsyncSession session) => new(session);
+public IExecutable<Person> GetPersons([ScopedService] IAsyncSession session) => new Neo4JExecutable<Person>(session);
 ```
 
 You can then execute queries like the following one:
@@ -196,13 +196,13 @@ query GetPersons {
 
 ## Offset Pagination
 
-To use cursor based pagination annoate you resolver with `[UseNeo4JPaging]` or `.UseNeo4JPaging()`
+To use cursor based pagination annotate you resolver with `[UseNeo4JPaging]` or `.UseNeo4JPaging()`
 
 ```csharp
 [UseNeo4JDatabase("neo4j")]
 [UseOffsetPaging]
 [UseProjection]
-public IExecutable<Person> GetPersons([ScopedService] IAsyncSession session) => new(session);
+public IExecutable<Person> GetPersons([ScopedService] IAsyncSession session) => new Neo4JExecutable<Person>(session);
 ```
 
 You can then execute queries like the following one:

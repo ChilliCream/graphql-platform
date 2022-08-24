@@ -1,0 +1,21 @@
+User Request
+---------------
+query GetPersonById {
+  personById(id: 1) {
+    id
+    bio
+  }
+}
+---------------
+
+Request 1
+---------------
+query GetPersonById_1 {
+  personById: node(id: 1) {
+    ... on Person {
+      id
+      bio
+    }
+  }
+}
+---------------

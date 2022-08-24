@@ -26,7 +26,7 @@ internal sealed partial class ExtendedType
 
             if (type.IsGenericType)
             {
-                Type definition = type.GetGenericTypeDefinition();
+                var definition = type.GetGenericTypeDefinition();
                 if (typeof(ListType<>) == definition ||
                     typeof(NonNullType<>) == definition ||
                     typeof(NativeType<>) == definition)
@@ -79,7 +79,7 @@ internal sealed partial class ExtendedType
                 IExtendedType key = type.TypeArguments[0];
                 IExtendedType value = type.TypeArguments[1];
 
-                Type itemType = typeof(KeyValuePair<,>).MakeGenericType(key.Type, value.Type);
+                var itemType = typeof(KeyValuePair<,>).MakeGenericType(key.Type, value.Type);
 
                 return cache.GetOrCreateType(itemType, () =>
                 {
@@ -101,11 +101,11 @@ internal sealed partial class ExtendedType
                 return type.TypeArguments[0];
             }
 
-            foreach (Type interfaceType in type.Type.GetInterfaces())
+            foreach (var interfaceType in type.Type.GetInterfaces())
             {
                 if (IsSupportedCollectionInterface(interfaceType))
                 {
-                    Type elementType = interfaceType.GetGenericArguments()[0];
+                    var elementType = interfaceType.GetGenericArguments()[0];
 
                     if (type.TypeArguments.Count == 1 &&
                         type.TypeArguments[0].Type == elementType)
@@ -122,7 +122,7 @@ internal sealed partial class ExtendedType
 
         internal static Type? GetInnerListType(Type type)
         {
-            Type? typeDefinition = type.IsGenericType ? type.GetGenericTypeDefinition() : null;
+            var typeDefinition = type.IsGenericType ? type.GetGenericTypeDefinition() : null;
 
             if (IsSupportedCollectionInterface(type))
             {
@@ -134,7 +134,7 @@ internal sealed partial class ExtendedType
                 return type.GetGenericArguments()[0];
             }
 
-            foreach (Type interfaceType in type.GetInterfaces())
+            foreach (var interfaceType in type.GetInterfaces())
             {
                 if (IsSupportedCollectionInterface(interfaceType))
                 {
@@ -156,7 +156,7 @@ internal sealed partial class ExtendedType
         {
             if (type.IsGenericType)
             {
-                Type typeDefinition = type.GetGenericTypeDefinition();
+                var typeDefinition = type.GetGenericTypeDefinition();
                 if (typeDefinition == typeof(IReadOnlyCollection<>)
                     || typeDefinition == typeof(IReadOnlyList<>)
                     || typeDefinition == typeof(ICollection<>)
@@ -189,7 +189,7 @@ internal sealed partial class ExtendedType
         {
             if (type.IsGenericType)
             {
-                Type typeDefinition = type.GetGenericTypeDefinition();
+                var typeDefinition = type.GetGenericTypeDefinition();
                 if (typeDefinition == typeof(IDictionary<,>)
                     || typeDefinition == typeof(IReadOnlyDictionary<,>)
                     || typeDefinition == typeof(Dictionary<,>)
@@ -213,9 +213,9 @@ internal sealed partial class ExtendedType
                 return type;
             }
 
-            ExtendedTypeId id = Tools.CreateId(type, nullable);
+            var id = Tools.CreateId(type, nullable);
 
-            if (cache.TryGetType(id, out ExtendedType? extendedType))
+            if (cache.TryGetType(id, out var extendedType))
             {
                 return extendedType;
             }
@@ -231,7 +231,7 @@ internal sealed partial class ExtendedType
             ref int position,
             TypeCache cache)
         {
-            if (cache.TryGetType(id, out ExtendedType? cached))
+            if (cache.TryGetType(id, out var cached))
             {
                 return cached;
             }
@@ -241,7 +241,7 @@ internal sealed partial class ExtendedType
                 nullable.Length > pos &&
                 nullable[pos].HasValue &&
                 nullable[pos]!.Value != type.IsNullable;
-            IReadOnlyList<ExtendedType> typeArguments = type.TypeArguments;
+            var typeArguments = type.TypeArguments;
 
             if (type.TypeArguments.Count > 0 && nullable.Length > position)
             {
@@ -249,8 +249,8 @@ internal sealed partial class ExtendedType
 
                 for (var j = 0; j < type.TypeArguments.Count; j++)
                 {
-                    ExtendedType typeArgument = type.TypeArguments[j];
-                    ExtendedTypeId typeArgumentId =
+                    var typeArgument = type.TypeArguments[j];
+                    var typeArgumentId =
                         Tools.CreateId(typeArgument, nullable.Slice(position));
 
                     args[j] = nullable.Length > position
@@ -268,7 +268,7 @@ internal sealed partial class ExtendedType
 
             if (changeNullability || !ReferenceEquals(typeArguments, type.TypeArguments))
             {
-                ExtendedType? elementType = type.IsArrayOrList
+                var elementType = type.IsArrayOrList
                     ? type.ElementType
                     : null;
 
@@ -367,7 +367,7 @@ internal sealed partial class ExtendedType
 
             nullability[position++] = type.IsNullable;
 
-            foreach (IExtendedType typeArgument in type.TypeArguments)
+            foreach (var typeArgument in type.TypeArguments)
             {
                 CollectNullability(typeArgument, nullability, ref position);
             }

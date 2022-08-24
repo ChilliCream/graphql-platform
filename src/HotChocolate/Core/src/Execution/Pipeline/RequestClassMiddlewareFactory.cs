@@ -45,14 +45,14 @@ internal static class RequestClassMiddlewareFactory
     {
         return (context, next) =>
         {
-            TMiddleware middleware =
+            var middleware =
                 MiddlewareCompiler<TMiddleware>
                     .CompileFactory<IRequestCoreMiddlewareContext, RequestDelegate>(
                         (c, _) => CreateFactoryParameterHandlers(
                             c, context.Options, typeof(TMiddleware)))
                     .Invoke(context, next);
 
-            ClassQueryDelegate<TMiddleware, IRequestContext> compiled =
+            var compiled =
                 MiddlewareCompiler<TMiddleware>.CompileDelegate<IRequestContext>(
                     (c, _) => CreateDelegateParameterHandlers(c, context.Options));
 
@@ -97,12 +97,12 @@ internal static class RequestClassMiddlewareFactory
                 new TypeParameterHandler(typeof(IRequestContextAccessor), requestOptions)
             };
 
-        ConstructorInfo? constructor =
+        var constructor =
             middleware.GetConstructors().SingleOrDefault(t => t.IsPublic);
 
         if (constructor is not null)
         {
-            foreach (ParameterInfo parameter in constructor.GetParameters()
+            foreach (var parameter in constructor.GetParameters()
                 .Where(p => p.IsDefined(typeof(SchemaServiceAttribute))))
             {
                 AddService(list, schemaServices, parameter.ParameterType);
@@ -115,7 +115,7 @@ internal static class RequestClassMiddlewareFactory
         AddService<IWriteStoredQueries>(list, schemaServices);
         AddService<IReadStoredQueries>(list, schemaServices);
         AddService<QueryExecutor>(list, schemaServices);
-        AddService<IEnumerable<ISelectionOptimizer>>(list, schemaServices);
+        AddService<IEnumerable<IOperationCompilerOptimizer>>(list, schemaServices);
         AddService<SubscriptionExecutor>(list, schemaServices);
         AddOptions(list, options);
         list.Add(new SchemaNameParameterHandler(schemaName));
@@ -181,7 +181,7 @@ internal static class RequestClassMiddlewareFactory
 
         public bool CanHandle(ParameterInfo parameter)
         {
-            return parameter.ParameterType == typeof(NameString) &&
+            return parameter.ParameterType == typeof(string) &&
                 parameter.Name == "schemaName";
         }
 

@@ -44,7 +44,7 @@ internal class GeometryTransformationMiddleware
         {
             if (g.SRID != toSrid)
             {
-                IGeometryTransformer transformer =
+                var transformer =
                     _factory.Create(g.SRID is -1 or 0 ? _defaultSrid : g.SRID, toSrid);
                 transformer.TransformInPlace(g, toSrid);
             }

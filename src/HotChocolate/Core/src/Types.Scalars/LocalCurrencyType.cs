@@ -26,7 +26,7 @@ public class LocalCurrencyType : ScalarType<decimal, StringValueNode>
     /// Initializes a new instance of the <see cref="LocalCurrencyType"/> class.
     /// </summary>
     public LocalCurrencyType(
-        NameString name,
+        string name,
         string culture = "en-US",
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)

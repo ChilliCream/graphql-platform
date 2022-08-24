@@ -40,11 +40,11 @@ internal class CompletedDependencyDescriptor
     }
 
     public ICompletedDependencyDescriptor DependsOn(
-        NameString typeName) =>
-        DependsOn(typeName, false);
+        string typeName)
+        => DependsOn(typeName, false);
 
     public new ICompletedDependencyDescriptor DependsOn(
-        NameString typeName,
+        string typeName,
         bool mustBeCompleted)
     {
         base.DependsOn(typeName, mustBeCompleted);

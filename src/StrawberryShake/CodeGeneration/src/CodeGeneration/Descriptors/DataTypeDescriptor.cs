@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
 namespace StrawberryShake.CodeGeneration.Descriptors;
@@ -23,7 +22,7 @@ public sealed class DataTypeDescriptor : ICodeDescriptor
     /// <param name="documentation"></param>
     /// <param name="isInterface"></param>
     public DataTypeDescriptor(
-        NameString name,
+        string name,
         string @namespace,
         IReadOnlyList<ComplexTypeDescriptor> operationTypes,
         IReadOnlyList<string> implements,
@@ -32,7 +31,7 @@ public sealed class DataTypeDescriptor : ICodeDescriptor
     {
         var allProperties = new Dictionary<string, PropertyDescriptor>();
 
-        foreach (PropertyDescriptor namedTypeReferenceDescriptor in
+        foreach (var namedTypeReferenceDescriptor in
                  operationTypes.SelectMany(operationType => operationType.Properties))
         {
             if (!allProperties.ContainsKey(namedTypeReferenceDescriptor.Name))
@@ -67,7 +66,7 @@ public sealed class DataTypeDescriptor : ICodeDescriptor
     /// <summary>
     /// Gets the GraphQL type name which this entity represents.
     /// </summary>
-    public NameString Name { get; }
+    public string Name { get; }
 
     /// <summary>
     /// Gets the entity name.

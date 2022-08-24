@@ -8,7 +8,7 @@ public static class AstUtilities
     public static bool TryGetTypeFromAst<T>(this ISchema schema, ITypeNode typeNode, out T type)
         where T : IType
     {
-        if (TryGetTypeFromAst(schema, typeNode, out IType internalType)
+        if (TryGetTypeFromAst(schema, typeNode, out var internalType)
             && internalType is T t)
         {
             type = t;

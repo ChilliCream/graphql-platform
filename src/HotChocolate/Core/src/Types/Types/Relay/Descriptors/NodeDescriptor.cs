@@ -38,7 +38,7 @@ public class NodeDescriptor
     {
         if (Definition.IdMember is null)
         {
-            IObjectFieldDescriptor descriptor = typeDescriptor
+            var descriptor = typeDescriptor
                 .Field(NodeType.Names.Id)
                 .Type<NonNullType<IdType>>();
 
@@ -46,7 +46,7 @@ public class NodeDescriptor
         }
         else
         {
-            IObjectFieldDescriptor descriptor = typeDescriptor
+            var descriptor = typeDescriptor
                 .Field(Definition.IdMember)
                 .Name(NodeType.Names.Id)
                 .Type<NonNullType<IdType>>();
@@ -59,7 +59,7 @@ public class NodeDescriptor
     {
         if (Definition.IdMember is null)
         {
-            IObjectFieldDescriptor descriptor = _typeDescriptor
+            var descriptor = _typeDescriptor
                 .Field(NodeType.Names.Id)
                 .Type<NonNullType<IdType>>();
 
@@ -67,7 +67,7 @@ public class NodeDescriptor
         }
         else
         {
-            IObjectFieldDescriptor descriptor = _typeDescriptor
+            var descriptor = _typeDescriptor
                 .Field(Definition.IdMember)
                 .Name(NodeType.Names.Id)
                 .Type<NonNullType<IdType>>();

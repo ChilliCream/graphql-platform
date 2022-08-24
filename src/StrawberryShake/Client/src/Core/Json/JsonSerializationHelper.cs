@@ -108,7 +108,7 @@ public static class JsonSerializationHelper
     {
         writer.WriteStartObject();
 
-        foreach (KeyValuePair<string, object?> property in dictionary)
+        foreach (var property in dictionary)
         {
             writer.WritePropertyName(property.Key);
             WriteValue(property.Value, writer);
@@ -121,7 +121,7 @@ public static class JsonSerializationHelper
     {
         writer.WriteStartArray();
 
-        foreach (object? element in list)
+        foreach (var element in list)
         {
             WriteValue(element, writer);
         }

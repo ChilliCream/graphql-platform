@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Language;
-using Microsoft.Net.Http.Headers;
+using HotChocolate.Utilities;
 using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
@@ -15,14 +15,13 @@ public class MiddlewareBase : IDisposable
 {
     private readonly RequestDelegate _next;
     private readonly IHttpResultSerializer _resultSerializer;
-    private bool? _batching = null;
     private bool _disposed;
 
     protected MiddlewareBase(
         RequestDelegate next,
         IRequestExecutorResolver executorResolver,
         IHttpResultSerializer resultSerializer,
-        NameString schemaName)
+        string schemaName)
     {
         if (executorResolver == null)
         {
@@ -34,14 +33,14 @@ public class MiddlewareBase : IDisposable
         _resultSerializer = resultSerializer ??
             throw new ArgumentNullException(nameof(resultSerializer));
         SchemaName = schemaName;
-        IsDefaultSchema = SchemaName.Equals(Schema.DefaultName);
+        IsDefaultSchema = SchemaName.EqualsOrdinal(Schema.DefaultName);
         ExecutorProxy = new RequestExecutorProxy(executorResolver, schemaName);
     }
 
     /// <summary>
     /// Gets the name of the schema that this middleware serves up.
     /// </summary>
-    protected NameString SchemaName { get; }
+    protected string SchemaName { get; }
 
     /// <summary>
     /// Specifies if this middleware handles the default schema.
@@ -84,7 +83,7 @@ public class MiddlewareBase : IDisposable
     /// </returns>
     protected async ValueTask<ISchema> GetSchemaAsync(CancellationToken cancellationToken)
     {
-        IRequestExecutor requestExecutor = await GetExecutorAsync(cancellationToken);
+        var requestExecutor = await GetExecutorAsync(cancellationToken);
         return requestExecutor.Schema;
     }
 
@@ -190,7 +189,7 @@ public class MiddlewareBase : IDisposable
             return contentType;
         }
 
-        ReadOnlySpan<char> span = context.Request.ContentType.AsSpan();
+        var span = context.Request.ContentType.AsSpan();
 
         for (var i = 0; i < span.Length; i++)
         {

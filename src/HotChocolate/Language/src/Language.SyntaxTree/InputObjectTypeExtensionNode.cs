@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
 
@@ -25,12 +24,12 @@ public sealed class InputObjectTypeExtensionNode
     {
         yield return Name;
 
-        foreach (DirectiveNode directive in Directives)
+        foreach (var directive in Directives)
         {
             yield return directive;
         }
 
-        foreach (InputValueDefinitionNode field in Fields)
+        foreach (var field in Fields)
         {
             yield return field;
         }

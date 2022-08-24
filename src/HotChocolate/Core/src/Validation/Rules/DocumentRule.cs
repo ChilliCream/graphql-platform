@@ -38,7 +38,7 @@ internal sealed class DocumentRule : IDocumentValidatorRule
 
         for (var i = 0; i < document.Definitions.Count; i++)
         {
-            IDefinitionNode node = document.Definitions[i];
+            var node = document.Definitions[i];
             if (node.Kind is not SyntaxKind.OperationDefinition
                 and not SyntaxKind.FragmentDefinition)
             {

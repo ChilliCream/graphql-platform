@@ -27,7 +27,7 @@ namespace HotChocolate.ConferencePlanner.DataLoader
             IReadOnlyList<int> keys,
             CancellationToken cancellationToken)
         {
-            await using ApplicationDbContext dbContext =
+            await using var dbContext =
                 _dbContextFactory.CreateDbContext();
 
             return await dbContext.Speakers

@@ -12,8 +12,8 @@ internal static class ErrorHelper
 {
     public static ISchemaError CompleteInterfacesHelper_UnableToResolveInterface(
         ITypeSystemObject interfaceOrObject,
-        ISyntaxNode? node) =>
-        SchemaErrorBuilder.New()
+        ISyntaxNode? node)
+        => SchemaErrorBuilder.New()
             .SetMessage("COULD NOT RESOLVE INTERFACE")
             .SetCode(ErrorCodes.Schema.MissingType)
             .SetTypeSystemObject(interfaceOrObject)
@@ -24,8 +24,8 @@ internal static class ErrorHelper
         DirectiveType directiveType,
         ITypeSystemObject type,
         DirectiveNode? syntaxNode,
-        object source) =>
-        SchemaErrorBuilder.New()
+        object source)
+        => SchemaErrorBuilder.New()
             .SetMessage(
                 TypeResources.DirectiveCollection_DirectiveIsUnique,
                 directiveType.Name)
@@ -40,8 +40,8 @@ internal static class ErrorHelper
         Types.DirectiveLocation location,
         ITypeSystemObject type,
         DirectiveNode? syntaxNode,
-        object source) =>
-        SchemaErrorBuilder.New()
+        object source)
+        => SchemaErrorBuilder.New()
             .SetMessage(
                 TypeResources.DirectiveCollection_LocationNotAllowed,
                 directiveType.Name,
@@ -57,8 +57,8 @@ internal static class ErrorHelper
         ITypeSystemObject type,
         DirectiveNode? syntaxNode,
         object source,
-        string argumentName) =>
-        SchemaErrorBuilder.New()
+        string argumentName)
+        => SchemaErrorBuilder.New()
             .SetMessage(
                 "The argument `{0}` value type is wrong.",
                 argumentName)
@@ -73,8 +73,8 @@ internal static class ErrorHelper
         ITypeSystemObject type,
         DirectiveNode? syntaxNode,
         object source,
-        string argumentName) =>
-        SchemaErrorBuilder.New()
+        string argumentName)
+        => SchemaErrorBuilder.New()
             .SetMessage(
                 "The argument `{0}` does not exist on the " +
                 "directive `{1}`.",
@@ -91,8 +91,8 @@ internal static class ErrorHelper
         ITypeSystemObject type,
         DirectiveNode? syntaxNode,
         object source,
-        string argumentName) =>
-        SchemaErrorBuilder.New()
+        string argumentName)
+        => SchemaErrorBuilder.New()
             .SetMessage(
                 "The argument `{0}` of directive `{1}` " +
                 "mustn't be null.",
@@ -105,10 +105,10 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError ObjectType_UnableToInferOrResolveType(
-        NameString typeName,
+        string typeName,
         ObjectType type,
-        ObjectFieldDefinition field) =>
-        SchemaErrorBuilder.New()
+        ObjectFieldDefinition field)
+        => SchemaErrorBuilder.New()
             .SetMessage(
                 "Unable to infer or resolve the type of " +
                 "field {0}.{1}. Try to explicitly provide the " +
@@ -124,11 +124,11 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError ObjectField_HasNoResolver(
-        NameString typeName,
-        NameString fieldName,
+        string typeName,
+        string fieldName,
         ITypeSystemObject type,
-        ISyntaxNode? syntaxNode) =>
-        SchemaErrorBuilder.New()
+        ISyntaxNode? syntaxNode)
+        => SchemaErrorBuilder.New()
             .SetMessage(
                 TypeResources.ErrorHelper_ObjectField_HasNoResolver,
                 typeName,

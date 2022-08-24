@@ -1,5 +1,3 @@
-using HotChocolate;
-
 namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
 public sealed class NonNullTypeDescriptor : ITypeDescriptor
@@ -13,5 +11,5 @@ public sealed class NonNullTypeDescriptor : ITypeDescriptor
 
     public TypeKind Kind => InnerType.Kind;
 
-    public NameString Name => InnerType.Name;
+    public string Name => InnerType.Name;
 }

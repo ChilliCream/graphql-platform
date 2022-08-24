@@ -86,7 +86,7 @@ In the following example `Continue` is returned from the onEnter method. The vis
 query {
   foo {
     bar
-    baz @onEnter(return: SKIP) {
+    baz @onEnter(return: CONTINUE) {
       quux
     }
     qux

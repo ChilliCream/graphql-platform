@@ -74,7 +74,7 @@ public sealed partial class MultiPartResponseStreamFormatter : IResponseStreamFo
     {
         await WriteNextAsync(outputStream, ct).ConfigureAwait(false);
 
-        await foreach (IQueryResult result in
+        await foreach (var result in
             responseStream.ReadResultsAsync().WithCancellation(ct).ConfigureAwait(false))
         {
             try

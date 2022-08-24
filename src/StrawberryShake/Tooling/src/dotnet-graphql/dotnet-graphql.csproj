@@ -33,8 +33,4 @@
     <None Include="$(MSBuildThisFileDirectory)..\.server\**\*.*" Pack="true" PackagePath="build/gen" Visible="false" />
   </ItemGroup>
 
-  <PropertyGroup>
-    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
-  </PropertyGroup>
-
 </Project>

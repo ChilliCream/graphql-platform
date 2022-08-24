@@ -110,8 +110,8 @@ public class SchemaOptions : ISchemaOptions
     /// is an instance of an <see cref="ObjectType{T}"/>.
     /// </summary>
     public IsOfTypeFallback? DefaultIsOfTypeCheck { get; set; }
-    
-    /// <inheritdoc />
+
+    /// <inheritdoc cref="ISchemaOptions.EnableOneOf" />
     public bool EnableOneOf { get; set; }
 
     /// <summary>

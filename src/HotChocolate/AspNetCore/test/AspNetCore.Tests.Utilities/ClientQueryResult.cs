@@ -1,17 +1,12 @@
-using System.Collections.Generic;
 using System.Net;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities;
 
-public class ClientQueryResult
+public sealed class ClientQueryResult
 {
-    public string ContentType { get; set; }
-
+    public string? ContentType { get; set; } = default!;
     public HttpStatusCode StatusCode { get; set; }
-
-    public Dictionary<string, object> Data { get; set; }
-
-    public List<Dictionary<string, object>> Errors { get; set; }
-
-    public Dictionary<string, object> Extensions { get; set; }
+    public Dictionary<string, object?>? Data { get; set; }
+    public List<Dictionary<string, object?>>? Errors { get; set; }
+    public Dictionary<string, object?>? Extensions { get; set; }
 }

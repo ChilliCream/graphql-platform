@@ -13,10 +13,10 @@ public class SyntaxRewriterTests
     public void Rename_Field()
     {
         // arrange
-        DocumentNode schema = Parse(FileResource.Open("schema-kitchen-sink.graphql"));
+        var schema = Parse(FileResource.Open("schema-kitchen-sink.graphql"));
 
         // act
-        ISyntaxRewriter<NavigatorContext> rewriter =
+        var rewriter =
             SyntaxRewriter.CreateWithNavigator(
                 (node, context) =>
                 {
@@ -40,7 +40,7 @@ public class SyntaxRewriterTests
     public void Remove_Field()
     {
         // arrange
-        DocumentNode schema = Parse(@"
+        var schema = Parse(@"
             schema {
               query: QueryType
               mutation: MutationType
@@ -60,7 +60,7 @@ public class SyntaxRewriterTests
             ");
 
         // act
-        ISyntaxRewriter<NavigatorContext> rewriter =
+        var rewriter =
             SyntaxRewriter.CreateWithNavigator(
                 (node, context) =>
                 {
@@ -83,14 +83,14 @@ public class SyntaxRewriterTests
     public void Remove_StringValueField_ExceptionThrown()
     {
         // arrange
-        DocumentNode schema = Parse(@"
+        var schema = Parse(@"
             type Foo {
                abc : String
             }
             ");
 
         // act
-        ISyntaxRewriter<NavigatorContext> rewriter =
+        var rewriter =
             SyntaxRewriter.CreateWithNavigator(
                 (node, context) =>
                 {

@@ -15,7 +15,7 @@ public class WebSocketSubscriptionMiddleware : MiddlewareBase
         IRequestExecutorResolver executorResolver,
         IHttpResultSerializer resultSerializer,
         IServerDiagnosticEvents diagnosticEvents,
-        NameString schemaName)
+        string schemaName)
         : base(next, executorResolver, resultSerializer, schemaName)
     {
         _diagnosticEvents = diagnosticEvents ??
@@ -33,7 +33,7 @@ public class WebSocketSubscriptionMiddleware : MiddlewareBase
     {
         if (!IsDefaultSchema)
         {
-            context.Items[WellKnownContextData.SchemaName] = SchemaName.Value;
+            context.Items[WellKnownContextData.SchemaName] = SchemaName;
         }
 
         using (_diagnosticEvents.WebSocketSession(context))

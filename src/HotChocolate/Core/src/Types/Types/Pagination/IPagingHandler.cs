@@ -29,7 +29,7 @@ public interface IPagingHandler
     /// The data set.
     /// </param>
     /// <returns>
-    /// Returns the page representing a part from the <see cref="source"/>.
+    /// Returns the page representing a part from the <paramref name="source"/>.
     /// </returns>
     ValueTask<IPage> SliceAsync(IResolverContext context, object source);
 }

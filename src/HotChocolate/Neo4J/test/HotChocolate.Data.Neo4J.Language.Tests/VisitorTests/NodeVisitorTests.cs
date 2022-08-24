@@ -1,5 +1,4 @@
-using Snapshooter.Xunit;
-using Xunit;
+using CookieCrumble;
 
 namespace HotChocolate.Data.Neo4J.Language;
 
@@ -10,7 +9,7 @@ public class NodeVisitorTests
     {
         var visitor = new CypherVisitor();
 
-        Node movie = Node.Create("Movie").Named("m");
+        var movie = Node.Create("Movie").Named("m");
         movie.Visit(visitor);
         visitor.Print().MatchSnapshot();
     }
@@ -26,7 +25,7 @@ public class NodeVisitorTests
 
         var visitor = new CypherVisitor();
 
-        Node movie = Node.Create("Movie", additionalLabels).Named("m");
+        var movie = Node.Create("Movie", additionalLabels).Named("m");
         movie.Visit(visitor);
         visitor.Print().MatchSnapshot();
     }
@@ -36,7 +35,7 @@ public class NodeVisitorTests
     {
         var visitor = new CypherVisitor();
 
-        Node movie = Node.Create("Movie")
+        var movie = Node.Create("Movie")
             .Named("m")
             .WithProperties("Title", Cypher.LiteralOf("The Matrix"));
         movie.Visit(visitor);
@@ -48,7 +47,7 @@ public class NodeVisitorTests
     {
         var visitor = new CypherVisitor();
 
-        Node movie = Node.Create("Movie")
+        var movie = Node.Create("Movie")
             .Named("m")
             .WithProperties(
                 "Title",

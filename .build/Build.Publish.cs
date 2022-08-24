@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using Nuke.Common;
 using Nuke.Common.IO;
@@ -9,7 +8,8 @@ using Nuke.Common.Tools.NuGet;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Helpers;
 using static Nuke.Common.Tools.NuGet.NuGetTasks;
-
+using Nuke.Common.Utilities.Collections;
+using System.Linq;
 
 partial class Build
 {
@@ -26,7 +26,8 @@ partial class Build
         .Requires(() => Configuration.Equals(Release))
         .Executes(() =>
         {
-            IReadOnlyCollection<AbsolutePath> packages = PackageDirectory.GlobFiles("*.nupkg");
+            var packages = PackageDirectory.GlobFiles("HotChocolate.*.nupkg")
+                .Concat(PackageDirectory.GlobFiles("GreenDonut.*.nupkg"));
 
             DotNetNuGetPush(
                 _ => _
@@ -123,7 +124,8 @@ partial class Build
         .Requires(() => Configuration.Equals(Release))
         .Executes(() =>
         {
-            IReadOnlyCollection<AbsolutePath> packages = PackageDirectory.GlobFiles("*.nupkg");
+            var packages = PackageDirectory.GlobFiles("HotChocolate.*.nupkg")
+                .Concat(PackageDirectory.GlobFiles("GreenDonut.*.nupkg"));
 
             DotNetNuGetPush(
                 _ => _

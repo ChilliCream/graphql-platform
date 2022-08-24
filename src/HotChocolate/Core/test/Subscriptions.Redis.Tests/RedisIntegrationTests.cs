@@ -37,7 +37,7 @@ public class RedisIntegrationTests
 
         var sender = services.GetRequiredService<ITopicEventSender>();
         var executorResolver = services.GetRequiredService<IRequestExecutorResolver>();
-        IRequestExecutor executor = await executorResolver.GetRequestExecutorAsync();
+        var executor = await executorResolver.GetRequestExecutorAsync();
 
         var cts = new CancellationTokenSource(10000);
 
@@ -50,7 +50,7 @@ public class RedisIntegrationTests
         await sender.SendAsync("OnMessage", "bar", cts.Token);
         await sender.CompleteAsync("OnMessage");
 
-        await foreach (IQueryResult response in result.ReadResultsAsync()
+        await foreach (var response in result.ReadResultsAsync()
             .WithCancellation(cts.Token))
         {
             Assert.Null(response.Errors);
@@ -78,7 +78,7 @@ public class RedisIntegrationTests
 
         var sender = services.GetRequiredService<ITopicEventSender>();
         var executorResolver = services.GetRequiredService<IRequestExecutorResolver>();
-        IRequestExecutor executor = await executorResolver.GetRequestExecutorAsync();
+        var executor = await executorResolver.GetRequestExecutorAsync();
 
         var cts = new CancellationTokenSource(10000);
 
@@ -91,7 +91,7 @@ public class RedisIntegrationTests
         await sender.SendAsync("OnMessage", "bar", cts.Token);
         await sender.CompleteAsync("OnMessage");
 
-        await foreach (IQueryResult response in result.ReadResultsAsync()
+        await foreach (var response in result.ReadResultsAsync()
             .WithCancellation(cts.Token))
         {
             Assert.Null(response.Errors);

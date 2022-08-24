@@ -31,14 +31,14 @@ public static class FieldClassMiddlewareFactory
         {
             var parameters = new List<IParameterHandler>();
 
-            foreach ((Type Service, object Instance) service in services)
+            foreach (var service in services)
             {
                 parameters.Add(new TypeParameterHandler(
                     service.Service,
                     Expression.Constant(service.Instance)));
             }
 
-            MiddlewareFactory<TMiddleware, IServiceProvider, FieldDelegate> factory =
+            var factory =
                 MiddlewareCompiler<TMiddleware>.CompileFactory<IServiceProvider, FieldDelegate>(
                     (services, next) =>
                     {
@@ -79,7 +79,7 @@ public static class FieldClassMiddlewareFactory
         var sync = new object();
         TMiddleware middleware = null;
 
-        ClassQueryDelegate<TMiddleware, IMiddlewareContext> compiled =
+        var compiled =
             MiddlewareCompiler<TMiddleware>.CompileDelegate<IMiddlewareContext>(
                 (context, middleware) => new List<IParameterHandler>
                 {

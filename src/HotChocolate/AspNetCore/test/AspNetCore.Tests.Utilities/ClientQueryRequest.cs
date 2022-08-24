@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Text;
 using Newtonsoft.Json;
 
@@ -7,19 +6,19 @@ namespace HotChocolate.AspNetCore.Tests.Utilities;
 public class ClientQueryRequest
 {
     [JsonProperty("id")]
-    public string Id { get; set; }
+    public string? Id { get; set; }
 
     [JsonProperty("operationName")]
-    public string OperationName { get; set; }
+    public string? OperationName { get; set; }
 
     [JsonProperty("query")]
-    public string Query { get; set; }
+    public string? Query { get; set; }
 
     [JsonProperty("variables")]
-    public Dictionary<string, object> Variables { get; set; }
+    public Dictionary<string, object?>? Variables { get; set; }
 
     [JsonProperty("extensions")]
-    public Dictionary<string, object> Extensions { get; set; }
+    public Dictionary<string, object?>? Extensions { get; set; }
 
     public override string ToString()
     {

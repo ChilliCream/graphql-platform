@@ -1,0 +1,23 @@
+﻿{
+  root {
+    bar {
+      text
+    }
+  }
+}
+
+---------------------------------------------------------
+
+{
+  ... on Query {
+    root @__execute(id: 0, kind: DEFAULT, type: COMPOSITE) {
+      ... on Foo {
+        bar @__execute(id: 1, kind: DEFAULT, type: COMPOSITE) {
+          ... on Bar {
+            text @__execute(id: 2, kind: DEFAULT, type: LEAF)
+          }
+        }
+      }
+    }
+  }
+}

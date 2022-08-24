@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.AspNetCore.Extensions;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution;
@@ -8,7 +7,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities;
 
@@ -77,7 +75,7 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
                 .UseRouting()
                 .UseEndpoints(endpoints =>
                 {
-                    GraphQLEndpointConventionBuilder builder = endpoints.MapGraphQL(pattern);
+                    var builder = endpoints.MapGraphQL(pattern);
 
                     configureConventions?.Invoke(builder);
                     endpoints.MapGraphQL("/evict", "evict");

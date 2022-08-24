@@ -16,7 +16,7 @@ public static class SubscribeResolverObjectFieldDescriptorExtensions
     {
         return descriptor.Subscribe(async ctx =>
         {
-            IObservable<T> observable = await subscribe(ctx).ConfigureAwait(false);
+            var observable = await subscribe(ctx).ConfigureAwait(false);
             return new SourceStreamWrapper(new ObservableSourceStreamAdapter<T>(observable));
         });
     }
@@ -32,7 +32,7 @@ public static class SubscribeResolverObjectFieldDescriptorExtensions
     {
         return descriptor.Subscribe(async ctx =>
         {
-            IEnumerable<T> enumerable = await subscribe(ctx).ConfigureAwait(false);
+            var enumerable = await subscribe(ctx).ConfigureAwait(false);
             return new SourceStreamWrapper(new EnumerableStreamAdapter<T>(enumerable));
         });
     }
@@ -48,7 +48,7 @@ public static class SubscribeResolverObjectFieldDescriptorExtensions
     {
         return descriptor.Subscribe(async ctx =>
         {
-            IAsyncEnumerable<T> enumerable = await subscribe(ctx).ConfigureAwait(false);
+            var enumerable = await subscribe(ctx).ConfigureAwait(false);
             return new SourceStreamWrapper(new AsyncEnumerableStreamAdapter<T>(enumerable));
         });
     }
@@ -88,6 +88,9 @@ public static class SubscribeResolverObjectFieldDescriptorExtensions
     /// </param>
     /// <typeparam name="TMessage">
     /// The type of the message / event payload.
+    /// </typeparam>
+    /// <typeparam name="TTopic">
+    /// The topic type.
     /// </typeparam>
     public static IObjectFieldDescriptor SubscribeToTopic<TTopic, TMessage>(
         this IObjectFieldDescriptor descriptor,
@@ -133,8 +136,8 @@ public static class SubscribeResolverObjectFieldDescriptorExtensions
     {
         return descriptor.Subscribe(async ctx =>
         {
-            ITopicEventReceiver receiver = ctx.Service<ITopicEventReceiver>();
-            TTopic topic = await resolveTopic(ctx).ConfigureAwait(false);
+            var receiver = ctx.Service<ITopicEventReceiver>();
+            var topic = await resolveTopic(ctx).ConfigureAwait(false);
             return await receiver.SubscribeAsync<TTopic, TMessage>(topic).ConfigureAwait(false);
         });
     }

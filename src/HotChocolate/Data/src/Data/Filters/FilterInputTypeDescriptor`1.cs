@@ -41,7 +41,7 @@ public class FilterInputTypeDescriptor<T>
     }
 
     protected override void OnCompleteFields(
-        IDictionary<NameString, FilterFieldDefinition> fields,
+        IDictionary<string, FilterFieldDefinition> fields,
         ISet<MemberInfo> handledProperties)
     {
         if (Definition.Fields.IsImplicitBinding())
@@ -54,15 +54,15 @@ public class FilterInputTypeDescriptor<T>
                     .CreateDefinition(),
                 fields,
                 handledProperties,
-                include: (members, member) =>
-                    member is PropertyInfo && !handledProperties.Contains(member));
+                include: (_, member)
+                    => member is PropertyInfo && !handledProperties.Contains(member));
         }
 
         base.OnCompleteFields(fields, handledProperties);
     }
 
     /// <inheritdoc />
-    public new IFilterInputTypeDescriptor<T> Name(NameString value)
+    public new IFilterInputTypeDescriptor<T> Name(string value)
     {
         base.Name(value);
         return this;
@@ -102,7 +102,7 @@ public class FilterInputTypeDescriptor<T>
         switch (propertyOrMember.TryExtractMember())
         {
             case PropertyInfo m:
-                FilterFieldDescriptor? fieldDescriptor =
+                var fieldDescriptor =
                     Fields.FirstOrDefault(t => t.Definition.Member == m);
 
                 if (fieldDescriptor is null)
@@ -113,7 +113,7 @@ public class FilterInputTypeDescriptor<T>
 
                 return fieldDescriptor;
 
-            case MethodInfo m:
+            case MethodInfo:
                 throw new ArgumentException(
                     FilterInputTypeDescriptor_Field_OnlyProperties,
                     nameof(propertyOrMember));
@@ -131,7 +131,7 @@ public class FilterInputTypeDescriptor<T>
         Expression<Func<T, TField?>> propertyOrMember,
         Action<IFilterInputTypeDescriptor<TField>> configure)
     {
-        IFilterFieldDescriptor descriptor = Field(propertyOrMember);
+        var descriptor = Field(propertyOrMember);
 
         descriptor.Extend().Definition.CreateFieldTypeDefinition = CreateFieldTypeDefinition;
         return descriptor;
@@ -140,21 +140,20 @@ public class FilterInputTypeDescriptor<T>
             IDescriptorContext context,
             string? scope)
         {
-            FilterInputTypeDescriptor<TField> descriptor =
-                New<TField>(context, typeof(TField), scope);
-            descriptor.BindFieldsExplicitly();
+            var fieldDescriptor = New<TField>(context, typeof(TField), scope);
+            fieldDescriptor.BindFieldsExplicitly();
 
             // This resets the name on the definition. This way we can check if the user has
             // set a custom name. The context the user specifying descriptor.Name("Foo") is
             // preserved this way.
-            descriptor.Definition.Name = default!;
+            fieldDescriptor.Definition.IsNamed = false;
 
             // we deactivate And and Or by default.
-            descriptor.Definition.UseAnd = false;
-            descriptor.Definition.UseOr = false;
+            fieldDescriptor.Definition.UseAnd = false;
+            fieldDescriptor.Definition.UseOr = false;
 
-            configure(descriptor);
-            return descriptor.CreateDefinition();
+            configure(fieldDescriptor);
+            return fieldDescriptor.CreateDefinition();
         }
     }
 
@@ -166,7 +165,7 @@ public class FilterInputTypeDescriptor<T>
     }
 
     /// <inheritdoc />
-    public new IFilterInputTypeDescriptor<T> Ignore(NameString name)
+    public new IFilterInputTypeDescriptor<T> Ignore(string name)
     {
         base.Ignore(name);
         return this;
@@ -177,7 +176,7 @@ public class FilterInputTypeDescriptor<T>
     {
         if (propertyOrMember.ExtractMember() is PropertyInfo p)
         {
-            FilterFieldDescriptor? fieldDescriptor =
+            var fieldDescriptor =
                 Fields.FirstOrDefault(t => t.Definition.Member == p);
 
             if (fieldDescriptor is null)
@@ -223,7 +222,7 @@ public class FilterInputTypeDescriptor<T>
     }
 
     public new IFilterInputTypeDescriptor<T> Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments)
     {
         base.Directive(name, arguments);

@@ -20,7 +20,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
         IHttpResultSerializer resultSerializer,
         IHttpRequestParser requestParser,
         IServerDiagnosticEvents diagnosticEvents,
-        NameString schemaName)
+        string schemaName)
         : base(next, executorResolver, resultSerializer, schemaName)
     {
         RequestParser = requestParser ??
@@ -40,7 +40,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
         {
             if (!IsDefaultSchema)
             {
-                context.Items[WellKnownContextData.SchemaName] = SchemaName.Value;
+                context.Items[WellKnownContextData.SchemaName] = SchemaName;
             }
 
             using (DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpPost))
@@ -61,9 +61,9 @@ public class HttpPostMiddlewareBase : MiddlewareBase
         AllowedContentType contentType)
     {
         // first we need to get the request executor to be able to execute requests.
-        IRequestExecutor requestExecutor = await GetExecutorAsync(context.RequestAborted);
-        IHttpRequestInterceptor requestInterceptor = requestExecutor.GetRequestInterceptor();
-        IErrorHandler errorHandler = requestExecutor.GetErrorHandler();
+        var requestExecutor = await GetExecutorAsync(context.RequestAborted);
+        var requestInterceptor = requestExecutor.GetRequestInterceptor();
+        var errorHandler = requestExecutor.GetErrorHandler();
         context.Items[WellKnownContextData.RequestExecutor] = requestExecutor;
 
         HttpStatusCode? statusCode = null;
@@ -83,7 +83,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 // parsed. In this case we will return HTTP status code 400 and return a
                 // GraphQL error result.
                 statusCode = HttpStatusCode.BadRequest;
-                IReadOnlyList<IError> errors = errorHandler.Handle(ex.Errors);
+                var errors = errorHandler.Handle(ex.Errors);
                 result = QueryResultBuilder.CreateError(errors);
                 DiagnosticEvents.ParserErrors(context, errors);
                 goto HANDLE_RESULT;
@@ -91,7 +91,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
             catch (Exception ex)
             {
                 statusCode = HttpStatusCode.InternalServerError;
-                IError error = errorHandler.CreateUnexpectedError(ex).Build();
+                var error = errorHandler.CreateUnexpectedError(ex).Build();
                 result = QueryResultBuilder.CreateError(error);
                 DiagnosticEvents.HttpRequestError(context, error);
                 goto HANDLE_RESULT;
@@ -108,7 +108,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 case 0:
                     {
                         statusCode = HttpStatusCode.BadRequest;
-                        IError error = errorHandler.Handle(ErrorHelper.RequestHasNoElements());
+                        var error = errorHandler.Handle(ErrorHelper.RequestHasNoElements());
                         result = QueryResultBuilder.CreateError(error);
                         DiagnosticEvents.HttpRequestError(context, error);
                         break;
@@ -123,9 +123,10 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 // defines the order in which the operations shall be executed.
                 case 1 when context.Request.Query.ContainsKey(_batchOperations):
                     {
-                        string operationNames = context.Request.Query[_batchOperations];
+                        string? operationNames = context.Request.Query[_batchOperations];
 
-                        if (TryParseOperations(operationNames, out IReadOnlyList<string>? ops))
+                        if (!string.IsNullOrEmpty(operationNames) &&
+                            TryParseOperations(operationNames, out var ops))
                         {
                             result = await ExecuteOperationBatchAsync(
                                 context,
@@ -137,7 +138,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                         }
                         else
                         {
-                            IError error = errorHandler.Handle(ErrorHelper.InvalidRequest());
+                            var error = errorHandler.Handle(ErrorHelper.InvalidRequest());
                             statusCode = HttpStatusCode.BadRequest;
                             result = QueryResultBuilder.CreateError(error);
                             DiagnosticEvents.HttpRequestError(context, error);
@@ -182,7 +183,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
             statusCode = null; // we let the serializer determine the status code.
             result = QueryResultBuilder.CreateError(ex.Errors);
 
-            foreach (IError error in ex.Errors)
+            foreach (var error in ex.Errors)
             {
                 DiagnosticEvents.HttpRequestError(context, error);
             }
@@ -190,7 +191,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
         catch (Exception ex)
         {
             statusCode = HttpStatusCode.InternalServerError;
-            IError error = errorHandler.CreateUnexpectedError(ex).Build();
+            var error = errorHandler.CreateUnexpectedError(ex).Build();
             result = QueryResultBuilder.CreateError(error);
             DiagnosticEvents.HttpRequestError(context, error);
         }
@@ -225,14 +226,9 @@ public class HttpPostMiddlewareBase : MiddlewareBase
 
             // query results use pooled memory an need to be disposed after we have
             // used them.
-            if (result is IAsyncDisposable asyncDisposable)
+            if (result is not null)
             {
-                await asyncDisposable.DisposeAsync();
-            }
-
-            if (result is IDisposable disposable)
-            {
-                disposable.Dispose();
+                await result.DisposeAsync();
             }
         }
     }

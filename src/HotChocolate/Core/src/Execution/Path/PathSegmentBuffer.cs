@@ -23,7 +23,7 @@ internal sealed class PathSegmentBuffer<T> where T : class
 
     public T Pop()
     {
-        if (TryPop(out T? obj))
+        if (TryPop(out var obj))
         {
             return obj;
         }

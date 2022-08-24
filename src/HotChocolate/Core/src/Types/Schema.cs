@@ -20,7 +20,7 @@ public partial class Schema
     , ISchema
 {
     private SchemaTypes _types;
-    private Dictionary<NameString, DirectiveType> _directiveTypes;
+    private Dictionary<string, DirectiveType> _directiveTypes;
 
     /// <summary>
     /// Gets the schema directives.
@@ -63,7 +63,7 @@ public partial class Schema
     /// <summary>
     /// Gets the default schema name.
     /// </summary>
-    public static NameString DefaultName { get; } = "_Default";
+    public static string DefaultName => "_Default";
 
     /// <summary>
     /// Gets a type by its name and kind.
@@ -76,9 +76,16 @@ public partial class Schema
     /// is not of the specified type kind.
     /// </exception>
     [return: NotNull]
-    public T GetType<T>(NameString typeName)
-        where T : INamedType =>
-        _types.GetType<T>(typeName.EnsureNotEmpty(nameof(typeName)));
+    public T GetType<T>(string typeName)
+        where T : INamedType
+    {
+        if (string.IsNullOrEmpty(typeName))
+        {
+            throw new ArgumentNullException(nameof(typeName));
+        }
+
+        return _types.GetType<T>(typeName);
+    }
 
     /// <summary>
     /// Tries to get a type by its name and kind.
@@ -90,9 +97,16 @@ public partial class Schema
     /// <c>true</c>, if a type with the name exists and is of the specified
     /// kind, <c>false</c> otherwise.
     /// </returns>
-    public bool TryGetType<T>(NameString typeName, [MaybeNullWhen(false)] out T type)
-        where T : INamedType =>
-        _types.TryGetType(typeName.EnsureNotEmpty(nameof(typeName)), out type);
+    public bool TryGetType<T>(string typeName, [MaybeNullWhen(false)] out T type)
+        where T : INamedType
+    {
+        if (string.IsNullOrEmpty(typeName))
+        {
+            throw new ArgumentNullException(nameof(typeName));
+        }
+
+        return _types.TryGetType(typeName, out type);
+    }
 
     /// <summary>
     /// Tries to get the .net type representation of a schema.
@@ -103,8 +117,15 @@ public partial class Schema
     /// <c>true</c>, if a .net type was found that was bound
     /// the the specified schema type, <c>false</c> otherwise.
     /// </returns>
-    public bool TryGetRuntimeType(NameString typeName, [MaybeNullWhen(false)] out Type? runtimeType) =>
-        _types.TryGetClrType(typeName.EnsureNotEmpty(nameof(typeName)), out runtimeType);
+    public bool TryGetRuntimeType(string typeName, [NotNullWhen(true)] out Type? runtimeType)
+    {
+        if (string.IsNullOrEmpty(typeName))
+        {
+            throw new ArgumentNullException(nameof(typeName));
+        }
+
+        return _types.TryGetClrType(typeName, out runtimeType);
+    }
 
     /// <summary>
     /// Gets the possible object types to
@@ -122,7 +143,7 @@ public partial class Schema
             throw new ArgumentNullException(nameof(abstractType));
         }
 
-        if (_types.TryGetPossibleTypes(abstractType.Name, out IReadOnlyList<ObjectType>? types))
+        if (_types.TryGetPossibleTypes(abstractType.Name, out var types))
         {
             return types;
         }
@@ -143,11 +164,14 @@ public partial class Schema
     /// <exception cref="ArgumentException">
     /// The specified directive type does not exist.
     /// </exception>
-    public DirectiveType GetDirectiveType(NameString directiveName)
+    public DirectiveType GetDirectiveType(string directiveName)
     {
-        if (_directiveTypes.TryGetValue(
-            directiveName.EnsureNotEmpty(nameof(directiveName)),
-            out DirectiveType? type))
+        if (string.IsNullOrEmpty(directiveName))
+        {
+            throw new ArgumentNullException(nameof(directiveName));
+        }
+
+        if (_directiveTypes.TryGetValue(directiveName, out var type))
         {
             return type;
         }
@@ -172,22 +196,27 @@ public partial class Schema
     /// name exists; otherwise, <c>false</c>.
     /// </returns>
     public bool TryGetDirectiveType(
-        NameString directiveName,
-        [NotNullWhen(true)] out DirectiveType? directiveType) =>
-        _directiveTypes.TryGetValue(
-            directiveName.EnsureNotEmpty(nameof(directiveName)),
-            out directiveType);
+        string directiveName,
+        [NotNullWhen(true)] out DirectiveType? directiveType)
+    {
+        if (string.IsNullOrEmpty(directiveName))
+        {
+            throw new ArgumentNullException(nameof(directiveName));
+        }
+
+        return _directiveTypes.TryGetValue(directiveName, out directiveType);
+    }
 
     /// <summary>
     /// Generates a schema document.
     /// </summary>
-    public DocumentNode ToDocument(bool includeSpecScalars = false) =>
-        SchemaSerializer.SerializeSchema(this, includeSpecScalars);
+    public DocumentNode ToDocument(bool includeSpecScalars = false)
+        => SchemaPrinter.PrintSchema(this, includeSpecScalars);
 
     /// <summary>
     /// Returns the schema SDL representation.
     /// </summary>
-    public string Print() => SchemaSerializer.Serialize(this);
+    public string Print() => SchemaPrinter.Print(this);
 
     /// <summary>
     /// Returns the schema SDL representation.

@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: QueryTask
 }
 
@@ -16,6 +16,7 @@ type AuthorCursorPagingConnection {
   edges: [AuthorCursorPagingEdge!]
   "A flattened list of the nodes."
   nodes: [Author!]
+  "Identifies the total count of items in the connection."
   totalCount: Int!
 }
 
@@ -35,6 +36,7 @@ type AuthorCursorPagingExecutableConnection {
   edges: [AuthorCursorPagingExecutableEdge!]
   "A flattened list of the nodes."
   nodes: [Author!]
+  "Identifies the total count of items in the connection."
   totalCount: Int!
 }
 

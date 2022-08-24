@@ -1,5 +1,4 @@
 using Shouldly;
-using Xunit;
 
 namespace HotChocolate.Data.Neo4J.Language;
 
@@ -10,9 +9,9 @@ public class SymbolicNameTests
         [Fact]
         public void EqualsShouldWorkSameValue()
         {
-            SymbolicName name1 = SymbolicName.Of("a");
-            SymbolicName name2 = name1;
-            SymbolicName name3 = SymbolicName.Of("a");
+            var name1 = SymbolicName.Of("a");
+            var name2 = name1;
+            var name3 = SymbolicName.Of("a");
 
             name1.ShouldBeEquivalentTo(name2);
             name1.ShouldBeEquivalentTo(name3);
@@ -21,8 +20,8 @@ public class SymbolicNameTests
         [Fact]
         public void EqualsShouldWorkDifferentValue()
         {
-            SymbolicName name1 = SymbolicName.Of("a");
-            SymbolicName name2 = SymbolicName.Of("b");
+            var name1 = SymbolicName.Of("a");
+            var name2 = SymbolicName.Of("b");
 
             name1.ShouldNotBe(name2);
         }
@@ -30,7 +29,7 @@ public class SymbolicNameTests
         [Fact]
         public void ShouldNotEqualUnresolved()
         {
-            SymbolicName name1 = SymbolicName.Of("a");
+            var name1 = SymbolicName.Of("a");
 
             name1.ShouldNotBe(SymbolicName.Unresolved());
         }
@@ -38,8 +37,8 @@ public class SymbolicNameTests
         [Fact]
         public void DifferentResolvedNamesShouldHaveDifferentHashCodes()
         {
-            SymbolicName name1 = SymbolicName.Of("a");
-            SymbolicName name2 = SymbolicName.Of("b");
+            var name1 = SymbolicName.Of("a");
+            var name2 = SymbolicName.Of("b");
 
             name1.GetHashCode().ShouldNotBe(name2.GetHashCode());
         }
@@ -51,9 +50,9 @@ public class UnresolvedSymbolicNames
     [Fact]
     public void EqualsShouldWorkSameValue()
     {
-        SymbolicName name1 = SymbolicName.Unresolved();
-        SymbolicName name2 = name1;
-        SymbolicName name3 = SymbolicName.Unresolved();
+        var name1 = SymbolicName.Unresolved();
+        var name2 = name1;
+        var name3 = SymbolicName.Unresolved();
 
         name1.ShouldBeEquivalentTo(name2);
         name1.ShouldNotBe(name3);
@@ -63,7 +62,7 @@ public class UnresolvedSymbolicNames
     [Fact]
     public void ShouldNotEqualResolved()
     {
-        SymbolicName name1 = SymbolicName.Unresolved();
+        var name1 = SymbolicName.Unresolved();
 
         name1.ShouldNotBe(SymbolicName.Of("a"));
     }
