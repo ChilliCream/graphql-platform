@@ -82,4 +82,33 @@ public class InProcessEndToEndTests
         Assert.Null(json.errors);
         Assert.True((bool)json.data.isHttpContextInjected);
     }
+
+    [Fact]
+    public async Task AzFuncInProcess_BananaCakePopTestAsync()
+    {
+        var hostBuilder = new MockInProcessFunctionsHostBuilder();
+
+        hostBuilder.Services
+            .AddHttpContextAccessor();
+
+        hostBuilder
+            .AddGraphQLFunction()
+            .AddQueryType(d => d.Name("Query").Field("BcpTest").Resolve("This is a test for BCP File Serving..."));
+
+        var serviceProvider = hostBuilder.BuildServiceProvider();
+
+        //The executor should resolve without error as a Required service...
+        var requestExecutor = serviceProvider.GetRequiredService<IGraphQLRequestExecutor>();
+
+        var httpContext = TestHttpContextHelper.NewBcpHttpContext(serviceProvider, "index.html");
+
+        //Execute Query Test for end-to-end validation...
+        await requestExecutor.ExecuteAsync(httpContext.Request);
+
+        //Read, Parse & Validate the response...
+        var resultContent = await httpContext.ReadResponseContentAsync();
+        Assert.NotNull(resultContent);
+        Assert.False(string.IsNullOrWhiteSpace(resultContent));
+        Assert.True(resultContent!.Contains("<html") && resultContent.Contains("</html>"));
+    }
 }
