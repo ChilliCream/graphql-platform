@@ -23,9 +23,7 @@ Query Plan
         "type": "Fetch",
         "schemaName": "a",
         "document": "query GetPersonById_1 {\n  personById(id: 1) {\n    name\n    friends {\n      name\n      __fusion_exports__1: id\n    }\n  }\n}",
-        "selectionSetId": 0,
-        "path": [],
-        "requires": []
+        "selectionSetId": 0
       },
       {
         "type": "Compose",

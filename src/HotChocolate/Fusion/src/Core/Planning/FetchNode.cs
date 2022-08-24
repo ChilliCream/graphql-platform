@@ -185,24 +185,30 @@ internal sealed class FetchNode : QueryPlanNode
         writer.WriteString("document", Document.ToString());
         writer.WriteNumber("selectionSetId", SelectionSet.Id);
 
-        writer.WritePropertyName("path");
-        writer.WriteStartArray();
-
-        foreach (var path in _path)
+        if (_path.Count > 0)
         {
-            writer.WriteStringValue(path);
+            writer.WritePropertyName("path");
+            writer.WriteStartArray();
+
+            foreach (var path in _path)
+            {
+                writer.WriteStringValue(path);
+            }
+            writer.WriteEndArray();
         }
-        writer.WriteEndArray();
 
-        writer.WritePropertyName("requires");
-        writer.WriteStartArray();
-
-        foreach (var requirement in Requires)
+        if (Requires.Count > 0)
         {
-            writer.WriteStartObject();
-            writer.WriteString("variable", requirement);
-            writer.WriteEndObject();
+            writer.WritePropertyName("requires");
+            writer.WriteStartArray();
+
+            foreach (var requirement in Requires)
+            {
+                writer.WriteStartObject();
+                writer.WriteString("variable", requirement);
+                writer.WriteEndObject();
+            }
+            writer.WriteEndArray();
         }
-        writer.WriteEndArray();
     }
 }

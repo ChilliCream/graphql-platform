@@ -26,9 +26,7 @@ Query Plan
         "type": "Fetch",
         "schemaName": "reviews",
         "document": "query Me_1 {\n  me: authorById(id: 1) {\n    reviews {\n      nodes {\n        product {\n          upc\n        }\n      }\n    }\n    __fusion_exports__1: id\n  }\n}",
-        "selectionSetId": 0,
-        "path": [],
-        "requires": []
+        "selectionSetId": 0
       },
       {
         "type": "Compose",

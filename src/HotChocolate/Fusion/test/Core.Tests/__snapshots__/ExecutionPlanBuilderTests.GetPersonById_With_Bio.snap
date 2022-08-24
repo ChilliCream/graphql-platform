@@ -20,9 +20,7 @@ Query Plan
         "type": "Fetch",
         "schemaName": "b",
         "document": "query GetPersonById_1 {\n  personById: node(id: 1) {\n    ... on Person {\n      id\n      bio\n    }\n  }\n}",
-        "selectionSetId": 0,
-        "path": [],
-        "requires": []
+        "selectionSetId": 0
       },
       {
         "type": "Compose",
