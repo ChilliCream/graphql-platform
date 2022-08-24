@@ -68,7 +68,7 @@ public static class HotChocolateFunctionsHostBuilderExtensions
             throw new ArgumentNullException(nameof(graphqlConfigureFunc));
 
         //NOTE: HostBuilder null check will be done by AddGraphQLFunction()...
-        IRequestExecutorBuilder executorBuilder = hostBuilder.AddGraphQLFunction(maxAllowedRequestSize, apiRoute);
+        var executorBuilder = hostBuilder.AddGraphQLFunction(maxAllowedRequestSize, apiRoute);
         graphqlConfigureFunc.Invoke(executorBuilder);
 
         return hostBuilder;

@@ -1,4 +1,5 @@
 using HotChocolate.AzureFunctions.IsolatedProcess.Extensions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Net.Http.Headers;
 
@@ -17,6 +18,12 @@ public static class HttpRequestDataExtensions
             : defaultValue;
 
         return contentType ?? defaultValue;
+    }
+
+    public static HttpRequestData SetCurrentHttpContext(this HttpRequestData httpRequestData, HttpContext httpContext)
+    {
+        httpRequestData.FunctionContext.InstanceServices.SetCurrentHttpContext(httpContext);
+        return httpRequestData;
     }
 
     public static async Task<string?> ReadResponseContentAsync(

@@ -16,14 +16,15 @@ public class HttpContextBuilder
         string? requestBody = null,
         string requestBodyContentType = GraphQLAzureFunctionsConstants.DefaultJsonContentType,
         HttpHeaders? requestHeaders = null,
-        IEnumerable<ClaimsIdentity>? claimsIdentities = null
+        IEnumerable<ClaimsIdentity>? claimsIdentities = null,
+        IDictionary<object, object>? contextItems = null
     )
     {
         //Initialize the root Http Context (Container)...
         var httpContext = new DefaultHttpContext();
 
         //Initialize the Http Request...
-        HttpRequest httpRequest = httpContext.Request;
+        var httpRequest = httpContext.Request;
         httpRequest.Method = requestHttpMethod ?? throw new ArgumentNullException(nameof(requestHttpMethod));
         httpRequest.Scheme = requestUri?.Scheme ?? throw new ArgumentNullException(nameof(requestUri));
         httpRequest.Host = new HostString(requestUri.Host, requestUri.Port);
@@ -33,7 +34,7 @@ public class HttpContextBuilder
         //Ensure we marshall across all Headers from the Client Request...
         //Note: This should also handle Cookies since Cookies are stored as a Header value....
         if (requestHeaders?.Any() == true)
-            foreach ((var key, IEnumerable<string>? value) in requestHeaders)
+            foreach (var (key, value) in requestHeaders)
                 httpRequest.Headers.TryAdd(key, new StringValues(value.ToArray()));
 
         if (!string.IsNullOrEmpty(requestBody))
@@ -46,7 +47,7 @@ public class HttpContextBuilder
         }
 
         //Initialize the Http Response...
-        HttpResponse httpResponse = httpContext.Response;
+        var httpResponse = httpContext.Response;
         //Initialize a valid Stream for the Response (must be tracked & Disposed of!)
         //NOTE: Default Body is a NullStream...which ignores all Reads/Writes.
         httpResponse.Body = new MemoryStream();
@@ -54,6 +55,11 @@ public class HttpContextBuilder
         //Proxy over any possible authentication claims if available
         if (claimsIdentities?.Any() == true)
             httpContext.User = new ClaimsPrincipal(claimsIdentities);
+
+        //Set the Custom Context Items if specified...
+        if(contextItems?.Any() == true)
+            foreach (var item in contextItems)
+                httpContext.Items.TryAdd(item.Key, item.Value);
 
         return httpContext;
     }

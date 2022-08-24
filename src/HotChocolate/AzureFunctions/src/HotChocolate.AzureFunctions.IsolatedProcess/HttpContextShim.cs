@@ -6,7 +6,7 @@ using Microsoft.Extensions.Primitives;
 
 namespace HotChocolate.AzureFunctions.IsolatedProcess;
 
-public class HttpContextShim : IDisposable
+public sealed class HttpContextShim : IDisposable
 {
     private bool _disposed;
 
@@ -28,7 +28,7 @@ public class HttpContextShim : IDisposable
     protected HttpRequestData? IsolatedProcessHttpRequestData { get; set; }
 
     //Must keep the Reference so we can safely Dispose!
-    public HttpContext HttpContext { get; protected set; }
+    public HttpContext HttpContext { get; }
 
     /// <summary>
     /// Factory method to Create an HttpContext that is AspNetCore compatible.
@@ -60,7 +60,8 @@ public class HttpContextShim : IDisposable
             requestBody: requestBody,
             requestBodyContentType: httpRequestData.GetContentType(),
             requestHeaders: httpRequestData.Headers,
-            claimsIdentities: httpRequestData.Identities
+            claimsIdentities: httpRequestData.Identities,
+            contextItems: httpRequestData.FunctionContext.Items
         );
 
         // Ensure we track the HttpContext internally for cleanup when disposed!
@@ -120,7 +121,7 @@ public class HttpContextShim : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    protected virtual void Dispose(bool disposing)
+    private void Dispose(bool disposing)
     {
         if (!_disposed)
         {

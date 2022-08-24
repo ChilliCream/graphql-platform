@@ -37,9 +37,9 @@ public class FunctionsHostBuilderTests
 
     private void AssertFunctionsHostBuilderIsValid(MockInProcessFunctionsHostBuilder hostBuilder)
     {
-        ServiceProvider serviceProvider = hostBuilder.BuildServiceProvider();
+        var serviceProvider = hostBuilder.BuildServiceProvider();
 
         //The executor should resolve without error as a Required service...
-        IGraphQLRequestExecutor requestExecutor = serviceProvider.GetRequiredService<IGraphQLRequestExecutor>();
+        var requestExecutor = serviceProvider.GetRequiredService<IGraphQLRequestExecutor>();
     }
 }

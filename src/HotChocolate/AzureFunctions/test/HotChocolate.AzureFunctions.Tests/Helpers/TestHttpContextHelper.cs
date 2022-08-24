@@ -1,5 +1,5 @@
 using System;
-using HotChocolate.AzureFunctions.IsolatedProcess;
+using HotChocolate.AzureFunctions.IsolatedProcess.Extensions;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -12,8 +12,20 @@ public class TestHttpContextHelper
         GraphQLAzureFunctionsConstants.DefaultGraphQLRoute
     );
 
-    public static HttpContext NewGraphQLHttpContext(string graphqlQuery)
-        => new HttpContextBuilder().CreateHttpContext(HttpMethods.Post, DefaultAzFuncGraphQLUri, requestBody: CreateGraphQLRequestBody(graphqlQuery));
+    public static HttpContext NewGraphQLHttpContext(IServiceProvider serviceProvider, string graphqlQuery)
+    {
+        var httpContext = new HttpContextBuilder()
+            .CreateHttpContext(
+                HttpMethods.Post,
+                DefaultAzFuncGraphQLUri,
+                requestBody: CreateGraphQLRequestBody(graphqlQuery)
+            );
+
+        //Ensure that we enable support for HttpContext injection for Unit Tests
+        serviceProvider.SetCurrentHttpContext(httpContext);
+
+        return httpContext;
+    }
 
     public static string CreateGraphQLRequestBody(string graphQLQuery)
     {
