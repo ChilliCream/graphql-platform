@@ -10,7 +10,8 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Data.Filters;
 
 public class FilterFieldDefinition
-    : InputFieldDefinition, IFilterFieldDefinition
+    : InputFieldDefinition
+    , IFilterFieldDefinition
 {
     private List<int>? _allowedOperations;
 
