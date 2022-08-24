@@ -1,7 +1,4 @@
-using HotChocolate.AzureFunctions.IsolatedProcess.Extensions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.AzureFunctions.IsolatedProcess;
 

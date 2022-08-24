@@ -25,7 +25,7 @@ public sealed class HttpContextShim : IDisposable
             throw new ArgumentNullException(nameof(httpRequestData));
     }
 
-    protected HttpRequestData? IsolatedProcessHttpRequestData { get; set; }
+    private HttpRequestData? IsolatedProcessHttpRequestData { get; set; }
 
     //Must keep the Reference so we can safely Dispose!
     public HttpContext HttpContext { get; }
@@ -33,7 +33,7 @@ public sealed class HttpContextShim : IDisposable
     /// <summary>
     /// Factory method to Create an HttpContext that is AspNetCore compatible.
     /// All pertinent data from the HttpRequestData provided by the
-    /// Azure Functions Isolated Process will be marshalled
+    /// Azure Functions Isolated Process will be marshaled
     /// into the HttpContext for HotChocolate to consume.
     /// NOTE: This is done as Factory method (and not in the Constructor)
     /// to support optimized Async reading of incoming Request Content/Stream.
@@ -70,7 +70,7 @@ public sealed class HttpContextShim : IDisposable
 
     /// <summary>
     /// Create an HttpResponseData containing the proxied response content results;
-    /// marshalled back from the HttpContext.
+    /// marshaled back from the HttpContext.
     /// </summary>
     /// <returns></returns>
     public async Task<HttpResponseData> CreateHttpResponseDataAsync()
