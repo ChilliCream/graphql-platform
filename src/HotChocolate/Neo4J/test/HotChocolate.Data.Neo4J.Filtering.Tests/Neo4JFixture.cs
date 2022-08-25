@@ -46,7 +46,7 @@ public class Neo4JFixture : Neo4JFixtureBase
                     .SetupNeo4JTestField<TEntity>(database.GetAsyncSession)
                     .UseFiltering<TFilter>()
                     .UseProjection())
-            .SetupNeo4JTestResponse<TEntity>()
+            .SetupNeo4JTestResponse()
             .UseDefaultPipeline()
             .ModifyOptions(o => o.ValidatePipelineOrder = false)
             .Services

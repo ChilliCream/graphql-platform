@@ -46,7 +46,7 @@ public class Neo4JFixture : Neo4JFixtureBase
                             c.Field(x => x.Root)
                                 .SetupNeo4JTestField<TEntity>(database.GetAsyncSession));
                     }))
-            .SetupNeo4JTestResponse<TEntity>()
+            .SetupNeo4JTestResponse()
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
             .UseDefaultPipeline()
             .Services

@@ -44,7 +44,7 @@ public class Neo4JFixture : Neo4JFixtureBase
                     .Field("root")
                     .SetupNeo4JTestField<TEntity>(database.GetAsyncSession)
                     .UseSorting<T>())
-            .SetupNeo4JTestResponse<TEntity>()
+            .SetupNeo4JTestResponse()
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()

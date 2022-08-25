@@ -41,7 +41,7 @@ public class Neo4JFixture : Neo4JFixtureBase
                     .SetupNeo4JTestField<TEntity>(database.GetAsyncSession)
                     .UseOffsetPaging<ObjectType<TEntity>>())
             .AddNeo4JPagingProviders()
-            .SetupNeo4JTestResponse<TEntity>()
+            .SetupNeo4JTestResponse()
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
