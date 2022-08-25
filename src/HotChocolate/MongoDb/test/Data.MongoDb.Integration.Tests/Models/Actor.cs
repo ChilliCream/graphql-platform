@@ -11,12 +11,4 @@ public class Actor
 
     [UseSorting]
     public List<Movie>? ActedIn { get; set; }
-
-    // [GraphQLName("movies")]
-    // [UseProjection]
-    // [UseFiltering]
-    // [UseSorting]
-    // public IExecutable<Movie> GetMovies(
-    //     [Service] IMongoCollection<Movie> collection) =>
-    //     collection.AsExecutable();
 }

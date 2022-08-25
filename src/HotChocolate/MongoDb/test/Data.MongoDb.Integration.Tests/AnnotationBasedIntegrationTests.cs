@@ -50,10 +50,6 @@ public class AnnotationBasedIntegrationTests : IClassFixture<MongoResource>
         {
             CollectionName = $"data_{Guid.NewGuid():N}"
         };
-        // var movieOptions = new CreateCollectionOptions
-        // {
-        //     CollectionName = $"data_{Guid.NewGuid():N}"
-        // };
 
         var actorCollection = _mongoDb.CreateCollection<Actor>(database, actorOptions);
         await actorCollection.BulkWriteAsync(new[]
@@ -69,11 +65,8 @@ public class AnnotationBasedIntegrationTests : IClassFixture<MongoResource>
             })
         });
 
-        // var movieCollection = _mongoDb.CreateCollection<Movie>(database, movieOptions);
-
         return await new ServiceCollection()
             .AddSingleton(actorCollection)
-            //.AddSingleton(movieCollection)
             .AddGraphQL()
             .AddQueryType(d => d.Name("Query")
                 .Field("actors")
