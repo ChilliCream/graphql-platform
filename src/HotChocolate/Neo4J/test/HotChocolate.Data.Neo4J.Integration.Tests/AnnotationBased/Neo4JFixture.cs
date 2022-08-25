@@ -1,3 +1,4 @@
+using HotChocolate.Data.Neo4J.Integration.Tests.AnnotationBased.Models;
 using HotChocolate.Data.Neo4J.Integration.Tests.AnnotationBased.Schema;
 using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Execution;
@@ -56,13 +57,17 @@ public class Neo4JFixture : Neo4JFixtureBase
         return await new ServiceCollection()
             .AddSingleton(database.Driver)
             .AddGraphQL()
-            .AddQueryType(d => d.Name("Query"))
+            .AddQueryType(d => d.Name("Query")
+                .Field("actors")
+                .SetupNeo4JTestField<Actor>(database.GetAsyncSession))
             .AddType<Queries>()
+            .AddSorting()
             .AddNeo4JPagingProviders()
             .AddNeo4JProjections()
             .AddNeo4JFiltering()
             .AddNeo4JSorting()
             .UseDefaultPipeline()
+            .SetupNeo4JTestResponse()
             .Services
             .BuildServiceProvider()
             .GetRequiredService<IRequestExecutorResolver>()

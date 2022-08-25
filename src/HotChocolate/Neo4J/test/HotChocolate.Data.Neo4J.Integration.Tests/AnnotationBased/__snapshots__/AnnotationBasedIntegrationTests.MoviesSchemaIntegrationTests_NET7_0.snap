@@ -1,0 +1,262 @@
+MoviesSchema_Actors_Query Result:
+---------------
+{
+  "data": {
+    "actors": {
+      "items": [
+        {
+          "name": "Joel Silver",
+          "actedIn": []
+        },
+        {
+          "name": "Lana Wachowski",
+          "actedIn": []
+        },
+        {
+          "name": "Lilly Wachowski",
+          "actedIn": []
+        },
+        {
+          "name": "Emil Eifrem",
+          "actedIn": [
+            {
+              "title": "The Matrix"
+            }
+          ]
+        },
+        {
+          "name": "Carrie-Anne Moss",
+          "actedIn": [
+            {
+              "title": "The Matrix"
+            },
+            {
+              "title": "The Matrix Reloaded"
+            },
+            {
+              "title": "The Matrix Revolutions"
+            }
+          ]
+        },
+        {
+          "name": "Hugo Weaving",
+          "actedIn": [
+            {
+              "title": "The Matrix"
+            },
+            {
+              "title": "The Matrix Reloaded"
+            },
+            {
+              "title": "The Matrix Revolutions"
+            }
+          ]
+        },
+        {
+          "name": "Keanu Reeves",
+          "actedIn": [
+            {
+              "title": "The Matrix"
+            },
+            {
+              "title": "The Matrix Reloaded"
+            },
+            {
+              "title": "The Matrix Revolutions"
+            }
+          ]
+        },
+        {
+          "name": "Laurence Fishburne",
+          "actedIn": [
+            {
+              "title": "The Matrix"
+            },
+            {
+              "title": "The Matrix Reloaded"
+            },
+            {
+              "title": "The Matrix Revolutions"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+---------------
+
+MoviesSchema_Actors_Query Query:
+---------------
+MATCH (actor:Actor) RETURN actor {.Name, ActedIn: [(actor:Actor)-[:ACTED_IN]->(movie:Movie) | movie {.Title}]} ORDER BY actor {.Name, ActedIn: [(actor:Actor)-[:ACTED_IN]->(movie:Movie) | movie {.Title}]} ASC LIMIT 11
+---------------
+
+MoviesSchema_Name_StartsWith_Actors_Query Result:
+---------------
+{
+  "data": {
+    "actors": {
+      "items": [
+        {
+          "name": "Keanu Reeves",
+          "actedIn": [
+            {
+              "title": "The Matrix"
+            },
+            {
+              "title": "The Matrix Reloaded"
+            },
+            {
+              "title": "The Matrix Revolutions"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+---------------
+
+MoviesSchema_Name_StartsWith_Actors_Query Query:
+---------------
+MATCH (actor:Actor) WHERE actor.Name STARTS WITH 'Keanu' RETURN actor {.Name, ActedIn: [(actor:Actor)-[:ACTED_IN]->(movie:Movie) | movie {.Title}]} ORDER BY actor {.Name, ActedIn: [(actor:Actor)-[:ACTED_IN]->(movie:Movie) | movie {.Title}]} ASC LIMIT 11
+---------------
+
+MoviesSchema_Movies_Query
+---------------
+{
+  "data": {
+    "movies": {
+      "items": [
+        {
+          "title": "The Matrix"
+        },
+        {
+          "title": "The Matrix Reloaded"
+        },
+        {
+          "title": "The Matrix Revolutions"
+        }
+      ]
+    }
+  }
+}
+---------------
+
+MoviesSchema_Name_Desc_Sort_Actors_Query Result:
+---------------
+{
+  "data": {
+    "actors": {
+      "items": [
+        {
+          "name": "Joel Silver",
+          "actedIn": []
+        },
+        {
+          "name": "Lana Wachowski",
+          "actedIn": []
+        },
+        {
+          "name": "Lilly Wachowski",
+          "actedIn": []
+        },
+        {
+          "name": "Emil Eifrem",
+          "actedIn": [
+            {
+              "title": "The Matrix"
+            }
+          ]
+        },
+        {
+          "name": "Carrie-Anne Moss",
+          "actedIn": [
+            {
+              "title": "The Matrix"
+            },
+            {
+              "title": "The Matrix Reloaded"
+            },
+            {
+              "title": "The Matrix Revolutions"
+            }
+          ]
+        },
+        {
+          "name": "Hugo Weaving",
+          "actedIn": [
+            {
+              "title": "The Matrix"
+            },
+            {
+              "title": "The Matrix Reloaded"
+            },
+            {
+              "title": "The Matrix Revolutions"
+            }
+          ]
+        },
+        {
+          "name": "Keanu Reeves",
+          "actedIn": [
+            {
+              "title": "The Matrix"
+            },
+            {
+              "title": "The Matrix Reloaded"
+            },
+            {
+              "title": "The Matrix Revolutions"
+            }
+          ]
+        },
+        {
+          "name": "Laurence Fishburne",
+          "actedIn": [
+            {
+              "title": "The Matrix"
+            },
+            {
+              "title": "The Matrix Reloaded"
+            },
+            {
+              "title": "The Matrix Revolutions"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+---------------
+
+MoviesSchema_Name_Desc_Sort_Actors_Query Query:
+---------------
+MATCH (actor:Actor) RETURN actor {.Name, ActedIn: [(actor:Actor)-[:ACTED_IN]->(movie:Movie) | movie {.Title}]} ORDER BY actor {.Name, ActedIn: [(actor:Actor)-[:ACTED_IN]->(movie:Movie) | movie {.Title}]} ASC LIMIT 11
+---------------
+
+MoviesSchema_Name_Desc_Sort_Actors_SkipOne_TakeTwo_Query Result:
+---------------
+{
+  "data": {
+    "actors": {
+      "items": [
+        {
+          "name": "Lana Wachowski",
+          "actedIn": []
+        },
+        {
+          "name": "Lilly Wachowski",
+          "actedIn": []
+        }
+      ]
+    }
+  }
+}
+---------------
+
+MoviesSchema_Name_Desc_Sort_Actors_SkipOne_TakeTwo_Query Query:
+---------------
+MATCH (actor:Actor) RETURN actor {.Name, ActedIn: [(actor:Actor)-[:ACTED_IN]->(movie:Movie) | movie {.Title}]} ORDER BY actor {.Name, ActedIn: [(actor:Actor)-[:ACTED_IN]->(movie:Movie) | movie {.Title}]} ASC SKIP 1 LIMIT 3
+---------------

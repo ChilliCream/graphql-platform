@@ -14,19 +14,19 @@ internal static class TestSetupExtensions
         return fieldDescriptor.Resolve(ctx =>
         {
             var executable = new Neo4JExecutable<TEntity>(session(default));
-            ctx.ContextData[nameof(Neo4JExecutable<TEntity>)] = executable;
+            ctx.ContextData[nameof(INeo4JExecutable)] = executable;
             return executable;
         });
     }
 
-    public static IRequestExecutorBuilder SetupNeo4JTestResponse<TEntity>(this IRequestExecutorBuilder builder)
+    public static IRequestExecutorBuilder SetupNeo4JTestResponse(this IRequestExecutorBuilder builder)
     {
         return builder.UseRequest(
             next => async context =>
             {
                 await next(context);
 
-                if (context.ContextData.TryGetValue(nameof(Neo4JExecutable<TEntity>), out var query)
+                if (context.ContextData.TryGetValue(nameof(INeo4JExecutable), out var query)
                     && query is IExecutable executable)
                 {
                     context.Result =

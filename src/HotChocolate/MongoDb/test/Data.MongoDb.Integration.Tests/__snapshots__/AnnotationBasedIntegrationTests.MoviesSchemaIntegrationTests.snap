@@ -1,0 +1,19 @@
+{
+  "data": {
+    "actors": {
+      "items": [
+        {
+          "name": "Test",
+          "actedIn": [
+            {
+              "title": "Test Movie 1"
+            },
+            {
+              "title": "Test Movie 2"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
