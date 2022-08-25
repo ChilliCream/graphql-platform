@@ -11,24 +11,47 @@ query GetPersonById {
 }
 ---------------
 
-Request 1
+QueryPlan
 ---------------
-query GetPersonById_1 {
-  personById(id: 4) {
-    name
-    friends {
-      name
-      __fusion_exports__1: id
-    }
-  }
-}
----------------
-
-Request 2
----------------
-query GetPersonById_2($__fusion_exports__1: Int!) {
-  personById(id: $__fusion_exports__1) {
-    bio
+{
+  "document": "query GetPersonById {\n  personById(id: 4) {\n    name\n    friends {\n      name\n      bio\n    }\n  }\n}",
+  "operation": "GetPersonById",
+  "rootNode": {
+    "type": "Serial",
+    "nodes": [
+      {
+        "type": "Fetch",
+        "schemaName": "a",
+        "document": "query GetPersonById_1 {\n  personById(id: 4) {\n    name\n    friends {\n      name\n      __fusion_exports__1: id\n    }\n  }\n}",
+        "selectionSetId": 0
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          0
+        ]
+      },
+      {
+        "type": "Fetch",
+        "schemaName": "b",
+        "document": "query GetPersonById_2($__fusion_exports__1: Int!) {\n  personById(id: $__fusion_exports__1) {\n    bio\n  }\n}",
+        "selectionSetId": 2,
+        "path": [
+          "personById"
+        ],
+        "requires": [
+          {
+            "variable": "__fusion_exports__1"
+          }
+        ]
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          2
+        ]
+      }
+    ]
   }
 }
 ---------------

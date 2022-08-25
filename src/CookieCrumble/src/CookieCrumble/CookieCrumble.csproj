@@ -20,4 +20,8 @@
     <ProjectReference Include="..\..\..\HotChocolate\Core\src\Core\HotChocolate.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0' OR '$(TargetFramework)' == 'net6.0'">
+    <ProjectReference Include="..\..\..\HotChocolate\Fusion\src\Core\HotChocolate.Fusion.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -1,33 +1,63 @@
+using System.Collections.Concurrent;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Fusion.Clients;
+using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;
 
 namespace HotChocolate.Fusion.Execution;
 
-internal sealed class FederatedQueryContext
+internal sealed class FederatedQueryContext : IFederationContext
 {
+    private readonly GraphQLClientFactory _clientFactory;
+
     public FederatedQueryContext(
+        ServiceConfiguration serviceConfig,
+        QueryPlan queryPlan,
         OperationContext operationContext,
-        QueryPlan plan,
-        IReadOnlySet<ISelectionSet> requiresFetch)
+        GraphQLClientFactory clientFactory)
     {
-        OperationContext = operationContext;
-        Plan = plan;
-        RequiresFetch = requiresFetch;
+        ServiceConfig = serviceConfig ??
+            throw new ArgumentNullException(nameof(serviceConfig));
+        QueryPlan = queryPlan ??
+            throw new ArgumentNullException(nameof(queryPlan));
+        OperationContext = operationContext ??
+            throw new ArgumentNullException(nameof(operationContext));
+        _clientFactory = clientFactory;
     }
+
+    public ServiceConfiguration ServiceConfig { get; }
+
+    public QueryPlan QueryPlan { get; }
+
+    public IExecutionState State { get; } = new ExecutionState();
 
     public OperationContext OperationContext { get; }
 
-    public ISchema Schema => OperationContext.Schema;
+    public ConcurrentQueue<WorkItem> Work { get; } = new();
 
-    public ResultBuilder Result => OperationContext.Result;
+    public Dictionary<QueryPlanNode, List<WorkItem>> WorkByNode { get; } = new();
 
-    public IOperation Operation => OperationContext.Operation;
+    public HashSet<QueryPlanNode> Completed { get; } = new();
 
-    public QueryPlan Plan { get; }
+    public bool NeedsMoreData(ISelectionSet selectionSet)
+        => QueryPlan.HasNodes(selectionSet);
 
-    public IReadOnlySet<ISelectionSet> RequiresFetch { get; }
+    // TODO : implement batching here
+    public async Task<IReadOnlyList<GraphQLResponse>> ExecuteAsync(
+        string schemaName,
+        IReadOnlyList<GraphQLRequest> requests,
+        CancellationToken cancellationToken)
+    {
+        var client = _clientFactory.Create(schemaName);
+        var responses = new GraphQLResponse[requests.Count];
 
-    public List<WorkItem> Fetch { get; } = new();
+        for (var i = 0; i < requests.Count; i++)
+        {
+            responses[i] =
+                await client.ExecuteAsync(requests[i], cancellationToken)
+                    .ConfigureAwait(false);
+        }
 
-    public Queue<WorkItem> Compose { get; } = new();
+        return responses;
+    }
 }

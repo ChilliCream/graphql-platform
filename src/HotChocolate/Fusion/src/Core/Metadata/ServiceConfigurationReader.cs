@@ -3,6 +3,7 @@ using HotChocolate.Language.Visitors;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
 using static HotChocolate.Fusion.Metadata.ConfigurationDirectiveNames;
+using static HotChocolate.Fusion.ThrowHelper;
 using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 
 namespace HotChocolate.Fusion.Metadata;
@@ -12,30 +13,33 @@ internal sealed class ServiceConfigurationReader
     private readonly HashSet<string> _assert = new();
 
     public ServiceConfiguration Read(string sourceText)
-        => ReadServiceDefinition(Utf8GraphQLParser.Parse(sourceText));
+        => Read(Utf8GraphQLParser.Parse(sourceText));
 
     public ServiceConfiguration Read(DocumentNode document)
-        => ReadServiceDefinition(document);
-
-    private ServiceConfiguration ReadServiceDefinition(DocumentNode documentNode)
     {
-        var schemaDef = documentNode.Definitions.OfType<SchemaDefinitionNode>().FirstOrDefault();
+        if (document is null)
+        {
+            throw new ArgumentNullException(nameof(document));
+        }
+
+        return ReadServiceDefinition(document);
+    }
+
+    private ServiceConfiguration ReadServiceDefinition(DocumentNode document)
+    {
+        var schemaDef = document.Definitions.OfType<SchemaDefinitionNode>().FirstOrDefault();
 
         if (schemaDef is null)
         {
-            // todo : exception
-            throw new ArgumentException(
-                "The service configuration must contain a schema definition.",
-                nameof(documentNode));
+            throw ServiceConfDocumentMustContainSchemaDef();
         }
 
         var types = new List<IType>();
-        var context = ConfigurationDirectiveNamesContext.From(documentNode);
+        var context = ConfigurationDirectiveNamesContext.From(document);
         var httpClientConfigs = ReadHttpClientConfigs(context, schemaDef.Directives);
         var typeNameField = CreateTypeNameField(httpClientConfigs.Select(t => t.SchemaName));
 
-
-        foreach (var definition in documentNode.Definitions)
+        foreach (var definition in document.Definitions)
         {
             switch (definition)
             {
@@ -47,14 +51,12 @@ internal sealed class ServiceConfigurationReader
 
         if (httpClientConfigs is not { Count: > 0 })
         {
-            // TODO : EXCEPTION
-            throw new Exception("No clients configured");
+            throw ServiceConfNoClientsSpecified();
         }
 
         if (types.Count == 0)
         {
-            // TODO : EXCEPTION
-            throw new Exception("No types");
+            throw ServiceConfNoTypesSpecified();
         }
 
         return new ServiceConfiguration(types, httpClientConfigs);
@@ -419,19 +421,17 @@ internal sealed class ServiceConfigurationReader
     {
         if (valueNode is not T casted)
         {
-            // TODO : EXCEPTION
-            throw new InvalidOperationException("Invalid value");
+            throw ServiceConfInvalidValue(typeof(T), valueNode);
         }
 
         return casted;
     }
 
-    private void AssertName(DirectiveNode directive, string expectedName)
+    private static void AssertName(DirectiveNode directive, string expectedName)
     {
         if (!directive.Name.Value.EqualsOrdinal(expectedName))
         {
-            // TODO : EXCEPTION
-            throw new InvalidOperationException("INVALID DIRECTIVE NAME");
+            throw ServiceConfInvalidDirectiveName(expectedName, directive.Name.Value);
         }
     }
 
@@ -439,10 +439,7 @@ internal sealed class ServiceConfigurationReader
     {
         if (directive.Arguments.Count == 0)
         {
-            // TODO : EXCEPTION
-            throw new InvalidOperationException(
-                $"The directive `{directive.Name.Value}` has required arguments " +
-                "but non were provided.");
+            throw ServiceConfNoDirectiveArgs(directive.Name.Value);
         }
 
         _assert.Clear();
@@ -456,12 +453,11 @@ internal sealed class ServiceConfigurationReader
 
         if (_assert.Count > 0)
         {
-            throw new InvalidOperationException(
-                $"Expected arguments for the directive `{directive.Name.Value}` are " +
-                $"`{string.Join(", ", expectedArguments)}`. " +
-                "The service configuration reader found the following arguments " +
-                $"`{string.Join(", ", _assert)}` on the directive in line number " +
-                $"{directive.Location!.Line}.");
+            throw ServiceConfInvalidDirectiveArgs(
+                directive.Name.Value,
+                expectedArguments,
+                _assert,
+                directive.Location?.Line ?? -1);
         }
     }
 }
