@@ -90,8 +90,8 @@ public class QueryableFilterVisitorDistanceTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
                     Snapshot
                         .Create(), res1, "2"), res2, "1")
             .MatchAsync();

@@ -161,7 +161,7 @@ public class QueryableProjectionFilterTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), res1)
             .MatchAsync();
@@ -201,7 +201,7 @@ public class QueryableProjectionFilterTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), res1)
             .MatchAsync();
@@ -239,7 +239,7 @@ public class QueryableProjectionFilterTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), res1)
             .MatchAsync();
@@ -278,7 +278,7 @@ public class QueryableProjectionFilterTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), res1)
             .MatchAsync();
@@ -304,7 +304,7 @@ public class QueryableProjectionFilterTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), res1)
             .MatchAsync();
@@ -332,7 +332,7 @@ public class QueryableProjectionFilterTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), res1)
             .MatchAsync();
@@ -365,7 +365,7 @@ public class QueryableProjectionFilterTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), res1)
             .MatchAsync();

@@ -74,7 +74,7 @@ public class Neo4JRelationshipProjectionTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), res1)
             .MatchAsync();
@@ -109,7 +109,7 @@ public class Neo4JRelationshipProjectionTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), res1)
             .MatchAsync();

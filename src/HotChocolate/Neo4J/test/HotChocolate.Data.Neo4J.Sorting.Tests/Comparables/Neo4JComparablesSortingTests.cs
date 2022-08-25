@@ -46,8 +46,8 @@ public class Neo4JComparablesSortingTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
                     Snapshot
                         .Create(), res1, "ASC"), res2, "DESC")
             .MatchAsync();
