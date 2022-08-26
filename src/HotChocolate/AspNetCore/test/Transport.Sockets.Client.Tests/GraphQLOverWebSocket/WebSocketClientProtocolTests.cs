@@ -1,3 +1,5 @@
+#nullable enable
+
 using CookieCrumble;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Subscriptions;
@@ -6,8 +8,6 @@ using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
 using HotChocolate.Transport.Sockets.Client;
 using Microsoft.Extensions.DependencyInjection;
-
-#nullable enable
 
 namespace HotChocolate.Transport.Sockets.GraphQLOverWebSocket;
 
@@ -19,8 +19,9 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
     }
 
     [Fact]
-    public Task Send_Connect_Accept()
-        => TryTest(async ct =>
+    public async Task Send_Connect_Accept()
+    {
+        await TryTest(async ct =>
         {
             // arrange
             using var testServer = CreateStarWarsServer();
@@ -33,13 +34,14 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
             // assert
             // no error
         });
+    }
 
     [Fact]
-    public Task Subscribe_ReceiveDataOnMutation()
+    public async Task Subscribe_ReceiveDataOnMutation()
     {
         var snapshot = new Snapshot();
 
-        return TryTest(async ct =>
+        await TryTest(async ct =>
         {
             // arrange
             var subscriptionRequest = new OperationRequest(
@@ -74,7 +76,8 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
 
             // receive event result on the stream
             await foreach (var operationResult in
-                socketResult.ReadResultsAsync().WithCancellation(ct))
+                           socketResult.ReadResultsAsync()
+                               .WithCancellation(ct))
             {
                 result = operationResult.Data.ToString();
                 operationResult.Dispose();
@@ -82,14 +85,15 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
             }
 
             // assert
-            await snapshot.Add(result).MatchAsync(ct);
+            await snapshot.Add(result)
+                .MatchAsync(ct);
         });
     }
 
     [Fact]
-    public Task Subscribe_Disconnect()
+    public async Task Subscribe_Disconnect()
     {
-        return TryTest(async ct =>
+        await TryTest(async ct =>
         {
             // arrange
             var subscriptionRequest = new OperationRequest(
@@ -109,7 +113,8 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
 
             // assert
             // ... try iterate
-            await foreach (var unused in socketResult.ReadResultsAsync().WithCancellation(ct))
+            await foreach (var unused in socketResult.ReadResultsAsync()
+                               .WithCancellation(ct))
             {
                 Assert.True(false, "Stream should have been aborted");
             }
@@ -117,11 +122,11 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
     }
 
     [Fact]
-    public Task Send_Subscribe_SyntaxError()
+    public async Task Send_Subscribe_SyntaxError()
     {
         var snapshot = new Snapshot();
 
-        return TryTest(async ct =>
+        await TryTest(async ct =>
         {
             // arrange
             var subscriptionRequest = new OperationRequest(
@@ -136,7 +141,8 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
             var socketResult = await client.ExecuteAsync(subscriptionRequest, ct);
 
             // assert
-            await foreach (var result in socketResult.ReadResultsAsync().WithCancellation(ct))
+            await foreach (var result in socketResult.ReadResultsAsync()
+                               .WithCancellation(ct))
             {
                 Assert.Null(result.Data);
                 Assert.NotNull(result.Errors);
@@ -149,11 +155,11 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
     }
 
     [Fact]
-    public Task Send_Subscribe_ValidationError()
+    public async Task Send_Subscribe_ValidationError()
     {
         var snapshot = new Snapshot();
 
-        return TryTest(async ct =>
+        await TryTest(async ct =>
         {
             // arrange
             var subscriptionRequest = new OperationRequest(
@@ -168,7 +174,8 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
             var socketResult = await client.ExecuteAsync(subscriptionRequest, ct);
 
             // assert
-            await foreach (var result in socketResult.ReadResultsAsync().WithCancellation(ct))
+            await foreach (var result in socketResult.ReadResultsAsync()
+                               .WithCancellation(ct))
             {
                 Assert.Null(result.Data);
                 Assert.NotNull(result.Errors);
@@ -181,8 +188,9 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
     }
 
     [Fact]
-    public Task Send_Connect_With_Auth_Accept()
-        => TryTest(async ct =>
+    public async Task Send_Connect_With_Auth_Accept()
+    {
+        await TryTest(async ct =>
         {
             // arrange
             var interceptor = new AuthInterceptor();
@@ -199,10 +207,12 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
             // assert
             // no error
         });
+    }
 
     [Fact]
-    public Task Send_Connect_With_Auth_Reject()
-        => TryTest(async ct =>
+    public async Task Send_Connect_With_Auth_Reject()
+    {
+        await TryTest(async ct =>
         {
             // arrange
             var interceptor = new AuthInterceptor();
@@ -220,6 +230,7 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
             var error = await Assert.ThrowsAsync<SocketClosedException>(Connect);
             Assert.Equal(4401, (int)error.Reason);
         });
+    }
 
     private class AuthInterceptor : DefaultSocketSessionInterceptor
     {
@@ -231,11 +242,9 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
             var payload = connectionInitMessage.As<Auth>();
 
             if (payload?.Token is not null)
-            {
                 return base.OnConnectAsync(session, connectionInitMessage, cancellationToken);
-            }
 
-            return new(ConnectionStatus.Reject());
+            return new ValueTask<ConnectionStatus>(ConnectionStatus.Reject());
         }
     }
 
