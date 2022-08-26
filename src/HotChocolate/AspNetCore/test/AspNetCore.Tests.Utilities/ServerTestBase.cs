@@ -14,16 +14,16 @@ namespace HotChocolate.AspNetCore.Tests.Utilities;
 
 public abstract class ServerTestBase : IClassFixture<TestServerFactory>
 {
-    private readonly ITestOutputHelper? _testOutputHelper;
-
     protected ServerTestBase(TestServerFactory serverFactory, ITestOutputHelper? testOutputHelper = default)
     {
         ServerFactory = serverFactory;
 
-        _testOutputHelper = testOutputHelper;
+        TestOutputHelper = testOutputHelper;
     }
 
     protected TestServerFactory ServerFactory { get; }
+
+    protected ITestOutputHelper? TestOutputHelper { get; }
 
     protected virtual TestServer CreateStarWarsServer(
         string pattern = "/graphql",
@@ -34,7 +34,7 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
             services =>
             {
                 services
-                    .AddTestLogging(_testOutputHelper)
+                    .AddTestLogging(TestOutputHelper)
                     .AddRouting()
                     .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
@@ -96,6 +96,7 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
     {
         return ServerFactory.Create(
             services => services
+                .AddTestLogging(TestOutputHelper)
                 .AddRouting()
                 .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                 .AddGraphQLServer()

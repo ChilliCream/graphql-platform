@@ -28,9 +28,22 @@ public class TestServerFactory : IDisposable
 
     public void Dispose()
     {
+        var exceptions = new List<Exception>();
         foreach (var testServer in _instances)
         {
-            testServer.Dispose();
+            try
+            {
+                testServer.Dispose();
+            }
+            catch (Exception ex)
+            {
+                exceptions.Add(ex);
+            }
+        }
+
+        if (exceptions.Count > 0)
+        {
+            throw new AggregateException(exceptions);
         }
     }
 }

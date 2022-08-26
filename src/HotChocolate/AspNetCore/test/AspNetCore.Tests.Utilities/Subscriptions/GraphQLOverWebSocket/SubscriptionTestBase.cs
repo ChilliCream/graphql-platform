@@ -111,39 +111,46 @@ public class SubscriptionTestBase : ServerTestBase
         return client;
     }
 
-    protected static async Task TryTest(Func<CancellationToken, Task> action)
+    protected async Task TryTest(Func<CancellationToken, Task> action)
     {
         // we will try four times ....
         using var cts = new CancellationTokenSource(Debugger.IsAttached ? 600_000_000 : 15_000);
         var ct = cts.Token;
-        var count = 0;
+        var count = 1;
         var wait = 50;
 
-        while (true)
+        var exceptions = new List<Exception>();
+        while (count <= 4)
         {
             ct.ThrowIfCancellationRequested();
 
-            if (count < 3)
+            try
             {
-                try
-                {
-                    await action(ct).ConfigureAwait(false);
-                    break;
-                }
-                catch
-                {
-                    // try again
-                }
-            }
-            else
-            {
-                await action(ct).ConfigureAwait(false);
+                TestOutputHelper?.WriteLine($"Executing Test Attempt (#{count})...");
+
+                await action(ct)
+                    .ConfigureAwait(false);
+
+                TestOutputHelper?.WriteLine($"Completed Test Attempt (#{count}) successfully...");
+
                 break;
+            }
+            catch(Exception ex)
+            {
+                TestOutputHelper?.WriteLine($"Completed Test Attempt (#{count}) Unsuccessfully...");
+                TestOutputHelper?.WriteLine(ex.Message);
+
+                exceptions.Add(ex);
             }
 
             await Task.Delay(wait, ct).ConfigureAwait(false);
             wait *= 2;
             count++;
+        }
+
+        if (exceptions.Count > 0)
+        {
+            throw new AggregateException(exceptions);
         }
     }
 }

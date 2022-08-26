@@ -20,8 +20,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     }
 
     [Fact]
-    public Task Send_Connect_Accept()
-        => TryTest(async ct =>
+    public async Task Send_Connect_Accept()
+        => await TryTest(async ct =>
         {
             // arrange
             using var testServer = CreateStarWarsServer();
@@ -38,8 +38,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         });
 
     [Fact]
-    public Task Send_Multiple_Connect_Messages_Close_Connection()
-        => TryTest(async ct =>
+    public async Task Send_Multiple_Connect_Messages_Close_Connection()
+        => await TryTest(async ct =>
         {
             // arrange
             using var testServer = CreateStarWarsServer();
@@ -59,8 +59,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         });
 
     [Fact]
-    public Task Send_Connect_Accept_Ping()
-        => TryTest(async ct =>
+    public async Task Send_Connect_Accept_Ping()
+        => await TryTest(async ct =>
         {
             // arrange
             using var testServer = CreateStarWarsServer(
@@ -88,8 +88,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         });
 
     [Fact]
-    public Task No_ConnectionInit_Timeout()
-        => TryTest(async ct =>
+    public async Task No_ConnectionInit_Timeout()
+        => await TryTest(async ct =>
         {
             // arrange
             using var testServer = CreateStarWarsServer(
@@ -111,8 +111,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         });
 
     [Fact]
-    public Task Send_Connect_With_Auth_Accept()
-        => TryTest(async ct =>
+    public async Task Send_Connect_With_Auth_Accept()
+        => await TryTest(async ct =>
         {
             // arrange
             var interceptor = new AuthInterceptor();
@@ -133,8 +133,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         });
 
     [Fact]
-    public Task Send_Connect_With_Auth_Reject()
-        => TryTest(async ct =>
+    public async Task Send_Connect_With_Auth_Reject()
+        => await TryTest(async ct =>
         {
             // arrange
             var interceptor = new AuthInterceptor();
@@ -155,8 +155,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         });
 
     [Fact]
-    public Task Send_Connect_Accept_Explicit_Route()
-        => TryTest(async ct =>
+    public async Task Send_Connect_Accept_Explicit_Route()
+        => await TryTest(async ct =>
         {
             // arrange
             using var testServer = CreateServer(b => b.MapGraphQLWebSocket());
@@ -175,8 +175,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         });
 
     [Fact]
-    public Task Send_Connect_Accept_Explicit_Route_Explicit_Path()
-        => TryTest(async ct =>
+    public async Task Send_Connect_Accept_Explicit_Route_Explicit_Path()
+        => await TryTest(async ct =>
         {
             // arrange
             using var testServer = CreateServer(b => b.MapGraphQLWebSocket("/foo/bar"));
@@ -195,8 +195,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         });
 
     [Fact]
-    public Task Connect_With_Invalid_Protocol()
-        => TryTest(async ct =>
+    public async Task Connect_With_Invalid_Protocol()
+        => await TryTest(async ct =>
         {
             // arrange
             using var testServer = CreateStarWarsServer();
@@ -214,11 +214,11 @@ public class WebSocketProtocolTests : SubscriptionTestBase
 
     // TODO : Fix Flaky Tests
     [Fact(Skip = "Flaky")]
-    public Task Subscribe_ReceiveDataOnMutation()
+    public async Task Subscribe_ReceiveDataOnMutation()
     {
         var snapshot = new Snapshot();
 
-        return TryTest(async ct =>
+        await TryTest(async ct =>
         {
             // arrange
             using var testServer = CreateStarWarsServer();
@@ -254,9 +254,9 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     }
 
     [Fact]
-    public Task Subscribe_Id_Not_Unique()
+    public async Task Subscribe_Id_Not_Unique()
     {
-        return TryTest(async ct =>
+        await TryTest(async ct =>
         {
             // arrange
             using var testServer = CreateStarWarsServer();
@@ -279,8 +279,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     }
 
     [Fact]
-    public Task Send_Subscribe_No_Auth_Close()
-        => TryTest(async ct =>
+    public async Task Send_Subscribe_No_Auth_Close()
+        => await TryTest(async ct =>
         {
             // arrange
             using var testServer = CreateStarWarsServer();
@@ -300,7 +300,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         });
 
     [Fact]
-    public Task Send_Subscribe_No_Id()
+    public async Task Send_Subscribe_No_Id()
         => TryTest(async ct =>
         {
             // arrange
@@ -319,7 +319,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         });
 
     [Fact]
-    public Task Send_Subscribe_Empty_Id()
+    public async Task Send_Subscribe_Empty_Id()
         => TryTest(async ct =>
         {
             // arrange
@@ -338,7 +338,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         });
 
     [Fact]
-    public Task Send_Subscribe_Complete()
+    public async Task Send_Subscribe_Complete()
         => TryTest(async ct =>
         {
             // arrange
@@ -388,11 +388,11 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         });
 
     [Fact]
-    public Task Send_Subscribe_SyntaxError()
+    public async Task Send_Subscribe_SyntaxError()
     {
         var snapshot = new Snapshot();
 
-        return TryTest(async ct =>
+        await TryTest(async ct =>
         {
             // arrange
             using var testServer = CreateStarWarsServer();
@@ -414,11 +414,11 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     }
 
     [Fact]
-    public Task Send_Subscribe_ValidationError()
+    public async Task Send_Subscribe_ValidationError()
     {
         var snapshot = new Snapshot();
 
-        return TryTest(async ct =>
+        await TryTest(async ct =>
         {
             // arrange
             using var testServer = CreateStarWarsServer();
@@ -440,11 +440,11 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     }
 
     [Fact]
-    public Task Send_Ping()
+    public async Task Send_Ping()
     {
         var snapshot = new Snapshot();
 
-        return TryTest(async ct =>
+        await TryTest(async ct =>
         {
             // arrange
             var interceptor = new PingPongInterceptor();
@@ -466,11 +466,11 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     }
 
     [Fact]
-    public Task Send_Ping_With_Payload()
+    public async Task Send_Ping_With_Payload()
     {
         var snapshot = new Snapshot();
 
-        return TryTest(async ct =>
+        await TryTest(async ct =>
         {
             // arrange
             var interceptor = new PingPongInterceptor();
@@ -492,8 +492,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     }
 
     [Fact]
-    public Task Send_Pong()
-        => TryTest(async ct =>
+    public async Task Send_Pong()
+        => await TryTest(async ct =>
         {
             // arrange
             var interceptor = new PingPongInterceptor();
@@ -513,11 +513,11 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         });
 
     [Fact]
-    public Task Send_Pong_With_Payload()
+    public async Task Send_Pong_With_Payload()
     {
         var snapshot = new Snapshot();
 
-        return TryTest(async ct =>
+        await TryTest(async ct =>
         {
             // arrange
             var interceptor = new PingPongInterceptor();
@@ -538,8 +538,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     }
 
     [Fact]
-    public Task Send_Invalid_Message_String()
-        => TryTest(async ct =>
+    public async Task Send_Invalid_Message_String()
+        => await TryTest(async ct =>
         {
             // arrange
             using var testServer = CreateStarWarsServer();
@@ -556,8 +556,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         });
 
     [Fact]
-    public Task Send_Invalid_Message_No_Type()
-        => TryTest(async ct =>
+    public async Task Send_Invalid_Message_No_Type()
+        => await TryTest(async ct =>
         {
             // arrange
             using var testServer = CreateStarWarsServer();
@@ -574,8 +574,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         });
 
     [Fact]
-    public Task Send_Invalid_Message_Invalid_Type()
-        => TryTest(async ct =>
+    public async Task Send_Invalid_Message_Invalid_Type()
+        => await TryTest(async ct =>
         {
             // arrange
             using var testServer = CreateStarWarsServer();
@@ -592,8 +592,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         });
 
     [Fact]
-    public Task Send_Invalid_Message_Not_An_Object()
-        => TryTest(async ct =>
+    public async Task Send_Invalid_Message_Not_An_Object()
+        => await TryTest(async ct =>
         {
             // arrange
             using var testServer = CreateStarWarsServer();
@@ -610,8 +610,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
         });
 
     [Fact]
-    public Task Normal_Closure()
-        => TryTest(async ct =>
+    public async Task Normal_Closure()
+        => await TryTest(async ct =>
         {
             // arrange
             var interceptor = new AuthInterceptor();
