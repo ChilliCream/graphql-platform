@@ -42,10 +42,10 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
     [Fact]
     public async Task Subscribe_ReceiveDataOnMutation()
     {
-        var snapshot = new Snapshot();
-
         await TryTest(async ct =>
         {
+            var snapshot = new Snapshot();
+
             // arrange
             var subscriptionRequest = new OperationRequest(
                 "subscription { onReview(episode: NEW_HOPE) { stars } }");
@@ -127,10 +127,10 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
     [Fact]
     public async Task Send_Subscribe_SyntaxError()
     {
-        var snapshot = new Snapshot();
-
         await TryTest(async ct =>
         {
+            var snapshot = new Snapshot();
+
             // arrange
             var subscriptionRequest = new OperationRequest(
                 "subscription { onReview(episode: NEW_HOPE) { 123 } }");
@@ -160,10 +160,10 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
     [Fact]
     public async Task Send_Subscribe_ValidationError()
     {
-        var snapshot = new Snapshot();
-
         await TryTest(async ct =>
         {
+            var snapshot = new Snapshot();
+
             // arrange
             var subscriptionRequest = new OperationRequest(
                 "subscription { onReview(episode: NEW_HOPE) { ____ } }");
