@@ -123,10 +123,10 @@ namespace HotChocolate.Analyzers.Diagnostics
             ReportError(
                 context,
                 ErrorBuilder.New()
-                    .SetMessage(exception.Message + Environment.NewLine + exception.GetType().Name)
+                    .SetMessage(exception.Message + '\n' + exception.GetType().Name)
                     .SetException(exception)
                     .Build());
-                    
+
         public static void ReportMissingDependency(
             GeneratorExecutionContext context,
             string packageName) =>
