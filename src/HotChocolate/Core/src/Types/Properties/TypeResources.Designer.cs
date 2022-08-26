@@ -1460,5 +1460,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ReflectionUtils_ExtractMethod_MethodExpected", resourceCulture);
             }
         }
+
+        internal static string TypeInitializer_CannotFindType {
+            get {
+                return ResourceManager.GetString("TypeInitializer_CannotFindType", resourceCulture);
+            }
+        }
     }
 }

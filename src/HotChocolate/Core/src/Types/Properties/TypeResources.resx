@@ -840,4 +840,7 @@ Type: `{0}`</value>
   <data name="ReflectionUtils_ExtractMethod_MethodExpected" xml:space="preserve">
     <value>Member is not a method!</value>
   </data>
+  <data name="TypeInitializer_CannotFindType" xml:space="preserve">
+    <value>Unable to find type(s) {0}</value>
+  </data>
 </root>
