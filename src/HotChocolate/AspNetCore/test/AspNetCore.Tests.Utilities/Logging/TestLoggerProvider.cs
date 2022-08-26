@@ -25,7 +25,7 @@ public class TestLoggerProvider : ILoggerProvider
         {
             builder.AddSimpleConsole(options =>
             {
-                options.ColorBehavior = LoggerColorBehavior.Enabled;
+                options.ColorBehavior = LoggerColorBehavior.Disabled;
                 options.IncludeScopes = true;
                 options.SingleLine = false;
                 options.TimestampFormat = "hh:mm:ss ";
