@@ -1530,7 +1530,9 @@ namespace HotChocolate.Properties {
         internal static string ThrowHelper_FieldBase_Sealed {
             get {
                 return ResourceManager.GetString("ThrowHelper_FieldBase_Sealed", resourceCulture);
-
+            }
+        }
+        
         internal static string TypeInitializer_CannotFindType {
             get {
                 return ResourceManager.GetString("TypeInitializer_CannotFindType", resourceCulture);
