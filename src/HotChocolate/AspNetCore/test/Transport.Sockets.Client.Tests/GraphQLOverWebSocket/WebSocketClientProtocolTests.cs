@@ -8,13 +8,16 @@ using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
 using HotChocolate.Transport.Sockets.Client;
 using Microsoft.Extensions.DependencyInjection;
+using Xunit.Abstractions;
 
 namespace HotChocolate.Transport.Sockets.GraphQLOverWebSocket;
 
 public class WebSocketClientProtocolTests : SubscriptionTestBase
 {
-    public WebSocketClientProtocolTests(TestServerFactory serverFactory)
-        : base(serverFactory)
+    public WebSocketClientProtocolTests(
+        TestServerFactory serverFactory,
+        ITestOutputHelper testOutputHelper)
+        : base(serverFactory, testOutputHelper)
     {
     }
 

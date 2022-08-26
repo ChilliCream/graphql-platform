@@ -1,5 +1,6 @@
 using HotChocolate.AspNetCore.Extensions;
 using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.AspNetCore.Tests.Utilities.Logging;
 using HotChocolate.Execution;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
@@ -7,14 +8,19 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Xunit.Abstractions;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities;
 
 public abstract class ServerTestBase : IClassFixture<TestServerFactory>
 {
-    protected ServerTestBase(TestServerFactory serverFactory)
+    private readonly ITestOutputHelper? _testOutputHelper;
+
+    protected ServerTestBase(TestServerFactory serverFactory, ITestOutputHelper? testOutputHelper = default)
     {
         ServerFactory = serverFactory;
+
+        _testOutputHelper = testOutputHelper;
     }
 
     protected TestServerFactory ServerFactory { get; }
@@ -28,6 +34,7 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
             services =>
             {
                 services
+                    .AddTestLogging(_testOutputHelper)
                     .AddRouting()
                     .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()

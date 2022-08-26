@@ -2,13 +2,14 @@ using System.Diagnostics;
 using System.Net.WebSockets;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using Microsoft.AspNetCore.TestHost;
+using Xunit.Abstractions;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.Apollo;
 
 public class SubscriptionTestBase : ServerTestBase
 {
-    public SubscriptionTestBase(TestServerFactory serverFactory)
-        : base(serverFactory)
+    public SubscriptionTestBase(TestServerFactory serverFactory, ITestOutputHelper testOutputHelper)
+        : base(serverFactory, testOutputHelper)
     {
     }
 

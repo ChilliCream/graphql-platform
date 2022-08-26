@@ -7,6 +7,7 @@ using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.Apollo;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Xunit.Abstractions;
 
 #nullable enable
 
@@ -14,8 +15,8 @@ namespace HotChocolate.AspNetCore.Subscriptions.Apollo;
 
 public class WebSocketProtocolTests : SubscriptionTestBase
 {
-    public WebSocketProtocolTests(TestServerFactory serverFactory)
-        : base(serverFactory)
+    public WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutputHelper testOutputHelper)
+        : base(serverFactory, testOutputHelper)
     {
     }
 

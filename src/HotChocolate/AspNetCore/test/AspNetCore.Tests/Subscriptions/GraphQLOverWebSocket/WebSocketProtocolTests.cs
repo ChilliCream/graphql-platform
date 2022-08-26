@@ -5,6 +5,7 @@ using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Xunit.Abstractions;
 using static System.Net.WebSockets.WebSocketCloseStatus;
 
 #nullable enable
@@ -13,8 +14,8 @@ namespace HotChocolate.AspNetCore.Subscriptions.GraphQLOverWebSocket;
 
 public class WebSocketProtocolTests : SubscriptionTestBase
 {
-    public WebSocketProtocolTests(TestServerFactory serverFactory)
-        : base(serverFactory)
+    public WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutputHelper testOutputHelper)
+        : base(serverFactory, testOutputHelper)
     {
     }
 
