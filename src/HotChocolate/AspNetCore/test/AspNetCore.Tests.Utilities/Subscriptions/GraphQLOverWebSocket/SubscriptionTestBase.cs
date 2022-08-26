@@ -117,10 +117,11 @@ public class SubscriptionTestBase : ServerTestBase
         using var cts = new CancellationTokenSource(Debugger.IsAttached ? 600_000_000 : 15_000);
         var ct = cts.Token;
         var count = 1;
+        const int retries = 4;
         var wait = 50;
 
         var exceptions = new List<Exception>();
-        while (count <= 4)
+        while (count <= retries)
         {
             ct.ThrowIfCancellationRequested();
 
@@ -148,9 +149,12 @@ public class SubscriptionTestBase : ServerTestBase
             count++;
         }
 
-        if (exceptions.Count > 0)
+        if (exceptions.Count == retries)
         {
-            throw new AggregateException(exceptions);
+            var aggregateException = new AggregateException(exceptions);
+            TestOutputHelper?.WriteLine(aggregateException.ToString());
+
+            throw aggregateException;
         }
     }
 }

@@ -627,8 +627,25 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             async Task Close() => await webSocket.CloseAsync(NormalClosure, "I want to close.", ct);
 
             // assert
-            var error = await Assert.ThrowsAsync<IOException>(Close);
-            Assert.Equal("The remote end closed the connection.", error.Message);
+            var closeTask = Task.Run(async () =>
+            {
+                try
+                {
+                    await Close();
+                }
+                catch (IOException io1) when
+                    (io1.Message == "The remote end closed the connection.")
+                {
+                    // Do nothing.
+                }
+                catch (IOException io) when
+                    (io.Message == "Cannot access a disposed object.")
+                {
+                    // Do nothing.
+                }
+            }, ct);
+
+            await closeTask;
         });
 
     private class AuthInterceptor : DefaultSocketSessionInterceptor
