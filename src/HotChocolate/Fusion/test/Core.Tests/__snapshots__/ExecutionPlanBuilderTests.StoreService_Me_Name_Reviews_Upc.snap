@@ -14,27 +14,47 @@ query Me {
 }
 ---------------
 
-Request 1
+Query Plan
 ---------------
-query Me_1 {
-  me: authorById(id: 1) {
-    reviews {
-      nodes {
-        product {
-          upc
-        }
+{
+  "document": "query Me {\n  me {\n    name\n    reviews {\n      nodes {\n        product {\n          upc\n        }\n      }\n    }\n  }\n}",
+  "operation": "Me",
+  "rootNode": {
+    "type": "Serial",
+    "nodes": [
+      {
+        "type": "Fetch",
+        "schemaName": "reviews",
+        "document": "query Me_1 {\n  me: authorById(id: 1) {\n    reviews {\n      nodes {\n        product {\n          upc\n        }\n      }\n    }\n    __fusion_exports__1: id\n  }\n}",
+        "selectionSetId": 0
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          0
+        ]
+      },
+      {
+        "type": "Fetch",
+        "schemaName": "accounts",
+        "document": "query Me_2($__fusion_exports__1: Int!) {\n  user(id: $__fusion_exports__1) {\n    name\n  }\n}",
+        "selectionSetId": 1,
+        "path": [
+          "user"
+        ],
+        "requires": [
+          {
+            "variable": "__fusion_exports__1"
+          }
+        ]
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          1
+        ]
       }
-    }
-    __fusion_exports__1: id
-  }
-}
----------------
-
-Request 2
----------------
-query Me_2($__fusion_exports__1: Int!) {
-  user(id: $__fusion_exports__1) {
-    name
+    ]
   }
 }
 ---------------
