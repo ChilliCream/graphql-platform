@@ -64,12 +64,15 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             Node,
             Relay_NodeField_Description,
             node,
-            ResolveNodeAsync) { Arguments = { new(Id, Relay_NodeField_Id_Description, id) } };
+            ctx => ResolveSingleNode(ctx, serializer, Id))
+        {
+            Arguments =
+            {
+                new ArgumentDefinition(Id, Relay_NodeField_Id_Description, id)
+            }
+        };
 
         fields.Insert(index, field);
-
-        ValueTask<object?> ResolveNodeAsync(IResolverContext ctx)
-            => ResolveSingleNode(ctx, serializer, Id);
     }
 
     private static void CreateNodesField(
@@ -84,12 +87,15 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             Nodes,
             Relay_NodesField_Description,
             nodes,
-            ResolveNodeAsync) { Arguments = { new(Ids, Relay_NodesField_Ids_Description, ids) } };
+            ctx => ResolveManyNode(ctx, serializer))
+        {
+            Arguments =
+            {
+                new ArgumentDefinition(Ids, Relay_NodesField_Ids_Description, ids)
+            }
+        };
 
         fields.Insert(index, field);
-
-        ValueTask<object?> ResolveNodeAsync(IResolverContext ctx)
-            => ResolveManyNode(ctx, serializer);
     }
 
     private static async ValueTask<object?> ResolveSingleNode(
@@ -200,5 +206,13 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
     {
         Path itemPath = PathFactory.Instance.Append(context.Path, item);
         context.ReportError(ex, error => error.SetPath(itemPath));
+    }
+}
+
+internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
+{
+    public override bool CanHandle(ITypeSystemObjectContext context)
+    {
+        return base.CanHandle(context);
     }
 }
