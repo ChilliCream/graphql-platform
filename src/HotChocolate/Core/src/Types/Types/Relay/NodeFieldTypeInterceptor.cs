@@ -114,10 +114,19 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
         context.SetLocalState(WellKnownContextData.IdValue, deserializedId);
 
         if (context.Schema.TryGetType<ObjectType>(typeName, out var type) &&
-            type.ContextData.TryGetValue(NodeResolver, out var o) &&
-            o is FieldResolverDelegate resolver)
+            type.ContextData.TryGetValue(NodeResolver, out var o))
         {
-            return await resolver.Invoke(context).ConfigureAwait(false);
+            if (o is FieldResolverDelegate resolver)
+            {
+                return await resolver.Invoke(context).ConfigureAwait(false);
+            }
+
+            if (o is FieldDelegate pipeline)
+            {
+                var m = (IMiddlewareContext)context;
+                await pipeline.Invoke(m);
+                return m.Result;
+            }
         }
 
         return null;
@@ -212,16 +221,25 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
 
 internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
 {
-    public override void OnAfterCompleteName(
+    private readonly List<IDictionary<string, object?>> _nodes = new();
+    private ObjectType? _queryType;
+
+    public override bool TriggerAggregations => true;
+
+    internal override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
+        DefinitionBase definition,
+        OperationType operationType,
         IDictionary<string, object?> contextData)
     {
         // we are only interested in the query type to infer node resolvers
         // from the specified query fields.
         if ((completionContext.IsQueryType ?? false) &&
-            definition is ObjectTypeDefinition typeDef)
+            definition is ObjectTypeDefinition typeDef &&
+            completionContext.Type is ObjectType queryType)
         {
+            _queryType = queryType;
+
             foreach (var fieldDef in typeDef.Fields)
             {
                 var resolverMember = fieldDef.ResolverMember ?? fieldDef.Member;
@@ -255,12 +273,9 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
                             "A field argument at this initialization state is guaranteed to have an argument type, but we found none.");
                     }
 
-                    // We will ensure that the node id argument is always a non-null ID type.
-                    argument.Type = TypeReference.Create("ID!");
-
                     var fieldType = completionContext.GetType<IType>(fieldDef.Type);
 
-                    if (fieldType.IsObjectType())
+                    if (!fieldType.IsObjectType())
                     {
                         // todo: error helper
                         completionContext.ReportError(
@@ -280,12 +295,45 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
                             "An object type at this point is guaranteed to have a type definition, but we found none.");
                     }
 
+                    var idDef = fieldTypeDef.Fields.FirstOrDefault(t => t.Name.EqualsOrdinal("id"));
+
+                    if (idDef is null)
+                    {
+                        // todo: error helper
+                        completionContext.ReportError(
+                            SchemaErrorBuilder
+                                .New()
+                                .SetMessage("A type implementing the node interface must expose an id field.")
+                                .Build());
+                        continue;
+                    }
+
                     // we will ensure that the object type is implementing the node type interface.
-                    typeDef.Interfaces.Add(TypeReference.Create("Node"));
+                    fieldTypeDef.Interfaces.Add(TypeReference.Parse("Node"));
+                    fieldTypeDef.ContextData[NodeResolver] = fieldDef.Name;
 
+                    // TODO : the typename is not guaranteed yet.
+                    // We will ensure that the node id argument is always a non-null ID type.
+                    argument.Type = TypeReference.Parse("ID!");
+                    RelayIdFieldHelpers.AddSerializerToInputField(completionContext, argument, fieldTypeDef.Name);
 
+                    idDef.Type = argument.Type;
+                    RelayIdFieldHelpers.ApplyIdToField(idDef);
 
+                    _nodes.Add(fieldTypeDef.ContextData);
                 }
+            }
+        }
+    }
+
+    public override void OnAfterCompleteTypes()
+    {
+        if (_queryType is not null && _nodes.Count > 0)
+        {
+            foreach (var node in _nodes)
+            {
+                var fieldName = (string)node[NodeResolver]!;
+                node[NodeResolver] = _queryType.Fields[fieldName].Middleware;
             }
         }
     }

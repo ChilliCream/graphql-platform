@@ -16,9 +16,9 @@ internal static class FieldMiddlewareCompiler
         bool skipMiddleware)
     {
         if (skipMiddleware ||
-            globalComponents.Count == 0 &&
+            (globalComponents.Count == 0 &&
             fieldComponents.Count == 0 &&
-            resultConverters.Count == 0)
+            resultConverters.Count == 0))
         {
             return fieldResolver is null
                 ? null

@@ -282,7 +282,7 @@ internal class TypeInitializer
                 .Select(t => t.Name)
                 .Distinct())
             {
-                var type = types.FirstOrDefault(t => t.Type.Name.EqualsOrdinal(typeName));
+                var type = types.Find(t => t.Type.Name.EqualsOrdinal(typeName));
                 if (type?.Type is INamedType namedType)
                 {
                     MergeTypeExtension(

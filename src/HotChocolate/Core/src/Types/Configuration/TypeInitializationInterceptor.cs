@@ -103,7 +103,6 @@ public class TypeInterceptor
         OperationType operationType,
         IDictionary<string, object?> contextData)
     {
-
     }
 
     public virtual void OnTypesCompletedName(
