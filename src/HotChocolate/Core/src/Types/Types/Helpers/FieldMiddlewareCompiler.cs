@@ -1,3 +1,5 @@
+#nullable enable
+
 using System.Collections.Generic;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -6,11 +8,11 @@ namespace HotChocolate.Types.Helpers;
 
 internal static class FieldMiddlewareCompiler
 {
-    public static FieldDelegate Compile(
+    public static FieldDelegate? Compile(
         IReadOnlyList<FieldMiddleware> globalComponents,
         IReadOnlyList<FieldMiddlewareDefinition> fieldComponents,
         IReadOnlyList<ResultConverterDefinition> resultConverters,
-        FieldResolverDelegate fieldResolver,
+        FieldResolverDelegate? fieldResolver,
         bool skipMiddleware)
     {
         if (skipMiddleware ||
@@ -42,7 +44,7 @@ internal static class FieldMiddlewareCompiler
         IReadOnlyList<FieldMiddleware> components,
         IReadOnlyList<FieldMiddlewareDefinition> mappedComponents,
         IReadOnlyList<ResultConverterDefinition> resultConverters,
-        FieldResolverDelegate fieldResolver)
+        FieldResolverDelegate? fieldResolver)
         => CompileMiddlewareComponents(components,
             CompileMiddlewareComponents(mappedComponents,
                 CompileResultConverters(resultConverters,
@@ -120,7 +122,7 @@ internal static class FieldMiddlewareCompiler
             return convert(c, result);
         };
 
-    private static FieldDelegate CreateResolverMiddleware(FieldResolverDelegate fieldResolver)
+    private static FieldDelegate CreateResolverMiddleware(FieldResolverDelegate? fieldResolver)
         => async ctx =>
         {
             if (!ctx.IsResultModified && fieldResolver is not null)
