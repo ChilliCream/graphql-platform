@@ -4,6 +4,7 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
@@ -112,7 +113,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
         context.SetLocalState(InternalType, typeName);
         context.SetLocalState(WellKnownContextData.IdValue, deserializedId);
 
-        if (context.Schema.TryGetType<ObjectType>(typeName!, out var type) &&
+        if (context.Schema.TryGetType<ObjectType>(typeName, out var type) &&
             type.ContextData.TryGetValue(NodeResolver, out var o) &&
             o is FieldResolverDelegate resolver)
         {
@@ -211,8 +212,81 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
 
 internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
 {
-    public override bool CanHandle(ITypeSystemObjectContext context)
+    public override void OnAfterCompleteName(
+        ITypeCompletionContext completionContext,
+        DefinitionBase? definition,
+        IDictionary<string, object?> contextData)
     {
-        return base.CanHandle(context);
+        // we are only interested in the query type to infer node resolvers
+        // from the specified query fields.
+        if ((completionContext.IsQueryType ?? false) &&
+            definition is ObjectTypeDefinition typeDef)
+        {
+            foreach (var fieldDef in typeDef.Fields)
+            {
+                var resolverMember = fieldDef.ResolverMember ?? fieldDef.Member;
+
+                // candidate fields that we might be able to use as node resolvers must specify
+                // a resolver member. Delegates or expressions are not supported.
+                // Further, we only will look at annotated fields. This feature is always opt-in.
+                if (fieldDef.Type is not null &&
+                    resolverMember is not null &&
+                    resolverMember.IsDefined(typeof(NodeResolverAttribute)))
+                {
+                    // Query fields that users want to reuse as node resolvers must exactly specify
+                    // one argument that represents the node id.
+                    if (fieldDef.Arguments.Count != 1)
+                    {
+                        // todo: error helper
+                        completionContext.ReportError(
+                            SchemaErrorBuilder
+                                .New()
+                                .SetMessage("A node resolver must specify exactly one id argument.")
+                                .Build());
+                        continue;
+                    }
+
+                    var argument = fieldDef.Arguments[0];
+
+                    if (argument.Type is null)
+                    {
+                        // todo: throw helper
+                        throw new InvalidOperationException(
+                            "A field argument at this initialization state is guaranteed to have an argument type, but we found none.");
+                    }
+
+                    // We will ensure that the node id argument is always a non-null ID type.
+                    argument.Type = TypeReference.Create("ID!");
+
+                    var fieldType = completionContext.GetType<IType>(fieldDef.Type);
+
+                    if (fieldType.IsObjectType())
+                    {
+                        // todo: error helper
+                        completionContext.ReportError(
+                            SchemaErrorBuilder
+                                .New()
+                                .SetMessage("A node resolver must return an object type.")
+                                .Build());
+                        continue;
+                    }
+
+                    var fieldTypeDef = ((ObjectType)fieldType.NamedType()).Definition;
+
+                    if (fieldTypeDef is null)
+                    {
+                        // todo: throw helper
+                        throw new InvalidOperationException(
+                            "An object type at this point is guaranteed to have a type definition, but we found none.");
+                    }
+
+                    // we will ensure that the object type is implementing the node type interface.
+                    typeDef.Interfaces.Add(TypeReference.Create("Node"));
+
+
+
+                }
+            }
+        }
     }
 }
