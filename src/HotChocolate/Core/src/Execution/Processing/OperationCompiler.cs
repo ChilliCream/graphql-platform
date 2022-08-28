@@ -29,6 +29,7 @@ public sealed partial class OperationCompiler
     private IncludeCondition[] _includeConditions = Array.Empty<IncludeCondition>();
     private CompilerContext? _deferContext;
     private int _nextSelectionId;
+    private int _nextSelectionSetRefId;
     private int _nextSelectionSetId;
     private int _nextFragmentId;
 
@@ -86,7 +87,7 @@ public sealed partial class OperationCompiler
 
             // collect root fields
             var rootPath = SelectionPath.Root;
-            var id = GetOrCreateSelectionSetId(operationDefinition.SelectionSet, rootPath);
+            var id = GetOrCreateSelectionSetRefId(operationDefinition.SelectionSet, rootPath);
             var variants = GetOrCreateSelectionVariants(id);
             SelectionSetInfo[] infos = { new(operationDefinition.SelectionSet, 0) };
 
@@ -120,7 +121,8 @@ public sealed partial class OperationCompiler
         finally
         {
             _nextSelectionId = 0;
-            _nextSelectionSetId = 0;
+            _nextSelectionSetRefId = 0;
+            _nextSelectionId = 0;
             _nextFragmentId = 0;
 
             _backlog.Clear();
@@ -263,7 +265,7 @@ public sealed partial class OperationCompiler
                 }
 
                 var selectionPath = context.Path.Append(selection.ResponseName);
-                selectionSetId = GetOrCreateSelectionSetId(selection.SelectionSet, selectionPath);
+                selectionSetId = GetOrCreateSelectionSetRefId(selection.SelectionSet, selectionPath);
                 var selectionVariants = GetOrCreateSelectionVariants(selectionSetId);
                 var possibleTypes = context.Schema.GetPossibleTypes(fieldType);
 
@@ -318,6 +320,7 @@ public sealed partial class OperationCompiler
         }
 
         context.SelectionVariants.AddSelectionSet(
+            _nextSelectionSetId++,
             context.Type,
             selections,
             fragments,
@@ -501,7 +504,7 @@ public sealed partial class OperationCompiler
                     ifConditionFlags = GetSelectionIncludeCondition(ifCondition, includeCondition);
                 }
 
-                var id = GetOrCreateSelectionSetId(selectionSet, context.Path);
+                var id = GetOrCreateSelectionSetRefId(selectionSet, context.Path);
                 var variants = GetOrCreateSelectionVariants(id);
                 var infos = new SelectionSetInfo[] { new(selectionSet, includeCondition) };
 
@@ -586,13 +589,13 @@ public sealed partial class OperationCompiler
 
     private int GetNextFragmentId() => _nextFragmentId++;
 
-    private int GetOrCreateSelectionSetId(SelectionSetNode selectionSet, SelectionPath path)
+    private int GetOrCreateSelectionSetRefId(SelectionSetNode selectionSet, SelectionPath path)
     {
         var selectionSetRef = new SelectionSetRef(selectionSet, path);
 
         if (!_selectionSetIdLookup.TryGetValue(selectionSetRef, out var selectionSetId))
         {
-            selectionSetId = _nextSelectionSetId++;
+            selectionSetId = _nextSelectionSetRefId++;
             _selectionSetIdLookup.Add(selectionSetRef, selectionSetId);
         }
 

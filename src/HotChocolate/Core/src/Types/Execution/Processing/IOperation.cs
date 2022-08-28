@@ -10,7 +10,7 @@ namespace HotChocolate.Execution.Processing;
 /// <summary>
 /// Represents a compiled GraphQL operation.
 /// </summary>
-public interface IOperation : IHasReadOnlyContextData
+public interface IOperation : IHasReadOnlyContextData, IEnumerable<ISelectionSet>
 {
     /// <summary>
     /// Gets the internal unique identifier for this operation.

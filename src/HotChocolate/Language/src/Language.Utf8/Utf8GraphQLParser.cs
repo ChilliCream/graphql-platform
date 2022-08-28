@@ -147,7 +147,12 @@ public ref partial struct Utf8GraphQLParser
         ParserOptions options) =>
         new Utf8GraphQLParser(graphQLData, options).Parse();
 
-    public static DocumentNode Parse(string sourceText) =>
+    public static DocumentNode Parse(
+#if NET7_0_OR_GREATER
+        [StringSyntax("graphql")] string sourceText) =>
+#else
+        string sourceText) =>
+#endif
         Parse(sourceText, ParserOptions.Default);
 
     public static unsafe DocumentNode Parse(

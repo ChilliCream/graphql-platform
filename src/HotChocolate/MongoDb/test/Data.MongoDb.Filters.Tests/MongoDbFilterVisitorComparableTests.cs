@@ -80,9 +80,9 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "12"), res2, "13"), res3, "null")
             .MatchAsync();
@@ -114,9 +114,9 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "12"), res2, "13"), res3, "null")
             .MatchAsync();
@@ -145,9 +145,9 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "12"), res2, "13"), res3, "null")
             .MatchAsync();
@@ -176,9 +176,9 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "12"), res2, "13"), res3, "null")
             .MatchAsync();
@@ -213,10 +213,10 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
-                        SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
                             Snapshot
                                 .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
@@ -250,10 +250,10 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
-                        SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
                             Snapshot
                                 .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
@@ -288,10 +288,10 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
-                        SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
                             Snapshot
                                 .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
@@ -325,10 +325,10 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
-                        SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
                             Snapshot
                                 .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
@@ -362,10 +362,10 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
-                        SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
                             Snapshot
                                 .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
@@ -399,10 +399,10 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
-                        SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
                             Snapshot
                                 .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
@@ -437,10 +437,10 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
-                        SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
                             Snapshot
                                 .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
@@ -474,10 +474,10 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
-                        SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
                             Snapshot
                                 .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
@@ -506,9 +506,9 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "12and13"), res2, "13and14"), res3, "nullAnd14")
             .MatchAsync();
@@ -537,9 +537,9 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "12and13"), res2, "13and14"), res3, "nullAnd14")
             .MatchAsync();
@@ -569,9 +569,9 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "12"), res2, "13"), res3, "null")
             .MatchAsync();
@@ -600,9 +600,9 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "12"), res2, "13"), res3, "null")
             .MatchAsync();
@@ -637,10 +637,10 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
-                        SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
                             Snapshot
                                 .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
@@ -673,10 +673,10 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
-                        SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
                             Snapshot
                                 .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
@@ -710,10 +710,10 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
-                        SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
                             Snapshot
                                 .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
@@ -747,10 +747,10 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
-                        SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
                             Snapshot
                                 .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
@@ -784,10 +784,10 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
-                        SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
                             Snapshot
                                 .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
@@ -821,10 +821,10 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
-                        SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
                             Snapshot
                                 .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
@@ -859,10 +859,10 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
-                        SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
                             Snapshot
                                 .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
@@ -896,10 +896,10 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
-                        SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
                             Snapshot
                                 .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
             .MatchAsync();
@@ -928,9 +928,9 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "12and13"), res2, "13and14"), res3, "13andNull")
             .MatchAsync();
@@ -959,9 +959,9 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "12and13"), res2, "13and14"), res3, "13andNull")
             .MatchAsync();

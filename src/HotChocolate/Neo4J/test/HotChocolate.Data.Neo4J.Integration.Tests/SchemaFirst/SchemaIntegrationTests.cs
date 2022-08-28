@@ -57,10 +57,10 @@ public class SchemaIntegrationTests : IClassFixture<Neo4JFixture>
             }");
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
-                        SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
                             Snapshot
                                 .Create()
                                 .Add(tester.Schema, "MoviesSchema_Snapshot"), res1, "MoviesSchema_Actors_Query"), res2, "MoviesSchema_Name_StartsWith_Actors_Query"), res3, "MoviesSchema_Movies_Query"), res4, "MoviesSchema_Name_Desc_Sort_Actors_Query")

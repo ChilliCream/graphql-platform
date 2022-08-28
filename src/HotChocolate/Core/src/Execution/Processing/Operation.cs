@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -114,6 +115,20 @@ internal sealed class Operation : IOperation
 
         return context;
     }
+
+    public IEnumerator<ISelectionSet> GetEnumerator()
+    {
+        foreach (var selectionVariant in _selectionVariants)
+        {
+            foreach (var objectType in selectionVariant.GetPossibleTypes())
+            {
+                yield return selectionVariant.GetSelectionSet(objectType);
+            }
+        }
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+        => GetEnumerator();
 
     public override string ToString() => OperationPrinter.Print(this);
 }

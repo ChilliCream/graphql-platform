@@ -99,9 +99,9 @@ public class QueryableFilterVisitorListTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "a"), res2, "d"), res3, "null")
             .MatchAsync();
@@ -133,9 +133,9 @@ public class QueryableFilterVisitorListTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "a"), res2, "d"), res3, "null")
             .MatchAsync();
@@ -167,9 +167,9 @@ public class QueryableFilterVisitorListTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "a"), res2, "d"), res3, "null")
             .MatchAsync();
@@ -201,9 +201,9 @@ public class QueryableFilterVisitorListTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "a"), res2, "d"), res3, "null")
             .MatchAsync();
@@ -235,9 +235,9 @@ public class QueryableFilterVisitorListTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "false"), res2, "true"), res3, "null")
             .MatchAsync();

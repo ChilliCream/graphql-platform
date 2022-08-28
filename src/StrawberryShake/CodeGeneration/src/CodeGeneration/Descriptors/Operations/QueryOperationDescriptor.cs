@@ -21,6 +21,7 @@ public class QueryOperationDescriptor : OperationDescriptor
         string bodyString,
         string hashAlgorithm,
         string hashValue,
+        bool hasUpload,
         RequestStrategy strategy)
         : base(
             name,
@@ -31,6 +32,7 @@ public class QueryOperationDescriptor : OperationDescriptor
             bodyString,
             hashAlgorithm,
             hashValue,
+            hasUpload,
             strategy)
     {
     }
