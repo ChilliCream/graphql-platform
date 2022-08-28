@@ -121,10 +121,26 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
                 return await resolver.Invoke(context).ConfigureAwait(false);
             }
 
-            if (o is FieldDelegate pipeline)
+            if (o is NodeRes nodeRes)
             {
+                var inputParser = new InputFormatter();
+
+                var idArg = new ArgumentValue(
+                    nodeRes.Id,
+                    ValueKind.String,
+                    false,
+                    false,
+                    context.ArgumentValue<object?>("id"),
+                    context.ArgumentLiteral<IValueNode>("id"));
+
+                var map = new Dictionary<string, ArgumentValue>
+                {
+                    { nodeRes.Id.Name, idArg }
+                };
+
                 var m = (IMiddlewareContext)context;
-                await pipeline.Invoke(m);
+                m.ReplaceArguments(map);
+                await nodeRes.Pipeline.Invoke(m);
                 return m.Result;
             }
         }
@@ -333,8 +349,22 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
             foreach (var node in _nodes)
             {
                 var fieldName = (string)node[NodeResolver]!;
-                node[NodeResolver] = _queryType.Fields[fieldName].Middleware;
+                var field = _queryType.Fields[fieldName];
+                node[NodeResolver] = new NodeRes(field.Arguments[0], field.Middleware);
             }
         }
     }
+}
+
+internal sealed class NodeRes
+{
+    public NodeRes(Argument id, FieldDelegate pipeline)
+    {
+        Id = id;
+        Pipeline = pipeline;
+    }
+
+    public Argument Id { get; }
+
+    public FieldDelegate Pipeline { get; }
 }

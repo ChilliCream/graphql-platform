@@ -71,7 +71,16 @@ public class NodeTypeTests : TypeTestBase
             .MatchSnapshotAsync();
     }
 
-    //
+    [Fact]
+    public async Task Infer_Node_From_Query_Field_With_Abc_Argument_Resolve_Node()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query2>()
+            .AddGlobalObjectIdentification()
+            .ExecuteRequestAsync("{ node(id: \"Rm9vCmRhYmM=\") { id __typename } }")
+            .MatchSnapshotAsync();
+    }
 
     public class Query
     {
@@ -81,6 +90,16 @@ public class NodeTypeTests : TypeTestBase
         [NodeResolver]
         public Foo GetFooById(string id)
             => new Foo(id);
+    }
+
+    public class Query2
+    {
+        public Foo CreateFoo()
+            => new Foo("abc");
+
+        [NodeResolver]
+        public Foo GetFooById(string abc)
+            => new Foo(abc);
     }
 
     public class Foo
