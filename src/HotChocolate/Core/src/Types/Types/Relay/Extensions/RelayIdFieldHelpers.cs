@@ -71,7 +71,7 @@ internal static class RelayIdFieldHelpers
             // add serializer if globalID support is enabled.
             if (extend.Context.ContextData.ContainsKey(GlobalIdSupportEnabled))
             {
-                ApplyIdToField(extend.Definition);
+                ApplyIdToField(extend.Definition, typeName);
             }
         }
     }
