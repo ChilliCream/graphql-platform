@@ -2,13 +2,32 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Internal;
 
+/// <summary>
+/// This helper class implements the argument coercion algorithm.
+/// </summary>
 public static class ArgumentCoercionHelper
 {
+    /// <summary>
+    /// Tries to coerce the arguments of a <see cref="ISelection"/>.
+    /// </summary>
+    /// <param name="arguments">
+    /// The argument map from a <see cref="ISelection"/>.
+    /// </param>
+    /// <param name="resolverContext">
+    /// The resolver context.
+    /// </param>
+    /// <param name="coercedArgs">
+    /// The coerced arguments.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the arguments were successfully coerced; otherwise, <c>false</c>.
+    /// </returns>
     public static bool TryCoerceArguments(
         this IArgumentMap arguments,
         IResolverContext resolverContext,
@@ -44,6 +63,11 @@ public static class ArgumentCoercionHelper
         return true;
     }
 
+    /// <summary>
+    /// This internal helper allows the <see cref="ResolverTask"/> to coerce the argument
+    /// values without allocating a dictionary for the argument values by letting the resolver task
+    /// pass in a dictionary on which we coerce the argument values.
+    /// </summary>
     internal static void CoerceArguments(
         this IArgumentMap arguments,
         IVariableValueCollection variableValues,
