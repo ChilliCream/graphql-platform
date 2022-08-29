@@ -225,6 +225,9 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public IMiddlewareContext Clone()
     {
+        // The middleware context is bound to a resolver task,
+        // so we need to create a resolver task in order to clone
+        // this context.
         var resolverTask =
             _operationContext.CreateResolverTask(
                 Selection,
@@ -234,13 +237,15 @@ internal partial class MiddlewareContext : IMiddlewareContext
                 Path,
                 ScopedContextData);
 
-        RegisterForCleanup(() =>
-        {
-            resolverTask.CompleteUnsafe();
-            return default;
-        });
+        // We need to manually copy the local state.
+        resolverTask.Context.LocalContextData = LocalContextData;
 
-        return resolverTask.ResolverContext;
+        // Since resolver tasks are pooled and returned to the pool after they are executed
+        // we need to complete the task manually when the resolver task of the current context
+        // is completed.
+        RegisterForCleanup(() => resolverTask.CompleteUnsafeAsync());
+
+        return resolverTask.Context;
     }
 
     IResolverContext IResolverContext.Clone()

@@ -99,7 +99,7 @@ internal sealed class DeferredStream : DeferredExecutionTask
                 .SetData((ObjectResult)_task.ChildTask.ParentResult[0].Value!)
                 .BuildResultBuilder();
 
-            _task.ChildTask.CompleteUnsafe();
+            await _task.ChildTask.CompleteUnsafeAsync().ConfigureAwait(false);
 
             // we will register this same task again to get the next item.
             operationContext.DeferredScheduler.Register(this);

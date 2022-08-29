@@ -31,6 +31,8 @@ internal static class EntitiesResolver
                     objectType.ContextData.TryGetValue(EntityResolver, out var value) &&
                     value is FieldResolverDelegate resolver)
                 {
+                    // We clone the resolver context here so that we can split the work
+                    // into sub tasks that can be awaited in parallel and produce separate results.
                     var entityContext = context.Clone();
 
                     entityContext.SetLocalState(TypeField, objectType);

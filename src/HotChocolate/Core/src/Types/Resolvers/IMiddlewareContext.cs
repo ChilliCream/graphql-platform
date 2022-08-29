@@ -65,7 +65,26 @@ public interface IMiddlewareContext : IResolverContext
     IReadOnlyDictionary<string, ArgumentValue> ReplaceArguments(
         IReadOnlyDictionary<string, ArgumentValue> newArgumentValues);
 
+    /// <summary>
+    /// Replaces a single argument of the current middleware context.
+    /// </summary>
+    /// <param name="argumentName">
+    /// The argument value that shall be replaced with <paramref name="newArgumentValue"/>.
+    /// </param>
+    /// <param name="newArgumentValue">
+    /// The new argument value.
+    /// </param>
+    /// <returns>
+    /// Returns the old argument value so that the middleware can restore
+    /// the state after it is finished.
+    /// </returns>
     ArgumentValue ReplaceArgument(string argumentName, ArgumentValue newArgumentValue);
 
+    /// <summary>
+    /// Clones the current middleware context.
+    /// </summary>
+    /// <returns>
+    /// Returns the cloned middleware context.
+    /// </returns>
     new IMiddlewareContext Clone();
 }

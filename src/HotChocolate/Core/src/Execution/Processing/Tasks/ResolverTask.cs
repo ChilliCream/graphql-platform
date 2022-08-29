@@ -11,7 +11,7 @@ namespace HotChocolate.Execution.Processing.Tasks;
 internal sealed partial class ResolverTask : IExecutionTask
 {
     private readonly ObjectPool<ResolverTask> _objectPool;
-    private readonly MiddlewareContext _resolverContext = new();
+    private readonly MiddlewareContext _context = new();
     private readonly List<ResolverTask> _taskBuffer = new();
     private readonly Dictionary<string, ArgumentValue> _args = new(StringComparer.Ordinal);
     private OperationContext _operationContext = default!;
@@ -27,7 +27,7 @@ internal sealed partial class ResolverTask : IExecutionTask
     /// <summary>
     /// Gets access to the resolver context for this task.
     /// </summary>
-    internal MiddlewareContext ResolverContext => _resolverContext;
+    internal MiddlewareContext Context => _context;
 
     /// <summary>
     /// Gets access to the diagnostic events.

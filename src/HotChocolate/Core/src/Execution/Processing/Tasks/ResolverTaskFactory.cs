@@ -114,7 +114,7 @@ internal static class ResolverTaskFactory
         {
             CompleteInline(
                 operationContext,
-                resolverTask.ResolverContext,
+                resolverTask.Context,
                 selection,
                 selection.Type.ElementType(),
                 operationContext.PathFactory.Append(path, index),

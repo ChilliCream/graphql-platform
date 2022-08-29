@@ -18,7 +18,7 @@ internal sealed partial class ResolverTask
     {
         _operationContext = operationContext;
         _selection = selection;
-        _resolverContext.Initialize(
+        _context.Initialize(
             operationContext,
             selection,
             parentResult,
@@ -38,7 +38,7 @@ internal sealed partial class ResolverTask
         _completionStatus = ExecutionTaskStatus.Completed;
         _operationContext = default!;
         _selection = default!;
-        _resolverContext.Clean();
+        _context.Clean();
         ParentResult = default!;
         Status = ExecutionTaskStatus.WaitingToRun;
         IsSerial = false;
