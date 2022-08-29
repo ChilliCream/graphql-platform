@@ -1,7 +1,12 @@
+using System.Buffers;
+using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Execution.Serialization;
 using HotChocolate.Fetching;
+using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;
 using Microsoft.Extensions.ObjectPool;
 
@@ -11,13 +16,17 @@ internal sealed class OperationExecutionMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly FederatedQueryExecutor _executor;
+    private readonly ServiceConfiguration _serviceConfig;
     private readonly ISchema _schema;
     private readonly ObjectPool<OperationContext> _operationContextPool;
+    private readonly GraphQLClientFactory _clientFactory;
 
     public OperationExecutionMiddleware(
         RequestDelegate next,
         ObjectPool<OperationContext> operationContextPool,
         [SchemaService] FederatedQueryExecutor executor,
+        [SchemaService] ServiceConfiguration serviceConfig,
+        [SchemaService] GraphQLClientFactory clientFactory,
         [SchemaService] ISchema schema)
     {
         _next = next ??
@@ -26,7 +35,11 @@ internal sealed class OperationExecutionMiddleware
             throw new ArgumentNullException(nameof(operationContextPool));
         _executor = executor ??
             throw new ArgumentNullException(nameof(executor));
+        _serviceConfig = serviceConfig ??
+            throw new ArgumentNullException(nameof(serviceConfig));
         _schema = schema ??
+            throw new ArgumentNullException(nameof(schema));
+        _clientFactory = clientFactory ??
             throw new ArgumentNullException(nameof(schema));
     }
 
@@ -51,33 +64,20 @@ internal sealed class OperationExecutionMiddleware
                 () => new object());  // todo: we can use static representations for these
 
             var federatedQueryContext = new FederatedQueryContext(
-                operationContext,
+                _serviceConfig,
                 queryPlan,
-                new HashSet<ISelectionSet>(
-                    queryPlan.ExecutionNodes
-                        .OfType<RequestNode>()
-                        .Select(t => t.Handler.SelectionSet)));
+                operationContext,
+                _clientFactory);
 
-            // TODO : just for debug
             if (context.ContextData.ContainsKey(WellKnownContextData.IncludeQueryPlan))
             {
-                var subGraphRequests = new OrderedDictionary<string, object?>();
-                var plan = new OrderedDictionary<string, object?>();
-                plan.Add("userRequest", context.Document?.ToString());
-                plan.Add("subGraphRequests", subGraphRequests);
+                var bufferWriter = new ArrayBufferWriter<byte>();
+                
+                queryPlan.Format(bufferWriter);
 
-                var index = 0;
-                foreach (var executionNode in queryPlan.ExecutionNodes)
-                {
-                    if (executionNode is RequestNode rn)
-                    {
-                        subGraphRequests.Add(
-                            $"subGraphRequest{++index}",
-                            rn.Handler.Document.ToString());
-                    }
-                }
-
-                operationContext.Result.SetExtension("queryPlan", plan);
+                operationContext.Result.SetExtension(
+                    "queryPlan",
+                    new RawJsonValue(bufferWriter.WrittenMemory));
             }
 
             // we store the context on the result for unit tests.

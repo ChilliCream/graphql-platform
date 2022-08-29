@@ -94,18 +94,9 @@ public class ExecutionPlanBuilderTests
         var queryPlan = executionPlanBuilder.Build(queryPlanContext);
 
         // assert
-        var index = 0;
         var snapshot = new Snapshot();
         snapshot.Add(request, "User Request");
-
-        foreach (var executionNode in queryPlan.ExecutionNodes)
-        {
-            if (executionNode is RequestNode rn)
-            {
-                snapshot.Add(rn.Handler.Document, $"Request {++index}");
-            }
-        }
-
+        snapshot.Add(queryPlan, "Query Plan");
         await snapshot.MatchAsync();
     }
 
@@ -192,18 +183,9 @@ public class ExecutionPlanBuilderTests
         var queryPlan = executionPlanBuilder.Build(queryPlanContext);
 
         // assert
-        var index = 0;
         var snapshot = new Snapshot();
         snapshot.Add(request, "User Request");
-
-        foreach (var executionNode in queryPlan.ExecutionNodes)
-        {
-            if (executionNode is RequestNode rn)
-            {
-                snapshot.Add(rn.Handler.Document, $"Request {++index}");
-            }
-        }
-
+        snapshot.Add(queryPlan, "Query Plan");
         await snapshot.MatchAsync();
     }
 
@@ -289,18 +271,9 @@ public class ExecutionPlanBuilderTests
         var queryPlan = executionPlanBuilder.Build(queryPlanContext);
 
         // assert
-        var index = 0;
         var snapshot = new Snapshot();
         snapshot.Add(request, "User Request");
-
-        foreach (var executionNode in queryPlan.ExecutionNodes)
-        {
-            if (executionNode is RequestNode rn)
-            {
-                snapshot.Add(rn.Handler.Document, $"Request {++index}");
-            }
-        }
-
+        snapshot.Add(queryPlan, "Query Plan");
         await snapshot.MatchAsync();
     }
 
@@ -386,18 +359,9 @@ public class ExecutionPlanBuilderTests
         var queryPlan = executionPlanBuilder.Build(queryPlanContext);
 
         // assert
-        var index = 0;
         var snapshot = new Snapshot();
         snapshot.Add(request, "User Request");
-
-        foreach (var executionNode in queryPlan.ExecutionNodes)
-        {
-            if (executionNode is RequestNode rn)
-            {
-                snapshot.Add(rn.Handler.Document, $"Request {++index}");
-            }
-        }
-
+        snapshot.Add(queryPlan, "Query Plan");
         await snapshot.MatchAsync();
     }
 
@@ -481,18 +445,9 @@ public class ExecutionPlanBuilderTests
         var queryPlan = executionPlanBuilder.Build(queryPlanContext);
 
         // assert
-        var index = 0;
         var snapshot = new Snapshot();
         snapshot.Add(request, "User Request");
-
-        foreach (var executionNode in queryPlan.ExecutionNodes)
-        {
-            if (executionNode is RequestNode rn)
-            {
-                snapshot.Add(rn.Handler.Document, $"Request {++index}");
-            }
-        }
-
+        snapshot.Add(queryPlan, "Query Plan");
         await snapshot.MatchAsync();
     }
 
@@ -582,18 +537,9 @@ public class ExecutionPlanBuilderTests
         var queryPlan = executionPlanBuilder.Build(queryPlanContext);
 
         // assert
-        var index = 0;
         var snapshot = new Snapshot();
         snapshot.Add(request, "User Request");
-
-        foreach (var executionNode in queryPlan.ExecutionNodes)
-        {
-            if (executionNode is RequestNode rn)
-            {
-                snapshot.Add(rn.Handler.Document, $"Request {++index}");
-            }
-        }
-
+        snapshot.Add(queryPlan, "Query Plan");
         await snapshot.MatchAsync();
     }
 
@@ -684,18 +630,9 @@ public class ExecutionPlanBuilderTests
         var queryPlan = executionPlanBuilder.Build(queryPlanContext);
 
         // assert
-        var index = 0;
         var snapshot = new Snapshot();
         snapshot.Add(request, "User Request");
-
-        foreach (var executionNode in queryPlan.ExecutionNodes)
-        {
-            if (executionNode is RequestNode rn)
-            {
-                snapshot.Add(rn.Handler.Document, $"Request {++index}");
-            }
-        }
-
+        snapshot.Add(queryPlan, "Query Plan");
         await snapshot.MatchAsync();
     }
 
@@ -708,8 +645,10 @@ public class ExecutionPlanBuilderTests
                 me {
                     name
                     reviews {
-                        product {
-                            upc
+                        nodes {
+                            product {
+                                upc
+                            }
                         }
                     }
                 }
@@ -719,18 +658,37 @@ public class ExecutionPlanBuilderTests
         var queryPlan = await BuildStoreServiceQueryPlanAsync(request);
 
         // assert
-        var index = 0;
         var snapshot = new Snapshot();
         snapshot.Add(request, "User Request");
+        snapshot.Add(queryPlan, "Query Plan");
+        await snapshot.MatchAsync();
+    }
 
-        foreach (var executionNode in queryPlan.ExecutionNodes)
-        {
-            if (executionNode is RequestNode rn)
-            {
-                snapshot.Add(rn.Handler.Document, $"Request {++index}");
-            }
-        }
+    [Fact]
+    public async Task StoreService_Selection_With_Arguments()
+    {
+        // arrange
+        var request = Parse(
+            @"query Me {
+                me {
+                    name
+                    reviews(first: 1) {
+                        nodes {
+                            product {
+                                upc
+                            }
+                        }
+                    }
+                }
+            }");
 
+        // act
+        var queryPlan = await BuildStoreServiceQueryPlanAsync(request);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(request, "User Request");
+        snapshot.Add(queryPlan, "Query Plan");
         await snapshot.MatchAsync();
     }
 
@@ -751,18 +709,66 @@ public class ExecutionPlanBuilderTests
         var queryPlan = await BuildStoreServiceQueryPlanAsync(request);
 
         // assert
-        var index = 0;
         var snapshot = new Snapshot();
         snapshot.Add(request, "User Request");
+        snapshot.Add(queryPlan, "Query Plan");
+        await snapshot.MatchAsync();
+    }
 
-        foreach (var executionNode in queryPlan.ExecutionNodes)
-        {
-            if (executionNode is RequestNode rn)
-            {
-                snapshot.Add(rn.Handler.Document, $"Request {++index}");
-            }
-        }
+    [Fact]
+    public async Task StoreService_Introspection_TypeName()
+    {
+        // arrange
+        var request = Parse(
+            @"query Me {
+                me {
+                    name
+                    reviews {
+                        nodes {
+                            product {
+                                __typename
+                            }
+                        }
+                    }
+                }
+            }");
 
+        // act
+        var queryPlan = await BuildStoreServiceQueryPlanAsync(request);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(request, "User Request");
+        snapshot.Add(queryPlan, "Query Plan");
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task StoreService_Immutable()
+    {
+        // arrange
+        var request = Parse(
+            @"query GetMe {
+              me {
+                username
+              }
+              userById(id: 2) {
+                name
+                reviews {
+                  nodes {
+                    id
+                  }
+                }
+              }
+            }");
+
+        // act
+        var queryPlan = await BuildStoreServiceQueryPlanAsync(request);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(request, "User Request");
+        snapshot.Add(queryPlan, "Query Plan");
         await snapshot.MatchAsync();
     }
 

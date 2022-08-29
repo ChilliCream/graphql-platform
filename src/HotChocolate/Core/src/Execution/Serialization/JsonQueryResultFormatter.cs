@@ -362,6 +362,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         for (var i = 0; i < objectResult.Capacity; i++)
         {
             var field = Unsafe.Add(ref searchSpace, i);
+
             if (field.IsInitialized)
             {
                 writer.WritePropertyName(field.Name);
@@ -496,6 +497,10 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
 #if NET5_0_OR_GREATER
             case JsonElement element:
                 WriteJsonElement(writer, element);
+                break;
+
+            case RawJsonValue rawJsonValue:
+                writer.WriteRawValue(rawJsonValue.Value.Span, true);
                 break;
 #endif
             case Dictionary<string, object?> dict:

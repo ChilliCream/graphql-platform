@@ -52,8 +52,8 @@ public class MongoDbFilterVisitorTimeOnlyTests
                 .Create());
 
         // arrange
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
                     Snapshot
                         .Create(), res1, "0630"), res2, "1600")
             .MatchAsync();
@@ -77,8 +77,8 @@ public class MongoDbFilterVisitorTimeOnlyTests
                 .Create());
 
         // arrange
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
                     Snapshot
                         .Create(), res1, "0630"), res2, "1600")
             .MatchAsync();
@@ -107,9 +107,9 @@ public class MongoDbFilterVisitorTimeOnlyTests
                 .Create());
 
         // arrange
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "0630"), res2, "1600"), res3, "null")
             .MatchAsync();
@@ -138,9 +138,9 @@ public class MongoDbFilterVisitorTimeOnlyTests
                 .Create());
 
         // arrange
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "0630"), res2, "1600"), res3, "null")
             .MatchAsync();

@@ -138,8 +138,8 @@ public class MongoDbSortVisitorObjectTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
                     Snapshot
                         .Create(), res1, "ASC"), res2, "DESC")
             .MatchAsync();
@@ -168,8 +168,8 @@ public class MongoDbSortVisitorObjectTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
                     Snapshot
                         .Create(), res1, "ASC"), res2, "13")
             .MatchAsync();
@@ -197,8 +197,8 @@ public class MongoDbSortVisitorObjectTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
                     Snapshot
                         .Create(), res1, "ASC"), res2, "DESC")
             .MatchAsync();
@@ -227,8 +227,8 @@ public class MongoDbSortVisitorObjectTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
                     Snapshot
                         .Create(), res1, "ASC"), res2, "13")
             .MatchAsync();
@@ -256,8 +256,8 @@ public class MongoDbSortVisitorObjectTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
                     Snapshot
                         .Create(), res1, "ASC"), res2, "DESC")
             .MatchAsync();
@@ -286,8 +286,8 @@ public class MongoDbSortVisitorObjectTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
                     Snapshot
                         .Create(), res1, "ASC"), res2, "13")
             .MatchAsync();
@@ -315,8 +315,8 @@ public class MongoDbSortVisitorObjectTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
                     Snapshot
                         .Create(), res1, "ASC"), res2, "DESC")
             .MatchAsync();
@@ -345,8 +345,8 @@ public class MongoDbSortVisitorObjectTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
                     Snapshot
                         .Create(), res1, "ASC"), res2, "13")
             .MatchAsync();

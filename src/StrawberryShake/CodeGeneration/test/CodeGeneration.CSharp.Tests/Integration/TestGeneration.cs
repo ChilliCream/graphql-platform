@@ -262,4 +262,72 @@ public class TestGeneration
                 }
             }");
             */
+    private const string UploadQueries = @"
+        query TestUpload(
+                $nonUpload: String
+                $single: Upload
+                $list: [Upload]
+                $nested: [[Upload]]
+                $object: TestInput
+                $objectList: [TestInput]
+                $objectNested: [[TestInput]]) {
+            upload(
+                nonUpload: $nonUpload
+                single: $single
+                list: $list
+                nested: $nested
+                object: $object
+                objectList: $objectList
+                objectNested: $objectNested)
+        }";
+    private const string UploadSchema = @"
+        type Query {
+            upload(
+                nonUpload: String
+                single: Upload
+                list: [Upload]
+                nested: [[Upload]]
+                object: TestInput
+                objectList: [TestInput]
+                objectNested: [[TestInput]]): String
+        }
+
+        input TestInput {
+            bar: BarInput
+        }
+
+        input BarInput {
+            baz: BazInput
+        }
+
+        input BazInput {
+            file: Upload
+        }
+
+        scalar Upload
+        ";
+
+    [Fact]
+    public void UploadScalar() =>
+        AssertResult(
+            CreateIntegrationTest(profiles: new[]
+            {
+                new TransportProfile("Default", TransportType.Http)
+            }),
+            skipWarnings: true,
+            UploadQueries,
+            UploadSchema,
+            "extend schema @key(fields: \"id\")");
+
+    [Fact]
+    public void UploadScalar_InMemory() =>
+        AssertResult(
+            CreateIntegrationTest(profiles: new[]
+            {
+                new TransportProfile("Default", TransportType.InMemory)
+            }),
+            skipWarnings: true,
+            UploadQueries,
+            UploadSchema,
+            "extend schema @key(fields: \"id\")");
 }

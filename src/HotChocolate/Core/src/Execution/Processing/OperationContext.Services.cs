@@ -15,7 +15,7 @@ internal sealed partial class OperationContext
             return _services;
         }
     }
-    
+
     /// <summary>
     /// Gets the activator helper class.
     /// </summary>

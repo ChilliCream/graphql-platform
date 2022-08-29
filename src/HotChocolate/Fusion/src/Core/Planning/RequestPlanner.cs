@@ -69,6 +69,11 @@ internal sealed class RequestPlanner
                         (selection.Field.Name.EqualsOrdinal(IntrospectionFields.Schema) ||
                             selection.Field.Name.EqualsOrdinal(IntrospectionFields.Type)))
                     {
+                        var introspectionStep = new IntrospectionExecutionStep(
+                            schemaName,
+                            selectionSetType,
+                            parentSelection);
+                        context.Steps.Add(introspectionStep);
                         context.HasIntrospectionSelections = true;
                     }
 

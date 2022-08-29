@@ -40,12 +40,11 @@ public static class SnapshotExtensions
             postFix,
             formatter: SnapshotValueFormatters.PlainText);
 
-    public static Snapshot Add(
+    public static Snapshot AddResult(
         this Snapshot snapshot,
         IExecutionResult result,
         string? name = null)
     {
-
         if (result.ContextData is null)
         {
             snapshot.Add(result.ToJson(), name);

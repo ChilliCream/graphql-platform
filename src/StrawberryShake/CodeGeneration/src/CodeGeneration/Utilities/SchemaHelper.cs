@@ -106,8 +106,8 @@ public static class SchemaHelper
         foreach (var scalarTypeExtension in scalarTypeExtensions)
         {
             if (!leafTypes.TryGetValue(
-                scalarTypeExtension.Name.Value,
-                out var scalarInfo))
+                    scalarTypeExtension.Name.Value,
+                    out var scalarInfo))
             {
                 var runtimeType = GetRuntimeType(scalarTypeExtension);
                 var serializationType = GetSerializationType(scalarTypeExtension);
@@ -133,8 +133,8 @@ public static class SchemaHelper
         foreach (var scalarTypeExtension in enumTypeExtensions)
         {
             if (!leafTypes.TryGetValue(
-                scalarTypeExtension.Name.Value,
-                out var scalarInfo))
+                    scalarTypeExtension.Name.Value,
+                    out var scalarInfo))
             {
                 var runtimeType = GetRuntimeType(scalarTypeExtension);
                 var serializationType = GetSerializationType(scalarTypeExtension);
@@ -248,6 +248,11 @@ public static class SchemaHelper
             typeName: ScalarNames.Any,
             runtimeType: TypeNames.JsonDocument,
             serializationType: TypeNames.JsonElement);
+        TryAddLeafType(
+            leafTypes,
+            typeName: "Upload",
+            runtimeType: TypeNames.Upload,
+            serializationType: TypeNames.String);
 
         // register aliases
         schemaBuilder.AddType(new UrlType());

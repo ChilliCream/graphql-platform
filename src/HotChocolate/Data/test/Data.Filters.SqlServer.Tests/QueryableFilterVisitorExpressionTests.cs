@@ -57,9 +57,9 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
             .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "Sam_Sampleman"), res2, "NoMatch"), res3, "null")
             .MatchAsync();
@@ -88,9 +88,9 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
             .Create());
 
         // assert
-        await SnapshotExtensions.Add(
-                SnapshotExtensions.Add(
-                    SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
                         Snapshot
                             .Create(), res1, "1"), res2, "0"), res3, "null")
             .MatchAsync();

@@ -38,4 +38,7 @@ internal sealed class FetchDefinitionCollection : IEnumerable<FetchDefinition>
         => _fetchDefinitions.Values.SelectMany(t => t).GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    public static FetchDefinitionCollection Empty { get; } =
+        new(new List<FetchDefinition>());
 }

@@ -1,0 +1,3 @@
+﻿For more details look at the `Errors` property.
+
+1. The node resolver `barById` must return an object type. (HotChocolate.Types.ObjectType<HotChocolate.Types.NodeTypeTests.Query5>)

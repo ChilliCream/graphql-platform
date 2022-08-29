@@ -93,7 +93,7 @@ public class Neo4JListFilterTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.Add(
+        await SnapshotExtensions.AddResult(
                 Snapshot
                     .Create(), res1, "all")
             .MatchAsync();

@@ -46,7 +46,7 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
                 context.TypeInspector.GetType(typeof(IdType))));
         });
 
-        descriptor.Extend().OnBeforeCompletion((descriptorContext, definition) =>
+        descriptor.Extend().OnBeforeCompletion((completionContext, definition) =>
         {
             // first we try to resolve the id field.
             if (IdField is not null)
@@ -107,7 +107,7 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
             }
             else if (definition.RuntimeType != typeof(object) && definition.RuntimeType != type)
             {
-                var method = descriptorContext.TypeInspector.GetNodeResolverMethod(
+                var method = completionContext.TypeInspector.GetNodeResolverMethod(
                     definition.RuntimeType,
                     type);
 
@@ -136,14 +136,13 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
 
             // we trigger a late id field configuration
             var descriptor = ObjectTypeDescriptor.From(
-                descriptorContext.DescriptorContext,
+                completionContext.DescriptorContext,
                 definition);
             nodeDescriptor.ConfigureNodeField(descriptor);
             descriptor.CreateDefinition();
 
-            // after that we complete the type definition
-            // to copy the node resolver to the context data.
-            nodeDescriptor.OnCompleteDefinition(definition);
+            // invoke completion explicitly.
+            nodeDescriptor.OnCompleteDefinition(completionContext, definition);
         });
     }
 }

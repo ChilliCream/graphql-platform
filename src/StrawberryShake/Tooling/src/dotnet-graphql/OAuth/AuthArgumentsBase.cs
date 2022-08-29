@@ -60,8 +60,8 @@ namespace StrawberryShake.Tools.OAuth
                 using IActivity activity = output.WriteActivity("Request token");
                 ValidateOAuthArguments(activity);
                 IEnumerable<string> scopes = Scopes.HasValue()
-                    ? Enumerable.Empty<string>()
-                    : Scopes.Values.Where(t => t is { }).OfType<string>();
+                    ? Scopes.Values.Where(t => t is { }).OfType<string>()
+                    : Enumerable.Empty<string>();
                 string token = await TokenClient.GetTokenAsync(
                      TokenEndpoint.Value()!.Trim(),
                      ClientId.Value()!.Trim(),

@@ -522,6 +522,8 @@ public class InputParser
 
     private object? CreateDefaultValue(InputField field, Path path, int stack)
     {
+        object? value;
+
         if (field.DefaultValue is null || field.DefaultValue.Kind == SyntaxKind.NullValue)
         {
             if (field.Type.Kind == TypeKind.NonNull)
@@ -529,10 +531,17 @@ public class InputParser
                 throw RequiredInputFieldIsMissing(field, path);
             }
 
-            return field.IsOptional ? new Optional(null, false) : null;
-        }
+            value = null;
 
-        object? value;
+            // if the type is nullable but the runtime type is a non-nullable value
+            // we will create a default instance and assign that instead.
+            if (field.RuntimeType.IsValueType)
+            {
+                value = Activator.CreateInstance(field.RuntimeType);
+            }
+
+            return field.IsOptional ? new Optional(value, false) : value;
+        }
 
         try
         {

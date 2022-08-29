@@ -61,10 +61,10 @@ public class IdDescriptorTests
                     QueryRequestBuilder.New()
                         .SetQuery(
                             @"query foo ($someId: ID!) {
-                                    foo(input: { someId: $someId }) {
-                                        someId
-                                    }
-                                }")
+                                foo(input: { someId: $someId }) {
+                                    someId
+                                }
+                            }")
                         .SetVariableValue("someId", someId)
                         .Create());
 
