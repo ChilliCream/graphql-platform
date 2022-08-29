@@ -13,6 +13,10 @@ using static HotChocolate.Types.WellKnownContextData;
 
 namespace HotChocolate.Types.Relay;
 
+/// <summary>
+/// This class provides internal helpers to apply value rewriter on input and output types
+/// so that node IDs are correctly encoded or decoded.
+/// </summary>
 internal static class RelayIdFieldHelpers
 {
     private static IdSerializer? _idSerializer;
