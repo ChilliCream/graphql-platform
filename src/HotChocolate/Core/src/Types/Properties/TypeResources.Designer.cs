@@ -1886,5 +1886,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ErrorHelper_NodeResolver_NodeTypeHasNoId", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_InvalidInputFieldNames_Single {
+            get {
+                return ResourceManager.GetString("ThrowHelper_InvalidInputFieldNames_Single", resourceCulture);
+            }
+        }
     }
 }

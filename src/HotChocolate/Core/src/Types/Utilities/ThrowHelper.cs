@@ -226,7 +226,7 @@ internal static class ThrowHelper
             throw new SerializationException(
                 ErrorBuilder.New()
                     .SetMessage(
-                        ThrowHelper_InvalidInputFieldNames,
+                        ThrowHelper_InvalidInputFieldNames_Single,
                         invalidFieldNames[0],
                         type.Name)
                     .SetPath(path)

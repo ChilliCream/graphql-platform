@@ -1053,4 +1053,7 @@ Type: `{0}`</value>
   <data name="ErrorHelper_NodeResolver_NodeTypeHasNoId" xml:space="preserve">
     <value>The type `{0}` implementing the node interface must expose an id field.</value>
   </data>
+  <data name="ThrowHelper_InvalidInputFieldNames_Single" xml:space="preserve">
+    <value>The field `{0}` does not exist on the type `{1}`.</value>
+  </data>
 </root>
