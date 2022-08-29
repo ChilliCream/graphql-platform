@@ -206,9 +206,9 @@ public class ObjectField
             fieldMiddlewareDefinitions,
             definition.GetResultConverters(),
             Resolver,
-            skipMiddleware);
+            skipMiddleware)!;
 
-        if (Resolver is null && Middleware is null)
+        if (Middleware is null)
         {
             if (_executableDirectives.Length > 0)
             {
@@ -228,9 +228,9 @@ public class ObjectField
         bool IsPureContext()
         {
             return skipMiddleware ||
-               context.GlobalComponents.Count == 0 &&
+               (context.GlobalComponents.Count == 0 &&
                fieldMiddlewareDefinitions.Count == 0 &&
-               _executableDirectives.Length == 0;
+               _executableDirectives.Length == 0);
         }
     }
 

@@ -53,8 +53,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
     internal override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
         DefinitionBase? definition,
-        OperationType operationType,
-        IDictionary<string, object?> contextData)
+        OperationType operationType)
     {
         // if the type initialization resolved the root type we will capture its definition
         // so we can use it after the type extensions are merged into this type.

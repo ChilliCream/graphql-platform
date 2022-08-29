@@ -33,12 +33,9 @@ internal class OperationContextOwner : IDisposable
 
     public void Dispose()
     {
-        if (_disposed is 0)
+        if (_disposed is 0 && Interlocked.CompareExchange(ref _disposed, 1, 0) == 0)
         {
-            if (Interlocked.CompareExchange(ref _disposed, 1, 0) == 0)
-            {
-                _operationContextPool.Return(_operationContext);
-            }
+            _operationContextPool.Return(_operationContext);
         }
     }
 }

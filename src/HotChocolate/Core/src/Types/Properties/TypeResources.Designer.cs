@@ -1533,9 +1533,369 @@ namespace HotChocolate.Properties {
             }
         }
         
+
         internal static string TypeInitializer_CannotFindType {
             get {
                 return ResourceManager.GetString("TypeInitializer_CannotFindType", resourceCulture);
+        }
+        
+        internal static string ThrowHelper_RelayIdFieldHelpers_NoFieldType {
+            get {
+                return ResourceManager.GetString("ThrowHelper_RelayIdFieldHelpers_NoFieldType", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_NodeResolver_ObjNoDefinition {
+            get {
+                return ResourceManager.GetString("ThrowHelper_NodeResolver_ObjNoDefinition", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_NodeResolver_ArgumentTypeMissing {
+            get {
+                return ResourceManager.GetString("ThrowHelper_NodeResolver_ArgumentTypeMissing", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_Schema_GetMember_TypeNotFound {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Schema_GetMember_TypeNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_Schema_GetMember_FieldNotFound {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Schema_GetMember_FieldNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_Schema_GetMember_FieldArgNotFound {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Schema_GetMember_FieldArgNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_Schema_GetMember_InvalidCoordinate {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Schema_GetMember_InvalidCoordinate", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_Schema_GetMember_InputFieldNotFound {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Schema_GetMember_InputFieldNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_Schema_GetMember_EnumValueNotFound {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Schema_GetMember_EnumValueNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_Schema_GetMember_DirectiveNotFound {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Schema_GetMember_DirectiveNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_Schema_GetMember_DirectiveArgumentNotFound {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Schema_GetMember_DirectiveArgumentNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_FormatResultLeaf_InvalidSyntaxKind {
+            get {
+                return ResourceManager.GetString("ThrowHelper_FormatResultLeaf_InvalidSyntaxKind", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_FormatResultList_InvalidObjectKind {
+            get {
+                return ResourceManager.GetString("ThrowHelper_FormatResultList_InvalidObjectKind", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_FormatResultObject_InvalidObjectKind {
+            get {
+                return ResourceManager.GetString("ThrowHelper_FormatResultObject_InvalidObjectKind", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_FormatValueList_InvalidObjectKind {
+            get {
+                return ResourceManager.GetString("ThrowHelper_FormatValueList_InvalidObjectKind", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_ParseList_InvalidObjectKind {
+            get {
+                return ResourceManager.GetString("ThrowHelper_ParseList_InvalidObjectKind", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_ParseNestedList_InvalidSyntaxKind {
+            get {
+                return ResourceManager.GetString("ThrowHelper_ParseNestedList_InvalidSyntaxKind", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_ParseInputObject_InvalidObjectKind {
+            get {
+                return ResourceManager.GetString("ThrowHelper_ParseInputObject_InvalidObjectKind", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_ParseInputObject_InvalidSyntaxKind {
+            get {
+                return ResourceManager.GetString("ThrowHelper_ParseInputObject_InvalidSyntaxKind", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_NonNullInputViolation {
+            get {
+                return ResourceManager.GetString("ThrowHelper_NonNullInputViolation", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_InvalidInputFieldNames {
+            get {
+                return ResourceManager.GetString("ThrowHelper_InvalidInputFieldNames", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_RequiredInputFieldIsMissing {
+            get {
+                return ResourceManager.GetString("ThrowHelper_RequiredInputFieldIsMissing", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_DataLoader_InvalidType {
+            get {
+                return ResourceManager.GetString("ThrowHelper_DataLoader_InvalidType", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_Convention_ConventionCouldNotBeCreated {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Convention_ConventionCouldNotBeCreated", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_Convention_TwoConventionsRegisteredForScope {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Convention_TwoConventionsRegisteredForScope", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_NodeAttribute_IdFieldNotFound {
+            get {
+                return ResourceManager.GetString("ThrowHelper_NodeAttribute_IdFieldNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_NodeAttribute_NodeResolverNotFound {
+            get {
+                return ResourceManager.GetString("ThrowHelper_NodeAttribute_NodeResolverNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_TypeCompletionContext_UnableToResolveType {
+            get {
+                return ResourceManager.GetString("ThrowHelper_TypeCompletionContext_UnableToResolveType", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_TypeRegistrar_CreateInstanceFailed {
+            get {
+                return ResourceManager.GetString("ThrowHelper_TypeRegistrar_CreateInstanceFailed", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_Convention_UnableToCreateConvention {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Convention_UnableToCreateConvention", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_SubscribeAttribute_SubscribeResolverNotFound {
+            get {
+                return ResourceManager.GetString("ThrowHelper_SubscribeAttribute_SubscribeResolverNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_SubscribeAttribute_TopicOnParameterAndMethod {
+            get {
+                return ResourceManager.GetString("ThrowHelper_SubscribeAttribute_TopicOnParameterAndMethod", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_SubscribeAttribute_TopicTypeUnspecified {
+            get {
+                return ResourceManager.GetString("ThrowHelper_SubscribeAttribute_TopicTypeUnspecified", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_SubscribeAttribute_MessageTypeUnspecified {
+            get {
+                return ResourceManager.GetString("ThrowHelper_SubscribeAttribute_MessageTypeUnspecified", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_EventMessage_NotFound {
+            get {
+                return ResourceManager.GetString("ThrowHelper_EventMessage_NotFound", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_EventMessage_InvalidCast {
+            get {
+                return ResourceManager.GetString("ThrowHelper_EventMessage_InvalidCast", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_NeedsOneAtLeastField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_NeedsOneAtLeastField", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_TwoUnderscoresNotAllowedField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_TwoUnderscoresNotAllowedField", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_TwoUnderscoresNotAllowedOnArgument {
+            get {
+                return ResourceManager.GetString("ErrorHelper_TwoUnderscoresNotAllowedOnArgument", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_TwoUnderscoresNotAllowedOnDirectiveName {
+            get {
+                return ResourceManager.GetString("ErrorHelper_TwoUnderscoresNotAllowedOnDirectiveName", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_NotTransitivelyImplemented {
+            get {
+                return ResourceManager.GetString("ErrorHelper_NotTransitivelyImplemented", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_InvalidFieldType {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InvalidFieldType", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_FieldNotImplemented {
+            get {
+                return ResourceManager.GetString("ErrorHelper_FieldNotImplemented", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_InvalidArgumentType {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InvalidArgumentType", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_AdditionalArgumentNotNullable {
+            get {
+                return ResourceManager.GetString("ErrorHelper_AdditionalArgumentNotNullable", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_ArgumentNotImplemented {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ArgumentNotImplemented", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_OneofInputObjectMustHaveNullableFieldsWithoutDefaults {
+            get {
+                return ResourceManager.GetString("ErrorHelper_OneofInputObjectMustHaveNullableFieldsWithoutDefaults", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_RequiredArgumentCannotBeDeprecated {
+            get {
+                return ResourceManager.GetString("ErrorHelper_RequiredArgumentCannotBeDeprecated", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_RequiredFieldCannotBeDeprecated {
+            get {
+                return ResourceManager.GetString("ErrorHelper_RequiredFieldCannotBeDeprecated", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_InterfaceHasNoImplementation {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InterfaceHasNoImplementation", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_CompleteInterfacesHelper_UnableToResolveInterface {
+            get {
+                return ResourceManager.GetString("ErrorHelper_CompleteInterfacesHelper_UnableToResolveInterface", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong {
+            get {
+                return ResourceManager.GetString("ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_DirectiveCollection_ArgumentDoesNotExist {
+            get {
+                return ResourceManager.GetString("ErrorHelper_DirectiveCollection_ArgumentDoesNotExist", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_DirectiveCollection_ArgumentNonNullViolation {
+            get {
+                return ResourceManager.GetString("ErrorHelper_DirectiveCollection_ArgumentNonNullViolation", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_ObjectType_UnableToInferOrResolveType {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ObjectType_UnableToInferOrResolveType", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_Relay_NoNodeResolver {
+            get {
+                return ResourceManager.GetString("ErrorHelper_Relay_NoNodeResolver", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_NodeResolver_MustHaveExactlyOneIdArg {
+            get {
+                return ResourceManager.GetString("ErrorHelper_NodeResolver_MustHaveExactlyOneIdArg", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_NodeResolver_MustReturnObject {
+            get {
+                return ResourceManager.GetString("ErrorHelper_NodeResolver_MustReturnObject", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_NodeResolver_NodeTypeHasNoId {
+            get {
+                return ResourceManager.GetString("ErrorHelper_NodeResolver_NodeTypeHasNoId", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_InvalidInputFieldNames_Single {
+            get {
+                return ResourceManager.GetString("ThrowHelper_InvalidInputFieldNames_Single", resourceCulture);
             }
         }
     }

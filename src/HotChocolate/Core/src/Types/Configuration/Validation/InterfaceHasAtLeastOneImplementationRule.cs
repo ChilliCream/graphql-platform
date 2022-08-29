@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Configuration.Validation;
 

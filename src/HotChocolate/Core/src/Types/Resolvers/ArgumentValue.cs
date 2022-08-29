@@ -21,7 +21,7 @@ public sealed class ArgumentValue : IInputFieldInfo
     /// The value kind.
     /// </param>
     /// <param name="isFullyCoerced">
-    /// Specifies if this value is final or if it needs to be coerced during field execution..
+    /// Specifies if this value is final or if it needs to be coerced during field execution.
     /// Values with variables for instance need coercion during field execution.
     /// </param>
     /// <param name="isDefaultValue">

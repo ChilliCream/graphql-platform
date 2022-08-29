@@ -362,7 +362,7 @@ public class DataLoaderTests
     [Fact]
     public async Task NestedDataLoader()
     {
-        using var cts = new CancellationTokenSource(500000000);
+        using var cts = new CancellationTokenSource(2000);
 
         Snapshot.FullName();
 
