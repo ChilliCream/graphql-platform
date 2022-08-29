@@ -1,8 +1,10 @@
+using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types;
@@ -46,6 +48,48 @@ public class NodeTypeTests : TypeTestBase
             .AddGlobalObjectIdentification()
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Infer_Node_From_Query_Field_OneArgRule_Violated()
+    {
+        async Task Error() => await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query4>()
+            .AddGlobalObjectIdentification()
+            .BuildSchemaAsync();
+
+        var exception = await Assert.ThrowsAsync<SchemaException>(Error);
+
+        exception.Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Infer_Node_From_Query_Field_ResultNotAnObjectRule_Violated()
+    {
+        async Task Error() => await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query5>()
+            .AddGlobalObjectIdentification()
+            .BuildSchemaAsync();
+
+        var exception = await Assert.ThrowsAsync<SchemaException>(Error);
+
+        exception.Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Infer_Node_From_Query_Field_NoIdOnResultRule_Violated()
+    {
+        async Task Error() => await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query6>()
+            .AddGlobalObjectIdentification()
+            .BuildSchemaAsync();
+
+        var exception = await Assert.ThrowsAsync<SchemaException>(Error);
+
+        exception.Message.MatchSnapshot();
     }
 
     [Fact]
@@ -119,12 +163,12 @@ public class NodeTypeTests : TypeTestBase
                     .SetQuery(
                         @"query ($id: ID!) {
                             node(id: $id) {
-                                id 
-                                __typename 
+                                id
+                                __typename
                                 ... on Bar {
                                     clearTextId
                                 }
-                            } 
+                            }
                         }")
                     .SetVariableValue("id", id)
                     .Create())
@@ -152,6 +196,26 @@ public class NodeTypeTests : TypeTestBase
             => new Bar(id);
     }
 
+    public class Query4
+    {
+        [NodeResolver]
+        public Bar GetBarById(int id1, int id2)
+            => throw new InvalidCastException("Should never have come to this point.");
+    }
+
+    public class Query5
+    {
+        [NodeResolver]
+        public int GetBarById(int id) => 0;
+    }
+
+    public class Query6
+    {
+        [NodeResolver]
+        public Baz GetBarById(int id)
+            => new Baz(id);
+    }
+
     public class Foo
     {
         public Foo(string id)
@@ -174,5 +238,17 @@ public class NodeTypeTests : TypeTestBase
         public int Id { get; }
 
         public int ClearTextId => Id;
+    }
+
+    public class Baz
+    {
+        public Baz(int id)
+        {
+            Id1 = id;
+        }
+
+        public int Id1 { get; }
+
+        public int ClearTextId => Id1;
     }
 }
