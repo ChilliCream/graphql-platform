@@ -61,7 +61,6 @@ public class Neo4JFixture : Neo4JFixtureBase
                 .Field("actors")
                 .SetupNeo4JTestField<Actor>(database.GetAsyncSession))
             .AddType<Queries>()
-            .AddSorting()
             .AddNeo4JPagingProviders()
             .AddNeo4JProjections()
             .AddNeo4JFiltering()
