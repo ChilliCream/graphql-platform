@@ -20,12 +20,12 @@ namespace HotChocolate.Types.Relay;
 /// </summary>
 internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
 {
-    internal override void OnAfterResolveRootType(
+    public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition,
-        OperationType operationType)
+        DefinitionBase? definition,
+        IDictionary<string, object?> contextData)
     {
-        if (operationType is OperationType.Query &&
+        if ((completionContext.IsQueryType ?? false) &&
             definition is ObjectTypeDefinition objectTypeDefinition)
         {
             var typeInspector = completionContext.TypeInspector;
