@@ -39,12 +39,23 @@ public static class ArgumentCoercionHelper
         // if there are arguments that have variables and need variable replacement we will
         // rewrite the arguments that need variable replacement.
         Dictionary<string, ArgumentValue> args = new(StringComparer.Ordinal);
+        CoerceArguments(arguments, resolverContext.Variables, args);
+        coercedArgs = args;
+        return true;
+    }
 
+    internal static void CoerceArguments(
+        this IArgumentMap arguments,
+        IVariableValueCollection variableValues,
+        Dictionary<string, ArgumentValue> coercedArgs)
+    {
+        // if there are arguments that have variables and need variable replacement we will
+        // rewrite the arguments that need variable replacement.
         foreach (var argument in arguments.Values)
         {
             if (argument.IsFullyCoerced)
             {
-                args.Add(argument.Name, argument);
+                coercedArgs.Add(argument.Name, argument);
             }
             else
             {
@@ -52,9 +63,9 @@ public static class ArgumentCoercionHelper
                     argument.ValueLiteral!,
                     argument.Type,
                     argument.DefaultValue,
-                    resolverContext.Variables);
+                    variableValues);
 
-                args.Add(argument.Name, new ArgumentValue(
+                coercedArgs.Add(argument.Name, new ArgumentValue(
                     argument,
                     literal.TryGetValueKind(out var kind) ? kind : ValueKind.Unknown,
                     argument.IsFullyCoerced,
@@ -63,8 +74,5 @@ public static class ArgumentCoercionHelper
                     literal));
             }
         }
-
-        coercedArgs = args;
-        return true;
     }
 }

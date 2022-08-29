@@ -220,6 +220,26 @@ internal partial class MiddlewareContext : IMiddlewareContext
         }
     }
 
-    public T GetQueryRoot<T>() 
+    public T GetQueryRoot<T>()
         => _operationContext.GetQueryRoot<T>();
+
+    public IMiddlewareContext Clone()
+    {
+        var resolverTask =
+            _operationContext.CreateResolverTask(
+                Selection,
+                _parent,
+                ParentResult,
+                ResponseIndex,
+                Path,
+                ScopedContextData);
+
+        RegisterForCleanup(() =>
+        {
+            resolverTask.CompleteUnsafe();
+            return default;
+        });
+
+        return resolverTask.ResolverContext;
+    }
 }

@@ -206,9 +206,9 @@ public class ObjectField
             fieldMiddlewareDefinitions,
             definition.GetResultConverters(),
             Resolver,
-            skipMiddleware);
+            skipMiddleware)!;
 
-        if (Resolver is null && Middleware is null)
+        if (Middleware is null)
         {
             if (_executableDirectives.Length > 0)
             {

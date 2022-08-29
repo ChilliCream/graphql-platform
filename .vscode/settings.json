@@ -5,5 +5,5 @@
     "**/*.code-search": true,
     "**/PublicAPI*.txt": true
   },
-  "editor.rulers": [100]
+  "editor.rulers": [100],
 }

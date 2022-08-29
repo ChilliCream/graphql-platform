@@ -1,4 +1,3 @@
-using System.Diagnostics.Contracts;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
@@ -79,6 +78,29 @@ public class NodeTypeTests : TypeTestBase
             .AddQueryType<Query2>()
             .AddGlobalObjectIdentification()
             .ExecuteRequestAsync("{ node(id: \"Rm9vCmRhYmM=\") { id __typename } }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Infer_Node_From_Query_Field_With_Abc_Argument_Resolve_Nodes_Single()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query2>()
+            .AddGlobalObjectIdentification()
+            .ExecuteRequestAsync("{ nodes(ids: \"Rm9vCmRhYmM=\") { id __typename } }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Infer_Node_From_Query_Field_With_Abc_Argument_Resolve_Nodes_Two()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query2>()
+            .AddGlobalObjectIdentification()
+            .ExecuteRequestAsync(
+                "{ nodes(ids: [\"Rm9vCmRhYmM=\", \"Rm9vCmRhYmM=\"]) { id __typename } }")
             .MatchSnapshotAsync();
     }
 

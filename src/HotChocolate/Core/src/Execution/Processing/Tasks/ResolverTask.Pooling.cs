@@ -47,6 +47,7 @@ internal sealed partial class ResolverTask
         Previous = null;
         State = null;
         _taskBuffer.Clear();
+        _args.Clear();
         return true;
     }
 }

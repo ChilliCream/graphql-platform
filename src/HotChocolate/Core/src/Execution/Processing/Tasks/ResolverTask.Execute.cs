@@ -84,14 +84,27 @@ internal sealed partial class ResolverTask
                 return true;
             }
 
+            // if we have errors on the compiled execution plan we will report the errors and
+            // signal that this resolver task has errors and shall end.
+            if (Selection.Arguments.HasErrors)
+            {
+                foreach (var argument in Selection.Arguments.Values)
+                {
+                    if (argument.HasError)
+                    {
+                        _resolverContext.ReportError(argument.Error!);
+                    }
+                }
+                return false;
+            }
+
             // if this field has arguments that contain variables we first need to coerce them
             // before we can start executing the resolver.
-            if (Selection.Arguments.TryCoerceArguments(_resolverContext, out var coercedArgs))
-            {
-                _resolverContext.Arguments = coercedArgs;
-                await ExecuteResolverPipelineAsync(cancellationToken).ConfigureAwait(false);
-                return true;
-            }
+            // We coerce on the args dictionary that is pooled together with this task.
+            Selection.Arguments.CoerceArguments(_resolverContext.Variables, _args);
+            _resolverContext.Arguments = _args;
+            await ExecuteResolverPipelineAsync(cancellationToken).ConfigureAwait(false);
+            return true;
         }
         catch (Exception ex)
         {
@@ -244,7 +257,6 @@ internal sealed partial class ResolverTask
 
         return list;
     }
-
 
     public void CompleteUnsafe()
     {

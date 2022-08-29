@@ -5,6 +5,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
@@ -48,7 +49,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             var index = objectTypeDefinition.Fields.IndexOf(typeNameField);
 
             CreateNodeField(typeInspector, serializer, objectTypeDefinition.Fields, index + 1);
-            CreateNodesField(serializer, objectTypeDefinition.Fields, index + 2);
+            CreateNodesField(typeInspector, serializer, objectTypeDefinition.Fields, index + 2);
         }
     }
 
@@ -64,12 +65,21 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
         var field = new ObjectFieldDefinition(
             Node,
             Relay_NodeField_Description,
-            node,
-            ctx => ResolveSingleNode(ctx, serializer, Id))
+            node)
         {
             Arguments =
             {
                 new ArgumentDefinition(Id, Relay_NodeField_Id_Description, id)
+            },
+            MiddlewareDefinitions =
+            {
+                new FieldMiddlewareDefinition(
+                    next => async context =>
+                    {
+                        await ResolveSingleNodeAsync(context, serializer).ConfigureAwait(false);
+                        await next(context).ConfigureAwait(false);
+                    }
+                )
             }
         };
 
@@ -77,114 +87,119 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
     }
 
     private static void CreateNodesField(
+        ITypeInspector typeInspector,
         IIdSerializer serializer,
         IList<ObjectFieldDefinition> fields,
         int index)
     {
-        var nodes = TypeReference.Parse("[Node]!");
-        var ids = TypeReference.Parse("[ID!]!");
+        var nodes = typeInspector.GetTypeRef(typeof(NonNullType<ListType<NodeType>>));
+        var ids = typeInspector.GetTypeRef(typeof(NonNullType<ListType<NonNullType<IdType>>>));
 
         var field = new ObjectFieldDefinition(
             Nodes,
             Relay_NodesField_Description,
-            nodes,
-            ctx => ResolveManyNode(ctx, serializer))
+            nodes)
         {
             Arguments =
             {
                 new ArgumentDefinition(Ids, Relay_NodesField_Ids_Description, ids)
+            },
+            MiddlewareDefinitions =
+            {
+                new FieldMiddlewareDefinition(
+                    next => async context =>
+                    {
+                        await ResolveManyNodeAsync(context, serializer).ConfigureAwait(false);
+                        await next(context).ConfigureAwait(false);
+                    }
+                )
             }
         };
 
         fields.Insert(index, field);
     }
 
-    private static async ValueTask<object?> ResolveSingleNode(
-        IResolverContext context,
-        IIdSerializer serializer,
-        string argumentName)
+    private static async ValueTask ResolveSingleNodeAsync(
+        IMiddlewareContext context,
+        IIdSerializer serializer)
     {
-        var nodeId = context.ArgumentLiteral<StringValueNode>(argumentName);
+        var nodeId = context.ArgumentLiteral<StringValueNode>(Id);
         var deserializedId = serializer.Deserialize(nodeId.Value);
         var typeName = deserializedId.TypeName;
 
-        context.SetLocalState(NodeId, nodeId.Value);
-        context.SetLocalState(InternalId, deserializedId.Value);
-        context.SetLocalState(InternalType, typeName);
-        context.SetLocalState(WellKnownContextData.IdValue, deserializedId);
-
+        // if the type has a registered node resolver we will execute it.
         if (context.Schema.TryGetType<ObjectType>(typeName, out var type) &&
-            type.ContextData.TryGetValue(NodeResolver, out var o))
+            type.ContextData.TryGetValue(NodeResolver, out var o) &&
+            o is NodeResolverInfo nodeResolverInfo)
         {
-            if (o is FieldResolverDelegate resolver)
-            {
-                return await resolver.Invoke(context).ConfigureAwait(false);
-            }
+            SetLocalContext(context, nodeId, deserializedId, typeName);
+            TryReplaceArguments(context, nodeResolverInfo, Id, nodeId);
 
-            if (o is NodeRes nodeRes)
-            {
-                var inputParser = new InputFormatter();
-
-                var idArg = new ArgumentValue(
-                    nodeRes.Id,
-                    ValueKind.String,
-                    false,
-                    false,
-                    context.ArgumentValue<object?>("id"),
-                    context.ArgumentLiteral<IValueNode>("id"));
-
-                var map = new Dictionary<string, ArgumentValue>
-                {
-                    { nodeRes.Id.Name, idArg }
-                };
-
-                var m = (IMiddlewareContext)context;
-                m.ReplaceArguments(map);
-                await nodeRes.Pipeline.Invoke(m);
-                return m.Result;
-            }
+            await nodeResolverInfo.Pipeline.Invoke(context);
         }
+        else
+        {
+            context.ReportError(
+                ErrorBuilder.New()
+                    .SetMessage($"There is no node resolver registered for type `{typeName}`.")
+                    .SetPath(context.Path)
+                    .Build());
 
-        return null;
+            context.Result = null;
+        }
     }
 
-    private static async ValueTask<object?> ResolveManyNode(
-        IResolverContext context,
+    private static async ValueTask ResolveManyNodeAsync(
+        IMiddlewareContext context,
         IIdSerializer serializer)
     {
+        var schema = context.Schema;
+
         if (context.ArgumentKind(Ids) == ValueKind.List)
         {
             var list = context.ArgumentLiteral<ListValueNode>(Ids);
             var tasks = ArrayPool<Task<object?>>.Shared.Rent(list.Items.Count);
             var result = new object?[list.Items.Count];
+            var ct = context.RequestAborted;
 
             try
             {
                 for (var i = 0; i < list.Items.Count; i++)
                 {
-                    context.RequestAborted.ThrowIfCancellationRequested();
+                    ct.ThrowIfCancellationRequested();
 
-                    // it is guaranteed that this is always a string literal.
                     var nodeId = (StringValueNode)list.Items[i];
                     var deserializedId = serializer.Deserialize(nodeId.Value);
                     var typeName = deserializedId.TypeName;
 
-                    context.SetLocalState(NodeId, nodeId.Value);
-                    context.SetLocalState(InternalId, deserializedId.Value);
-                    context.SetLocalState(InternalType, typeName);
-                    context.SetLocalState(WellKnownContextData.IdValue, deserializedId);
-
-                    tasks[i] =
-                        context.Schema.TryGetType<ObjectType>(typeName!, out var type) &&
+                    // if the type has a registered node resolver we will execute it.
+                    if (schema.TryGetType<ObjectType>(typeName, out var type) &&
                         type.ContextData.TryGetValue(NodeResolver, out var o) &&
-                        o is FieldResolverDelegate resolver
-                            ? resolver.Invoke(new ResolverContextProxy(context)).AsTask()
-                            : _nullTask;
+                        o is NodeResolverInfo nodeResolverInfo)
+                    {
+                        var nodeContext = context.Clone();
+
+                        SetLocalContext(nodeContext, nodeId, deserializedId, typeName);
+                        TryReplaceArguments(nodeContext, nodeResolverInfo, Ids, nodeId);
+
+                        tasks[i] = ExecutePipelineAsync(nodeContext, nodeResolverInfo);
+                    }
+                    else
+                    {
+                        tasks[i] = _nullTask;
+
+                        // TODO: we should append the index here!
+                        context.ReportError(
+                            ErrorBuilder.New()
+                                .SetMessage($"There is no node resolver registered for type `{typeName}`.")
+                                .SetPath(context.Path)
+                                .Build());
+                    }
                 }
 
                 for (var i = 0; i < list.Items.Count; i++)
                 {
-                    context.RequestAborted.ThrowIfCancellationRequested();
+                    ct.ThrowIfCancellationRequested();
 
                     var task = tasks[i];
                     if (task.IsCompleted)
@@ -213,7 +228,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
                     }
                 }
 
-                return result;
+                context.Result = result;
             }
             finally
             {
@@ -223,8 +238,85 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
         else
         {
             var result = new object?[1];
-            result[0] = await ResolveSingleNode(context, serializer, Ids);
-            return result;
+            var nodeId = context.ArgumentLiteral<StringValueNode>(Ids);
+            var deserializedId = serializer.Deserialize(nodeId.Value);
+            var typeName = deserializedId.TypeName;
+
+            // if the type has a registered node resolver we will execute it.
+            if (schema.TryGetType<ObjectType>(typeName, out var type) &&
+                type.ContextData.TryGetValue(NodeResolver, out var o) &&
+                o is NodeResolverInfo nodeResolverInfo)
+            {
+                var nodeContext = context.Clone();
+
+                SetLocalContext(nodeContext, nodeId, deserializedId, typeName);
+                TryReplaceArguments(nodeContext, nodeResolverInfo, Ids, nodeId);
+
+                result[0] = await ExecutePipelineAsync(nodeContext, nodeResolverInfo);
+            }
+            else
+            {
+                result[0] = null;
+
+                // TODO: we should append the index here!
+                context.ReportError(
+                    ErrorBuilder.New()
+                        .SetMessage($"There is no node resolver registered for type `{typeName}`.")
+                        .SetPath(context.Path)
+                        .Build());
+            }
+
+            context.Result = result;
+        }
+
+        static async Task<object?> ExecutePipelineAsync(
+            IMiddlewareContext nodeResolverContext,
+            NodeResolverInfo nodeResolverInfo)
+        {
+            await nodeResolverInfo.Pipeline.Invoke(nodeResolverContext).ConfigureAwait(false);
+            return nodeResolverContext.Result;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void SetLocalContext(
+        IMiddlewareContext context,
+        StringValueNode nodeId,
+        IdValue deserializedId,
+        string typeName)
+    {
+        context.SetLocalState(NodeId, nodeId.Value);
+        context.SetLocalState(InternalId, deserializedId.Value);
+        context.SetLocalState(InternalType, typeName);
+        context.SetLocalState(WellKnownContextData.IdValue, deserializedId);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void TryReplaceArguments(
+        IMiddlewareContext context,
+        NodeResolverInfo nodeResolverInfo,
+        string argumentName,
+        StringValueNode argumentLiteral)
+    {
+        if (nodeResolverInfo.Id is not null)
+        {
+            // If the node resolver is a mapped from an actual field resolver,
+            // we will create a new argument value since the field resolvers argument could
+            // have a different type and argument name.
+            var idArg = new ArgumentValue(
+                nodeResolverInfo.Id,
+                ValueKind.String,
+                false,
+                false,
+                null,
+                argumentLiteral);
+
+            // Note that in standard middleware we should restore the original
+            // argument after we have invoked the next pipeline element.
+            // However, the node field is under our control and we can guarantee 
+            // that there are no other middleware involved and allowed,
+            // meaning we skip the restore.
+            context.ReplaceArgument(argumentName, idArg);
         }
     }
 
@@ -350,21 +442,21 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
             {
                 var fieldName = (string)node[NodeResolver]!;
                 var field = _queryType.Fields[fieldName];
-                node[NodeResolver] = new NodeRes(field.Arguments[0], field.Middleware);
+                node[NodeResolver] = new NodeResolverInfo(field.Arguments[0], field.Middleware);
             }
         }
     }
 }
 
-internal sealed class NodeRes
+internal sealed class NodeResolverInfo
 {
-    public NodeRes(Argument id, FieldDelegate pipeline)
+    public NodeResolverInfo(Argument? id, FieldDelegate pipeline)
     {
         Id = id;
         Pipeline = pipeline;
     }
 
-    public Argument Id { get; }
+    public Argument? Id { get; }
 
     public FieldDelegate Pipeline { get; }
 }

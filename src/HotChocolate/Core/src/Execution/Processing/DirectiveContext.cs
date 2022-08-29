@@ -117,4 +117,12 @@ internal sealed class DirectiveContext : IDirectiveContext
     public IReadOnlyDictionary<string, ArgumentValue> ReplaceArguments(
         IReadOnlyDictionary<string, ArgumentValue> argumentValues)
         => _middlewareContext.ReplaceArguments(argumentValues);
+
+    public ArgumentValue ReplaceArgument(
+        string argumentName,
+        ArgumentValue newArgumentValue)
+        => _middlewareContext.ReplaceArgument(argumentName, newArgumentValue);
+
+    public IMiddlewareContext Clone()
+        => _middlewareContext.Clone();
 }

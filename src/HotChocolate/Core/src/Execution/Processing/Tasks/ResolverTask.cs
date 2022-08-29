@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Resolvers;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing.Tasks;
@@ -12,6 +13,7 @@ internal sealed partial class ResolverTask : IExecutionTask
     private readonly ObjectPool<ResolverTask> _objectPool;
     private readonly MiddlewareContext _resolverContext = new();
     private readonly List<ResolverTask> _taskBuffer = new();
+    private readonly Dictionary<string, ArgumentValue> _args = new(StringComparer.Ordinal);
     private OperationContext _operationContext = default!;
     private ISelection _selection = default!;
     private ExecutionTaskStatus _completionStatus = ExecutionTaskStatus.Completed;
