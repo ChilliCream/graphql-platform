@@ -22,18 +22,18 @@ internal sealed partial class ResolverTask
             {
                 completedValue = ValueCompletion.Complete(
                     _operationContext,
-                    _resolverContext,
+                    _context,
                     _taskBuffer,
-                    _resolverContext.Selection,
-                    _resolverContext.Path,
+                    _context.Selection,
+                    _context.Path,
                     _selection.Type,
-                    _resolverContext.ResponseName,
-                    _resolverContext.ResponseIndex,
-                    _resolverContext.Result);
+                    _context.ResponseName,
+                    _context.ResponseIndex,
+                    _context.Result);
 
                 if (completedValue is ResultData result)
                 {
-                    result.Parent = _resolverContext.ParentResult;
+                    result.Parent = _context.ParentResult;
                 }
             }
         }
@@ -42,25 +42,25 @@ internal sealed partial class ResolverTask
             // If we run into this exception the request was aborted.
             // In this case we do nothing and just return.
             _completionStatus = ExecutionTaskStatus.Faulted;
-            _resolverContext.Result = null;
+            _context.Result = null;
             return;
         }
         catch (Exception ex)
         {
-            _resolverContext.Result = null;
+            _context.Result = null;
 
             if (!cancellationToken.IsCancellationRequested)
             {
-                _resolverContext.ReportError(ex);
+                _context.ReportError(ex);
                 completedValue = null;
             }
         }
 
         var isNonNullType = _selection.Type.Kind is TypeKind.NonNull;
 
-        _resolverContext.ParentResult.SetValueUnsafe(
-            _resolverContext.ResponseIndex,
-            _resolverContext.ResponseName,
+        _context.ParentResult.SetValueUnsafe(
+            _context.ResponseIndex,
+            _context.ResponseName,
             completedValue,
             !isNonNullType);
 
@@ -70,9 +70,9 @@ internal sealed partial class ResolverTask
             // the non-null propagation is delayed so that we can parallelize better.
             _completionStatus = ExecutionTaskStatus.Faulted;
             _operationContext.Result.AddNonNullViolation(
-                _resolverContext.Selection,
-                _resolverContext.Path,
-                _resolverContext.ParentResult);
+                _context.Selection,
+                _context.Path,
+                _context.ParentResult);
             _taskBuffer.Clear();
         }
     }
