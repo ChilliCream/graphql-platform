@@ -278,9 +278,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     }
 
     /// <inheritdoc />
-    public ISchemaBuilder AddRootType(
-        Type rootType,
-        OperationType operation)
+    public ISchemaBuilder AddRootType(Type rootType, OperationType operation)
     {
         if (rootType is null)
         {
@@ -324,9 +322,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     }
 
     /// <inheritdoc />
-    public ISchemaBuilder AddRootType(
-        ObjectType rootType,
-        OperationType operation)
+    public ISchemaBuilder AddRootType(ObjectType rootType, OperationType operation)
     {
         if (rootType is null)
         {

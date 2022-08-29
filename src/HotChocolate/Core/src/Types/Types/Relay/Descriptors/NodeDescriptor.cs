@@ -1,5 +1,7 @@
 using System;
 using System.Reflection;
+using System.Linq.Expressions;
+using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Properties.TypeResources;
 
@@ -7,12 +9,24 @@ using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate.Types.Relay.Descriptors;
 
+/// <summary>
+/// The node descriptor allows to configure a node type.
+/// </summary>
 public class NodeDescriptor
     : NodeDescriptorBase
     , INodeDescriptor
 {
     private readonly IObjectTypeDescriptor _typeDescriptor;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="NodeDescriptor"/>.
+    /// </summary>
+    /// <param name="descriptor">
+    /// The object type descriptor from which the node descriptor is spawned off.
+    /// </param>
+    /// <param name="nodeType">
+    /// The node type.
+    /// </param>
     public NodeDescriptor(IObjectTypeDescriptor descriptor, Type? nodeType = null)
         : base(descriptor.Extend().Context)
     {
@@ -21,18 +35,15 @@ public class NodeDescriptor
         _typeDescriptor
             .Implements<NodeType>()
             .Extend()
-            .OnBeforeCreate(OnCompleteDefinition);
+            .OnBeforeCompletion(OnCompleteDefinition);
 
         Definition.NodeType = nodeType;
     }
 
-    internal void OnCompleteDefinition(ObjectTypeDefinition definition)
-    {
-        if (Definition.Resolver is not null)
-        {
-            definition.ContextData[WellKnownContextData.NodeResolver] = Definition.Resolver;
-        }
-    }
+    internal void OnCompleteDefinition(
+        ITypeCompletionContext context,
+        ObjectTypeDefinition definition)
+        => CompleteResolver(context, definition);
 
     internal void ConfigureNodeField(IObjectTypeDescriptor typeDescriptor)
     {
@@ -76,6 +87,7 @@ public class NodeDescriptor
         }
     }
 
+    /// <inheritdoc cref="INodeDescriptor.IdField(MemberInfo)"/>
     public INodeDescriptor IdField(MemberInfo propertyOrMethod)
     {
         if (propertyOrMethod is null)
@@ -92,25 +104,34 @@ public class NodeDescriptor
         throw new ArgumentException(NodeDescriptor_IdField_MustBePropertyOrMethod);
     }
 
+    /// <inheritdoc cref="INodeDescriptor.NodeResolver(NodeResolverDelegate{object, object})"/>
     public IObjectFieldDescriptor NodeResolver(
-        NodeResolverDelegate<object, object> nodeResolver) =>
-        ResolveNode(nodeResolver);
+        NodeResolverDelegate<object, object> nodeResolver)
+        => ResolveNode(nodeResolver);
 
+    /// <inheritdoc cref="INodeDescriptor.NodeResolver{TId}(NodeResolverDelegate{object, TId})"/>
     public IObjectFieldDescriptor NodeResolver<TId>(
-        NodeResolverDelegate<object, TId> nodeResolver) =>
-        ResolveNode(nodeResolver);
+        NodeResolverDelegate<object, TId> nodeResolver)
+        => ResolveNode(nodeResolver);
 
-    public IObjectFieldDescriptor ResolveNodeWith<TResolver>() =>
-        ResolveNodeWith(Context.TypeInspector.GetNodeResolverMethod(
-            Definition.NodeType ?? typeof(TResolver),
-            typeof(TResolver))!);
+    /// <inheritdoc cref="INodeDescriptor.ResolveNode(Type)"/>
+    public IObjectFieldDescriptor ResolveNode(Type type)
+        => ResolveNodeWith(
+            Context.TypeInspector.GetNodeResolverMethod(
+                Definition.NodeType ?? type)!);
 
-    public IObjectFieldDescriptor ResolveNodeWith(Type type) =>
-        ResolveNodeWith(Context.TypeInspector.GetNodeResolverMethod(
-            Definition.NodeType ?? type,
-            type)!);
+    /// <inheritdoc cref="INodeDescriptor.ResolveNodeWith{TResolver}()"/>
+    public IObjectFieldDescriptor ResolveNodeWith<TResolver>()
+        => ResolveNodeWith(
+            Context.TypeInspector.GetNodeResolverMethod(
+                Definition.NodeType ?? typeof(TResolver),
+                typeof(TResolver))!);
 
-    public IObjectFieldDescriptor ResolveNode(Type type) =>
-        ResolveNodeWith(Context.TypeInspector.GetNodeResolverMethod(
-            Definition.NodeType ?? type)!);
+    /// <inheritdoc
+    ///   cref="INodeDescriptor.ResolveNodeWith{TResolver}(Expression{Func{TResolver,object?}})"/>
+    public IObjectFieldDescriptor ResolveNodeWith(Type type)
+        => ResolveNodeWith(
+            Context.TypeInspector.GetNodeResolverMethod(
+                Definition.NodeType ?? type,
+                type)!);
 }

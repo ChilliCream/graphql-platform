@@ -473,7 +473,6 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
                             keys[ki++] = def.Key;
                             i++;
                         }
-
                     } while (i < count);
 
                     ArrayPool<string>.Shared.Return(keys);

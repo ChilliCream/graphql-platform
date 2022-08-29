@@ -88,8 +88,7 @@ public class EntitiesResolverTests
         };
 
         // assert
-        var result =
-            await EntitiesResolver.ResolveAsync(schema, representations, context);
+        var result = await EntitiesResolver.ResolveAsync(schema, representations, context);
         var obj = Assert.IsType<TypeWithReferenceResolver>(result[0]);
         Assert.Equal("1", obj.Id);
         Assert.Equal("SomeField", obj.SomeField);
