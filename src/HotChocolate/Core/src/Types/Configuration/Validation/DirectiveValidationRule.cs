@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
 using static HotChocolate.Configuration.Validation.TypeValidationHelper;
-using static HotChocolate.Configuration.Validation.ErrorHelper;
+using static HotChocolate.Utilities.ErrorHelper;
 
 namespace HotChocolate.Configuration.Validation;
 

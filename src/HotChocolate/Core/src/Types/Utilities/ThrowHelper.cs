@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -527,4 +528,10 @@ internal static class ThrowHelper
 
     public static InvalidOperationException FieldBase_Sealed()
         => new(ThrowHelper_FieldBase_Sealed);
+
+    public static InvalidOperationException NodeResolver_ArgumentTypeMissing()
+        => new("A field argument at this initialization state is guaranteed to have an argument type, but we found none.");
+
+    public static InvalidOperationException NodeResolver_ObjNoDefinition()
+        => new("An object type at this point is guaranteed to have a type definition, but we found none.");
 }
