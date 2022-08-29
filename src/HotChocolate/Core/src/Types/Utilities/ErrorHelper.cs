@@ -4,6 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Properties.TypeResources;
 
 #nullable enable
 
@@ -19,8 +20,7 @@ internal static class ErrorHelper
     public static ISchemaError NeedsOneAtLeastField(INamedType type)
         => SchemaErrorBuilder.New()
             .SetMessage(
-                "The {0} type `{1}` has to at least define one field in " +
-                "order to be valid.",
+                ErrorHelper_NeedsOneAtLeastField,
                 type.Kind.ToString().ToLowerInvariant(),
                 type.Name)
             .SetType(type)
@@ -32,8 +32,7 @@ internal static class ErrorHelper
         IField field)
         => SchemaErrorBuilder.New()
             .SetMessage(
-                "Field names starting with `__` are reserved for " +
-                "the GraphQL specification.")
+                ErrorHelper_TwoUnderscoresNotAllowedField)
             .SetType(type)
             .SetField(field)
             .SetSpecifiedBy(type.Kind)
@@ -45,8 +44,7 @@ internal static class ErrorHelper
         IInputField argument)
         => SchemaErrorBuilder.New()
             .SetMessage(
-                "Argument names starting with `__` are reserved for " +
-                " the GraphQL specification.")
+                ErrorHelper_TwoUnderscoresNotAllowedOnArgument)
             .SetType(type)
             .SetField(field)
             .SetArgument(argument)
@@ -58,8 +56,7 @@ internal static class ErrorHelper
         IInputField argument)
         => SchemaErrorBuilder.New()
             .SetMessage(
-                "Argument names starting with `__` are reserved for " +
-                " the GraphQL specification.")
+                ErrorHelper_TwoUnderscoresNotAllowedOnArgument)
             .SetDirective(type)
             .SetArgument(argument)
             .SetSpecifiedBy(TypeKind.Directive)
@@ -67,7 +64,7 @@ internal static class ErrorHelper
 
     public static ISchemaError TwoUnderscoresNotAllowedOnDirectiveName(DirectiveType type)
         => SchemaErrorBuilder.New()
-            .SetMessage("Names starting with `__` are reserved for the GraphQL specification.")
+            .SetMessage(ErrorHelper_TwoUnderscoresNotAllowedOnDirectiveName)
             .SetDirective(type)
             .SetSpecifiedBy(TypeKind.Directive)
             .Build();
@@ -77,8 +74,7 @@ internal static class ErrorHelper
         IComplexOutputType implementedType)
         => SchemaErrorBuilder.New()
             .SetMessage(
-                "The {0} type must also declare all interfaces " +
-                "declared by implemented interfaces.",
+                ErrorHelper_NotTransitivelyImplemented,
                 type.Kind.ToString().ToLowerInvariant())
             .SetType(type)
             .SetImplementedType(implementedType)
@@ -91,9 +87,7 @@ internal static class ErrorHelper
         IOutputField implementedField)
         => SchemaErrorBuilder.New()
             .SetMessage(
-                "Field `{0}` must return a type which is equal to " +
-                "or a sub‐type of (covariant) the return type `{1}` " +
-                "of the interface field.",
+                ErrorHelper_InvalidFieldType,
                 field.Name,
                 implementedField.Type.Print())
             .SetType(type)
@@ -107,7 +101,7 @@ internal static class ErrorHelper
         IOutputField implementedField)
         => SchemaErrorBuilder.New()
             .SetMessage(
-                "The field `{0}` must be implement by {1} type `{2}`.",
+                ErrorHelper_FieldNotImplemented,
                 implementedField.Name,
                 type.Kind.ToString().ToLowerInvariant(),
                 type.Print())
@@ -123,9 +117,7 @@ internal static class ErrorHelper
         IInputField implementedArgument)
         => SchemaErrorBuilder.New()
             .SetMessage(
-                "The named argument `{0}` on field `{1}` must accept " +
-                "the same type `{2}` (invariant) as that named argument on " +
-                "the interface `{3}`.",
+                ErrorHelper_InvalidArgumentType,
                 argument.Name,
                 field.Name,
                 implementedArgument.Type.Print(),
@@ -142,8 +134,7 @@ internal static class ErrorHelper
         IInputField argument)
         => SchemaErrorBuilder.New()
             .SetMessage(
-                "The field `{0}` must only declare additional arguments to an " +
-                "implemented field that are nullable.",
+                ErrorHelper_AdditionalArgumentNotNullable,
                 field.Name)
             .SetType(field.DeclaringType)
             .SetField(field)
@@ -158,10 +149,7 @@ internal static class ErrorHelper
         IInputField missingArgument)
         => SchemaErrorBuilder.New()
             .SetMessage(
-                "The argument `{0}` of the implemented field `{1}` must be defined. " +
-                "The field `{2}` must include an argument of the same name for " +
-                "every argument defined on the implemented field " +
-                "of the interface type `{3}`.",
+                ErrorHelper_ArgumentNotImplemented,
                 missingArgument.Name,
                 field.Name,
                 field.Name,
@@ -179,8 +167,7 @@ internal static class ErrorHelper
         string[] fieldNames)
         => SchemaErrorBuilder.New()
             .SetMessage(
-                "Oneof Input Object `{0}` must only have nullable fields without default values. " +
-                "Edit your type and make the field{1} `{2}` nullable and remove any defaults.",
+                ErrorHelper_OneofInputObjectMustHaveNullableFieldsWithoutDefaults,
                 type.Name,
                 fieldNames.Length is 1 ? string.Empty : "s",
                 string.Join(", ", fieldNames))
@@ -194,7 +181,7 @@ internal static class ErrorHelper
         IInputField argument)
         => SchemaErrorBuilder.New()
             .SetMessage(
-                "Required argument {0} cannot be deprecated.",
+                ErrorHelper_RequiredArgumentCannotBeDeprecated,
                 argument.Coordinate.ToString())
             .SetType(type)
             .SetField(field)
@@ -207,7 +194,7 @@ internal static class ErrorHelper
         IInputField argument)
         => SchemaErrorBuilder.New()
             .SetMessage(
-                "Required argument {0} cannot be deprecated.",
+                ErrorHelper_RequiredArgumentCannotBeDeprecated,
                 argument.Coordinate.ToString())
             .SetDirective(directive)
             .SetArgument(argument)
@@ -219,7 +206,7 @@ internal static class ErrorHelper
         IInputField field)
         => SchemaErrorBuilder.New()
             .SetMessage(
-                "Required input field {0} cannot be deprecated.",
+                ErrorHelper_RequiredFieldCannotBeDeprecated,
                 field.Coordinate.ToString())
             .SetType(type)
             .SetField(field)
@@ -297,7 +284,7 @@ internal static class ErrorHelper
             .SetMessage(
                 string.Format(
                     CultureInfo.InvariantCulture,
-                    "There is no object type implementing interface `{0}`.",
+                    ErrorHelper_InterfaceHasNoImplementation,
                     interfaceType.Name))
             .SetCode(ErrorCodes.Schema.InterfaceNotImplemented)
             .SetTypeSystemObject(interfaceType)
@@ -308,7 +295,7 @@ internal static class ErrorHelper
         ITypeSystemObject interfaceOrObject,
         ISyntaxNode? node)
         => SchemaErrorBuilder.New()
-            .SetMessage("COULD NOT RESOLVE INTERFACE")
+            .SetMessage(ErrorHelper_CompleteInterfacesHelper_UnableToResolveInterface)
             .SetCode(ErrorCodes.Schema.MissingType)
             .SetTypeSystemObject(interfaceOrObject)
             .AddSyntaxNode(node)
@@ -354,7 +341,7 @@ internal static class ErrorHelper
         string argumentName)
         => SchemaErrorBuilder.New()
             .SetMessage(
-                "The argument `{0}` value type is wrong.",
+                ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong,
                 argumentName)
             .SetCode(ErrorCodes.Schema.ArgumentValueTypeWrong)
             .SetTypeSystemObject(directiveType)
@@ -370,8 +357,7 @@ internal static class ErrorHelper
         string argumentName)
         => SchemaErrorBuilder.New()
             .SetMessage(
-                "The argument `{0}` does not exist on the " +
-                "directive `{1}`.",
+                ErrorHelper_DirectiveCollection_ArgumentDoesNotExist,
                 argumentName,
                 directiveType.Name)
             .SetCode(ErrorCodes.Schema.InvalidArgument)
@@ -388,8 +374,7 @@ internal static class ErrorHelper
         string argumentName)
         => SchemaErrorBuilder.New()
             .SetMessage(
-                "The argument `{0}` of directive `{1}` " +
-                "mustn't be null.",
+                ErrorHelper_DirectiveCollection_ArgumentNonNullViolation,
                 argumentName,
                 directiveType.Name)
             .SetCode(ErrorCodes.Schema.NonNullArgument)
@@ -404,11 +389,7 @@ internal static class ErrorHelper
         ObjectFieldDefinition field)
         => SchemaErrorBuilder.New()
             .SetMessage(
-                "Unable to infer or resolve the type of " +
-                "field {0}.{1}. Try to explicitly provide the " +
-                "type like the following: " +
-                "`descriptor.Field(\"field\")" +
-                ".Type<List<StringType>>()`.",
+                ErrorHelper_ObjectType_UnableToInferOrResolveType,
                 typeName,
                 field.Name)
             .SetCode(ErrorCodes.Schema.NoFieldType)
@@ -424,7 +405,7 @@ internal static class ErrorHelper
         ISyntaxNode? syntaxNode)
         => SchemaErrorBuilder.New()
             .SetMessage(
-                TypeResources.ErrorHelper_ObjectField_HasNoResolver,
+                ErrorHelper_ObjectField_HasNoResolver,
                 typeName,
                 fieldName)
             .SetCode(ErrorCodes.Schema.NoResolver)
@@ -438,7 +419,7 @@ internal static class ErrorHelper
         ISyntaxNode? syntaxNode,
         string currentOrder)
         => SchemaErrorBuilder.New()
-            .SetMessage(TypeResources.ErrorHelper_MiddlewareOrderInvalid, field, currentOrder)
+            .SetMessage(ErrorHelper_MiddlewareOrderInvalid, field, currentOrder)
             .SetCode(ErrorCodes.Schema.MiddlewareOrderInvalid)
             .SetTypeSystemObject(type)
             .AddSyntaxNode(syntaxNode)
@@ -450,7 +431,7 @@ internal static class ErrorHelper
         Type runtimeType)
         => SchemaErrorBuilder.New()
             .SetMessage(
-                TypeResources.ErrorHelper_NoSchemaTypesAllowedAsRuntimeType,
+                ErrorHelper_NoSchemaTypesAllowedAsRuntimeType,
                 type.Name,
                 runtimeType.FullName ?? runtimeType.Name)
             .SetCode(ErrorCodes.Schema.NoSchemaTypesAllowedAsRuntimeType)
@@ -459,7 +440,7 @@ internal static class ErrorHelper
 
     public static IError Relay_NoNodeResolver(string typeName, Path path, FieldNode fieldNode)
         => ErrorBuilder.New()
-            .SetMessage($"There is no node resolver registered for type `{typeName}`.")
+            .SetMessage(ErrorHelper_Relay_NoNodeResolver, typeName)
             .SetPath(path)
             .SetSyntaxNode(fieldNode)
             .Build();
@@ -469,7 +450,7 @@ internal static class ErrorHelper
         ITypeSystemObject type)
         => SchemaErrorBuilder
             .New()
-            .SetMessage($"The node resolver `{fieldName}` must specify exactly one argument.")
+            .SetMessage(ErrorHelper_NodeResolver_MustHaveExactlyOneIdArg, fieldName)
             .SetTypeSystemObject(type)
             .Build();
 
@@ -478,7 +459,7 @@ internal static class ErrorHelper
         ITypeSystemObject type)
         => SchemaErrorBuilder
             .New()
-            .SetMessage($"The node resolver `{fieldName}` must return an object type.")
+            .SetMessage(ErrorHelper_NodeResolver_MustReturnObject, fieldName)
             .SetTypeSystemObject(type)
             .Build();
 
@@ -486,7 +467,7 @@ internal static class ErrorHelper
         ObjectType type)
         => SchemaErrorBuilder
             .New()
-            .SetMessage($"The type `{type.Name}` implementing the node interface must expose an id field.")
+            .SetMessage(ErrorHelper_NodeResolver_NodeTypeHasNoId, type.Name)
             .SetTypeSystemObject(type)
             .Build();
 }

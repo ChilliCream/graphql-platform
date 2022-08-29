@@ -6,6 +6,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Types.WellKnownContextData;
 
@@ -121,9 +122,7 @@ internal static class RelayIdFieldHelpers
         }
         else
         {
-            throw new SchemaException(SchemaErrorBuilder.New()
-                .SetMessage("Unable to resolve type from field `{0}`.", definition.Name)
-                .Build());
+            throw ThrowHelper.RelayIdFieldHelpers_NoFieldType(definition.Name);
         }
     }
 
@@ -175,10 +174,9 @@ internal static class RelayIdFieldHelpers
         }
         else
         {
-            throw new SchemaException(SchemaErrorBuilder.New()
-                .SetMessage("Unable to resolve type from field `{0}`.", definition.Name)
-                .SetTypeSystemObject(completionContext.Type)
-                .Build());
+            throw ThrowHelper.RelayIdFieldHelpers_NoFieldType(
+                definition.Name,
+                completionContext.Type);
         }
 
         definition.Formatters.Add(CreateSerializer(completionContext, resultType, typeName));
@@ -203,12 +201,9 @@ internal static class RelayIdFieldHelpers
         }
         else
         {
-            throw new SchemaException(
-                SchemaErrorBuilder
-                    .New()
-                    .SetMessage("Unable to resolve type from field `{0}`.", definition.Name)
-                    .SetTypeSystemObject(completionContext.Type)
-                    .Build());
+            throw ThrowHelper.RelayIdFieldHelpers_NoFieldType(
+                definition.Name,
+                completionContext.Type);
         }
 
         string? schemaName = default;

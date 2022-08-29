@@ -876,4 +876,181 @@ Type: `{0}`</value>
   <data name="ThrowHelper_FieldBase_Sealed" xml:space="preserve">
     <value>The field is already sealed and cannot be mutated.</value>
   </data>
+  <data name="ThrowHelper_RelayIdFieldHelpers_NoFieldType" xml:space="preserve">
+    <value>Unable to resolve type from field `{0}`.</value>
+  </data>
+  <data name="ThrowHelper_NodeResolver_ObjNoDefinition" xml:space="preserve">
+    <value>An object type at this point is guaranteed to have a type definition, but we found none.</value>
+  </data>
+  <data name="ThrowHelper_NodeResolver_ArgumentTypeMissing" xml:space="preserve">
+    <value>A field argument at this initialization state is guaranteed to have an argument type, but we found none.</value>
+  </data>
+  <data name="ThrowHelper_Schema_GetMember_TypeNotFound" xml:space="preserve">
+    <value>A type with the name `{0}` was not found.</value>
+  </data>
+  <data name="ThrowHelper_Schema_GetMember_FieldNotFound" xml:space="preserve">
+    <value>Field `{0}` was not found on type `{1}`.</value>
+  </data>
+  <data name="ThrowHelper_Schema_GetMember_FieldArgNotFound" xml:space="preserve">
+    <value>Argument `{0}` was not found on field `{1}.{2}`.</value>
+  </data>
+  <data name="ThrowHelper_Schema_GetMember_InvalidCoordinate" xml:space="preserve">
+    <value>The coordinate `{0}` is invalid for the type `{1}`.</value>
+  </data>
+  <data name="ThrowHelper_Schema_GetMember_InputFieldNotFound" xml:space="preserve">
+    <value>Input field `{0}` was not found on type `{1}`.</value>
+  </data>
+  <data name="ThrowHelper_Schema_GetMember_EnumValueNotFound" xml:space="preserve">
+    <value>Enum value `{0}` was not found on type `{1}`.</value>
+  </data>
+  <data name="ThrowHelper_Schema_GetMember_DirectiveNotFound" xml:space="preserve">
+    <value>Directive `@{0}` not found.</value>
+  </data>
+  <data name="ThrowHelper_Schema_GetMember_DirectiveArgumentNotFound" xml:space="preserve">
+    <value>Argument `{0}` was not found on directive `@{1}`.</value>
+  </data>
+  <data name="ThrowHelper_FormatResultLeaf_InvalidSyntaxKind" xml:space="preserve">
+    <value>The type `{0}` does mot expect `{1}`.</value>
+  </data>
+  <data name="ThrowHelper_FormatResultList_InvalidObjectKind" xml:space="preserve">
+    <value>The list result value of {0} must implement IList but is of the type {1}.</value>
+  </data>
+  <data name="ThrowHelper_FormatResultObject_InvalidObjectKind" xml:space="preserve">
+    <value>The input object `{1}` must to be of type `{2}` or serialized as `IReadOnlyDictionary&lt;string. object?&gt;` but not as `{0}`.</value>
+  </data>
+  <data name="ThrowHelper_FormatValueList_InvalidObjectKind" xml:space="preserve">
+    <value>The list runtime value of {0} must implement IEnumerable or IList but is of the type {1}.</value>
+  </data>
+  <data name="ThrowHelper_ParseList_InvalidObjectKind" xml:space="preserve">
+    <value>The list `{1}` must to be serialized as `{2}` or as `IList` but not as `{0}`.</value>
+  </data>
+  <data name="ThrowHelper_ParseNestedList_InvalidSyntaxKind" xml:space="preserve">
+    <value>The item syntax node for a nested list must be `ListValue` but the parser found `{0}`.</value>
+  </data>
+  <data name="ThrowHelper_ParseInputObject_InvalidObjectKind" xml:space="preserve">
+    <value>The input object `{1}` must to be serialized as `{2}` or as `IReadOnlyDictionary&lt;string. object?&gt;` but not as `{0}`.</value>
+  </data>
+  <data name="ThrowHelper_ParseInputObject_InvalidSyntaxKind" xml:space="preserve">
+    <value>The syntax node `{0}` is incompatible with the type `{1}`.</value>
+  </data>
+  <data name="ThrowHelper_NonNullInputViolation" xml:space="preserve">
+    <value>Cannot accept null for non-nullable input.</value>
+  </data>
+  <data name="ThrowHelper_InvalidInputFieldNames" xml:space="preserve">
+    <value>The fields `{0}` do not exist on the type `{1}`.</value>
+  </data>
+  <data name="ThrowHelper_RequiredInputFieldIsMissing" xml:space="preserve">
+    <value>The required input field `{0}` is missing.</value>
+  </data>
+  <data name="ThrowHelper_DataLoader_InvalidType" xml:space="preserve">
+    <value>The provided type {0} is not a dataloader</value>
+  </data>
+  <data name="ThrowHelper_Convention_ConventionCouldNotBeCreated" xml:space="preserve">
+    <value>Convention of type {0} in scope {1} could not be created</value>
+  </data>
+  <data name="ThrowHelper_Convention_TwoConventionsRegisteredForScope" xml:space="preserve">
+    <value>There are two conventions registered for {0} in scope {1}. Only one convention is allowed. Use convention extensions if additional configuration is needed. Colliding conventions are {2} and {3}</value>
+  </data>
+  <data name="ThrowHelper_NodeAttribute_IdFieldNotFound" xml:space="preserve">
+    <value>The specified id field `{0}` does not exist on `{1}`.</value>
+  </data>
+  <data name="ThrowHelper_NodeAttribute_NodeResolverNotFound" xml:space="preserve">
+    <value>The specified node resolver `{0}` does not exist on `{1}`.</value>
+  </data>
+  <data name="ThrowHelper_TypeCompletionContext_UnableToResolveType" xml:space="preserve">
+    <value>Unable to resolve type reference `{0}`.</value>
+  </data>
+  <data name="ThrowHelper_TypeRegistrar_CreateInstanceFailed" xml:space="preserve">
+    <value>Unable to create instance of type `{0}`.</value>
+  </data>
+  <data name="ThrowHelper_Convention_UnableToCreateConvention" xml:space="preserve">
+    <value>Unable to create a convention instance from {0}.</value>
+  </data>
+  <data name="ThrowHelper_SubscribeAttribute_SubscribeResolverNotFound" xml:space="preserve">
+    <value>Unable to find the subscribe resolver `{2}` defined on {0}.{1}. The subscribe resolver bust be a method that is public, non-static and on the same type as the resolver. (SubscribeAttribute)</value>
+  </data>
+  <data name="ThrowHelper_SubscribeAttribute_TopicOnParameterAndMethod" xml:space="preserve">
+    <value>The topic is declared multiple times on {0}.{1}. (TopicAttribute)</value>
+  </data>
+  <data name="ThrowHelper_SubscribeAttribute_TopicTypeUnspecified" xml:space="preserve">
+    <value>You need to specify the topic type on {0}.{1}. (SubscribeAttribute)</value>
+  </data>
+  <data name="ThrowHelper_SubscribeAttribute_MessageTypeUnspecified" xml:space="preserve">
+    <value>You need to specify the message type on {0}.{1}. (SubscribeAttribute)</value>
+  </data>
+  <data name="ThrowHelper_EventMessage_NotFound" xml:space="preserve">
+    <value>There is no event message on the context.</value>
+  </data>
+  <data name="ThrowHelper_EventMessage_InvalidCast" xml:space="preserve">
+    <value>The event message is of the type `{0}` and cannot be casted to `{1}.`</value>
+  </data>
+  <data name="ErrorHelper_NeedsOneAtLeastField" xml:space="preserve">
+    <value>The {0} type `{1}` has to at least define one field in order to be valid.</value>
+  </data>
+  <data name="ErrorHelper_TwoUnderscoresNotAllowedField" xml:space="preserve">
+    <value>Field names starting with `__` are reserved for the GraphQL specification.</value>
+  </data>
+  <data name="ErrorHelper_TwoUnderscoresNotAllowedOnArgument" xml:space="preserve">
+    <value>Argument names starting with `__` are reserved for the GraphQL specification.</value>
+  </data>
+  <data name="ErrorHelper_TwoUnderscoresNotAllowedOnDirectiveName" xml:space="preserve">
+    <value>Names starting with `__` are reserved for the GraphQL specification.</value>
+  </data>
+  <data name="ErrorHelper_NotTransitivelyImplemented" xml:space="preserve">
+    <value>The {0} type must also declare all interfaces declared by implemented interfaces.</value>
+  </data>
+  <data name="ErrorHelper_InvalidFieldType" xml:space="preserve">
+    <value>Field `{0}` must return a type which is equal to or a sub‐type of (covariant) the return type `{1}` of the interface field.</value>
+  </data>
+  <data name="ErrorHelper_FieldNotImplemented" xml:space="preserve">
+    <value>The field `{0}` must be implement by {1} type `{2}`.</value>
+  </data>
+  <data name="ErrorHelper_InvalidArgumentType" xml:space="preserve">
+    <value>The named argument `{0}` on field `{1}` must accept the same type `{2}` (invariant) as that named argument on the interface `{3}`.</value>
+  </data>
+  <data name="ErrorHelper_AdditionalArgumentNotNullable" xml:space="preserve">
+    <value>The field `{0}` must only declare additional arguments to an implemented field that are nullable.</value>
+  </data>
+  <data name="ErrorHelper_ArgumentNotImplemented" xml:space="preserve">
+    <value>The argument `{0}` of the implemented field `{1}` must be defined. The field `{2}` must include an argument of the same name for every argument defined on the implemented field of the interface type `{3}`.</value>
+  </data>
+  <data name="ErrorHelper_OneofInputObjectMustHaveNullableFieldsWithoutDefaults" xml:space="preserve">
+    <value>Oneof Input Object `{0}` must only have nullable fields without default values. Edit your type and make the field{1} `{2}` nullable and remove any defaults.</value>
+  </data>
+  <data name="ErrorHelper_RequiredArgumentCannotBeDeprecated" xml:space="preserve">
+    <value>Required argument {0} cannot be deprecated.</value>
+  </data>
+  <data name="ErrorHelper_RequiredFieldCannotBeDeprecated" xml:space="preserve">
+    <value>Required input field {0} cannot be deprecated.</value>
+  </data>
+  <data name="ErrorHelper_InterfaceHasNoImplementation" xml:space="preserve">
+    <value>There is no object type implementing interface `{0}`.</value>
+  </data>
+  <data name="ErrorHelper_CompleteInterfacesHelper_UnableToResolveInterface" xml:space="preserve">
+    <value>Unable to resolve the interface type. For more details look at the error object.</value>
+  </data>
+  <data name="ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong" xml:space="preserve">
+    <value>The argument `{0}` value type is wrong.</value>
+  </data>
+  <data name="ErrorHelper_DirectiveCollection_ArgumentDoesNotExist" xml:space="preserve">
+    <value>The argument `{0}` does not exist on the directive `{1}`.</value>
+  </data>
+  <data name="ErrorHelper_DirectiveCollection_ArgumentNonNullViolation" xml:space="preserve">
+    <value>The argument `{0}` of directive `{1}` mustn't be null.</value>
+  </data>
+  <data name="ErrorHelper_ObjectType_UnableToInferOrResolveType" xml:space="preserve">
+    <value>Unable to infer or resolve the type of field {0}.{1}. Try to explicitly provide the type like the following: `descriptor.Field("field").Type&lt;List&lt;StringType&gt;&gt;()`.</value>
+  </data>
+  <data name="ErrorHelper_Relay_NoNodeResolver" xml:space="preserve">
+    <value>There is no node resolver registered for type `{0}`.</value>
+  </data>
+  <data name="ErrorHelper_NodeResolver_MustHaveExactlyOneIdArg" xml:space="preserve">
+    <value>The node resolver `{0}` must specify exactly one argument.</value>
+  </data>
+  <data name="ErrorHelper_NodeResolver_MustReturnObject" xml:space="preserve">
+    <value>The node resolver `{0}` must return an object type.</value>
+  </data>
+  <data name="ErrorHelper_NodeResolver_NodeTypeHasNoId" xml:space="preserve">
+    <value>The type `{0}` implementing the node interface must expose an id field.</value>
+  </data>
 </root>
