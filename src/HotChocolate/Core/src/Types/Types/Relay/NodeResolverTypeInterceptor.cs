@@ -1,12 +1,10 @@
 #nullable enable
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using static HotChocolate.Types.Relay.NodeConstants;
@@ -17,7 +15,7 @@ using static HotChocolate.Utilities.ThrowHelper;
 namespace HotChocolate.Types.Relay;
 
 /// <summary>
-/// This node resolver inspects the query type for fields that double as node resolvers.
+/// This type interceptor inspects the query type to look for fields that double as node resolvers.
 /// </summary>
 internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
 {

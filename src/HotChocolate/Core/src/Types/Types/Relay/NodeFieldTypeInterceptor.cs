@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Introspection;
@@ -14,14 +15,17 @@ using static HotChocolate.Types.Relay.NodeFieldResolvers;
 
 namespace HotChocolate.Types.Relay;
 
+/// <summary>
+/// This type interceptor adds the fields `node` and the `nodes` to the query type.
+/// </summary>
 internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
 {
-    public override void OnBeforeCompleteType(
+    internal override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition,
+        OperationType operationType)
     {
-        if ((completionContext.IsQueryType ?? false) &&
+        if (operationType is OperationType.Query &&
             definition is ObjectTypeDefinition objectTypeDefinition)
         {
             var typeInspector = completionContext.TypeInspector;
