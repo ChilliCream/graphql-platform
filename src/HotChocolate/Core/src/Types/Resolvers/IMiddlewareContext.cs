@@ -67,5 +67,5 @@ public interface IMiddlewareContext : IResolverContext
 
     ArgumentValue ReplaceArgument(string argumentName, ArgumentValue newArgumentValue);
 
-    IMiddlewareContext Clone();
+    new IMiddlewareContext Clone();
 }

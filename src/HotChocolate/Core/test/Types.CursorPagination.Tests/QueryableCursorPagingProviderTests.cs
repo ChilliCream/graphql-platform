@@ -484,6 +484,11 @@ public class QueryableCursorPagingProviderTests
             throw new NotImplementedException();
         }
 
+        public IResolverContext Clone()
+        {
+            throw new NotImplementedException();
+        }
+
         public ISchema Schema => throw new NotImplementedException();
 
         public IObjectType ObjectType => throw new NotImplementedException();

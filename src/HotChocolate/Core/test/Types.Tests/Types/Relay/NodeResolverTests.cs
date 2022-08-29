@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -12,13 +11,12 @@ namespace HotChocolate.Types;
 
 public class NodeResolverTests
 {
-    [Obsolete]
     [Fact]
     public async Task NodeResolver_ResolveNode()
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .EnableRelaySupport()
+            .AddGlobalObjectIdentification()
             .AddType<EntityType>()
             .AddQueryType<Query>()
             .Create();
@@ -34,17 +32,43 @@ public class NodeResolverTests
         result.ToJson().MatchSnapshot();
     }
 
-    [Obsolete]
     [Fact]
     public async Task NodeResolver_ResolveNode_DynamicField()
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .EnableRelaySupport()
+            .AddGlobalObjectIdentification()
             .AddObjectType<Entity>(d =>
             {
-                d.AsNode()
-                    .NodeResolver<string>((ctx, id) =>
+                d.ImplementsNode()
+                    .ResolveNode<string>(
+                        (_, id) => Task.FromResult(new Entity { Name = id }))
+                    .Resolve(ctx => ctx.Parent<Entity>().Id);
+            })
+            .AddQueryType<Query>()
+            .Create();
+
+        var executor = schema.MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ node(id: \"RW50aXR5CmRmb28=\")  " +
+            "{ ... on Entity { id name } } }");
+
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task NodeResolver_ResolveNode_DynamicFieldObject()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddGlobalObjectIdentification()
+            .AddObjectType<Entity>(d =>
+            {
+                d.ImplementsNode()
+                    .ResolveNode<string>((_, id) =>
                         Task.FromResult(new Entity { Name = id }))
                     .Resolve(ctx => ctx.Parent<Entity>().Id);
             })
@@ -62,47 +86,18 @@ public class NodeResolverTests
         result.ToJson().MatchSnapshot();
     }
 
-    [Obsolete]
-    [Fact]
-    public async Task NodeResolver_ResolveNode_DynamicFieldObject()
-    {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .EnableRelaySupport()
-            .AddObjectType<Entity>(d =>
-            {
-                d.AsNode()
-                    .NodeResolver((ctx, id) =>
-                        Task.FromResult(new Entity { Name = (string)id }))
-                    .Resolve(ctx => ctx.Parent<Entity>().Id);
-            })
-            .AddQueryType<Query>()
-            .Create();
-
-        var executor = schema.MakeExecutable();
-
-        // act
-        var result = await executor.ExecuteAsync(
-            "{ node(id: \"RW50aXR5CmRmb28=\")  " +
-            "{ ... on Entity { id name } } }");
-
-        // assert
-        result.ToJson().MatchSnapshot();
-    }
-
-    [Obsolete]
     [Fact]
     public async Task NodeResolverObject_ResolveNode_DynamicField()
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .EnableRelaySupport()
+            .AddGlobalObjectIdentification()
             .AddObjectType(d =>
             {
                 d.Name("Entity");
-                d.AsNode()
-                    .NodeResolver<string>((ctx, id) =>
-                        Task.FromResult<object>(new Entity { Name = id }))
+                d.ImplementsNode()
+                    .ResolveNode<string>(
+                        (_, id) => Task.FromResult<object>(new Entity { Name = id }))
                     .Resolve(ctx => ctx.Parent<Entity>().Id);
                 d.Field("name")
                     .Type<StringType>()
@@ -128,19 +123,18 @@ public class NodeResolverTests
         result.ToJson().MatchSnapshot();
     }
 
-    [Obsolete]
     [Fact]
     public async Task NodeResolverObject_ResolveNode_DynamicFieldObject()
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .EnableRelaySupport()
+            .AddGlobalObjectIdentification()
             .AddObjectType(d =>
             {
                 d.Name("Entity");
-                d.AsNode()
-                    .NodeResolver((ctx, id) =>
-                        Task.FromResult<object>(new Entity { Name = (string)id }))
+                d.ImplementsNode()
+                    .ResolveNode<string>(
+                        (_, id) => Task.FromResult<object>(new Entity { Name = id }))
                     .Resolve(ctx => ctx.Parent<Entity>().Id);
                 d.Field("name")
                     .Type<StringType>()
@@ -218,7 +212,6 @@ public class NodeResolverTests
             .MatchSnapshotAsync();
     }
 
-    [Obsolete]
     [Fact]
     public async Task NodeAttribute_On_Extension_Fetch_Through_Node_Field()
     {
@@ -228,15 +221,15 @@ public class NodeResolverTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddTypeExtension<EntityExtension>()
-            .EnableRelaySupport()
+            .AddGlobalObjectIdentification()
             .ExecuteRequestAsync(
                 @"{
-                        node(id: ""RW50aXR5CmRhYmM="") {
-                            ... on Entity {
-                                name
-                            }
+                    node(id: ""RW50aXR5CmRhYmM="") {
+                        ... on Entity {
+                            name
                         }
-                    }")
+                    }
+                }")
             .MatchSnapshotAsync();
     }
 
@@ -247,17 +240,16 @@ public class NodeResolverTests
         public Entity2 GetEntity2(string name) => new Entity2 { Name = name };
     }
 
-    [Obsolete]
     public class EntityType
         : ObjectType<Entity>
     {
         protected override void Configure(
             IObjectTypeDescriptor<Entity> descriptor)
         {
-            descriptor.AsNode()
+            descriptor
+                .ImplementsNode()
                 .IdField(t => t.Id)
-                .NodeResolver((ctx, id) =>
-                    Task.FromResult(new Entity { Name = id }));
+                .ResolveNode((_, id) => Task.FromResult(new Entity { Name = id }));
         }
     }
 

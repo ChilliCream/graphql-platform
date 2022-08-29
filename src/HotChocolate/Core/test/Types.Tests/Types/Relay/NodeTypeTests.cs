@@ -104,11 +104,35 @@ public class NodeTypeTests : TypeTestBase
             .MatchSnapshotAsync();
     }
 
+    [Fact]
+    public async Task Infer_Node_From_Query_Field_Resolve_Node_With_Int_Id()
+    {
+        var serializer = new IdSerializer();
+        var id = serializer.Serialize("Bar", 123);
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query3>()
+            .AddGlobalObjectIdentification()
+            .ExecuteRequestAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"query ($id: ID!) {
+                            node(id: $id) {
+                                id 
+                                __typename 
+                                ... on Bar {
+                                    clearTextId
+                                }
+                            } 
+                        }")
+                    .SetVariableValue("id", id)
+                    .Create())
+            .MatchSnapshotAsync();
+    }
+
     public class Query
     {
-        public Foo CreateFoo()
-            => new Foo("abc");
-
         [NodeResolver]
         public Foo GetFooById(string id)
             => new Foo(id);
@@ -116,12 +140,16 @@ public class NodeTypeTests : TypeTestBase
 
     public class Query2
     {
-        public Foo CreateFoo()
-            => new Foo("abc");
-
         [NodeResolver]
         public Foo GetFooById(string abc)
             => new Foo(abc);
+    }
+
+    public class Query3
+    {
+        [NodeResolver]
+        public Bar GetBarById(int id)
+            => new Bar(id);
     }
 
     public class Foo
@@ -134,5 +162,17 @@ public class NodeTypeTests : TypeTestBase
         public string Id { get; }
 
         public string ClearTextId => Id;
+    }
+
+    public class Bar
+    {
+        public Bar(int id)
+        {
+            Id = id;
+        }
+
+        public int Id { get; }
+
+        public int ClearTextId => Id;
     }
 }

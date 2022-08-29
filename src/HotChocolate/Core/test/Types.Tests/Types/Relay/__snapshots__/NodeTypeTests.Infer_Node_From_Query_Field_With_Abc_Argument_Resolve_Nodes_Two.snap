@@ -1,20 +1,14 @@
 ﻿{
-  "errors": [
-    {
-      "message": "There was no argument with the name \u0060id\u0060 found on the field \u0060nodes\u0060.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 3
-        }
-      ],
-      "path": [
-        "nodes"
-      ],
-      "extensions": {
-        "fieldName": "nodes",
-        "argumentName": "id"
+  "data": {
+    "nodes": [
+      {
+        "id": "Rm9vCmRhYmM=",
+        "__typename": "Foo"
+      },
+      {
+        "id": "Rm9vCmRhYmM=",
+        "__typename": "Foo"
       }
-    }
-  ]
+    ]
+  }
 }

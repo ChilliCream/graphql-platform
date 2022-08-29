@@ -242,4 +242,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
         return resolverTask.ResolverContext;
     }
+
+    IResolverContext IResolverContext.Clone()
+        => Clone();
 }

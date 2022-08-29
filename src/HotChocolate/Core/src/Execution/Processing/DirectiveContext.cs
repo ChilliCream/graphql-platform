@@ -125,4 +125,7 @@ internal sealed class DirectiveContext : IDirectiveContext
 
     public IMiddlewareContext Clone()
         => _middlewareContext.Clone();
+
+    IResolverContext IResolverContext.Clone()
+        => Clone();
 }

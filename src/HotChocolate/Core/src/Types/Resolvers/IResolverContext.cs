@@ -130,4 +130,6 @@ public interface IResolverContext : IPureResolverContext
     /// Returns the query root instance.
     /// </returns>
     T GetQueryRoot<T>();
+
+    IResolverContext Clone();
 }

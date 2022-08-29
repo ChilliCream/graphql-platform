@@ -9,6 +9,7 @@ interface Node {
 
 type Foo implements Node {
   id: ID!
+  clearTextId: String
 }
 
 type Query {

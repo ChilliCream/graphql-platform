@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -163,8 +164,11 @@ internal partial class MiddlewareContext
         // copy the argument state.
         else
         {
-            mutableArguments = new Dictionary<string, ArgumentValue>(
-                (IEnumerable<KeyValuePair<string, ArgumentValue>>)Arguments);
+#if NETSTANDARD2_0
+            mutableArguments = Arguments.ToDictionary(t => t.Key, t => t.Value);
+#else
+            mutableArguments = new Dictionary<string, ArgumentValue>(Arguments);
+#endif
             Arguments = mutableArguments;
         }
 
