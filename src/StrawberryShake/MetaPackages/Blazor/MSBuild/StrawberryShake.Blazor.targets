@@ -24,9 +24,6 @@
       <GraphQLCodeGenerationRoot>$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\</GraphQLCodeGenerationRoot>
     </PropertyGroup>
 
-    <Message Text="GraphQLCodeGenerationRoot $(GraphQLCodeGenerationRoot)" Importance="High" />
-    <Message Text="MSBuildProjectDirectory $(MSBuildProjectDirectory)" Importance="High" />
-
     <PropertyGroup>
       <GenCommand>dotnet $(GenTool) generate "$(MSBuildProjectDirectory)"</GenCommand>
       <GenCommand>$(GenCommand) -o "$(GraphQLCodeGenerationRoot)"</GenCommand>
@@ -37,9 +34,9 @@
       <GenCommand Condition="'$(GraphQLRazorComponents)' == 'enable'">$(GenCommand) -r</GenCommand>
     </PropertyGroup>
 
-    <Message Text="$(GenCommand)" Importance="High" />
-
-    <Exec Command="dotnet --version" WorkingDirectory="$(MSBuildThisFileDirectory)" />
+    <Message Text="MSBuildProjectDirectory: $(MSBuildProjectDirectory)" Importance="High" Condition="'$(GraphQLDebug)' == 'enable'" />
+    <Message Text="MSBuildThisFileDirectory: $(MSBuildThisFileDirectory)" Importance="High" Condition="'$(GraphQLDebug)' == 'enable'" />
+    <Message Text="$(GenCommand)" Importance="High" Condition="'$(GraphQLDebug)' == 'enable'" />
     <Exec Command="$(GenCommand)" WorkingDirectory="$(MSBuildThisFileDirectory)" ConsoleToMsBuild="true" />
 
     <ItemGroup>

@@ -10,6 +10,7 @@
     <GraphQLRequestHash>md5</GraphQLRequestHash>
     <!--intermediate/project-->
     <GraphQLOutput>intermediate</GraphQLOutput>
+    <GraphQLDebug>disable</GraphQLDebug>
   </PropertyGroup>
 
   <ItemDefinitionGroup>

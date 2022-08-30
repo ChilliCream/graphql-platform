@@ -107,9 +107,7 @@ public static class GenerateCommand
                     {
                         if (doc.Kind is SourceDocumentKind.CSharp or SourceDocumentKind.Razor)
                         {
-                            var fileName = doc.Path is null
-                                ? Path.Combine(outputDir, doc.Name + ".cs")
-                                : Path.Combine(outputDir, doc.Path, doc.Name + ".cs");
+                            var fileName = CreateFileName(outputDir, doc.Path, doc.Name, doc.Kind);
                             var dir = Path.GetDirectoryName(fileName)!;
 
                             if (!Directory.Exists(dir))
@@ -131,10 +129,25 @@ public static class GenerateCommand
                         }
                     }
                 }
-
             }
 
             return statusCode;
+        }
+
+        private static string CreateFileName(
+            string outputDir,
+            string? path,
+            string name,
+            SourceDocumentKind kind)
+        {
+            var kindName =
+                kind is SourceDocumentKind.CSharp
+                    ? "Client"
+                    : "Components";
+
+            return path is null
+                ? Path.Combine(outputDir, $"{name}.{kindName}.cs")
+                : Path.Combine(outputDir, path, $"{name}.{kindName}.cs");
         }
     }
 
