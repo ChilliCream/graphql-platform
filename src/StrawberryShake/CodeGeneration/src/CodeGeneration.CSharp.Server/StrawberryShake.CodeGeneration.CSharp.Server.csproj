@@ -11,11 +11,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <Nullable>enable</Nullable>
-  </PropertyGroup>  
-
-  <ItemGroup>
-    <PackageReference Include="DotNet.Glob" Version="3.1.2" />
-  </ItemGroup>
+  </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CodeGeneration.CSharp.Client\StrawberryShake.CodeGeneration.CSharp.Client.csproj" />
@@ -32,6 +28,10 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>ServerResources.resx</DependentUpon>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Glob" Version="1.1.9" />
   </ItemGroup>
   
 </Project>

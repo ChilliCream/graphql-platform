@@ -15,8 +15,8 @@ namespace StrawberryShake.Tools.OAuth
             IEnumerable<string> scopes,
             CancellationToken cancellationToken = default)
         {
-            HttpClient client = new HttpClient();
-            TokenResponse tokenRes = await client.RequestClientCredentialsTokenAsync(
+            var client = new HttpClient();
+            var tokenRes = await client.RequestClientCredentialsTokenAsync(
                 new ClientCredentialsTokenRequest
                 {
                     Address = tokenEndpoint,

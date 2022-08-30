@@ -6,13 +6,15 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using DotNet.Globbing;
+using GlobExpressions;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using StrawberryShake.Tools.Configuration;
 using static System.IO.Path;
 using static StrawberryShake.CodeGeneration.CSharp.ErrorHelper;
+using static StrawberryShake.CodeGeneration.CSharp.ServerResources;
+using Path = System.IO.Path;
 
 namespace StrawberryShake.CodeGeneration.CSharp;
 
@@ -24,8 +26,8 @@ public static partial class CSharpGeneratorServer
     {
         try
         {
-            CSharpGeneratorServerSettings settings = await LoadSettingsAsync(request);
-            IReadOnlyList<string> documents = GetMatchingDocuments(request, settings);
+            var settings = await LoadSettingsAsync(request);
+            var documents = GetMatchingDocuments(request, settings);
 
             if (settings.RequestStrategy == RequestStrategy.PersistedQuery)
             {
@@ -35,7 +37,7 @@ public static partial class CSharpGeneratorServer
                 }
             }
 
-            CSharpGeneratorResult result = CSharpGenerator.Generate(documents, settings);
+            var result = CSharpGenerator.Generate(documents, settings);
 
             await TryWriteCSharpFilesAsync(result.Documents, settings);
             await TryWriteRazorFilesAsync(result.Documents, settings);
@@ -78,7 +80,7 @@ public static partial class CSharpGeneratorServer
 
         var generatedFiles = new HashSet<string>();
 
-        foreach (SourceDocument document in
+        foreach (var document in
             documents.Where(t => t.Kind is SourceDocumentKind.CSharp))
         {
             var fileName = Combine(generatedDirectory, $"{document.Name}.g.cs");
@@ -129,7 +131,7 @@ public static partial class CSharpGeneratorServer
 
         var generatedFiles = new HashSet<string>();
 
-        foreach (SourceDocument document in
+        foreach (var document in
             documents.Where(t => t.Kind is SourceDocumentKind.Razor))
         {
             var fileName = Combine(generatedDirectory, $"{document.Name}.components.g.cs");
@@ -177,7 +179,7 @@ public static partial class CSharpGeneratorServer
 
         ClearPersistedQueryDirectory(persistedQueryDirectory);
 
-        foreach (SourceDocument document in
+        foreach (var document in
             documents.Where(t => t.Kind is SourceDocumentKind.GraphQL))
         {
             var fileName = Combine(persistedQueryDirectory, $"{document.Name}.graphql");
@@ -210,7 +212,7 @@ public static partial class CSharpGeneratorServer
 
         var files = new Dictionary<string, string>();
 
-        foreach (SourceDocument document in
+        foreach (var document in
             documents.Where(t => t.Kind is SourceDocumentKind.GraphQL))
         {
             var hash = BitConverter.ToString(ComputeHash(document)).Replace("-", "");
@@ -230,9 +232,9 @@ public static partial class CSharpGeneratorServer
             var json = await File.ReadAllTextAsync(request.ConfigFileName);
             var config = GraphQLConfig.FromJson(json);
 
-            if (!NameUtils.IsValidGraphQLName(config.Extensions.StrawberryShake.Name))
+            if (!config.Extensions.StrawberryShake.Name.IsValidGraphQLName())
             {
-                throw new GraphQLException(ServerResources.CSharpGeneratorServer_ClientName_Invalid);
+                throw new GraphQLException(CSharpGeneratorServer_ClientName_Invalid);
             }
 
             var generatorSettings = new CSharpGeneratorServerSettings
@@ -244,22 +246,25 @@ public static partial class CSharpGeneratorServer
                     request.DefaultNamespace ??
                     "StrawberryShake.Generated",
                 RequestStrategy = config.Extensions.StrawberryShake.RequestStrategy,
-                StrictSchemaValidation = config.Extensions.StrawberryShake.StrictSchemaValidation,
-                NoStore = config.Extensions.StrawberryShake.NoStore,
+                StrictSchemaValidation =
+                    config.Extensions.StrawberryShake.StrictSchemaValidation
+                        ?? true,
+                NoStore = config.Extensions.StrawberryShake.NoStore ?? true,
                 InputRecords = config.Extensions.StrawberryShake.Records.Inputs,
-                RazorComponents = config.Extensions.StrawberryShake.RazorComponents,
+                RazorComponents = config.Extensions.StrawberryShake.RazorComponents ?? false,
                 EntityRecords = config.Extensions.StrawberryShake.Records.Entities,
-                SingleCodeFile = config.Extensions.StrawberryShake.UseSingleFile,
+                SingleCodeFile = config.Extensions.StrawberryShake.UseSingleFile ?? true,
                 Documents = config.Documents,
                 PersistedQueryDirectory = request.PersistedQueryDirectory,
-                HashProvider = config.Extensions.StrawberryShake.HashAlgorithm.ToLowerInvariant()
-                    switch
-                {
-                    "sha1" => new Sha1DocumentHashProvider(HashFormat.Hex),
-                    "sha256" => new Sha256DocumentHashProvider(HashFormat.Hex),
-                    "md5" => new MD5DocumentHashProvider(HashFormat.Hex),
-                    _ => new Sha1DocumentHashProvider(HashFormat.Hex)
-                },
+                HashProvider =
+                    (config.Extensions.StrawberryShake.HashAlgorithm?.ToLowerInvariant() ?? "md5")
+                        switch
+                        {
+                            "sha1" => new Sha1DocumentHashProvider(HashFormat.Hex),
+                            "sha256" => new Sha256DocumentHashProvider(HashFormat.Hex),
+                            "md5" => new MD5DocumentHashProvider(HashFormat.Hex),
+                            _ => new Sha1DocumentHashProvider(HashFormat.Hex)
+                        },
                 Option = request.Option
             };
 
@@ -269,7 +274,7 @@ public static partial class CSharpGeneratorServer
             {
                 generatorSettings.TransportProfiles.Clear();
 
-                foreach (StrawberryShakeSettingsTransportProfile profile in profiles)
+                foreach (var profile in profiles)
                 {
                     generatorSettings.TransportProfiles.Add(
                         new TransportProfile(
@@ -316,13 +321,13 @@ public static partial class CSharpGeneratorServer
         GeneratorRequest request,
         CSharpGeneratorServerSettings settings)
     {
-        var rootDirectory = request.RootDirectory + DirectorySeparatorChar;
+        var rootDirectory = request.RootDirectory;
 
-        var glob = Glob.Parse(settings.Documents);
+        var files = Glob.Files(rootDirectory, settings.Documents)
+            .Select(t => Combine(rootDirectory, t))
+            .ToArray();
 
-        return request.DocumentFileNames
-            .Where(t => t.StartsWith(rootDirectory) && glob.IsMatch(t))
-            .ToList();
+        return files;
     }
 
     private static GeneratorResponse CreateResponse(
@@ -331,7 +336,7 @@ public static partial class CSharpGeneratorServer
     {
         var generatorDocuments = new List<GeneratorDocument>();
 
-        foreach (SourceDocument sourceDocument in sourceDocuments)
+        foreach (var sourceDocument in sourceDocuments)
         {
             generatorDocuments.Add(
                 new GeneratorDocument(
@@ -366,7 +371,7 @@ public static partial class CSharpGeneratorServer
 
     private static byte[] ComputeHash(string fileName)
     {
-        using FileStream stream = File.OpenRead(fileName);
+        using var stream = File.OpenRead(fileName);
         return _sha256.ComputeHash(stream);
     }
 

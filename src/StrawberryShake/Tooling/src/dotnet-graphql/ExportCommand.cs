@@ -1,6 +1,5 @@
 using McMaster.Extensions.CommandLineUtils;
 using StrawberryShake.CodeGeneration.CSharp;
-using StrawberryShake.CodeGeneration.CSharp.Analyzers;
 using StrawberryShake.Tools.Configuration;
 using static System.Environment;
 using static StrawberryShake.Tools.GeneratorHelpers;
@@ -13,21 +12,21 @@ public static class ExportCommand
     {
         generate.Description = "Exports Persisted Queries for Strawberry Shake Clients";
 
-        CommandArgument pathArg = generate.Argument(
+        var pathArg = generate.Argument(
             "path",
             "The project directory.");
 
-        CommandOption razorArg = generate.Option(
+        var razorArg = generate.Option(
             "-o|--outputPath",
             "Output Directory.",
             CommandOptionType.SingleValue);
 
-        CommandOption relayFormatArg = generate.Option(
+        var relayFormatArg = generate.Option(
             "-r|--relayFormat",
             "Export Persisted Queries as Relay Format.",
             CommandOptionType.NoValue);
 
-        CommandOption jsonArg = generate.Option(
+        var jsonArg = generate.Option(
             "-j|--json",
             "Console output as JSON.",
             CommandOptionType.NoValue);
@@ -56,6 +55,7 @@ public static class ExportCommand
             ExportCommandArguments arguments,
             CancellationToken cancellationToken)
         {
+            /*
             using var activity = Output.WriteActivity("Export Persisted Queries");
 
             if (string.IsNullOrEmpty(arguments.OutputPath))
@@ -91,6 +91,7 @@ public static class ExportCommand
                     return 1;
                 }
             }
+            */
 
             return 0;
         }

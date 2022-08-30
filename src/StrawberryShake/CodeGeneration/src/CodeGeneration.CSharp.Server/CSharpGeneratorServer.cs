@@ -25,8 +25,8 @@ public static partial class CSharpGeneratorServer
     {
         try
         {
-            GeneratorRequest request = RequestFormatter.Take(fileSink);
-            GeneratorResponse response = await GenerateAsync(request);
+            var request = RequestFormatter.Take(fileSink);
+            var response = await GenerateAsync(request);
             ResponseFormatter.Format(response, fileSink);
             return 0;
         }

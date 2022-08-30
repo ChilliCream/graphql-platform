@@ -1,5 +1,0 @@
-type Query {
-  customScalar: CustomScalar
-}
-
-scalar CustomScalar
