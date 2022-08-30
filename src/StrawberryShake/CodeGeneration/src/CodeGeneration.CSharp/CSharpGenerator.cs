@@ -54,7 +54,7 @@ public static class CSharpGenerator
         new ResultInterfaceGenerator(),
         new DataTypeGenerator(),
         new RazorQueryGenerator(),
-        new RazorQueryGenerator()
+        new RazorSubscriptionGenerator()
     };
 
     public static CSharpGeneratorResult Generate(
