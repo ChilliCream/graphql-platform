@@ -29,8 +29,8 @@
       <GenCommand>$(GenCommand) -o "$(GraphQLCodeGenerationRoot)"</GenCommand>
       <GenCommand Condition="'$(RootNamespace)' != ''">$(GenCommand) -n "$(RootNamespace)"</GenCommand>
       <GenCommand Condition="'$(GraphQLRequestHash)' != ''">$(GenCommand) -a "$(GraphQLRequestHash)"</GenCommand>
-      <GenCommand Condition="'$(GraphQLStrictSchemaValidation)' == 'enable'">$(GenCommand) -s</GenCommand>
-      <GenCommand Condition="'$(GraphQLClientStore)' == 'enable'">$(GenCommand) -t</GenCommand>
+      <GenCommand Condition="'$(GraphQLStrictSchemaValidation)' != 'enable'">$(GenCommand) -s</GenCommand>
+      <GenCommand Condition="'$(GraphQLClientStore)' != 'enable'">$(GenCommand) -t</GenCommand>
       <GenCommand Condition="'$(GraphQLRazorComponents)' == 'enable'">$(GenCommand) -r</GenCommand>
     </PropertyGroup>
 
