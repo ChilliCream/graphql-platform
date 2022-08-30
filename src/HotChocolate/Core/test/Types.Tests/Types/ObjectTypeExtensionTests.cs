@@ -619,6 +619,23 @@ public class ObjectTypeExtensionTests
         Assert.Equal("GetFoo1", field.ResolverMember?.Name);
     }
 
+#if NET6_0_OR_GREATER
+    [Fact]
+    public async Task Ensure_Member_And_ResolverMember_Are_Correctly_Set_When_Extending_Generic()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<ObjectField_Test_Query>()
+                .AddTypeExtension<ObjectField_Test_Query_Extension_Generic>()
+                .BuildSchemaAsync();
+
+        IObjectField field = schema.QueryType.Fields["foo1"];
+        Assert.Equal("GetFoo", field.Member?.Name);
+        Assert.Equal("GetFoo1", field.ResolverMember?.Name);
+    }
+    #endif
+
     [Fact]
     public async Task Ensure_Member_And_ResolverMember_Are_The_Same_When_Not_Extending()
     {
@@ -959,6 +976,15 @@ public class ObjectTypeExtensionTests
         [BindMember(nameof(ObjectField_Test_Query.GetFoo))]
         public string GetFoo1() => null!;
     }
+
+#if NET6_0_OR_GREATER
+    [ExtendObjectType<ObjectField_Test_Query>]
+    public class ObjectField_Test_Query_Extension_Generic
+    {
+        [BindMember(nameof(ObjectField_Test_Query.GetFoo))]
+        public string GetFoo1() => null!;
+    }
+#endif
 
     public class FooQueryType : ObjectType
     {
