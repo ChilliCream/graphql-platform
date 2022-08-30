@@ -1,6 +1,6 @@
 using McMaster.Extensions.CommandLineUtils;
 using StrawberryShake.CodeGeneration.CSharp;
-using StrawberryShake.CodeGeneration.CSharp.Analyzers;
+using StrawberryShake.Tools.Configuration;
 using static System.Environment;
 using static StrawberryShake.Tools.GeneratorHelpers;
 
@@ -12,16 +12,41 @@ public static class GenerateCommand
     {
         generate.Description = "Generates Strawberry Shake Clients";
 
-        CommandArgument pathArg = generate.Argument(
+        var pathArg = generate.Argument(
             "path",
             "The project directory.");
 
-        CommandOption razorArg = generate.Option(
-            "-r|--razor",
-            "Generate Razor Components",
+        var rootNamespaceArg = generate.Option(
+            "-n|--rootNamespace",
+            "The root namespace.",
+            CommandOptionType.SingleValue);
+
+        var disableSchemaValidationArg = generate.Option(
+            "-s|--disableSchemaValidation",
+            "Disable strict schema validation.",
             CommandOptionType.NoValue);
 
-        CommandOption jsonArg = generate.Option(
+        var hashAlgorithmArg = generate.Option(
+            "-a|--hashAlgorithm",
+            "Request Hash Generation.",
+            CommandOptionType.SingleValue);
+
+        var disableStoreArg = generate.Option(
+            "-t|--disableStore",
+            "Disable the client store.",
+            CommandOptionType.NoValue);
+
+        var razorComponentsArg = generate.Option(
+            "-r|--razorComponents",
+            "Generate Razor components.",
+            CommandOptionType.NoValue);
+
+        var outputDirArg = generate.Option(
+            "-o|--outputDirectory",
+            "The output directory.",
+            CommandOptionType.SingleValue);
+
+        var jsonArg = generate.Option(
             "-j|--json",
             "Console output as JSON.",
             CommandOptionType.NoValue);
@@ -30,7 +55,13 @@ public static class GenerateCommand
         {
             var arguments = new GenerateCommandArguments(
                 pathArg.Value ?? CurrentDirectory,
-                razorArg.HasValue());
+                rootNamespaceArg.Value(),
+                !disableSchemaValidationArg.HasValue(),
+                hashAlgorithmArg.Value() ?? "md5",
+                true,
+                disableStoreArg.HasValue(),
+                razorComponentsArg.HasValue(),
+                outputDirArg.Value());
             var handler = CommandTools.CreateHandler<GenerateCommandHandler>(jsonArg);
             return handler.ExecuteAsync(arguments, ct);
         });
@@ -43,51 +74,106 @@ public static class GenerateCommand
             Output = output;
         }
 
-        public IConsoleOutput Output { get; }
+        private IConsoleOutput Output { get; }
 
-        public override Task<int> ExecuteAsync(
-            GenerateCommandArguments arguments,
+        public override async Task<int> ExecuteAsync(
+            GenerateCommandArguments args,
             CancellationToken cancellationToken)
         {
-            using var activity = Output.WriteActivity(
-                arguments.RazorOnly
-                    ? "Generate Razor Components"
-                    : "Generate C# Clients");
+            using var activity = Output.WriteActivity("Generate C# Clients");
+            var statusCode = 0;
 
-            var generator = new CSharpGeneratorClient(GetCodeGenServerLocation());
-            var documents = GetDocuments(arguments.Path);
-
-            foreach (var configFileName in GetConfigFiles(arguments.Path))
+            foreach (var configFileName in GetConfigFiles(args.Path))
             {
-                var request = new GeneratorRequest(
-                    configFileName,
-                    documents,
-                    option: arguments.RazorOnly
-                        ? RequestOptions.GenerateRazorComponent
-                        : RequestOptions.GenerateCSharpClient);
+                var configBody = await File.ReadAllTextAsync(configFileName, cancellationToken);
+                var config = GraphQLConfig.FromJson(configBody);
+                var clientName = config.Extensions.StrawberryShake.Name;
+                var rootNamespace = args.RootNamespace ?? $"{clientName}NS";
+                var documents = GetGraphQLDocuments(args.Path, config.Documents);
+                var settings = CreateSettings(config, args, rootNamespace);
+                var result = CSharpGenerator.Generate(documents, settings);
+                var outputDir = args.OutputDir ?? Path.Combine(
+                    Path.GetDirectoryName(configFileName)!,
+                    config.Extensions.StrawberryShake.OutputDirectoryName);
 
-                var response = generator.Execute(request);
-
-                if (response.TryLogErrors(activity))
+                if (result.HasErrors())
                 {
-                    return Task.FromResult(1);
+                    statusCode = 1;
+                    activity.WriteErrors(result.Errors);
                 }
+                else
+                {
+                    foreach (var doc in result.Documents)
+                    {
+                        if (doc.Kind is SourceDocumentKind.CSharp or SourceDocumentKind.Razor)
+                        {
+                            var fileName = doc.Path is null
+                                ? Path.Combine(outputDir, doc.Name + ".cs")
+                                : Path.Combine(outputDir, doc.Path, doc.Name + ".cs");
+                            var dir = Path.GetDirectoryName(fileName)!;
+
+                            if (!Directory.Exists(dir))
+                            {
+                                Directory.CreateDirectory(dir);
+                            }
+
+                            if (File.Exists(fileName))
+                            {
+                                File.Delete(fileName);
+                            }
+
+                            await File.WriteAllTextAsync(
+                                fileName,
+                                doc.SourceText,
+                                cancellationToken);
+
+                            Output.WriteFileCreated(fileName);
+                        }
+                    }
+                }
+
             }
 
-            return Task.FromResult(0);
+            return statusCode;
         }
     }
 
-    private sealed class GenerateCommandArguments
+    internal sealed class GenerateCommandArguments
     {
-        public GenerateCommandArguments(string path, bool razorOnly)
+        public GenerateCommandArguments(
+            string path,
+            string? rootNamespace,
+            bool strictSchemaValidation,
+            string hashAlgorithm,
+            bool useSingleFile,
+            bool noStore,
+            bool razorComponents,
+            string? outputDir)
         {
             Path = path;
-            RazorOnly = razorOnly;
+            RootNamespace = rootNamespace;
+            StrictSchemaValidation = strictSchemaValidation;
+            HashAlgorithm = hashAlgorithm;
+            UseSingleFile = useSingleFile;
+            NoStore = noStore;
+            RazorComponents = razorComponents;
+            OutputDir = outputDir;
         }
 
         public string Path { get; }
 
-        public bool RazorOnly { get; }
+        public string? RootNamespace { get; }
+
+        public bool StrictSchemaValidation { get; }
+
+        public string HashAlgorithm { get; }
+
+        public bool UseSingleFile { get; }
+
+        public bool NoStore { get; }
+
+        public bool RazorComponents { get; }
+
+        public string? OutputDir { get; }
     }
 }

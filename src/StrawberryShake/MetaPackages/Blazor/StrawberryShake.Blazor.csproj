@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <PackageId>StrawberryShake.Blazor</PackageId>
+    <AssemblyName>StrawberryShake.Blazor</AssemblyName>
+    <RootNamespace>StrawberryShake</RootNamespace>
+    <Description>Abstractions and foundational APIs for StrawberryShake GraphQL clients.</Description>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <IncludeSymbols>false</IncludeSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Client\src\Core\StrawberryShake.Core.csproj" />
+    <ProjectReference Include="..\..\Client\src\Razor\StrawberryShake.Razor.csproj" />
+    <ProjectReference Include="..\..\Client\src\Transport.Http\StrawberryShake.Transport.Http.csproj" />
+    <ProjectReference Include="..\..\Client\src\Transport.WebSockets\StrawberryShake.Transport.WebSockets.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)MSBuild\StrawberryShake.Blazor.props" Pack="true" PackagePath="build/StrawberryShake.Blazor.props" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)MSBuild\StrawberryShake.Blazor.targets" Pack="true" PackagePath="build/StrawberryShake.Blazor.targets" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)MSBuild\StrawberryShake.MSBuild.ContentType.xaml" Pack="true" PackagePath="build/StrawberryShake.MSBuild.ContentType.xaml" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)MSBuild\StrawberryShake.MSBuild.xaml" Pack="true" PackagePath="build/StrawberryShake.MSBuild.xaml" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)MSBuild\global.json" Pack="true" PackagePath="build/StrawberryShake.MSBuild.xaml" Visible="false" />
+  </ItemGroup>
+
+</Project>

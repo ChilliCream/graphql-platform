@@ -50,7 +50,7 @@ internal static class ErrorHelper
 
     private static Location ConvertLocation(IEnumerable<HotChocolate.Location> locations)
     {
-        HotChocolate.Location loc = locations.First();
+        var loc = locations.First();
         return new Location(loc.Line, loc.Column);
     }
 

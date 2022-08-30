@@ -247,18 +247,6 @@ stages:
             inputs:
               artifactName: test-results
               pathtoPublish: "output/test-results"
-      - job: TestStrawberryShakeSourceGenerator
-        displayName: src/StrawberryShake/SourceGenerator
-        steps:
-          - task: CmdLine@2
-            displayName: "Run Tests"
-            inputs:
-              script: "./build.cmd TestStrawberryShakeSourceGenerator --skip --test-partition $(System.JobPositionInPhase)"
-          - task: PublishBuildArtifacts@1
-            displayName: "Upload Test Results"
-            inputs:
-              artifactName: test-results
-              pathtoPublish: "output/test-results"
       - job: TestStrawberryShakeTooling
         displayName: src/StrawberryShake/Tooling
         steps:

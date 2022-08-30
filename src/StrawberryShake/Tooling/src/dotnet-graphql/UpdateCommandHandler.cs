@@ -32,9 +32,9 @@ namespace StrawberryShake.Tools
             UpdateCommandArguments arguments,
             CancellationToken cancellationToken)
         {
-            using IDisposable command = Output.WriteCommand();
+            using var command = Output.WriteCommand();
 
-            AccessToken? accessToken =
+            var accessToken =
                 await arguments.AuthArguments
                     .RequestTokenAsync(Output, cancellationToken)
                     .ConfigureAwait(false);
@@ -57,7 +57,7 @@ namespace StrawberryShake.Tools
             UpdateCommandContext context,
             CancellationToken cancellationToken)
         {
-            foreach (string path in FileSystem.GetClientDirectories(FileSystem.CurrentDirectory))
+            foreach (var path in FileSystem.GetClientDirectories(FileSystem.CurrentDirectory))
             {
                 try
                 {
@@ -80,10 +80,10 @@ namespace StrawberryShake.Tools
             string clientDirectory,
             CancellationToken cancellationToken)
         {
-            string configFilePath = Path.Combine(clientDirectory, WellKnownFiles.Config);
+            var configFilePath = Path.Combine(clientDirectory, WellKnownFiles.Config);
             var buffer = await FileSystem.ReadAllBytesAsync(configFilePath).ConfigureAwait(false);
             var json = Encoding.UTF8.GetString(buffer);
-            GraphQLConfig configuration = GraphQLConfig.FromJson(json);
+            var configuration = GraphQLConfig.FromJson(json);
 
             if (configuration is not null &&
                 await UpdateSchemaAsync(context, clientDirectory, configuration, cancellationToken)
@@ -124,9 +124,9 @@ namespace StrawberryShake.Tools
             string schemaFilePath,
             CancellationToken cancellationToken)
         {
-            using IActivity activity = Output.WriteActivity("Download schema");
+            using var activity = Output.WriteActivity("Download schema");
 
-            HttpClient client = HttpClientFactory.Create(
+            var client = HttpClientFactory.Create(
                 context.Uri ?? serviceUri,
                 context.Token,
                 context.Scheme,

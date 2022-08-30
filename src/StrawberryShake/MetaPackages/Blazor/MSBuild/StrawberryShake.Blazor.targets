@@ -1,0 +1,50 @@
+<Project>
+  <PropertyGroup>
+    <GenTool>/Users/michael/local/hc-0/src/StrawberryShake/Tooling/src/dotnet-graphql/bin/Debug/net6.0/dotnet-graphql.dll</GenTool>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PropertyPageSchema Include="$(MSBuildThisFileDirectory)StrawberryShake.MSBuild.xaml" />
+    <PropertyPageSchema Include="$(MSBuildThisFileDirectory)StrawberryShake.MSBuild.ContentType.xaml" />
+    <AvailableItemName Include="GraphQL"/>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <CoreCompileDependsOn>
+      GenerateGraphQLCode;
+      $(CoreCompileDependsOn)
+    </CoreCompileDependsOn>
+  </PropertyGroup>
+
+  <Target
+    Name="GenerateGraphQLCode"
+    BeforeTargets="BeforeBuild"
+    Condition="'@(GraphQL)' != ''">
+    <PropertyGroup>
+      <GraphQLCodeGenerationRoot>$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\</GraphQLCodeGenerationRoot>
+    </PropertyGroup>
+
+    <Message Text="GraphQLCodeGenerationRoot $(GraphQLCodeGenerationRoot)" Importance="High" />
+    <Message Text="MSBuildProjectDirectory $(MSBuildProjectDirectory)" Importance="High" />
+
+    <PropertyGroup>
+      <GenCommand>/usr/local/share/dotnet/dotnet $(GenTool) generate "$(MSBuildProjectDirectory)"</GenCommand>
+      <GenCommand>$(GenCommand) -o "$(GraphQLCodeGenerationRoot)"</GenCommand>
+      <GenCommand Condition="'$(RootNamespace)' != ''">$(GenCommand) -n "$(RootNamespace)"</GenCommand>
+      <GenCommand Condition="'$(GraphQLRequestHash)' != ''">$(GenCommand) -a "$(GraphQLRequestHash)"</GenCommand>
+      <GenCommand Condition="'$(GraphQLStrictSchemaValidation)' == 'enable'">$(GenCommand) -s</GenCommand>
+      <GenCommand Condition="'$(GraphQLClientStore)' == 'enable'">$(GenCommand) -t</GenCommand>
+      <GenCommand Condition="'$(GraphQLRazorComponents)' == 'enable'">$(GenCommand) -r</GenCommand>
+    </PropertyGroup>
+
+    <Message Text="$(GenCommand)" Importance="High" />
+
+    <Exec Command="/usr/local/share/dotnet/dotnet --version" WorkingDirectory="$(MSBuildThisFileDirectory)" />
+    <Exec Command="$(GenCommand)" WorkingDirectory="$(MSBuildThisFileDirectory)" ConsoleToMsBuild="true" />
+
+    <ItemGroup>
+      <Compile Include="$(GraphQLCodeGenerationRoot)**\*.cs"/>
+    </ItemGroup>
+  </Target>
+  
+</Project>

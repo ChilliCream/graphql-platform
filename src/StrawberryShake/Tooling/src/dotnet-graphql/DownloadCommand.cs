@@ -9,28 +9,28 @@ namespace StrawberryShake.Tools
         {
             download.Description = "Download the schema as GraphQL SDL";
 
-            CommandArgument uriArg = download.Argument(
+            var uriArg = download.Argument(
                 "uri",
                 "The URL to the GraphQL endpoint.",
                 c => c.IsRequired());
 
-            CommandOption fileNameArg = download.Option(
+            var fileNameArg = download.Option(
                 "-f|--FileName",
                 "The file name to store the schema SDL.",
                 CommandOptionType.SingleValue);
 
-            CommandOption jsonArg = download.Option(
+            var jsonArg = download.Option(
                 "-j|--json",
                 "Console output as JSON.",
                 CommandOptionType.NoValue);
 
-            CommandOption headersArg = download.Option(
+            var headersArg = download.Option(
                 "-x|--headers",
                 "Custom headers used in request to Graph QL server. " +
                 "Can be used multiple times. Example: --headers key1=value1 --headers key2=value2",
                 CommandOptionType.MultipleValue);
 
-            AuthArguments authArguments = download.AddAuthArguments();
+            var authArguments = download.AddAuthArguments();
 
             download.OnExecuteAsync(cancellationToken =>
             {
@@ -39,7 +39,7 @@ namespace StrawberryShake.Tools
                     fileNameArg,
                     authArguments,
                     headersArg);
-                DownloadCommandHandler handler =
+                var handler =
                     CommandTools.CreateHandler<DownloadCommandHandler>(jsonArg);
                 return handler.ExecuteAsync(arguments, cancellationToken);
             });

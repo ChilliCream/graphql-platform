@@ -32,9 +32,9 @@ namespace StrawberryShake.Tools
             InitCommandArguments arguments,
             CancellationToken cancellationToken)
         {
-            using IDisposable command = Output.WriteCommand();
+            using var command = Output.WriteCommand();
 
-            AccessToken? accessToken =
+            var accessToken =
                 await arguments.AuthArguments
                     .RequestTokenAsync(Output, cancellationToken)
                     .ConfigureAwait(false);
@@ -79,14 +79,14 @@ namespace StrawberryShake.Tools
                 return true;
             }
 
-            using IActivity activity = Output.WriteActivity("Download schema");
+            using var activity = Output.WriteActivity("Download schema");
 
-            string schemaFilePath = FileSystem.CombinePath(
+            var schemaFilePath = FileSystem.CombinePath(
                 context.Path, context.SchemaFileName);
-            string schemaExtensionFilePath = FileSystem.CombinePath(
+            var schemaExtensionFilePath = FileSystem.CombinePath(
                 context.Path, context.SchemaExtensionFileName);
 
-            HttpClient client = HttpClientFactory.Create(
+            var client = HttpClientFactory.Create(
                 context.Uri, context.Token, context.Scheme, context.CustomHeaders);
 
             if (await IntrospectionHelper.DownloadSchemaAsync(
@@ -108,9 +108,9 @@ namespace StrawberryShake.Tools
            InitCommandContext context,
            CancellationToken cancellationToken)
         {
-            using IActivity activity = Output.WriteActivity("Client configuration");
+            using var activity = Output.WriteActivity("Client configuration");
 
-            string configFilePath = FileSystem.CombinePath(
+            var configFilePath = FileSystem.CombinePath(
                 context.Path, context.ConfigFileName);
 
             var configuration = new GraphQLConfig

@@ -30,7 +30,7 @@ static class Helpers
         Path.Combine("HotChocolate", "Spatial"),
         Path.Combine("StrawberryShake", "Client"),
         Path.Combine("StrawberryShake", "CodeGeneration"),
-        Path.Combine("StrawberryShake", "SourceGenerator"),
+        Path.Combine("StrawberryShake", "MetaPackages"),
         Path.Combine("StrawberryShake", "Tooling"),
         "CookieCrumble"
     };
