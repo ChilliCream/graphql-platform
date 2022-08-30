@@ -15,6 +15,7 @@
     <ProjectReference Include="..\..\Client\src\Razor\StrawberryShake.Razor.csproj" />
     <ProjectReference Include="..\..\Client\src\Transport.Http\StrawberryShake.Transport.Http.csproj" />
     <ProjectReference Include="..\..\Client\src\Transport.WebSockets\StrawberryShake.Transport.WebSockets.csproj" />
+    <ProjectReference Include="..\..\Tooling\src\dotnet-graphql\dotnet-graphql.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,6 +24,7 @@
     <None Include="$(MSBuildThisFileDirectory)MSBuild\StrawberryShake.MSBuild.ContentType.xaml" Pack="true" PackagePath="build/StrawberryShake.MSBuild.ContentType.xaml" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)MSBuild\StrawberryShake.MSBuild.xaml" Pack="true" PackagePath="build/StrawberryShake.MSBuild.xaml" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)MSBuild\global.json" Pack="true" PackagePath="build/StrawberryShake.MSBuild.xaml" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\..\Tooling\src\dotnet-graphql\bin\$(Configuration)\net6.0\**\*.*" Pack="true" PackagePath="tools" Visible="false" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <GenTool>/Users/michael/local/hc-0/src/StrawberryShake/Tooling/src/dotnet-graphql/bin/Debug/net6.0/dotnet-graphql.dll</GenTool>
+    <GenTool>$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "dotnet-graphql.dll"))</GenTool>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,7 +28,7 @@
     <Message Text="MSBuildProjectDirectory $(MSBuildProjectDirectory)" Importance="High" />
 
     <PropertyGroup>
-      <GenCommand>/usr/local/share/dotnet/dotnet $(GenTool) generate "$(MSBuildProjectDirectory)"</GenCommand>
+      <GenCommand>dotnet $(GenTool) generate "$(MSBuildProjectDirectory)"</GenCommand>
       <GenCommand>$(GenCommand) -o "$(GraphQLCodeGenerationRoot)"</GenCommand>
       <GenCommand Condition="'$(RootNamespace)' != ''">$(GenCommand) -n "$(RootNamespace)"</GenCommand>
       <GenCommand Condition="'$(GraphQLRequestHash)' != ''">$(GenCommand) -a "$(GraphQLRequestHash)"</GenCommand>
@@ -39,7 +39,7 @@
 
     <Message Text="$(GenCommand)" Importance="High" />
 
-    <Exec Command="/usr/local/share/dotnet/dotnet --version" WorkingDirectory="$(MSBuildThisFileDirectory)" />
+    <Exec Command="dotnet --version" WorkingDirectory="$(MSBuildThisFileDirectory)" />
     <Exec Command="$(GenCommand)" WorkingDirectory="$(MSBuildThisFileDirectory)" ConsoleToMsBuild="true" />
 
     <ItemGroup>
