@@ -12,6 +12,10 @@ As part of a specification Relay proposes some schema design principles for Grap
 
 [Learn more about the Relay GraphQL Server Specification](https://relay.dev/docs/guides/graphql-server-specification)
 
+<iframe width="560" height="315"
+src="https://www.youtube.com/embed/qWguoAMzn9E"frameborder="0"
+allowfullscreen></iframe>
+
 # Global identifiers
 
 If an output type contains an `id: ID!` field, [Relay](https://relay.dev) and other GraphQL clients will consider this the unique identifier of the entity and might use it to construct a flat cache. This can be problematic, since we could have the same identifier for two of our types. When using a database for example, a `Foo` and `Bar` entity could both contain a row with the identifier `1` in their respective tables.
