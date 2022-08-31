@@ -13,11 +13,13 @@
         "generate",
         "/Users/michael/local/play/StrawberryBuildTests",
         "-o /Users/michael/local/play/StrawberryBuildTests/obj/Debug/net7.0/berry/",
+        "-q /Users/michael/local/play/StrawberryBuildTests/obj/Debug/net7.0/berry/q",
          "-n StrawberryBuildTests", 
          "-a md5", 
          "-s", 
          "-t", 
-         "-r"
+         "-r",
+         "--relayFormat"
       ],
       "cwd": "${workspaceFolder}/src/dotnet-graphql",
       "console": "internalConsole",

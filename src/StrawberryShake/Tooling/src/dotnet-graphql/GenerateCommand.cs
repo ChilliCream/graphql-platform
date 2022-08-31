@@ -1,3 +1,4 @@
+using System.Text.Json;
 using McMaster.Extensions.CommandLineUtils;
 using StrawberryShake.CodeGeneration.CSharp;
 using StrawberryShake.Tools.Configuration;
@@ -46,10 +47,28 @@ public static class GenerateCommand
             "The output directory.",
             CommandOptionType.SingleValue);
 
+        var queryOutputDirArg = generate.Option(
+            "-q|--queryOutputDirectory",
+            "The output directory for persisted query files.",
+            CommandOptionType.SingleValue);
+
+        var relayFormatArg = generate.Option(
+            "--relayFormat",
+            "Export persisted queries in the relay format.",
+            CommandOptionType.NoValue);
+
         var jsonArg = generate.Option(
             "-j|--json",
             "Console output as JSON.",
             CommandOptionType.NoValue);
+
+        var strategy = RequestStrategy.Default;
+        var queryOutputDir = queryOutputDirArg.Value();
+
+        if (!string.IsNullOrEmpty(queryOutputDir) || relayFormatArg.HasValue())
+        {
+            strategy = RequestStrategy.PersistedQuery;
+        }
 
         generate.OnExecuteAsync(ct =>
         {
@@ -61,7 +80,10 @@ public static class GenerateCommand
                 true,
                 disableStoreArg.HasValue(),
                 razorComponentsArg.HasValue(),
-                outputDirArg.Value());
+                outputDirArg.Value(),
+                strategy,
+                queryOutputDir,
+                relayFormatArg.HasValue());
             var handler = CommandTools.CreateHandler<GenerateCommandHandler>(jsonArg);
             return handler.ExecuteAsync(arguments, ct);
         });
@@ -91,10 +113,14 @@ public static class GenerateCommand
                 var rootNamespace = args.RootNamespace ?? $"{clientName}NS";
                 var documents = GetGraphQLDocuments(args.Path, config.Documents);
                 var settings = CreateSettings(config, args, rootNamespace);
-                var result = CSharpGenerator.Generate(documents, settings);
+                var result = GenerateClient(settings.ClientName, documents, settings);
                 var outputDir = args.OutputDir ?? Path.Combine(
                     Path.GetDirectoryName(configFileName)!,
                     config.Extensions.StrawberryShake.OutputDirectoryName);
+                var queryOutputDir = args.QueryOutputDir ?? Path.Combine(
+                    Path.GetDirectoryName(configFileName)!,
+                    config.Extensions.StrawberryShake.OutputDirectoryName,
+                    "Queries");
 
                 if (result.HasErrors())
                 {
@@ -103,30 +129,15 @@ public static class GenerateCommand
                 }
                 else
                 {
-                    foreach (var doc in result.Documents)
+                    await WriteCodeFilesAsync(result, outputDir, cancellationToken);
+
+                    if (args.Strategy is RequestStrategy.PersistedQuery)
                     {
-                        if (doc.Kind is SourceDocumentKind.CSharp or SourceDocumentKind.Razor)
-                        {
-                            var fileName = CreateFileName(outputDir, doc.Path, doc.Name, doc.Kind);
-                            var dir = Path.GetDirectoryName(fileName)!;
-
-                            if (!Directory.Exists(dir))
-                            {
-                                Directory.CreateDirectory(dir);
-                            }
-
-                            if (File.Exists(fileName))
-                            {
-                                File.Delete(fileName);
-                            }
-
-                            await File.WriteAllTextAsync(
-                                fileName,
-                                doc.SourceText,
-                                cancellationToken);
-
-                            Output.WriteFileCreated(fileName);
-                        }
+                        await WritePersistedQueriesAsync(
+                            result,
+                            queryOutputDir,
+                            args.RelayFormat,
+                            cancellationToken);
                     }
                 }
             }
@@ -134,7 +145,79 @@ public static class GenerateCommand
             return statusCode;
         }
 
-        private static string CreateFileName(
+        private CSharpGeneratorResult GenerateClient(
+            string clientName, 
+            string[] documents, 
+            CSharpGeneratorSettings settings)
+        {
+            using var activity = Output.WriteActivity($"Generate {clientName}");
+            return CSharpGenerator.Generate(documents, settings);
+        }
+
+        private async Task WriteCodeFilesAsync(
+            CSharpGeneratorResult result,
+            string outputDir,
+            CancellationToken cancellationToken)
+        {
+            foreach (var doc in result.Documents)
+            {
+                if (doc.Kind is SourceDocumentKind.CSharp or SourceDocumentKind.Razor)
+                {
+                    var fileName = CreateCodeFileName(outputDir, doc.Path, doc.Name, doc.Kind);
+
+                    EnsureWeCanWriteTheFile(fileName);
+
+                    await File.WriteAllTextAsync(
+                        fileName,
+                        doc.SourceText,
+                        cancellationToken);
+
+                    Output.WriteFileCreated(fileName);
+                }
+            }
+        }
+
+        private static async Task WritePersistedQueriesAsync(
+            CSharpGeneratorResult result,
+            string outputDir,
+            bool relayFormat,
+            CancellationToken cancellationToken)
+        {
+            if (relayFormat)
+            {
+                var map = new Dictionary<string, string>();
+
+                foreach (var doc in result.Documents)
+                {
+                    map[doc.Hash!] = doc.SourceText;
+                }
+
+                var fileName = Path.Combine(outputDir, "queries.json");
+
+                EnsureWeCanWriteTheFile(fileName);
+
+                await File.WriteAllTextAsync(
+                    fileName,
+                    JsonSerializer.Serialize(map),
+                    cancellationToken);
+            }
+            else
+            {
+                foreach (var doc in result.Documents)
+                {
+                    var fileName = Path.Combine(outputDir, $"{doc.Hash}.graphql");
+
+                    EnsureWeCanWriteTheFile(fileName);
+
+                    await File.WriteAllTextAsync(
+                        fileName,
+                        doc.SourceText,
+                        cancellationToken);
+                }
+            }
+        }
+
+        private static string CreateCodeFileName(
             string outputDir,
             string? path,
             string name,
@@ -149,6 +232,21 @@ public static class GenerateCommand
                 ? Path.Combine(outputDir, $"{name}.{kindName}.cs")
                 : Path.Combine(outputDir, path, $"{name}.{kindName}.cs");
         }
+
+        private static void EnsureWeCanWriteTheFile(string fileName)
+        {
+            var dir = Path.GetDirectoryName(fileName)!;
+
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+
+            if (File.Exists(fileName))
+            {
+                File.Delete(fileName);
+            }
+        }
     }
 
     internal sealed class GenerateCommandArguments
@@ -161,7 +259,10 @@ public static class GenerateCommand
             bool useSingleFile,
             bool noStore,
             bool razorComponents,
-            string? outputDir)
+            string? outputDir,
+            RequestStrategy strategy,
+            string? queryOutputDir,
+            bool relayFormat)
         {
             Path = path;
             RootNamespace = rootNamespace;
@@ -171,6 +272,9 @@ public static class GenerateCommand
             NoStore = noStore;
             RazorComponents = razorComponents;
             OutputDir = outputDir;
+            Strategy = strategy;
+            QueryOutputDir = queryOutputDir ?? outputDir;
+            RelayFormat = relayFormat;
         }
 
         public string Path { get; }
@@ -188,5 +292,11 @@ public static class GenerateCommand
         public bool RazorComponents { get; }
 
         public string? OutputDir { get; }
+
+        public RequestStrategy Strategy { get; }
+
+        public string? QueryOutputDir { get; }
+
+        public bool RelayFormat { get; }
     }
 }

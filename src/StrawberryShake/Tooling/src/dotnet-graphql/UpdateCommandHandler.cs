@@ -1,16 +1,9 @@
-using System;
-using System.IO;
-using System.Net.Http;
-using System.Threading.Tasks;
-using System.Threading;
-using StrawberryShake.Tools.OAuth;
 using System.Text;
 using StrawberryShake.Tools.Configuration;
 
 namespace StrawberryShake.Tools
 {
-    public class UpdateCommandHandler
-        : CommandHandler<UpdateCommandArguments>
+    public class UpdateCommandHandler : CommandHandler<UpdateCommandArguments>
     {
         public UpdateCommandHandler(
             IFileSystem fileSystem,
@@ -107,15 +100,59 @@ namespace StrawberryShake.Tools
             {
                 var uri = new Uri(configuration.Extensions.StrawberryShake.Url);
                 var schemaFilePath = Path.Combine(clientDirectory, configuration.Schema);
+                var tempFile = CreateTempFileName();
 
-                if (!await DownloadSchemaAsync(context, uri, schemaFilePath, cancellationToken)
+                // we first attempt to download the new schema into a temp file. 
+                // if that should fail we still have the original schema file and
+                // the user can still work.
+                if (!await DownloadSchemaAsync(context, uri, tempFile, cancellationToken)
                     .ConfigureAwait(false))
                 {
+                    // if the schema download succeeded we will replace the old schema with the
+                    // new one.
+                    if (File.Exists(schemaFilePath))
+                    {
+                        File.Delete(schemaFilePath);
+                    }
+
+                    File.Move(tempFile, schemaFilePath);
+
                     hasErrors = true;
+                }
+
+                // in any case we will make sure the temp file is removed at the end.
+                if (File.Exists(tempFile))
+                {
+                    File.Delete(tempFile);
                 }
             }
 
             return !hasErrors;
+        }
+
+        private static string CreateTempFileName()
+        {
+            var pathSegment = Random.Shared.Next(9999).ToString();
+            string tempFile;
+
+            for (var i = 0; i < 100; i++)
+            {
+                tempFile = Path.Combine(Path.GetTempPath(), pathSegment, Path.GetRandomFileName());
+
+                if (!File.Exists(tempFile))
+                {
+                    var tempDir = Path.GetDirectoryName(tempFile)!;
+
+                    if (!Directory.Exists(tempDir))
+                    {
+                        Directory.CreateDirectory(tempDir);
+                    }
+
+                    return tempFile;
+                }
+            }
+
+            throw new InvalidOperationException("Could not acquire a temp file.");
         }
 
         private async Task<bool> DownloadSchemaAsync(

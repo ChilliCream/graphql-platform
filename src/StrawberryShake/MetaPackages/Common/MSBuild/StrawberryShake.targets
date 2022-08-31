@@ -22,16 +22,19 @@
     Condition="'@(GraphQL)' != ''">
     <PropertyGroup>
       <GraphQLCodeGenerationRoot>$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\</GraphQLCodeGenerationRoot>
+      <GraphQLQueryGenerationRoot>$(MSBuildProjectDirectory)\$(GraphQLPersistedQueryFormat)</GraphQLQueryGenerationRoot>
     </PropertyGroup>
 
     <PropertyGroup>
       <GenCommand>dotnet $(GenTool) generate "$(MSBuildProjectDirectory)"</GenCommand>
       <GenCommand>$(GenCommand) -o "$(GraphQLCodeGenerationRoot)"</GenCommand>
       <GenCommand Condition="'$(RootNamespace)' != ''">$(GenCommand) -n "$(RootNamespace)"</GenCommand>
+      <GenCommand Condition="'$(GraphQLPersistedQueryOutput)' != ''">$(GenCommand) -q "$(GraphQLQueryGenerationRoot)"</GenCommand>
       <GenCommand Condition="'$(GraphQLRequestHash)' != ''">$(GenCommand) -a "$(GraphQLRequestHash)"</GenCommand>
       <GenCommand Condition="'$(GraphQLStrictSchemaValidation)' != 'enable'">$(GenCommand) -s</GenCommand>
       <GenCommand Condition="'$(GraphQLClientStore)' != 'enable'">$(GenCommand) -t</GenCommand>
       <GenCommand Condition="'$(GraphQLRazorComponents)' == 'enable'">$(GenCommand) -r</GenCommand>
+      <GenCommand Condition="'$(GraphQLPersistedQueryFormat)' == 'relay'">$(GenCommand) --relayFormat</GenCommand>
     </PropertyGroup>
 
     <Message Text="MSBuildProjectDirectory: $(MSBuildProjectDirectory)" Importance="High" Condition="'$(GraphQLDebug)' == 'enable'" />
