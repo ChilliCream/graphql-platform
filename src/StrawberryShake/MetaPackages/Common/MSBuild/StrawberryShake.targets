@@ -26,7 +26,7 @@
     </PropertyGroup>
 
     <PropertyGroup>
-      <GenCommand>dotnet $(GenTool) generate &quot;$(MSBuildProjectDirectory)&quot;</GenCommand>
+      <GenCommand>dotnet &quot;$(GenTool)&quot; generate &quot;$(MSBuildProjectDirectory)&quot;</GenCommand>
       <GenCommand>$(GenCommand) -o $(GraphQLCodeGenerationRoot)</GenCommand>
       <GenCommand Condition="'$(RootNamespace)' != ''">$(GenCommand) -n $(RootNamespace)</GenCommand>
       <GenCommand Condition="'$(GraphQLPersistedQueryOutput)' != ''">$(GenCommand) -q $(GraphQLQueryGenerationRoot)</GenCommand>
@@ -43,7 +43,7 @@
     <Exec Command="$(GenCommand)" WorkingDirectory="$(MSBuildThisFileDirectory)" ConsoleToMsBuild="true" />
 
     <ItemGroup>
-      <Compile Include="$(GraphQLCodeGenerationRoot)**\*.cs"/>
+      <Compile Include="$(GraphQLCodeGenerationRoot)**\*.cs" />
     </ItemGroup>
   </Target>
   
