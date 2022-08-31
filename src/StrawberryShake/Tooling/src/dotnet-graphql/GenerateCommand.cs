@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using McMaster.Extensions.CommandLineUtils;
 using StrawberryShake.CodeGeneration.CSharp;
@@ -62,35 +64,38 @@ public static class GenerateCommand
             "Console output as JSON.",
             CommandOptionType.NoValue);
 
-        generate.OnExecuteAsync(ct =>
-        {
-            var strategy = RequestStrategy.Default;
-            var queryOutputDir = queryOutputDirArg.Value();
-
-            if (!string.IsNullOrEmpty(queryOutputDir) || relayFormatArg.HasValue())
+        generate.OnExecuteAsync(
+            ct =>
             {
-                strategy = RequestStrategy.PersistedQuery;
-            }
+                var strategy = RequestStrategy.Default;
+                var queryOutputDir = queryOutputDirArg.Value();
 
-            var arguments = new GenerateCommandArguments(
-                pathArg.Value ?? CurrentDirectory,
-                rootNamespaceArg.Value(),
-                !disableSchemaValidationArg.HasValue(),
-                hashAlgorithmArg.Value() ?? "md5",
-                true,
-                disableStoreArg.HasValue(),
-                razorComponentsArg.HasValue(),
-                outputDirArg.Value(),
-                strategy,
-                queryOutputDir,
-                relayFormatArg.HasValue());
-            var handler = CommandTools.CreateHandler<GenerateCommandHandler>(jsonArg);
-            return handler.ExecuteAsync(arguments, ct);
-        });
+                if (!string.IsNullOrEmpty(queryOutputDir) || relayFormatArg.HasValue())
+                {
+                    strategy = RequestStrategy.PersistedQuery;
+                }
+
+                var arguments = new GenerateCommandArguments(
+                    pathArg.Value ?? CurrentDirectory,
+                    rootNamespaceArg.Value(),
+                    !disableSchemaValidationArg.HasValue(),
+                    hashAlgorithmArg.Value() ?? "md5",
+                    true,
+                    disableStoreArg.HasValue(),
+                    razorComponentsArg.HasValue(),
+                    outputDirArg.Value(),
+                    strategy,
+                    queryOutputDir,
+                    relayFormatArg.HasValue());
+                var handler = CommandTools.CreateHandler<GenerateCommandHandler>(jsonArg);
+                return handler.ExecuteAsync(arguments, ct);
+            });
     }
 
     private sealed class GenerateCommandHandler : CommandHandler<GenerateCommandArguments>
     {
+        private static readonly MD5 _md5 = MD5.Create();
+
         public GenerateCommandHandler(IConsoleOutput output)
         {
             Output = output;
@@ -114,13 +119,15 @@ public static class GenerateCommand
                 var documents = GetGraphQLDocuments(args.Path, config.Documents);
                 var settings = CreateSettings(config, args, rootNamespace);
                 var result = GenerateClient(settings.ClientName, documents, settings);
-                var outputDir = args.OutputDir ?? Path.Combine(
-                    Path.GetDirectoryName(configFileName)!,
-                    config.Extensions.StrawberryShake.OutputDirectoryName ?? "Generated");
-                var queryOutputDir = args.QueryOutputDir ?? Path.Combine(
-                    Path.GetDirectoryName(configFileName)!,
-                    config.Extensions.StrawberryShake.OutputDirectoryName ?? "Generated",
-                    "Queries");
+                var outputDir = args.OutputDir ??
+                    Path.Combine(
+                        Path.GetDirectoryName(configFileName)!,
+                        config.Extensions.StrawberryShake.OutputDirectoryName ?? "Generated");
+                var queryOutputDir = args.QueryOutputDir ??
+                    Path.Combine(
+                        Path.GetDirectoryName(configFileName)!,
+                        config.Extensions.StrawberryShake.OutputDirectoryName ?? "Generated",
+                        "Queries");
 
                 if (result.HasErrors())
                 {
@@ -160,29 +167,34 @@ public static class GenerateCommand
             string outputDir,
             CancellationToken cancellationToken)
         {
-            if (Directory.Exists(outputDir))
-            {
-                foreach (var oldFile in Directory.GetFiles(outputDir, $"{clientName}.*.cs"))
-                {
-                    File.Delete(oldFile);
-                }
-            }
+            var deleteList = Directory.Exists(outputDir)
+                ? new HashSet<string>(Directory.GetFiles(outputDir, $"{clientName}.*.cs"))
+                : new HashSet<string>();
 
             foreach (var doc in result.Documents)
             {
                 if (doc.Kind is SourceDocumentKind.CSharp or SourceDocumentKind.Razor)
                 {
                     var fileName = CreateCodeFileName(outputDir, doc.Path, doc.Name, doc.Kind);
+                    deleteList.Remove(fileName);
 
-                    EnsureWeCanWriteTheFile(fileName);
+                    if (await NeedsUpdateAsync(fileName, doc.SourceText, cancellationToken))
+                    {
+                        EnsureWeCanWriteTheFile(fileName);
 
-                    await File.WriteAllTextAsync(
-                        fileName,
-                        doc.SourceText,
-                        cancellationToken);
+                        await File.WriteAllTextAsync(
+                            fileName,
+                            doc.SourceText,
+                            cancellationToken);
 
-                    Output.WriteFileCreated(fileName);
+                        Output.WriteFileCreated(fileName);
+                    }
                 }
+            }
+
+            foreach (var oldFile in deleteList)
+            {
+                File.Delete(oldFile);
             }
         }
 
@@ -251,6 +263,27 @@ public static class GenerateCommand
             return path is null
                 ? Path.Combine(outputDir, $"{name}.{kindName}.cs")
                 : Path.Combine(outputDir, path, $"{name}.{kindName}.cs");
+        }
+
+        public static async Task<bool> NeedsUpdateAsync(
+            string fileName,
+            string sourceText,
+            CancellationToken cancellationToken)
+        {
+            if (File.Exists(fileName))
+            {
+                var readTask = File.ReadAllBytesAsync(fileName, cancellationToken);
+
+                var source = Encoding.UTF8.GetBytes(sourceText);
+                var sourceHash = _md5.ComputeHash(source);
+
+                var current = await readTask;
+                var currentHash = _md5.ComputeHash(current);
+
+                return !currentHash.AsSpan().SequenceEqual(sourceHash);
+            }
+
+            return true;
         }
 
         private static void EnsureWeCanWriteTheFile(string fileName)
