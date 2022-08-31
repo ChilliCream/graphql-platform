@@ -45,13 +45,12 @@ namespace StrawberryShake.Tools.Configuration
         /// <summary>
         /// Defines the default request strategy.
         /// </summary>
-        public RequestStrategy RequestStrategy { get; set; } =
-            RequestStrategy.Default;
+        public RequestStrategy? RequestStrategy { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the generated code output directory.
         /// </summary>
-        public string OutputDirectoryName { get; set; } = "Generated";
+        public string? OutputDirectoryName { get; set; }
 
         /// <summary>
         /// Defines if a client shall be generated without a store.

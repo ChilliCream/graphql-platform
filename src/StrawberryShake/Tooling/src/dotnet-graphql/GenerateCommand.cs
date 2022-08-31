@@ -62,16 +62,16 @@ public static class GenerateCommand
             "Console output as JSON.",
             CommandOptionType.NoValue);
 
-        var strategy = RequestStrategy.Default;
-        var queryOutputDir = queryOutputDirArg.Value();
-
-        if (!string.IsNullOrEmpty(queryOutputDir) || relayFormatArg.HasValue())
-        {
-            strategy = RequestStrategy.PersistedQuery;
-        }
-
         generate.OnExecuteAsync(ct =>
         {
+            var strategy = RequestStrategy.Default;
+            var queryOutputDir = queryOutputDirArg.Value();
+
+            if (!string.IsNullOrEmpty(queryOutputDir) || relayFormatArg.HasValue())
+            {
+                strategy = RequestStrategy.PersistedQuery;
+            }
+
             var arguments = new GenerateCommandArguments(
                 pathArg.Value ?? CurrentDirectory,
                 rootNamespaceArg.Value(),
@@ -116,10 +116,10 @@ public static class GenerateCommand
                 var result = GenerateClient(settings.ClientName, documents, settings);
                 var outputDir = args.OutputDir ?? Path.Combine(
                     Path.GetDirectoryName(configFileName)!,
-                    config.Extensions.StrawberryShake.OutputDirectoryName);
+                    config.Extensions.StrawberryShake.OutputDirectoryName ?? "Generated");
                 var queryOutputDir = args.QueryOutputDir ?? Path.Combine(
                     Path.GetDirectoryName(configFileName)!,
-                    config.Extensions.StrawberryShake.OutputDirectoryName,
+                    config.Extensions.StrawberryShake.OutputDirectoryName ?? "Generated",
                     "Queries");
 
                 if (result.HasErrors())
@@ -129,7 +129,7 @@ public static class GenerateCommand
                 }
                 else
                 {
-                    await WriteCodeFilesAsync(result, outputDir, cancellationToken);
+                    await WriteCodeFilesAsync(clientName, result, outputDir, cancellationToken);
 
                     if (args.Strategy is RequestStrategy.PersistedQuery)
                     {
@@ -146,8 +146,8 @@ public static class GenerateCommand
         }
 
         private CSharpGeneratorResult GenerateClient(
-            string clientName, 
-            string[] documents, 
+            string clientName,
+            string[] documents,
             CSharpGeneratorSettings settings)
         {
             using var activity = Output.WriteActivity($"Generate {clientName}");
@@ -155,10 +155,19 @@ public static class GenerateCommand
         }
 
         private async Task WriteCodeFilesAsync(
+            string clientName,
             CSharpGeneratorResult result,
             string outputDir,
             CancellationToken cancellationToken)
         {
+            if (Directory.Exists(outputDir))
+            {
+                foreach (var oldFile in Directory.GetFiles(outputDir, $"{clientName}.*.cs"))
+                {
+                    File.Delete(oldFile);
+                }
+            }
+
             foreach (var doc in result.Documents)
             {
                 if (doc.Kind is SourceDocumentKind.CSharp or SourceDocumentKind.Razor)
@@ -189,7 +198,10 @@ public static class GenerateCommand
 
                 foreach (var doc in result.Documents)
                 {
-                    map[doc.Hash!] = doc.SourceText;
+                    if (doc.Kind is SourceDocumentKind.GraphQL)
+                    {
+                        map[doc.Hash!] = doc.SourceText;
+                    }
                 }
 
                 var fileName = Path.Combine(outputDir, "queries.json");
@@ -203,6 +215,14 @@ public static class GenerateCommand
             }
             else
             {
+                if (Directory.Exists(outputDir))
+                {
+                    foreach (var oldFile in Directory.GetFiles(outputDir, "*.graphql"))
+                    {
+                        File.Delete(oldFile);
+                    }
+                }
+
                 foreach (var doc in result.Documents)
                 {
                     var fileName = Path.Combine(outputDir, $"{doc.Hash}.graphql");
@@ -273,8 +293,13 @@ public static class GenerateCommand
             RazorComponents = razorComponents;
             OutputDir = outputDir;
             Strategy = strategy;
-            QueryOutputDir = queryOutputDir ?? outputDir;
             RelayFormat = relayFormat;
+            QueryOutputDir = queryOutputDir;
+
+            if (queryOutputDir is null && outputDir is not null)
+            {
+                QueryOutputDir = System.IO.Path.Combine(outputDir, "Queries");
+            }
         }
 
         public string Path { get; }

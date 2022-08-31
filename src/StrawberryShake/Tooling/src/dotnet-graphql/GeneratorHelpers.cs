@@ -55,9 +55,9 @@ internal static class GeneratorHelpers
             EntityRecords = configSettings.Records.Entities,
             RazorComponents = configSettings.RazorComponents ?? args.RazorComponents,
             SingleCodeFile = configSettings.UseSingleFile ?? args.UseSingleFile,
-            RequestStrategy = configSettings.RequestStrategy,
+            RequestStrategy = configSettings.RequestStrategy ?? args.Strategy,
             HashProvider = GetHashProvider(configSettings.HashAlgorithm ?? args.HashAlgorithm),
-            TransportProfiles = MapTransportProfiles(configSettings.TransportProfiles)
+            TransportProfiles = MapTransportProfiles(configSettings.TransportProfiles),
         };
     }
 
