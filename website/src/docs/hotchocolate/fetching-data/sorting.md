@@ -6,11 +6,11 @@ import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/e
 
 # What is sorting
 
-Ordering results of a query dynamically is a common case. With Hot Chocolate sorting, you can expose a sorting argument, that abstracts the complexity of ordering logic.
-With little configuration your GraphQL API has sorting capabilities which translates to native database queries.
+Ordering results of a query dynamically is a common case. With Hot Chocolate sorting, you can expose a sorting argument that abstracts the complexity of ordering logic.
+With little configuration, your GraphQL API has sorting capabilities, which translates to native database queries.
 The default sort implementation translates sorting statements to expression trees that are applied to `IQueryable`.
 Hot Chocolate by default will inspect your .NET model and infer the possible filter operations from it.
-Sorting uses `IQueryable` (`IEnumerable`) by default but you can also easily customize them to use other interfaces.
+Sorting uses `IQueryable` (`IEnumerable`) by default, but you can also easily customize them to use other interfaces.
 
 The following type would yield the following sorting operation
 
@@ -117,13 +117,13 @@ public class Query
 
 # Customization
 
-Under the hood, sorting is based ontop of normal Hot Chocolate input types. You can easily customize them with a very familiar fluent interface. The sorting input types follow the same `descriptor` scheme as you are used to from the normal input types. Just extend the base class `SortInputType<T>` and override the descriptor method.
+Under the hood, sorting is based on top of normal Hot Chocolate input types. You can easily customize them with a very familiar fluent interface. The sorting input types follow the same `descriptor` scheme as you are used to from the normal input types. Just extend the base class `SortInputType<T>` and override the descriptor method.
 
 `ISortInputTypeDescriptor<T>` supports most of the methods of `IInputTypeDescriptor<T>`. By default, operations are generated for all fields of the type.
 Members that are collections are skipped because you cannot order based on lists.
-If you do want to specify the sorting types by yourself you can change this behavior with `BindFields`, `BindFieldsExplicitly` or `BindFieldsImplicitly`.
+If you do want to specify the sorting types by yourself, you can change this behavior with `BindFields`, `BindFieldsExplicitly`, or `BindFieldsImplicitly`.
 When fields are bound implicitly, meaning sorting is added for all valid properties, you may want to hide a few fields. You can do this with `Ignore(x => Bar)`.
-It is also possible to customize the GraphQL field of the operation further. You can change the name, add a description or directive.
+It is also possible to customize the GraphQL field of the operation further. You can change the name or add a description or directive.
 
 ```csharp
 public class UserSortType : SortInputType<User>
@@ -136,7 +136,7 @@ public class UserSortType : SortInputType<User>
 }
 ```
 
-If you want to change the sorting operations on a field, you need to declare you own operation enum type.
+If you want to change the sorting operations on a field, you need to declare your own operation enum type.
 
 ```csharp {7}
 public class UserSortType : SortInputType<User>
@@ -177,7 +177,7 @@ enum AscOnlySortEnumType {
 }
 ```
 
-To apply this sorting type we just have to provide it to the `UseSorting` extension method with as the generic type argument.
+To apply this sorting type, we just have to provide it to the `UseSorting` extension method as the generic type argument.
 
 <ExampleTabs>
 <Annotation>
@@ -220,13 +220,13 @@ public class Query
 
 # Sorting Conventions
 
-If you want to change the behavior sorting globally, you want to create a convention for sorting. The sorting convention comes with a fluent interface that is close to a type descriptor.
+If you want to change the behavior of sorting globally, you want to create a convention for sorting. The sorting convention comes with a fluent interface that is close to a type descriptor.
 
 ## Get Started
 
-To use a sort convention you have to extend `SortConvention` and override the `Configure` method. Alternatively, you can directly configure the convention over the constructor argument.
+To use a sort convention, you have to extend `SortConvention` and override the `Configure` method. Alternatively, you can directly configure the convention over the constructor argument.
 You then have to register your custom convention on the schema builder with `AddConvention`.
-By default a new convention is empty. To add the default behaviour you have to add `AddDefaults`.
+By default, a new convention is empty. To add the default behavior, you have to add `AddDefaults`.
 
 ```csharp
 public class CustomConvention
@@ -246,7 +246,7 @@ services.AddGraphQLServer()
         x.AddDefaults()))
 ```
 
-Often you just want to extend the default behaviour of sorting. If this is the case, you can also use `SortConventionExtension`
+Often you just want to extend the default behavior of sorting. If this is the case, you can also use `SortConventionExtension`
 
 ```csharp
 public class CustomConventionExtension
@@ -292,7 +292,7 @@ type Query {
 
 ### SortInputType bindings
 
-By default only the `string` type is bound explicitly. If you want to configure sorting globally you are free to bind additional types.
+By default, only the `string` type is bound explicitly. If you want to configure sorting globally, you are free to bind additional types.
 
 **Configuration**
 
@@ -382,7 +382,7 @@ When you build extensions for sorting, you may want to modify or extend the `Def
 
 ```csharp
 descriptor.ConfigureEnum<DefaultSortEnumType>(
-    x => x.Operaion(CustomOperations.NULL_FIRST).Name("NULL_FIRST));
+    x => x.Operation(CustomOperations.NULL_FIRST).Name("NULL_FIRST));
 ```
 
 ```sdl
@@ -395,12 +395,12 @@ enum SortEnumType {
 
 ### SortType
 
-In case you want to change a specific sort type you can do this too.
+In case you want to change a specific sort type, you can do this too.
 You can use `Configure<TSortType>()` to alter the configuration of a type.
 
 ```csharp
 descriptor.Configure<CustomSortInputType>(
-    x => x.Description("This is my custome description"));
+    x => x.Description("This is my customer description"));
 ```
 
 ```sdl
