@@ -400,7 +400,7 @@ You can use `Configure<TSortType>()` to alter the configuration of a type.
 
 ```csharp
 descriptor.Configure<CustomSortInputType>(
-    x => x.Description("This is my customer description"));
+    x => x.Description("This is my custom description"));
 ```
 
 ```sdl
