@@ -116,8 +116,6 @@ public sealed partial class MultiPartResponseStreamSerializer : IResponseStreamS
         await outputStream.WriteAsync(
             writer.GetInternalBuffer(), 0, writer.Length, cancellationToken)
             .ConfigureAwait(false);
-        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
-            .ConfigureAwait(false);
     }
 
     private async Task WriteResultHeaderAsync(
@@ -143,7 +141,9 @@ public sealed partial class MultiPartResponseStreamSerializer : IResponseStreamS
         Stream outputStream,
         CancellationToken cancellationToken)
     {
-        // Each part of the multipart response must start with --- and a CRLF
+        // Before each part of the multi-part response, a boundary (CRLF, ---, CRLF) is sent.
+        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
+            .ConfigureAwait(false);
         await outputStream.WriteAsync(Start, 0, Start.Length, cancellationToken)
             .ConfigureAwait(false);
         await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
@@ -154,8 +154,10 @@ public sealed partial class MultiPartResponseStreamSerializer : IResponseStreamS
         Stream outputStream,
         CancellationToken cancellationToken)
     {
-        // After the last part of the multipart response is sent, the terminating
-        // boundary ----- is sent, followed by a CRLF
+        // After the final payload, the terminating boundary of CRLF followed by
+        // ----- followed by CRLF is sent.
+        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
+            .ConfigureAwait(false);
         await outputStream.WriteAsync(End, 0, End.Length, cancellationToken)
             .ConfigureAwait(false);
         await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)

@@ -55,7 +55,8 @@ public static class UploadSchemaHelpers
 
             if (nested is not null)
             {
-                return string.Join(",",
+                return string.Join(
+                    ",",
                     nested.SelectMany(y => y.Select(x => x?.ReadContents() ?? "null")));
             }
 
@@ -66,25 +67,66 @@ public static class UploadSchemaHelpers
 
             if (objectList is not null)
             {
-                return string.Join(",",
+                return string.Join(
+                    ",",
                     objectList.Select(x => x?.Bar!.Baz!.File!.ReadContents() ?? "null"));
             }
 
             if (objectNested is not null)
             {
-                return string.Join(",",
-                    objectNested.SelectMany(y
-                        => y.Select(x => x?.Bar!.Baz!.File!.ReadContents() ?? "null")));
+                return string.Join(
+                    ",",
+                    objectNested.SelectMany(
+                        y
+                            => y.Select(x => x?.Bar!.Baz!.File!.ReadContents() ?? "null")));
             }
 
             return "error";
         }
     }
 
-    public record Test(Bar? Bar);
+    public class Test
+    {
+        public Test(Bar? bar)
+        {
+            Bar = bar;
+        }
 
-    public record Bar(Baz? Baz);
+        public Bar? Bar { get; }
 
-    public record Baz(IFile? File);
+        public void Deconstruct(out Bar? bar)
+        {
+            bar = Bar;
+        }
+    }
 
+    public class Bar
+    {
+        public Bar(Baz? baz)
+        {
+            Baz = baz;
+        }
+
+        public Baz? Baz { get; }
+
+        public void Deconstruct(out Baz? baz)
+        {
+            baz = Baz;
+        }
+    }
+
+    public class Baz
+    {
+        public Baz(IFile? file)
+        {
+            File = file;
+        }
+
+        public IFile? File { get; }
+
+        public void Deconstruct(out IFile? file)
+        {
+            file = File;
+        }
+    }
 }

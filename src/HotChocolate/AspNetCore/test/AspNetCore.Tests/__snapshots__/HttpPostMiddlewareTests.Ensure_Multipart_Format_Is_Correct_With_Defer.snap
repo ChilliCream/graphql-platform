@@ -1,4 +1,5 @@
-﻿---
+﻿
+---
 Content-Type: application/json; charset=utf-8
 
 {"data":{"hero":{"name":"R2-D2"}},"hasNext":true}
