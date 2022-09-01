@@ -103,7 +103,7 @@ public sealed partial class MultiPartResponseStreamFormatter : IResponseStreamFo
         await outputStream.FlushAsync(ct).ConfigureAwait(false);
     }
 
-    private async Task WriteResultAsync(
+    private async ValueTask WriteResultAsync(
         IQueryResult result,
         Stream outputStream,
         CancellationToken ct)
@@ -116,10 +116,9 @@ public sealed partial class MultiPartResponseStreamFormatter : IResponseStreamFo
         // The payload is sent, followed by a CRLF.
         var buffer = writer.GetInternalBuffer();
         await outputStream.WriteAsync(buffer, 0, writer.Length, ct).ConfigureAwait(false);
-        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
     }
 
-    private static async Task WriteResultHeaderAsync(
+    private static async ValueTask WriteResultHeaderAsync(
         Stream outputStream,
         CancellationToken ct)
     {
@@ -134,21 +133,23 @@ public sealed partial class MultiPartResponseStreamFormatter : IResponseStreamFo
         await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
     }
 
-    private static async Task WriteNextAsync(
+    private static async ValueTask WriteNextAsync(
         Stream outputStream,
         CancellationToken ct)
     {
-        // Each part of the multipart response must start with --- and a CRLF
+        // Before each part of the multi-part response, a boundary (CRLF, ---, CRLF) is sent.
+        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
         await outputStream.WriteAsync(Start, 0, Start.Length, ct).ConfigureAwait(false);
         await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
     }
 
-    private static async Task WriteEndAsync(
+    private static async ValueTask WriteEndAsync(
         Stream outputStream,
         CancellationToken ct)
     {
-        // After the last part of the multipart response is sent, the terminating
-        // boundary ----- is sent, followed by a CRLF
+        // After the final payload, the terminating boundary of CRLF followed by
+        // ----- followed by CRLF is sent.
+        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
         await outputStream.WriteAsync(End, 0, End.Length, ct).ConfigureAwait(false);
         await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
     }
