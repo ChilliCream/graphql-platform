@@ -9,7 +9,7 @@ authorUrl: https://github.com/rstaib
 authorImageUrl: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4
 ---
 
-[![YouTube Video](youtube-thumbnail.png)](https://youtube.bananacakepop.com/r/1)
+[![YouTube Video](youtube-thumbnail.png)](https://www.youtube.com/watch?v=LlPEO2p_Bb8)
 
 ## Subscription protocol auto-detection
 
