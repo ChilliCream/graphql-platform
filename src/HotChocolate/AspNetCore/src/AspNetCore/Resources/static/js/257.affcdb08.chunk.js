@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkbanana_cake_pop=self.webpackChunkbanana_cake_pop||[]).push([[257],{43257:function(a,n,e){e.r(n),e.d(n,{default:function(){return u.Xr}});var u=e(27330)}}]);
