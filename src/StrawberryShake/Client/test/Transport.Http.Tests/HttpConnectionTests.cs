@@ -22,8 +22,8 @@ public class HttpConnectionTests : ServerTestBase
     public async Task Simple_Request()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
-        HttpClient client = server.CreateClient();
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
         client.BaseAddress = new Uri("http://localhost:5000/graphql");
 
         var document = new MockDocument("query Test { __typename }");
@@ -32,7 +32,7 @@ public class HttpConnectionTests : ServerTestBase
         // act
         var results = new List<JsonDocument>();
         var connection = new HttpConnection(() => client);
-        await foreach (Response<JsonDocument> response in connection.ExecuteAsync(request))
+        await foreach (var response in connection.ExecuteAsync(request))
         {
             if (response.Body is not null)
             {
@@ -50,8 +50,8 @@ public class HttpConnectionTests : ServerTestBase
     public async Task MultiPart_Request()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
-        HttpClient client = server.CreateClient();
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
         client.BaseAddress = new Uri("http://localhost:5000/graphql");
 
         var document = new MockDocument(
@@ -84,7 +84,7 @@ public class HttpConnectionTests : ServerTestBase
         // act
         var results = new List<JsonDocument>();
         var connection = new HttpConnection(() => client);
-        await foreach (Response<JsonDocument> response in connection.ExecuteAsync(request))
+        await foreach (var response in connection.ExecuteAsync(request))
         {
             if (response.Body is not null)
             {
@@ -96,7 +96,7 @@ public class HttpConnectionTests : ServerTestBase
         var i = 0;
         var data = new StringBuilder();
 
-        foreach (JsonDocument result in results)
+        foreach (var result in results)
         {
             data.Append("Result ").Append(++i).AppendLine(":");
             data.AppendLine(result.RootElement.ToString());
