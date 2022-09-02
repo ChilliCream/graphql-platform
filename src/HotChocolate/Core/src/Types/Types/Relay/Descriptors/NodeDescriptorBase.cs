@@ -156,7 +156,7 @@ public abstract class NodeDescriptorBase : DescriptorBase<NodeDefinition>
                     false);
 
                 definition.ContextData[WellKnownContextData.NodeResolver] =
-                    new NodeResolverInfo(null, pipeline);
+                    new NodeResolverInfo(null, pipeline!);
             }
         }
     }
