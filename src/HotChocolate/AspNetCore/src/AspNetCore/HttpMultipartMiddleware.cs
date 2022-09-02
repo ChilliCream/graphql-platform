@@ -40,7 +40,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
     {
         if (HttpMethods.IsPost(context.Request.Method) &&
             (context.GetGraphQLServerOptions()?.EnableMultipartRequests ?? true) &&
-            ParseContentType(context) == AllowedContentType.Form)
+            ParseContentType(context) == RequestContentType.Form)
         {
             if (!IsDefaultSchema)
             {
@@ -49,7 +49,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
 
             using (DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpMultiPart))
             {
-                await HandleRequestAsync(context, AllowedContentType.Form);
+                await HandleRequestAsync(context, RequestContentType.Form);
             }
         }
         else

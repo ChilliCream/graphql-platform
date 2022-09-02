@@ -36,7 +36,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
     public virtual async Task InvokeAsync(HttpContext context)
     {
         if (HttpMethods.IsPost(context.Request.Method) &&
-            ParseContentType(context) is AllowedContentType.Json)
+            ParseContentType(context) is RequestContentType.Json)
         {
             if (!IsDefaultSchema)
             {
@@ -45,7 +45,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
 
             using (DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpPost))
             {
-                await HandleRequestAsync(context, AllowedContentType.Json);
+                await HandleRequestAsync(context, RequestContentType.Json);
             }
         }
         else
@@ -58,7 +58,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
 
     protected async Task HandleRequestAsync(
         HttpContext context,
-        AllowedContentType contentType)
+        RequestContentType contentType)
     {
         // first we need to get the request executor to be able to execute requests.
         var requestExecutor = await GetExecutorAsync(context.RequestAborted);
@@ -268,3 +268,5 @@ public class HttpPostMiddlewareBase : MiddlewareBase
         return true;
     }
 }
+
+

@@ -4,6 +4,7 @@ using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
+using Microsoft.Net.Http.Headers;
 using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
@@ -181,39 +182,44 @@ public class MiddlewareBase : IDisposable
             cancellationToken: context.RequestAborted);
     }
 
-    protected static AllowedContentType ParseContentType(HttpContext context)
+    protected static RequestContentType ParseContentType(HttpContext context)
     {
-        if (context.Items.TryGetValue(nameof(AllowedContentType), out var value) &&
-            value is AllowedContentType contentType)
+        if (context.Items.TryGetValue(nameof(RequestContentType), out var value) &&
+            value is RequestContentType contentType)
         {
             return contentType;
         }
 
         var span = context.Request.ContentType.AsSpan();
 
-        for (var i = 0; i < span.Length; i++)
+        if (span.StartsWith(ContentType.JsonSpan()))
         {
-            if (span[i] == ';')
+            context.Items[nameof(RequestContentType)] = RequestContentType.Json;
+            return RequestContentType.Json;
+        }
+
+        if (span.StartsWith(ContentType.MultiPartSpan()))
+        {
+            context.Items[nameof(RequestContentType)] = RequestContentType.Form;
+            return RequestContentType.Form;
+        }
+
+        context.Items[nameof(RequestContentType)] = RequestContentType.None;
+        return RequestContentType.None;
+    }
+
+    protected bool TryResolveResponseContentType(HttpContext context, out ResponseContentType type)
+    {
+        if (context.Request.Headers.TryGetValue(HeaderNames.Accept, out var value))
+        {
+            for (var i = 0; i < value.Count; i++)
             {
-                span = span[..i];
-                break;
+
             }
         }
 
-        if (span.SequenceEqual(ContentType.JsonSpan()))
-        {
-            context.Items[nameof(AllowedContentType)] = AllowedContentType.Json;
-            return AllowedContentType.Json;
-        }
-
-        if (span.SequenceEqual(ContentType.MultiPartSpan()))
-        {
-            context.Items[nameof(AllowedContentType)] = AllowedContentType.Form;
-            return AllowedContentType.Form;
-        }
-
-        context.Items[nameof(AllowedContentType)] = AllowedContentType.None;
-        return AllowedContentType.None;
+        type = ResponseContentType.Json;
+        return true;
     }
 
     public void Dispose()
