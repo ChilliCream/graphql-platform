@@ -1,4 +1,4 @@
-﻿{
+{
   "query": "{ __typename }",
   "operationName": "abc",
   "variables": {

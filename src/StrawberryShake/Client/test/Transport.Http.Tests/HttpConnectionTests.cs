@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
-using Snapshooter.Xunit;
+using StrawberryShake.Json;
 
 namespace StrawberryShake.Transport.Http;
 
@@ -55,7 +57,6 @@ public class HttpConnectionTests : ServerTestBase
             @"query GetHero {
                 hero(episode: NEW_HOPE) {
                     ... HeroName
-                    ... HeroAppearsIn @defer(label: ""HeroAppearsIn"")
                 }
             }
 
@@ -67,10 +68,6 @@ public class HttpConnectionTests : ServerTestBase
                         ... HeroAppearsIn2 @defer(label: ""HeroAppearsIn2"")
                     }
                 }
-            }
-
-            fragment HeroAppearsIn on Character {
-                appearsIn
             }
 
             fragment HeroAppearsIn2 on Character {
@@ -90,17 +87,75 @@ public class HttpConnectionTests : ServerTestBase
         }
 
         // assert
-        var i = 0;
-        var data = new StringBuilder();
+        var snapshot = Snapshot.Create();
 
-        foreach (var result in results)
+        var i = 0;
+        foreach (var result in results.OrderBy(
+            r => r.RootElement.GetPropertyOrNull("path")?.ToString()))
         {
-            data.Append("Result ").Append(++i).AppendLine(":");
-            data.AppendLine(result.RootElement.ToString());
-            data.AppendLine();
+            // The order of the patches is not guaranteed, that is why we normalize the order and
+            // normalize the hasNext... overall the guarantee of patchability lies with the server.
+            snapshot.Add(
+                result.RootElement
+                    .ToString()
+                    .Replace("\"hasNext\":false", "\"hasNext\":true"),
+                $"Result {++i}");
         }
 
-        data.ToString().MatchSnapshot();
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task MultiPart_Request_2()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+        client.BaseAddress = new Uri("http://localhost:5000/graphql");
+
+        var document = new MockDocument(
+            @"query GetHero {
+                hero(episode: NEW_HOPE) {
+                    ... HeroName
+                    ... HeroAppearsIn @defer(label: ""HeroAppearsIn"")
+                }
+            }
+
+            fragment HeroName on Character {
+                name
+                friends {
+                    nodes {
+                        name
+                    }
+                }
+            }
+
+            fragment HeroAppearsIn on Character {
+                appearsIn
+            }");
+        var request = new OperationRequest("GetHero", document);
+
+        // act
+        var results = new List<JsonDocument>();
+        var connection = new HttpConnection(() => client);
+        await foreach (var response in connection.ExecuteAsync(request))
+        {
+            if (response.Body is not null)
+            {
+                results.Add(response.Body);
+            }
+        }
+
+        // assert
+        var snapshot = Snapshot.Create();
+
+        var i = 0;
+        foreach (var result in results)
+        {
+            snapshot.Add(result.RootElement.ToString(), $"Result {++i}");
+        }
+
+        await snapshot.MatchAsync();
     }
 
     private sealed class MockDocument : IDocument

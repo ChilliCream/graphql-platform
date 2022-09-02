@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Xunit;
 
 namespace StrawberryShake.Extensions;
 
@@ -134,12 +133,18 @@ public class OperationResultExtensionTests
             Errors = new[] { error };
         }
 
-        public object? Data { get; } = default!;
-        public Type DataType { get; } = default!;
-        public IOperationResultDataInfo? DataInfo { get; } = default!;
-        public object DataFactory { get; } = default!;
+        public object? Data => default!;
+
+        public Type DataType => default!;
+
+        public IOperationResultDataInfo? DataInfo => default!;
+
+        public object DataFactory => default!;
+
         public IReadOnlyList<IClientError> Errors { get; }
-        public IReadOnlyDictionary<string, object?> Extensions { get; } = default!;
-        public IReadOnlyDictionary<string, object?> ContextData { get; } = default!;
+
+        public IReadOnlyDictionary<string, object?> Extensions => default!;
+
+        public IReadOnlyDictionary<string, object?> ContextData => default!;
     }
 }

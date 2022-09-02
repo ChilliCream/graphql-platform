@@ -1,5 +1,4 @@
 using System;
-using Xunit;
 
 namespace StrawberryShake.Serialization;
 
@@ -18,7 +17,7 @@ public class UuidSerializerTests
         var guid = Guid.NewGuid();
 
         // act
-        Guid result = serializer.Parse(guid.ToString(format));
+        var result = serializer.Parse(guid.ToString(format));
 
         // assert
         Assert.Equal(guid, result);
