@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.Transport.WebSockets.Protocols;
-using Xunit;
 
 namespace StrawberryShake.Transport.WebSockets;
 
@@ -30,7 +29,7 @@ public class WebSocketClientFactoryServiceCollectionExtensionsTests
         ServiceCollection services = null!;
 
         // act
-        Exception? ex =
+        var ex =
             Record.Exception(() => services.AddProtocol<GraphQLWebSocketProtocolFactory>());
 
         // assert
@@ -45,10 +44,10 @@ public class WebSocketClientFactoryServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // act
-        IWebSocketClientBuilder builder = services.AddWebSocketClient(clientName);
+        var builder = services.AddWebSocketClient(clientName);
 
         // assert
-        ISocketClient client = services.BuildServiceProvider()
+        var client = services.BuildServiceProvider()
             .GetRequiredService<ISocketClientFactory>()
             .CreateClient(clientName);
         Assert.Equal(clientName, builder.Name);
@@ -62,7 +61,7 @@ public class WebSocketClientFactoryServiceCollectionExtensionsTests
         ServiceCollection services = null!;
 
         // act
-        Exception? ex =
+        var ex =
             Record.Exception(() => services.AddWebSocketClient("Foo"));
 
         // assert
@@ -76,7 +75,7 @@ public class WebSocketClientFactoryServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // act
-        Exception? ex =
+        var ex =
             Record.Exception(() => services.AddWebSocketClient(null!));
 
         // assert
@@ -93,11 +92,11 @@ public class WebSocketClientFactoryServiceCollectionExtensionsTests
         Action<ISocketClient> configure = x => x.Uri = uri;
 
         // act
-        IWebSocketClientBuilder builder =
+        var builder =
             services.AddWebSocketClient(clientName, configure);
 
         // assert
-        ISocketClient client = services.BuildServiceProvider()
+        var client = services.BuildServiceProvider()
             .GetRequiredService<ISocketClientFactory>()
             .CreateClient(clientName);
         Assert.Equal(clientName, builder.Name);
@@ -114,7 +113,7 @@ public class WebSocketClientFactoryServiceCollectionExtensionsTests
         void configure(ISocketClient x) => x.Uri = uri;
 
         // act
-        Exception? ex =
+        var ex =
             Record.Exception(() => services.AddWebSocketClient("Foo", configure));
 
         // assert
@@ -130,7 +129,7 @@ public class WebSocketClientFactoryServiceCollectionExtensionsTests
         void configure(ISocketClient x) => x.Uri = uri;
 
         // act
-        Exception? ex = Record.Exception(() => services.AddWebSocketClient(null!, configure));
+        var ex = Record.Exception(() => services.AddWebSocketClient(null!, configure));
 
         // assert
         Assert.IsType<ArgumentNullException>(ex);
@@ -144,7 +143,7 @@ public class WebSocketClientFactoryServiceCollectionExtensionsTests
         Action<ISocketClient> configure = null!;
 
         // act
-        Exception? ex =
+        var ex =
             Record.Exception(() => services.AddWebSocketClient("Foo", configure));
 
         // assert
@@ -161,11 +160,11 @@ public class WebSocketClientFactoryServiceCollectionExtensionsTests
         void configure(IServiceProvider _, ISocketClient x) => x.Uri = uri;
 
         // act
-        IWebSocketClientBuilder builder =
+        var builder =
             services.AddWebSocketClient(clientName, configure);
 
         // assert
-        ISocketClient client = services.BuildServiceProvider()
+        var client = services.BuildServiceProvider()
             .GetRequiredService<ISocketClientFactory>()
             .CreateClient(clientName);
         Assert.Equal(clientName, builder.Name);
@@ -182,7 +181,7 @@ public class WebSocketClientFactoryServiceCollectionExtensionsTests
         Action<IServiceProvider, ISocketClient> configure = (_, x) => x.Uri = uri;
 
         // act
-        Exception? ex =
+        var ex =
             Record.Exception(() => services.AddWebSocketClient("Foo", configure));
 
         // assert
@@ -198,7 +197,7 @@ public class WebSocketClientFactoryServiceCollectionExtensionsTests
         Action<IServiceProvider, ISocketClient> configure = (_, x) => x.Uri = uri;
 
         // act
-        Exception? ex =
+        var ex =
             Record.Exception(() => services.AddWebSocketClient(null!, configure));
 
         // assert
@@ -213,7 +212,7 @@ public class WebSocketClientFactoryServiceCollectionExtensionsTests
         Action<IServiceProvider, ISocketClient> configure = null!;
 
         // act
-        Exception? ex =
+        var ex =
             Record.Exception(() => services.AddWebSocketClient("Foo", configure));
 
         // assert

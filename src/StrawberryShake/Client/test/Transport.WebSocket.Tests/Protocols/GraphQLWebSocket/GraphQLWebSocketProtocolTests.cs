@@ -3,10 +3,9 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using CookieCrumble;
 using Moq;
-using Snapshooter.Xunit;
 using StrawberryShake.Transport.WebSockets.Messages;
-using Xunit;
 
 namespace StrawberryShake.Transport.WebSockets.Protocols;
 
@@ -35,7 +34,7 @@ public class GraphQlWsProtocolTests
         ISocketClient socketClient = null!;
 
         // act
-        Exception? exception =
+        var exception =
             Record.Exception((Action)(() => new GraphQLWebSocketProtocol(socketClient)));
 
         // assert
@@ -50,7 +49,7 @@ public class GraphQlWsProtocolTests
         var protocol = new GraphQLWebSocketProtocol(socketClient);
 
         // act
-        Exception? exception = await Record.ExceptionAsync(
+        var exception = await Record.ExceptionAsync(
             () => protocol.InitializeAsync(CancellationToken.None));
 
         // assert
@@ -138,7 +137,7 @@ public class GraphQlWsProtocolTests
         var protocol = new GraphQLWebSocketProtocol(socketClient);
 
         // act
-        Exception? exception = await Record.ExceptionAsync(
+        var exception = await Record.ExceptionAsync(
             () => protocol.InitializeAsync(CancellationToken.None));
 
         // assert
@@ -295,7 +294,7 @@ public class GraphQlWsProtocolTests
     {
         // arrange
         SemaphoreSlim semaphoreSlim = new(0);
-        bool received = false;
+        var received = false;
         var message = @"{""type"":""complete"", ""id"":""123""}";
         var socketClient = new SocketClientStub { IsClosed = false };
         var protocol = new GraphQLWebSocketProtocol(socketClient);

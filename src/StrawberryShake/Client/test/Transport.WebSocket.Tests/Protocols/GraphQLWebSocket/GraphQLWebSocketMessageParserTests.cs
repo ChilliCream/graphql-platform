@@ -1,10 +1,8 @@
-using System;
 using System.Buffers;
 using System.Runtime.Serialization;
 using System.Text;
 using Snapshooter;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace StrawberryShake.Transport.WebSockets.Protocols;
 
@@ -14,10 +12,10 @@ public class GraphQLWebSocketMessageParserTests
     public void ParseMessage_EmptyObject_ThrowException()
     {
         // arrange
-        ReadOnlySequence<byte> message = GetBytes("{}");
+        var message = GetBytes("{}");
 
         // act
-        Exception? ex = Record.Exception(() => GraphQLWebSocketMessageParser.Parse(message));
+        var ex = Record.Exception(() => GraphQLWebSocketMessageParser.Parse(message));
 
         // assert
         Assert.IsType<SerializationException>(ex).Message.MatchSnapshot();
@@ -27,10 +25,10 @@ public class GraphQLWebSocketMessageParserTests
     public void ParseMessage_OnlyId_ThrowException()
     {
         // arrange
-        ReadOnlySequence<byte> message = GetBytes(@"{""id"": ""123""}");
+        var message = GetBytes(@"{""id"": ""123""}");
 
         // act
-        Exception? ex = Record.Exception(() => GraphQLWebSocketMessageParser.Parse(message));
+        var ex = Record.Exception(() => GraphQLWebSocketMessageParser.Parse(message));
 
         // assert
         Assert.IsType<SerializationException>(ex).Message.MatchSnapshot();
@@ -40,10 +38,10 @@ public class GraphQLWebSocketMessageParserTests
     public void ParseMessage_IncompleteDocument_ThrowException()
     {
         // arrange
-        ReadOnlySequence<byte> message = GetBytes(@"{""id"": ""123""");
+        var message = GetBytes(@"{""id"": ""123""");
 
         // act
-        Exception? ex = Record.Exception(() => GraphQLWebSocketMessageParser.Parse(message));
+        var ex = Record.Exception(() => GraphQLWebSocketMessageParser.Parse(message));
 
         // assert
         Assert.NotNull(ex);
@@ -54,10 +52,10 @@ public class GraphQLWebSocketMessageParserTests
     public void ParseMessage_AdditionalField_ThrowException()
     {
         // arrange
-        ReadOnlySequence<byte> message = GetBytes(@"{""type"": ""ka"", ""Foo"":1}");
+        var message = GetBytes(@"{""type"": ""ka"", ""Foo"":1}");
 
         // act
-        Exception? ex = Record.Exception(() => GraphQLWebSocketMessageParser.Parse(message));
+        var ex = Record.Exception(() => GraphQLWebSocketMessageParser.Parse(message));
 
         // assert
         Assert.IsType<SerializationException>(ex).Message.MatchSnapshot();
@@ -67,10 +65,10 @@ public class GraphQLWebSocketMessageParserTests
     public void ParseMessage_TypeIsNull_ThrowException()
     {
         // arrange
-        ReadOnlySequence<byte> message = GetBytes($@"{{""type"": null, ""Foo"":1}}");
+        var message = GetBytes($@"{{""type"": null, ""Foo"":1}}");
 
         // act
-        Exception? ex = Record.Exception(() => GraphQLWebSocketMessageParser.Parse(message));
+        var ex = Record.Exception(() => GraphQLWebSocketMessageParser.Parse(message));
 
         // assert
         Assert.IsType<SerializationException>(ex).Message.MatchSnapshot();
@@ -91,10 +89,10 @@ public class GraphQLWebSocketMessageParserTests
     public void ParseMessage_UnknownType_ThrowException(string type)
     {
         // arrange
-        ReadOnlySequence<byte> message = GetBytes($@"{{""type"": ""{type}"", ""Foo"":1}}");
+        var message = GetBytes($@"{{""type"": ""{type}"", ""Foo"":1}}");
 
         // act
-        Exception? ex = Record.Exception(() => GraphQLWebSocketMessageParser.Parse(message));
+        var ex = Record.Exception(() => GraphQLWebSocketMessageParser.Parse(message));
 
         // assert
         Assert.IsType<SerializationException>(ex)
@@ -105,10 +103,10 @@ public class GraphQLWebSocketMessageParserTests
     public void ParseMessage_KeepAlive_ParseMessage()
     {
         // arrange
-        ReadOnlySequence<byte> message = GetBytes(@"{""type"": ""ka""}");
+        var message = GetBytes(@"{""type"": ""ka""}");
 
         // act
-        GraphQLWebSocketMessage parsed = GraphQLWebSocketMessageParser.Parse(message);
+        var parsed = GraphQLWebSocketMessageParser.Parse(message);
 
         // assert
         Assert.Equal(GraphQLWebSocketMessageType.KeepAlive, parsed.Type);
@@ -118,11 +116,11 @@ public class GraphQLWebSocketMessageParserTests
     public void ParseMessage_Data_ParseMessage()
     {
         // arrange
-        ReadOnlySequence<byte> message =
+        var message =
             GetBytes(@"{""type"": ""data"", ""id"":""123"", ""payload"": ""payload""}");
 
         // act
-        GraphQLWebSocketMessage parsed = GraphQLWebSocketMessageParser.Parse(message);
+        var parsed = GraphQLWebSocketMessageParser.Parse(message);
 
         // assert
         Assert.Equal(GraphQLWebSocketMessageType.Data, parsed.Type);
@@ -134,11 +132,11 @@ public class GraphQLWebSocketMessageParserTests
     public void ParseMessage_Error_ParseMessage()
     {
         // arrange
-        ReadOnlySequence<byte> message =
+        var message =
             GetBytes(@"{""type"": ""error"", ""id"":""123"", ""payload"": ""payload""}");
 
         // act
-        GraphQLWebSocketMessage parsed = GraphQLWebSocketMessageParser.Parse(message);
+        var parsed = GraphQLWebSocketMessageParser.Parse(message);
 
         // assert
         Assert.Equal(GraphQLWebSocketMessageType.Error, parsed.Type);
@@ -150,11 +148,11 @@ public class GraphQLWebSocketMessageParserTests
     public void ParseMessage_Start_ParseMessage()
     {
         // arrange
-        ReadOnlySequence<byte> message =
+        var message =
             GetBytes(@"{""type"": ""start"", ""id"":""123"", ""payload"": ""payload""}");
 
         // act
-        GraphQLWebSocketMessage parsed = GraphQLWebSocketMessageParser.Parse(message);
+        var parsed = GraphQLWebSocketMessageParser.Parse(message);
 
         // assert
         Assert.Equal(GraphQLWebSocketMessageType.Start, parsed.Type);
@@ -166,11 +164,11 @@ public class GraphQLWebSocketMessageParserTests
     public void ParseMessage_Stop_ParseMessage()
     {
         // arrange
-        ReadOnlySequence<byte> message =
+        var message =
             GetBytes(@"{""type"": ""stop"", ""id"":""123""}");
 
         // act
-        GraphQLWebSocketMessage parsed = GraphQLWebSocketMessageParser.Parse(message);
+        var parsed = GraphQLWebSocketMessageParser.Parse(message);
 
         // assert
         Assert.Equal(GraphQLWebSocketMessageType.Stop, parsed.Type);
@@ -181,11 +179,11 @@ public class GraphQLWebSocketMessageParserTests
     public void ParseMessage_Complete_ParseMessage()
     {
         // arrange
-        ReadOnlySequence<byte> message =
+        var message =
             GetBytes(@"{""type"": ""complete"", ""id"":""123""}");
 
         // act
-        GraphQLWebSocketMessage parsed = GraphQLWebSocketMessageParser.Parse(message);
+        var parsed = GraphQLWebSocketMessageParser.Parse(message);
 
         // assert
         Assert.Equal(GraphQLWebSocketMessageType.Complete, parsed.Type);
@@ -196,11 +194,11 @@ public class GraphQLWebSocketMessageParserTests
     public void ParseMessage_ConnectionInit_ParseMessage()
     {
         // arrange
-        ReadOnlySequence<byte> message =
+        var message =
             GetBytes(@"{""type"": ""connection_init""}");
 
         // act
-        GraphQLWebSocketMessage parsed = GraphQLWebSocketMessageParser.Parse(message);
+        var parsed = GraphQLWebSocketMessageParser.Parse(message);
 
         // assert
         Assert.Equal(GraphQLWebSocketMessageType.ConnectionInit, parsed.Type);
@@ -210,11 +208,11 @@ public class GraphQLWebSocketMessageParserTests
     public void ParseMessage_ConnectionAccept_ParseMessage()
     {
         // arrange
-        ReadOnlySequence<byte> message =
+        var message =
             GetBytes(@"{""type"": ""connection_ack""}");
 
         // act
-        GraphQLWebSocketMessage parsed = GraphQLWebSocketMessageParser.Parse(message);
+        var parsed = GraphQLWebSocketMessageParser.Parse(message);
 
         // assert
         Assert.Equal(GraphQLWebSocketMessageType.ConnectionAccept, parsed.Type);
@@ -224,11 +222,11 @@ public class GraphQLWebSocketMessageParserTests
     public void ParseMessage_ConnectionError_ParseMessage()
     {
         // arrange
-        ReadOnlySequence<byte> message =
+        var message =
             GetBytes(@"{""type"": ""connection_error"", ""payload"": ""payload""}");
 
         // act
-        GraphQLWebSocketMessage parsed = GraphQLWebSocketMessageParser.Parse(message);
+        var parsed = GraphQLWebSocketMessageParser.Parse(message);
 
         // assert
         Assert.Equal(GraphQLWebSocketMessageType.ConnectionError, parsed.Type);
@@ -239,11 +237,11 @@ public class GraphQLWebSocketMessageParserTests
     public void ParseMessage_ConnectionTerminate_ParseMessage()
     {
         // arrange
-        ReadOnlySequence<byte> message =
+        var message =
             GetBytes(@"{""type"": ""connection_terminate"" }");
 
         // act
-        GraphQLWebSocketMessage parsed = GraphQLWebSocketMessageParser.Parse(message);
+        var parsed = GraphQLWebSocketMessageParser.Parse(message);
 
         // assert
         Assert.Equal(GraphQLWebSocketMessageType.ConnectionTerminate, parsed.Type);

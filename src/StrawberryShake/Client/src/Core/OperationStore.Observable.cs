@@ -104,8 +104,7 @@ public sealed partial class OperationStore
             }
         }
 
-        private sealed class OperationStoreSession
-            : IDisposable
+        private sealed class OperationStoreSession : IDisposable
         {
             private readonly IObserver<OperationUpdate> _observer;
             private readonly Action<OperationStoreSession> _unsubscribe;
