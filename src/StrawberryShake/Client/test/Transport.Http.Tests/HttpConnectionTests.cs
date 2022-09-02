@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Tests.Utilities;
-using Microsoft.AspNetCore.TestHost;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace StrawberryShake.Transport.Http;
 
