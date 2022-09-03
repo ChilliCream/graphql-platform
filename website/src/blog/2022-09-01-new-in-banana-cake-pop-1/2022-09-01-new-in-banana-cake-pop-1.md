@@ -11,6 +11,10 @@ authorImageUrl: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4
 
 [![YouTube Video](youtube-thumbnail.png)](https://www.youtube.com/watch?v=LlPEO2p_Bb8)
 
+## Getting started
+
+Everything you need to get started with **Banana Cake Pop** you'll find on [bananacakepop.com](https://bananacakepop.com)
+
 ## Subscription protocol auto-detection
 
 Auto-detection can save you from a headache when it comes to the following questions:
@@ -56,4 +60,4 @@ We introduced a new button that appears when a tab is at least partly hidden. Th
 
 To stay up to date, subscribe to our [ChilliCream YouTube Channel](https://www.youtube.com/c/ChilliCream) to get notified whenever we publish new videos.
 
-I'm Rafael Staib, and as soon as Banana Cake Pop 2 is released, I'll be right here to tell you what's new in Banana Cake Pop!
+I'm Rafael Staib, and as soon as **Banana Cake Pop 2** is released, I'll be right here to tell you what's new in **Banana Cake Pop**!
