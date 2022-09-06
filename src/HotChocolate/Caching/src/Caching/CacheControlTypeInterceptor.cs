@@ -37,7 +37,7 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
             return;
         }
 
-        foreach (ObjectFieldDefinition field in objectDef.Fields)
+        foreach (var field in objectDef.Fields)
         {
             if (field.IsIntrospectionField)
             {
@@ -80,7 +80,7 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
     private static bool IsCacheControlDirective(DirectiveDefinition directive)
     {
         if (directive.Reference is NameDirectiveReference directiveReference &&
-            directiveReference.Name.Value == CacheControlDirectiveType.DirectiveName)
+            directiveReference.Name == CacheControlDirectiveType.DirectiveName)
         {
             return true;
         }

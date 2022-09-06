@@ -23,7 +23,7 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
 
             ValidateCacheControlOnType(validationContext, objectType);
 
-            foreach (ObjectField field in objectType.Fields)
+            foreach (var field in objectType.Fields)
             {
                 ValidateCacheControlOnField(validationContext, field, objectType,
                     isQueryType);
@@ -33,7 +33,7 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
         {
             ValidateCacheControlOnType(validationContext, interfaceType);
 
-            foreach (InterfaceField field in interfaceType.Fields)
+            foreach (var field in interfaceType.Fields)
             {
                 ValidateCacheControlOnField(validationContext, field, interfaceType,
                     false);
@@ -49,9 +49,9 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
         ITypeSystemObjectContext validationContext,
         IHasDirectives type)
     {
-        CacheControlDirective? directive = type.Directives
-                    .FirstOrDefault(d => d.Name == CacheControlDirectiveType.DirectiveName)
-                    ?.ToObject<CacheControlDirective>();
+        var directive = type.Directives
+            .FirstOrDefault(d => d.Name == CacheControlDirectiveType.DirectiveName)
+            ?.ToObject<CacheControlDirective>();
 
         if (directive is null)
         {
@@ -61,7 +61,7 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
         if (directive.InheritMaxAge == true
             && type is ITypeSystemObject typeSystemObject)
         {
-            ISchemaError error = ErrorHelper.CacheControlInheritMaxAgeOnType(typeSystemObject);
+            var error = ErrorHelper.CacheControlInheritMaxAgeOnType(typeSystemObject);
 
             validationContext.ReportError(error);
         }
@@ -72,7 +72,7 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
         IField field, ITypeSystemObject obj,
         bool isQueryTypeField)
     {
-        CacheControlDirective? directive = field.Directives
+        var directive = field.Directives
                     .FirstOrDefault(d => d.Name == CacheControlDirectiveType.DirectiveName)
                     ?.ToObject<CacheControlDirective>();
 
@@ -83,7 +83,7 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
 
         if (field is InterfaceField interfaceField)
         {
-            ISchemaError error = ErrorHelper
+            var error = ErrorHelper
                     .CacheControlOnInterfaceField(obj, field);
 
             validationContext.ReportError(error);
@@ -95,8 +95,8 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
 
         if (isQueryTypeField && inheritMaxAge)
         {
-            ISchemaError error = ErrorHelper
-                    .CacheControlInheritMaxAgeOnQueryTypeField(obj, field);
+            var error =
+                ErrorHelper.CacheControlInheritMaxAgeOnQueryTypeField(obj, field);
 
             validationContext.ReportError(error);
         }
@@ -105,7 +105,7 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
         {
             if (directive.MaxAge.Value < 0)
             {
-                ISchemaError error = ErrorHelper
+                var error = ErrorHelper
                     .CacheControlNegativeMaxAge(obj, field);
 
                 validationContext.ReportError(error);
@@ -113,7 +113,7 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
 
             if (inheritMaxAge)
             {
-                ISchemaError error = ErrorHelper
+                var error = ErrorHelper
                     .CacheControlBothMaxAgeAndInheritMaxAge(obj, field);
 
                 validationContext.ReportError(error);

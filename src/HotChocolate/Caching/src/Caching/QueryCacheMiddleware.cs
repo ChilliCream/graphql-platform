@@ -91,11 +91,10 @@ public sealed class QueryCacheMiddleware
 
         try
         {
-            IPreparedOperation operation = context.Operation;
-            IReadOnlyList<ISelection> rootSelections =
-                operation.GetRootSelectionSet().Selections;
+            var operation = context.Operation;
+            var rootSelections = operation.RootSelectionSet.Selections;
 
-            foreach (ISelection rootSelection in rootSelections)
+            foreach (var rootSelection in rootSelections)
             {
                 ProcessSelection(rootSelection, result, operation);
             }
@@ -107,7 +106,7 @@ public sealed class QueryCacheMiddleware
                 return;
             }
 
-            foreach (IQueryCache cache in _caches)
+            foreach (var cache in _caches)
             {
                 try
                 {
@@ -126,7 +125,7 @@ public sealed class QueryCacheMiddleware
                 }
             }
         }
-        catch
+        catch (System.Exception exc)
         {
             // An exception during the calculation of the CacheControlResult
             // should not error out the actual query, so we are ignoring it.
@@ -134,9 +133,9 @@ public sealed class QueryCacheMiddleware
     }
 
     private static void ProcessSelection(ISelection selection,
-        CacheControlResult result, IPreparedOperation operation)
+        CacheControlResult result, IOperation operation)
     {
-        IObjectField field = selection.Field;
+        var field = selection.Field;
 
         if (field.IsIntrospectionField && field.Name != IntrospectionFields.TypeName)
         {
@@ -165,26 +164,25 @@ public sealed class QueryCacheMiddleware
             }
         }
 
-        SelectionSetNode? childSelection = selection.SelectionSet;
-
-        if (childSelection is null)
+        try
         {
-            // No fields are selected below the current field.
-            return;
-        }
+            // todo: this seems to be the only usage of this API - is there a better approach?
+            var possibleTypes = operation.GetPossibleTypes(selection);
 
-        IEnumerable<IObjectType> possibleTypes =
-            operation.GetPossibleTypes(childSelection);
-
-        foreach (IObjectType type in possibleTypes)
-        {
-            IReadOnlyList<ISelection> typeSet =
-                operation.GetSelectionSet(childSelection, type).Selections;
-
-            foreach (ISelection typeSelection in typeSet)
+            foreach (var type in possibleTypes)
             {
-                ProcessSelection(typeSelection, result, operation);
+                var typeSet = operation.GetSelectionSet(selection, type)
+                    .Selections;
+
+                foreach (var typeSelection in typeSet)
+                {
+                    ProcessSelection(typeSelection, result, operation);
+                }
             }
+        }
+        catch
+        {
+
         }
 
         void ExtractCacheControlDetailsFromDirectives(
