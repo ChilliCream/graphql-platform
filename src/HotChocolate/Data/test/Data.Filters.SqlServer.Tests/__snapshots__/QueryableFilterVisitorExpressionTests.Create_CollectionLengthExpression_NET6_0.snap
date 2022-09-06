@@ -50,7 +50,7 @@ WHERE (
     WHERE "d"."Id" = "b"."FooId") = @__p_0
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

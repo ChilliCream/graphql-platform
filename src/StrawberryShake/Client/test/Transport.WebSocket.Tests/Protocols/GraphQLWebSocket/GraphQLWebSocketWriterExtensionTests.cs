@@ -2,8 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using Snapshooter.Xunit;
-using Xunit;
+using CookieCrumble;
 
 namespace StrawberryShake.Transport.WebSockets.Protocols;
 
@@ -38,7 +37,7 @@ public class GraphQlWsSocketWriterExtensionTests
 
 
         // act
-        Exception? ex =
+        var ex =
             Record.Exception(() => writer.WriteStartOperationMessage(null!, request));
 
         // assert
@@ -54,7 +53,7 @@ public class GraphQlWsSocketWriterExtensionTests
 
 
         // act
-        Exception? ex =
+        var ex =
             Record.Exception(() => writer.WriteStartOperationMessage(operationId, null!));
 
         // assert
@@ -82,7 +81,7 @@ public class GraphQlWsSocketWriterExtensionTests
         await using var writer = new SocketMessageWriter();
 
         // act
-        Exception? ex =
+        var ex =
             Record.Exception(() => writer.WriteStopOperationMessage(null!));
 
         // assert

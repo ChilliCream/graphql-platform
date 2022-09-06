@@ -53,10 +53,10 @@ public class MongoDbFilterVisitorDateOnlyTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "2022-01-16")
-            .AddSqlFrom(res2, "2022-01-15")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "2022-01-16"), res2, "2022-01-15")
             .MatchAsync();
     }
 
@@ -78,10 +78,10 @@ public class MongoDbFilterVisitorDateOnlyTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "2022-01-16")
-            .AddSqlFrom(res2, "2022-01-15")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "2022-01-16"), res2, "2022-01-15")
             .MatchAsync();
     }
 
@@ -109,11 +109,11 @@ public class MongoDbFilterVisitorDateOnlyTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "2022-01-16")
-            .AddSqlFrom(res2, "2022-01-15")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "2022-01-16"), res2, "2022-01-15"), res3, "null")
             .MatchAsync();
     }
 
@@ -142,11 +142,11 @@ public class MongoDbFilterVisitorDateOnlyTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "2022-01-16")
-            .AddSqlFrom(res2, "2022-01-15")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "2022-01-16"), res2, "2022-01-15"), res3, "null")
             .MatchAsync();
     }
 

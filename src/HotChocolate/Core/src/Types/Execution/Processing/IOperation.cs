@@ -7,7 +7,10 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing;
 
-public interface IOperation : IHasReadOnlyContextData
+/// <summary>
+/// Represents a compiled GraphQL operation.
+/// </summary>
+public interface IOperation : IHasReadOnlyContextData, IEnumerable<ISelectionSet>
 {
     /// <summary>
     /// Gets the internal unique identifier for this operation.

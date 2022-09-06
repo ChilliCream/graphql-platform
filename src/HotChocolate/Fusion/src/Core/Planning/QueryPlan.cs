@@ -1,42 +1,78 @@
+using System.Buffers;
+using System.Text;
 using HotChocolate.Execution.Processing;
+using System.Text.Json;
+using HotChocolate.Fusion.Execution;
 
 namespace HotChocolate.Fusion.Planning;
 
 internal sealed class QueryPlan
 {
-    private readonly ILookup<ISelectionSet, RequestNode> _lookup;
-    private readonly Dictionary<ISelectionSet, string[]> _exports;
+    private readonly IOperation _operation;
+    private readonly IReadOnlyDictionary<ISelectionSet, string[]> _exportKeysLookup;
+    private readonly IReadOnlySet<ISelectionSet> _hasNodes;
 
     public QueryPlan(
-        IEnumerable<ExecutionNode> executionNodes,
-        IEnumerable<ExportDefinition> exportDefinitions)
+        IOperation operation,
+        QueryPlanNode rootNode,
+        IReadOnlyDictionary<ISelectionSet, string[]> exportKeysLookup,
+        IReadOnlySet<ISelectionSet> hasNodes)
     {
-        ExecutionNodes = executionNodes.ToArray();
-        RootExecutionNodes = ExecutionNodes.Where(t => t.DependsOn.Count == 0).ToArray();
-        RequiresFetch = new HashSet<ISelectionSet>(ExecutionNodes.OfType<RequestNode>().Select(t => t.Handler.SelectionSet));
-
-        _lookup = ExecutionNodes.OfType<RequestNode>().ToLookup(t => t.Handler.SelectionSet);
-        _exports = exportDefinitions.GroupBy(t => t.SelectionSet, t => t.StateKey).ToDictionary(t => t.Key, t => t.ToArray());
+        _operation = operation;
+        _exportKeysLookup = exportKeysLookup;
+        _hasNodes = hasNodes;
+        RootNode = rootNode;
     }
 
-    public IReadOnlyList<ExecutionNode> RootExecutionNodes { get; }
+    public QueryPlanNode RootNode { get; }
 
-    public IReadOnlyList<ExecutionNode> ExecutionNodes { get; }
+    public bool HasNodes(ISelectionSet selectionSet)
+        => _hasNodes.Contains(selectionSet);
 
-    // name is not really good... the selection sets that require execution of request nodes.
-    public IReadOnlySet<ISelectionSet> RequiresFetch { get; }
+    public IReadOnlyList<string> GetExportKeys(ISelectionSet selectionSet)
+        => _exportKeysLookup.TryGetValue(selectionSet, out var keys) ? keys : Array.Empty<string>();
 
-    // should we return a tree instead so that dependencies are correctly modeled?
-    public IEnumerable<RequestNode> GetRequestNodes(ISelectionSet selectionSet)
-        => _lookup[selectionSet];
-
-    public IReadOnlyList<string> GetExports(ISelectionSet selectionSet)
+    public async Task ExecuteAsync(
+        IFederationContext context,
+        CancellationToken cancellationToken)
     {
-        if (_exports.TryGetValue(selectionSet, out var exportKeys))
+        await RootNode.ExecuteAsync(context, cancellationToken);
+    }
+
+    public void Format(IBufferWriter<byte> writer)
+    {
+        var jsonOptions = new JsonWriterOptions { Indented = true };
+        using var jsonWriter = new Utf8JsonWriter(writer, jsonOptions);
+        Format(jsonWriter);
+        jsonWriter.Flush();
+    }
+
+    public void Format(Utf8JsonWriter writer)
+    {
+        writer.WriteStartObject();
+
+        writer.WriteString("document", _operation.Document.ToString());
+
+        if (!string.IsNullOrEmpty(_operation.Name))
         {
-            return exportKeys;
+            writer.WriteString("operation", _operation.Name);
         }
 
-        return Array.Empty<string>();
+        writer.WritePropertyName("rootNode");
+        RootNode.Format(writer);
+
+        writer.WriteEndObject();
+    }
+
+    public override string ToString()
+    {
+        var bufferWriter = new ArrayBufferWriter<byte>();
+        var jsonOptions = new JsonWriterOptions { Indented = true };
+        using var jsonWriter = new Utf8JsonWriter(bufferWriter, jsonOptions);
+
+        Format(jsonWriter);
+        jsonWriter.Flush();
+
+        return Encoding.UTF8.GetString(bufferWriter.WrittenSpan);
     }
 }

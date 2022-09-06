@@ -17,15 +17,20 @@ public sealed class InputObjectTypeModel : ITypeModel
     /// <param name="description">The class description.</param>
     /// <param name="type">The input object type.</param>
     /// <param name="fields">The field models of this input type.</param>
+    /// <param name="hasUpload">
+    /// Defines if this input or one of its related has a upload scalar
+    /// </param>
     public InputObjectTypeModel(
         string name,
         string? description,
         InputObjectType type,
+        bool hasUpload,
         IReadOnlyList<InputFieldModel> fields)
     {
         Name = name.EnsureGraphQLName();
         Description = description;
         Type = type ?? throw new ArgumentNullException(nameof(type));
+        HasUpload = hasUpload;
         Fields = fields ?? throw new ArgumentNullException(nameof(fields));
     }
 
@@ -43,6 +48,11 @@ public sealed class InputObjectTypeModel : ITypeModel
     /// Gets the input object type.
     /// </summary>
     public InputObjectType Type { get; }
+
+    /// <summary>
+    /// Defines if this input or one of its related has a upload scalar
+    /// </summary>
+    public bool HasUpload { get; }
 
     INamedType ITypeModel.Type => Type;
 

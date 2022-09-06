@@ -61,9 +61,7 @@ public partial class SchemaBuilder
 
                 context.SchemaInterceptor.OnBeforeCreate(context, builder);
 
-                var typeReferences =
-                    CreateTypeReferences(builder, context);
-
+                var typeReferences = CreateTypeReferences(builder, context);
                 var typeRegistry = InitializeTypes(builder, context, typeReferences);
 
                 return CompleteSchema(builder, context, lazySchema, typeRegistry);
@@ -399,8 +397,7 @@ public partial class SchemaBuilder
 
             ResolveOperations(definition, operations, typeRegistry);
 
-            var types =
-                RemoveUnreachableTypes(builder, typeRegistry, definition);
+            var types = RemoveUnreachableTypes(builder, typeRegistry, definition);
 
             definition.Types = types.OfType<INamedType>().Distinct().ToArray();
             definition.DirectiveTypes = types.OfType<DirectiveType>().Distinct().ToArray();

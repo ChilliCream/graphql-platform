@@ -1,7 +1,9 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
+using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
 using static HotChocolate.Fusion.Metadata.ConfigurationDirectiveNames;
+using static HotChocolate.Fusion.ThrowHelper;
 using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 
 namespace HotChocolate.Fusion.Metadata;
@@ -11,63 +13,71 @@ internal sealed class ServiceConfigurationReader
     private readonly HashSet<string> _assert = new();
 
     public ServiceConfiguration Read(string sourceText)
-        => ReadServiceDefinition(Utf8GraphQLParser.Parse(sourceText));
+        => Read(Utf8GraphQLParser.Parse(sourceText));
 
     public ServiceConfiguration Read(DocumentNode document)
-        => ReadServiceDefinition(document);
-
-    private ServiceConfiguration ReadServiceDefinition(DocumentNode documentNode)
     {
-        var context = ConfigurationDirectiveNamesContext.From(documentNode);
+        if (document is null)
+        {
+            throw new ArgumentNullException(nameof(document));
+        }
+
+        return ReadServiceDefinition(document);
+    }
+
+    private ServiceConfiguration ReadServiceDefinition(DocumentNode document)
+    {
+        var schemaDef = document.Definitions.OfType<SchemaDefinitionNode>().FirstOrDefault();
+
+        if (schemaDef is null)
+        {
+            throw ServiceConfDocumentMustContainSchemaDef();
+        }
 
         var types = new List<IType>();
-        IReadOnlyList<HttpClientConfig>? httpClientConfigs = null;
+        var context = ConfigurationDirectiveNamesContext.From(document);
+        var httpClientConfigs = ReadHttpClientConfigs(context, schemaDef.Directives);
+        var typeNameField = CreateTypeNameField(httpClientConfigs.Select(t => t.SchemaName));
 
-        foreach (var definition in documentNode.Definitions)
+        foreach (var definition in document.Definitions)
         {
             switch (definition)
             {
                 case ObjectTypeDefinitionNode node:
-                    types.Add(ReadObjectType(context, node));
-                    break;
-
-                case SchemaDefinitionNode node:
-                    httpClientConfigs = ReadHttpClientConfigs(context, node.Directives);
+                    types.Add(ReadObjectType(context, node, typeNameField));
                     break;
             }
         }
 
         if (httpClientConfigs is not { Count: > 0 })
         {
-            // TODO : EXCEPTION
-            throw new Exception("No clients configured");
+            throw ServiceConfNoClientsSpecified();
         }
 
         if (types.Count == 0)
         {
-            // TODO : EXCEPTION
-            throw new Exception("No types");
+            throw ServiceConfNoTypesSpecified();
         }
 
-
-        return new ServiceConfiguration(
-            httpClientConfigs.Select(t => t.SchemaName),
-            types);
+        return new ServiceConfiguration(types, httpClientConfigs);
     }
 
     private ObjectType ReadObjectType(
         ConfigurationDirectiveNamesContext context,
-        ObjectTypeDefinitionNode typeDef)
+        ObjectTypeDefinitionNode typeDef,
+        ObjectField typeNameField)
     {
+        var bindings = ReadMemberBindings(context, typeDef.Directives, typeDef);
         var variables = ReadFieldVariableDefinitions(context, typeDef.Directives);
         var resolvers = ReadFetchDefinitions(context, typeDef.Directives);
-        var fields = ReadObjectFields(context, typeDef.Fields);
-        return new ObjectType(typeDef.Name.Value, variables, resolvers, fields);
+        var fields = ReadObjectFields(context, typeDef.Fields, typeNameField);
+        return new ObjectType(typeDef.Name.Value, bindings, variables, resolvers, fields);
     }
 
     private ObjectFieldCollection ReadObjectFields(
         ConfigurationDirectiveNamesContext context,
-        IReadOnlyList<FieldDefinitionNode> fieldDefinitionNodes)
+        IReadOnlyList<FieldDefinitionNode> fieldDefinitionNodes,
+        ObjectField typeNameField)
     {
         var collection = new List<ObjectField>();
 
@@ -80,8 +90,18 @@ internal sealed class ServiceConfigurationReader
             collection.Add(field);
         }
 
+        collection.Add(typeNameField);
+
         return new ObjectFieldCollection(collection);
     }
+
+    private ObjectField CreateTypeNameField(IEnumerable<string> schemaNames)
+        => new ObjectField(
+            IntrospectionFields.TypeName,
+            new MemberBindingCollection(
+                schemaNames.Select(t => new MemberBinding(t, IntrospectionFields.TypeName))),
+            ArgumentVariableDefinitionCollection.Empty,
+            FetchDefinitionCollection.Empty);
 
     private IReadOnlyList<HttpClientConfig> ReadHttpClientConfigs(
         ConfigurationDirectiveNamesContext context,
@@ -105,7 +125,7 @@ internal sealed class ServiceConfigurationReader
         DirectiveNode directiveNode)
     {
         AssertName(directiveNode, context.HttpDirective);
-        AssertArguments(directiveNode, NameArg, BaseAddressArg);
+        AssertArguments(directiveNode, SchemaArg, BaseAddressArg);
 
         string name = default!;
         string baseAddress = default!;
@@ -114,7 +134,7 @@ internal sealed class ServiceConfigurationReader
         {
             switch (argument.Name.Value)
             {
-                case NameArg:
+                case SchemaArg:
                     name = Expect<StringValueNode>(argument.Value).Value;
                     break;
 
@@ -149,7 +169,7 @@ internal sealed class ServiceConfigurationReader
         DirectiveNode directiveNode)
     {
         AssertName(directiveNode, context.VariableDirective);
-        AssertArguments(directiveNode, NameArg, SelectArg, TypeArg, FromArg);
+        AssertArguments(directiveNode, NameArg, SelectArg, TypeArg, SchemaArg);
 
         string name = default!;
         FieldNode select = default!;
@@ -172,7 +192,7 @@ internal sealed class ServiceConfigurationReader
                     type = ParseTypeReference(Expect<StringValueNode>(argument.Value).Value);
                     break;
 
-                case FromArg:
+                case SchemaArg:
                     schemaName = Expect<StringValueNode>(argument.Value).Value;
                     break;
             }
@@ -185,17 +205,19 @@ internal sealed class ServiceConfigurationReader
         ConfigurationDirectiveNamesContext context,
         IReadOnlyList<DirectiveNode> directiveNodes)
     {
-        var definitions = new List<FetchDefinition>();
+        List<FetchDefinition>? definitions = null;
 
         foreach (var directiveNode in directiveNodes)
         {
             if (directiveNode.Name.Value.EqualsOrdinal(context.FetchDirective))
             {
-                definitions.Add(ReadFetchDefinition(context, directiveNode));
+                (definitions ??= new()).Add(ReadFetchDefinition(context, directiveNode));
             }
         }
 
-        return new FetchDefinitionCollection(definitions);
+        return definitions is null
+            ? FetchDefinitionCollection.Empty
+            : new FetchDefinitionCollection(definitions);
     }
 
     private FetchDefinition ReadFetchDefinition(
@@ -203,7 +225,7 @@ internal sealed class ServiceConfigurationReader
         DirectiveNode directiveNode)
     {
         AssertName(directiveNode, context.FetchDirective);
-        AssertArguments(directiveNode, SelectArg, FromArg);
+        AssertArguments(directiveNode, SelectArg, SchemaArg);
 
         ISelectionNode select = default!;
         string schemaName = default!;
@@ -216,7 +238,7 @@ internal sealed class ServiceConfigurationReader
                     select = ParseField(Expect<StringValueNode>(argument.Value).Value);
                     break;
 
-                case FromArg:
+                case SchemaArg:
                     schemaName = Expect<StringValueNode>(argument.Value).Value;
                     break;
             }
@@ -257,6 +279,27 @@ internal sealed class ServiceConfigurationReader
     private MemberBindingCollection ReadMemberBindings(
         ConfigurationDirectiveNamesContext context,
         IReadOnlyList<DirectiveNode> directiveNodes,
+        NamedSyntaxNode annotatedMember)
+    {
+        List<MemberBinding>? definitions = null;
+
+        foreach (var directiveNode in directiveNodes)
+        {
+            if (directiveNode.Name.Value.EqualsOrdinal(context.SourceDirective))
+            {
+                var memberBinding = ReadMemberBinding(context, directiveNode, annotatedMember);
+                (definitions ??= new()).Add(memberBinding);
+            }
+        }
+
+        return definitions is null
+            ? MemberBindingCollection.Empty
+            : new MemberBindingCollection(definitions);
+    }
+
+    private MemberBindingCollection ReadMemberBindings(
+        ConfigurationDirectiveNamesContext context,
+        IReadOnlyList<DirectiveNode> directiveNodes,
         FieldDefinitionNode annotatedField,
         FetchDefinitionCollection resolvers)
     {
@@ -264,7 +307,7 @@ internal sealed class ServiceConfigurationReader
 
         foreach (var directiveNode in directiveNodes)
         {
-            if (directiveNode.Name.Value.EqualsOrdinal(context.BindDirective))
+            if (directiveNode.Name.Value.EqualsOrdinal(context.SourceDirective))
             {
                 definitions.Add(ReadMemberBinding(context, directiveNode, annotatedField));
             }
@@ -295,10 +338,10 @@ internal sealed class ServiceConfigurationReader
     private MemberBinding ReadMemberBinding(
         ConfigurationDirectiveNamesContext context,
         DirectiveNode directiveNode,
-        FieldDefinitionNode annotatedField)
+        NamedSyntaxNode annotatedField)
     {
-        AssertName(directiveNode, context.BindDirective);
-        AssertArguments(directiveNode, ToArg, AsArg);
+        AssertName(directiveNode, context.SourceDirective);
+        AssertArguments(directiveNode, SchemaArg, NameArg);
 
         string? name = null;
         string schemaName = default!;
@@ -307,11 +350,11 @@ internal sealed class ServiceConfigurationReader
         {
             switch (argument.Name.Value)
             {
-                case AsArg:
+                case NameArg:
                     name = Expect<StringValueNode>(argument.Value).Value;
                     break;
 
-                case ToArg:
+                case SchemaArg:
                     schemaName = Expect<StringValueNode>(argument.Value).Value;
                     break;
             }
@@ -325,21 +368,23 @@ internal sealed class ServiceConfigurationReader
         IReadOnlyList<DirectiveNode> directiveNodes,
         FieldDefinitionNode annotatedField)
     {
-        var definitions = new List<ArgumentVariableDefinition>();
+        List<ArgumentVariableDefinition>? definitions = null;
 
         foreach (var directiveNode in directiveNodes)
         {
             if (directiveNode.Name.Value.EqualsOrdinal(context.VariableDirective))
             {
-                definitions.Add(
-                    ReadArgumentVariableDefinition(
-                        context,
-                        directiveNode,
-                        annotatedField));
+                var argumentVarDef = ReadArgumentVariableDefinition(
+                    context,
+                    directiveNode,
+                    annotatedField);
+                (definitions ??= new()).Add(argumentVarDef);
             }
         }
 
-        return new ArgumentVariableDefinitionCollection(definitions);
+        return definitions is null
+            ? ArgumentVariableDefinitionCollection.Empty
+            : new ArgumentVariableDefinitionCollection(definitions);
     }
 
     private ArgumentVariableDefinition ReadArgumentVariableDefinition(
@@ -376,28 +421,25 @@ internal sealed class ServiceConfigurationReader
     {
         if (valueNode is not T casted)
         {
-            // TODO : EXCEPTION
-            throw new InvalidOperationException("Invalid value");
+            throw ServiceConfInvalidValue(typeof(T), valueNode);
         }
 
         return casted;
     }
 
-    private void AssertName(DirectiveNode directive, string expectedName)
+    private static void AssertName(DirectiveNode directive, string expectedName)
     {
         if (!directive.Name.Value.EqualsOrdinal(expectedName))
         {
-            // TODO : EXCEPTION
-            throw new InvalidOperationException("INVALID DIRECTIVE NAME");
+            throw ServiceConfInvalidDirectiveName(expectedName, directive.Name.Value);
         }
     }
 
     private void AssertArguments(DirectiveNode directive, params string[] expectedArguments)
     {
-        if (directive.Arguments.Count < 0)
+        if (directive.Arguments.Count == 0)
         {
-            // TODO : EXCEPTION
-            throw new InvalidOperationException("INVALID ARGS");
+            throw ServiceConfNoDirectiveArgs(directive.Name.Value);
         }
 
         _assert.Clear();
@@ -411,8 +453,11 @@ internal sealed class ServiceConfigurationReader
 
         if (_assert.Count > 0)
         {
-            // TODO : EXCEPTION
-            throw new InvalidOperationException("INVALID ARGS");
+            throw ServiceConfInvalidDirectiveArgs(
+                directive.Name.Value,
+                expectedArguments,
+                _assert,
+                directive.Location?.Line ?? -1);
         }
     }
 }

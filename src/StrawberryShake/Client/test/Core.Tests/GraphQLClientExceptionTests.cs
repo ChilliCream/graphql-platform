@@ -1,4 +1,4 @@
-using Xunit;
+using System;
 
 namespace StrawberryShake;
 
@@ -8,7 +8,7 @@ public class GraphQLClientExceptionTests
     public void Constructor_ZeroErrors()
     {
         //arrange
-        var errors = new IClientError[0];
+        var errors = Array.Empty<IClientError>();
 
         //act
         var exception = new GraphQLClientException(errors);
@@ -23,7 +23,7 @@ public class GraphQLClientExceptionTests
         //arrange
         var errors = new IClientError[]
         {
-                new ClientError("some message"),
+            new ClientError("some message"),
         };
 
         //act
@@ -39,16 +39,16 @@ public class GraphQLClientExceptionTests
         //arrange
         var errors = new IClientError[]
         {
-                new ClientError("first message"),
-                new ClientError("second message"),
+            new ClientError("first message"),
+            new ClientError("second message"),
         };
 
         //act
         var exception = new GraphQLClientException(errors);
 
         //assert
-        Assert.Equal(@"Multiple errors occurred:
-- first message
-- second message", exception.Message.Replace("\r", ""));
+        Assert.Equal(
+            "Multiple errors occurred:\n- first message\n- second message",
+            exception.Message.Replace("\r", ""));
     }
 }

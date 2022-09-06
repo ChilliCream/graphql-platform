@@ -47,6 +47,10 @@ partial class Build
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Filters" / "HotChocolate.Filters.sln"));
 
+    Target TestHotChocolateFusion => _ => _
+        .Produces(TestResultDirectory / "*.trx")
+        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Fusion" / "HotChocolate.Fusion.sln"));
+
     Target TestHotChocolateLanguage => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Language" / "HotChocolate.Language.sln"));
@@ -83,17 +87,12 @@ partial class Build
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "StrawberryShake" / "CodeGeneration" / "StrawberryShake.CodeGeneration.sln"));
 
-    Target TestStrawberryShakeSourceGenerator => _ => _
-        .Produces(TestResultDirectory / "*.trx")
-        .Executes(() => RunClientTests(SourceDirectory / "StrawberryShake" / "SourceGenerator" / "StrawberryShake.SourceGenerator.sln"));
-
     Target TestStrawberryShakeTooling => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunClientTests(SourceDirectory / "StrawberryShake" / "Tooling" / "StrawberryShake.Tooling.sln"));
 
     void RunClientTests(AbsolutePath solutionFile)
     {
-        BuildCodeGenServer(true);
         RunTests(solutionFile);
     }
 

@@ -9,9 +9,7 @@ using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Validation;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.CSharp.Generators;
@@ -53,7 +51,8 @@ public static class CSharpGenerator
         new InputTypeStateInterfaceGenerator(),
         new ResultInterfaceGenerator(),
         new DataTypeGenerator(),
-        new RazorQueryGenerator()
+        new RazorQueryGenerator(),
+        new RazorSubscriptionGenerator()
     };
 
     public static CSharpGeneratorResult Generate(

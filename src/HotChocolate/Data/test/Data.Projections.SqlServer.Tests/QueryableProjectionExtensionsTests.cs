@@ -57,9 +57,9 @@ public class QueryableProjectionExtensionsTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddExceptionFrom(res1)
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), res1)
             .MatchAsync();
     }
 
@@ -81,9 +81,9 @@ public class QueryableProjectionExtensionsTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddExceptionFrom(res1)
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), res1)
             .MatchAsync();
     }
 

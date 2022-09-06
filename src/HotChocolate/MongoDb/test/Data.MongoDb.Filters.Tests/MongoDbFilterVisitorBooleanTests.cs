@@ -47,10 +47,10 @@ public class MongoDbFilterVisitorBooleanTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "true")
-            .AddSqlFrom(res2, "false")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "true"), res2, "false")
             .MatchAsync();
     }
 
@@ -73,10 +73,10 @@ public class MongoDbFilterVisitorBooleanTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "true")
-            .AddSqlFrom(res2, "false")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "true"), res2, "false")
             .MatchAsync();
     }
 
@@ -104,11 +104,11 @@ public class MongoDbFilterVisitorBooleanTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "true")
-            .AddSqlFrom(res2, "false")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "true"), res2, "false"), res3, "null")
             .MatchAsync();
     }
 
@@ -136,11 +136,11 @@ public class MongoDbFilterVisitorBooleanTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "true")
-            .AddSqlFrom(res2, "false")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "true"), res2, "false"), res3, "null")
             .MatchAsync();
     }
 

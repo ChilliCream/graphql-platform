@@ -20,6 +20,7 @@ public class MutationOperationDescriptor : OperationDescriptor
         string bodyString,
         string hashAlgorithm,
         string hashValue,
+        bool hasUpload,
         RequestStrategy strategy)
         : base(
             name,
@@ -30,6 +31,7 @@ public class MutationOperationDescriptor : OperationDescriptor
             bodyString,
             hashAlgorithm,
             hashValue,
+            hasUpload,
             strategy)
     {
     }

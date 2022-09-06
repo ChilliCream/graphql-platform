@@ -48,11 +48,11 @@ public class QueryableFilterVisitorEnumTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "BAR")
-            .AddSqlFrom(res2, "FOO")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "BAR"), res2, "FOO"), res3, "null")
             .MatchAsync();
     }
 
@@ -79,11 +79,11 @@ public class QueryableFilterVisitorEnumTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "BAR")
-            .AddSqlFrom(res2, "FOO")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "BAR"), res2, "FOO"), res3, "null")
             .MatchAsync();
     }
 
@@ -110,11 +110,11 @@ public class QueryableFilterVisitorEnumTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "BarAndFoo")
-            .AddSqlFrom(res2, "FOO")
-            .AddSqlFrom(res3, "nullAndFoo")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "BarAndFoo"), res2, "FOO"), res3, "nullAndFoo")
             .MatchAsync();
     }
 
@@ -141,11 +141,11 @@ public class QueryableFilterVisitorEnumTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "BarAndFoo")
-            .AddSqlFrom(res2, "FOO")
-            .AddSqlFrom(res3, "nullAndFoo")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "BarAndFoo"), res2, "FOO"), res3, "nullAndFoo")
             .MatchAsync();
     }
 
@@ -173,11 +173,11 @@ public class QueryableFilterVisitorEnumTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "BAR")
-            .AddSqlFrom(res2, "FOO")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "BAR"), res2, "FOO"), res3, "null")
             .MatchAsync();
     }
 
@@ -204,11 +204,11 @@ public class QueryableFilterVisitorEnumTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "BAR")
-            .AddSqlFrom(res2, "FOO")
-            .AddSqlFrom(res3, "null")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "BAR"), res2, "FOO"), res3, "null")
             .MatchAsync();
     }
 
@@ -235,11 +235,11 @@ public class QueryableFilterVisitorEnumTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "BarAndFoo")
-            .AddSqlFrom(res2, "FOO")
-            .AddSqlFrom(res3, "nullAndFoo")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "BarAndFoo"), res2, "FOO"), res3, "nullAndFoo")
             .MatchAsync();
     }
 
@@ -266,11 +266,11 @@ public class QueryableFilterVisitorEnumTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "BarAndFoo")
-            .AddSqlFrom(res2, "FOO")
-            .AddSqlFrom(res3, "nullAndFoo")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "BarAndFoo"), res2, "FOO"), res3, "nullAndFoo")
             .MatchAsync();
     }
 

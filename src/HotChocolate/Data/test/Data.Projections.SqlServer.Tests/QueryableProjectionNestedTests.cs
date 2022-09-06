@@ -36,9 +36,9 @@ public class QueryableProjectionNestedTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1)
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), res1)
             .MatchAsync();
     }
 
@@ -63,9 +63,9 @@ public class QueryableProjectionNestedTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1)
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), res1)
             .MatchAsync();
     }
 
@@ -90,9 +90,9 @@ public class QueryableProjectionNestedTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1)
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), res1)
             .MatchAsync();
     }
 
@@ -117,9 +117,9 @@ public class QueryableProjectionNestedTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1)
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), res1)
             .MatchAsync();
     }
 
@@ -144,9 +144,9 @@ public class QueryableProjectionNestedTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1)
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), res1)
             .MatchAsync();
     }
 

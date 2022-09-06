@@ -36,7 +36,7 @@ INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
 WHERE "f"."BarString" IN ('testatest', 'testbtest')
 ---------------
 
-testbtestAndNull Result:
+testbtestAndNull
 ---------------
 {
   "errors": [

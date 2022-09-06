@@ -179,10 +179,10 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "ASC")
-            .AddSqlFrom(res2, "DESC")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
             .MatchAsync();
     }
 
@@ -209,10 +209,10 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "ASC")
-            .AddSqlFrom(res2, "13")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "13")
             .MatchAsync();
     }
 
@@ -238,10 +238,10 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "ASC")
-            .AddSqlFrom(res2, "DESC")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
             .MatchAsync();
     }
 
@@ -268,10 +268,10 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "ASC")
-            .AddSqlFrom(res2, "13")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "13")
             .MatchAsync();
     }
 
@@ -297,10 +297,10 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "ASC")
-            .AddSqlFrom(res2, "DESC")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
             .MatchAsync();
     }
 
@@ -327,10 +327,10 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "ASC")
-            .AddSqlFrom(res2, "13")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "13")
             .MatchAsync();
     }
 
@@ -356,10 +356,10 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "ASC")
-            .AddSqlFrom(res2, "DESC")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
             .MatchAsync();
     }
 
@@ -386,10 +386,10 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "ASC")
-            .AddSqlFrom(res2, "13")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "13")
             .MatchAsync();
     }
 
@@ -449,12 +449,12 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "ASC")
-            .AddSqlFrom(res2, "ASC")
-            .AddSqlFrom(res3, "DESC")
-            .AddSqlFrom(res4, "DESC")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
+                            Snapshot
+                                .Create(), res1, "ASC"), res2, "ASC"), res3, "DESC"), res4, "DESC")
             .MatchAsync();
     }
 
@@ -590,12 +590,12 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "ASC")
-            .AddSqlFrom(res2, "ASC")
-            .AddSqlFrom(res3, "DESC")
-            .AddSqlFrom(res4, "DESC")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
+                            Snapshot
+                                .Create(), res1, "ASC"), res2, "ASC"), res3, "DESC"), res4, "DESC")
             .MatchAsync();
     }
 
