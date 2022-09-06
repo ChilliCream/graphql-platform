@@ -5,11 +5,12 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Utilities;
+using static HotChocolate.Execution.ExecutionResultKind;
 
 namespace HotChocolate.Execution.Serialization;
 
 // https://github.com/graphql/graphql-over-http/blob/master/rfcs/IncrementalDelivery.md
-public sealed partial class MultiPartResponseStreamFormatter : IResponseStreamFormatter
+public sealed partial class MultiPartResponseStreamFormatter : IExecutionResultFormatter
 {
     private readonly IQueryResultFormatter _payloadFormatter;
 
@@ -47,6 +48,35 @@ public sealed partial class MultiPartResponseStreamFormatter : IResponseStreamFo
     {
         _payloadFormatter = queryResultFormatter ??
             throw new ArgumentNullException(nameof(queryResultFormatter));
+    }
+
+    public async ValueTask FormatAsync(
+        IExecutionResult result,
+        Stream outputStream,
+        CancellationToken cancellationToken = default)
+    {
+        if (result.Kind is SingleResult)
+        {
+            await WriteSingleResponseAsync(
+                (IQueryResult)result,
+                outputStream,
+                cancellationToken)
+                .ConfigureAwait(false);
+        }
+        else if (result.Kind is DeferredResult or BatchResult or SubscriptionResult)
+        {
+            await WriteResponseStreamAsync(
+                (IResponseStream)result,
+                outputStream,
+                cancellationToken)
+                .ConfigureAwait(false);
+        }
+        else
+        {
+            // TODO : ThrowHelper
+            throw new NotSupportedException(
+                $"The {GetType().FullName} does not support formatting `{result.Kind}`.");
+        }
     }
 
     public Task FormatAsync(
@@ -97,6 +127,26 @@ public sealed partial class MultiPartResponseStreamFormatter : IResponseStreamFo
             {
                 await result.DisposeAsync().ConfigureAwait(false);
             }
+        }
+
+        await WriteEndAsync(outputStream, ct).ConfigureAwait(false);
+        await outputStream.FlushAsync(ct).ConfigureAwait(false);
+    }
+
+    private async Task WriteSingleResponseAsync(
+        IQueryResult queryResult,
+        Stream outputStream,
+        CancellationToken ct = default)
+    {
+        await WriteNextAsync(outputStream, ct).ConfigureAwait(false);
+
+        try
+        {
+            await WriteResultAsync(queryResult, outputStream, ct).ConfigureAwait(false);
+        }
+        finally
+        {
+            await queryResult.DisposeAsync().ConfigureAwait(false);
         }
 
         await WriteEndAsync(outputStream, ct).ConfigureAwait(false);

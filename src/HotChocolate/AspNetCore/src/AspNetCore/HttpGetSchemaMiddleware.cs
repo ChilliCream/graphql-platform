@@ -6,6 +6,8 @@ using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 using static System.Net.HttpStatusCode;
 using static HotChocolate.AspNetCore.ErrorHelper;
 using static HotChocolate.SchemaPrinter;
+using static Microsoft.Extensions.Primitives.StringValues;
+
 namespace HotChocolate.AspNetCore;
 
 public sealed class HttpGetSchemaMiddleware : MiddlewareBase
@@ -16,11 +18,11 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
     public HttpGetSchemaMiddleware(
         HttpRequestDelegate next,
         IRequestExecutorResolver executorResolver,
-        IHttpResultSerializer resultSerializer,
+        IHttpResponseFormatter responseFormatter,
         IServerDiagnosticEvents diagnosticEvents,
         string schemaName,
         MiddlewareRoutingType routing)
-        : base(next, executorResolver, resultSerializer, schemaName)
+        : base(next, executorResolver, responseFormatter, schemaName)
     {
         _diagnosticEvents = diagnosticEvents ??
             throw new ArgumentNullException(nameof(diagnosticEvents));
@@ -74,7 +76,7 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
 
             if (string.IsNullOrEmpty(s))
             {
-                await WriteResultAsync(context, TypeNameIsEmpty(), BadRequest);
+                await WriteResultAsync(context, TypeNameIsEmpty(), Empty, BadRequest);
                 return;
             }
 
@@ -100,13 +102,13 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
                 coordinate.Value.MemberName is not null ||
                 coordinate.Value.ArgumentName is not null)
             {
-                await WriteResultAsync(context, InvalidTypeName(typeName), BadRequest);
+                await WriteResultAsync(context, InvalidTypeName(typeName), Empty, BadRequest);
                 return;
             }
 
             if (!schema.TryGetType<INamedType>(coordinate.Value.Name, out var type))
             {
-                await WriteResultAsync(context, TypeNotFound(typeName), NotFound);
+                await WriteResultAsync(context, TypeNotFound(typeName), Empty, NotFound);
                 return;
             }
 

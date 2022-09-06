@@ -1,11 +1,16 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Language;
+using Microsoft.Extensions.Primitives;
+using Microsoft.Net.Http.Headers;
+using static HotChocolate.Execution.GraphQLRequestFlags;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
@@ -17,16 +22,16 @@ public class HttpPostMiddlewareBase : MiddlewareBase
     protected HttpPostMiddlewareBase(
         HttpRequestDelegate next,
         IRequestExecutorResolver executorResolver,
-        IHttpResultSerializer resultSerializer,
+        IHttpResponseFormatter responseFormatter,
         IHttpRequestParser requestParser,
         IServerDiagnosticEvents diagnosticEvents,
         string schemaName)
-        : base(next, executorResolver, resultSerializer, schemaName)
+        : base(next, executorResolver, responseFormatter, schemaName)
     {
         RequestParser = requestParser ??
             throw new ArgumentNullException(nameof(requestParser));
-        DiagnosticEvents = diagnosticEvents
-            ?? throw new ArgumentNullException(nameof(diagnosticEvents));
+        DiagnosticEvents = diagnosticEvents ??
+            throw new ArgumentNullException(nameof(diagnosticEvents));
     }
 
     protected IHttpRequestParser RequestParser { get; }
@@ -45,7 +50,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
 
             using (DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpPost))
             {
-                await HandleRequestAsync(context, RequestContentType.Json);
+                await HandleRequestAsync(context);
             }
         }
         else
@@ -56,9 +61,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
         }
     }
 
-    protected async Task HandleRequestAsync(
-        HttpContext context,
-        RequestContentType contentType)
+    protected async Task HandleRequestAsync(HttpContext context)
     {
         // first we need to get the request executor to be able to execute requests.
         var requestExecutor = await GetExecutorAsync(context.RequestAborted);
@@ -66,11 +69,17 @@ public class HttpPostMiddlewareBase : MiddlewareBase
         var errorHandler = requestExecutor.GetErrorHandler();
         context.Items[WellKnownContextData.RequestExecutor] = requestExecutor;
 
+        var acceptHeaderValue =
+            context.Request.Headers.TryGetValue(HeaderNames.Accept, out var value)
+                ? value
+                : StringValues.Empty;
+
         HttpStatusCode? statusCode = null;
         IExecutionResult? result;
 
         // next we parse the GraphQL request.
         IReadOnlyList<GraphQLRequest> requests;
+
         using (DiagnosticEvents.ParseHttpRequest(context))
         {
             try
@@ -101,18 +110,20 @@ public class HttpPostMiddlewareBase : MiddlewareBase
         // after successfully parsing the request we now will attempt to execute the request.
         try
         {
+            var flags = CreateRequestFlags(acceptHeaderValue);
+
             switch (requests.Count)
             {
                 // if the HTTP request body contains no GraphQL request structure the
                 // whole request is invalid and we will create a GraphQL error response.
                 case 0:
-                    {
-                        statusCode = HttpStatusCode.BadRequest;
-                        var error = errorHandler.Handle(ErrorHelper.RequestHasNoElements());
-                        result = QueryResultBuilder.CreateError(error);
-                        DiagnosticEvents.HttpRequestError(context, error);
-                        break;
-                    }
+                {
+                    statusCode = HttpStatusCode.BadRequest;
+                    var error = errorHandler.Handle(ErrorHelper.RequestHasNoElements());
+                    result = QueryResultBuilder.CreateError(error);
+                    DiagnosticEvents.HttpRequestError(context, error);
+                    break;
+                }
 
                 // if the HTTP request body contains a single GraphQL request and we do have
                 // the batch operations query parameter specified we need to execute an
@@ -122,30 +133,31 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 // contains multiple operations. The batch operation query parameter
                 // defines the order in which the operations shall be executed.
                 case 1 when context.Request.Query.ContainsKey(_batchOperations):
+                {
+                    string? operationNames = context.Request.Query[_batchOperations];
+
+                    if (!string.IsNullOrEmpty(operationNames) &&
+                        TryParseOperations(operationNames, out var ops))
                     {
-                        string? operationNames = context.Request.Query[_batchOperations];
-
-                        if (!string.IsNullOrEmpty(operationNames) &&
-                            TryParseOperations(operationNames, out var ops))
-                        {
-                            result = await ExecuteOperationBatchAsync(
-                                context,
-                                requestExecutor,
-                                requestInterceptor,
-                                DiagnosticEvents,
-                                requests[0],
-                                ops);
-                        }
-                        else
-                        {
-                            var error = errorHandler.Handle(ErrorHelper.InvalidRequest());
-                            statusCode = HttpStatusCode.BadRequest;
-                            result = QueryResultBuilder.CreateError(error);
-                            DiagnosticEvents.HttpRequestError(context, error);
-                        }
-
-                        break;
+                        result = await ExecuteOperationBatchAsync(
+                            context,
+                            requestExecutor,
+                            requestInterceptor,
+                            DiagnosticEvents,
+                            requests[0],
+                            flags,
+                            ops);
                     }
+                    else
+                    {
+                        var error = errorHandler.Handle(ErrorHelper.InvalidRequest());
+                        statusCode = HttpStatusCode.BadRequest;
+                        result = QueryResultBuilder.CreateError(error);
+                        DiagnosticEvents.HttpRequestError(context, error);
+                    }
+
+                    break;
+                }
 
                 // if the HTTP request body contains a single GraphQL request and
                 // no batch query parameter is specified we need to execute a single
@@ -154,15 +166,16 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 // Most GraphQL requests will be of this type where we want to execute
                 // a single GraphQL query or mutation.
                 case 1:
-                    {
-                        result = await ExecuteSingleAsync(
-                            context,
-                            requestExecutor,
-                            requestInterceptor,
-                            DiagnosticEvents,
-                            requests[0]);
-                        break;
-                    }
+                {
+                    result = await ExecuteSingleAsync(
+                        context,
+                        requestExecutor,
+                        requestInterceptor,
+                        DiagnosticEvents,
+                        requests[0],
+                        flags);
+                    break;
+                }
 
                 // if the HTTP request body contains more than one GraphQL request than
                 // we need to execute a request batch where we need to execute multiple
@@ -173,7 +186,8 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                         requestExecutor,
                         requestInterceptor,
                         DiagnosticEvents,
-                        requests);
+                        requests,
+                        flags);
                     break;
             }
         }
@@ -217,7 +231,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 formatScope = DiagnosticEvents.FormatHttpResponse(context, queryResult);
             }
 
-            await WriteResultAsync(context.Response, result, statusCode, context.RequestAborted);
+            await WriteResultAsync(context, result, acceptHeaderValue, statusCode);
         }
         finally
         {
@@ -267,6 +281,62 @@ public class HttpPostMiddlewareBase : MiddlewareBase
         operationNames = names;
         return true;
     }
+
+    protected static GraphQLRequestFlags CreateRequestFlags(StringValues acceptHeaderValue)
+    {
+        var count = acceptHeaderValue.Count;
+
+        if (count == 0)
+        {
+            return AllowQuery | AllowMutation | AllowStreams;
+        }
+
+        var flags = None;
+
+        if (count == 1)
+        {
+            FlagsFromContentType(acceptHeaderValue[0].AsSpan(), ref flags);
+            return flags;
+        }
+
+        string[] innerArray = acceptHeaderValue;
+        ref var searchSpace = ref MemoryMarshal.GetReference(innerArray.AsSpan());
+
+        for (var i = 0; i < innerArray.Length; i++)
+        {
+            var element = Unsafe.Add(ref searchSpace, i);
+            FlagsFromContentType(element.AsSpan(), ref flags);
+
+            if (flags is AllowEverything)
+            {
+                return AllowEverything;
+            }
+        }
+
+        return flags;
+    }
+
+    // TODO : We must move this to the formatter or interceptor
+    private static void FlagsFromContentType(
+        ReadOnlySpan<char> contentType,
+        ref GraphQLRequestFlags flags)
+    {
+        if (contentType.StartsWith(ContentType.GraphQLResponseSpan()) ||
+            contentType.StartsWith(ContentType.JsonSpan()))
+        {
+            flags |= AllowQuery;
+        }
+
+        if (contentType.StartsWith(ContentType.MultiPartMixedSpan()))
+        {
+            flags |= AllowQuery;
+            flags |= AllowMutation;
+            flags |= AllowStreams;
+        }
+
+        if (contentType.StartsWith(ContentType.EventStreamSpan()))
+        {
+            flags = AllowEverything;
+        }
+    }
 }
-
-

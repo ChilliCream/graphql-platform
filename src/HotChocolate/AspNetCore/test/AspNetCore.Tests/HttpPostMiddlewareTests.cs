@@ -65,7 +65,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
     {
         // arrange
         var server = CreateStarWarsServer(
-            configureServices: sc => sc.AddHttpResultSerializer(indented: true));
+            configureServices: sc => sc.AddHttpResponseFormatter(indented: true));
 
         // act
         var result = await server.PostRawAsync(
@@ -80,7 +80,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
     {
         // arrange
         var server = CreateStarWarsServer(
-            configureServices: sc => sc.AddHttpResultSerializer(indented: false));
+            configureServices: sc => sc.AddHttpResponseFormatter(indented: false));
 
         // act
         var result = await server.PostRawAsync(
@@ -901,7 +901,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
     {
         // arrange
         var server = CreateStarWarsServer(
-            configureServices: sp => sp.AddHttpResultSerializer());
+            configureServices: sp => sp.AddHttpResponseFormatter());
 
         // act
         var response =

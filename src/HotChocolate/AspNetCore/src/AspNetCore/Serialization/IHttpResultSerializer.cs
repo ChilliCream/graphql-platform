@@ -1,4 +1,6 @@
 using System.Net;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
 
 namespace HotChocolate.AspNetCore.Serialization;
 
@@ -13,11 +15,14 @@ public interface IHttpResultSerializer
     /// <param name="result">
     /// The GraphQL execution result.
     /// </param>
+    /// <param name="acceptHeaderValue">
+    /// The Accept header value, if provided.
+    /// </param>
     /// <returns>
     /// Returns a string representing the content type,
     /// eg. "application/json; charset=utf-8".
     /// </returns>
-    string GetContentType(IExecutionResult result);
+    string GetContentType(IExecutionResult result, StringValues acceptHeaderValue);
 
     /// <summary>
     /// Gets the HTTP status code for the specified execution result.
@@ -36,7 +41,10 @@ public interface IHttpResultSerializer
     /// <param name="result">
     /// The GraphQL execution result.
     /// </param>
-    /// <param name="stream">
+    /// <param name="acceptHeaderValue">
+    /// The Accept header value, if provided.
+    /// </param>
+    /// <param name="responseStream">
     /// The HTTP response stream.
     /// </param>
     /// <param name="cancellationToken">
@@ -44,6 +52,24 @@ public interface IHttpResultSerializer
     /// </param>
     ValueTask SerializeAsync(
         IExecutionResult result,
-        Stream stream,
+        StringValues acceptHeaderValue,
+        Stream responseStream,
+        CancellationToken cancellationToken);
+}
+
+public interface IHttpRequestInspector
+{
+
+}
+
+
+
+public interface IHttpResponseFormatter
+{
+    ValueTask FormatAsync(
+        IExecutionResult result,
+        StringValues acceptHeaderValue,
+        HttpStatusCode? statusCode,
+        HttpResponse response,
         CancellationToken cancellationToken);
 }

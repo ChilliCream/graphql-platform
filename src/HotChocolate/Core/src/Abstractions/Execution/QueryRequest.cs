@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
@@ -19,7 +20,7 @@ public class QueryRequest : IReadOnlyQueryRequest
         IReadOnlyDictionary<string, object?>? extensions = null,
         IServiceProvider? services = null,
         object? initialValue = null,
-        OperationType[]? allowedOperations = null)
+        GraphQLRequestFlags flags = GraphQLRequestFlags.AllowEverything)
     {
         if (query is null && queryId is null)
         {
@@ -36,7 +37,7 @@ public class QueryRequest : IReadOnlyQueryRequest
         Extensions = extensions;
         Services = services;
         InitialValue = initialValue;
-        AllowedOperations = allowedOperations;
+        Flags = flags;
     }
 
     public IQuery? Query { get; }
@@ -57,5 +58,5 @@ public class QueryRequest : IReadOnlyQueryRequest
 
     public object? InitialValue { get; }
 
-    public OperationType[]? AllowedOperations { get; }
+    public GraphQLRequestFlags Flags { get; }
 }

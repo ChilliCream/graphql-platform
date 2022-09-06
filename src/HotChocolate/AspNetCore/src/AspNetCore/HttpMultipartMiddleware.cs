@@ -20,7 +20,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
     public HttpMultipartMiddleware(
         HttpRequestDelegate next,
         IRequestExecutorResolver executorResolver,
-        IHttpResultSerializer resultSerializer,
+        IHttpResponseFormatter responseFormatter,
         IHttpRequestParser requestParser,
         IServerDiagnosticEvents diagnosticEvents,
         string schemaName,
@@ -28,7 +28,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
         : base(
             next,
             executorResolver,
-            resultSerializer,
+            responseFormatter,
             requestParser,
             diagnosticEvents,
             schemaName)
@@ -49,7 +49,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
 
             using (DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpMultiPart))
             {
-                await HandleRequestAsync(context, RequestContentType.Form);
+                await HandleRequestAsync(context);
             }
         }
         else

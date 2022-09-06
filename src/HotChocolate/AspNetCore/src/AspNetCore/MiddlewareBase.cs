@@ -4,7 +4,7 @@ using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
-using Microsoft.Net.Http.Headers;
+using Microsoft.Extensions.Primitives;
 using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
@@ -15,24 +15,24 @@ namespace HotChocolate.AspNetCore;
 public class MiddlewareBase : IDisposable
 {
     private readonly RequestDelegate _next;
-    private readonly IHttpResultSerializer _resultSerializer;
+    private readonly IHttpResponseFormatter _responseFormatter;
     private bool _disposed;
 
     protected MiddlewareBase(
         RequestDelegate next,
         IRequestExecutorResolver executorResolver,
-        IHttpResultSerializer resultSerializer,
+        IHttpResponseFormatter responseFormatter,
         string schemaName)
     {
-        if (executorResolver == null)
+        if (executorResolver is null)
         {
             throw new ArgumentNullException(nameof(executorResolver));
         }
 
         _next = next ??
             throw new ArgumentNullException(nameof(next));
-        _resultSerializer = resultSerializer ??
-            throw new ArgumentNullException(nameof(resultSerializer));
+        _responseFormatter = responseFormatter ??
+            throw new ArgumentNullException(nameof(responseFormatter));
         SchemaName = schemaName;
         IsDefaultSchema = SchemaName.EqualsOrdinal(Schema.DefaultName);
         ExecutorProxy = new RequestExecutorProxy(executorResolver, schemaName);
@@ -91,19 +91,27 @@ public class MiddlewareBase : IDisposable
     protected ValueTask WriteResultAsync(
         HttpContext context,
         IExecutionResult result,
+        StringValues acceptHeaderValue,
         HttpStatusCode? statusCode = null)
-        => WriteResultAsync(context.Response, result, statusCode, context.RequestAborted);
+        => WriteResultAsync(
+            context.Response,
+            result,
+            acceptHeaderValue,
+            statusCode,
+            context.RequestAborted);
 
-    protected async ValueTask WriteResultAsync(
+    protected ValueTask WriteResultAsync(
         HttpResponse response,
         IExecutionResult result,
+        StringValues acceptHeaderValue,
         HttpStatusCode? statusCode,
         CancellationToken cancellationToken)
-    {
-        response.ContentType = _resultSerializer.GetContentType(result);
-        response.StatusCode = (int)(statusCode ?? _resultSerializer.GetStatusCode(result));
-        await _resultSerializer.SerializeAsync(result, response.Body, cancellationToken);
-    }
+        => _responseFormatter.FormatAsync(
+            result,
+            acceptHeaderValue,
+            statusCode,
+            response,
+            cancellationToken);
 
     protected static async Task<IExecutionResult> ExecuteSingleAsync(
         HttpContext context,
@@ -111,18 +119,22 @@ public class MiddlewareBase : IDisposable
         IHttpRequestInterceptor requestInterceptor,
         IServerDiagnosticEvents diagnosticEvents,
         GraphQLRequest request,
-        OperationType[]? allowedOperations = null)
+        GraphQLRequestFlags flags)
     {
         diagnosticEvents.StartSingleRequest(context, request);
 
         var requestBuilder = QueryRequestBuilder.From(request);
-        requestBuilder.SetAllowedOperations(allowedOperations);
+        requestBuilder.SetFlags(flags);
 
         await requestInterceptor.OnCreateAsync(
-            context, requestExecutor, requestBuilder, context.RequestAborted);
+            context,
+            requestExecutor,
+            requestBuilder,
+            context.RequestAborted);
 
         return await requestExecutor.ExecuteAsync(
-            requestBuilder.Create(), context.RequestAborted);
+            requestBuilder.Create(),
+            context.RequestAborted);
     }
 
     protected static async Task<IResponseStream> ExecuteOperationBatchAsync(
@@ -131,6 +143,7 @@ public class MiddlewareBase : IDisposable
         IHttpRequestInterceptor requestInterceptor,
         IServerDiagnosticEvents diagnosticEvents,
         GraphQLRequest request,
+        GraphQLRequestFlags flags,
         IReadOnlyList<string> operationNames)
     {
         diagnosticEvents.StartOperationBatchRequest(context, request, operationNames);
@@ -141,6 +154,7 @@ public class MiddlewareBase : IDisposable
         {
             var requestBuilder = QueryRequestBuilder.From(request);
             requestBuilder.SetOperation(operationNames[i]);
+            requestBuilder.SetFlags(flags);
 
             await requestInterceptor.OnCreateAsync(
                 context,
@@ -161,7 +175,8 @@ public class MiddlewareBase : IDisposable
         IRequestExecutor requestExecutor,
         IHttpRequestInterceptor requestInterceptor,
         IServerDiagnosticEvents diagnosticEvents,
-        IReadOnlyList<GraphQLRequest> requests)
+        IReadOnlyList<GraphQLRequest> requests,
+        GraphQLRequestFlags flags)
     {
         diagnosticEvents.StartBatchRequest(context, requests);
 
@@ -170,9 +185,13 @@ public class MiddlewareBase : IDisposable
         for (var i = 0; i < requests.Count; i++)
         {
             var requestBuilder = QueryRequestBuilder.From(requests[i]);
+            requestBuilder.SetFlags(flags);
 
             await requestInterceptor.OnCreateAsync(
-                context, requestExecutor, requestBuilder, context.RequestAborted);
+                context,
+                requestExecutor,
+                requestBuilder,
+                context.RequestAborted);
 
             requestBatch[i] = requestBuilder.Create();
         }
@@ -198,7 +217,7 @@ public class MiddlewareBase : IDisposable
             return RequestContentType.Json;
         }
 
-        if (span.StartsWith(ContentType.MultiPartSpan()))
+        if (span.StartsWith(ContentType.MultiPartFormSpan()))
         {
             context.Items[nameof(RequestContentType)] = RequestContentType.Form;
             return RequestContentType.Form;
@@ -206,20 +225,6 @@ public class MiddlewareBase : IDisposable
 
         context.Items[nameof(RequestContentType)] = RequestContentType.None;
         return RequestContentType.None;
-    }
-
-    protected bool TryResolveResponseContentType(HttpContext context, out ResponseContentType type)
-    {
-        if (context.Request.Headers.TryGetValue(HeaderNames.Accept, out var value))
-        {
-            for (var i = 0; i < value.Count; i++)
-            {
-
-            }
-        }
-
-        type = ResponseContentType.Json;
-        return true;
     }
 
     public void Dispose()

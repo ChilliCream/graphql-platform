@@ -22,7 +22,7 @@ public class QueryRequestBuilder : IQueryRequestBuilder
     private IReadOnlyDictionary<string, object?>? _readOnlyExtensions;
     private Dictionary<string, object?>? _extensions;
     private IServiceProvider? _services;
-    private OperationType[]? _allowedOperations;
+    private GraphQLRequestFlags _flags;
 
     public IQueryRequestBuilder SetQuery(string sourceText)
     {
@@ -86,10 +86,10 @@ public class QueryRequestBuilder : IQueryRequestBuilder
         return this;
     }
 
-    public IQueryRequestBuilder SetAllowedOperations(
-        OperationType[]? allowedOperations)
+    public IQueryRequestBuilder SetFlags(
+        GraphQLRequestFlags flags)
     {
-        _allowedOperations = allowedOperations;
+        _flags = flags;
         return this;
     }
 
@@ -312,7 +312,7 @@ public class QueryRequestBuilder : IQueryRequestBuilder
             extensions: GetExtensions(),
             services: _services,
             initialValue: _initialValue,
-            allowedOperations: _allowedOperations
+            flags: _flags
         );
 
     private IReadOnlyDictionary<string, object?> GetVariableValues()

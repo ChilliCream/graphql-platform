@@ -169,8 +169,8 @@ public interface IQueryRequestBuilder
     IQueryRequestBuilder TrySetServices(
         IServiceProvider? services);
 
-    IQueryRequestBuilder SetAllowedOperations(
-        OperationType[]? allowedOperations);
+    IQueryRequestBuilder SetFlags(
+        GraphQLRequestFlags flags);
 
     IReadOnlyQueryRequest Create();
 }

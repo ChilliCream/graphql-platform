@@ -15,7 +15,7 @@ using static HotChocolate.Execution.Serialization.JsonConstants;
 
 namespace HotChocolate.Execution.Serialization;
 
-public sealed class JsonQueryResultFormatter : IQueryResultFormatter
+public sealed class JsonQueryResultFormatter : IQueryResultFormatter, IExecutionResultFormatter
 {
     private readonly JsonWriterOptions _options;
 
@@ -35,6 +35,25 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
     public JsonQueryResultFormatter(bool indented = false, JavaScriptEncoder? encoder = null)
     {
         _options = new JsonWriterOptions { Indented = indented, Encoder = encoder };
+    }
+
+    /// <inheritdoc cref="IExecutionResultFormatter.FormatAsync"/>
+    public async ValueTask FormatAsync(
+        IExecutionResult result,
+        Stream outputStream,
+        CancellationToken cancellationToken = default)
+    {
+        if (result.Kind is ExecutionResultKind.SingleResult)
+        {
+            await FormatAsync((IQueryResult)result, outputStream, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        else
+        {
+            // TODO : ThrowHelper
+            throw new NotSupportedException(
+                $"The {GetType().FullName} only supports formatting `IQueryResult`.");
+        }
     }
 
     public unsafe string Format(IQueryResult result)

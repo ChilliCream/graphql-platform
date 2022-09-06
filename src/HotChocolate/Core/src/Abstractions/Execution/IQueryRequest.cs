@@ -42,7 +42,7 @@ public interface IQueryRequest
     object? InitialValue { get; }
 
     /// <summary>
-    /// Gets custom context properties that can be passed into the GraphQL execution. 
+    /// Gets custom context properties that can be passed into the GraphQL execution.
     /// </summary>
     IReadOnlyDictionary<string, object?>? ContextData { get; }
 
@@ -57,7 +57,7 @@ public interface IQueryRequest
     IServiceProvider? Services { get; }
 
     /// <summary>
-    /// Specifies the allowed GraphQL operations.
+    /// GraphQL request flags allow to limit the GraphQL executor.
     /// </summary>
-    OperationType[]? AllowedOperations { get; }
+    GraphQLRequestFlags Flags { get; }
 }

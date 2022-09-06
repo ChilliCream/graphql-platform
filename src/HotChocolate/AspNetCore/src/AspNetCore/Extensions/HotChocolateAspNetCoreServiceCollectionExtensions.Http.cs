@@ -80,7 +80,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Adds the <see cref="DefaultHttpResultSerializer"/> with specific serialization settings
+    /// Adds the <see cref="DefaultHttpResponseFormatter"/> with specific serialization settings
     /// to the DI.
     /// </summary>
     /// <param name="services">
@@ -102,18 +102,12 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <returns>
     /// Returns the <see cref="IServiceCollection"/> so that configuration can be chained.
     /// </returns>
-    public static IServiceCollection AddHttpResultSerializer(
+    public static IServiceCollection AddHttpResponseFormatter(
         this IServiceCollection services,
-        HttpResultSerialization batchSerialization = HttpResultSerialization.MultiPartChunked,
-        HttpResultSerialization deferSerialization = HttpResultSerialization.MultiPartChunked,
         bool indented = false)
     {
-        services.RemoveAll<IHttpResultSerializer>();
-        services.AddSingleton<IHttpResultSerializer>(
-            new DefaultHttpResultSerializer(
-                batchSerialization,
-                deferSerialization,
-                indented));
+        services.RemoveAll<IHttpResponseFormatter>();
+        services.AddSingleton<IHttpResponseFormatter>(new DefaultHttpResponseFormatter(indented));
         return services;
     }
 
@@ -124,17 +118,17 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// The <see cref="IServiceCollection"/>.
     /// </param>
     /// <typeparam name="T">
-    /// The type of the custom <see cref="IHttpResultSerializer"/>.
+    /// The type of the custom <see cref="IHttpResponseFormatter"/>.
     /// </typeparam>
     /// <returns>
     /// Returns the <see cref="IServiceCollection"/> so that configuration can be chained.
     /// </returns>
-    public static IServiceCollection AddHttpResultSerializer<T>(
+    public static IServiceCollection AddHttpResponseFormatter<T>(
         this IServiceCollection services)
-        where T : class, IHttpResultSerializer
+        where T : class, IHttpResponseFormatter
     {
-        services.RemoveAll<IHttpResultSerializer>();
-        services.AddSingleton<IHttpResultSerializer, T>();
+        services.RemoveAll<IHttpResponseFormatter>();
+        services.AddSingleton<IHttpResponseFormatter, T>();
         return services;
     }
 }

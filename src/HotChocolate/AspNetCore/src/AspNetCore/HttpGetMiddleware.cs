@@ -4,25 +4,26 @@ using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Language;
+using Microsoft.Extensions.Primitives;
+using Microsoft.Net.Http.Headers;
+using static HotChocolate.Execution.GraphQLRequestFlags;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
 
 public sealed class HttpGetMiddleware : MiddlewareBase
 {
-    private static readonly OperationType[] _onlyQueries = { OperationType.Query };
-
     private readonly IHttpRequestParser _requestParser;
     private readonly IServerDiagnosticEvents _diagnosticEvents;
 
     public HttpGetMiddleware(
         HttpRequestDelegate next,
         IRequestExecutorResolver executorResolver,
-        IHttpResultSerializer resultSerializer,
+        IHttpResponseFormatter responseFormatter,
         IHttpRequestParser requestParser,
         IServerDiagnosticEvents diagnosticEvents,
         string schemaName)
-        : base(next, executorResolver, resultSerializer, schemaName)
+        : base(next, executorResolver, responseFormatter, schemaName)
     {
         _requestParser = requestParser ??
             throw new ArgumentNullException(nameof(requestParser));
@@ -60,6 +61,11 @@ public sealed class HttpGetMiddleware : MiddlewareBase
         var requestInterceptor = requestExecutor.GetRequestInterceptor();
         var errorHandler = requestExecutor.GetErrorHandler();
         context.Items[WellKnownContextData.RequestExecutor] = requestExecutor;
+
+        var acceptHeaderValue =
+            context.Request.Headers.TryGetValue(HeaderNames.Accept, out var value)
+                ? value
+                : StringValues.Empty;
 
         HttpStatusCode? statusCode = null;
         IExecutionResult? result;
@@ -104,8 +110,8 @@ public sealed class HttpGetMiddleware : MiddlewareBase
                 _diagnosticEvents,
                 request,
                 options is null or { AllowedGetOperations: AllowedGetOperations.Query }
-                    ? _onlyQueries
-                    : null);
+                    ? AllowQuery | AllowStreams
+                    : AllowQuery | AllowMutation | AllowStreams);
         }
         catch (GraphQLException ex)
         {
@@ -120,7 +126,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
             result = QueryResultBuilder.CreateError(error);
         }
 
-HANDLE_RESULT:
+        HANDLE_RESULT:
         IDisposable? formatScope = null;
 
         try
@@ -141,7 +147,11 @@ HANDLE_RESULT:
                 formatScope = _diagnosticEvents.FormatHttpResponse(context, queryResult);
             }
 
-            await WriteResultAsync(context.Response, result, statusCode, context.RequestAborted);
+            await WriteResultAsync(
+                context,
+                result,
+                acceptHeaderValue,
+                statusCode);
         }
         finally
         {

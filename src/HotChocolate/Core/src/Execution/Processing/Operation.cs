@@ -19,7 +19,8 @@ internal sealed class Operation : IOperation
         ObjectType rootType,
         SelectionVariants[] selectionVariants,
         IncludeCondition[] includeConditions,
-        Dictionary<string, object?> contextData)
+        Dictionary<string, object?> contextData,
+        bool hasIncrementalParts)
     {
         Id = id;
         Document = document;
@@ -36,6 +37,7 @@ internal sealed class Operation : IOperation
         var root = selectionVariants[0];
         RootSelectionSet = root.GetSelectionSet(rootType);
         _selectionVariants = selectionVariants;
+        HasIncrementalParts = hasIncrementalParts;
         _includeConditions = includeConditions;
     }
 
@@ -55,6 +57,8 @@ internal sealed class Operation : IOperation
 
     public IReadOnlyList<ISelectionVariants> SelectionVariants
         => _selectionVariants;
+
+    public bool HasIncrementalParts { get; }
 
     public IReadOnlyList<IncludeCondition> IncludeConditions
         => _includeConditions;
