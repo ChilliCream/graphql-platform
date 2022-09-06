@@ -236,5 +236,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ExecutionResultExtensions_ExpectQueryResult_NotQueryResult", resourceCulture);
             }
         }
+        
+        internal static string NameUtils_InvalidGraphQLName {
+            get {
+                return ResourceManager.GetString("NameUtils_InvalidGraphQLName", resourceCulture);
+            }
+        }
     }
 }

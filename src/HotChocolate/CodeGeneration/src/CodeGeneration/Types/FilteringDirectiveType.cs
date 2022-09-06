@@ -1,14 +1,13 @@
 using HotChocolate.Types;
 
-namespace HotChocolate.CodeGeneration.Types
+namespace HotChocolate.CodeGeneration.Types;
+
+public class FilteringDirectiveType : DirectiveType
 {
-    public class FilteringDirectiveType : DirectiveType
+    protected override void Configure(IDirectiveTypeDescriptor descriptor)
     {
-        protected override void Configure(IDirectiveTypeDescriptor descriptor)
-        {
-            descriptor
-                .Name("filtering")
-                .Location(DirectiveLocation.FieldDefinition | DirectiveLocation.Schema);
-        }
+        descriptor
+            .Name("filtering")
+            .Location(DirectiveLocation.FieldDefinition | DirectiveLocation.Schema);
     }
 }

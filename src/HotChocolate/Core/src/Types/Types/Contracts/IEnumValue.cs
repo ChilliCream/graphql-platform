@@ -20,7 +20,7 @@ public interface IEnumValue
     /// <summary>
     /// The GraphQL name of this enum value.
     /// </summary>
-    NameString Name { get; }
+    string Name { get; }
 
     /// <summary>
     /// Gets the GraphQL description for this enum value.

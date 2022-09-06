@@ -16,7 +16,7 @@ internal static class OperationResolverHelper
         {
             OperationDefinitionNode? operation = null;
 
-            for (int i = 0; i < document.Definitions.Count; i++)
+            for (var i = 0; i < document.Definitions.Count; i++)
             {
                 if (document.Definitions[i] is OperationDefinitionNode op)
                 {
@@ -40,7 +40,7 @@ internal static class OperationResolverHelper
         }
         else
         {
-            for (int i = 0; i < document.Definitions.Count; i++)
+            for (var i = 0; i < document.Definitions.Count; i++)
             {
                 if (document.Definitions[i] is OperationDefinitionNode { Name: { } } op &&
                     op.Name!.Value.EqualsOrdinal(operationName))

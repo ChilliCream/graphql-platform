@@ -1,37 +1,35 @@
 using System;
-using HotChocolate.Language;
 using Xunit;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public class NativeTypeTests
 {
-    public class NativeTypeTests
+    [Fact]
+    public void Kind_NotSupportedException()
     {
-        [Fact]
-        public void Kind_NotSupportedException()
-        {
-            // arrange
-            var type = new NativeType<string>();
+        // arrange
+        var type = new NativeType<string>();
 
-            // act
-            TypeKind kind;
-            void Action() => kind = ((IInputType)type).Kind;
+        // act
+        TypeKind kind;
+        void Action() => kind = ((IInputType)type).Kind;
 
-            // assert
-            Assert.Throws<NotSupportedException>(Action);
-        }
+        // assert
+        Assert.Throws<NotSupportedException>(Action);
+    }
 
-        [Fact]
-        public void ClrType_NotSupportedException()
-        {
-            // arrange
-            var type = new NativeType<string>();
+    [Fact]
+    public void ClrType_NotSupportedException()
+    {
+        // arrange
+        var type = new NativeType<string>();
 
-            // act
-            Type clrType;
-            void Action() => clrType = ((IInputType)type).RuntimeType;
+        // act
+        Type clrType;
+        void Action() => clrType = ((IInputType)type).RuntimeType;
 
-            // assert
-            Assert.Throws<NotSupportedException>(Action);
-        }
+        // assert
+        Assert.Throws<NotSupportedException>(Action);
     }
 }

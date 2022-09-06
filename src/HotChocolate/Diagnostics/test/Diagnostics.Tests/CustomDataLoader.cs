@@ -20,7 +20,7 @@ public partial class QueryInstrumentationTests
         {
             var dict = new Dictionary<string, string>();
 
-            foreach (string key in keys)
+            foreach (var key in keys)
             {
                 dict.Add(key, key);
             }

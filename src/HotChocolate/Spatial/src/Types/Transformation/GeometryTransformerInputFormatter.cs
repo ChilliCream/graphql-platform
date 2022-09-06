@@ -34,7 +34,7 @@ internal class GeometryTransformerInputFormatter : IInputValueFormatter
         {
             if (g.SRID is not -1 and not 0)
             {
-                IGeometryTransformer transformer = _factory.Create(g.SRID, toSrid);
+                var transformer = _factory.Create(g.SRID, toSrid);
                 transformer.TransformInPlace(g, toSrid);
             }
         }

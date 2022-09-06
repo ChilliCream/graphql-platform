@@ -206,7 +206,7 @@ internal static class ThrowHelper
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.LocalCurrencyType_IsInvalid_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                .SetExtension("actualType", WellKnownScalarTypes.LocalCurency)
+                .SetExtension("actualType", WellKnownScalarTypes.LocalCurrency)
                 .Build(),
             type);
     }
@@ -217,7 +217,7 @@ internal static class ThrowHelper
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.LocalDateType_IsInvalid_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
-                .SetExtension("actualType", WellKnownScalarTypes.LocalCurency)
+                .SetExtension("actualType", WellKnownScalarTypes.LocalCurrency)
                 .Build(),
             type);
     }

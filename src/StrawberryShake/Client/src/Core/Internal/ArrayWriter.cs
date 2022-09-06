@@ -50,7 +50,7 @@ public sealed class ArrayWriter
     {
         if (_capacity < neededCapacity)
         {
-            byte[] buffer = _buffer;
+            var buffer = _buffer;
 
             var newSize = buffer.Length * 2;
             if (neededCapacity > buffer.Length)

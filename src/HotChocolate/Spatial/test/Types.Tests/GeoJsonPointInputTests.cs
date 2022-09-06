@@ -1,14 +1,11 @@
-using System;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using NetTopologySuite.Geometries;
-using Snapshooter.Xunit;
-using Xunit;
 
-namespace HotChocolate.Types.Spatial.Tests;
+namespace HotChocolate.Types.Spatial;
 
 public class GeoJsonPointInputTests
 {
@@ -29,13 +26,13 @@ public class GeoJsonPointInputTests
 
     private InputObjectType CreateInputType()
     {
-        ISchema schema = CreateSchema();
+        var schema = CreateSchema();
         return schema.GetType<InputObjectType>("GeoJSONPointInput");
     }
 
     private GeometryType CreateScalarType()
     {
-        ISchema schema = CreateSchema();
+        var schema = CreateSchema();
         return schema.GetType<GeometryType>("Geometry");
     }
 
@@ -43,7 +40,7 @@ public class GeoJsonPointInputTests
     public void ParseLiteral_Point_With_Valid_Coordinates_Scalar()
     {
         // arrange
-        GeometryType type = CreateScalarType();
+        var type = CreateScalarType();
 
         // act
         var result = type.ParseLiteral(
@@ -63,7 +60,7 @@ public class GeoJsonPointInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         var result = inputParser.ParseLiteral(
@@ -84,7 +81,7 @@ public class GeoJsonPointInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         var result = inputParser.ParseLiteral(
@@ -107,7 +104,7 @@ public class GeoJsonPointInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         var result = inputParser.ParseLiteral(NullValueNode.Default, type);
@@ -121,7 +118,7 @@ public class GeoJsonPointInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         // assert
@@ -134,7 +131,7 @@ public class GeoJsonPointInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         // assert
@@ -151,7 +148,7 @@ public class GeoJsonPointInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         // assert
@@ -168,7 +165,7 @@ public class GeoJsonPointInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         // assert
@@ -184,7 +181,7 @@ public class GeoJsonPointInputTests
     public async Task Execution_Tests()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(
                 d => d
                     .Name("Query")
@@ -193,10 +190,10 @@ public class GeoJsonPointInputTests
                     .Resolve(ctx => ctx.ArgumentValue<Point>("arg").ToString()))
             .Create();
 
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             "{ test(arg: { type: Point, coordinates:[9,10] })}");
 
         // assert
@@ -208,9 +205,9 @@ public class GeoJsonPointInputTests
     {
         // arrange
         // act
-        ISchema schema = CreateSchema();
+        var schema = CreateSchema();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 }

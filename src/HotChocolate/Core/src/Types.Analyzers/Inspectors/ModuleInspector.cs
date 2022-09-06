@@ -14,7 +14,7 @@ public class ModuleInspector : ISyntaxInspector
     {
         if (context.Node is AttributeListSyntax attributeList)
         {
-            foreach (AttributeSyntax attributeSyntax in attributeList.Attributes)
+            foreach (var attributeSyntax in attributeList.Attributes)
             {
                 var symbol = context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol;
                 if (symbol is not IMethodSymbol attributeSymbol)
@@ -22,7 +22,7 @@ public class ModuleInspector : ISyntaxInspector
                     continue;
                 }
 
-                INamedTypeSymbol attributeContainingTypeSymbol = attributeSymbol.ContainingType;
+                var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
                 var fullName = attributeContainingTypeSymbol.ToDisplayString();
 
                 if (fullName.Equals(ModuleAttribute, Ordinal) &&

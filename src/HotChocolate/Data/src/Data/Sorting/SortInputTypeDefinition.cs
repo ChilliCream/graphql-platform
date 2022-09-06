@@ -10,4 +10,6 @@ public class SortInputTypeDefinition
     public Type? EntityType { get; set; }
 
     public string? Scope { get; set; }
+
+    internal bool IsNamed { get; set; }
 }

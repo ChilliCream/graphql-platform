@@ -62,11 +62,11 @@ public ref partial struct Utf8GraphQLParser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private StringValueNode ParseStringLiteral()
     {
-        TokenInfo start = Start();
+        var start = Start();
 
         var isBlock = _reader.Kind == TokenKind.BlockString;
         var value = ExpectString();
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new StringValueNode(location, value, isBlock);
     }
@@ -84,7 +84,7 @@ public ref partial struct Utf8GraphQLParser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ListValueNode ParseList(bool isConstant)
     {
-        TokenInfo start = Start();
+        var start = Start();
 
         if (_reader.Kind != TokenKind.LeftBracket)
         {
@@ -108,7 +108,7 @@ public ref partial struct Utf8GraphQLParser
         // skip closing token
         Expect(TokenKind.RightBracket);
 
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new ListValueNode
         (
@@ -129,7 +129,7 @@ public ref partial struct Utf8GraphQLParser
     /// </param>
     private ObjectValueNode ParseObject(bool isConstant)
     {
-        TokenInfo start = Start();
+        var start = Start();
 
         if (_reader.Kind != TokenKind.LeftBrace)
         {
@@ -147,11 +147,11 @@ public ref partial struct Utf8GraphQLParser
 
         while (_reader.Kind != TokenKind.RightBrace)
         {
-            TokenInfo fieldStart = Start();
-            NameNode name = ParseName();
+            var fieldStart = Start();
+            var name = ParseName();
             ExpectColon();
-            IValueNode value = ParseValueLiteral(isConstant);
-            Location? fieldLocation = CreateLocation(in fieldStart);
+            var value = ParseValueLiteral(isConstant);
+            var fieldLocation = CreateLocation(in fieldStart);
 
             fields.Add(new ObjectFieldNode(fieldLocation, name, value));
         }
@@ -159,7 +159,7 @@ public ref partial struct Utf8GraphQLParser
         // skip closing token
         Expect(TokenKind.RightBrace);
 
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new ObjectValueNode
         (
@@ -176,8 +176,8 @@ public ref partial struct Utf8GraphQLParser
             return ParseStringLiteral();
         }
 
-        TokenInfo start = Start();
-        TokenKind kind = _reader.Kind;
+        var start = Start();
+        var kind = _reader.Kind;
 
         if (!TokenHelper.IsScalarValue(in _reader))
         {
@@ -185,10 +185,10 @@ public ref partial struct Utf8GraphQLParser
         }
 
         ReadOnlyMemory<byte> value = _reader.Value.ToArray();
-        FloatFormat? format = _reader.FloatFormat;
+        var format = _reader.FloatFormat;
         MoveNext();
 
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         if (kind == TokenKind.Float)
         {
@@ -215,7 +215,7 @@ public ref partial struct Utf8GraphQLParser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private IValueNode ParseEnumValue()
     {
-        TokenInfo start = Start();
+        var start = Start();
 
         Location? location;
 

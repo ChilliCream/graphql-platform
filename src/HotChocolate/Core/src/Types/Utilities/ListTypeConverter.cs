@@ -22,12 +22,12 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
         ChangeTypeProvider root,
         [NotNullWhen(true)] out ChangeType? converter)
     {
-        Type? sourceElement = ExtendedType.Tools.GetElementType(source);
-        Type? targetElement = ExtendedType.Tools.GetElementType(target);
+        var sourceElement = ExtendedType.Tools.GetElementType(source);
+        var targetElement = ExtendedType.Tools.GetElementType(target);
 
         if (sourceElement is not null
             && targetElement is not null
-            && root(sourceElement, targetElement, out ChangeType? elementConverter))
+            && root(sourceElement, targetElement, out var elementConverter))
         {
             if (target.IsArray)
             {
@@ -39,7 +39,7 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
             if (target.IsGenericType
                 && target.GetGenericTypeDefinition() == typeof(Dictionary<,>))
             {
-                MethodInfo converterMethod =
+                var converterMethod =
                     _dictionaryConvert.MakeGenericMethod(targetElement.GetGenericArguments());
                 converter = source => converterMethod.Invoke(
                     null, new[] { source, elementConverter });
@@ -49,7 +49,7 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
             if (target.IsGenericType
                 && target.IsInterface)
             {
-                Type listType = typeof(List<>).MakeGenericType(targetElement);
+                var listType = typeof(List<>).MakeGenericType(targetElement);
                 if (target.IsAssignableFrom(listType))
                 {
                     converter = source => GenericListConverter(
@@ -76,8 +76,8 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
         IEnumerable source,
         Action<object?, int> addToDestination)
     {
-        int i = 0;
-        foreach (object? item in source)
+        var i = 0;
+        foreach (var item in source)
         {
             addToDestination(item, i++);
         }

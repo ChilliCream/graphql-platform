@@ -1,5 +1,6 @@
 using System.Threading;
 using Microsoft.Extensions.ObjectPool;
+using static System.Threading.Interlocked;
 
 namespace HotChocolate.Execution.Processing.Tasks;
 
@@ -34,19 +35,19 @@ internal sealed class ExecutionTaskPool<T> : ObjectPool<T> where T : class, IExe
 
         while (true)
         {
-            if (Interlocked.CompareExchange(ref _sync, current, 0) == 0)
+            if (CompareExchange(ref _sync, current, 0) == 0)
             {
                 if (_index < _capacity)
                 {
                     resolverTask = _buffer[++_index];
                 }
 
-                Interlocked.Exchange(ref _sync, 0);
+                Exchange(ref _sync, 0);
                 break;
             }
 
 #if NETSTANDARD2_0
-                spin.SpinOnce();
+            spin.SpinOnce();
 #else
             spin.SpinOnce(sleep1Threshold: -1);
 #endif
@@ -69,13 +70,13 @@ internal sealed class ExecutionTaskPool<T> : ObjectPool<T> where T : class, IExe
 
             while (true)
             {
-                if (Interlocked.CompareExchange(ref _sync, current, 0) == 0)
+                if (CompareExchange(ref _sync, current, 0) == 0)
                 {
                     if (_index > -1)
                     {
                         _buffer[_index--] = obj;
                     }
-                    Interlocked.Exchange(ref _sync, 0);
+                    Exchange(ref _sync, 0);
                     break;
                 }
 

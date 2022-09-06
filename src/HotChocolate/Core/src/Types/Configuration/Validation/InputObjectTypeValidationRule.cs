@@ -1,8 +1,10 @@
+#nullable enable
+
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
 using static HotChocolate.Configuration.Validation.TypeValidationHelper;
-using static HotChocolate.Configuration.Validation.ErrorHelper;
+using static HotChocolate.Utilities.ErrorHelper;
 
 namespace HotChocolate.Configuration.Validation;
 
@@ -15,29 +17,45 @@ public class InputObjectTypeValidationRule : ISchemaValidationRule
     {
         if (options.StrictValidation)
         {
-            foreach (InputObjectType type in typeSystemObjects.OfType<InputObjectType>())
+            List<string>? names = null;
+
+            foreach (var type in typeSystemObjects.OfType<InputObjectType>())
             {
                 EnsureTypeHasFields(type, errors);
                 EnsureFieldNamesAreValid(type, errors);
-                EnsureOneOfFieldsAreValid(type, errors);
+                EnsureOneOfFieldsAreValid(type, errors, ref names);
                 EnsureFieldDeprecationIsValid(type, errors);
             }
         }
     }
 
-    private static void EnsureOneOfFieldsAreValid(
+    private void EnsureOneOfFieldsAreValid(
         InputObjectType type,
-        ICollection<ISchemaError> errors)
+        ICollection<ISchemaError> errors,
+        ref List<string>? temp)
     {
         if (type.Directives.Contains(WellKnownDirectives.OneOf))
         {
-            if (type.Fields.Any(t => t.Type.Kind is TypeKind.NonNull || t.DefaultValue is not null))
-            {
-                string[] fieldNames = type.Fields
-                    .Where(t => t.Type.Kind is TypeKind.NonNull || t.DefaultValue is not null)
-                    .Select(t => t.Name.Value)
-                    .ToArray();
+            temp ??= new List<string>();
 
+            foreach (var field in type.Fields)
+            {
+                if (field.Type.Kind is TypeKind.NonNull || field.DefaultValue is not null)
+                {
+                    temp.Add(field.Name);
+                }
+            }
+
+            if (temp.Count > 0)
+            {
+                var fieldNames = new string[temp.Count];
+
+                for (var i = 0; i < temp.Count; i++)
+                {
+                    fieldNames[i] = temp[i];
+                }
+
+                temp.Clear();
                 errors.Add(OneofInputObjectMustHaveNullableFieldsWithoutDefaults(type, fieldNames));
             }
         }

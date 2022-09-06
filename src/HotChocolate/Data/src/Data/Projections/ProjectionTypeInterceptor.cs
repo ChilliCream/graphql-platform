@@ -17,7 +17,7 @@ public class ProjectionTypeInterceptor : TypeInterceptor
         if (definition is ObjectTypeDefinition objectTypeDefinition)
         {
             List<string>? alwaysProjected = null;
-            foreach (ObjectFieldDefinition field in objectTypeDefinition.Fields)
+            foreach (var field in objectTypeDefinition.Fields)
             {
                 alwaysProjected ??= new List<string>();
                 if (field.GetContextData().TryGetValue(IsProjectedKey, out var value) &&

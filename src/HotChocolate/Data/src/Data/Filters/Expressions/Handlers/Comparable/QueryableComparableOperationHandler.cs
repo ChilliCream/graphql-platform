@@ -73,15 +73,15 @@ public abstract class QueryableComparableOperationHandler
             return parsedValue;
         }
 
-        Type returnType = context.RuntimeTypes.Peek().Source;
+        var returnType = context.RuntimeTypes.Peek().Source;
 
         if (type.IsListType())
         {
-            Type elementType = type.ElementType().ToRuntimeType();
+            var elementType = type.ElementType().ToRuntimeType();
 
             if (returnType != elementType)
             {
-                Type listType = typeof(List<>).MakeGenericType(returnType);
+                var listType = typeof(List<>).MakeGenericType(returnType);
                 parsedValue = TypeConverter.Convert(typeof(object), listType, parsedValue) ??
                     throw ThrowHelper.FilterConvention_CouldNotConvertValue(node);
             }

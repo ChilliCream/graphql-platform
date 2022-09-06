@@ -50,10 +50,10 @@ public ref partial struct Utf8GraphQLRequestParser
                 TokenPrinter.Print(in _reader));
         }
 
-        string name = _reader.GetString();
+        var name = _reader.GetString();
         _reader.MoveNext();
         _reader.Expect(TokenKind.Colon);
-        IValueNode value = ParseValueSyntax();
+        var value = ParseValueSyntax();
 
         return new ObjectFieldNode(name, value);
     }
@@ -92,7 +92,7 @@ public ref partial struct Utf8GraphQLRequestParser
         {
             case TokenKind.String:
                 {
-                    string value = _reader.GetString();
+                    var value = _reader.GetString();
                     _reader.MoveNext();
                     return new StringValueNode(value);
                 }
@@ -107,7 +107,7 @@ public ref partial struct Utf8GraphQLRequestParser
             case TokenKind.Float:
                 {
                     ReadOnlyMemory<byte> value = _reader.Value.ToArray();
-                    FloatFormat? format = _reader.FloatFormat;
+                    var format = _reader.FloatFormat;
                     _reader.MoveNext();
                     return new FloatValueNode(null, value, format ?? FloatFormat.FixedPoint);
                 }

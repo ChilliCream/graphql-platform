@@ -1,5 +1,7 @@
 #nullable enable
 
+using System;
+
 namespace HotChocolate;
 
 /// <summary>
@@ -45,13 +47,7 @@ public sealed class IndexerPathSegment : Path
 
     /// <inheritdoc />
     public override int GetHashCode()
-    {
-        unchecked
-        {
-            var hash = Parent.GetHashCode() * 3;
-            hash ^= Depth.GetHashCode() * 7;
-            hash ^= Index.GetHashCode() * 11;
-            return hash;
-        }
-    }
+        // ReSharper disable NonReadonlyMemberInGetHashCode
+        => HashCode.Combine(Parent, Depth, Index);
+        // ReSharper restore NonReadonlyMemberInGetHashCode
 }

@@ -30,14 +30,14 @@ public abstract class OperationResultBuilder<TResultData>
         {
             if (response.Body is { } body)
             {
-                if (body.RootElement.TryGetProperty(Data, out JsonElement dataProp) &&
+                if (body.RootElement.TryGetProperty(Data, out var dataProp) &&
                     dataProp.ValueKind is JsonValueKind.Object)
                 {
                     dataInfo = BuildData(dataProp);
                     data = ResultDataFactory.Create(dataInfo);
                 }
 
-                if (body.RootElement.TryGetProperty(Errors, out JsonElement errorsProp) &&
+                if (body.RootElement.TryGetProperty(Errors, out var errorsProp) &&
                     errorsProp.ValueKind is JsonValueKind.Array)
                 {
                     errors = JsonErrorParser.ParseErrors(errorsProp);

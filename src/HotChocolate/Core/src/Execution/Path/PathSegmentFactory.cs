@@ -39,7 +39,7 @@ internal class PathSegmentFactory<T> where T : class
     {
         while (true)
         {
-            if (_current is null || !_current.TryPop(out T? segment))
+            if (_current is null || !_current.TryPop(out var segment))
             {
                 Resize();
                 continue;

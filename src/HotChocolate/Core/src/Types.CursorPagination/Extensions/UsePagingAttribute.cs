@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Pagination;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -133,7 +134,7 @@ public sealed class UsePagingAttribute : DescriptorAttribute
                 ofd.UsePaging(
                     Type,
                     connectionName: string.IsNullOrEmpty(_connectionName)
-                        ? default(NameString?)
+                        ? default!
                         : _connectionName,
                     options: new PagingOptions
                     {
@@ -151,7 +152,7 @@ public sealed class UsePagingAttribute : DescriptorAttribute
                 ifd.UsePaging(
                     Type,
                     connectionName: string.IsNullOrEmpty(_connectionName)
-                        ? default(NameString?)
+                        ? default!
                         : _connectionName,
                     options: new()
                     {

@@ -35,7 +35,7 @@ public class Neo4JNotEqualsOperationHandler
         IValueNode value,
         object? parsedValue)
     {
-        Condition? expression = context
+        var expression = context
             .GetNode()
             .Property(context.GetNeo4JFilterScope().GetPath())
             .IsNotEqualTo(Cypher.LiteralOf(parsedValue));

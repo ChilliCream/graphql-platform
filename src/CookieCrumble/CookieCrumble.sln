@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{2465C122-714C-4D0A-A24D-D9C22A25D73A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CookieCrumble", "src\CookieCrumble\CookieCrumble.csproj", "{8E71FA9B-8352-4675-A9B4-A934E40AF9E0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{EB8F1D90-60D6-48FA-9744-D4180A0E4AC0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CookieCrumble.Tests", "test\CookieCrumble.Tests\CookieCrumble.Tests.csproj", "{844E7501-7ED6-4548-8E99-D8E50D4F39A4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8E71FA9B-8352-4675-A9B4-A934E40AF9E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E71FA9B-8352-4675-A9B4-A934E40AF9E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E71FA9B-8352-4675-A9B4-A934E40AF9E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E71FA9B-8352-4675-A9B4-A934E40AF9E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{844E7501-7ED6-4548-8E99-D8E50D4F39A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{844E7501-7ED6-4548-8E99-D8E50D4F39A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{844E7501-7ED6-4548-8E99-D8E50D4F39A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{844E7501-7ED6-4548-8E99-D8E50D4F39A4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8E71FA9B-8352-4675-A9B4-A934E40AF9E0} = {2465C122-714C-4D0A-A24D-D9C22A25D73A}
+		{844E7501-7ED6-4548-8E99-D8E50D4F39A4} = {EB8F1D90-60D6-48FA-9744-D4180A0E4AC0}
+	EndGlobalSection
+EndGlobal

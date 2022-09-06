@@ -1,5 +1,4 @@
-using Snapshooter.Xunit;
-using Xunit;
+using CookieCrumble;
 
 namespace HotChocolate.Data.Neo4J.Language;
 
@@ -9,9 +8,9 @@ public class ExpressionVisitorTests
     public void ExpressionIsEqualTo()
     {
         var visitor = new CypherVisitor();
-        Node movie = Node.Create("Movie").Named("m");
+        var movie = Node.Create("Movie").Named("m");
 
-        Condition statement = movie.Property("Title").IsEqualTo(Cypher.LiteralOf("The Matrix"));
+        var statement = movie.Property("Title").IsEqualTo(Cypher.LiteralOf("The Matrix"));
         statement.Visit(visitor);
         visitor.Print().MatchSnapshot();
     }
@@ -20,9 +19,9 @@ public class ExpressionVisitorTests
     public void ExpressionNotIsEqualTo()
     {
         var visitor = new CypherVisitor();
-        Node movie = Node.Create("Movie").Named("m");
+        var movie = Node.Create("Movie").Named("m");
 
-        Condition statement =
+        var statement =
             movie.Property("Title").IsEqualTo(Cypher.LiteralOf("The Matrix")).Not();
         statement.Visit(visitor);
         visitor.Print().MatchSnapshot();
@@ -32,9 +31,9 @@ public class ExpressionVisitorTests
     public void ExpressionIsNotEqualTo()
     {
         var visitor = new CypherVisitor();
-        Node movie = Node.Create("Movie").Named("m");
+        var movie = Node.Create("Movie").Named("m");
 
-        Condition statement =
+        var statement =
             movie.Property("Title").IsNotEqualTo(Cypher.LiteralOf("The Matrix"));
         statement.Visit(visitor);
         visitor.Print().MatchSnapshot();
@@ -44,9 +43,9 @@ public class ExpressionVisitorTests
     public void ExpressionLessThan()
     {
         var visitor = new CypherVisitor();
-        Node movie = Node.Create("Movie").Named("m");
+        var movie = Node.Create("Movie").Named("m");
 
-        Condition statement = movie.Property("Title").LessThan(Cypher.LiteralOf("The Matrix"));
+        var statement = movie.Property("Title").LessThan(Cypher.LiteralOf("The Matrix"));
         statement.Visit(visitor);
         visitor.Print().MatchSnapshot();
     }
@@ -55,9 +54,9 @@ public class ExpressionVisitorTests
     public void ExpressionLessThanOrEqualTo()
     {
         var visitor = new CypherVisitor();
-        Node movie = Node.Create("Movie").Named("m");
+        var movie = Node.Create("Movie").Named("m");
 
-        Condition statement = movie.Property("Title")
+        var statement = movie.Property("Title")
             .LessThanOrEqualTo(Cypher.LiteralOf("The Matrix"));
         statement.Visit(visitor);
         visitor.Print().MatchSnapshot();
@@ -67,9 +66,9 @@ public class ExpressionVisitorTests
     public void ExpressionGreaterThan()
     {
         var visitor = new CypherVisitor();
-        Node movie = Node.Create("Movie").Named("m");
+        var movie = Node.Create("Movie").Named("m");
 
-        Condition statement =
+        var statement =
             movie.Property("Title").GreaterThan(Cypher.LiteralOf("The Matrix"));
         statement.Visit(visitor);
         visitor.Print().MatchSnapshot();
@@ -79,9 +78,9 @@ public class ExpressionVisitorTests
     public void ExpressionGreaterThanOEqualTo()
     {
         var visitor = new CypherVisitor();
-        Node movie = Node.Create("Movie").Named("m");
+        var movie = Node.Create("Movie").Named("m");
 
-        Condition statement = movie.Property("Title")
+        var statement = movie.Property("Title")
             .GreaterThanOEqualTo(Cypher.LiteralOf("The Matrix"));
         statement.Visit(visitor);
         visitor.Print().MatchSnapshot();
@@ -91,9 +90,9 @@ public class ExpressionVisitorTests
     public void ExpressionIsTrue()
     {
         var visitor = new CypherVisitor();
-        Node movie = Node.Create("Movie").Named("m");
+        var movie = Node.Create("Movie").Named("m");
 
-        Condition statement = movie.Property("Released").IsTrue();
+        var statement = movie.Property("Released").IsTrue();
         statement.Visit(visitor);
         visitor.Print().MatchSnapshot();
     }
@@ -102,9 +101,9 @@ public class ExpressionVisitorTests
     public void ExpressionIsFalse()
     {
         var visitor = new CypherVisitor();
-        Node movie = Node.Create("Movie").Named("m");
+        var movie = Node.Create("Movie").Named("m");
 
-        Condition statement = movie.Property("Released").IsFalse();
+        var statement = movie.Property("Released").IsFalse();
         statement.Visit(visitor);
         visitor.Print().MatchSnapshot();
     }
@@ -113,9 +112,9 @@ public class ExpressionVisitorTests
     public void ExpressionMatches()
     {
         var visitor = new CypherVisitor();
-        Node person = Node.Create("Person").Named("p");
+        var person = Node.Create("Person").Named("p");
 
-        Condition statement =
+        var statement =
             person.Property("Email").Matches(Cypher.LiteralOf("email@gmail.com"));
         statement.Visit(visitor);
         visitor.Print().MatchSnapshot();
@@ -126,9 +125,9 @@ public class ExpressionVisitorTests
     public void ExpressionMatchesRegex()
     {
         var visitor = new CypherVisitor();
-        Node person = Node.Create("Person").Named("p");
+        var person = Node.Create("Person").Named("p");
 
-        Condition statement = person.Property("Email").Matches(".*\\\\.com");
+        var statement = person.Property("Email").Matches(".*\\\\.com");
         statement.Visit(visitor);
         visitor.Print().MatchSnapshot();
     }
@@ -137,9 +136,9 @@ public class ExpressionVisitorTests
     public void ExpressionStartsWith()
     {
         var visitor = new CypherVisitor();
-        Node movie = Node.Create("Movie").Named("m");
+        var movie = Node.Create("Movie").Named("m");
 
-        Condition statement = movie.Property("Title").StartsWith(Cypher.LiteralOf("The"));
+        var statement = movie.Property("Title").StartsWith(Cypher.LiteralOf("The"));
         statement.Visit(visitor);
         visitor.Print().MatchSnapshot();
     }
@@ -148,9 +147,9 @@ public class ExpressionVisitorTests
     public void ExpressionEndsWith()
     {
         var visitor = new CypherVisitor();
-        Node movie = Node.Create("Movie").Named("m");
+        var movie = Node.Create("Movie").Named("m");
 
-        Condition statement = movie.Property("Title").EndsWith(Cypher.LiteralOf("Matrix"));
+        var statement = movie.Property("Title").EndsWith(Cypher.LiteralOf("Matrix"));
         statement.Visit(visitor);
         visitor.Print().MatchSnapshot();
     }
@@ -159,9 +158,9 @@ public class ExpressionVisitorTests
     public void ExpressionContains()
     {
         var visitor = new CypherVisitor();
-        Node movie = Node.Create("Movie").Named("m");
+        var movie = Node.Create("Movie").Named("m");
 
-        Condition statement = movie.Property("Title").Contains(Cypher.LiteralOf("The"));
+        var statement = movie.Property("Title").Contains(Cypher.LiteralOf("The"));
         statement.Visit(visitor);
         visitor.Print().MatchSnapshot();
     }
@@ -170,9 +169,9 @@ public class ExpressionVisitorTests
     public void ExpressionIsNull()
     {
         var visitor = new CypherVisitor();
-        Node movie = Node.Create("Movie").Named("m");
+        var movie = Node.Create("Movie").Named("m");
 
-        Condition statement = movie.Property("Title").IsNull();
+        var statement = movie.Property("Title").IsNull();
         statement.Visit(visitor);
         visitor.Print().MatchSnapshot();
     }
@@ -181,9 +180,9 @@ public class ExpressionVisitorTests
     public void ExpressionIsNotNull()
     {
         var visitor = new CypherVisitor();
-        Node movie = Node.Create("Movie").Named("m");
+        var movie = Node.Create("Movie").Named("m");
 
-        Condition statement = movie.Property("Title").IsNotNull();
+        var statement = movie.Property("Title").IsNotNull();
         statement.Visit(visitor);
         visitor.Print().MatchSnapshot();
     }

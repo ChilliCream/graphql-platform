@@ -79,3 +79,11 @@ As our data graph and number of developers/clients grows, we need to ensure that
 [Relay](https://relay.dev) proposes some schema design principles for GraphQL servers in order to more efficiently fetch, refetch and cache entities on the client. Since these principles make for a better schema, we encourage all users, not only those of Relay, to consider these principles.
 
 [Learn more about Relay-compatible schema design](/docs/hotchocolate/defining-a-schema/relay)
+
+# Automatic type registration
+
+Starting with Hot Chocolate 12.7 we introduced a new source generator that automatically registers types and DataLoader with your GraphQL configuration builder. Watch on YouTube how you can simplify your Hot Chocolate configuration code.
+
+<iframe width="560" height="315"
+src="https://www.youtube.com/embed/QPelWd9L9ck"frameborder="0"
+allowfullscreen></iframe>

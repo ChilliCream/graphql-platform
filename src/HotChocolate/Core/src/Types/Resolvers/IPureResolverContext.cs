@@ -1,5 +1,5 @@
-using System.Collections.Immutable;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -18,30 +18,30 @@ public interface IPureResolverContext : IHasContextData
     ISchema Schema { get; }
 
     /// <summary>
-    /// Gets the root object type of the currently execution operation.
-    /// </summary>
-    IObjectType RootType { get; }
-
-    /// <summary>
     /// Gets the object type on which the field resolver is being executed.
     /// </summary>
     IObjectType ObjectType { get; }
 
     /// <summary>
-    /// Gets the current execution path.
+    /// Gets the operation from the query that is being executed.
     /// </summary>
-    Path Path { get; }
+    IOperation Operation { get; }
 
     /// <summary>
     /// Gets the field selection for which a field resolver is
     /// being executed.
     /// </summary>
-    IFieldSelection Selection { get; }
+    ISelection Selection { get; }
 
     /// <summary>
     /// Gets access to the coerced variable values of the request.
     /// </summary>
     IVariableValueCollection Variables { get; }
+
+    /// <summary>
+    /// Gets the current execution path.
+    /// </summary>
+    Path Path { get; }
 
     /// <summary>
     /// Gets the previous (parent) resolver result.
@@ -66,7 +66,7 @@ public interface IPureResolverContext : IHasContextData
     /// <returns>
     /// Returns the value of the specified field argument as literal.
     /// </returns>
-    T ArgumentValue<T>(NameString name);
+    T ArgumentValue<T>(string name);
 
     /// <summary>
     /// Gets a specific field argument as literal.
@@ -80,7 +80,7 @@ public interface IPureResolverContext : IHasContextData
     /// <returns>
     /// Returns the value of the specified field argument as literal.
     /// </returns>
-    TValueNode ArgumentLiteral<TValueNode>(NameString name) where TValueNode : IValueNode;
+    TValueNode ArgumentLiteral<TValueNode>(string name) where TValueNode : IValueNode;
 
     /// <summary>
     /// Gets a specific field argument as optional.
@@ -94,7 +94,7 @@ public interface IPureResolverContext : IHasContextData
     /// <returns>
     /// Returns the value of the specified field argument as optional.
     /// </returns>
-    Optional<T> ArgumentOptional<T>(NameString name);
+    Optional<T> ArgumentOptional<T>(string name);
 
     /// <summary>
     /// Gets the value kind of a specific field argument.
@@ -105,7 +105,7 @@ public interface IPureResolverContext : IHasContextData
     /// <returns>
     /// Returns the value kind of the specified field argument kind.
     /// </returns>
-    ValueKind ArgumentKind(NameString name);
+    ValueKind ArgumentKind(string name);
 
     /// <summary>
     /// Gets as required service from the dependency injection container.

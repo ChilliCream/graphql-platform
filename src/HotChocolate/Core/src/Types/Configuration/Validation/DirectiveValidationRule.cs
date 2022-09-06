@@ -1,8 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
 using static HotChocolate.Configuration.Validation.TypeValidationHelper;
-using static HotChocolate.Configuration.Validation.ErrorHelper;
+using static HotChocolate.Utilities.ErrorHelper;
 
 namespace HotChocolate.Configuration.Validation;
 
@@ -12,7 +13,7 @@ namespace HotChocolate.Configuration.Validation;
 /// </summary>
 internal class DirectiveValidationRule : ISchemaValidationRule
 {
-    private const string _twoUnderscores = "__";
+    private const char _underscore = '_';
 
     public void Validate(
         IReadOnlyList<ITypeSystemObject> typeSystemObjects,
@@ -21,7 +22,7 @@ internal class DirectiveValidationRule : ISchemaValidationRule
     {
         if (options.StrictValidation)
         {
-            foreach (DirectiveType type in typeSystemObjects.OfType<DirectiveType>())
+            foreach (var type in typeSystemObjects.OfType<DirectiveType>())
             {
                 EnsureDirectiveNameIsValid(type, errors);
                 EnsureArgumentNamesAreValid(type, errors);
@@ -34,9 +35,15 @@ internal class DirectiveValidationRule : ISchemaValidationRule
         DirectiveType type,
         ICollection<ISchemaError> errors)
     {
-        if (type.Name.Value.StartsWith(_twoUnderscores))
+        if (type.Name.Length > 2)
         {
-            errors.Add(TwoUnderscoresNotAllowedOnDirectiveName(type));
+            var firstTwoLetters = type.Name.AsSpan().Slice(0, 2);
+
+            if (firstTwoLetters[0] == _underscore &&
+                firstTwoLetters[1] == _underscore)
+            {
+                errors.Add(TwoUnderscoresNotAllowedOnDirectiveName(type));
+            }
         }
     }
 }

@@ -16,7 +16,7 @@ public class InterfaceTypeValidationRule : ISchemaValidationRule
     {
         if (options.StrictValidation)
         {
-            foreach (InterfaceType type in typeSystemObjects.OfType<InterfaceType>())
+            foreach (var type in typeSystemObjects.OfType<InterfaceType>())
             {
                 EnsureTypeHasFields(type, errors);
                 EnsureFieldNamesAreValid(type, errors);

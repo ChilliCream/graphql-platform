@@ -12,15 +12,14 @@ public class FilterVisitorTestBase
             new FilterConvention(
                x => x.AddDefaults().BindRuntimeType(typeof(TRuntimeType), type.GetType()));
 
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddConvention<IFilterConvention>(convention)
             .TryAddTypeInterceptor<FilterTypeInterceptor>()
-            .AddQueryType(
-                c =>
-                    c.Name("Query")
-                        .Field("foo")
-                        .Type<StringType>()
-                        .Resolve("bar"))
+            .AddQueryType(c => c
+                .Name("Query")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("bar"))
             .AddType(type)
             .AddType(new TimeSpanType(TimeSpanFormat.DotNet));
 
@@ -33,7 +32,7 @@ public class FilterVisitorTestBase
         where T : IFilterInputType
     {
         var convention = new FilterConvention(x => x.AddDefaults());
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddConvention<IFilterConvention>(convention)
             .TryAddTypeInterceptor<FilterTypeInterceptor>()
             .AddQueryType(c => c

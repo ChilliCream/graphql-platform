@@ -25,7 +25,7 @@ namespace HotChocolate.Types.Pagination
             // arrange
             Snapshot.FullName();
 
-            IReadOnlyQueryRequest request =
+            var request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ items { items } }")
                     .Create();

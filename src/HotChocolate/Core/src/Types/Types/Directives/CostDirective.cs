@@ -113,11 +113,11 @@ public sealed class CostDirective
         }
         else
         {
-            ArgumentNode complexityArgument = node.Arguments
+            var complexityArgument = node.Arguments
                 .FirstOrDefault(t => t.Name.Value == "complexity");
-            ArgumentNode multipliersArgument = node.Arguments
+            var multipliersArgument = node.Arguments
                 .FirstOrDefault(t => t.Name.Value == "multipliers");
-            ArgumentNode defaultMultiplierArgument = node.Arguments
+            var defaultMultiplierArgument = node.Arguments
                 .FirstOrDefault(t => t.Name.Value == "defaultMultiplier");
 
             _complexity = complexityArgument is { Value: IntValueNode iv }

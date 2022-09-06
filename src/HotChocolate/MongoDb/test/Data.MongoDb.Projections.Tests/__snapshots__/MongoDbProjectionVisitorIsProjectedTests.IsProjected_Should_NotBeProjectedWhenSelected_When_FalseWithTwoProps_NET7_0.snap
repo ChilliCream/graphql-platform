@@ -1,0 +1,22 @@
+Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "isProjectedFalse": null,
+        "isProjectedTrue": true
+      },
+      {
+        "isProjectedFalse": null,
+        "isProjectedTrue": true
+      }
+    ]
+  }
+}
+---------------
+
+Query:
+---------------
+find({ }, { "IsProjectedTrue" : 1 })
+---------------

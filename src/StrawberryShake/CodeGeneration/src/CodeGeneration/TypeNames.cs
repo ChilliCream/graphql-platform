@@ -132,6 +132,7 @@ public static class TypeNames
 
     public const string IEquatable = "global::System.IEquatable";
     public const string Type = "global::System.Type";
+    public const string Nullable = "global::System.Nullable";
     public const string JsonElement = "global::System.Text.Json.JsonElement";
     public const string JsonDocument = "global::System.Text.Json.JsonDocument";
     public const string JsonValueKind = "global::System.Text.Json.JsonValueKind";
@@ -236,6 +237,11 @@ public static class TypeNames
 
     public const string UseQuery = StrawberryShakeNamespace + "Razor." + nameof(UseQuery);
 
+    public const string UseSubscription =
+        StrawberryShakeNamespace + "Razor." + nameof(UseSubscription);
+
+    public const string Upload = StrawberryShakeNamespace +  nameof(Upload);
+
     public const string StringSerializer =
         StrawberryShakeNamespace + "Serialization.StringSerializer";
 
@@ -282,6 +288,9 @@ public static class TypeNames
 
     public const string JsonSerializer =
         StrawberryShakeNamespace + "Serialization.JsonSerializer";
+
+    public const string UploadSerializer =
+        StrawberryShakeNamespace + "Serialization.UploadSerializer";
 
     public const string IClientBuilder = StrawberryShakeNamespace + "IClientBuilder";
     public const string ClientBuilder = StrawberryShakeNamespace + "ClientBuilder";

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <PackageId>HotChocolate.AspNetCore</PackageId>
@@ -39,9 +39,6 @@
     </EmbeddedResource>
     <None Remove="Subscriptions\Protocols\Apollo\**" />
     <EmbeddedResource Remove="Subscriptions\Protocols\Apollo\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="Properties\AspNetCoreResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

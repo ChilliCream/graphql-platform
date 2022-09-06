@@ -44,7 +44,7 @@ internal sealed class MessageReceiver
         static void WriteEndOfMessage(IBufferWriter<byte> writer)
         {
             const int length = 1;
-            Span<byte> span = writer.GetSpan(length);
+            var span = writer.GetSpan(length);
             span[0] = EndOfText;
             writer.Advance(length);
         }

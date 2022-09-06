@@ -1,17 +1,11 @@
-using System.Collections.Generic;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.AspNetCore;
 
@@ -26,10 +20,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task Simple_IsAlive_Test()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
-        ClientQueryResult result = await server.GetAsync(
+        var result = await server.GetAsync(
             new ClientQueryRequest { Query = "{ __typename }" });
 
         // assert
@@ -40,10 +34,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task MapGraphQLHttp_Simple_IsAlive_Test()
     {
         // arrange
-        TestServer server = CreateServer(endpoint => endpoint.MapGraphQLHttp());
+        var server = CreateServer(endpoint => endpoint.MapGraphQLHttp());
 
         // act
-        ClientQueryResult result = await server.GetAsync(
+        var result = await server.GetAsync(
             new ClientQueryRequest { Query = "{ __typename }" });
 
         // assert
@@ -54,10 +48,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task MapGraphQLHttp_Simple_IsAlive_Test_Explicit_Path()
     {
         // arrange
-        TestServer server = CreateServer(endpoint => endpoint.MapGraphQLHttp("/foo/bar"));
+        var server = CreateServer(endpoint => endpoint.MapGraphQLHttp("/foo/bar"));
 
         // act
-        ClientQueryResult result = await server.GetAsync(
+        var result = await server.GetAsync(
             new ClientQueryRequest { Query = "{ __typename }" },
             "/foo/bar");
 
@@ -69,10 +63,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task Simple_IsAlive_Test_On_Non_GraphQL_Path()
     {
         // arrange
-        TestServer server = CreateStarWarsServer("/foo");
+        var server = CreateStarWarsServer("/foo");
 
         // act
-        ClientQueryResult result = await server.GetAsync(
+        var result = await server.GetAsync(
             new ClientQueryRequest { Query = "{ __typename }" },
             "/foo");
 
@@ -84,10 +78,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task SingleRequest_GetHeroName()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.GetAsync(new ClientQueryRequest
             {
                 Query = @"
@@ -106,10 +100,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task SingleRequest_GetHeroName_Casing_Is_Preserved()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.GetAsync(new ClientQueryRequest
             {
                 Query = @"
@@ -128,10 +122,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task SingleRequest_Double_Variable()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.GetAsync(new ClientQueryRequest
             {
                 Query = @"
@@ -150,10 +144,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task SingleRequest_Double_Max_Variable()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.GetAsync(new ClientQueryRequest
             {
                 Query = @"
@@ -176,10 +170,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task SingleRequest_Double_Min_Variable()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.GetAsync(new ClientQueryRequest
             {
                 Query = @"
@@ -202,10 +196,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task SingleRequest_Decimal_Max_Variable()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.GetAsync(new ClientQueryRequest
             {
                 Query = @"
@@ -228,10 +222,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task SingleRequest_Decimal_Min_Variable()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.GetAsync(new ClientQueryRequest
             {
                 Query = @"
@@ -254,10 +248,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task SingleRequest_GetHeroName_With_EnumVariable()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.GetAsync(new ClientQueryRequest
             {
                 Query = @"
@@ -280,10 +274,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task SingleRequest_GetHumanName_With_StringVariable()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.GetAsync(new ClientQueryRequest
             {
                 Query = @"
@@ -306,7 +300,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task SingleRequest_CreateReviewForEpisode_With_ObjectVariable()
     {
         // arrange
-        TestServer server = CreateStarWarsServer(
+        var server = CreateStarWarsServer(
             configureConventions: e => e.WithOptions(
                 new GraphQLServerOptions
                 {
@@ -314,7 +308,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                 }));
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.GetAsync(new ClientQueryRequest
             {
                 Query = @"
@@ -348,7 +342,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task SingleRequest_CreateReviewForEpisode_Omit_NonNull_Variable()
     {
         // arrange
-        TestServer server = CreateStarWarsServer(
+        var server = CreateStarWarsServer(
             configureConventions: e => e.WithOptions(
                 new GraphQLServerOptions
                 {
@@ -356,7 +350,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                 }));
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.GetAsync(new ClientQueryRequest
             {
                 Query = @"
@@ -389,7 +383,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task SingleRequest_CreateReviewForEpisode_Variables_In_ObjectValue()
     {
         // arrange
-        TestServer server = CreateStarWarsServer(
+        var server = CreateStarWarsServer(
             configureConventions: e => e.WithOptions(
                 new GraphQLServerOptions
                 {
@@ -397,7 +391,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                 }));
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.GetAsync(new ClientQueryRequest
             {
                 Query = @"
@@ -429,10 +423,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task SingleRequest_CreateReviewForEpisode_Variables_Unused()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.GetAsync(new ClientQueryRequest
             {
                 Query = @"
@@ -464,14 +458,13 @@ public class HttpGetMiddlewareTests : ServerTestBase
     [InlineData("a")]
     [InlineData("b")]
     [Theory]
-    public async Task SingleRequest_Execute_Specific_Operation(
-        string operationName)
+    public async Task SingleRequest_Execute_Specific_Operation(string operationName)
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.GetAsync(new ClientQueryRequest
             {
                 Query = @"
@@ -490,17 +483,17 @@ public class HttpGetMiddlewareTests : ServerTestBase
             });
 
         // assert
-        result.MatchSnapshot(new SnapshotNameExtension(operationName));
+        result.MatchSnapshot(operationName);
     }
 
     [Fact]
     public async Task SingleRequest_ValidationError()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.GetAsync(new ClientQueryRequest
             {
                 Query = @"
@@ -520,10 +513,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task SingleRequest_SyntaxError()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.GetAsync(new ClientQueryRequest
             {
                 Query = @"
@@ -542,10 +535,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task SingleRequest_Mutation_ByDefault_NotAllowed_OnGet()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.GetAsync(new ClientQueryRequest
             {
                 Query = @"
@@ -579,7 +572,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task SingleRequest_Mutation_Set_To_Be_Allowed_on_Get()
     {
         // arrange
-        TestServer server = CreateStarWarsServer(
+        var server = CreateStarWarsServer(
             configureConventions: e => e.WithOptions(
                 new GraphQLServerOptions
                 {
@@ -587,7 +580,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                 }));
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.GetAsync(new ClientQueryRequest
             {
                 Query = @"
@@ -621,7 +614,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task Get_Middleware_Is_Disabled()
     {
         // arrange
-        TestServer server = CreateStarWarsServer(
+        var server = CreateStarWarsServer(
             configureConventions: e => e.WithOptions(
                 new GraphQLServerOptions
                 {
@@ -629,7 +622,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                 }));
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.GetAsync(new ClientQueryRequest
             {
                 Query = @"
@@ -648,10 +641,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task Get_ActivePersistedQuery()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.GetActivePersistedQueryAsync("md5Hash", "60ddx/GGk4FDObSa6eK0sg==");
 
         // assert
@@ -662,10 +655,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task Get_ActivePersistedQuery_NotFound()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.GetActivePersistedQueryAsync("md5Hash", "abc");
 
         // assert
@@ -676,22 +669,22 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task Get_ActivePersistedQuery_AddQuery()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
-        DocumentNode document = Utf8GraphQLParser.Parse("{ __typename }");
+        var document = Utf8GraphQLParser.Parse("{ __typename }");
 
         var hashProvider = new MD5DocumentHashProvider();
         var hash = hashProvider.ComputeHash(
             Encoding.UTF8.GetBytes(document.ToString(false)));
 
         // act
-        ClientQueryResult resultA =
+        var resultA =
             await server.GetStoreActivePersistedQueryAsync(
                 document.ToString(false),
                 "md5Hash",
                 hash);
 
-        ClientQueryResult resultB =
+        var resultB =
             await server.GetActivePersistedQueryAsync("md5Hash", hash);
 
         // assert
@@ -705,7 +698,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task Get_ActivePersistedQuery_AddQuery_Unformatted()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         var query = "{__typename}";
 
@@ -713,13 +706,13 @@ public class HttpGetMiddlewareTests : ServerTestBase
         var hash = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
 
         // act
-        ClientQueryResult resultA =
+        var resultA =
             await server.GetStoreActivePersistedQueryAsync(
                 query,
                 "md5Hash",
                 hash);
 
-        ClientQueryResult resultB =
+        var resultB =
             await server.GetActivePersistedQueryAsync("md5Hash", hash);
 
         // assert
@@ -733,12 +726,12 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task Throw_Custom_GraphQL_Error()
     {
         // arrange
-        TestServer server = CreateStarWarsServer(
+        var server = CreateStarWarsServer(
             configureServices: s => s.AddGraphQLServer()
                 .AddHttpRequestInterceptor<ErrorRequestInterceptor>());
 
         // act
-        ClientQueryResult result =
+        var result =
             await server.GetAsync(new ClientQueryRequest
             {
                 Query = @"

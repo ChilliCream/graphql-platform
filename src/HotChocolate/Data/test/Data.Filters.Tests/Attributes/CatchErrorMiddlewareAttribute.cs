@@ -12,15 +12,15 @@ public class CatchErrorMiddlewareAttribute : ObjectFieldDescriptorAttribute
         IObjectFieldDescriptor descriptor,
         MemberInfo member)
     {
-        descriptor.Use(next => async context =>
+        descriptor.Use(n => async c =>
         {
             try
             {
-                await next(context);
+                await n(c);
             }
             catch (Exception ex)
             {
-                context.ContextData["ex"] = ex.Message;
+                c.ContextData["ex"] = ex.Message;
             }
         });
     }

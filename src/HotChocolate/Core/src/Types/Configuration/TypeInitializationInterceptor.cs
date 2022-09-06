@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -101,10 +100,8 @@ public class TypeInterceptor
     internal virtual void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
         DefinitionBase definition,
-        OperationType operationType,
-        IDictionary<string, object?> contextData)
+        OperationType operationType)
     {
-
     }
 
     public virtual void OnTypesCompletedName(

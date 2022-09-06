@@ -5,7 +5,6 @@
     <AssemblyName>HotChocolate.PersistedQueries.Redis</AssemblyName>
     <RootNamespace>HotChocolate.PersistedQueries.Redis</RootNamespace>
     <Description>An implementation of Hot Chocolate persisted queries using the Redis cache.</Description>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

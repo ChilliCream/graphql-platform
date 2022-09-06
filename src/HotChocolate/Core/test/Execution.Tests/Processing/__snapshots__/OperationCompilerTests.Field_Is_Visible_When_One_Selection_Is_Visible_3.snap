@@ -1,0 +1,25 @@
+﻿query foo($v: Boolean, $q: Boolean) {
+  hero(episode: EMPIRE) {
+    name @include(if: $v)
+    ... abc @include(if: $q)
+  }
+}
+
+fragment abc on Droid {
+  name
+}
+
+---------------------------------------------------------
+
+query foo($v: Boolean, $q: Boolean) @includeCondition(flag: 2) @includeCondition(flag: 3) {
+  ... on Query {
+    hero(episode: EMPIRE) @__execute(id: 0, kind: PURE, type: COMPOSITE) {
+      ... on Human {
+        name @conditional @__execute(id: 1, kind: DEFAULT, type: LEAF)
+      }
+      ... on Droid {
+        name @conditional @__execute(id: 2, kind: DEFAULT, type: LEAF)
+      }
+    }
+  }
+}

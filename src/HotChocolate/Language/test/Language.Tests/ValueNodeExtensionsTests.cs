@@ -11,7 +11,7 @@ public class ValueNodeExtensionsTests
         var value = default(IValueNode);
 
         // act
-        bool result = value.IsNull();
+        var result = value.IsNull();
 
         // assert
         Assert.True(result);
@@ -24,7 +24,7 @@ public class ValueNodeExtensionsTests
         IValueNode value = NullValueNode.Default;
 
         // act
-        bool result = value.IsNull();
+        var result = value.IsNull();
 
         // assert
         Assert.True(result);
@@ -37,7 +37,7 @@ public class ValueNodeExtensionsTests
         IValueNode value = new StringValueNode("foo");
 
         // act
-        bool result = value.IsNull();
+        var result = value.IsNull();
 
         // assert
         Assert.False(result);

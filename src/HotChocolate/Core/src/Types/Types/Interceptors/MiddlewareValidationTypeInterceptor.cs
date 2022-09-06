@@ -22,7 +22,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
     {
         if (definition is ObjectTypeDefinition objectTypeDef)
         {
-            foreach (ObjectFieldDefinition field in objectTypeDef.Fields)
+            foreach (var field in objectTypeDef.Fields)
             {
                 if (field.MiddlewareDefinitions.Count > 1)
                 {
@@ -48,7 +48,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
         var useSorting = false;
         var error = false;
 
-        foreach (FieldMiddlewareDefinition definition in middlewareDefinitions)
+        foreach (var definition in middlewareDefinitions)
         {
             if (definition.Key is not null)
             {
@@ -108,7 +108,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
         var next = false;
         var other = false;
 
-        foreach (FieldMiddlewareDefinition definition in middlewareDefinitions)
+        foreach (var definition in middlewareDefinitions)
         {
             if (definition.Key is not null)
             {

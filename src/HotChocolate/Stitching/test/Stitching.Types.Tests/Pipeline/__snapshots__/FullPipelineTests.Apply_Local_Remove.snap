@@ -1,0 +1,14 @@
+﻿schema @_hc_service(name: "ServiceA") @_hc_service(name: "ServiceB") {
+
+}
+
+type Bar {
+  abc: String @_hc_bind(to: "ServiceB")
+  def: String @_hc_bind(to: "ServiceA")
+}
+
+type Foo {
+  xyz: String @_hc_bind(to: "ServiceA", as: "abc")
+  zzz: Float @_hc_bind(to: "ServiceA") @_hc_bind(to: "ServiceB")
+  abc: Int @_hc_bind(to: "ServiceB")
+}

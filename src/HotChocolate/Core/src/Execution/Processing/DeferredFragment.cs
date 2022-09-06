@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using static HotChocolate.Execution.Processing.Tasks.ResolverTaskFactory;
+using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -8,7 +9,7 @@ namespace HotChocolate.Execution.Processing;
 /// Represents a deprioritized fragment of the query that will be executed after
 /// the main execution has finished.
 /// </summary>
-internal sealed class DeferredFragment : IDeferredExecutionTask
+internal sealed class DeferredFragment : DeferredExecutionTask
 {
     /// <summary>
     /// Initializes a new instance of <see cref="DeferredFragment"/>.
@@ -19,12 +20,12 @@ internal sealed class DeferredFragment : IDeferredExecutionTask
         Path path,
         object? parent,
         IImmutableDictionary<string, object?> scopedContextData)
+        : base(scopedContextData)
     {
         Fragment = fragment;
         Label = label;
         Path = path;
         Parent = parent;
-        ScopedContextData = scopedContextData;
     }
 
     /// <summary>
@@ -50,36 +51,43 @@ internal sealed class DeferredFragment : IDeferredExecutionTask
     /// </summary>
     public object? Parent { get; }
 
-    /// <summary>
-    /// Gets the preserved scoped context from the parent resolver.
-    /// </summary>
-    public IImmutableDictionary<string, object?> ScopedContextData { get; }
-
-    /// <inheritdoc/>
-    public IDeferredExecutionTask? Next { get; set; }
-
-    /// <inheritdoc/>
-    public IDeferredExecutionTask? Previous { get; set; }
-
-    /// <inheritdoc/>
-    public async Task<IQueryResult?> ExecuteAsync(IOperationContext operationContext)
+    protected override async Task ExecuteAsync(
+        OperationContextOwner operationContextOwner,
+        uint resultId,
+        uint parentResultId)
     {
-        operationContext.QueryPlan = operationContext.QueryPlan.GetDeferredPlan(Fragment.Id);
+        try
+        {
+            var operationContext = operationContextOwner.OperationContext;
 
-        ResultMap resultMap = EnqueueResolverTasks(
-            operationContext,
-            Fragment.SelectionSet,
-            Parent,
-            Path,
-            ScopedContextData);
+            var parentResult = EnqueueResolverTasks(
+                operationContext,
+                Fragment.SelectionSet,
+                Parent,
+                Path,
+                // for the execution of this task we set the deferred task ID so that
+                // child deferrals can lookup their dependency to this task.
+                ScopedContextData.SetItem(DeferredResultId, resultId));
 
-        await operationContext.Scheduler.ExecuteAsync().ConfigureAwait(false);
+            // start executing the deferred fragment.
+            await operationContext.Scheduler.ExecuteAsync().ConfigureAwait(false);
 
-        return operationContext
-            .TrySetNext(true)
-            .SetLabel(Label)
-            .SetPath(Path)
-            .SetData(resultMap)
-            .BuildResult();
+            // we create the result but will not create the final result object yet.
+            // We will leave the final creation to the deferred work scheduler so that the
+            // has next property can be correctly set.
+            var result =
+                operationContext
+                    .SetLabel(Label)
+                    .SetPath(Path)
+                    .SetData(parentResult)
+                    .BuildResultBuilder();
+
+            // complete the task and provide the result
+            operationContext.DeferredScheduler.Complete(new(resultId, parentResultId, result));
+        }
+        finally
+        {
+            operationContextOwner.Dispose();
+        }
     }
 }

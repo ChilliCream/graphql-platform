@@ -4,7 +4,9 @@ using HotChocolate.Execution.Batching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class SchemaRequestExecutorBuilderExtensions
@@ -1589,7 +1591,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
     public static IRequestExecutorBuilder BindRuntimeType<TRuntimeType>(
         this IRequestExecutorBuilder builder,
-        NameString? typeName = null)
+        string? typeName = null)
     {
         if (builder is null)
         {
@@ -1597,16 +1599,15 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         }
 
         typeName ??= typeof(TRuntimeType).Name;
+        typeName.EnsureGraphQLName();
 
-        typeName.Value.EnsureNotEmpty(nameof(typeName));
-
-        return builder.ConfigureSchema(b => b.BindRuntimeType<TRuntimeType>(typeName.Value));
+        return builder.ConfigureSchema(b => b.BindRuntimeType<TRuntimeType>(typeName));
     }
 
     public static IRequestExecutorBuilder BindRuntimeType(
         this IRequestExecutorBuilder builder,
         Type runtimeType,
-        NameString? typeName = null)
+        string? typeName = null)
     {
         if (builder is null)
         {
@@ -1619,10 +1620,9 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         }
 
         typeName ??= runtimeType.Name;
+        typeName.EnsureGraphQLName();
 
-        typeName.Value.EnsureNotEmpty(nameof(typeName));
-
-        return builder.ConfigureSchema(b => b.BindRuntimeType(runtimeType, typeName.Value));
+        return builder.ConfigureSchema(b => b.BindRuntimeType(runtimeType, typeName));
     }
 
     public static IRequestExecutorBuilder AddExportDirectiveType(

@@ -5,7 +5,7 @@ namespace StrawberryShake.CodeGeneration.CSharp;
 
 public static class Keywords
 {
-    private static HashSet<string> _keywords = new()
+    private static readonly HashSet<string> _keywords = new()
     {
         "abstract",
         "as",
@@ -124,16 +124,6 @@ public static class Keywords
     public static string ToSafeName(string name)
     {
         if (_keywords.Contains(name))
-        {
-            return $"@{name}";
-        }
-
-        return name;
-    }
-
-    public static string ToEscapedName(this NameString name)
-    {
-        if (_keywords.Contains(name.Value))
         {
             return $"@{name}";
         }

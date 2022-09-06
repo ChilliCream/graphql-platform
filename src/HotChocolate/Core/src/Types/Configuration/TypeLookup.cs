@@ -6,6 +6,7 @@ using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
 
 #nullable  enable
 
@@ -59,7 +60,7 @@ internal sealed class TypeLookup
                 return true;
 
             case SyntaxTypeReference r:
-                NameString typeName = r.Type.NamedType().Name.Value;
+                var typeName = r.Type.NamedType().Name.Value;
                 if (_typeRegistry.TryGetTypeRef(typeName, out namedTypeRef))
                 {
                     _refs[typeRef] = namedTypeRef;
@@ -88,7 +89,7 @@ internal sealed class TypeLookup
 
         if (directiveRef is ClrTypeDirectiveReference cr)
         {
-            ExtendedTypeReference directiveTypeRef = _typeInspector.GetTypeRef(cr.ClrType);
+            var directiveTypeRef = _typeInspector.GetTypeRef(cr.ClrType);
             if (!_typeRegistry.TryGetTypeRef(directiveTypeRef, out namedTypeRef))
             {
                 namedTypeRef = directiveTypeRef;
@@ -99,7 +100,9 @@ internal sealed class TypeLookup
         if (directiveRef is NameDirectiveReference nr)
         {
             namedTypeRef = _typeRegistry.Types
-                .FirstOrDefault(t => t.Type is DirectiveType && t.Type.Name.Equals(nr.Name))?
+                .FirstOrDefault(
+                    t => t.Type is DirectiveType &&
+                        t.Type.Name.EqualsOrdinal(nr.Name))?
                 .References[0];
             return namedTypeRef is not null;
         }
@@ -120,7 +123,7 @@ internal sealed class TypeLookup
         // if the typeRef refers to a schema type base class we skip since such a type is not
         // resolvable.
         if (typeRef.Type.Type.IsNonGenericSchemaType() ||
-            !_typeInspector.TryCreateTypeInfo(typeRef.Type, out ITypeInfo? typeInfo))
+            !_typeInspector.TryCreateTypeInfo(typeRef.Type, out var typeInfo))
         {
             namedTypeRef = null;
             return false;
@@ -138,8 +141,8 @@ internal sealed class TypeLookup
         // eg list<byte> to ByteArray.
         for (var i = 0; i < typeInfo.Components.Count; i++)
         {
-            IExtendedType componentType = typeInfo.Components[i].Type;
-            ExtendedTypeReference componentRef = typeRef.WithType(componentType);
+            var componentType = typeInfo.Components[i].Type;
+            var componentRef = typeRef.WithType(componentType);
             if (_typeRegistry.TryGetTypeRef(componentRef, out namedTypeRef) ||
                 _typeRegistry.TryGetTypeRef(componentRef.WithContext(), out namedTypeRef))
             {

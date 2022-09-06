@@ -1,3 +1,0 @@
-﻿SELECT 0, "i"."Url", "b"."Url"
-FROM "Blogs" AS "b"
-INNER JOIN "Images" AS "i" ON "b"."ImageId" = "i"."ImageId"

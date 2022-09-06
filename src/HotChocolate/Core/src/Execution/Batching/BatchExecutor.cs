@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 
@@ -27,13 +26,11 @@ internal partial class BatchExecutor
 
     public IAsyncEnumerable<IQueryResult> ExecuteAsync(
         IRequestExecutor requestExecutor,
-        IEnumerable<IQueryRequest> requestBatch)
-    {
-        return new BatchExecutorEnumerable(
+        IReadOnlyList<IQueryRequest> requestBatch)
+        => new BatchExecutorEnumerable(
             requestBatch,
             requestExecutor,
             _errorHandler,
             _typeConverter,
             _inputFormatter);
-    }
 }

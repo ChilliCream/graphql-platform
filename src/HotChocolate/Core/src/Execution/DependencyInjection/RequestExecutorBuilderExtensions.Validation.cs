@@ -3,6 +3,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Validation;
 using HotChocolate.Validation.Options;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class RequestExecutorBuilderExtensions

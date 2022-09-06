@@ -1,7 +1,6 @@
-﻿namespace HotChocolate.Execution.Integration.HelloWorldCodeFirst
+﻿namespace HotChocolate.Execution.Integration.HelloWorldCodeFirst;
+
+public class DataStoreHelloWorld
 {
-    public class DataStoreHelloWorld
-    {
-        public string State { get; set; } = "initial";
-    }
+    public string State { get; set; } = "initial";
 }

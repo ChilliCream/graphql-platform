@@ -4,7 +4,6 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.Descriptors.TypeReference;
@@ -18,11 +17,11 @@ internal sealed class __InputValue : ObjectType
 {
     protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
     {
-        SyntaxTypeReference stringType = Create(ScalarNames.String);
-        SyntaxTypeReference nonNullStringType = Parse($"{ScalarNames.String}!");
-        SyntaxTypeReference nonNullTypeType = Parse($"{nameof(__Type)}!");
-        SyntaxTypeReference nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
-        SyntaxTypeReference appDirectiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
+        var stringType = Create(ScalarNames.String);
+        var nonNullStringType = Parse($"{ScalarNames.String}!");
+        var nonNullTypeType = Parse($"{nameof(__Type)}!");
+        var nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
+        var appDirectiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
 
         var def = new ObjectTypeDefinition(
             Names.__InputValue,
@@ -61,7 +60,7 @@ internal sealed class __InputValue : ObjectType
     private static class Resolvers
     {
         public static object Name(IPureResolverContext context)
-            => context.Parent<IInputField>().Name.Value;
+            => context.Parent<IInputField>().Name;
 
         public static object? Description(IPureResolverContext context)
             => context.Parent<IInputField>().Description;
@@ -77,7 +76,7 @@ internal sealed class __InputValue : ObjectType
 
         public static object? DefaultValue(IPureResolverContext context)
         {
-            IInputField field = context.Parent<IInputField>();
+            var field = context.Parent<IInputField>();
             return field.DefaultValue.IsNull() ? null : field.DefaultValue!.Print();
         }
 

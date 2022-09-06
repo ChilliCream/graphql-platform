@@ -34,8 +34,8 @@ public static class ComparisonHelper
 
         if (first is not null && second is not null)
         {
-            using IEnumerator<IEnumerable<TSource>?> e1 = first.GetEnumerator();
-            using IEnumerator<IEnumerable<TSource>?> e2 = second.GetEnumerator();
+            using var e1 = first.GetEnumerator();
+            using var e2 = second.GetEnumerator();
 
             while (e1.MoveNext())
             {
@@ -62,8 +62,8 @@ public static class ComparisonHelper
 
         if (first is not null && second is not null)
         {
-            IEnumerator e1 = first.GetEnumerator();
-            IEnumerator e2 = second.GetEnumerator();
+            var e1 = first.GetEnumerator();
+            var e2 = second.GetEnumerator();
 
             while (e1.MoveNext())
             {

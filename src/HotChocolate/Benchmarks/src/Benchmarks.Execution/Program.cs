@@ -20,10 +20,6 @@ public static class Program
 
     private static async Task Run()
     {
-        var schemaBench = new SchemaBuildingBenchmarks();
-        await schemaBench.CreateSchema_SchemaFirst_Large();
-        Console.ReadLine();
-
         Console.WriteLine("Initialize");
         var queryBench = new QueryBenchmarks();
 

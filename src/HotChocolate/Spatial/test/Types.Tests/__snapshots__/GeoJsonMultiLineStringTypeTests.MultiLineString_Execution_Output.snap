@@ -1,51 +1,44 @@
-﻿{
-  "Kind": "SingleResult",
-  "Label": null,
-  "Path": null,
-  "Data": {
+{
+  "data": {
     "test": {
       "type": "MultiLineString",
       "coordinates": [
         [
-          10.0,
-          10.0
+          10,
+          10
         ],
         [
-          20.0,
-          20.0
+          20,
+          20
         ],
         [
-          10.0,
-          40.0
+          10,
+          40
         ],
         [
-          40.0,
-          40.0
+          40,
+          40
         ],
         [
-          30.0,
-          30.0
+          30,
+          30
         ],
         [
-          40.0,
-          20.0
+          40,
+          20
         ],
         [
-          30.0,
-          10.0
+          30,
+          10
         ]
       ],
       "bbox": [
-        10.0,
-        10.0,
-        40.0,
-        40.0
+        10,
+        10,
+        40,
+        40
       ],
       "crs": 4326
     }
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null,
-  "HasNext": null
+  }
 }

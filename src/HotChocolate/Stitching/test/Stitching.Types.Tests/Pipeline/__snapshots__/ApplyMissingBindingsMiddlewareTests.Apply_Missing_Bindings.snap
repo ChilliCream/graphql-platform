@@ -1,0 +1,17 @@
+﻿schema @_hc_service(name: "SchemaName") {
+
+}
+
+type Foo implements IFoo & IFooExt {
+  newName: String @_hc_bind(to: "SchemaName", as: "abc")
+  def: String @_hc_bind(to: "SchemaName")
+}
+
+interface IFoo {
+  newName: String @_hc_bind(to: "SchemaName", as: "abc")
+}
+
+interface IFooExt implements IFoo {
+  newName: String @_hc_bind(to: "SchemaName", as: "abc")
+  def: String @_hc_bind(to: "SchemaName")
+}

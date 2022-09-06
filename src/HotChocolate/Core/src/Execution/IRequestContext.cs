@@ -3,7 +3,6 @@ using System.Threading;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 using HotChocolate.Validation;
 
 #nullable enable
@@ -37,19 +36,14 @@ public interface IRequestContext : IHasContextData
     IErrorHandler ErrorHandler { get; }
 
     /// <summary>
-    /// Gets the type converter service.
+    /// Gets the diagnostic events logger.
     /// </summary>
-    ITypeConverter Converter { get; }
+    IExecutionDiagnosticEvents DiagnosticEvents { get; }
 
     /// <summary>
     /// Gets the activator helper class.
     /// </summary>
     IActivator Activator { get; }
-
-    /// <summary>
-    /// Gets the diagnostic events logger.
-    /// </summary>
-    IExecutionDiagnosticEvents DiagnosticEvents { get; }
 
     /// <summary>
     /// Gets or sets the initial query request.
@@ -107,7 +101,7 @@ public interface IRequestContext : IHasContextData
     /// <summary>
     /// Gets or sets the prepared operation.
     /// </summary>
-    IPreparedOperation? Operation { get; set; }
+    IOperation? Operation { get; set; }
 
     /// <summary>
     /// Gets or sets the coerced variable values.
@@ -125,8 +119,7 @@ public interface IRequestContext : IHasContextData
     Exception? Exception { get; set; }
 
     /// <summary>
-    /// Creates a copy of this request context.
+    /// Clones the request context.
     /// </summary>
-    /// <returns></returns>
     IRequestContext Clone();
 }

@@ -1,0 +1,35 @@
+true Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": false
+      }
+    ]
+  }
+}
+---------------
+
+true Query:
+---------------
+MATCH (fooBool:FooBool) WHERE fooBool.Bar <> True RETURN fooBool {.Bar}
+---------------
+
+false Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": true
+      }
+    ]
+  }
+}
+---------------
+
+false Query:
+---------------
+MATCH (fooBool:FooBool) WHERE fooBool.Bar <> False RETURN fooBool {.Bar}
+---------------

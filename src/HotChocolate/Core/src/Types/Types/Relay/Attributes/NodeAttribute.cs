@@ -2,7 +2,6 @@
 
 using System;
 using System.Linq;
-using System.Reflection;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Relay.Descriptors;
@@ -47,12 +46,12 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
                 context.TypeInspector.GetType(typeof(IdType))));
         });
 
-        descriptor.Extend().OnBeforeCompletion((descriptorContext, definition) =>
+        descriptor.Extend().OnBeforeCompletion((completionContext, definition) =>
         {
             // first we try to resolve the id field.
             if (IdField is not null)
             {
-                MemberInfo? idField = type.GetMember(IdField).FirstOrDefault();
+                var idField = type.GetMember(IdField).FirstOrDefault();
 
                 if (idField is null)
                 {
@@ -75,7 +74,7 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
             {
                 if (NodeResolver is not null)
                 {
-                    MethodInfo? method = NodeResolverType.GetMethod(
+                    var method = NodeResolverType.GetMethod(
                         NodeResolver,
                         Instance | Static | Public | FlattenHierarchy);
 
@@ -95,7 +94,7 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
             }
             else if (NodeResolver is not null)
             {
-                MethodInfo? method = type.GetMethod(
+                var method = type.GetMethod(
                     NodeResolver,
                     Instance | Static | Public | FlattenHierarchy);
 
@@ -108,7 +107,7 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
             }
             else if (definition.RuntimeType != typeof(object) && definition.RuntimeType != type)
             {
-                MethodInfo? method = descriptorContext.TypeInspector.GetNodeResolverMethod(
+                var method = completionContext.TypeInspector.GetNodeResolverMethod(
                     definition.RuntimeType,
                     type);
 
@@ -120,7 +119,7 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
                 if (definition.Fields.Any(
                     t => t.Member == method || t.ResolverMember == method))
                 {
-                    foreach (ObjectFieldDefinition? fieldDefinition in definition.Fields
+                    foreach (var fieldDefinition in definition.Fields
                         .Where(t => t.Member == method || t.ResolverMember == method)
                         .ToArray())
                     {
@@ -137,14 +136,13 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
 
             // we trigger a late id field configuration
             var descriptor = ObjectTypeDescriptor.From(
-                descriptorContext.DescriptorContext,
+                completionContext.DescriptorContext,
                 definition);
             nodeDescriptor.ConfigureNodeField(descriptor);
             descriptor.CreateDefinition();
 
-            // after that we complete the type definition
-            // to copy the node resolver to the context data.
-            nodeDescriptor.OnCompleteDefinition(definition);
+            // invoke completion explicitly.
+            nodeDescriptor.OnCompleteDefinition(completionContext, definition);
         });
     }
 }

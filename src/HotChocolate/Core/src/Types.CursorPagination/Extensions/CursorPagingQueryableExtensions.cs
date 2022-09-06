@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Types.Pagination.Extensions;
 
 /// <summary>

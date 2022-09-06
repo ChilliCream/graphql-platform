@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using Xunit;
@@ -15,13 +16,14 @@ public class Neo4JBooleanFilterTests
         _fixture = fixture;
     }
 
-    private readonly string _fooEntitiesCypher =
+    private const string _fooEntitiesCypher =
         @"CREATE (:FooBool {Bar: true}), (:FooBool {Bar: false})";
-    private readonly string _fooEntitiesNullableCypher =
+
+    private const string _fooEntitiesNullableCypher =
         @"CREATE
-                (:FooBoolNullable {Bar: true}),
-                (:FooBoolNullable {Bar: false}),
-                (:FooBoolNullable {Bar: NULL})";
+            (:FooBoolNullable {Bar: true}),
+            (:FooBoolNullable {Bar: false}),
+            (:FooBoolNullable {Bar: NULL})";
 
     public class FooBool
     {
@@ -33,13 +35,11 @@ public class Neo4JBooleanFilterTests
         public bool? Bar { get; set; }
     }
 
-    public class FooBoolFilterType
-        : FilterInputType<FooBool>
+    public class FooBoolFilterType : FilterInputType<FooBool>
     {
     }
 
-    public class FooBoolNullableFilterType
-        : FilterInputType<FooBoolNullable>
+    public class FooBoolNullableFilterType : FilterInputType<FooBoolNullable>
     {
     }
 
@@ -47,153 +47,171 @@ public class Neo4JBooleanFilterTests
     public async Task Create_BooleanEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester =
+        var tester =
             await _fixture.GetOrCreateSchema<FooBool, FooBoolFilterType>(_fooEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { bar: { eq: true}}){ bar }}";
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(query1)
                 .Create());
 
         const string query2 = "{ root(where: { bar: { eq: false}}){ bar }}";
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(query2)
                 .Create());
 
         // assert
-        res1.MatchDocumentSnapshot("true");
-        res2.MatchDocumentSnapshot("false");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "true"), res2, "false")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_And_BooleanEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester =
+        var tester =
             await _fixture.GetOrCreateSchema<FooBool, FooBoolFilterType>(_fooEntitiesCypher);
 
         // act
         const string query1 =
             "{ root(where: {and: [{ bar: { eq: true}}, { bar: { eq: false}}]} ){ bar }}";
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(query1)
                 .Create());
 
         // assert
-        res1.MatchDocumentSnapshot("and");
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), res1, "and")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_Or_BooleanEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester =
+        var tester =
             await _fixture.GetOrCreateSchema<FooBool, FooBoolFilterType>(_fooEntitiesCypher);
 
         // act
         const string query1 =
             "{ root(where: {or: [{ bar: { eq: true}}, { bar: { eq: false}}]} ){ bar }}";
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(query1)
                 .Create());
 
         // assert
-        res1.MatchDocumentSnapshot("or");
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), res1, "or")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_BooleanNotEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester =
+        var tester =
             await _fixture.GetOrCreateSchema<FooBool, FooBoolFilterType>(_fooEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { bar: { neq: true}}){ bar}}";
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(query1)
                 .Create());
 
         const string query2 = "{ root(where: { bar: { neq: false}}){ bar}}";
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(query2)
                 .Create());
 
         // assert
-        res1.MatchDocumentSnapshot("true");
-        res2.MatchDocumentSnapshot("false");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "true"), res2, "false")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_NullableBooleanEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester =
+        var tester =
             await _fixture.GetOrCreateSchema<FooBoolNullable, FooBoolNullableFilterType>(
                 _fooEntitiesNullableCypher);
 
         // act
         const string query1 = "{ root(where: { bar: { eq: true}}){ bar }}";
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(query1)
                 .Create());
 
         const string query2 = "{ root(where: { bar: { eq: false}}){ bar }}";
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(query2)
                 .Create());
 
         const string query3 = "{ root(where: { bar: { eq: null}}){ bar }}";
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(query3)
                 .Create());
 
         // assert
-        res1.MatchDocumentSnapshot("true");
-        res2.MatchDocumentSnapshot("false");
-        res3.MatchDocumentSnapshot("null");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "true"), res2, "false"), res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_NullableBooleanNotEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester =
+        var tester =
             await _fixture.GetOrCreateSchema<FooBoolNullable, FooBoolNullableFilterType>(
                 _fooEntitiesNullableCypher);
 
         // act
         const string query1 = "{ root(where: { bar: { neq: true}}){ bar }}";
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(query1)
                 .Create());
 
         const string query2 = "{ root(where: { bar: { neq: false}}){ bar }}";
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(query2)
                 .Create());
 
         const string query3 = "{ root(where: { bar: { neq: null}}){ bar }}";
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(query3)
                 .Create());
 
         // assert
-        res1.MatchDocumentSnapshot("true");
-        res2.MatchDocumentSnapshot("false");
-        res3.MatchDocumentSnapshot("null");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "true"), res2, "false"), res3, "null")
+            .MatchAsync();
     }
 }

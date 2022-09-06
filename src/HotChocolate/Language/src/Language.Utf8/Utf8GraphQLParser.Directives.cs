@@ -9,21 +9,21 @@ public ref partial struct Utf8GraphQLParser
 
     private DirectiveDefinitionNode ParseDirectiveDefinition()
     {
-        TokenInfo start = Start();
+        var start = Start();
 
         ExpectDirectiveKeyword();
         ExpectAt();
 
-        NameNode name = ParseName();
-        List<InputValueDefinitionNode> arguments =
+        var name = ParseName();
+        var arguments =
             ParseArgumentDefinitions();
 
         var isRepeatable = SkipRepeatableKeyword();
         ExpectOnKeyword();
 
-        List<NameNode> locations = ParseDirectiveLocations();
+        var locations = ParseDirectiveLocations();
 
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new DirectiveDefinitionNode
         (
@@ -54,8 +54,8 @@ public ref partial struct Utf8GraphQLParser
 
     private NameNode ParseDirectiveLocation()
     {
-        TokenKind kind = _reader.Kind;
-        NameNode name = ParseName();
+        var kind = _reader.Kind;
+        var name = ParseName();
 
         if (DirectiveLocation.IsValidName(name.Value))
         {
@@ -85,13 +85,13 @@ public ref partial struct Utf8GraphQLParser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private DirectiveNode ParseDirective(bool isConstant)
     {
-        TokenInfo start = Start();
+        var start = Start();
 
         ExpectAt();
-        NameNode name = ParseName();
-        List<ArgumentNode> arguments = ParseArguments(isConstant);
+        var name = ParseName();
+        var arguments = ParseArguments(isConstant);
 
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new DirectiveNode
         (

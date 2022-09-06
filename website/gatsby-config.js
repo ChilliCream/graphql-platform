@@ -25,7 +25,7 @@ module.exports = {
       },
       {
         name: `Shop`,
-        link: `https://shop.chillicream.com`,
+        link: `https://store.chillicream.com`,
       },
     ],
     tools: {

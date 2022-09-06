@@ -21,7 +21,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
         IHttpResultSerializer resultSerializer,
         IHttpRequestParser requestParser,
         IServerDiagnosticEvents diagnosticEvents,
-        NameString schemaName)
+        string schemaName)
         : base(next, executorResolver, resultSerializer, schemaName)
     {
         _requestParser = requestParser ??
@@ -37,7 +37,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
         {
             if (!IsDefaultSchema)
             {
-                context.Items[WellKnownContextData.SchemaName] = SchemaName.Value;
+                context.Items[WellKnownContextData.SchemaName] = SchemaName;
             }
 
             using (_diagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpGet))
@@ -56,9 +56,9 @@ public sealed class HttpGetMiddleware : MiddlewareBase
     private async Task HandleRequestAsync(HttpContext context)
     {
         // first we need to get the request executor to be able to execute requests.
-        IRequestExecutor requestExecutor = await GetExecutorAsync(context.RequestAborted);
-        IHttpRequestInterceptor requestInterceptor = requestExecutor.GetRequestInterceptor();
-        IErrorHandler errorHandler = requestExecutor.GetErrorHandler();
+        var requestExecutor = await GetExecutorAsync(context.RequestAborted);
+        var requestInterceptor = requestExecutor.GetRequestInterceptor();
+        var errorHandler = requestExecutor.GetErrorHandler();
         context.Items[WellKnownContextData.RequestExecutor] = requestExecutor;
 
         HttpStatusCode? statusCode = null;
@@ -78,7 +78,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
                 // parsed. In this case we will return HTTP status code 400 and return a
                 // GraphQL error result.
                 statusCode = HttpStatusCode.BadRequest;
-                IReadOnlyList<IError> errors = errorHandler.Handle(ex.Errors);
+                var errors = errorHandler.Handle(ex.Errors);
                 result = QueryResultBuilder.CreateError(errors);
                 _diagnosticEvents.ParserErrors(context, errors);
                 goto HANDLE_RESULT;
@@ -86,7 +86,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
             catch (Exception ex)
             {
                 statusCode = HttpStatusCode.InternalServerError;
-                IError error = errorHandler.CreateUnexpectedError(ex).Build();
+                var error = errorHandler.CreateUnexpectedError(ex).Build();
                 result = QueryResultBuilder.CreateError(error);
                 _diagnosticEvents.HttpRequestError(context, error);
                 goto HANDLE_RESULT;
@@ -96,7 +96,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
         // after successfully parsing the request we now will attempt to execute the request.
         try
         {
-            GraphQLServerOptions? options = context.GetGraphQLServerOptions();
+            var options = context.GetGraphQLServerOptions();
             result = await ExecuteSingleAsync(
                 context,
                 requestExecutor,
@@ -116,7 +116,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
         catch (Exception ex)
         {
             statusCode = HttpStatusCode.InternalServerError;
-            IError error = errorHandler.CreateUnexpectedError(ex).Build();
+            var error = errorHandler.CreateUnexpectedError(ex).Build();
             result = QueryResultBuilder.CreateError(error);
         }
 

@@ -1,7 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using CookieCrumble;
 using HotChocolate.Execution;
-using Xunit;
 
 namespace HotChocolate.Data.Neo4J.Projections.Relationship;
 
@@ -15,9 +13,10 @@ public class Neo4JRelationshipProjectionTests
         _fixture = fixture;
     }
 
-    private readonly string _fooEntitiesCypher = @"
-            CREATE (:FooRel {BarBool: true, BarString: 'a', BarInt: 1, BarDouble: 1.5})-[:RELATED_TO]->(:Bar {Name: 'b', Number: 2})<-[:RELATED_FROM]-(:Baz {Name: 'c', Number: 3})
-        ";
+    private readonly string _fooEntitiesCypher =
+        "CREATE (:FooRel {BarBool: true, BarString: 'a', BarInt: 1, BarDouble: 1.5})-" +
+        "[:RELATED_TO]->(:Bar {Name: 'b', Number: 2})<-[:RELATED_FROM]-" +
+        "(:Baz {Name: 'c', Number: 3})";
 
     public class FooRel
     {
@@ -54,10 +53,10 @@ public class Neo4JRelationshipProjectionTests
     public async Task OneRelationshipReturnOneProperty()
     {
         // arrange
-        IRequestExecutor tester = await _fixture.GetOrCreateSchema<FooRel>(_fooEntitiesCypher);
+        var tester = await _fixture.GetOrCreateSchema<FooRel>(_fooEntitiesCypher);
 
         // act
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -75,40 +74,44 @@ public class Neo4JRelationshipProjectionTests
                 .Create());
 
         // assert
-        res1.MatchDocumentSnapshot();
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task TwoRelationshipReturnOneProperty()
     {
         // arrange
-        IRequestExecutor tester = await _fixture.GetOrCreateSchema<FooRel>(_fooEntitiesCypher);
+        var tester = await _fixture.GetOrCreateSchema<FooRel>(_fooEntitiesCypher);
 
         // act
 
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
-                    @"
-                        {
-                            root {
-                                barBool
-                                barString
-                                bars
+                    @"{
+                        root {
+                            barBool
+                            barString
+                            bars
+                            {
+                                name
+                                number
+                                bazs
                                 {
                                     name
-                                    number
-                                    bazs
-                                    {
-                                        name
-                                    }
                                 }
                             }
                         }
-                        ")
+                    }")
                 .Create());
 
         // assert
-        res1.MatchDocumentSnapshot();
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 }

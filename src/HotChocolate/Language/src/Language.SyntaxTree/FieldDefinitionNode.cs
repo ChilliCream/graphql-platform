@@ -72,14 +72,14 @@ public sealed class FieldDefinitionNode : NamedSyntaxNode
 
         yield return Name;
 
-        foreach (InputValueDefinitionNode argument in Arguments)
+        foreach (var argument in Arguments)
         {
             yield return argument;
         }
 
         yield return Type;
 
-        foreach (DirectiveNode directive in Directives)
+        foreach (var directive in Directives)
         {
             yield return directive;
         }

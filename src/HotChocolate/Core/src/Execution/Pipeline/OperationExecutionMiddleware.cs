@@ -1,9 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,7 +15,6 @@ internal sealed class OperationExecutionMiddleware
     private readonly ObjectPool<OperationContext> _operationContextPool;
     private readonly QueryExecutor _queryExecutor;
     private readonly SubscriptionExecutor _subscriptionExecutor;
-    private readonly IQueryPlanCache _queryPlanCache;
     private readonly ITransactionScopeHandler _transactionScopeHandler;
     private object? _cachedQuery;
     private object? _cachedMutation;
@@ -28,7 +24,6 @@ internal sealed class OperationExecutionMiddleware
         ObjectPool<OperationContext> operationContextPool,
         QueryExecutor queryExecutor,
         SubscriptionExecutor subscriptionExecutor,
-        IQueryPlanCache queryPlanCache,
         [SchemaService] ITransactionScopeHandler transactionScopeHandler)
     {
         _next = next ??
@@ -39,8 +34,6 @@ internal sealed class OperationExecutionMiddleware
             throw new ArgumentNullException(nameof(queryExecutor));
         _subscriptionExecutor = subscriptionExecutor ??
             throw new ArgumentNullException(nameof(subscriptionExecutor));
-        _queryPlanCache = queryPlanCache ??
-            throw new ArgumentNullException(nameof(queryPlanCache));
         _transactionScopeHandler = transactionScopeHandler ??
             throw new ArgumentNullException(nameof(transactionScopeHandler));
     }
@@ -58,15 +51,9 @@ internal sealed class OperationExecutionMiddleware
         {
             if (IsOperationAllowed(context))
             {
-                QueryPlan queryPlan = GetQueryPlan(context);
-
                 using (context.DiagnosticEvents.ExecuteOperation(context))
                 {
-                    await ExecuteOperationAsync(
-                        context,
-                        batchDispatcher,
-                        context.Operation,
-                        queryPlan)
+                    await ExecuteOperationAsync(context, batchDispatcher, context.Operation)
                         .ConfigureAwait(false);
                 }
             }
@@ -84,81 +71,42 @@ internal sealed class OperationExecutionMiddleware
     private async Task ExecuteOperationAsync(
         IRequestContext context,
         IBatchDispatcher batchDispatcher,
-        IPreparedOperation operation,
-        QueryPlan queryPlan)
+        IOperation operation)
     {
         if (operation.Definition.Operation == OperationType.Subscription)
         {
             // since the context is pooled we need to clone the context for
             // long running executions.
-            IRequestContext clonedContext = context.Clone();
+            var cloned = context.Clone();
 
-            DefaultRequestContextAccessor accessor =
-                clonedContext.Services.GetRequiredService<DefaultRequestContextAccessor>();
-            accessor.RequestContext = clonedContext;
+            var accessor = cloned.Services.GetRequiredService<DefaultRequestContextAccessor>();
+            accessor.RequestContext = cloned;
 
             context.Result = await _subscriptionExecutor
-                .ExecuteAsync(clonedContext, queryPlan, () => GetQueryRootValue(clonedContext))
+                .ExecuteAsync(cloned, () => GetQueryRootValue(cloned))
                 .ConfigureAwait(false);
 
-            await _next(clonedContext).ConfigureAwait(false);
+            await _next(cloned).ConfigureAwait(false);
         }
         else
         {
-            OperationContext? operationContext = _operationContextPool.Get();
+            var operationContext = _operationContextPool.Get();
 
             try
             {
                 await ExecuteQueryOrMutationAsync(
-                    context, batchDispatcher, operation, queryPlan, operationContext)
+                    context, batchDispatcher, operation, operationContext)
                     .ConfigureAwait(false);
 
-                if (context.ContextData.ContainsKey(WellKnownContextData.IncludeQueryPlan) &&
-                    context.Result is IQueryResult original)
-                {
-                    var serializedQueryPlan = new Dictionary<string, object?>
-                        {
-                            { "flow", QueryPlanBuilder.Prepare(operation).Serialize() },
-                            { "selections", operation.Print() }
-                        };
-
-                    context.Result = QueryResultBuilder
-                        .FromResult(original)
-                        .AddExtension("queryPlan", serializedQueryPlan)
-                        .Create();
-                }
-
-                if (operationContext.Scheduler.DeferredWork.HasWork &&
+                if (operationContext.DeferredScheduler.HasResults &&
                     context.Result is IQueryResult result)
                 {
-                    // if we have deferred query task we will take ownership
-                    // of the life time handling and return the operation context
-                    // once we handled all deferred tasks.
-                    var operationContextOwner = new OperationContextOwner(
-                        operationContext, _operationContextPool);
-
-                    var streamSession = new StreamSession(
-                        new IDisposable[]
-                        {
-                            operationContextOwner,
-
-                            // the diagnostic scope needs to be last to be disposed last.
-                            context.DiagnosticEvents.ExecuteStream(context)
-                        });
-
-                    // since the context is pooled we need to clone the context for
-                    // long running executions.
-                    operationContext.RequestContext = context.Clone();
-
-                    // also we set operation context to null so that it is not
-                    // given back to the pool.
-                    operationContext = null;
+                    var stream = operationContext.DeferredScheduler.CreateResultStream(result);
 
                     context.Result = new ResponseStream(
-                        () => new DeferredTaskExecutor(result, operationContextOwner),
+                        () => stream,
                         ExecutionResultKind.DeferredResult);
                     context.Result.RegisterForCleanup(result);
-                    context.Result.RegisterForCleanup(operationContextOwner);
                 }
 
                 await _next(context).ConfigureAwait(false);
@@ -176,11 +124,10 @@ internal sealed class OperationExecutionMiddleware
     private async Task ExecuteQueryOrMutationAsync(
         IRequestContext context,
         IBatchDispatcher batchDispatcher,
-        IPreparedOperation operation,
-        QueryPlan queryPlan,
+        IOperation operation,
         OperationContext operationContext)
     {
-        if (operation.Definition.Operation == OperationType.Query)
+        if (operation.Definition.Operation is OperationType.Query)
         {
             var query = GetQueryRootValue(context);
 
@@ -189,7 +136,6 @@ internal sealed class OperationExecutionMiddleware
                 context.Services,
                 batchDispatcher,
                 operation,
-                queryPlan,
                 context.Variables!,
                 query,
                 () => query);
@@ -198,9 +144,9 @@ internal sealed class OperationExecutionMiddleware
                 .ExecuteAsync(operationContext)
                 .ConfigureAwait(false);
         }
-        else if (operation.Definition.Operation == OperationType.Mutation)
+        else if (operation.Definition.Operation is OperationType.Mutation)
         {
-            using ITransactionScope transactionScope =
+            using var transactionScope =
                 _transactionScopeHandler.Create(context);
 
             var mutation = GetMutationRootValue(context);
@@ -210,7 +156,6 @@ internal sealed class OperationExecutionMiddleware
                 context.Services,
                 batchDispatcher,
                 operation,
-                queryPlan,
                 context.Variables!,
                 mutation,
                 () => GetQueryRootValue(context));
@@ -221,17 +166,6 @@ internal sealed class OperationExecutionMiddleware
 
             transactionScope.Complete();
         }
-    }
-
-    private QueryPlan GetQueryPlan(IRequestContext context)
-    {
-        if (!_queryPlanCache.TryGetQueryPlan(context.OperationId!, out QueryPlan? queryPlan))
-        {
-            queryPlan = QueryPlanBuilder.Build(context.Operation!);
-            _queryPlanCache.TryAddQueryPlan(context.OperationId!, queryPlan);
-        }
-
-        return queryPlan;
     }
 
     private object? GetQueryRootValue(IRequestContext context) =>
@@ -250,7 +184,7 @@ internal sealed class OperationExecutionMiddleware
 
     private bool IsOperationAllowed(IRequestContext context)
     {
-        OperationType[]? allowedOps = context.Request.AllowedOperations;
+        var allowedOps = context.Request.AllowedOperations;
 
         if (allowedOps is null ||
             allowedOps.Length == 0)
@@ -273,28 +207,5 @@ internal sealed class OperationExecutionMiddleware
         }
 
         return false;
-    }
-
-    private sealed class StreamSession : IDisposable
-    {
-        private readonly IDisposable[] _disposables;
-        private bool _disposed;
-
-        public StreamSession(IDisposable[] disposables)
-        {
-            _disposables = disposables;
-        }
-
-        public void Dispose()
-        {
-            if (!_disposed)
-            {
-                foreach (IDisposable disposable in _disposables)
-                {
-                    disposable.Dispose();
-                }
-                _disposed = true;
-            }
-        }
     }
 }

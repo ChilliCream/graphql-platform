@@ -55,6 +55,7 @@ public static class RelaySchemaBuilderExtensions
         {
             schemaBuilder
                 .TryAddTypeInterceptor<NodeFieldTypeInterceptor>()
+                .TryAddTypeInterceptor<NodeResolverTypeInterceptor>()
                 .AddType<NodeType>();
         }
 

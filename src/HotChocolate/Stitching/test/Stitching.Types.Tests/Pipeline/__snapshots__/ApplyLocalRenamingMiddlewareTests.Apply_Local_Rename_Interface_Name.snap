@@ -1,0 +1,11 @@
+﻿schema @_hc_service(name: "abc") {
+
+}
+
+type Foo implements IDef {
+  abc: String
+}
+
+interface IDef @_hc_bind(to: "abc", as: "IFoo") {
+  abc: String
+}

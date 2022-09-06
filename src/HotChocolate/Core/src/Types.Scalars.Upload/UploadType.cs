@@ -23,7 +23,7 @@ public class UploadType : ScalarType<IFile, FileValueNode>
     /// Initializes a new instance of the <see cref="UploadType"/> class.
     /// </summary>
     public UploadType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)

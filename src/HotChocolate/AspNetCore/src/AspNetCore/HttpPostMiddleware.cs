@@ -12,7 +12,7 @@ public sealed class HttpPostMiddleware : HttpPostMiddlewareBase
         IHttpResultSerializer resultSerializer,
         IHttpRequestParser requestParser,
         IServerDiagnosticEvents diagnosticEvents,
-        NameString schemaName)
+        string schemaName)
         : base(
             next,
             executorResolver,

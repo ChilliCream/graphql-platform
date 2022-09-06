@@ -1,12 +1,9 @@
-using System;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using NetTopologySuite.Geometries;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.Spatial;
 
@@ -50,7 +47,7 @@ public class GeoJsonMultiPolygonInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         var result = inputParser.ParseLiteral(
@@ -79,7 +76,7 @@ public class GeoJsonMultiPolygonInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         var result = inputParser.ParseLiteral(
@@ -109,7 +106,7 @@ public class GeoJsonMultiPolygonInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         var result = inputParser.ParseLiteral(NullValueNode.Default, type);
@@ -123,7 +120,7 @@ public class GeoJsonMultiPolygonInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         // assert
@@ -136,7 +133,7 @@ public class GeoJsonMultiPolygonInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         // assert
@@ -153,7 +150,7 @@ public class GeoJsonMultiPolygonInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         // assert
@@ -170,7 +167,7 @@ public class GeoJsonMultiPolygonInputTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        InputObjectType type = CreateInputType();
+        var type = CreateInputType();
 
         // act
         // assert
@@ -186,7 +183,7 @@ public class GeoJsonMultiPolygonInputTests
     public async Task Execution_Tests()
     {
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(
                 d => d
                     .Name("Query")
@@ -195,10 +192,10 @@ public class GeoJsonMultiPolygonInputTests
                     .Resolve(ctx => ctx.ArgumentValue<MultiPolygon>("arg").ToString()))
             .Create();
 
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                   test(
@@ -222,10 +219,10 @@ public class GeoJsonMultiPolygonInputTests
     {
         // arrange
         // act
-        ISchema schema = CreateSchema();
+        var schema = CreateSchema();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     private ISchema CreateSchema() => SchemaBuilder.New()
@@ -240,7 +237,7 @@ public class GeoJsonMultiPolygonInputTests
 
     private InputObjectType CreateInputType()
     {
-        ISchema schema = CreateSchema();
+        var schema = CreateSchema();
         return schema.GetType<InputObjectType>("GeoJSONMultiPolygonInput");
     }
 }

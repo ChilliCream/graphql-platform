@@ -13,7 +13,7 @@ internal sealed class SchemaMergeContext : ISchemaMergeContext
 
     public IReadOnlyList<ServiceConfiguration> Configurations { get; }
 
-    public IImmutableList<DocumentNode> Documents { get; set; } = ImmutableList<DocumentNode>.Empty;
+    public IImmutableList<Document> Documents { get; set; } = ImmutableList<Document>.Empty;
 
     public ICollection<IError> Errors { get; } = new List<IError>();
 

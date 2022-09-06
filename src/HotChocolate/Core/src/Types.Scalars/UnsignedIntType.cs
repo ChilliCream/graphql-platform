@@ -19,7 +19,7 @@ public class UnsignedIntType : IntegerTypeBase<uint>
     /// Initializes a new instance of the <see cref="UnsignedIntType"/> class.
     /// </summary>
     public UnsignedIntType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Implicit)
         : base(name, uint.MinValue, uint.MaxValue, bind)

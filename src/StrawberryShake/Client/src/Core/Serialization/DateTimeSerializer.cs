@@ -19,7 +19,7 @@ public class DateTimeSerializer : ScalarSerializer<string, DateTimeOffset>
 
     public override DateTimeOffset Parse(string serializedValue)
     {
-        if (TryDeserializeFromString(serializedValue, out DateTimeOffset? dateTimeOffset))
+        if (TryDeserializeFromString(serializedValue, out var dateTimeOffset))
         {
             return dateTimeOffset.Value;
         }
@@ -51,7 +51,7 @@ public class DateTimeSerializer : ScalarSerializer<string, DateTimeOffset>
                 serialized,
                 CultureInfo.InvariantCulture,
                 DateTimeStyles.AssumeUniversal,
-                out DateTime zuluTime))
+                out var zuluTime))
         {
             value = new DateTimeOffset(
                 zuluTime.ToUniversalTime(),
@@ -62,7 +62,7 @@ public class DateTimeSerializer : ScalarSerializer<string, DateTimeOffset>
         if (serialized is not null
             && DateTimeOffset.TryParse(
                 serialized,
-                out DateTimeOffset dt))
+                out var dt))
         {
             value = dt;
             return true;

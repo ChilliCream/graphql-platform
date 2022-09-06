@@ -1,6 +1,6 @@
-using System;
-
 #nullable enable
+
+using System;
 
 namespace HotChocolate;
 

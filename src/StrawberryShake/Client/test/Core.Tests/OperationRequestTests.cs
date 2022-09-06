@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Moq;
-using Xunit;
 
 namespace StrawberryShake;
 
@@ -165,14 +164,7 @@ public class OperationRequestTests
             document.Object);
 
         // act
-        string? id;
-        string name;
-        IDocument doc;
-        IReadOnlyDictionary<string, object?> vars;
-        IReadOnlyDictionary<string, object?>? ext;
-        IReadOnlyDictionary<string, object?>? contextData;
-        RequestStrategy strategy;
-        (id, name, doc, vars, ext, contextData, strategy) = request;
+        var (id, name, doc, vars, ext, contextData, _, strategy) = request;
 
         // assert
         Assert.Equal(request.Id, id);

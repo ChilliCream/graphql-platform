@@ -7,19 +7,18 @@ namespace HotChocolate.Execution.Processing;
 
 internal static partial class ValueCompletion
 {
-    private static bool TryCompleteLeafValue(
-        IOperationContext operationContext,
+    private static object? CompleteLeafValue(
+        OperationContext operationContext,
         MiddlewareContext resolverContext,
         ISelection selection,
         Path path,
         IType fieldType,
-        object? result,
-        out object? completedResult)
+        object? result)
     {
         try
         {
             var leafType = (ILeafType)fieldType;
-            Type runtimeType = leafType.RuntimeType;
+            var runtimeType = leafType.RuntimeType;
 
             if (!runtimeType.IsInstanceOfType(result) &&
                 operationContext.Converter.TryConvert(runtimeType, result, out var c))
@@ -27,31 +26,23 @@ internal static partial class ValueCompletion
                 result = c;
             }
 
-            completedResult = leafType.Serialize(result);
-            return true;
+            return leafType.Serialize(result);
         }
         catch (SerializationException ex)
         {
-            ReportError(
-                operationContext,
-                resolverContext,
-                selection,
-                InvalidLeafValue(ex, selection.SyntaxNode, path));
+            var error = InvalidLeafValue(ex, selection.SyntaxNode, path);
+            operationContext.ReportError(error, resolverContext, selection);
         }
         catch (Exception ex)
         {
-            ReportError(
-                operationContext,
-                resolverContext,
-                selection,
-                UnexpectedLeafValueSerializationError(
-                    ex,
-                    operationContext.ErrorHandler,
-                    selection.SyntaxNode,
-                    path));
+            var error = UnexpectedLeafValueSerializationError(
+                ex,
+                operationContext.ErrorHandler,
+                selection.SyntaxNode,
+                path);
+            operationContext.ReportError(error, resolverContext, selection);
         }
 
-        completedResult = null;
-        return true;
+        return null;
     }
 }

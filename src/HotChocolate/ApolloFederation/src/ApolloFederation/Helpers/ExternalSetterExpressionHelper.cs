@@ -36,7 +36,7 @@ internal static class ExternalSetterExpressionHelper
                 field.Member is PropertyInfo property &&
                 property.SetMethod is not null)
             {
-                Expression expression = CreateTrySetValue(type.RuntimeType, property, field.Name);
+                var expression = CreateTrySetValue(type.RuntimeType, property, field.Name);
                 (block ??= new()).Add(expression);
             }
         }
@@ -53,10 +53,10 @@ internal static class ExternalSetterExpressionHelper
     private static Expression CreateTrySetValue(
         Type runtimeType,
         PropertyInfo property,
-        NameString fieldName)
+        string fieldName)
     {
-        MethodInfo trySetValue = _trySetExternal.MakeGenericMethod(property.PropertyType);
-        var path = Constant(new[] { fieldName.Value });
+        var trySetValue = _trySetExternal.MakeGenericMethod(property.PropertyType);
+        var path = Constant(new[] { fieldName });
         var setter = CreateSetValue(runtimeType, property);
         return Call(trySetValue, _type, _data, _entity, path, setter);
     }

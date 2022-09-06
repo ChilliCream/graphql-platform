@@ -1,32 +1,29 @@
 using System;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.Types.Sorting
+namespace HotChocolate.Types.Sorting;
+
+[Obsolete("Use HotChocolate.Data.")]
+public abstract class SortOperationDescriptorBase
+    : ArgumentDescriptorBase<SortOperationDefintion>
 {
-    [Obsolete("Use HotChocolate.Data.")]
-    public abstract class SortOperationDescriptorBase
-        : ArgumentDescriptorBase<SortOperationDefintion>
+    protected SortOperationDescriptorBase(
+        IDescriptorContext context,
+        string name,
+        ITypeReference type,
+        SortOperation operation)
+        : base(context)
     {
-        protected SortOperationDescriptorBase(
-            IDescriptorContext context,
-            NameString name,
-            ITypeReference type,
-            SortOperation operation)
-            : base(context)
-        {
-            Definition.Name = name.EnsureNotEmpty(nameof(name));
-            Definition.Type = type
-                ?? throw new ArgumentNullException(nameof(type));
-            Definition.Operation = operation
-                ?? throw new ArgumentNullException(nameof(operation));
-        }
+        Definition.Name = name;
+        Definition.Type = type ?? throw new ArgumentNullException(nameof(type));
+        Definition.Operation = operation ?? throw new ArgumentNullException(nameof(operation));
+    }
 
-        protected internal override SortOperationDefintion Definition { get; protected set; } =
-            new SortOperationDefintion();
+    protected internal override SortOperationDefintion Definition { get; protected set; } =
+        new();
 
-        protected void Name(NameString value)
-        {
-            Definition.Name = value.EnsureNotEmpty(nameof(value));
-        }
+    protected void Name(string value)
+    {
+        Definition.Name = value;
     }
 }

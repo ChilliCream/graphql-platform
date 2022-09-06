@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -12,24 +13,24 @@ namespace HotChocolate.Types.Helpers;
 
 public static class FieldDescriptorUtilities
 {
-    private static HashSet<NameString>? _names = new();
+    private static HashSet<string>? _names = new(StringComparer.Ordinal);
 
     public static void AddExplicitFields<TMember, TField>(
         IEnumerable<TField> fieldDefinitions,
         Func<TField, TMember?> resolveMember,
-        IDictionary<NameString, TField> fields,
+        IDictionary<string, TField> fields,
         ISet<TMember> handledMembers)
         where TMember : MemberInfo
         where TField : FieldDefinitionBase
     {
-        foreach (TField fieldDefinition in fieldDefinitions)
+        foreach (var fieldDefinition in fieldDefinitions)
         {
-            if (!fieldDefinition.Ignore)
+            if (!fieldDefinition.Ignore && !string.IsNullOrEmpty(fieldDefinition.Name))
             {
                 fields[fieldDefinition.Name] = fieldDefinition;
             }
 
-            TMember? member = resolveMember(fieldDefinition);
+            var member = resolveMember(fieldDefinition);
             if (member != null)
             {
                 handledMembers.Add(member);
@@ -40,7 +41,7 @@ public static class FieldDescriptorUtilities
     public static void AddImplicitFields<TDescriptor, TMember, TField>(
         TDescriptor descriptor,
         Func<TMember, TField> createdFieldDefinition,
-        IDictionary<NameString, TField> fields,
+        IDictionary<string, TField> fields,
         ISet<TMember> handledMembers)
         where TDescriptor : IHasRuntimeType, IHasDescriptorContext
         where TMember : MemberInfo
@@ -58,7 +59,7 @@ public static class FieldDescriptorUtilities
         TDescriptor descriptor,
         Type fieldBindingType,
         Func<TMember, TField> createdFieldDefinition,
-        IDictionary<NameString, TField> fields,
+        IDictionary<string, TField> fields,
         ISet<TMember> handledMembers,
         Func<IReadOnlyList<TMember>, TMember, bool>? include = null,
         bool includeIgnoredMembers = false)
@@ -73,13 +74,14 @@ public static class FieldDescriptorUtilities
                 .OfType<TMember>()
                 .ToList();
 
-            foreach (TMember member in members)
+            foreach (var member in members)
             {
                 if (include?.Invoke(members, member) ?? true)
                 {
-                    TField fieldDefinition = createdFieldDefinition(member);
+                    var fieldDefinition = createdFieldDefinition(member);
 
-                    if (!handledMembers.Contains(member) &&
+                    if (!string.IsNullOrEmpty(fieldDefinition.Name) &&
+                        !handledMembers.Contains(member) &&
                         !fields.ContainsKey(fieldDefinition.Name) &&
                         (includeIgnoredMembers || !fieldDefinition.Ignore))
                     {
@@ -94,7 +96,8 @@ public static class FieldDescriptorUtilities
     public static void DiscoverArguments(
         IDescriptorContext context,
         ICollection<ArgumentDefinition> arguments,
-        MemberInfo? member)
+        MemberInfo? member,
+        IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders)
     {
         if (arguments is null)
         {
@@ -107,20 +110,26 @@ public static class FieldDescriptorUtilities
 
             try
             {
-                foreach (ArgumentDefinition argument in arguments)
+                foreach (var argument in arguments)
                 {
-                    processedNames.Add(argument.Name);
+                    if (!string.IsNullOrEmpty(argument.Name))
+                    {
+                        processedNames.Add(argument.Name);
+                    }
                 }
 
-                foreach (ParameterInfo parameter in
-                    context.ResolverCompiler.GetArgumentParameters(method.GetParameters()))
+                foreach (var parameter in
+                    context.ResolverCompiler.GetArgumentParameters(
+                        method.GetParameters(),
+                        parameterExpressionBuilders))
                 {
-                    ArgumentDefinition argumentDefinition =
+                    var argumentDefinition =
                         ArgumentDescriptor
                             .New(context, parameter)
                             .CreateDefinition();
 
-                    if (processedNames.Add(argumentDefinition.Name))
+                    if (!string.IsNullOrEmpty(argumentDefinition.Name) &&
+                        processedNames.Add(argumentDefinition.Name))
                     {
                         arguments.Add(argumentDefinition);
                     }
@@ -129,7 +138,6 @@ public static class FieldDescriptorUtilities
             finally
             {
                 processedNames.Clear();
-
                 Interlocked.CompareExchange(ref _names, processedNames, null);
             }
         }

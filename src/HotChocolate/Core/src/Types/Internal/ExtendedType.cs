@@ -175,7 +175,7 @@ internal sealed partial class ExtendedType : IExtendedType
             throw new ArgumentNullException(nameof(cache));
         }
 
-        if (cache.TryGetType(type, out ExtendedType? extendedType))
+        if (cache.TryGetType(type, out var extendedType))
         {
             return extendedType;
         }

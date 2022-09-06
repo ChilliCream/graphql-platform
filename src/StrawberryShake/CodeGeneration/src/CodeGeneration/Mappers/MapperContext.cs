@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 using StrawberryShake.CodeGeneration.Descriptors;
 using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
-using StrawberryShake.CodeGeneration.Extensions;
 using StrawberryShake.Tools.Configuration;
+using static System.StringComparer;
 
 namespace StrawberryShake.CodeGeneration.Mappers;
 
@@ -17,8 +17,8 @@ public class MapperContext : IMapperContext
     private readonly List<EntityTypeDescriptor> _entityTypes = new();
     private readonly List<DataTypeDescriptor> _dataTypes = new();
     private readonly List<ResultFromEntityDescriptor> _mappers = new();
-    private readonly Dictionary<NameString, OperationDescriptor> _operations = new();
-    private readonly Dictionary<NameString, ResultBuilderDescriptor> _resultBuilder = new();
+    private readonly Dictionary<string, OperationDescriptor> _operations = new(Ordinal);
+    private readonly Dictionary<string, ResultBuilderDescriptor> _resultBuilder = new(Ordinal);
     private readonly Dictionary<(string, TypeKind), RuntimeTypeInfo> _runtimeTypes = new();
     private readonly HashSet<string> _runtimeTypeNames = new();
     private ClientDescriptor? _client;
@@ -78,32 +78,32 @@ public class MapperContext : IMapperContext
 
     public IEnumerable<ICodeDescriptor> GetAllDescriptors()
     {
-        foreach (EntityTypeDescriptor entityTypeDescriptor in EntityTypes)
+        foreach (var entityTypeDescriptor in EntityTypes)
         {
             yield return entityTypeDescriptor;
         }
 
-        foreach (INamedTypeDescriptor type in Types)
+        foreach (var type in Types)
         {
             yield return type;
         }
 
-        foreach (OperationDescriptor type in Operations)
+        foreach (var type in Operations)
         {
             yield return type;
         }
 
-        foreach (ResultBuilderDescriptor resultBuilder in ResultBuilders)
+        foreach (var resultBuilder in ResultBuilders)
         {
             yield return resultBuilder;
         }
 
-        foreach (DataTypeDescriptor dataType in DataTypes)
+        foreach (var dataType in DataTypes)
         {
             yield return dataType;
         }
 
-        foreach (ResultFromEntityDescriptor descriptor in _mappers)
+        foreach (var descriptor in _mappers)
         {
             yield return descriptor;
         }
@@ -117,7 +117,7 @@ public class MapperContext : IMapperContext
         yield return StoreAccessor;
     }
 
-    public RuntimeTypeInfo GetRuntimeType(NameString typeName, TypeKind kind)
+    public RuntimeTypeInfo GetRuntimeType(string typeName, TypeKind kind)
     {
         return _runtimeTypes[(typeName, kind)];
     }
@@ -158,20 +158,20 @@ public class MapperContext : IMapperContext
         _entityTypes.AddRange(entityTypeDescriptor);
     }
 
-    public void Register(NameString operationName, OperationDescriptor operationDescriptor)
+    public void Register(string operationName, OperationDescriptor operationDescriptor)
     {
         _operations.Add(
-            operationName.EnsureNotEmpty(nameof(operationName)),
+            operationName.EnsureGraphQLName(),
             operationDescriptor ??
             throw new ArgumentNullException(nameof(operationDescriptor)));
     }
 
     public void Register(
-        NameString operationName,
+        string operationName,
         ResultBuilderDescriptor resultBuilderDescriptor)
     {
         _resultBuilder.Add(
-            operationName.EnsureNotEmpty(nameof(operationName)),
+            operationName.EnsureGraphQLName(),
             resultBuilderDescriptor ??
             throw new ArgumentNullException(nameof(resultBuilderDescriptor)));
     }
@@ -201,7 +201,7 @@ public class MapperContext : IMapperContext
         _mappers.Add(descriptor);
     }
 
-    public bool Register(NameString typeName, TypeKind kind, RuntimeTypeInfo runtimeType)
+    public bool Register(string typeName, TypeKind kind, RuntimeTypeInfo runtimeType)
     {
         // we already have a registration.
         if (_runtimeTypes.ContainsKey((typeName, kind)))
