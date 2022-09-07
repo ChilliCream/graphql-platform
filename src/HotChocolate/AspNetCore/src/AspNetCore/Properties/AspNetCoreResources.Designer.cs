@@ -159,18 +159,6 @@ namespace HotChocolate.AspNetCore.Properties {
             }
         }
         
-        internal static string ErrorHelper_ResponseTypeNotSupported {
-            get {
-                return ResourceManager.GetString("ErrorHelper_ResponseTypeNotSupported", resourceCulture);
-            }
-        }
-        
-        internal static string Subscription_SendResultsAsync {
-            get {
-                return ResourceManager.GetString("Subscription_SendResultsAsync", resourceCulture);
-            }
-        }
-        
         internal static string WebSocketSession_SessionEnded {
             get {
                 return ResourceManager.GetString("WebSocketSession_SessionEnded", resourceCulture);
@@ -246,6 +234,12 @@ namespace HotChocolate.AspNetCore.Properties {
         internal static string ConnectionStatus_Reject_MessageCannotBeNullOrEmpty {
             get {
                 return ResourceManager.GetString("ConnectionStatus_Reject_MessageCannotBeNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_NoSupportedAcceptMediaType {
+            get {
+                return ResourceManager.GetString("ErrorHelper_NoSupportedAcceptMediaType", resourceCulture);
             }
         }
     }

@@ -1,10 +1,10 @@
 using System.Net;
+using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
-using Microsoft.Extensions.Primitives;
 using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
@@ -91,27 +91,18 @@ public class MiddlewareBase : IDisposable
     protected ValueTask WriteResultAsync(
         HttpContext context,
         IExecutionResult result,
-        StringValues acceptHeaderValue,
+        AcceptMediaType[] acceptMediaTypes,
         HttpStatusCode? statusCode = null)
-        => WriteResultAsync(
+        => _responseFormatter.FormatAsync(
             context.Response,
             result,
-            acceptHeaderValue,
+            acceptMediaTypes,
             statusCode,
             context.RequestAborted);
 
-    protected ValueTask WriteResultAsync(
-        HttpResponse response,
-        IExecutionResult result,
-        StringValues acceptHeaderValue,
-        HttpStatusCode? statusCode,
-        CancellationToken cancellationToken)
-        => _responseFormatter.FormatAsync(
-            result,
-            acceptHeaderValue,
-            statusCode,
-            response,
-            cancellationToken);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    protected GraphQLRequestFlags CreateRequestFlags(AcceptMediaType[] acceptMediaTypes)
+        => _responseFormatter.CreateRequestFlags(acceptMediaTypes);
 
     protected static async Task<IExecutionResult> ExecuteSingleAsync(
         HttpContext context,

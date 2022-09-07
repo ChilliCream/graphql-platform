@@ -4,8 +4,6 @@ using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Language;
-using Microsoft.Extensions.Primitives;
-using Microsoft.Net.Http.Headers;
 using static HotChocolate.Execution.GraphQLRequestFlags;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
@@ -56,19 +54,29 @@ public sealed class HttpGetMiddleware : MiddlewareBase
 
     private async Task HandleRequestAsync(HttpContext context)
     {
+        HttpStatusCode? statusCode = null;
+        IExecutionResult? result;
+
         // first we need to get the request executor to be able to execute requests.
         var requestExecutor = await GetExecutorAsync(context.RequestAborted);
         var requestInterceptor = requestExecutor.GetRequestInterceptor();
         var errorHandler = requestExecutor.GetErrorHandler();
         context.Items[WellKnownContextData.RequestExecutor] = requestExecutor;
 
-        var acceptHeaderValue =
-            context.Request.Headers.TryGetValue(HeaderNames.Accept, out var value)
-                ? value
-                : StringValues.Empty;
+        // next we will inspect the accept headers and determine if we can execute this request.
+        // if the request defines the accept header value and we cannot meet any of the provided
+        // media types we will fail the request with 406 Not Acceptable.
+        var acceptMediaTypes = HeaderUtilities.GetAcceptHeader(context.Request);
+        var requestFlags = CreateRequestFlags(acceptMediaTypes);
 
-        HttpStatusCode? statusCode = null;
-        IExecutionResult? result;
+        if (requestFlags is None)
+        {
+            statusCode = HttpStatusCode.NotAcceptable;
+            var error = ErrorHelper.NoSupportedAcceptMediaType();
+            result = QueryResultBuilder.CreateError(error);
+            _diagnosticEvents.HttpRequestError(context, error);
+            goto HANDLE_RESULT;
+        }
 
         // next we parse the GraphQL request.
         GraphQLRequest request;
@@ -103,15 +111,27 @@ public sealed class HttpGetMiddleware : MiddlewareBase
         try
         {
             var options = context.GetGraphQLServerOptions();
+
+            if (options is null or { AllowedGetOperations: AllowedGetOperations.Query })
+            {
+                requestFlags = (requestFlags & AllowStreams) == AllowStreams
+                    ? AllowQuery | AllowStreams
+                    : AllowQuery;
+            }
+            else
+            {
+                requestFlags = (requestFlags & AllowStreams) == AllowStreams
+                    ? AllowQuery | AllowMutation | AllowStreams
+                    : AllowQuery | AllowMutation;
+            }
+
             result = await ExecuteSingleAsync(
                 context,
                 requestExecutor,
                 requestInterceptor,
                 _diagnosticEvents,
                 request,
-                options is null or { AllowedGetOperations: AllowedGetOperations.Query }
-                    ? AllowQuery | AllowStreams
-                    : AllowQuery | AllowMutation | AllowStreams);
+                requestFlags);
         }
         catch (GraphQLException ex)
         {
@@ -150,7 +170,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
             await WriteResultAsync(
                 context,
                 result,
-                acceptHeaderValue,
+                acceptMediaTypes,
                 statusCode);
         }
         finally

@@ -185,7 +185,7 @@ internal sealed class OperationExecutionMiddleware
 
     private bool IsOperationAllowed(IOperation operation, IQueryRequest request)
     {
-        if (request.Flags is AllowEverything)
+        if (request.Flags is AllowAll)
         {
             return true;
         }
@@ -198,11 +198,9 @@ internal sealed class OperationExecutionMiddleware
             _ => true
         };
 
-        if (allowed &&
-            operation.HasIncrementalParts &&
-            (request.Flags & AllowStreams) == AllowStreams)
+        if (operation.HasIncrementalParts)
         {
-            return true;
+            return allowed && (request.Flags & AllowStreams) == AllowStreams;
         }
 
         return allowed;

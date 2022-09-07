@@ -20,7 +20,7 @@ public class QueryRequest : IReadOnlyQueryRequest
         IReadOnlyDictionary<string, object?>? extensions = null,
         IServiceProvider? services = null,
         object? initialValue = null,
-        GraphQLRequestFlags flags = GraphQLRequestFlags.AllowEverything)
+        GraphQLRequestFlags flags = GraphQLRequestFlags.AllowAll)
     {
         if (query is null && queryId is null)
         {

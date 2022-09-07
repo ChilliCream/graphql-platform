@@ -29,7 +29,7 @@ public enum ResponseContentType
     /// <summary>
     /// Not supported content-type.
     /// </summary>
-    NotSupported,
+    Unknown,
 
     /// <summary>
     /// application/json
@@ -39,10 +39,15 @@ public enum ResponseContentType
     /// <summary>
     /// multipart/mixed
     /// </summary>
-    MultiPart,
+    MultiPartMixed,
 
     /// <summary>
     /// application/graphql-response+json
     /// </summary>
-    GraphQL
+    GraphQLResponse,
+
+    /// <summary>
+    /// text/event-stream
+    /// </summary>
+    EventStream
 }

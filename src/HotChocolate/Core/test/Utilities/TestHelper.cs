@@ -9,245 +9,244 @@ using HotChocolate.StarWars;
 using HotChocolate.Types;
 using Xunit;
 
-namespace HotChocolate.Tests
+namespace HotChocolate.Tests;
+
+public static class TestHelper
 {
-    public static class TestHelper
+    public static Task<IExecutionResult> ExpectValid(
+        string query,
+        Action<IRequestExecutorBuilder>? configure = null,
+        Action<IQueryRequestBuilder>? request = null,
+        IServiceProvider? requestServices = null)
     {
-        public static Task<IExecutionResult> ExpectValid(
-            string query,
-            Action<IRequestExecutorBuilder>? configure = null,
-            Action<IQueryRequestBuilder>? request = null,
-            IServiceProvider? requestServices = null)
-        {
-            return ExpectValid(
-                query,
-                new TestConfiguration
-                {
-                    ConfigureRequest = request,
-                    Configure = configure,
-                    Services = requestServices,
-                });
-        }
-
-        public static async Task<IExecutionResult> ExpectValid(
-            string query,
-            TestConfiguration? configuration,
-            CancellationToken cancellationToken = default)
-        {
-            // arrange
-            IRequestExecutor executor = await CreateExecutorAsync(configuration);
-            IReadOnlyQueryRequest request = CreateRequest(configuration, query);
-
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(request, cancellationToken);
-
-            // assert
-            Assert.Null(Assert.IsType<QueryResult>(result).Errors);
-            return result;
-        }
-
-        public static Task ExpectError(
-            string sdl,
-            string query,
-            Action<IRequestExecutorBuilder>? configure = null,
-            Action<IQueryRequestBuilder>? request = null,
-            IServiceProvider? requestServices = null,
-            params Action<IError>[] elementInspectors) =>
-            ExpectError(
-                query,
-                b =>
-                {
-                    b.AddDocumentFromString(sdl).UseNothing();
-                    configure?.Invoke(b);
-                },
-                request,
-                requestServices,
-                elementInspectors);
-
-        public static Task ExpectError(
-            string query,
-            Action<IRequestExecutorBuilder>? configure = null,
-            Action<IQueryRequestBuilder>? request = null,
-            IServiceProvider? requestServices = null,
-            params Action<IError>[] elementInspectors)
-        {
-            return ExpectError(
-                query,
-                new TestConfiguration
-                {
-                    Configure = configure,
-                    ConfigureRequest = request,
-                    Services = requestServices
-                },
-                elementInspectors);
-        }
-
-        public static async Task ExpectError(
-            string query,
-            TestConfiguration? configuration,
-            params Action<IError>[] elementInspectors)
-        {
-            // arrange
-            IRequestExecutor executor = await CreateExecutorAsync(configuration);
-            IReadOnlyQueryRequest request = CreateRequest(configuration, query);
-
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(request);
-
-            // assert
-            IQueryResult queryResult = Assert.IsType<QueryResult>(result);
-            Assert.NotNull(queryResult.Errors);
-
-            if (elementInspectors.Length > 0)
+        return ExpectValid(
+            query,
+            new TestConfiguration
             {
-                Assert.Collection(queryResult.Errors!, elementInspectors);
-            }
-
-            queryResult.MatchSnapshot();
-        }
-
-        public static async Task<T> CreateTypeAsync<T>()
-            where T : INamedType
-        {
-            ISchema schema = await CreateSchemaAsync(c => c
-                .AddQueryType(d => d.Name("Query").Field("foo").Resolve("result"))
-                .AddType<T>()
-                .ModifyOptions(o => o.StrictValidation = false));
-            return schema.Types.OfType<T>().Single();
-        }
-
-        public static async Task<T> CreateTypeAsync<T>(T type)
-            where T : INamedType
-        {
-            ISchema schema = await CreateSchemaAsync(type);
-            return schema.GetType<T>(type.Name);
-        }
-
-        public static Task<ISchema> CreateSchemaAsync(
-            INamedType type)
-        {
-            return CreateSchemaAsync(c => c
-                .AddQueryType(d => d.Name("Query").Field("foo").Resolve("result"))
-                .AddType(type)
-                .ModifyOptions(o => o.StrictValidation = false));
-        }
-
-        public static async Task<ISchema> CreateSchemaAsync(
-            Action<IRequestExecutorBuilder> configure,
-            bool strict = false)
-        {
-            IRequestExecutor executor = await CreateExecutorAsync(c =>
-            {
-                configure.Invoke(c);
-                c.ModifyOptions(o => o.StrictValidation = strict);
+                ConfigureRequest = request,
+                Configure = configure,
+                Services = requestServices,
             });
-            return executor.Schema;
-        }
+    }
 
-        public static async Task<IRequestExecutor> CreateExecutorAsync(
-            Action<IRequestExecutorBuilder>? configure = null)
-        {
-            var configuration = new TestConfiguration
+    public static async Task<IExecutionResult> ExpectValid(
+        string query,
+        TestConfiguration? configuration,
+        CancellationToken cancellationToken = default)
+    {
+        // arrange
+        IRequestExecutor executor = await CreateExecutorAsync(configuration);
+        IReadOnlyQueryRequest request = CreateRequest(configuration, query);
+
+        // act
+        IExecutionResult result = await executor.ExecuteAsync(request, cancellationToken);
+
+        // assert
+        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        return result;
+    }
+
+    public static Task ExpectError(
+        string sdl,
+        string query,
+        Action<IRequestExecutorBuilder>? configure = null,
+        Action<IQueryRequestBuilder>? request = null,
+        IServiceProvider? requestServices = null,
+        params Action<IError>[] elementInspectors) =>
+        ExpectError(
+            query,
+            b =>
+            {
+                b.AddDocumentFromString(sdl).UseNothing();
+                configure?.Invoke(b);
+            },
+            request,
+            requestServices,
+            elementInspectors);
+
+    public static Task ExpectError(
+        string query,
+        Action<IRequestExecutorBuilder>? configure = null,
+        Action<IQueryRequestBuilder>? request = null,
+        IServiceProvider? requestServices = null,
+        params Action<IError>[] elementInspectors)
+    {
+        return ExpectError(
+            query,
+            new TestConfiguration
             {
                 Configure = configure,
-            };
+                ConfigureRequest = request,
+                Services = requestServices
+            },
+            elementInspectors);
+    }
 
-            return await CreateExecutorAsync(configuration);
+    public static async Task ExpectError(
+        string query,
+        TestConfiguration? configuration,
+        params Action<IError>[] elementInspectors)
+    {
+        // arrange
+        IRequestExecutor executor = await CreateExecutorAsync(configuration);
+        IReadOnlyQueryRequest request = CreateRequest(configuration, query);
+
+        // act
+        IExecutionResult result = await executor.ExecuteAsync(request);
+
+        // assert
+        IQueryResult queryResult = Assert.IsType<QueryResult>(result);
+        Assert.NotNull(queryResult.Errors);
+
+        if (elementInspectors.Length > 0)
+        {
+            Assert.Collection(queryResult.Errors!, elementInspectors);
         }
 
-        private static async ValueTask<IRequestExecutor> CreateExecutorAsync(
-            TestConfiguration? configuration)
+        queryResult.MatchSnapshot();
+    }
+
+    public static async Task<T> CreateTypeAsync<T>()
+        where T : INamedType
+    {
+        ISchema schema = await CreateSchemaAsync(c => c
+            .AddQueryType(d => d.Name("Query").Field("foo").Resolve("result"))
+            .AddType<T>()
+            .ModifyOptions(o => o.StrictValidation = false));
+        return schema.Types.OfType<T>().Single();
+    }
+
+    public static async Task<T> CreateTypeAsync<T>(T type)
+        where T : INamedType
+    {
+        ISchema schema = await CreateSchemaAsync(type);
+        return schema.GetType<T>(type.Name);
+    }
+
+    public static Task<ISchema> CreateSchemaAsync(
+        INamedType type)
+    {
+        return CreateSchemaAsync(c => c
+            .AddQueryType(d => d.Name("Query").Field("foo").Resolve("result"))
+            .AddType(type)
+            .ModifyOptions(o => o.StrictValidation = false));
+    }
+
+    public static async Task<ISchema> CreateSchemaAsync(
+        Action<IRequestExecutorBuilder> configure,
+        bool strict = false)
+    {
+        IRequestExecutor executor = await CreateExecutorAsync(c =>
         {
-            IRequestExecutorBuilder builder = new ServiceCollection().AddGraphQL();
+            configure.Invoke(c);
+            c.ModifyOptions(o => o.StrictValidation = strict);
+        });
+        return executor.Schema;
+    }
 
-            if (configuration?.Configure is { } c)
-            {
-                c.Invoke(builder);
-            }
-            else
-            {
-                AddDefaultConfiguration(builder);
-            }
+    public static async Task<IRequestExecutor> CreateExecutorAsync(
+        Action<IRequestExecutorBuilder>? configure = null)
+    {
+        var configuration = new TestConfiguration
+        {
+            Configure = configure,
+        };
 
-            return await builder.Services
-                .BuildServiceProvider()
-                .GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+        return await CreateExecutorAsync(configuration);
+    }
+
+    private static async ValueTask<IRequestExecutor> CreateExecutorAsync(
+        TestConfiguration? configuration)
+    {
+        IRequestExecutorBuilder builder = new ServiceCollection().AddGraphQL();
+
+        if (configuration?.Configure is { } c)
+        {
+            c.Invoke(builder);
+        }
+        else
+        {
+            AddDefaultConfiguration(builder);
         }
 
-        private static IReadOnlyQueryRequest CreateRequest(
-            TestConfiguration? configuration, string query)
+        return await builder.Services
+            .BuildServiceProvider()
+            .GetRequiredService<IRequestExecutorResolver>()
+            .GetRequestExecutorAsync();
+    }
+
+    private static IReadOnlyQueryRequest CreateRequest(
+        TestConfiguration? configuration, string query)
+    {
+        configuration ??= new TestConfiguration();
+
+        IQueryRequestBuilder builder = QueryRequestBuilder.New().SetQuery(query);
+
+        if (configuration.Services is { } services)
         {
-            configuration ??= new TestConfiguration();
-
-            IQueryRequestBuilder builder = QueryRequestBuilder.New().SetQuery(query);
-
-            if (configuration.Services is { } services)
-            {
-                builder.SetServices(services);
-            }
-
-            if (configuration.ConfigureRequest is { } configure)
-            {
-                configure(builder);
-            }
-
-            return builder.Create();
+            builder.SetServices(services);
         }
 
-        public static void AddDefaultConfiguration(IRequestExecutorBuilder builder)
+        if (configuration.ConfigureRequest is { } configure)
         {
-            builder
-                .AddStarWarsTypes()
-                .AddInMemorySubscriptions()
-                .Services
-                .AddStarWarsRepositories();
+            configure(builder);
         }
 
-        public static async Task TryTest(
-            Func<CancellationToken, Task> action,
-            int allowedRetries = 3,
-            int timeout = 30_000)
+        return builder.Create();
+    }
+
+    public static void AddDefaultConfiguration(IRequestExecutorBuilder builder)
+    {
+        builder
+            .AddStarWarsTypes()
+            .AddInMemorySubscriptions()
+            .Services
+            .AddStarWarsRepositories();
+    }
+
+    public static async Task TryTest(
+        Func<CancellationToken, Task> action,
+        int allowedRetries = 3,
+        int timeout = 30_000)
+    {
+        // we will try four times ....
+        var attempt = 0;
+        var wait = 250;
+
+        while (true)
         {
-            // we will try four times ....
-            var attempt = 0;
-            var wait = 250;
+            attempt++;
 
-            while (true)
+            var success = await ExecuteAsync(attempt).ConfigureAwait(false);
+
+            if (success)
             {
-                attempt++;
+                break;
+            }
 
-                var success = await ExecuteAsync(attempt).ConfigureAwait(false);
+            await Task.Delay(wait).ConfigureAwait(false);
+            wait *= 2;
+        }
 
-                if (success)
+        async Task<bool> ExecuteAsync(int attempt)
+        {
+            using var cts = new CancellationTokenSource(timeout);
+
+            if (attempt < allowedRetries)
+            {
+                try
                 {
-                    break;
+                    await action(cts.Token).ConfigureAwait(false);
+                    return true;
                 }
-
-                await Task.Delay(wait).ConfigureAwait(false);
-                wait *= 2;
-            }
-
-            async Task<bool> ExecuteAsync(int attempt)
-            {
-                using var cts = new CancellationTokenSource(timeout);
-
-                if (attempt < allowedRetries)
+                catch
                 {
-                    try
-                    {
-                        await action(cts.Token).ConfigureAwait(false);
-                        return true;
-                    }
-                    catch
-                    {
-                        return false;
-                    }
+                    return false;
                 }
-
-                await action(cts.Token).ConfigureAwait(false);
-                return true;
             }
+
+            await action(cts.Token).ConfigureAwait(false);
+            return true;
         }
     }
 }

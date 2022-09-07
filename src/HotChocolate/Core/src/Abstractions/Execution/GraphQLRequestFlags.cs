@@ -34,12 +34,12 @@ public enum GraphQLRequestFlags
     AllowStreams = 8,
 
     /// <summary>
-    /// Query operations and stream results are allowed.
+    /// Queries, mutations and stream results are allowed.
     /// </summary>
-    AllowQueryAndStream = AllowQuery | AllowStreams,
+    AllowLegacy = AllowQuery | AllowMutation | AllowStreams,
 
     /// <summary>
     /// Everything is allowed.
     /// </summary>
-    AllowEverything = AllowQuery | AllowMutation | AllowSubscription | AllowStreams
+    AllowAll = AllowQuery | AllowMutation | AllowSubscription | AllowStreams
 }

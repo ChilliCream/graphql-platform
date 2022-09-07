@@ -4,11 +4,30 @@ namespace HotChocolate.AspNetCore;
 
 internal static class ContentType
 {
-    public const string GraphQL = "application/graphql; charset=utf-8";
-    public const string Json = "application/json; charset=utf-8";
-    public const string MultiPartMixed = "multipart/mixed; boundary=\"-\"";
-    public const string GraphQLResponse = "application/graphql-response+json; charset=utf-8";
-    public const string EventStream = "text/event-stream; charset=utf-8";
+    public static class Types
+    {
+        public const string All = "*";
+        public const string Application = "application";
+        public const string MultiPart = "multipart";
+        public const string Text = "text";
+    }
+
+    public static class SubTypes
+    {
+        public const string GraphQL = "graphql";
+        public const string GraphQLResponse = "graphql-response+json";
+        public const string Json = "json";
+        public const string Mixed = "mixed";
+        public const string EventStream = "event-stream";
+    }
+
+    private const string _utf8 = "charset=utf-8";
+    private const string _boundary = "boundary=\"-\"";
+    public const string GraphQL = $"{Types.Application}/{SubTypes.GraphQL};{_utf8}";
+    public const string Json = $"{Types.Application}/{SubTypes.Json};{_utf8}";
+    public const string MultiPartMixed = $"{Types.MultiPart}/{SubTypes.Mixed};{_boundary};{_utf8}";
+    public const string GraphQLResponse = $"{Types.Application}/{SubTypes.GraphQLResponse};{_utf8}";
+    public const string EventStream = $"{Types.Text}/{SubTypes.EventStream};{_utf8}";
 
     private static readonly char[] _jsonArray =
     {

@@ -1,15 +1,11 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Language;
-using Microsoft.Extensions.Primitives;
-using Microsoft.Net.Http.Headers;
 using static HotChocolate.Execution.GraphQLRequestFlags;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
@@ -63,19 +59,29 @@ public class HttpPostMiddlewareBase : MiddlewareBase
 
     protected async Task HandleRequestAsync(HttpContext context)
     {
+        HttpStatusCode? statusCode = null;
+        IExecutionResult? result;
+
         // first we need to get the request executor to be able to execute requests.
         var requestExecutor = await GetExecutorAsync(context.RequestAborted);
         var requestInterceptor = requestExecutor.GetRequestInterceptor();
         var errorHandler = requestExecutor.GetErrorHandler();
         context.Items[WellKnownContextData.RequestExecutor] = requestExecutor;
 
-        var acceptHeaderValue =
-            context.Request.Headers.TryGetValue(HeaderNames.Accept, out var value)
-                ? value
-                : StringValues.Empty;
+        // next we will inspect the accept headers and determine if we can execute this request.
+        // if the request defines the accept header value and we cannot meet any of the provided
+        // media types we will fail the request with 406 Not Acceptable.
+        var acceptMediaTypes = HeaderUtilities.GetAcceptHeader(context.Request);
+        var requestFlags = CreateRequestFlags(acceptMediaTypes);
 
-        HttpStatusCode? statusCode = null;
-        IExecutionResult? result;
+        if (requestFlags is None)
+        {
+            statusCode = HttpStatusCode.NotAcceptable;
+            var error = ErrorHelper.NoSupportedAcceptMediaType();
+            result = QueryResultBuilder.CreateError(error);
+            DiagnosticEvents.HttpRequestError(context, error);
+            goto HANDLE_RESULT;
+        }
 
         // next we parse the GraphQL request.
         IReadOnlyList<GraphQLRequest> requests;
@@ -110,8 +116,6 @@ public class HttpPostMiddlewareBase : MiddlewareBase
         // after successfully parsing the request we now will attempt to execute the request.
         try
         {
-            var flags = CreateRequestFlags(acceptHeaderValue);
-
             switch (requests.Count)
             {
                 // if the HTTP request body contains no GraphQL request structure the
@@ -145,7 +149,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                             requestInterceptor,
                             DiagnosticEvents,
                             requests[0],
-                            flags,
+                            requestFlags,
                             ops);
                     }
                     else
@@ -173,7 +177,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                         requestInterceptor,
                         DiagnosticEvents,
                         requests[0],
-                        flags);
+                        requestFlags);
                     break;
                 }
 
@@ -187,7 +191,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                         requestInterceptor,
                         DiagnosticEvents,
                         requests,
-                        flags);
+                        requestFlags);
                     break;
             }
         }
@@ -231,7 +235,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 formatScope = DiagnosticEvents.FormatHttpResponse(context, queryResult);
             }
 
-            await WriteResultAsync(context, result, acceptHeaderValue, statusCode);
+            await WriteResultAsync(context, result, acceptMediaTypes, statusCode);
         }
         finally
         {
@@ -280,63 +284,5 @@ public class HttpPostMiddlewareBase : MiddlewareBase
 
         operationNames = names;
         return true;
-    }
-
-    protected static GraphQLRequestFlags CreateRequestFlags(StringValues acceptHeaderValue)
-    {
-        var count = acceptHeaderValue.Count;
-
-        if (count == 0)
-        {
-            return AllowQuery | AllowMutation | AllowStreams;
-        }
-
-        var flags = None;
-
-        if (count == 1)
-        {
-            FlagsFromContentType(acceptHeaderValue[0].AsSpan(), ref flags);
-            return flags;
-        }
-
-        string[] innerArray = acceptHeaderValue;
-        ref var searchSpace = ref MemoryMarshal.GetReference(innerArray.AsSpan());
-
-        for (var i = 0; i < innerArray.Length; i++)
-        {
-            var element = Unsafe.Add(ref searchSpace, i);
-            FlagsFromContentType(element.AsSpan(), ref flags);
-
-            if (flags is AllowEverything)
-            {
-                return AllowEverything;
-            }
-        }
-
-        return flags;
-    }
-
-    // TODO : We must move this to the formatter or interceptor
-    private static void FlagsFromContentType(
-        ReadOnlySpan<char> contentType,
-        ref GraphQLRequestFlags flags)
-    {
-        if (contentType.StartsWith(ContentType.GraphQLResponseSpan()) ||
-            contentType.StartsWith(ContentType.JsonSpan()))
-        {
-            flags |= AllowQuery;
-        }
-
-        if (contentType.StartsWith(ContentType.MultiPartMixedSpan()))
-        {
-            flags |= AllowQuery;
-            flags |= AllowMutation;
-            flags |= AllowStreams;
-        }
-
-        if (contentType.StartsWith(ContentType.EventStreamSpan()))
-        {
-            flags = AllowEverything;
-        }
     }
 }
