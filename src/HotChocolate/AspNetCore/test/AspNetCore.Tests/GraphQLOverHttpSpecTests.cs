@@ -57,7 +57,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
     /// <summary>
     /// This request does not specify a accept header and has a syntax error.
     /// expected response content-type: application/json
-    /// expected status code: 400
+    /// expected status code: 200
     /// </summary>
     [Fact]
     public async Task Legacy_Query_No_Streams_2()
@@ -80,7 +80,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
 
         // assert
         // expected response content-type: application/json
-        // expected status code: 400
+        // expected status code: 200
         Snapshot
             .Create()
             .Add(response)
@@ -88,7 +88,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 @"Headers:
                 Content-Type: application/json; charset=utf-8
                 -------------------------->
-                Status Code: BadRequest
+                Status Code: OK
                 -------------------------->
                 {""errors"":[{""message"":""Expected a \u0060Name\u0060-token, but found a " +
                 @"\u0060Dollar\u0060-token."",""locations"":[{""line"":1,""column"":8}]," +
@@ -131,7 +131,22 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 -------------------------->
                 Status Code: OK
                 -------------------------->
-                {""data"":{""__typename"":""Query""}}");
+                {""errors"":[{""message"":""\u0060__type\u0060 is an object, interface or " +
+                "union type field. Leaf selections on objects, interfaces, and unions without " +
+                @"subfields are disallowed."",""locations"":[{""line"":1,""column"":3}]," +
+                @"""extensions"":{""declaringType"":""Query"",""field"":""__type""," +
+                @"""type"":""__Type"",""responseName"":""__type""," +
+                @"""specifiedBy"":""http://spec.graphql.org/October2021/#sec-Field-Selections-" +
+                @"on-Objects-Interfaces-and-Unions-Types""}},{""message"":""The field \u0060name" +
+                @"\u0060 does not exist on the type \u0060Query\u0060."",""locations"":[{" +
+                @"""line"":1,""column"":10}],""extensions"":{""type"":""Query""," +
+                @"""field"":""name"",""responseName"":""name"",""specifiedBy"":" +
+                @"""http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-" +
+                @"Interfaces-and-Unions-Types""}},{""message"":""The argument \u0060name\u0060 " +
+                @"is required."",""locations"":[{""line"":1,""column"":3}],""extensions"":{" +
+                @"""type"":""Query"",""field"":""__type"",""argument"":""name""," +
+                @"""specifiedBy"":""http://spec.graphql.org/October2021/#sec-Required-Arguments""" +
+                "}}]}");
     }
 
     /// <summary>
@@ -319,7 +334,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
     }
 
     /// <summary>
-    /// This request specifies the */j* accept header.
+    /// This request specifies the */* accept header.
     /// expected response content-type: application/graphql-response+json; charset=utf-8
     /// expected status code: 200
     /// </summary>
@@ -362,7 +377,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
     }
 
     /// <summary>
-    /// This request specifies the */j* accept header.
+    /// This request specifies the application/* accept header.
     /// expected response content-type: application/graphql-response+json; charset=utf-8
     /// expected status code: 200
     /// </summary>
@@ -402,6 +417,111 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 Status Code: OK
                 -------------------------->
                 {""data"":{""__typename"":""Query""}}");
+    }
+
+    /// <summary>
+    /// This request does not specify a application/graphql-response+json accept header and
+    /// has a syntax error.
+    /// expected response content-type: application/graphql-response+json
+    /// expected status code: 400
+    /// </summary>
+    [Fact]
+    public async Task New_Query_No_Streams_7()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        {
+            Content = JsonContent.Create(
+                new ClientQueryRequest
+                {
+                    Query = "{ __typ$ename }"
+                }),
+            Headers =
+            {
+                { "Accept", ContentType.GraphQLResponse }
+            }
+        };
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        // expected response content-type: application/graphql-response+json
+        // expected status code: 400
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                @"Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {""errors"":[{""message"":""Expected a \u0060Name\u0060-token, but found a " +
+                @"\u0060Dollar\u0060-token."",""locations"":[{""line"":1,""column"":8}]," +
+                @"""extensions"":{""code"":""HC0011""}}]}");
+    }
+
+    /// <summary>
+    /// This request does not specify a application/graphql-response+json accept header and
+    /// has a syntax error.
+    /// expected response content-type: application/graphql-response+json
+    /// expected status code: 400
+    /// </summary>
+    [Fact]
+    public async Task New_Query_No_Streams_8()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        {
+            Content = JsonContent.Create(
+                new ClientQueryRequest
+                {
+                    Query = "{ __type name }"
+                }),
+            Headers =
+            {
+                { "Accept", ContentType.GraphQLResponse }
+            }
+        };
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        // expected response content-type: application/graphql-response+json
+        // expected status code: 400
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                @"Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {""errors"":[{""message"":""\u0060__type\u0060 is an object, interface or " +
+                "union type field. Leaf selections on objects, interfaces, and unions without " +
+                @"subfields are disallowed."",""locations"":[{""line"":1,""column"":3}]," +
+                @"""extensions"":{""declaringType"":""Query"",""field"":""__type""," +
+                @"""type"":""__Type"",""responseName"":""__type""," +
+                @"""specifiedBy"":""http://spec.graphql.org/October2021/#sec-Field-Selections-" +
+                @"on-Objects-Interfaces-and-Unions-Types""}},{""message"":""The field \u0060name" +
+                @"\u0060 does not exist on the type \u0060Query\u0060."",""locations"":[{" +
+                @"""line"":1,""column"":10}],""extensions"":{""type"":""Query""," +
+                @"""field"":""name"",""responseName"":""name"",""specifiedBy"":" +
+                @"""http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-" +
+                @"Interfaces-and-Unions-Types""}},{""message"":""The argument \u0060name\u0060 " +
+                @"is required."",""locations"":[{""line"":1,""column"":3}],""extensions"":{" +
+                @"""type"":""Query"",""field"":""__type"",""argument"":""name""," +
+                @"""specifiedBy"":""http://spec.graphql.org/October2021/#sec-Required-Arguments""" +
+                "}}]}");
     }
 
     /// <summary>
@@ -508,7 +628,5 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 -------------------------->
                 {""errors"":[{""message"":""The specified operation kind is not allowed.""}]}");
     }
-
-
 }
 #endif

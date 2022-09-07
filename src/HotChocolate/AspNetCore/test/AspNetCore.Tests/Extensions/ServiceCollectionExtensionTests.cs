@@ -18,7 +18,7 @@ public class ServiceCollectionExtensionTests
             serviceCollection,
             t =>
             {
-                Assert.Equal(typeof(IHttpResultSerializer), t.ServiceType);
+                Assert.Equal(typeof(IHttpResponseFormatter), t.ServiceType);
                 Assert.Equal(typeof(DefaultHttpResponseFormatter), t.ImplementationType);
             });
     }
