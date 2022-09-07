@@ -10,6 +10,11 @@ using static HotChocolate.Execution.ExecutionResultKind;
 
 namespace HotChocolate.AspNetCore.Serialization;
 
+/// <summary>
+/// This represents the default implementation for the <see cref="IHttpResponseFormatter" />
+/// that abides by the GraphQL over HTTP specification.
+/// https://github.com/graphql/graphql-over-http/blob/main/spec/GraphQLOverHTTP.md
+/// </summary>
 public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 {
     private readonly JsonQueryResultFormatter _jsonFormatter;
@@ -96,35 +101,42 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         HttpResponse response,
         IExecutionResult result,
         AcceptMediaType[] acceptMediaTypes,
-        HttpStatusCode? statusCode,
+        HttpStatusCode? proposedStatusCode,
         CancellationToken cancellationToken)
     {
         if (!TryGetFormatter(result, acceptMediaTypes, out var format))
         {
-            // todo: write error response
-            return;
+            // we should not hit this point except if a middleware did not validate the
+            // GraphQL request flags which would indicate that there is no way to execute
+            // the GraphQL request with the specified accept header content types.
+            // TODO : throw helper.
+            throw new InvalidOperationException("Invalid accept media types specified.");
         }
 
         if (result.Kind is SingleResult)
         {
-            statusCode ??= GetStatusCode((IQueryResult)result, format);
+            var queryResult = (IQueryResult)result;
+            var statusCode = (int)GetStatusCode(queryResult, format, proposedStatusCode);
 
             response.ContentType = format.ContentType;
-            response.StatusCode = (int)statusCode;
+            response.StatusCode = statusCode;
 
             await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
         }
         else if (result.Kind is DeferredResult or BatchResult or SubscriptionResult)
         {
-            statusCode ??= GetStatusCode((IResponseStream)result, format);
+            var responseStream = (IResponseStream)result;
+            var statusCode = (int)GetStatusCode(responseStream, format, proposedStatusCode);
 
             response.ContentType = format.ContentType;
-            response.StatusCode = (int)statusCode;
+            response.StatusCode = statusCode;
 
             await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
         }
         else
         {
+            // we should not hit this point except in the case that we introduce a new
+            // ExecutionResultKind and forget to update this method.
             // TODO : Throw helper.
             throw new NotSupportedException("The execution result kind is not supported.");
         }
@@ -150,21 +162,34 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             return HttpStatusCode.OK;
         }
 
+        // in the case of the application/graphql-response+json we will 
+        // use status code to indicate certain kinds of error categories.
         if (format.Kind is ResponseContentType.GraphQLResponse)
         {
+            // if a status code was proposed by the middleware we will in general accept it.
+            // the middleware are implement in a way that they will propose status code for
+            // the application/graphql-response+json response content-type.
             if (proposedStatusCode.HasValue)
             {
                 return proposedStatusCode.Value;
             }
 
-            if (result.Data is not null)
-            {
-                return HttpStatusCode.OK;
-            }
-
+            // if the GraphQL result has context data we will check if some middleware provided
+            // a status code or indicated an error that should be interpreted as an status code.
             if (result.ContextData is not null)
             {
-                if (result.ContextData.ContainsKey(WellKnownContextData.ValidationErrors))
+                var contextData = result.ContextData;
+
+                // first we check if there is an explicit HTTP status code override by the user.
+                if (contextData.TryGetValue(WellKnownContextData.HttpStatusCode, out var value) &&
+                    value is HttpStatusCode statusCode)
+                {
+                    return statusCode;
+                }
+
+                // next we check if the validation of the request failed. 
+                // if that is the case we will we will return a BadRequest status code (400).
+                if (contextData.ContainsKey(WellKnownContextData.ValidationErrors))
                 {
                     return HttpStatusCode.BadRequest;
                 }
@@ -175,14 +200,21 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 }
             }
 
-            // if a persisted query is not found when using the active persisted query pipeline
-            // is used we will return a success status code.
-            if (result.Errors is { Count: 1 } &&
-                result.Errors[0] is { Code: ErrorCodes.Execution.PersistedQueryNotFound })
+            // if data is not null then we have a valid result. The result of executing 
+            // a GraphQL operation may contain partial data as well as encountered errors.
+            // Errors that happen during execution of the GraphQL operation typically 
+            // become part of the result, as long as the server is still able to produce 
+            // a well-formed response.
+            if (result.Data is not null)
             {
                 return HttpStatusCode.OK;
             }
 
+            // if data is null we consider the result not valid and return a 500 if the user did
+            // not override the status code with a different status code.
+            // this is however at the moment a point of discussion as there are opposing views
+            // towards what constitutes a valid response.
+            // we will update this status code as the spec moves towards release.
             return HttpStatusCode.InternalServerError;
         }
 
@@ -196,14 +228,35 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
     protected virtual HttpStatusCode GetStatusCode(
         IResponseStream responseStream,
-        FormatInfo format)
-        => HttpStatusCode.OK;
+        FormatInfo format,
+        HttpStatusCode? proposedStatusCode)
+    {
+        // if we are sending a response stream with the multipart/mixed header or
+        // with a text/event-stream response content-type we as well will just
+        // respond with a OK status code.
+        if (format.Kind is ResponseContentType.MultiPartMixed or ResponseContentType.EventStream)
+        {
+            return HttpStatusCode.OK;
+        }
+
+        // we allow for users to implement alternative protocols or response content-type.
+        // if we end up here the user did not fully implement all necessary parts to add support
+        // for an alternative protocols or response content-type.
+        // TODO : throw helper.
+        throw new NotSupportedException(
+            $"The specified response content-type `{format.ContentType}` is not supported.");
+    }
 
     private bool TryGetFormatter(
         IExecutionResult result,
         AcceptMediaType[] acceptMediaTypes,
         out FormatInfo formatInfo)
     {
+        formatInfo = default;
+
+        // if the request does not specify the accept header then we will 
+        // use the `application/json` response content-type, 
+        // which is the legacy behavior.
         if (acceptMediaTypes.Length == 0)
         {
             if (result.Kind is SingleResult)
@@ -233,18 +286,27 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 return true;
             }
 
-            formatInfo = default;
             return false;
         }
 
-        var needsStream = result.Kind is not SingleResult;
-        var needsSubscription = result.Kind is SubscriptionResult;
+        // if the request specifies at least one accept media-type we will
+        // determine which is best to use.
+        // For this we first determine which characteristics our GraphQL result has.
+        var resultKind = result.Kind switch
+        {
+            SingleResult => ResultKind.Single,
+            SubscriptionResult => ResultKind.Subscription,
+            _ => ResultKind.Stream
+        };
 
+        // if we just have one accept header we will try to determine which formatter to take.
+        // we should only be unable to find a match if there was a previous validation skipped.
         if (acceptMediaTypes.Length == 1)
         {
             var mediaType = acceptMediaTypes[0];
 
-            if (!needsStream && mediaType.Kind is ApplicationGraphQL or AllApplication or All)
+            if (resultKind is ResultKind.Single &&
+                mediaType.Kind is ApplicationGraphQL or AllApplication or All)
             {
                 formatInfo = new FormatInfo(
                     ContentType.GraphQLResponse,
@@ -253,7 +315,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 return true;
             }
 
-            if (!needsStream && mediaType.Kind is ApplicationJson)
+            if (resultKind is ResultKind.Single &&
+                mediaType.Kind is ApplicationJson)
             {
                 formatInfo = new FormatInfo(
                     ContentType.Json,
@@ -262,7 +325,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 return true;
             }
 
-            if (!needsSubscription && mediaType.Kind is MultiPartMixed or AllMultiPart or All)
+            if (resultKind is ResultKind.Stream or ResultKind.Single &&
+                mediaType.Kind is MultiPartMixed or AllMultiPart)
             {
                 formatInfo = new FormatInfo(
                     ContentType.MultiPartMixed,
@@ -271,7 +335,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 return true;
             }
 
-            if (mediaType.Kind is EventStream or All)
+            if (mediaType.Kind is EventStream)
             {
                 formatInfo = new FormatInfo(
                     ContentType.EventStream,
@@ -280,17 +344,20 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 return true;
             }
 
-            formatInfo = default;
             return false;
         }
 
+        // if we have more than one specified accept media-type we will try to find the best for
+        // our GraphQL result.
         ref var searchSpace = ref MemoryMarshal.GetReference(acceptMediaTypes.AsSpan());
+        var success = false;
 
         for (var i = 0; i < acceptMediaTypes.Length; i++)
         {
             var mediaType = Unsafe.Add(ref searchSpace, i);
 
-            if (!needsStream && mediaType.Kind is ApplicationGraphQL or AllApplication or All)
+            if (resultKind is ResultKind.Single &&
+                mediaType.Kind is ApplicationGraphQL or AllApplication or All)
             {
                 formatInfo = new FormatInfo(
                     ContentType.GraphQLResponse,
@@ -299,36 +366,78 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 return true;
             }
 
-            if (!needsStream && mediaType.Kind is ApplicationJson)
+            if (resultKind is ResultKind.Single &&
+                mediaType.Kind is ApplicationJson)
             {
+                // application/json is a legacy response content-type. 
+                // We will create a formatInfo but keep on validating for
+                // a better suited format.
                 formatInfo = new FormatInfo(
                     ContentType.Json,
                     ResponseContentType.Json,
                     _jsonFormatter);
-                return true;
+                success = true;
             }
 
-            if (!needsSubscription && mediaType.Kind is MultiPartMixed or AllMultiPart or All)
+            if (resultKind is ResultKind.Stream or ResultKind.Single &&
+                mediaType.Kind is MultiPartMixed or AllMultiPart)
             {
-                formatInfo = new FormatInfo(
-                    ContentType.MultiPartMixed,
-                    ResponseContentType.MultiPartMixed,
-                    _multiPartFormatter);
-                return true;
+                // if the result is a stream we consider this a perfect match and
+                // will use this format.
+                if (resultKind is ResultKind.Stream)
+                {
+                    formatInfo = new FormatInfo(
+                        ContentType.MultiPartMixed,
+                        ResponseContentType.MultiPartMixed,
+                        _multiPartFormatter);
+                    return true;
+                }
+
+                // if the format is a event-stream or not set we will create a
+                // multipart/mixed formatInfo for the current result but also keep 
+                // on validating for a better suited format.
+                if (formatInfo.Kind is not ResponseContentType.Json)
+                {
+                    formatInfo = new FormatInfo(
+                        ContentType.MultiPartMixed,
+                        ResponseContentType.MultiPartMixed,
+                        _multiPartFormatter);
+                    success = true;
+                }
             }
 
-            if (mediaType.Kind is EventStream or All)
+            if (mediaType.Kind is EventStream)
             {
-                formatInfo = new FormatInfo(
-                    ContentType.EventStream,
-                    ResponseContentType.EventStream,
-                    _eventStreamFormatter);
-                return true;
+                // if the result is a subscription we consider this a perfect match and
+                // will use this format.
+                if (resultKind is ResultKind.Stream)
+                {
+                    formatInfo = new FormatInfo(
+                        ContentType.EventStream,
+                        ResponseContentType.EventStream,
+                        _eventStreamFormatter);
+                    return true;
+                }
+
+                // if the result is stream it means that we did not yet validated a 
+                // multipart content-type and thus will create a format for the case that it
+                // is not specified;
+                // or we have a single result but there is no format yet specified
+                // we will create a text/event-stream formatInfo for the current result 
+                // but also keep on validating for a better suited format.
+                if (resultKind is ResultKind.Stream ||
+                    formatInfo.Kind is ResponseContentType.Unknown)
+                {
+                    formatInfo = new FormatInfo(
+                        ContentType.MultiPartMixed,
+                        ResponseContentType.MultiPartMixed,
+                        _multiPartFormatter);
+                    success = true;
+                }
             }
         }
 
-        formatInfo = default;
-        return false;
+        return success;
     }
 
     protected readonly struct FormatInfo
@@ -348,5 +457,12 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         public ResponseContentType Kind { get; }
 
         public IExecutionResultFormatter Formatter { get; }
+    }
+
+    private enum ResultKind
+    {
+        Single,
+        Stream,
+        Subscription
     }
 }

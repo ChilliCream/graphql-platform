@@ -31,6 +31,12 @@ public static class WellKnownContextData
     public const string ValidationErrors = "HotChocolate.Execution.ValidationErrors";
 
     /// <summary>
+    /// The key allows users to override the status code behavior of the default 
+    /// HTTP response formatter.
+    /// </summary>
+    public const string HttpStatusCode = "HotChocolate.Execution.Transport.HttpStatusCode";
+
+    /// <summary>
     /// The key for setting a flag that an operation was not allowed during request execution.
     /// </summary>
     public const string OperationNotAllowed = "HotChocolate.Execution.OperationNotAllowed";

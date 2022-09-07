@@ -31,7 +31,7 @@ public interface IHttpResponseFormatter
     /// <param name="acceptMediaTypes">
     /// The media types provided through the accept header.
     /// </param>
-    /// <param name="statusCode">
+    /// <param name="proposedStatusCode">
     /// The proposed status code.
     /// </param>
     /// <param name="cancellationToken">
@@ -41,6 +41,6 @@ public interface IHttpResponseFormatter
         HttpResponse response,
         IExecutionResult result,
         AcceptMediaType[] acceptMediaTypes,
-        HttpStatusCode? statusCode,
+        HttpStatusCode? proposedStatusCode,
         CancellationToken cancellationToken);
 }
