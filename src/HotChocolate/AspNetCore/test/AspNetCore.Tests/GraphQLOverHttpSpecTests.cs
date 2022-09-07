@@ -525,6 +525,57 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
     }
 
     /// <summary>
+    /// This request specifies the text/event-stream, multipart/mixed, application/json and
+    /// application/graphql-response+json content types as accept header value.
+    /// expected response content-type: application/graphql-response+json
+    /// expected status code: 200
+    /// </summary>
+    [Fact]
+    public async Task New_Query_No_Streams_9()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        {
+            Content = JsonContent.Create(
+                new ClientQueryRequest
+                {
+                    Query = "{ __typename }"
+                }),
+            Headers =
+            {
+                { "Accept", new[]
+                    {
+                        ContentType.EventStream,
+                        $"{ContentType.Types.MultiPart}/{ContentType.SubTypes.Mixed}",
+                        ContentType.Json,
+                        ContentType.GraphQLResponse,
+                    }
+                }
+            }
+        };
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        // expected response content-type: application/graphql-response+json
+        // expected status code: 200
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                @"Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+                {""data"":{""__typename"":""Query""}}");
+    }
+
+    /// <summary>
     /// This request specifies the application/graphql-response+json and
     /// the multipart/mixed content type as accept header value.
     /// expected response content-type: multipart/mixed
