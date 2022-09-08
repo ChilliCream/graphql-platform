@@ -27,7 +27,7 @@ public sealed partial class MultiPartResponseStreamSerializer : IResponseStreamS
     /// Gets or sets the encoder to use when escaping strings, or null to use the default encoder.
     /// </param>
     public MultiPartResponseStreamSerializer(
-        bool indented = false, 
+        bool indented = false,
         JavaScriptEncoder? encoder = null)
     {
         _payloadSerializer = new JsonQueryResultSerializer(indented, encoder);
@@ -45,7 +45,7 @@ public sealed partial class MultiPartResponseStreamSerializer : IResponseStreamS
     public MultiPartResponseStreamSerializer(
         IQueryResultSerializer queryResultSerializer)
     {
-        _payloadSerializer = queryResultSerializer ?? 
+        _payloadSerializer = queryResultSerializer ??
             throw new ArgumentNullException(nameof(queryResultSerializer));
     }
 
@@ -70,97 +70,89 @@ public sealed partial class MultiPartResponseStreamSerializer : IResponseStreamS
     private async Task WriteResponseStreamAsync(
         IResponseStream responseStream,
         Stream outputStream,
-        CancellationToken cancellationToken = default)
+        CancellationToken ct)
     {
-        await WriteNextAsync(outputStream, cancellationToken).ConfigureAwait(false);
-
-        await foreach (IQueryResult result in responseStream.ReadResultsAsync()
-            .WithCancellation(cancellationToken)
-            .ConfigureAwait(false))
+        await foreach (IQueryResult result in
+            responseStream.ReadResultsAsync().WithCancellation(ct).ConfigureAwait(false))
         {
-            await WriteResultAsync(result, outputStream, cancellationToken)
-                .ConfigureAwait(false);
-            result.Dispose();
-
-            if (result.HasNext ?? false)
+            try
             {
-                await WriteNextAsync(outputStream, cancellationToken).ConfigureAwait(false);
-                await outputStream.FlushAsync(cancellationToken)
-                    .ConfigureAwait(false);
+                await WriteNextAsync(outputStream, ct).ConfigureAwait(false);
+                await WriteResultAsync(result, outputStream, ct).ConfigureAwait(false);
+                await outputStream.FlushAsync(ct).ConfigureAwait(false);
             }
-            else
+            finally
             {
-                // we will exit the foreach even if there are more items left
-                // since we were signaled that there are no more items
-                break;
+                // The result objects use pooled memory so we need to ensure that they
+                // return the memory by disposing them.
+                result.Dispose();
             }
         }
 
-        await WriteEndAsync(outputStream, cancellationToken).ConfigureAwait(false);
-        await outputStream.FlushAsync(cancellationToken)
-            .ConfigureAwait(false);
+        await WriteEndAsync(outputStream, ct).ConfigureAwait(false);
+        await outputStream.FlushAsync(ct).ConfigureAwait(false);
     }
 
     private async Task WriteResultAsync(
         IQueryResult result,
         Stream outputStream,
-        CancellationToken cancellationToken)
+        CancellationToken ct)
     {
         using var writer = new ArrayWriter();
         _payloadSerializer.Serialize(result, writer);
 
-        await WriteResultHeaderAsync(outputStream, cancellationToken)
+        await WriteResultHeaderAsync(outputStream, ct)
             .ConfigureAwait(false);
 
         // The payload is sent, followed by a CRLF.
         await outputStream.WriteAsync(
-            writer.GetInternalBuffer(), 0, writer.Length, cancellationToken)
+            writer.GetInternalBuffer(), 0, writer.Length, ct)
             .ConfigureAwait(false);
     }
 
     private async Task WriteResultHeaderAsync(
         Stream outputStream,
-        CancellationToken cancellationToken)
+        CancellationToken ct)
     {
         // Each part of the multipart response must contain a Content-Type header.
         // Similar to the GraphQL specification this specification does not require
         // a specific serialization format. For consistency and ease of notation,
         // examples of the response are given in JSON throughout the spec.
         await outputStream.WriteAsync(
-                ContentType, 0, ContentType.Length, cancellationToken)
+                ContentType, 0, ContentType.Length, ct)
             .ConfigureAwait(false);
-        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
+        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct)
             .ConfigureAwait(false);
 
         // After all headers, an additional CRLF is sent.
-        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
+        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct)
             .ConfigureAwait(false);
     }
 
     private async Task WriteNextAsync(
         Stream outputStream,
-        CancellationToken cancellationToken)
+        CancellationToken ct)
     {
         // Before each part of the multi-part response, a boundary (CRLF, ---, CRLF) is sent.
-        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
+        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct)
             .ConfigureAwait(false);
-        await outputStream.WriteAsync(Start, 0, Start.Length, cancellationToken)
+        await outputStream.WriteAsync(Start, 0, Start.Length, ct)
             .ConfigureAwait(false);
-        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
+        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct)
             .ConfigureAwait(false);
     }
 
     private async Task WriteEndAsync(
         Stream outputStream,
-        CancellationToken cancellationToken)
+        CancellationToken ct)
     {
         // After the final payload, the terminating boundary of CRLF followed by
         // ----- followed by CRLF is sent.
-        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
+        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct)
             .ConfigureAwait(false);
-        await outputStream.WriteAsync(End, 0, End.Length, cancellationToken)
+        await outputStream.WriteAsync(End, 0, End.Length, ct)
             .ConfigureAwait(false);
-        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
+        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct)
             .ConfigureAwait(false);
     }
 }

@@ -14,6 +14,7 @@ using HotChocolate.AspNetCore.Instrumentation;
 using System;
 using System.Net;
 using HotChocolate.Execution.Options;
+using Newtonsoft.Json;
 
 namespace HotChocolate.AspNetCore;
 
@@ -835,6 +836,50 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             }"
                     }
             });
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task BatchRequest_GetHero_And_GetHuman_MultiPart()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: sp => sp.AddHttpResultSerializer());
+
+        // act
+        var response =
+            await server.SendPostRequestAsync(
+                JsonConvert.SerializeObject(new List<ClientQueryRequest>
+                {
+                    new ClientQueryRequest
+                    {
+                        Query = @"
+                            query getHero {
+                                hero(episode: EMPIRE) {
+                                    id @export
+                                }
+                            }"
+                    },
+                    new ClientQueryRequest
+                    {
+                        Query = @"
+                            query getHuman {
+                                human(id: $id) {
+                                    name
+                                }
+                            }"
+                    }
+                }),
+                "/graphql");
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            throw new Exception("GraphQL endpoint not found.");
+        }
+
+        var result = await response.Content.ReadAsStringAsync();
 
         // assert
         result.MatchSnapshot();
