@@ -17,6 +17,7 @@
     <InternalsVisibleTo Include="HotChocolate.Types.CursorPagination" />
     <InternalsVisibleTo Include="HotChocolate.Types.OffsetPagination" />
     <InternalsVisibleTo Include="HotChocolate.ApolloFederation" />
+    <InternalsVisibleTo Include="HotChocolate.Data" />
     <InternalsVisibleTo Include="HotChocolate.Caching" />
 
     <!--Legacy Support-->
