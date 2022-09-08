@@ -102,29 +102,19 @@ public sealed partial class MultiPartResponseStreamFormatter : IExecutionResultF
         Stream outputStream,
         CancellationToken ct = default)
     {
-        await WriteNextAsync(outputStream, ct).ConfigureAwait(false);
-
         await foreach (var result in
             responseStream.ReadResultsAsync().WithCancellation(ct).ConfigureAwait(false))
         {
             try
             {
+                await WriteNextAsync(outputStream, ct).ConfigureAwait(false);
                 await WriteResultAsync(result, outputStream, ct).ConfigureAwait(false);
-
-                if (result.HasNext ?? false)
-                {
-                    await WriteNextAsync(outputStream, ct).ConfigureAwait(false);
-                    await outputStream.FlushAsync(ct).ConfigureAwait(false);
-                }
-                else
-                {
-                    // we will exit the foreach even if there are more items left
-                    // since we were signaled that there are no more items
-                    break;
-                }
+                await outputStream.FlushAsync(ct).ConfigureAwait(false);
             }
             finally
             {
+                // The result objects use pooled memory so we need to ensure that they
+                // return the memory by disposing them.
                 await result.DisposeAsync().ConfigureAwait(false);
             }
         }

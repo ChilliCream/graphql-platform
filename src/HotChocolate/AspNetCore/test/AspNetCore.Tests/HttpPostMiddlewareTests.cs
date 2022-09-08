@@ -870,8 +870,9 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.PostAsync(new List<ClientQueryRequest>
-            {
+            await server.PostAsync(
+                new List<ClientQueryRequest>
+                {
                     new ClientQueryRequest
                     {
                         Query = @"
@@ -890,7 +891,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                                 }
                             }"
                     }
-            });
+                });
 
         // assert
         result.MatchSnapshot();

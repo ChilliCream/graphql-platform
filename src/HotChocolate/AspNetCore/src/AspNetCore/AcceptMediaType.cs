@@ -11,6 +11,16 @@ public readonly struct AcceptMediaType
         double? quality,
         StringSegment charset)
     {
+        if (!type.HasValue)
+        {
+            throw new ArgumentNullException(nameof(type));
+        }
+
+        if (!subType.HasValue)
+        {
+            throw new ArgumentNullException(nameof(subType));
+        }
+
         Type = type.Value;
         SubType = subType.Value;
         Quality = quality;

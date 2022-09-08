@@ -198,7 +198,7 @@ internal sealed class OperationExecutionMiddleware
             _ => true
         };
 
-        if (operation.HasIncrementalParts)
+        if (allowed && operation.HasIncrementalParts)
         {
             return allowed && (request.Flags & AllowStreams) == AllowStreams;
         }

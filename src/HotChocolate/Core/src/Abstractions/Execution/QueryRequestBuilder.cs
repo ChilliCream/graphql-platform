@@ -22,7 +22,7 @@ public class QueryRequestBuilder : IQueryRequestBuilder
     private IReadOnlyDictionary<string, object?>? _readOnlyExtensions;
     private Dictionary<string, object?>? _extensions;
     private IServiceProvider? _services;
-    private GraphQLRequestFlags _flags;
+    private GraphQLRequestFlags _flags = GraphQLRequestFlags.AllowAll;
 
     public IQueryRequestBuilder SetQuery(string sourceText)
     {
@@ -383,7 +383,8 @@ public class QueryRequestBuilder : IQueryRequestBuilder
             _initialValue = request.InitialValue,
             _readOnlyContextData = request.ContextData,
             _readOnlyExtensions = request.Extensions,
-            _services = request.Services
+            _services = request.Services,
+            _flags = request.Flags
         };
 
         if (builder._query is null && builder._queryName is null)

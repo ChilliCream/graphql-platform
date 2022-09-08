@@ -1,7 +1,7 @@
-using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Utilities;
+using Microsoft.AspNetCore.Http;
 using static System.Net.HttpStatusCode;
 using static HotChocolate.AspNetCore.ErrorHelper;
 using static HotChocolate.SchemaPrinter;
@@ -11,6 +11,14 @@ namespace HotChocolate.AspNetCore;
 
 public sealed class HttpGetSchemaMiddleware : MiddlewareBase
 {
+    private static readonly AcceptMediaType[] _mediaTypes =
+    {
+        new AcceptMediaType(
+            ContentType.Types.Application,
+            ContentType.SubTypes.GraphQLResponse,
+            null,
+            default)
+    };
     private readonly MiddlewareRoutingType _routing;
     private readonly IServerDiagnosticEvents _diagnosticEvents;
 
@@ -78,7 +86,7 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
                 await WriteResultAsync(
                     context,
                     TypeNameIsEmpty(),
-                    Array.Empty<AcceptMediaType>(),
+                    _mediaTypes,
                     BadRequest);
                 return;
             }
@@ -108,7 +116,7 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
                 await WriteResultAsync(
                     context,
                     InvalidTypeName(typeName),
-                    Array.Empty<AcceptMediaType>(),
+                    _mediaTypes,
                     BadRequest);
                 return;
             }
@@ -118,7 +126,7 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
                 await WriteResultAsync(
                     context,
                     TypeNotFound(typeName),
-                    Array.Empty<AcceptMediaType>(),
+                    _mediaTypes,
                     NotFound);
                 return;
             }
