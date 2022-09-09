@@ -6,10 +6,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.ExecutionResultKind;
+using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Serialization;
 
-// https://github.com/graphql/graphql-over-http/blob/master/rfcs/IncrementalDelivery.md
+/// <summary>
+/// The default MultiPart formatter for <see cref="IExecutionResult"/>.
+/// https://github.com/graphql/graphql-over-http/blob/master/rfcs/IncrementalDelivery.md
+/// </summary>
 public sealed partial class MultiPartResponseStreamFormatter : IExecutionResultFormatter
 {
     private readonly IQueryResultFormatter _payloadFormatter;
@@ -50,36 +54,55 @@ public sealed partial class MultiPartResponseStreamFormatter : IExecutionResultF
             throw new ArgumentNullException(nameof(queryResultFormatter));
     }
 
-    public async ValueTask FormatAsync(
+    /// <inheritdoc cref="IExecutionResultFormatter.FormatAsync"/>
+    public ValueTask FormatAsync(
         IExecutionResult result,
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
-        if (result.Kind is SingleResult)
+        if (result is null)
         {
-            await WriteSingleResponseAsync(
-                (IQueryResult)result,
-                outputStream,
-                cancellationToken)
-                .ConfigureAwait(false);
+            throw new ArgumentNullException(nameof(result));
         }
-        else if (result.Kind is DeferredResult or BatchResult or SubscriptionResult)
+
+        if (outputStream is null)
         {
-            await WriteResponseStreamAsync(
-                (IResponseStream)result,
-                outputStream,
-                cancellationToken)
-                .ConfigureAwait(false);
+            throw new ArgumentNullException(nameof(outputStream));
         }
-        else
+
+        return result.Kind switch
         {
-            // TODO : ThrowHelper
-            throw new NotSupportedException(
-                $"The {GetType().FullName} does not support formatting `{result.Kind}`.");
-        }
+            SingleResult =>
+                WriteSingleResponseAsync(
+                    (IQueryResult)result,
+                    outputStream,
+                    cancellationToken),
+            DeferredResult or BatchResult or SubscriptionResult
+                => WriteManyResponsesAsync(
+                    (IResponseStream)result,
+                    outputStream,
+                    cancellationToken),
+            _ => throw MultiPartFormatter_ResultNotSupported(
+                nameof(MultiPartResponseStreamFormatter))
+        };
     }
 
-    public Task FormatAsync(
+    /// <summary>
+    /// Formats a response stream and writes the formatted result to
+    /// the given <paramref name="outputStream"/>.
+    /// </summary>
+    /// <param name="responseStream">
+    /// The response stream that shall be formatted.
+    /// </param>
+    /// <param name="outputStream">
+    /// The stream to which the formatted <paramref name="responseStream"/> shall be written to.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public ValueTask FormatAsync(
         IResponseStream responseStream,
         Stream outputStream,
         CancellationToken cancellationToken = default)
@@ -94,10 +117,10 @@ public sealed partial class MultiPartResponseStreamFormatter : IExecutionResultF
             throw new ArgumentNullException(nameof(outputStream));
         }
 
-        return WriteResponseStreamAsync(responseStream, outputStream, cancellationToken);
+        return WriteManyResponsesAsync(responseStream, outputStream, cancellationToken);
     }
 
-    private async Task WriteResponseStreamAsync(
+    private async ValueTask WriteManyResponsesAsync(
         IResponseStream responseStream,
         Stream outputStream,
         CancellationToken ct = default)
@@ -123,7 +146,7 @@ public sealed partial class MultiPartResponseStreamFormatter : IExecutionResultF
         await outputStream.FlushAsync(ct).ConfigureAwait(false);
     }
 
-    private async Task WriteSingleResponseAsync(
+    private async ValueTask WriteSingleResponseAsync(
         IQueryResult queryResult,
         Stream outputStream,
         CancellationToken ct = default)
