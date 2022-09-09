@@ -57,7 +57,7 @@ public static class SnapshotExtensions
     public static async Task<IExecutionResult> MatchSnapshotAsync(
         this Task<IExecutionResult> task)
     {
-        IExecutionResult result = await task;
+        var result = await task;
         var json = await task.ToJsonAsync();
         json.MatchSnapshot();
         return result;
@@ -66,7 +66,7 @@ public static class SnapshotExtensions
     public static async Task<ISchema> MatchSnapshotAsync(
         this Task<ISchema> task)
     {
-        ISchema result = await task;
+        var result = await task;
         result.Print().MatchSnapshot();
         return result;
     }
@@ -90,7 +90,7 @@ public static class SnapshotExtensions
     public static async ValueTask<ISchema> MatchSnapshotAsync(
         this ValueTask<ISchema> task)
     {
-        ISchema result = await task;
+        var result = await task;
         result.Print().MatchSnapshot();
         return result;
     }
@@ -123,7 +123,7 @@ public static class SnapshotExtensions
         this Task<IExecutionResult> task,
         string snapshotNameExtension)
     {
-        IExecutionResult result = await task;
+        var result = await task;
         var json = await task.ToJsonAsync();
         json.MatchSnapshot(SnapshotNameExtension.Create(snapshotNameExtension));
         return result;
@@ -133,7 +133,7 @@ public static class SnapshotExtensions
         this Task<IExecutionResult> task,
         params string[] snapshotNameExtensions)
     {
-        IExecutionResult result = await task;
+        var result = await task;
         var json = await task.ToJsonAsync();
         json.MatchSnapshot(SnapshotNameExtension.Create(snapshotNameExtensions));
         return result;
@@ -143,7 +143,7 @@ public static class SnapshotExtensions
         this Task<IExecutionResult> task,
         params object[] snapshotNameExtensions)
     {
-        IExecutionResult result = await task;
+        var result = await task;
         var json = await task.ToJsonAsync();
         json.MatchSnapshot(SnapshotNameExtension.Create(snapshotNameExtensions));
         return result;
@@ -151,7 +151,7 @@ public static class SnapshotExtensions
 
     public static async Task<string> ToJsonAsync(this Task<IExecutionResult> task)
     {
-        IExecutionResult result = await task;
+        var result = await task;
         return result.ToJson();
     }
 

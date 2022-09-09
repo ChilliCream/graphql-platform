@@ -35,11 +35,11 @@ public static class TestHelper
         CancellationToken cancellationToken = default)
     {
         // arrange
-        IRequestExecutor executor = await CreateExecutorAsync(configuration);
-        IReadOnlyQueryRequest request = CreateRequest(configuration, query);
+        var executor = await CreateExecutorAsync(configuration);
+        var request = CreateRequest(configuration, query);
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(request, cancellationToken);
+        var result = await executor.ExecuteAsync(request, cancellationToken);
 
         // assert
         Assert.Null(Assert.IsType<QueryResult>(result).Errors);
@@ -88,11 +88,11 @@ public static class TestHelper
         params Action<IError>[] elementInspectors)
     {
         // arrange
-        IRequestExecutor executor = await CreateExecutorAsync(configuration);
-        IReadOnlyQueryRequest request = CreateRequest(configuration, query);
+        var executor = await CreateExecutorAsync(configuration);
+        var request = CreateRequest(configuration, query);
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request);
 
         // assert
         IQueryResult queryResult = Assert.IsType<QueryResult>(result);
@@ -103,13 +103,13 @@ public static class TestHelper
             Assert.Collection(queryResult.Errors!, elementInspectors);
         }
 
-        queryResult.MatchSnapshot();
+        await queryResult.MatchSnapshotAsync();
     }
 
     public static async Task<T> CreateTypeAsync<T>()
         where T : INamedType
     {
-        ISchema schema = await CreateSchemaAsync(c => c
+        var schema = await CreateSchemaAsync(c => c
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("result"))
             .AddType<T>()
             .ModifyOptions(o => o.StrictValidation = false));
@@ -119,7 +119,7 @@ public static class TestHelper
     public static async Task<T> CreateTypeAsync<T>(T type)
         where T : INamedType
     {
-        ISchema schema = await CreateSchemaAsync(type);
+        var schema = await CreateSchemaAsync(type);
         return schema.GetType<T>(type.Name);
     }
 
@@ -136,7 +136,7 @@ public static class TestHelper
         Action<IRequestExecutorBuilder> configure,
         bool strict = false)
     {
-        IRequestExecutor executor = await CreateExecutorAsync(c =>
+        var executor = await CreateExecutorAsync(c =>
         {
             configure.Invoke(c);
             c.ModifyOptions(o => o.StrictValidation = strict);
@@ -158,7 +158,7 @@ public static class TestHelper
     private static async ValueTask<IRequestExecutor> CreateExecutorAsync(
         TestConfiguration? configuration)
     {
-        IRequestExecutorBuilder builder = new ServiceCollection().AddGraphQL();
+        var builder = new ServiceCollection().AddGraphQL();
 
         if (configuration?.Configure is { } c)
         {
@@ -175,12 +175,12 @@ public static class TestHelper
             .GetRequestExecutorAsync();
     }
 
-    private static IReadOnlyQueryRequest CreateRequest(
+    private static IQueryRequest CreateRequest(
         TestConfiguration? configuration, string query)
     {
         configuration ??= new TestConfiguration();
 
-        IQueryRequestBuilder builder = QueryRequestBuilder.New().SetQuery(query);
+        var builder = QueryRequestBuilder.New().SetQuery(query);
 
         if (configuration.Services is { } services)
         {

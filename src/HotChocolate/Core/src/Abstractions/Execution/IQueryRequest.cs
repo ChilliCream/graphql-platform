@@ -7,12 +7,12 @@ using HotChocolate.Language;
 namespace HotChocolate.Execution;
 
 /// <summary>
-/// Represents a GraphQL query request.
+/// Represents a GraphQL request.
 /// </summary>
 public interface IQueryRequest
 {
     /// <summary>
-    /// Gets the GraphQL query document.
+    /// Gets the GraphQL request document.
     /// </summary>
     IQuery? Query { get; }
 
@@ -37,11 +37,6 @@ public interface IQueryRequest
     IReadOnlyDictionary<string, object?>? VariableValues { get; }
 
     /// <summary>
-    /// Gets the GraphQL operation instance.
-    /// </summary>
-    object? InitialValue { get; }
-
-    /// <summary>
     /// Gets custom context properties that can be passed into the GraphQL execution.
     /// </summary>
     IReadOnlyDictionary<string, object?>? ContextData { get; }
@@ -57,7 +52,7 @@ public interface IQueryRequest
     IServiceProvider? Services { get; }
 
     /// <summary>
-    /// GraphQL request flags allow to limit the GraphQL executor.
+    /// GraphQL request flags allow to limit the GraphQL executor capabilities.
     /// </summary>
     GraphQLRequestFlags Flags { get; }
 }

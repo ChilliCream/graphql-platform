@@ -16,7 +16,6 @@ public class QueryRequestBuilder : IQueryRequestBuilder
     private string? _operationName;
     private IReadOnlyDictionary<string, object?>? _readOnlyVariableValues;
     private Dictionary<string, object?>? _variableValues;
-    private object? _initialValue;
     private IReadOnlyDictionary<string, object?>? _readOnlyContextData;
     private Dictionary<string, object?>? _contextData;
     private IReadOnlyDictionary<string, object?>? _readOnlyExtensions;
@@ -63,12 +62,6 @@ public class QueryRequestBuilder : IQueryRequestBuilder
     public IQueryRequestBuilder SetOperation(string? operationName)
     {
         _operationName = operationName;
-        return this;
-    }
-
-    public IQueryRequestBuilder SetInitialValue(object? initialValue)
-    {
-        _initialValue = initialValue;
         return this;
     }
 
@@ -300,7 +293,7 @@ public class QueryRequestBuilder : IQueryRequestBuilder
         return this;
     }
 
-    public IReadOnlyQueryRequest Create()
+    public IQueryRequest Create()
         => new QueryRequest
         (
             query: _query,
@@ -311,7 +304,6 @@ public class QueryRequestBuilder : IQueryRequestBuilder
             contextData: GetContextData(),
             extensions: GetExtensions(),
             services: _services,
-            initialValue: _initialValue,
             flags: _flags
         );
 
@@ -366,7 +358,7 @@ public class QueryRequestBuilder : IQueryRequestBuilder
         }
     }
 
-    public static IReadOnlyQueryRequest Create(string query) =>
+    public static IQueryRequest Create(string query) =>
         New().SetQuery(query).Create();
 
     public static QueryRequestBuilder New() => new();
@@ -380,7 +372,6 @@ public class QueryRequestBuilder : IQueryRequestBuilder
             _queryHash = request.QueryHash,
             _operationName = request.OperationName,
             _readOnlyVariableValues = request.VariableValues,
-            _initialValue = request.InitialValue,
             _readOnlyContextData = request.ContextData,
             _readOnlyExtensions = request.Extensions,
             _services = request.Services,

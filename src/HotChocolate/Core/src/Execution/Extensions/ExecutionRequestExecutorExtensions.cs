@@ -11,7 +11,7 @@ public static class ExecutionRequestExecutorExtensions
 {
     public static Task<IExecutionResult> ExecuteAsync(
         this IRequestExecutor executor,
-        IReadOnlyQueryRequest request)
+        IQueryRequest request)
     {
         if (executor is null)
         {
@@ -134,7 +134,7 @@ public static class ExecutionRequestExecutorExtensions
 
     public static IExecutionResult Execute(
         this IRequestExecutor executor,
-        IReadOnlyQueryRequest request)
+        IQueryRequest request)
     {
         if (executor is null)
         {

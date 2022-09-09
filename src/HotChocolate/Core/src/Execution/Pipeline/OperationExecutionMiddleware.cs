@@ -169,15 +169,15 @@ internal sealed class OperationExecutionMiddleware
         }
     }
 
-    private object? GetQueryRootValue(IRequestContext context) =>
-        RootValueResolver.Resolve(
+    private object? GetQueryRootValue(IRequestContext context)
+        => RootValueResolver.Resolve(
             context,
             context.Services,
             context.Schema.QueryType,
             ref _cachedQuery);
 
-    private object? GetMutationRootValue(IRequestContext context) =>
-        RootValueResolver.Resolve(
+    private object? GetMutationRootValue(IRequestContext context)
+        => RootValueResolver.Resolve(
             context,
             context.Services,
             context.Schema.MutationType!,
