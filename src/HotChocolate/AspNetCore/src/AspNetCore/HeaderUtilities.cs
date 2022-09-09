@@ -6,11 +6,20 @@ using Microsoft.Net.Http.Headers;
 
 namespace HotChocolate.AspNetCore;
 
+/// <summary>
+/// Utilities for handling HTTP headers.
+/// </summary>
 internal static class HeaderUtilities
 {
     private static readonly ConcurrentDictionary<string, CacheEntry> _cache =
         new(StringComparer.Ordinal);
 
+    /// <summary>
+    /// Gets the parsed accept header values from a request.
+    /// </summary>
+    /// <param name="request">
+    /// The HTTP request.
+    /// </param>
     public static AcceptMediaType[] GetAcceptHeader(HttpRequest request)
     {
         if (request.Headers.TryGetValue(HeaderNames.Accept, out var value))
