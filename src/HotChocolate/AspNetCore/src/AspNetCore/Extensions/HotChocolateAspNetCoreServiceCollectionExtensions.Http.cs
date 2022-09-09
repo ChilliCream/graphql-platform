@@ -80,17 +80,11 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Adds the <see cref="DefaultHttpResponseFormatter"/> with specific serialization settings
+    /// Adds the <see cref="DefaultHttpResponseFormatter"/> with specific formatter options
     /// to the DI.
     /// </summary>
     /// <param name="services">
     /// The <see cref="IServiceCollection"/>.
-    /// </param>
-    /// <param name="batchSerialization">
-    /// Specifies the batch serialization format.
-    /// </param>
-    /// <param name="deferSerialization">
-    /// Specifies the defer/stream serialization format.
     /// </param>
     /// <param name="indented">
     /// Defines whether the underlying <see cref="Utf8JsonWriter"/>
@@ -112,7 +106,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Adds a custom http request serializer to the DI.
+    /// Adds a custom HTTP response formatter to the DI.
     /// </summary>
     /// <param name="services">
     /// The <see cref="IServiceCollection"/>.
