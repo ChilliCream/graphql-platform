@@ -171,7 +171,7 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
         return Id == other.Id &&
             Name == other.Name &&
             Document.Equals(other.Document) &&
-            EqualsVariables(other.Variables);
+            ComparisonHelper.DictionaryEqual(Variables, other.Variables);
     }
 
     public override bool Equals(object? obj)
@@ -192,44 +192,6 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
         }
 
         return Equals((OperationRequest)obj);
-    }
-
-    private bool EqualsVariables(IReadOnlyDictionary<string, object?> others)
-    {
-        // the variables dictionary is the same or both are null.
-        if (ReferenceEquals(Variables, others))
-        {
-            return true;
-        }
-
-        if (Variables.Count != others.Count)
-        {
-            return false;
-        }
-
-        foreach (var key in Variables.Keys)
-        {
-            if (!Variables.TryGetValue(key, out var a) ||
-                !others.TryGetValue(key, out var b))
-            {
-                return false;
-            }
-
-            if (a is IEnumerable e1 && b is IEnumerable e2)
-            {
-                // Check the contents of the collection, assuming order is important
-                if (!ComparisonHelper.SequenceEqual(e1, e2))
-                {
-                    return false;
-                }
-            }
-            else if (!Equals(a, b))
-            {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     public string GetHash()

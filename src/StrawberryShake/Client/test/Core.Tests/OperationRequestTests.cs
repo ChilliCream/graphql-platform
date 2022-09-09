@@ -82,6 +82,114 @@ public class OperationRequestTests
     }
 
     [Fact]
+    public void Equals_With_Variables_Dictionary()
+    {
+        // arrange
+        var document = new Mock<IDocument>();
+
+        var a = new OperationRequest(
+            null,
+            "abc",
+            document.Object,
+            new Dictionary<string, object?> { { "a", new Dictionary<string, object?> { { "b", new List<object?> { 1, 2, 3 } } } } });
+
+        var b = new OperationRequest(
+            null,
+            "abc",
+            document.Object,
+            new Dictionary<string, object?> { { "a", new Dictionary<string, object?> { { "b", new List<object?> { 1, 2, 3 } } } } });
+
+        // act
+        // assert
+        Assert.True(a.Equals(b));
+
+        b = new OperationRequest(
+            null,
+            "abc",
+            document.Object,
+            new Dictionary<string, object?> { { "a", new Dictionary<string, object?> { { "b", new List<object?> { 1, 3, 2 } } } } });
+
+        // act
+        // assert
+        Assert.False(a.Equals(b));
+
+        b = new OperationRequest(
+            null,
+            "abc",
+            document.Object,
+            new Dictionary<string, object?> { { "a", new Dictionary<string, object?> { { "b", new List<object?> { 1, 3 } } } } });
+
+        // act
+        // assert
+        Assert.False(a.Equals(b));
+
+        b = new OperationRequest(
+            null,
+            "abc",
+            document.Object,
+            new Dictionary<string, object?> { { "a", new Dictionary<string, object?> { { "b", new List<object?> { 1, 2, 3, 4 } } } } });
+
+        // act
+        // assert
+        Assert.False(a.Equals(b));
+    }
+
+    [Fact]
+    public void Equals_With_Variables_JSON()
+    {
+        // arrange
+        var document = new Mock<IDocument>();
+
+        var a = new OperationRequest(
+            null,
+            "abc",
+            document.Object,
+            new Dictionary<string, object?> {
+                { "a", new Dictionary<string, object?>
+                    {
+                        { "b", new Dictionary<string, object?>
+                            {
+                                { "c", "123456" },
+                                { "d", new Dictionary<string, object?>
+                                    {
+                                        { "e", new List<object?> { 1, 2, 3, 4 } },
+                                        { "f", true } }
+                                    },
+                                { "g", 123 }
+                            }
+                        }
+                    }
+                }
+            });
+
+        var b = new OperationRequest(
+            null,
+            "abc",
+            document.Object,
+            new Dictionary<string, object?> {
+                { "a", new Dictionary<string, object?>
+                    {
+                        { "b", new Dictionary<string, object?>
+                            {
+                                { "c", "123456" },
+                                { "d", new Dictionary<string, object?>
+                                    {
+                                        { "e", new List<object?> { 1, 2, 3, 4 } },
+                                        { "f", true } }
+                                    },
+                                { "g", 123 }
+                            }
+                        }
+                    }
+                }
+            });
+
+        // act
+        // assert
+        Assert.True(a.Equals(b));
+    }
+
+    [Fact]
     public void Equals_No_Variables()
     {
         // arrange

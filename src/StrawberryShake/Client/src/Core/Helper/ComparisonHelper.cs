@@ -102,4 +102,58 @@ public static class ComparisonHelper
 
         return false;
     }
+
+    public static bool DictionaryEqual(
+        IReadOnlyDictionary<string, object?>? first,
+        IReadOnlyDictionary<string, object?>? second)
+    {
+        // the variables dictionary is the same or both are null.
+        if (ReferenceEquals(first, second))
+        {
+            return true;
+        }
+
+        if ((first == null) || (second == null))
+        {
+            return false;
+        }
+
+        if (first.Count != second.Count)
+        {
+            return false;
+        }
+
+        foreach (var key in first.Keys)
+        {
+            if (!first.TryGetValue(key, out var a) ||
+                !second.TryGetValue(key, out var b))
+            {
+                return false;
+            }
+
+            if (a is IEnumerable<KeyValuePair<string, object?>> k1 &&
+                b is IEnumerable<KeyValuePair<string, object?>> k2)
+            {
+                if (!DictionaryEqual(k1.ToDictionary(x => x.Key, x => x.Value), k2.ToDictionary(x => x.Key, x => x.Value)))
+                {
+                    return false;
+                }
+            }
+            else if (a is IEnumerable e1 &&
+                     b is IEnumerable e2)
+            {
+                // Check the contents of the collection, assuming order is important
+                if (!SequenceEqual(e1, e2))
+                {
+                    return false;
+                }
+            }
+            else if (!Equals(a, b))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
