@@ -13,10 +13,10 @@ public class WebSocketSubscriptionMiddleware : MiddlewareBase
     public WebSocketSubscriptionMiddleware(
         RequestDelegate next,
         IRequestExecutorResolver executorResolver,
-        IHttpResultSerializer resultSerializer,
+        IHttpResponseFormatter responseFormatter,
         IServerDiagnosticEvents diagnosticEvents,
         string schemaName)
-        : base(next, executorResolver, resultSerializer, schemaName)
+        : base(next, executorResolver, responseFormatter, schemaName)
     {
         _diagnosticEvents = diagnosticEvents ??
             throw new ArgumentNullException(nameof(diagnosticEvents));

@@ -5,6 +5,7 @@ using HotChocolate.Fetching;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
+using static HotChocolate.Execution.GraphQLRequestFlags;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Pipeline;
@@ -49,7 +50,7 @@ internal sealed class OperationExecutionMiddleware
 
         if (context.Operation is not null && context.Variables is not null)
         {
-            if (IsOperationAllowed(context))
+            if (IsOperationAllowed(context.Operation, context.Request))
             {
                 using (context.DiagnosticEvents.ExecuteOperation(context))
                 {
@@ -168,44 +169,40 @@ internal sealed class OperationExecutionMiddleware
         }
     }
 
-    private object? GetQueryRootValue(IRequestContext context) =>
-        RootValueResolver.Resolve(
+    private object? GetQueryRootValue(IRequestContext context)
+        => RootValueResolver.Resolve(
             context,
             context.Services,
             context.Schema.QueryType,
             ref _cachedQuery);
 
-    private object? GetMutationRootValue(IRequestContext context) =>
-        RootValueResolver.Resolve(
+    private object? GetMutationRootValue(IRequestContext context)
+        => RootValueResolver.Resolve(
             context,
             context.Services,
             context.Schema.MutationType!,
             ref _cachedMutation);
 
-    private bool IsOperationAllowed(IRequestContext context)
+    private bool IsOperationAllowed(IOperation operation, IQueryRequest request)
     {
-        var allowedOps = context.Request.AllowedOperations;
-
-        if (allowedOps is null ||
-            allowedOps.Length == 0)
+        if (request.Flags is AllowAll)
         {
             return true;
         }
 
-        if (allowedOps.Length == 1 &&
-            allowedOps[0] == context.Operation?.Type)
+        var allowed = operation.Definition.Operation switch
         {
-            return true;
+            OperationType.Query => (request.Flags & AllowQuery) == AllowQuery,
+            OperationType.Mutation => (request.Flags & AllowMutation) == AllowMutation,
+            OperationType.Subscription => (request.Flags & AllowSubscription) == AllowSubscription,
+            _ => true
+        };
+
+        if (allowed && operation.HasIncrementalParts)
+        {
+            return allowed && (request.Flags & AllowStreams) == AllowStreams;
         }
 
-        for (var i = 0; i < allowedOps.Length; i++)
-        {
-            if (allowedOps[i] == context.Operation?.Type)
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return allowed;
     }
 }

@@ -5,11 +5,16 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Utilities;
+using static HotChocolate.Execution.ExecutionResultKind;
+using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Serialization;
 
-// https://github.com/graphql/graphql-over-http/blob/master/rfcs/IncrementalDelivery.md
-public sealed partial class MultiPartResponseStreamFormatter : IResponseStreamFormatter
+/// <summary>
+/// The default MultiPart formatter for <see cref="IExecutionResult"/>.
+/// https://github.com/graphql/graphql-over-http/blob/master/rfcs/IncrementalDelivery.md
+/// </summary>
+public sealed partial class MultiPartResponseStreamFormatter : IExecutionResultFormatter
 {
     private readonly IQueryResultFormatter _payloadFormatter;
 
@@ -49,7 +54,55 @@ public sealed partial class MultiPartResponseStreamFormatter : IResponseStreamFo
             throw new ArgumentNullException(nameof(queryResultFormatter));
     }
 
-    public Task FormatAsync(
+    /// <inheritdoc cref="IExecutionResultFormatter.FormatAsync"/>
+    public ValueTask FormatAsync(
+        IExecutionResult result,
+        Stream outputStream,
+        CancellationToken cancellationToken = default)
+    {
+        if (result is null)
+        {
+            throw new ArgumentNullException(nameof(result));
+        }
+
+        if (outputStream is null)
+        {
+            throw new ArgumentNullException(nameof(outputStream));
+        }
+
+        return result.Kind switch
+        {
+            SingleResult =>
+                WriteSingleResponseAsync(
+                    (IQueryResult)result,
+                    outputStream,
+                    cancellationToken),
+            DeferredResult or BatchResult or SubscriptionResult
+                => WriteManyResponsesAsync(
+                    (IResponseStream)result,
+                    outputStream,
+                    cancellationToken),
+            _ => throw MultiPartFormatter_ResultNotSupported(
+                nameof(MultiPartResponseStreamFormatter))
+        };
+    }
+
+    /// <summary>
+    /// Formats a response stream and writes the formatted result to
+    /// the given <paramref name="outputStream"/>.
+    /// </summary>
+    /// <param name="responseStream">
+    /// The response stream that shall be formatted.
+    /// </param>
+    /// <param name="outputStream">
+    /// The stream to which the formatted <paramref name="responseStream"/> shall be written to.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public ValueTask FormatAsync(
         IResponseStream responseStream,
         Stream outputStream,
         CancellationToken cancellationToken = default)
@@ -64,39 +117,49 @@ public sealed partial class MultiPartResponseStreamFormatter : IResponseStreamFo
             throw new ArgumentNullException(nameof(outputStream));
         }
 
-        return WriteResponseStreamAsync(responseStream, outputStream, cancellationToken);
+        return WriteManyResponsesAsync(responseStream, outputStream, cancellationToken);
     }
 
-    private async Task WriteResponseStreamAsync(
+    private async ValueTask WriteManyResponsesAsync(
         IResponseStream responseStream,
         Stream outputStream,
         CancellationToken ct = default)
     {
-        await WriteNextAsync(outputStream, ct).ConfigureAwait(false);
-
         await foreach (var result in
             responseStream.ReadResultsAsync().WithCancellation(ct).ConfigureAwait(false))
         {
             try
             {
+                await WriteNextAsync(outputStream, ct).ConfigureAwait(false);
                 await WriteResultAsync(result, outputStream, ct).ConfigureAwait(false);
-
-                if (result.HasNext ?? false)
-                {
-                    await WriteNextAsync(outputStream, ct).ConfigureAwait(false);
-                    await outputStream.FlushAsync(ct).ConfigureAwait(false);
-                }
-                else
-                {
-                    // we will exit the foreach even if there are more items left
-                    // since we were signaled that there are no more items
-                    break;
-                }
+                await outputStream.FlushAsync(ct).ConfigureAwait(false);
             }
             finally
             {
+                // The result objects use pooled memory so we need to ensure that they
+                // return the memory by disposing them.
                 await result.DisposeAsync().ConfigureAwait(false);
             }
+        }
+
+        await WriteEndAsync(outputStream, ct).ConfigureAwait(false);
+        await outputStream.FlushAsync(ct).ConfigureAwait(false);
+    }
+
+    private async ValueTask WriteSingleResponseAsync(
+        IQueryResult queryResult,
+        Stream outputStream,
+        CancellationToken ct = default)
+    {
+        await WriteNextAsync(outputStream, ct).ConfigureAwait(false);
+
+        try
+        {
+            await WriteResultAsync(queryResult, outputStream, ct).ConfigureAwait(false);
+        }
+        finally
+        {
+            await queryResult.DisposeAsync().ConfigureAwait(false);
         }
 
         await WriteEndAsync(outputStream, ct).ConfigureAwait(false);
