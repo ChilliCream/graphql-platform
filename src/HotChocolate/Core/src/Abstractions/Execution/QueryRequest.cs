@@ -79,43 +79,43 @@ public class QueryRequest : IQueryRequest
     public IQuery? Query { get; }
 
     /// <summary>
-    /// A GraphQL request document ID.
+    /// Gets the GraphQL request document ID.
     /// </summary>
     public string? QueryId { get; }
 
     /// <summary>
-    /// A GraphQL request document hash.
+    /// Gets the GraphQL request document hash.
     /// </summary>
     public string? QueryHash { get; }
 
     /// <summary>
-    /// A name of an operation in the GraphQL request document that shall be executed;
+    /// Gets the name of an operation in the GraphQL request document that shall be executed;
     /// or, <c>null</c> if the document only contains a single operation.
     /// </summary>
     public string? OperationName { get; }
 
     /// <summary>
-    /// The variable values for the GraphQL request.
+    /// Gets the variable values for the GraphQL request.
     /// </summary>
     public IReadOnlyDictionary<string, object?>? VariableValues { get; }
 
     /// <summary>
-    /// The GraphQL request extension data.
+    /// Gets the GraphQL request extension data.
     /// </summary>
     public IReadOnlyDictionary<string, object?>? Extensions { get; }
 
     /// <summary>
-    /// The initial global request state.
+    /// Gets the initial request state.
     /// </summary>
     public IReadOnlyDictionary<string, object?>? ContextData { get; }
 
     /// <summary>
-    /// The services that shall be used while executing the GraphQL request.
+    /// Gets the services that shall be used while executing the GraphQL request.
     /// </summary>
     public IServiceProvider? Services { get; }
 
     /// <summary>
-    /// The GraphQL request flags can be used to limit the execution engine capabilities.
+    /// Gets the GraphQL request flags can be used to limit the execution engine capabilities.
     /// </summary>
     public GraphQLRequestFlags Flags { get; }
 }
