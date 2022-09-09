@@ -117,4 +117,13 @@
   <data name="ErrorHelper_NoSupportedAcceptMediaType" xml:space="preserve">
     <value>None of the proved accept header media types is supported.</value>
   </data>
+  <data name="ThrowHelper_Formatter_ResultKindNotSupported" xml:space="preserve">
+    <value>The execution result kind is not supported.</value>
+  </data>
+  <data name="ThrowHelper_Formatter_ResponseContentTypeNotSupported" xml:space="preserve">
+    <value>The specified response content-type `{0}` is not supported.</value>
+  </data>
+  <data name="ThrowHelper_Formatter_InvalidAcceptMediaType" xml:space="preserve">
+    <value>Invalid accept media types specified.</value>
+  </data>
 </root>

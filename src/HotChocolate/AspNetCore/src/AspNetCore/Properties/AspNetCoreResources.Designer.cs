@@ -242,5 +242,23 @@ namespace HotChocolate.AspNetCore.Properties {
                 return ResourceManager.GetString("ErrorHelper_NoSupportedAcceptMediaType", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_Formatter_ResultKindNotSupported {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Formatter_ResultKindNotSupported", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_Formatter_ResponseContentTypeNotSupported {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Formatter_ResponseContentTypeNotSupported", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_Formatter_InvalidAcceptMediaType {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Formatter_InvalidAcceptMediaType", resourceCulture);
+            }
+        }
     }
 }

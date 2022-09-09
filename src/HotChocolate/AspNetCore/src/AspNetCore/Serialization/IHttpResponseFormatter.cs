@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 namespace HotChocolate.AspNetCore.Serialization;
 
 /// <summary>
-/// This interface specifies how a GraphQL result is serialized to a HTTP response.
+/// This interface specifies how a GraphQL result is formatted to a HTTP response.
 /// </summary>
 public interface IHttpResponseFormatter
 {
@@ -25,6 +25,9 @@ public interface IHttpResponseFormatter
     /// <summary>
     /// Formats the given <paramref name="result"/> into a HTTP <paramref name="response"/>.
     /// </summary>
+    /// <param name="response">
+    /// The HTTP response.
+    /// </param>
     /// <param name="result">
     /// The GraphQL execution result.
     /// </param>

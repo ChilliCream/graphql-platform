@@ -109,8 +109,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             // we should not hit this point except if a middleware did not validate the
             // GraphQL request flags which would indicate that there is no way to execute
             // the GraphQL request with the specified accept header content types.
-            // TODO : throw helper.
-            throw new InvalidOperationException("Invalid accept media types specified.");
+            throw ThrowHelper.Formatter_InvalidAcceptMediaType();
         }
 
         if (result.Kind is SingleResult)
@@ -137,8 +136,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         {
             // we should not hit this point except in the case that we introduce a new
             // ExecutionResultKind and forget to update this method.
-            // TODO : Throw helper.
-            throw new NotSupportedException("The execution result kind is not supported.");
+            throw ThrowHelper.Formatter_ResultKindNotSupported();
         }
     }
 
@@ -147,7 +145,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         FormatInfo format,
         HttpStatusCode? proposedStatusCode)
     {
-        // the current spec proposal strongly recommend to always return OK 
+        // the current spec proposal strongly recommend to always return OK
         // when using the legacy application/json response content-type.
         if (format.Kind is ResponseContentType.Json)
         {
@@ -156,13 +154,13 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
         // if we are sending a single result with the multipart/mixed header or
         // with a text/event-stream response content-type we as well will just
-        // respond with a OK status code. 
+        // respond with a OK status code.
         if (format.Kind is ResponseContentType.MultiPartMixed or ResponseContentType.EventStream)
         {
             return HttpStatusCode.OK;
         }
 
-        // in the case of the application/graphql-response+json we will 
+        // in the case of the application/graphql-response+json we will
         // use status code to indicate certain kinds of error categories.
         if (format.Kind is ResponseContentType.GraphQLResponse)
         {
@@ -187,7 +185,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                     return statusCode;
                 }
 
-                // next we check if the validation of the request failed. 
+                // next we check if the validation of the request failed.
                 // if that is the case we will we will return a BadRequest status code (400).
                 if (contextData.ContainsKey(WellKnownContextData.ValidationErrors))
                 {
@@ -200,10 +198,10 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 }
             }
 
-            // if data is not null then we have a valid result. The result of executing 
+            // if data is not null then we have a valid result. The result of executing
             // a GraphQL operation may contain partial data as well as encountered errors.
-            // Errors that happen during execution of the GraphQL operation typically 
-            // become part of the result, as long as the server is still able to produce 
+            // Errors that happen during execution of the GraphQL operation typically
+            // become part of the result, as long as the server is still able to produce
             // a well-formed response.
             if (result.Data is not null)
             {
@@ -221,9 +219,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         // we allow for users to implement alternative protocols or response content-type.
         // if we end up here the user did not fully implement all necessary parts to add support
         // for an alternative protocols or response content-type.
-        // TODO : throw helper.
-        throw new NotSupportedException(
-            $"The specified response content-type `{format.ContentType}` is not supported.");
+        throw ThrowHelper.Formatter_ResponseContentTypeNotSupported(format.ContentType);
     }
 
     protected virtual HttpStatusCode GetStatusCode(
@@ -242,9 +238,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         // we allow for users to implement alternative protocols or response content-type.
         // if we end up here the user did not fully implement all necessary parts to add support
         // for an alternative protocols or response content-type.
-        // TODO : throw helper.
-        throw new NotSupportedException(
-            $"The specified response content-type `{format.ContentType}` is not supported.");
+        throw ThrowHelper.Formatter_ResponseContentTypeNotSupported(format.ContentType);
     }
 
     private bool TryGetFormatter(
@@ -254,8 +248,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     {
         formatInfo = default;
 
-        // if the request does not specify the accept header then we will 
-        // use the `application/json` response content-type, 
+        // if the request does not specify the accept header then we will
+        // use the `application/json` response content-type,
         // which is the legacy behavior.
         if (acceptMediaTypes.Length == 0)
         {
@@ -369,7 +363,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             if (resultKind is ResultKind.Single &&
                 mediaType.Kind is ApplicationJson)
             {
-                // application/json is a legacy response content-type. 
+                // application/json is a legacy response content-type.
                 // We will create a formatInfo but keep on validating for
                 // a better suited format.
                 formatInfo = new FormatInfo(
@@ -394,7 +388,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 }
 
                 // if the format is a event-stream or not set we will create a
-                // multipart/mixed formatInfo for the current result but also keep 
+                // multipart/mixed formatInfo for the current result but also keep
                 // on validating for a better suited format.
                 if (formatInfo.Kind is not ResponseContentType.Json)
                 {
@@ -419,14 +413,13 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                     return true;
                 }
 
-                // if the result is stream it means that we did not yet validated a 
+                // if the result is stream it means that we did not yet validated a
                 // multipart content-type and thus will create a format for the case that it
                 // is not specified;
                 // or we have a single result but there is no format yet specified
-                // we will create a text/event-stream formatInfo for the current result 
+                // we will create a text/event-stream formatInfo for the current result
                 // but also keep on validating for a better suited format.
-                if (resultKind is ResultKind.Stream ||
-                    formatInfo.Kind is ResponseContentType.Unknown)
+                if (formatInfo.Kind is ResponseContentType.Unknown)
                 {
                     formatInfo = new FormatInfo(
                         ContentType.MultiPartMixed,
@@ -440,8 +433,14 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         return success;
     }
 
+    /// <summary>
+    /// Representation of a resolver format, containing the formatter and the content type.
+    /// </summary>
     protected readonly struct FormatInfo
     {
+        /// <summary>
+        /// Initializes a new instance of <see cref="FormatInfo"/>.
+        /// </summary>
         public FormatInfo(
             string contentType,
             ResponseContentType kind,
@@ -452,10 +451,20 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             Formatter = formatter;
         }
 
+        /// <summary>
+        /// Gets the response content type.
+        /// </summary>
         public string ContentType { get; }
 
+        /// <summary>
+        /// Gets an enum value representing well-known response content types.
+        /// This prop is an optimization that helps avoiding comparing strings.
+        /// </summary>
         public ResponseContentType Kind { get; }
 
+        /// <summary>
+        /// Gets the formatter that creates the body of the HTTP response.
+        /// </summary>
         public IExecutionResultFormatter Formatter { get; }
     }
 
