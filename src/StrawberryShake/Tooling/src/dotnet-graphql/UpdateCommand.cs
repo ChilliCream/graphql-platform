@@ -9,28 +9,28 @@ namespace StrawberryShake.Tools
         {
             update.Description = "Update local schema";
 
-            CommandOption pathArg = update.Option(
+            var pathArg = update.Option(
                 "-p|--Path",
                 "The directory where the client shall be located.",
                 CommandOptionType.SingleValue);
 
-            CommandOption urlArg = update.Option(
+            var urlArg = update.Option(
                 "-u|--uri",
                 "The URL to the GraphQL endpoint.",
                 CommandOptionType.SingleValue);
 
-            CommandOption jsonArg = update.Option(
+            var jsonArg = update.Option(
                 "-j|--json",
                 "Console output as JSON.",
                 CommandOptionType.NoValue);
 
-            CommandOption headersArg = update.Option(
+            var headersArg = update.Option(
                 "-x|--headers",
                 "Custom headers used in request to Graph QL server. " +
                 "Can be used mulitple times. Example: --headers key1=value1 --headers key2=value2",
                 CommandOptionType.MultipleValue);
 
-            AuthArguments authArguments = update.AddAuthArguments();
+            var authArguments = update.AddAuthArguments();
 
             update.OnExecuteAsync(cancellationToken =>
             {
@@ -39,7 +39,7 @@ namespace StrawberryShake.Tools
                     pathArg,
                     authArguments,
                     headersArg);
-                UpdateCommandHandler handler = CommandTools.CreateHandler<UpdateCommandHandler>(jsonArg);
+                var handler = CommandTools.CreateHandler<UpdateCommandHandler>(jsonArg);
                 return handler.ExecuteAsync(arguments, cancellationToken);
             });
         }

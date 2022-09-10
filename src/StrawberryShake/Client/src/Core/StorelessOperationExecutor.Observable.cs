@@ -40,7 +40,7 @@ public partial class StorelessOperationExecutor<TData, TResult>
         {
             try
             {
-                var token = session.RequestSession.Token;
+                var token = session.RequestSession.Abort;
                 var resultBuilder = _resultBuilder();
 
                 await foreach (var response in

@@ -17,7 +17,7 @@ public class LocalCurrencyType : ScalarType<decimal, StringValueNode>
     /// </summary>
     public LocalCurrencyType()
         : this(
-            WellKnownScalarTypes.LocalCurency,
+            WellKnownScalarTypes.LocalCurrency,
             description: ScalarResources.LocalCurrencyType_Description)
     {
     }

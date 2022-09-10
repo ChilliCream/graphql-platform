@@ -254,7 +254,7 @@ public class QueryRequestBuilderTests
         var request =
             QueryRequestBuilder.New()
                 .SetQuery("{ foo }")
-                .SetInitialValue(new { a = "123" })
+                .SetGlobalState(WellKnownContextData.InitialValue, new { a = "123" })
                 .Create();
 
         // assert
@@ -322,7 +322,6 @@ public class QueryRequestBuilderTests
             QueryRequestBuilder.New()
                 .SetQuery("{ foo }")
                 .SetOperation("bar")
-                .SetInitialValue(new { a = "456" })
                 .AddGlobalState("one", "foo")
                 .AddVariableValue("two", "bar")
                 .SetServices(new DictionaryServiceProvider(

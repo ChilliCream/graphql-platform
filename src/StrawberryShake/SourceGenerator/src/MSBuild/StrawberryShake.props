@@ -1,9 +1,0 @@
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-
-  <PropertyGroup>
-    <StrawberryShake_BuildDirectory>$(MSBuildThisFileDirectory)..\analyzers\dotnet\cs</StrawberryShake_BuildDirectory>
-    <StrawberryShake_CodeGenServer>$(MSBuildThisFileDirectory)gen\BerryCodeGen.dll</StrawberryShake_CodeGenServer>
-    <StrawberryShake_PersistedQueryDirectory></StrawberryShake_PersistedQueryDirectory>
-  </PropertyGroup>
-
-</Project>

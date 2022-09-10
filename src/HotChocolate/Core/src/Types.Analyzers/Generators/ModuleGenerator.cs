@@ -18,7 +18,7 @@ public class ModuleGenerator : ISyntaxGenerator
         Compilation compilation,
         IReadOnlyCollection<ISyntaxInfo> syntaxInfos)
     {
-        ModuleInfo module =
+        var module =
             syntaxInfos.OfType<ModuleInfo>().FirstOrDefault() ??
             new ModuleInfo(
                 compilation.AssemblyName is null
@@ -56,7 +56,7 @@ public class ModuleGenerator : ISyntaxGenerator
 
         code.Append(Indent).Append(Indent).AppendLine("{");
 
-        foreach (ISyntaxInfo syntaxInfo in batch.Distinct())
+        foreach (var syntaxInfo in batch.Distinct())
         {
             switch (syntaxInfo)
             {

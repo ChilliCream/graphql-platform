@@ -8,7 +8,7 @@ namespace StrawberryShake.Razor;
 public abstract class UseQuery<TResult> : ComponentBase, IDisposable where TResult : class
 {
     private IDisposable? _subscription;
-    private bool _isLoading = true;
+    private bool _isInitializing = true;
     private bool _isErrorResult;
     private bool _isSuccessResult;
     private TResult? _result;
@@ -27,20 +27,21 @@ public abstract class UseQuery<TResult> : ComponentBase, IDisposable where TResu
     {
         _subscription?.Dispose();
 
-        _subscription = observable.Subscribe(operationResult =>
-        {
-            _result = operationResult.Data;
-            _errors = operationResult.Errors;
-            _isErrorResult = operationResult.IsErrorResult();
-            _isSuccessResult = operationResult.IsSuccessResult();
-            _isLoading = false;
-            StateHasChanged();
-        });
+        _subscription = observable
+            .Subscribe(operationResult =>
+            {
+                _result = operationResult.Data;
+                _errors = operationResult.Errors;
+                _isErrorResult = operationResult.IsErrorResult();
+                _isSuccessResult = operationResult.IsSuccessResult();
+                _isInitializing = false;
+                StateHasChanged();
+            });
     }
 
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
-        if (_isLoading && LoadingContent is not null)
+        if (_isInitializing && LoadingContent is not null)
         {
             builder.AddContent(0, LoadingContent);
         }

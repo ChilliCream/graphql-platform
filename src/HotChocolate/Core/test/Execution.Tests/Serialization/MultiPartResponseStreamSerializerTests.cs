@@ -57,11 +57,10 @@ public class MultiPartResponseStreamSerializerTests
         var stream = new Mock<Stream>();
 
         // act
-        Task Action() =>
-            serializer.FormatAsync(null!, stream.Object, CancellationToken.None);
+        ValueTask Action() => serializer.FormatAsync(null!, stream.Object, CancellationToken.None);
 
         // assert
-        await Assert.ThrowsAsync<ArgumentNullException>(Action);
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => await Action());
     }
 
     [Fact]
@@ -72,10 +71,9 @@ public class MultiPartResponseStreamSerializerTests
         var stream = new Mock<IResponseStream>();
 
         // act
-        Task Action() =>
-            serializer.FormatAsync(stream.Object, null!, CancellationToken.None);
+        ValueTask Action() => serializer.FormatAsync(stream.Object, null!, CancellationToken.None);
 
         // assert
-        await Assert.ThrowsAsync<ArgumentNullException>(Action);
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => await Action());
     }
 }
