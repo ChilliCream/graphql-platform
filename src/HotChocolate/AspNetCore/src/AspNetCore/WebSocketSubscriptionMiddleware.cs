@@ -6,7 +6,7 @@ using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
 
-public class WebSocketSubscriptionMiddleware : MiddlewareBase
+public sealed class WebSocketSubscriptionMiddleware : MiddlewareBase
 {
     private readonly IServerDiagnosticEvents _diagnosticEvents;
 
