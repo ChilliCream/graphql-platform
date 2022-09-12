@@ -1,6 +1,6 @@
 {
   "ContentType": "application/json; charset=utf-8",
-  "StatusCode": "InternalServerError",
+  "StatusCode": "OK",
   "Data": null,
   "Errors": [
     {

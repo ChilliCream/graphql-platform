@@ -44,24 +44,21 @@ public partial class OperationExecutor<TData, TResult>
             var hasResultInStore = false;
 
             if ((_strategy == ExecutionStrategy.CacheFirst ||
-                 _strategy == ExecutionStrategy.CacheAndNetwork) &&
+                    _strategy == ExecutionStrategy.CacheAndNetwork) &&
                 _operationStore.TryGet(_request, out IOperationResult<TResult>? result))
             {
                 hasResultInStore = true;
                 observer.OnNext(result);
             }
 
-            var session = _operationStore.Watch<TResult>(_request).Subscribe(observer);
-
             if (_strategy is not ExecutionStrategy.CacheFirst || !hasResultInStore)
             {
                 var observerSession = new ObserverSession();
-                observerSession.SetStoreSession(session);
                 BeginExecute(observer, observerSession);
                 return observerSession;
             }
 
-            return session;
+            return _operationStore.Watch<TResult>(_request).Subscribe(observer);
         }
 
         private void BeginExecute(
@@ -73,32 +70,20 @@ public partial class OperationExecutor<TData, TResult>
             IObserver<IOperationResult<TResult>> observer,
             ObserverSession session)
         {
-            var storeSession =
-                _operationStore
-                    .Watch<TResult>(_request)
-                    .Subscribe(observer);
-            try
-            {
-                session.SetStoreSession(storeSession);
-            }
-            catch (ObjectDisposedException)
-            {
-                storeSession.Dispose();
-                throw;
-            }
+            TrySubscribeObserverSessionToStore(observer, session);
 
             try
             {
-                var token = session.RequestSession.Token;
+                var abort = session.RequestSession.Abort;
                 var resultBuilder = _resultBuilder();
                 var resultPatcher = _resultPatcher();
 
                 await foreach (var response in
                     _connection.ExecuteAsync(_request)
-                        .WithCancellation(token)
+                        .WithCancellation(abort)
                         .ConfigureAwait(false))
                 {
-                    if (token.IsCancellationRequested)
+                    if (abort.IsCancellationRequested)
                     {
                         return;
                     }
@@ -106,7 +91,8 @@ public partial class OperationExecutor<TData, TResult>
                     if (response.IsPatch)
                     {
                         var patched = resultPatcher.PatchResponse(response);
-                        resultBuilder.Build(patched);
+                        var result = resultBuilder.Build(patched);
+                        _operationStore.Set(_request, result);
                     }
                     else
                     {
@@ -129,6 +115,35 @@ public partial class OperationExecutor<TData, TResult>
                 // after all the transport logic is finished we will dispose
                 // the request session.
                 session.RequestSession.Dispose();
+            }
+        }
+
+        private void TrySubscribeObserverSessionToStore(
+            IObserver<IOperationResult<TResult>> observer,
+            ObserverSession session)
+        {
+            // we need to make sure that there is not already an store session associated
+            // with the observer session.
+            if (!session.HasStoreSession)
+            {
+                // next we subscribe to the store so that we get updates from the store as well
+                // as from the data stream.
+                var storeSession =
+                    _operationStore
+                        .Watch<TResult>(_request)
+                        .Subscribe(observer);
+
+                try
+                {
+                    session.SetStoreSession(storeSession);
+                }
+                catch (ObjectDisposedException)
+                {
+                    // if the user already unsubscribed we will get a dispose exception
+                    // and will immediately dispose the store session.
+                    storeSession.Dispose();
+                    throw;
+                }
             }
         }
     }

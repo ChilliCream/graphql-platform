@@ -252,29 +252,6 @@ internal static class ThrowHelper
     public static GraphQLException OperationExecutionMiddleware_NoBatchDispatcher() =>
         new(ThrowHelper_OperationExecutionMiddleware_NoBatchDispatcher_Message);
 
-    public static GraphQLException OperationCompiler_FragmentNoSelections(
-        ISyntaxNode syntaxNode) =>
-        new(ErrorBuilder.New()
-            .SetMessage("Fragment selection set is empty.")
-            .AddLocation(syntaxNode)
-            .Build());
-
-    public static GraphQLException OperationCompiler_NoCompositeSelections(
-        FieldNode syntaxNode) =>
-        new(ErrorBuilder.New()
-            .SetMessage(
-                "The composite field `{0}` has no selections.",
-                syntaxNode.Alias?.Value ?? syntaxNode.Name.Value)
-            .AddLocation(syntaxNode)
-            .Build());
-
-    public static GraphQLException OperationCompiler_NoOperationSelections(
-        OperationDefinitionNode syntaxNode) =>
-        new(ErrorBuilder.New()
-            .SetMessage("The operation has no selections.")
-            .AddLocation(syntaxNode)
-            .Build());
-
     public static SchemaException Convention_UnableToCreateConvention(
         Type convention) =>
         new(SchemaErrorBuilder.New()
@@ -324,5 +301,12 @@ internal static class ThrowHelper
         => new(string.Format(ThrowHelper_SelectionSet_TypeAlreadyAdded, typeContext.Name));
 
     public static ArgumentException Operation_NoSelectionSet()
-        => new("The specified selection does not have a selection set.");
+        => new(ThrowHelper_Operation_NoSelectionSet);
+
+    public static NotSupportedException JsonFormatter_ResultNotSupported(string typeName)
+        => new(string.Format(ThrowHelper_JsonFormatter_ResultNotSupported, typeName));
+
+    public static NotSupportedException MultiPartFormatter_ResultNotSupported(string typeName)
+        => new(string.Format(ThrowHelper_JsonFormatter_ResultNotSupported, typeName));
+
 }

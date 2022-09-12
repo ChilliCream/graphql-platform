@@ -53,10 +53,11 @@ internal partial class BatchExecutor
         {
             for (var i = 0; i < _requestBatch.Count; i++)
             {
-                var queryRequest = _requestBatch[i];
-                var request = (IReadOnlyQueryRequest)queryRequest;
                 var result = await ExecuteNextAsync(
-                    request, cancellationToken).ConfigureAwait(false);
+                    _requestBatch[i],
+                    cancellationToken)
+                    .ConfigureAwait(false);
+
                 yield return result;
 
                 if (result.Data is null)
@@ -67,7 +68,7 @@ internal partial class BatchExecutor
         }
 
         private async Task<IQueryResult> ExecuteNextAsync(
-            IReadOnlyQueryRequest request,
+            IQueryRequest request,
             CancellationToken cancellationToken)
         {
             try

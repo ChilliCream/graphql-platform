@@ -13,8 +13,5 @@
     "one": "foo"
   },
   "Services": {},
-  "InitialValue": {
-    "a": "456"
-  },
-  "AllowedOperations": null
+  "Flags": "AllowAll"
 }

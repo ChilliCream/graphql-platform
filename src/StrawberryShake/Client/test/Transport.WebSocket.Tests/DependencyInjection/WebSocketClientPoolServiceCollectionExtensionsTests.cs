@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Xunit;
 
 namespace StrawberryShake.Transport.WebSockets;
 
@@ -15,7 +14,7 @@ public class WebSocketClientPoolServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // act
-        services.AddSingleton<ISocketClientFactory>(new Mock<ISocketClientFactory>().Object);
+        services.AddSingleton(new Mock<ISocketClientFactory>().Object);
         services.AddWebSocketClientPool();
         services.AddWebSocketClientPool();
         services.AddWebSocketClientPool();
@@ -33,7 +32,7 @@ public class WebSocketClientPoolServiceCollectionExtensionsTests
         ServiceCollection services = null!;
 
         // act
-        Exception? ex =
+        var ex =
             Record.Exception(() => services.AddWebSocketClientPool());
 
         // assert

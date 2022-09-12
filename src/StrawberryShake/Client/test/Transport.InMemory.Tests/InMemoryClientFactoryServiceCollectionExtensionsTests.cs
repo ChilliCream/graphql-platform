@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Xunit;
 
 namespace StrawberryShake.Transport.InMemory;
 

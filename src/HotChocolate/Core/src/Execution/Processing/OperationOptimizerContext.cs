@@ -15,6 +15,7 @@ public readonly ref struct OperationOptimizerContext
     private readonly IncludeCondition[] _includeConditions;
     private readonly ObjectType _rootType;
     private readonly Dictionary<string, object?> _contextData;
+    private readonly bool _hasIncrementalParts;
 
     /// <summary>
     /// Initializes a new instance of <see cref="OperationOptimizerContext"/>
@@ -27,7 +28,8 @@ public readonly ref struct OperationOptimizerContext
         ObjectType rootType,
         SelectionVariants[] variants,
         IncludeCondition[] includeConditions,
-        Dictionary<string, object?> contextData)
+        Dictionary<string, object?> contextData,
+        bool hasIncrementalParts)
     {
         Id = id;
         Document = document;
@@ -37,6 +39,7 @@ public readonly ref struct OperationOptimizerContext
         _variants = variants;
         _includeConditions = includeConditions;
         _contextData = contextData;
+        _hasIncrementalParts = hasIncrementalParts;
     }
 
     /// <summary>
@@ -121,5 +124,6 @@ public readonly ref struct OperationOptimizerContext
             _rootType,
             _variants,
             _includeConditions,
-            _contextData);
+            _contextData,
+            _hasIncrementalParts);
 }

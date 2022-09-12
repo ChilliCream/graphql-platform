@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Xunit;
 
 namespace StrawberryShake.Transport.WebSockets;
 
@@ -21,7 +20,7 @@ public class WebSocketClientBuilderExtensionsTests
         builder.ConfigureWebSocketClient(configure);
 
         // assert
-        IOptionsMonitor<SocketClientFactoryOptions> monitor = services.BuildServiceProvider()
+        var monitor = services.BuildServiceProvider()
             .GetRequiredService<IOptionsMonitor<SocketClientFactoryOptions>>();
 
         Assert.Single(monitor.Get(name).SocketClientActions);
@@ -34,7 +33,7 @@ public class WebSocketClientBuilderExtensionsTests
         DefaultWebSocketClientBuilder builder = null!;
 
         // act
-        Exception? ex = Record.Exception(() => builder.ConfigureWebSocketClient(configure));
+        var ex = Record.Exception(() => builder.ConfigureWebSocketClient(configure));
 
         // assert
         Assert.IsType<ArgumentNullException>(ex);
@@ -48,7 +47,7 @@ public class WebSocketClientBuilderExtensionsTests
         var builder = new DefaultWebSocketClientBuilder(services, "Foo");
 
         // act
-        Exception? ex = Record.Exception(() => builder.ConfigureWebSocketClient(configure));
+        var ex = Record.Exception(() => builder.ConfigureWebSocketClient(configure));
 
         // assert
         Assert.IsType<ArgumentNullException>(ex);
@@ -66,7 +65,7 @@ public class WebSocketClientBuilderExtensionsTests
         builder.ConfigureWebSocketClient(configure);
 
         // assert
-        IEnumerable<IConfigureOptions<SocketClientFactoryOptions>> monitors = services
+        var monitors = services
             .BuildServiceProvider()
             .GetRequiredService<IEnumerable<IConfigureOptions<SocketClientFactoryOptions>>>();
 
@@ -81,7 +80,7 @@ public class WebSocketClientBuilderExtensionsTests
         DefaultWebSocketClientBuilder builder = null!;
 
         // act
-        Exception? ex = Record.Exception(() => builder.ConfigureWebSocketClient(configure));
+        var ex = Record.Exception(() => builder.ConfigureWebSocketClient(configure));
 
         // assert
         Assert.IsType<ArgumentNullException>(ex);
@@ -95,7 +94,7 @@ public class WebSocketClientBuilderExtensionsTests
         var builder = new DefaultWebSocketClientBuilder(services, "Foo");
 
         // act
-        Exception? ex = Record.Exception(() => builder.ConfigureWebSocketClient(configure));
+        var ex = Record.Exception(() => builder.ConfigureWebSocketClient(configure));
 
         // assert
         Assert.IsType<ArgumentNullException>(ex);

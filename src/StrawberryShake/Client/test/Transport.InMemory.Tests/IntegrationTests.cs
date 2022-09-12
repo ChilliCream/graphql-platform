@@ -5,14 +5,13 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using StrawberryShake.Transport.WebSockets.Protocols;
-using Xunit;
 
 namespace StrawberryShake.Transport.InMemory;
 

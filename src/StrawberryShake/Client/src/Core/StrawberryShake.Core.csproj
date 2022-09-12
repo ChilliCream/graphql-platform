@@ -21,10 +21,29 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Resources\StrawberryShake.Resources.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="OperationExecutor.Observable.cs">
+      <DependentUpon>OperationExecutor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="OperationStore.Observable.cs">
+      <DependentUpon>OperationStore.cs</DependentUpon>
+    </Compile>
+    <Compile Update="StorelessOperationExecutor.Observable.cs">
+      <DependentUpon>StorelessOperationExecutor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="EntityStore.Observable.cs">
+      <DependentUpon>EntityStore.cs</DependentUpon>
+    </Compile>
+    <Compile Update="CachePolicy.Defaults.cs">
+      <DependentUpon>CachePolicy.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>
