@@ -5,7 +5,7 @@
   "identity": "HotChocolate.Template.AzureFunctions.Isolated",
   "sourceName": "HotChocolate.Template.AzureFunctions.Isolated",
   "name": "HotChocolate GraphQL Function Isolated",
-  "shortName": "graphql-azf-isolated",
+  "shortName": "graphql-azf-ip",
   "defaultName": "GraphQL AzureFunction Isolated",
   "description": "",
   "preferNameDirectory": true,
