@@ -1,5 +1,4 @@
 using System;
-using HotChocolate.AzureFunctions.IsolatedProcess.Extensions;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -12,8 +11,7 @@ public class TestHttpContextHelper
 {
     public static Uri DefaultAzFuncGraphQLUri { get; } = new(
         new Uri("https://localhost/"),
-        GraphQLAzureFunctionsConstants.DefaultGraphQLRoute
-    );
+        GraphQLAzureFunctionsConstants.DefaultGraphQLRoute);
 
     public static HttpContext NewGraphQLHttpContext(
         IServiceProvider serviceProvider,

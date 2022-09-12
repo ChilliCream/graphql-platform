@@ -50,11 +50,8 @@ public static class HotChocolateAzFuncIsolatedProcessHostBuilderExtensions
             throw new ArgumentNullException(nameof(configure));
         }
 
-        hostBuilder.ConfigureServices(services =>
-        {
-            var executorBuilder = services.AddGraphQLFunction(maxAllowedRequestSize, apiRoute);
-            configure(executorBuilder);
-        });
+        hostBuilder.ConfigureServices(
+            s => configure(s.AddGraphQLFunction(maxAllowedRequestSize, apiRoute)));
 
         return hostBuilder;
     }

@@ -1,6 +1,7 @@
 using HotChocolate.AzureFunctions;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Microsoft.Azure.Functions.Extensions.DependencyInjection;
 
@@ -34,7 +35,9 @@ public static class HotChocolateFunctionsHostBuilderExtensions
         string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute)
     {
         if (hostBuilder is null)
+        {
             throw new ArgumentNullException(nameof(hostBuilder));
+        }
 
         return hostBuilder.Services.AddGraphQLFunction(maxAllowedRequestSize, apiRoute);
     }
@@ -47,7 +50,7 @@ public static class HotChocolateFunctionsHostBuilderExtensions
     /// <param name="hostBuilder">
     /// The <see cref="IFunctionsHostBuilder"/>.
     /// </param>
-    /// <param name="graphqlConfigureFunc">
+    /// <param name="configure">
     /// The GraphQL Configuration function that will be invoked, for chained configuration,
     /// when the Host is built.
     /// </param>
@@ -65,17 +68,19 @@ public static class HotChocolateFunctionsHostBuilderExtensions
     /// </exception>
     public static IFunctionsHostBuilder AddGraphQLFunction(
         this IFunctionsHostBuilder hostBuilder,
-        Action<IRequestExecutorBuilder> graphqlConfigureFunc,
+        Action<IRequestExecutorBuilder> configure,
         int maxAllowedRequestSize = GraphQLAzureFunctionsConstants.DefaultMaxRequests,
         string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute
     )
     {
-        if (graphqlConfigureFunc is null)
-            throw new ArgumentNullException(nameof(graphqlConfigureFunc));
+        if (configure is null)
+        {
+            throw new ArgumentNullException(nameof(configure));
+        }
 
         // NOTE: HostBuilder null check will be done by AddGraphQLFunction() ...
         var executorBuilder = hostBuilder.AddGraphQLFunction(maxAllowedRequestSize, apiRoute);
-        graphqlConfigureFunc.Invoke(executorBuilder);
+        configure.Invoke(executorBuilder);
 
         return hostBuilder;
     }
