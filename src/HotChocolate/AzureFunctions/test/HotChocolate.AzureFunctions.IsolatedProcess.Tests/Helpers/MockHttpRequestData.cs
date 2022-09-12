@@ -8,11 +8,13 @@ using System.Text;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Net.Http.Headers;
+using static Microsoft.Net.Http.Headers.HeaderNames;
 
 namespace HotChocolate.AzureFunctions.IsolatedProcess.Tests.Helpers;
-public class MockHttpRequestData : HttpRequestData, IDisposable
+
+public sealed class MockHttpRequestData : HttpRequestData, IDisposable
 {
-    private List<IHttpCookie> _cookiesList = new();
+    private readonly List<IHttpCookie> _cookiesList = new();
 
     public MockHttpRequestData(
         FunctionContext functionContext,
@@ -21,8 +23,8 @@ public class MockHttpRequestData : HttpRequestData, IDisposable
         string? requestBody = null,
         string requestBodyContentType = GraphQLAzureFunctionsConstants.DefaultJsonContentType,
         HttpHeaders? requestHeaders = null,
-        IEnumerable<ClaimsIdentity>? claimsIdentities = null
-    ) : base(functionContext)
+        IEnumerable<ClaimsIdentity>? claimsIdentities = null)
+        : base(functionContext)
     {
         Method = requestHttpMethod ?? throw new ArgumentNullException(nameof(requestHttpMethod));
         Url = requestUri ?? throw new ArgumentNullException(nameof(requestUri));
@@ -32,23 +34,28 @@ public class MockHttpRequestData : HttpRequestData, IDisposable
 
         if (!string.IsNullOrEmpty(requestBody))
         {
-            //Initialize a valid Stream for the Request (must be tracked & Disposed of!)
+            // Initialize a valid Stream for the Request (must be tracked & Disposed of!)
             var requestBodyBytes = Encoding.UTF8.GetBytes(requestBody);
             Body = new MemoryStream(requestBodyBytes);
-            Headers.TryAddWithoutValidation(HeaderNames.ContentType, requestBodyContentType);
-            Headers.TryAddWithoutValidation(HeaderNames.ContentLength, requestBodyBytes.Length.ToString());
+            Headers.TryAddWithoutValidation(ContentType, requestBodyContentType);
+            Headers.TryAddWithoutValidation(ContentLength, requestBodyBytes.Length.ToString());
         }
 
-        //Ensure we marshall across all Headers from the HttpContext provided...
+        // Ensure we marshall across all Headers from the HttpContext provided...
         if (requestHeaders?.Any() == true)
-            foreach ((var key, var values) in requestHeaders)
+        {
+            foreach (var (key, values) in requestHeaders)
+            {
                 Headers.TryAddWithoutValidation(key, values);
+            }
+        }
 
-        //Because we are mocking this manually we must handle cookies explicitly...
-        if (Headers.TryGetValues(HeaderNames.Cookie, out var cookieHeaders))
+        // Because we are mocking this manually we must handle cookies explicitly...
+        if (Headers.TryGetValues(Cookie, out var cookieHeaders))
         {
             var parsedCookieHeaders = CookieHeaderValue.ParseList(cookieHeaders.ToList());
-            _cookiesList.AddRange(parsedCookieHeaders.Select(h => new HttpCookie(h.Name.ToString(), h.Value.ToString())));
+            _cookiesList.AddRange(parsedCookieHeaders.Select(
+                h => new HttpCookie(h.Name.ToString(), h.Value.ToString())));
         }
     }
 
@@ -56,11 +63,12 @@ public class MockHttpRequestData : HttpRequestData, IDisposable
 
     public override HttpHeadersCollection Headers { get; } = new();
 
-    public override IReadOnlyCollection<IHttpCookie> Cookies => _cookiesList.AsReadOnly(); 
+    public override IReadOnlyCollection<IHttpCookie> Cookies => _cookiesList.AsReadOnly();
 
     public override Uri Url { get; }
 
-    public override IEnumerable<ClaimsIdentity> Identities { get; } = Enumerable.Empty<ClaimsIdentity>();
+    public override IEnumerable<ClaimsIdentity> Identities { get; } =
+        Enumerable.Empty<ClaimsIdentity>();
 
     public override string Method { get; }
 
@@ -68,8 +76,7 @@ public class MockHttpRequestData : HttpRequestData, IDisposable
 
     public void Dispose()
     {
-        Body?.Dispose();
-        GC.SuppressFinalize(this);
+        Body.Dispose();
     }
 }
 

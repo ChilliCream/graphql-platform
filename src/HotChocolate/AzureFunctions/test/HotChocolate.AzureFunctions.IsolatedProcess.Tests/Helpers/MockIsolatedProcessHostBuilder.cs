@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace HotChocolate.AzureFunctions.IsolatedProcess.Tests.Helpers;
+
 internal class MockIsolatedProcessHostBuilder : IHostBuilder
 {
     public MockIsolatedProcessHostBuilder()
@@ -22,26 +23,32 @@ internal class MockIsolatedProcessHostBuilder : IHostBuilder
     public IHost Build()
         => new MockIsolatedProcessHost(Services.BuildServiceProvider());
 
-    public IHostBuilder ConfigureAppConfiguration(Action<HostBuilderContext, IConfigurationBuilder> configureDelegate)
+    public IHostBuilder ConfigureAppConfiguration(
+        Action<HostBuilderContext, IConfigurationBuilder> configureDelegate)
         => DoNothing();
 
-    public IHostBuilder ConfigureContainer<TContainerBuilder>(Action<HostBuilderContext, TContainerBuilder> configureDelegate)
+    public IHostBuilder ConfigureContainer<TContainerBuilder>(
+        Action<HostBuilderContext, TContainerBuilder> configureDelegate)
         => DoNothing();
 
-    public IHostBuilder ConfigureHostConfiguration(Action<IConfigurationBuilder> configureDelegate)
+    public IHostBuilder ConfigureHostConfiguration(
+        Action<IConfigurationBuilder> configureDelegate)
         => DoNothing();
 
-    public IHostBuilder ConfigureServices(Action<HostBuilderContext, IServiceCollection> configureDelegate)
+    public IHostBuilder ConfigureServices(
+        Action<HostBuilderContext, IServiceCollection> configureDelegate)
     {
         configureDelegate.Invoke(HostBuilderContext, Services);
         return this;
     }
 
-    public IHostBuilder UseServiceProviderFactory<TContainerBuilder>(IServiceProviderFactory<TContainerBuilder> factory)
+    public IHostBuilder UseServiceProviderFactory<TContainerBuilder>(
+        IServiceProviderFactory<TContainerBuilder> factory)
         where TContainerBuilder : notnull
         => DoNothing();
 
-    public IHostBuilder UseServiceProviderFactory<TContainerBuilder>(Func<HostBuilderContext, IServiceProviderFactory<TContainerBuilder>> factory)
+    public IHostBuilder UseServiceProviderFactory<TContainerBuilder>(
+        Func<HostBuilderContext, IServiceProviderFactory<TContainerBuilder>> factory)
         where TContainerBuilder : notnull
         => DoNothing();
 
@@ -57,13 +64,15 @@ internal class MockIsolatedProcessHost : IHost
 
     public void Dispose() { } //DO NOTHING;
 
-    public Task StartAsync(CancellationToken cancellationToken = new CancellationToken())
+    public Task StartAsync(CancellationToken cancellationToken = default)
         => DoNothingAsync();
 
-    public Task StopAsync(CancellationToken cancellationToken = new CancellationToken())
+    public Task StopAsync(CancellationToken cancellationToken = default)
         => DoNothingAsync();
 
-    protected virtual Task<IHost> DoNothingAsync() { return Task.FromResult((IHost)this); } //DO NOTHING;
+    // DO NOTHING;
+    protected virtual Task<IHost> DoNothingAsync()
+        => Task.FromResult((IHost)this);
 
     public IServiceProvider Services { get; }
 }

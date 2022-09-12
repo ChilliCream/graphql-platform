@@ -7,11 +7,9 @@ namespace HotChocolate.AzureFunctions.IsolatedProcess.Tests.Helpers;
 
 /// <summary>
 /// Created Based on original (internal) class form Microsoft here:
-/// https://github.com/Azure/azure-functions-dotnet-worker/blob/7ffd5c48a08b6b95a7b2e5826105e39c49194a23/src/DotNetWorker.Core/Context/DefaultFunctionContext.cs
+/// https://github.com/Azure/azure-functions-dotnet-worker/blob/
+/// 7ffd5c48a08b6b95a7b2e5826105e39c49194a23/src/DotNetWorker.Core/Context/DefaultFunctionContext.cs
 /// </summary>
-// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT License. See License.txt in the project root for license information.
-
 public class MockFunctionContext : FunctionContext, IDisposable
 {
     public MockFunctionContext(
@@ -33,11 +31,13 @@ public class MockFunctionContext : FunctionContext, IDisposable
 
     public override string InvocationId => nameof(MockFunctionContext);
 
-    public override string FunctionId => string.Concat(nameof(MockFunctionContext), "-", Guid.NewGuid());
+    public override string FunctionId
+        => string.Concat(nameof(MockFunctionContext), "-", Guid.NewGuid());
 
     public override FunctionDefinition FunctionDefinition { get; }
 
-    public override IDictionary<object, object> Items { get; set; } = new Dictionary<object, object>();
+    public override IDictionary<object, object> Items { get; set; } =
+        new Dictionary<object, object>();
 
     public override IInvocationFeatures Features { get; }
 
@@ -51,18 +51,14 @@ public class MockFunctionContext : FunctionContext, IDisposable
 
     public virtual void Dispose()
     {
-        //DO NOTHING
-
-        //Address Sonarr IDisposable pattern concern...
-        GC.SuppressFinalize(this);
     }
 }
 
 public class MockTraceContext : TraceContext
 {
-    public MockTraceContext(string traceParaent, string traceState)
+    public MockTraceContext(string traceParent, string traceState)
     {
-        TraceParent = traceParaent;
+        TraceParent = traceParent;
         TraceState = traceState;
     }
     public override string TraceParent { get; }
@@ -71,7 +67,8 @@ public class MockTraceContext : TraceContext
 
 public class MockBindingContext : BindingContext
 {
-    public override IReadOnlyDictionary<string, object?> BindingData { get; } = new Dictionary<string, object?>();
+    public override IReadOnlyDictionary<string, object?> BindingData { get; } =
+        new Dictionary<string, object?>();
 }
 
 public class MockRetryContext : RetryContext
@@ -131,7 +128,10 @@ public class MockFunctionDefinition : FunctionDefinition
     public override string Name { get; } = string.Empty;
     public override string PathToAssembly { get; } = string.Empty;
     public override string EntryPoint { get; } = string.Empty;
-    public override ImmutableArray<FunctionParameter> Parameters { get; } = ImmutableArray<FunctionParameter>.Empty;
-    public override IImmutableDictionary<string, BindingMetadata> InputBindings { get; } = ImmutableDictionary<string, BindingMetadata>.Empty;
-    public override IImmutableDictionary<string, BindingMetadata> OutputBindings { get; } = ImmutableDictionary<string, BindingMetadata>.Empty;
+    public override ImmutableArray<FunctionParameter> Parameters { get; } =
+        ImmutableArray<FunctionParameter>.Empty;
+    public override IImmutableDictionary<string, BindingMetadata> InputBindings { get; } =
+        ImmutableDictionary<string, BindingMetadata>.Empty;
+    public override IImmutableDictionary<string, BindingMetadata> OutputBindings { get; } =
+        ImmutableDictionary<string, BindingMetadata>.Empty;
 }
