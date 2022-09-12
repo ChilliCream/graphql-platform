@@ -10,37 +10,35 @@ namespace HotChocolate.Analyzers;
 internal class ShadowCopyAnalyzerAssemblyLoader
 {
     /// <summary>
-    ///     The base directory for shadow copies. Each instance of
-    ///     <see cref="ShadowCopyAnalyzerAssemblyLoader" /> gets its own
-    ///     subdirectory under this directory. This is also the starting point
-    ///     for scavenge operations.
+    /// The base directory for shadow copies. Each instance of
+    /// <see cref="ShadowCopyAnalyzerAssemblyLoader" /> gets its own
+    /// subdirectory under this directory. This is also the starting point
+    /// for scavenge operations.
     /// </summary>
     private readonly string _baseDirectory;
 
     /// <summary>
-    ///     The directory where this instance of <see cref="ShadowCopyAnalyzerAssemblyLoader" />
-    ///     will shadow-copy assemblies, and the mutex created to mark that the owner of it is still active.
+    /// The directory where this instance of <see cref="ShadowCopyAnalyzerAssemblyLoader" />
+    /// will shadow-copy assemblies, and the mutex created to mark that the owner of it is still active.
     /// </summary>
     private readonly Lazy<(string directory, Mutex)> _shadowCopyDirectoryAndMutex;
 
     internal readonly Task DeleteLeftoverDirectoriesTask;
 
     /// <summary>
-    ///     Used to generate unique names for per-assembly directories. Should be updated with
-    ///     <see cref="Interlocked.Increment(ref int)" />.
+    /// Used to generate unique names for per-assembly directories. Should be updated with
+    /// <see cref="Interlocked.Increment(ref int)" />.
     /// </summary>
     private int _assemblyDirectoryId;
 
     public ShadowCopyAnalyzerAssemblyLoader(string? baseDirectory = null)
     {
-        if (baseDirectory != null)
-            _baseDirectory = baseDirectory;
-        else
-            _baseDirectory =
-                Combine(GetTempPath(), "HotChocolate", "AnalyzerShadowCopies");
+        _baseDirectory = baseDirectory ??
+            Combine(GetTempPath(), "HotChocolate", "AnalyzerShadowCopies");
 
         _shadowCopyDirectoryAndMutex = new Lazy<(string directory, Mutex)>(
-            () => CreateUniqueDirectoryForProcess(), LazyThreadSafetyMode.ExecutionAndPublication);
+            () => CreateUniqueDirectoryForProcess(),
+            LazyThreadSafetyMode.ExecutionAndPublication);
 
         DeleteLeftoverDirectoriesTask = Task.Run(DeleteLeftoverDirectories);
     }
@@ -49,7 +47,9 @@ internal class ShadowCopyAnalyzerAssemblyLoader
     {
         // Avoid first chance exception
         if (!Directory.Exists(_baseDirectory))
+        {
             return;
+        }
 
         IEnumerable<string> subDirectories;
         try
@@ -63,8 +63,7 @@ internal class ShadowCopyAnalyzerAssemblyLoader
 
         foreach (var subDirectory in subDirectories)
         {
-            var name = GetFileName(subDirectory)
-                .ToLowerInvariant();
+            var name = GetFileName(subDirectory).ToLowerInvariant();
             Mutex? mutex = null;
             try
             {
@@ -83,8 +82,7 @@ internal class ShadowCopyAnalyzerAssemblyLoader
             }
             finally
             {
-                if (mutex != null)
-                    mutex.Dispose();
+                mutex?.Dispose();
             }
         }
     }
@@ -115,17 +113,25 @@ internal class ShadowCopyAnalyzerAssemblyLoader
             var resourcesPath = Combine(directory, resourcesNameWithExtension);
             if (File.Exists(resourcesPath))
             {
-                var resourcesShadowCopyPath = Combine(assemblyDirectory, directoryName,
+                var resourcesShadowCopyPath = Combine(
+                    assemblyDirectory,
+                    directoryName,
                     resourcesNameWithExtension);
                 CopyFile(resourcesPath, resourcesShadowCopyPath);
             }
 
-            resourcesPath = Combine(directory, resourcesNameWithoutExtension,
+            resourcesPath = Combine(
+                directory,
+                resourcesNameWithoutExtension,
                 resourcesNameWithExtension);
+
             if (File.Exists(resourcesPath))
             {
-                var resourcesShadowCopyPath = Combine(assemblyDirectory, directoryName,
-                    resourcesNameWithoutExtension, resourcesNameWithExtension);
+                var resourcesShadowCopyPath = Combine(
+                    assemblyDirectory,
+                    directoryName,
+                    resourcesNameWithoutExtension,
+                    resourcesNameWithExtension);
                 CopyFile(resourcesPath, resourcesShadowCopyPath);
             }
         }
@@ -136,7 +142,7 @@ internal class ShadowCopyAnalyzerAssemblyLoader
     private static void CopyFile(string originalPath, string shadowCopyPath)
     {
         var directory = GetDirectoryName(shadowCopyPath);
-        Directory.CreateDirectory(directory);
+        Directory.CreateDirectory(directory!);
 
         File.Copy(originalPath, shadowCopyPath);
 
@@ -158,7 +164,9 @@ internal class ShadowCopyAnalyzerAssemblyLoader
         try
         {
             if (fileInfo.IsReadOnly)
+            {
                 fileInfo.IsReadOnly = false;
+            }
         }
         catch
         {
@@ -170,7 +178,8 @@ internal class ShadowCopyAnalyzerAssemblyLoader
     {
         var directoryId = Interlocked.Increment(ref _assemblyDirectoryId);
 
-        var directory = Combine(_shadowCopyDirectoryAndMutex.Value.directory,
+        var directory = Combine(
+            _shadowCopyDirectoryAndMutex.Value.directory,
             directoryId.ToString());
 
         Directory.CreateDirectory(directory);
