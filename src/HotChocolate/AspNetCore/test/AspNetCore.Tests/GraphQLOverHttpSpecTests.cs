@@ -770,20 +770,13 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
             .Add(response)
             .MatchInline(
                 @"Headers:
-                Content-Type: multipart/mixed; boundary=""-""; charset=utf-8
+                Content-Type: text/event-stream; charset=utf-8
                 -------------------------->
                 Status Code: OK
                 -------------------------->
-
-                ---
-                Content-Type: application/json; charset=utf-8
-
-                {""data"":{},""hasNext"":true}
-                ---
-                Content-Type: application/json; charset=utf-8
-
-                {""path"":[],""data"":{""__typename"":""Query""},""hasNext"":false}
-                -----
+                {""event"":""next"",""data"":{""data"":{},""hasNext"":true}}
+                {""event"":""next"",""data"":{""path"":[],""data"":{""__typename"":""Query""},""hasNext"":false}}
+                {""event"":""complete""}
                 ");
     }
 }

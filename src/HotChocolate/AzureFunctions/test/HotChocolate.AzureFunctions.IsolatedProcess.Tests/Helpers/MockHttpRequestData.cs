@@ -21,7 +21,7 @@ public sealed class MockHttpRequestData : HttpRequestData, IDisposable
         string requestHttpMethod,
         Uri requestUri,
         string? requestBody = null,
-        string requestBodyContentType = GraphQLAzureFunctionsConstants.DefaultJsonContentType,
+        string requestBodyContentType = TestConstants.DefaultJsonContentType,
         HttpHeaders? requestHeaders = null,
         IEnumerable<ClaimsIdentity>? claimsIdentities = null)
         : base(functionContext)

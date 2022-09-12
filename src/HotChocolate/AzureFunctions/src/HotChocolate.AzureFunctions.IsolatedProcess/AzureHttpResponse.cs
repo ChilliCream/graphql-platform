@@ -1,6 +1,7 @@
 using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Net.Http.Headers;
 
 namespace HotChocolate.AzureFunctions.IsolatedProcess;
 
@@ -77,8 +78,8 @@ internal sealed class AzureHttpResponse : HttpResponse
 
     public override string? ContentType
     {
-        get => Headers.ContentType;
-        set => Headers.ContentType = value;
+        get => Headers[HeaderNames.ContentType];
+        set => Headers[HeaderNames.ContentType] = value;
     }
 
     public override IResponseCookies Cookies => _response.Cookies;

@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using HotChocolate.AzureFunctions.Tests.Helpers;
 using HotChocolate.Types;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
@@ -25,7 +24,6 @@ public class InProcessEndToEndTests
         var requestExecutor = serviceProvider.GetRequiredService<IGraphQLRequestExecutor>();
 
         var httpContext = TestHttpContextHelper.NewGraphQLHttpContext(
-            serviceProvider,
             @"query {
                 person
             }");
@@ -38,7 +36,7 @@ public class InProcessEndToEndTests
         Assert.False(string.IsNullOrWhiteSpace(resultContent));
 
         dynamic json = JObject.Parse(resultContent!);
-        Assert.NotNull(json.errors);
+        Assert.Null(json.errors);
         Assert.Equal("Luke Skywalker",json.data.person.ToString());
     }
 
@@ -61,7 +59,7 @@ public class InProcessEndToEndTests
         // The executor should resolve without error as a Required service...
         var requestExecutor = serviceProvider.GetRequiredService<IGraphQLRequestExecutor>();
 
-        var httpContext = TestHttpContextHelper.NewBcpHttpContext(serviceProvider, "index.html");
+        var httpContext = TestHttpContextHelper.NewBcpHttpContext();
 
         // Execute Query Test for end-to-end validation...
         await requestExecutor.ExecuteAsync(httpContext.Request);
