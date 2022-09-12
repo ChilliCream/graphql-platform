@@ -27,6 +27,7 @@ public sealed class Snapshot
             new SchemaSnapshotValueFormatter(),
             new ExceptionSnapshotValueFormatter(),
             new SchemaErrorSnapshotValueFormatter(),
+            new HttpResponseSnapshotValueFormatter(),
 #if NET6_0_OR_GREATER
             new QueryPlanSnapshotValueFormatter(),
 #endif
