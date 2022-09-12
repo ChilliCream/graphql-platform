@@ -456,9 +456,20 @@ internal class TypeInitializer
 
                 IReadOnlyList<ITypeReference> needed =
                     TryNormalizeDependencies(type.Conditionals,
-                        out IReadOnlyList<ITypeReference>? normalized)
+                        out var normalized,
+                        out var notFound)
                         ? normalized.Except(processed).ToArray()
                         : type.Conditionals.Select(t => t.TypeReference).ToArray();
+
+                if (notFound != null)
+                {
+                    _errors.Add(SchemaErrorBuilder.New()
+                        .SetMessage(
+                            TypeInitializer_CannotFindType,
+                            string.Join(", ", notFound.Reverse()))
+                        .SetTypeSystemObject(type.Type)
+                        .Build());
+                }
 
                 _errors.Add(SchemaErrorBuilder.New()
                     .SetMessage(
@@ -510,7 +521,9 @@ internal class TypeInitializer
     {
         foreach (RegisteredType type in _next)
         {
-            if (TryNormalizeDependencies(type.Conditionals, out IReadOnlyList<ITypeReference>? normalized) &&
+            if (TryNormalizeDependencies(type.Conditionals,
+                    out var normalized,
+                    out var _) &&
                 processed.IsSupersetOf(GetTypeRefsExceptSelfRefs(type, normalized)))
             {
                 yield return type;
@@ -551,7 +564,8 @@ internal class TypeInitializer
 
     private bool TryNormalizeDependencies(
         List<TypeDependency> dependencies,
-        [NotNullWhen(true)] out IReadOnlyList<ITypeReference>? normalized)
+        [NotNullWhen(true)] out IReadOnlyList<ITypeReference>? normalized,
+        [NotNullWhen(false)] out IReadOnlyList<ITypeReference>? notFound)
     {
         var n = new List<ITypeReference>();
 
@@ -562,6 +576,8 @@ internal class TypeInitializer
                 out ITypeReference? nr))
             {
                 normalized = null;
+                n.Add(dependency.TypeReference);
+                notFound = n;
                 return false;
             }
 
@@ -572,6 +588,7 @@ internal class TypeInitializer
         }
 
         normalized = n;
+        notFound = null;
         return true;
     }
 
