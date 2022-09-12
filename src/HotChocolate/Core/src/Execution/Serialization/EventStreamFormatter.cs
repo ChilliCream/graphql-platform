@@ -139,7 +139,11 @@ public sealed class EventStreamFormatter : IExecutionResultFormatter
         Stream outputStream,
         CancellationToken ct)
     {
+#if NETCOREAPP3_1_OR_GREATER
         await outputStream.WriteAsync(_newLine, ct).ConfigureAwait(false);
+#else
+        await outputStream.WriteAsync(_newLine, 0, _newLine.Length, ct).ConfigureAwait(false);
+#endif
         await outputStream.FlushAsync(ct);
     }
 }

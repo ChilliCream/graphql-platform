@@ -117,7 +117,6 @@ public class SchemaErrorTests
         var message = "FooBar";
         var node = new NameNode("foo");
 
-
         // act
         var schemaError = SchemaErrorBuilder.New()
             .SetMessage(message)
@@ -158,12 +157,11 @@ public class SchemaErrorTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddDocumentFromString(@"
-                    type Query {
-                        test(bar: Input123): String
-                    }
-                ")
-            .Use(next => context => default);
+            .AddDocumentFromString(
+                @"type Query {
+                    test(bar: Input123): String
+                }")
+            .Use(_ => _ => default);
 
         // act
         var ex = Assert.Throws<SchemaException>(() => schema.Create());
@@ -175,7 +173,7 @@ public class SchemaErrorTests
 
     private sealed class ErrorInterceptor : SchemaInterceptor
     {
-        public List<Exception> Exceptions { get; } = new List<Exception>();
+        public List<Exception> Exceptions { get; } = new();
 
         public override void OnError(IDescriptorContext context, Exception exception)
         {
