@@ -3,12 +3,12 @@ using HotChocolate.AzureFunctions.IsolatedProcess.Tests.Helpers;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
-using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Linq;
 
 namespace HotChocolate.AzureFunctions.IsolatedProcess.Tests;
+
 public class IsolatedProcessEndToEndTests
 {
     [Fact]
@@ -17,25 +17,28 @@ public class IsolatedProcessEndToEndTests
         var host = new MockIsolatedProcessHostBuilder()
             .AddGraphQLFunction(graphQL =>
             {
-                graphQL.AddQueryType(d => d.Name("Query").Field("person").Resolve("Luke Skywalker"));
+                graphQL.AddQueryType(
+                    d => d.Name("Query").Field("person").Resolve("Luke Skywalker"));
             })
             .Build();
 
-        //The executor should resolve without error as a Required service...
+        // The executor should resolve without error as a Required service...
         var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
 
-        //Build an HttpRequestData that is valid for the Isolated Process to execute with...
+        // Build an HttpRequestData that is valid for the Isolated Process to execute with...
         var httpRequestData = TestHttpRequestDataHelper.NewGraphQLHttpRequestData(host.Services, @"
             query {
                 person
             }
         ");
 
-        //Execute Query Test for end-to-end validation...
-        //NOTE: This uses the new Az Func Isolated Process extension to execute via HttpRequestData...
-        var httpResponseData = await requestExecutor.ExecuteAsync(httpRequestData).ConfigureAwait(false);
+        // Execute Query Test for end-to-end validation...
+        // NOTE: This uses the new Az Func Isolated Process extension
+        // to execute via HttpRequestData...
+        var httpResponseData =
+            await requestExecutor.ExecuteAsync(httpRequestData).ConfigureAwait(false);
 
-        //Read, Parse & Validate the response...
+        // Read, Parse & Validate the response...
         var resultContent = await httpResponseData.ReadResponseContentAsync().ConfigureAwait(false);
         Assert.False(string.IsNullOrWhiteSpace(resultContent));
 
@@ -54,30 +57,37 @@ public class IsolatedProcessEndToEndTests
             })
             .AddGraphQLFunction(graphQL =>
             {
-                graphQL.AddQueryType(d => d.Name("Query").Field("isHttpContextInjected").Resolve(context =>
-                {
-                    var httpContext = context.Services.GetService<IHttpContextAccessor>()?.HttpContext;
-                    return httpContext != null;
-                }));
+                graphQL.AddQueryType(
+                    d => d.Name("Query")
+                        .Field("isHttpContextInjected")
+                        .Resolve(context =>
+                        {
+                            var httpContext = context.Services.GetService<IHttpContextAccessor>()?
+                                .HttpContext;
+                            return httpContext != null;
+                        }));
             })
             .Build();
 
-        //The executor should resolve without error as a Required service...
+        // The executor should resolve without error as a Required service...
         var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
 
-        //Build an HttpRequestData that is valid for the Isolated Process to execute with...
-        var httpRequestData = TestHttpRequestDataHelper.NewGraphQLHttpRequestData(host.Services, @"
-            query {
+        // Build an HttpRequestData that is valid for the Isolated Process to execute with...
+        var httpRequestData = TestHttpRequestDataHelper.NewGraphQLHttpRequestData(
+            host.Services,
+            @"query {
                 isHttpContextInjected
-            }
-        ");
+            }");
 
-        //Execute Query Test for end-to-end validation...
-        //NOTE: This uses the new Az Func Isolated Process extension to execute via HttpRequestData...
-        var httpResponseData = await requestExecutor.ExecuteAsync(httpRequestData).ConfigureAwait(false);
+        // Execute Query Test for end-to-end validation...
+        // NOTE: This uses the new Az Func Isolated Process extension to execute
+        // via HttpRequestData...
+        var httpResponseData =
+            await requestExecutor.ExecuteAsync(httpRequestData).ConfigureAwait(false);
 
-        //Read, Parse & Validate the response...
-        var resultContent = await httpResponseData.ReadResponseContentAsync().ConfigureAwait(false);
+        // Read, Parse & Validate the response...
+        var resultContent =
+            await httpResponseData.ReadResponseContentAsync().ConfigureAwait(false);
         Assert.False(string.IsNullOrWhiteSpace(resultContent));
 
         dynamic json = JObject.Parse(resultContent!);
@@ -89,23 +99,25 @@ public class IsolatedProcessEndToEndTests
     public async Task AzFuncIsolatedProcess_BananaCakePopTestAsync()
     {
         var host = new MockIsolatedProcessHostBuilder()
-            .AddGraphQLFunction(graphQL =>
-            {
-                graphQL.AddQueryType(d => d.Name("Query").Field("person").Resolve("Luke Skywalker"));
-            })
+            .AddGraphQLFunction(
+                b => b.AddQueryType(
+                    d => d.Name("Query").Field("person").Resolve("Luke Skywalker")))
             .Build();
 
-        //The executor should resolve without error as a Required service...
+        // The executor should resolve without error as a Required service...
         var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
 
-        //Build an HttpRequestData that is valid for the Isolated Process to execute with...
-        var httpRequestData = TestHttpRequestDataHelper.NewBcpHttpRequestData(host.Services, "index.html");
+        // Build an HttpRequestData that is valid for the Isolated Process to execute with...
+        var httpRequestData =
+            TestHttpRequestDataHelper.NewBcpHttpRequestData(host.Services, "index.html");
 
-        //Execute Query Test for end-to-end validation...
-        //NOTE: This uses the new Az Func Isolated Process extension to execute via HttpRequestData...
-        var httpResponseData = await requestExecutor.ExecuteAsync(httpRequestData).ConfigureAwait(false);
+        // Execute Query Test for end-to-end validation...
+        // NOTE: This uses the new Az Func Isolated Process extension to execute
+        // via HttpRequestData...
+        var httpResponseData =
+            await requestExecutor.ExecuteAsync(httpRequestData).ConfigureAwait(false);
 
-        //Read, Parse & Validate the response...
+        // Read, Parse & Validate the response...
         var resultContent = await httpResponseData.ReadResponseContentAsync().ConfigureAwait(false);
         Assert.NotNull(resultContent);
         Assert.False(string.IsNullOrWhiteSpace(resultContent));

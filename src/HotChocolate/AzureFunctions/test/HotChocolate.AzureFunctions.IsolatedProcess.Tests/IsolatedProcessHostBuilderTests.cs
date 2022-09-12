@@ -14,23 +14,26 @@ public class IsolatedProcessHostBuilderTests
     {
         var hostBuilder = new MockIsolatedProcessHostBuilder();
 
-        //Register using the config func that matches the Isolated Process configuration so the config code is portable...
-        hostBuilder.AddGraphQLFunction(graphQL =>
-        {
-            graphQL.AddQueryType(d => d.Name("Query").Field("test").Resolve("test"));
-        });
+        // Register using the config func that matches the Isolated Process configuration
+        // so the config code is portable...
+        hostBuilder.AddGraphQLFunction(
+            b => b.AddQueryType(
+                d => d.Name("Query").Field("test").Resolve("test")));
 
         AssertFunctionsHostBuilderIsValid(hostBuilder);
     }
 
-    private static void AssertFunctionsHostBuilderIsValid(MockIsolatedProcessHostBuilder hostBuilder)
+    private static void AssertFunctionsHostBuilderIsValid(
+        MockIsolatedProcessHostBuilder hostBuilder)
     {
-        if(hostBuilder is null)
+        if (hostBuilder is null)
+        {
             throw new ArgumentNullException(nameof(hostBuilder));
+        }
 
         var host = hostBuilder.Build();
 
-        //The executor should resolve without error as a Required service...
-        var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
+        // The executor should resolve without error as a Required service...
+        host.Services.GetRequiredService<IGraphQLRequestExecutor>();
     }
 }

@@ -42,15 +42,17 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
         var executorBuilder =
             services.AddGraphQLServer(maxAllowedRequestSize: maxAllowedRequestSize);
 
-        //Register AzFunc Custom Binding Extensions for In-Process Functions.
-        //NOTE: This does not work for Isolated Process due to (but is not harmful at all of isolated process; it just remains dormant):
-        //  1) Bindings always execute in-process and values must be marshaled between the Host Process & the Isolated Process Worker!
-        //  2) Currently only String values are supported (obviously due to above complexities).
-        //More Info. here (using Blob binding docs):
-        //  https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-storage-blob-input?tabs=isolated-process%2Cextensionv5&pivots=programming-language-csharp#usage
+        // Register AzFunc Custom Binding Extensions for In-Process Functions.
+        // NOTE: This does not work for Isolated Process due to (but is not harmful at all of
+        // isolated process; it just remains dormant):
+        // 1) Bindings always execute in-process and values must be marshaled between
+        // the Host Process & the Isolated Process Worker!
+        // 2) Currently only String values are supported (obviously due to above complexities).
+        // More Info. here (using Blob binding docs):
+        // https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-storage-
+        // blob-input?tabs=isolated-process%2Cextensionv5&pivots=programming-language-csharp#usage
         services.TryAddEnumerable(
-            ServiceDescriptor.Singleton<IExtensionConfigProvider, GraphQLExtensions>()
-        );
+            ServiceDescriptor.Singleton<IExtensionConfigProvider, GraphQLExtensions>());
 
         //Add the Request Executor Dependency...
         services.AddAzureFunctionsGraphQLRequestExecutorDependency(apiRoute);
@@ -59,12 +61,10 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Internal method to adds the Request Executor dependency for Azure Functions both in-process and isolate-process.
-    /// Normal configuration should use AddGraphQLFunction() extension instead which correctly call this internally.
+    /// Internal method to adds the Request Executor dependency for Azure Functions both
+    /// in-process and isolate-process. Normal configuration should use AddGraphQLFunction()
+    /// extension instead which correctly call this internally.
     /// </summary>
-    /// <param name="services"></param>
-    /// <param name="apiRoute"></param>
-    /// <returns></returns>
     public static IServiceCollection AddAzureFunctionsGraphQLRequestExecutorDependency(
         this IServiceCollection services,
         string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute

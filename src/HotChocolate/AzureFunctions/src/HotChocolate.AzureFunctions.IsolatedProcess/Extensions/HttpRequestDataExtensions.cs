@@ -20,7 +20,9 @@ public static class HttpRequestDataExtensions
         return contentType ?? defaultValue;
     }
 
-    public static HttpRequestData SetCurrentHttpContext(this HttpRequestData httpRequestData, HttpContext httpContext)
+    public static HttpRequestData SetCurrentHttpContext(
+        this HttpRequestData httpRequestData,
+        HttpContext httpContext)
     {
         httpRequestData.FunctionContext.InstanceServices.SetCurrentHttpContext(httpContext);
         return httpRequestData;

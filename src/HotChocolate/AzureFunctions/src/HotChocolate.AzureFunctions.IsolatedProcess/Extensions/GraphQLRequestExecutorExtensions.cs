@@ -18,7 +18,7 @@ public static class GraphQLRequestExecutorExtensions
             throw new ArgumentNullException(nameof(httpRequestData));
         }
 
-        // Factored out Async logic to Address SonarCloud concern for exceptions in Async flow...
+        // Factored out Async logic to Address SonarCloud concern for exceptions in Async flow ...
         return ExecuteGraphQLRequestInternalAsync(graphqlRequestExecutor, httpRequestData);
     }
 
@@ -30,20 +30,23 @@ public static class GraphQLRequestExecutorExtensions
         // HotChocolate and execute the Pipeline...
         // NOTE: This must be disposed of properly to ensure our request/response
         // resources are managed efficiently.
-        using var shim = await HttpContextShim.CreateHttpContextAsync(httpRequestData).ConfigureAwait(false);
+        using var shim =
+            await HttpContextShim.CreateHttpContextAsync(httpRequestData).ConfigureAwait(false);
 
-        //Isolated Process doesn't natively support HttpContext so we must manually enable support for
-        //  HttpContext injection within HotChocolate (e.g. into Resolvers) for low-level access.
+        // Isolated Process doesn't natively support HttpContext so we must manually enable
+        // support for HttpContext injection within HotChocolate (e.g. into Resolvers) for
+        // low-level access.
         httpRequestData.SetCurrentHttpContext(shim.HttpContext);
 
-        //Now we can execute the request by marshalling the HttpContext into the DefaultGraphQLRequestExecutor
-        //  which will handle pre & post processing as needed...
-        //NOTE: We discard the result returned (likely an EmptyResult) as all content is already written to the HttpContext Response.
+        // Now we can execute the request by marshalling the HttpContext into the
+        // DefaultGraphQLRequestExecutor which will handle pre & post processing as needed ...
+        // NOTE: We discard the result returned (likely an EmptyResult) as all content is already
+        // written to the HttpContext Response.
         await graphqlRequestExecutor.ExecuteAsync(shim.HttpContext.Request).ConfigureAwait(false);
 
         // Last, in the Isolated Process model we marshall all data back to the HttpResponseData
-        // model and return it to the AzureFunctions process...
-        // Therefore we need to marshall the Response back to the Isolated Process model...
+        // model and return it to the AzureFunctions process ...
+        // Therefore we need to marshall the Response back to the Isolated Process model ...
         return await shim.CreateHttpResponseDataAsync().ConfigureAwait(false);
     }
 }

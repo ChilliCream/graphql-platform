@@ -1,11 +1,12 @@
-using System;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.AzureFunctions.Tests.Helpers;
+
 public static class AzFuncTestHelper
 {
-    public static ServiceCollection CreateTestServiceCollectionWithGraphQLFunction(string resolveValue = "test")
+    public static ServiceCollection CreateTestServiceCollectionWithGraphQLFunction(
+        string resolveValue = "test")
     {
         var serviceCollection = new ServiceCollection();
 

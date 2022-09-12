@@ -27,7 +27,7 @@ public sealed class HttpContextShim : IDisposable
 
     private HttpRequestData? IsolatedProcessHttpRequestData { get; set; }
 
-    //Must keep the Reference so we can safely Dispose!
+    // Must keep the Reference so we can safely Dispose!
     public HttpContext HttpContext { get; }
 
     /// <summary>

@@ -7,8 +7,11 @@ namespace Microsoft.Azure.Functions.Extensions.DependencyInjection;
 public static class HotChocolateFunctionsHostBuilderExtensions
 {
     /// <summary>
-    /// Adds a GraphQL server and Azure Functions integration services. This specific configuration method is only supported by the Azure Functions In-process model;
-    /// the overload offers compatibility with the isolated process model for configuration code portability.
+    /// Adds a GraphQL server and Azure Functions integration services.
+    /// This specific configuration method is only supported by the Azure Functions
+    /// In-process model;
+    /// the overload offers compatibility with the isolated process model
+    /// for configuration code portability.
     /// </summary>
     /// <param name="hostBuilder">
     /// The <see cref="IFunctionsHostBuilder"/>.
@@ -37,13 +40,16 @@ public static class HotChocolateFunctionsHostBuilderExtensions
     }
 
     /// <summary>
-    /// Adds a GraphQL server and Azure Functions integration services in an identical way as the Azure Functions Isolated processing model; providing compatibility and portability of configuration code.
+    /// Adds a GraphQL server and Azure Functions integration services in an identical
+    /// way as the Azure Functions Isolated processing model; providing compatibility
+    /// and portability of configuration code.
     /// </summary>
     /// <param name="hostBuilder">
     /// The <see cref="IFunctionsHostBuilder"/>.
     /// </param>
     /// <param name="graphqlConfigureFunc">
-    /// The GraphQL Configuration function that will be invoked, for chained configuration, when the Host is built.
+    /// The GraphQL Configuration function that will be invoked, for chained configuration,
+    /// when the Host is built.
     /// </param>
     /// <param name="maxAllowedRequestSize">
     /// The max allowed GraphQL request size.
@@ -67,7 +73,7 @@ public static class HotChocolateFunctionsHostBuilderExtensions
         if (graphqlConfigureFunc is null)
             throw new ArgumentNullException(nameof(graphqlConfigureFunc));
 
-        //NOTE: HostBuilder null check will be done by AddGraphQLFunction()...
+        // NOTE: HostBuilder null check will be done by AddGraphQLFunction() ...
         var executorBuilder = hostBuilder.AddGraphQLFunction(maxAllowedRequestSize, apiRoute);
         graphqlConfigureFunc.Invoke(executorBuilder);
 

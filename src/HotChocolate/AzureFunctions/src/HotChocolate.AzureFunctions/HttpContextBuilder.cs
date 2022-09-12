@@ -1,4 +1,3 @@
-using System;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
@@ -19,46 +18,57 @@ public class HttpContextBuilder
         IDictionary<object, object>? contextItems = null
     )
     {
-        //Initialize the root Http Context (Container)...
+        // Initialize the root Http Context (Container)...
         var httpContext = new DefaultHttpContext();
 
-        //Initialize the Http Request...
+        // Initialize the Http Request...
         var httpRequest = httpContext.Request;
-        httpRequest.Method = requestHttpMethod ?? throw new ArgumentNullException(nameof(requestHttpMethod));
-        httpRequest.Scheme = requestUri?.Scheme ?? throw new ArgumentNullException(nameof(requestUri));
+        httpRequest.Method = requestHttpMethod ??
+            throw new ArgumentNullException(nameof(requestHttpMethod));
+        httpRequest.Scheme = requestUri?.Scheme ??
+            throw new ArgumentNullException(nameof(requestUri));
         httpRequest.Host = new HostString(requestUri.Host, requestUri.Port);
         httpRequest.Path = new PathString(requestUri.AbsolutePath);
         httpRequest.QueryString = new QueryString(requestUri.Query);
 
-        //Ensure we marshall across all Headers from the Client Request...
-        //Note: This should also handle Cookies since Cookies are stored as a Header value....
+        // Ensure we marshall across all Headers from the Client Request...
+        // Note: This should also handle Cookies since Cookies are stored as a Header value....
         if (requestHeaders?.Any() == true)
             foreach (var (key, value) in requestHeaders)
                 httpRequest.Headers.TryAdd(key, new StringValues(value.ToArray()));
 
         if (!string.IsNullOrEmpty(requestBody))
         {
-            //Initialize a valid Stream for the Request (must be tracked & Disposed of!)
+            // Initialize a valid Stream for the Request (must be tracked & Disposed of!)
             var requestBodyBytes = Encoding.UTF8.GetBytes(requestBody);
             httpRequest.Body = new MemoryStream(requestBodyBytes);
             httpRequest.ContentType = requestBodyContentType;
             httpRequest.ContentLength = requestBodyBytes.Length;
         }
 
-        //Initialize the Http Response...
+        // Initialize the Http Response...
         var httpResponse = httpContext.Response;
-        //Initialize a valid Stream for the Response (must be tracked & Disposed of!)
-        //NOTE: Default Body is a NullStream...which ignores all Reads/Writes.
+
+        // Initialize a valid Stream for the Response (must be tracked & Disposed of!)
+        // NOTE: Default Body is a NullStream... which ignores all Reads/Writes.
         httpResponse.Body = new MemoryStream();
 
-        //Proxy over any possible authentication claims if available
-        if (claimsIdentities?.Any() == true)
-            httpContext.User = new ClaimsPrincipal(claimsIdentities);
+        // Proxy over any possible authentication claims if available
+        var identities = claimsIdentities as ClaimsIdentity[] ?? claimsIdentities?.ToArray();
 
-        //Set the Custom Context Items if specified...
+        if (identities?.Any() == true)
+        {
+            httpContext.User = new ClaimsPrincipal(identities);
+        }
+
+        // Set the Custom Context Items if specified...
         if(contextItems?.Any() == true)
+        {
             foreach (var item in contextItems)
+            {
                 httpContext.Items.TryAdd(item.Key, item.Value);
+            }
+        }
 
         return httpContext;
     }

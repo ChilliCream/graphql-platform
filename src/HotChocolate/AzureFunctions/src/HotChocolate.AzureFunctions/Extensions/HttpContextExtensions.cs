@@ -1,14 +1,18 @@
-using System;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.AzureFunctions.IsolatedProcess.Extensions;
+
 public static class HttpContextExtensions
 {
-    public static IServiceProvider SetCurrentHttpContext(this IServiceProvider serviceProvider, HttpContext httpContext)
+    public static IServiceProvider SetCurrentHttpContext(
+        this IServiceProvider serviceProvider,
+        HttpContext httpContext)
     {
-        //Ensure that we enable support for HttpContext injection within HotChocolate (e.g. into Resolvers) for low-level access.
-        //NOTE: This is leveraged in Unit Tests as well as in Azure Functions Isolated process flow.
+        // Ensure that we enable support for HttpContext injection within HotChocolate
+        // (e.g. into Resolvers) for low-level access.
+        // NOTE: This is leveraged in Unit Tests as well as in Azure Functions
+        // Isolated process flow.
         var httpContextAccessor = serviceProvider.GetService<IHttpContextAccessor>();
         if (httpContextAccessor != null)
             httpContextAccessor.HttpContext = httpContext;

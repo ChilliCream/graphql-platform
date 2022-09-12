@@ -139,7 +139,7 @@ internal class PipelineBuilder
         Expression requestDelegate = Expression.Call(_compileInvoke, instance, invoke);
 
         return Expression.Lambda<Func<IServiceProvider, RequestDelegate, RequestDelegate>>(
-                requestDelegate, _services, _next)
+            requestDelegate, _services, _next)
             .Compile();
     }
 
