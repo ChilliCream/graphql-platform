@@ -1,25 +1,25 @@
+using HotChocolate.AzureFunctions.IsolatedProcess;
 using Microsoft.Azure.Functions.Worker.Http;
 
-namespace HotChocolate.AzureFunctions.IsolatedProcess;
+namespace HotChocolate.AzureFunctions;
 
 public static class GraphQLRequestExecutorExtensions
 {
     public static Task<HttpResponseData> ExecuteAsync(
-        this IGraphQLRequestExecutor graphqlRequestExecutor,
-        HttpRequestData httpRequestData)
+        this IGraphQLRequestExecutor executor,
+        HttpRequestData requestData)
     {
-        if (graphqlRequestExecutor is null)
+        if (executor is null)
         {
-            throw new ArgumentNullException(nameof(graphqlRequestExecutor));
+            throw new ArgumentNullException(nameof(executor));
         }
 
-        if (httpRequestData is null)
+        if (requestData is null)
         {
-            throw new ArgumentNullException(nameof(httpRequestData));
+            throw new ArgumentNullException(nameof(requestData));
         }
 
-        // Factored out Async logic to Address SonarCloud concern for exceptions in Async flow ...
-        return ExecuteGraphQLRequestInternalAsync(graphqlRequestExecutor, httpRequestData);
+        return ExecuteGraphQLRequestInternalAsync(executor, requestData);
     }
 
     private static async Task<HttpResponseData> ExecuteGraphQLRequestInternalAsync(
