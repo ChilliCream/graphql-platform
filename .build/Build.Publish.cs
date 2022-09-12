@@ -57,6 +57,9 @@ partial class Build
             projFile = File.ReadAllText(EmptyAzf12Proj);
             File.WriteAllText(EmptyAzf12Proj, projFile.Replace("11.1.0", GitVersion.SemVer));
 
+            projFile = File.ReadAllText(EmptyAzfUp12Proj);
+            File.WriteAllText(EmptyAzfUp12Proj, projFile.Replace("11.1.0", GitVersion.SemVer));
+
             DotNetBuildSonarSolution(
                 PackSolutionFile,
                 include: file =>
