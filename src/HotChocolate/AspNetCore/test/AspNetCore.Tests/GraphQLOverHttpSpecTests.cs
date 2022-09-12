@@ -150,6 +150,55 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
     }
 
     /// <summary>
+    /// This request does not specify a accept header.
+    /// expected response content-type: multipart/mixed
+    /// expected status code: 200
+    /// </summary>
+    [Fact]
+    public async Task Legacy_With_Stream_1()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        {
+            Content = JsonContent.Create(
+                new ClientQueryRequest
+                {
+                    Query = "{ ... @defer { __typename } }"
+                })
+        };
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        // expected response content-type: multipart/mixed
+        // expected status code: 200
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                @"Headers:
+                Content-Type: multipart/mixed; boundary=""-""; charset=utf-8
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+
+                ---
+                Content-Type: application/json; charset=utf-8
+
+                {""data"":{},""hasNext"":true}
+                ---
+                Content-Type: application/json; charset=utf-8
+
+                {""path"":[],""data"":{""__typename"":""Query""},""hasNext"":false}
+                -----
+                ");
+    }
+
+    /// <summary>
     /// This request specifies the application/graphql-response+json accept header.
     /// expected response content-type: application/graphql-response+json
     /// expected status code: 200
@@ -678,6 +727,64 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 Status Code: MethodNotAllowed
                 -------------------------->
                 {""errors"":[{""message"":""The specified operation kind is not allowed.""}]}");
+    }
+
+    /// <summary>
+    /// This request specifies the application/graphql-response+json and
+    /// the multipart/mixed content type as accept header value.
+    /// expected response content-type: multipart/mixed
+    /// expected status code: 200
+    /// </summary>
+    [Fact]
+    public async Task New_Query_With_Streams_3()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        {
+            Content = JsonContent.Create(
+                new ClientQueryRequest
+                {
+                    Query = "{ ... @defer { __typename } }"
+                }),
+            Headers =
+            {
+                { "Accept", new[]
+                    {
+                        ContentType.EventStream
+                    }
+                }
+            }
+        };
+
+        using var response = await client.SendAsync(request, ResponseHeadersRead);
+
+        // assert
+        // expected response content-type: multipart/mixed
+        // expected status code: 200
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                @"Headers:
+                Content-Type: multipart/mixed; boundary=""-""; charset=utf-8
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+
+                ---
+                Content-Type: application/json; charset=utf-8
+
+                {""data"":{},""hasNext"":true}
+                ---
+                Content-Type: application/json; charset=utf-8
+
+                {""path"":[],""data"":{""__typename"":""Query""},""hasNext"":false}
+                -----
+                ");
     }
 }
 #endif

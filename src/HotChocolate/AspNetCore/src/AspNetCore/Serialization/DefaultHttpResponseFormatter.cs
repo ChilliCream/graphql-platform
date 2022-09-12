@@ -19,9 +19,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 {
     private readonly JsonQueryResultFormatter _jsonFormatter;
     private readonly MultiPartResponseStreamFormatter _multiPartFormatter;
-
-    // TODO : implement this one!
-    private readonly IExecutionResultFormatter _eventStreamFormatter = default!;
+    private readonly EventStreamFormatter _eventStreamFormatter;
 
     /// <summary>
     /// Creates a new instance of <see cref="DefaultHttpResponseFormatter" />.
@@ -42,6 +40,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     {
         _jsonFormatter = new JsonQueryResultFormatter(indented, encoder);
         _multiPartFormatter = new MultiPartResponseStreamFormatter(_jsonFormatter);
+        _eventStreamFormatter = new EventStreamFormatter(indented, encoder);
     }
 
     public GraphQLRequestFlags CreateRequestFlags(
@@ -320,7 +319,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             }
 
             if (resultKind is ResultKind.Stream or ResultKind.Single &&
-                mediaType.Kind is MultiPartMixed or AllMultiPart)
+                mediaType.Kind is MultiPartMixed or AllMultiPart or All)
             {
                 formatInfo = new FormatInfo(
                     ContentType.MultiPartMixed,
@@ -374,7 +373,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             }
 
             if (resultKind is ResultKind.Stream or ResultKind.Single &&
-                mediaType.Kind is MultiPartMixed or AllMultiPart)
+                mediaType.Kind is MultiPartMixed or AllMultiPart or All)
             {
                 // if the result is a stream we consider this a perfect match and
                 // will use this format.
@@ -400,7 +399,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 }
             }
 
-            if (mediaType.Kind is EventStream)
+            if (mediaType.Kind is EventStream or All)
             {
                 // if the result is a subscription we consider this a perfect match and
                 // will use this format.
