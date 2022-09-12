@@ -37,7 +37,9 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
         string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute)
     {
         if (services is null)
+        {
             throw new ArgumentNullException(nameof(services));
+        }
 
         var executorBuilder =
             services.AddGraphQLServer(maxAllowedRequestSize: maxAllowedRequestSize);
@@ -54,7 +56,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<IExtensionConfigProvider, GraphQLExtensions>());
 
-        //Add the Request Executor Dependency...
+        // Add the Request Executor Dependency...
         services.AddAzureFunctionsGraphQLRequestExecutorDependency(apiRoute);
 
         return executorBuilder;
@@ -65,19 +67,18 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
     /// in-process and isolate-process. Normal configuration should use AddGraphQLFunction()
     /// extension instead which correctly call this internally.
     /// </summary>
-    public static IServiceCollection AddAzureFunctionsGraphQLRequestExecutorDependency(
+    private static IServiceCollection AddAzureFunctionsGraphQLRequestExecutorDependency(
         this IServiceCollection services,
         string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute
     )
     {
         services.AddSingleton<IGraphQLRequestExecutor>(sp =>
         {
-            PathString path = apiRoute?.TrimEnd('/');
+            PathString path = apiRoute.TrimEnd('/');
             var fileProvider = CreateFileProvider();
             var options = new GraphQLServerOptions();
 
-            foreach (var configure in
-                sp.GetServices<Action<GraphQLServerOptions>>())
+            foreach (var configure in sp.GetServices<Action<GraphQLServerOptions>>())
             {
                 configure(options);
             }

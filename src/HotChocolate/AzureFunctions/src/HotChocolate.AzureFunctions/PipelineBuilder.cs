@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AzureFunctions;
 
-internal class PipelineBuilder
+internal sealed class PipelineBuilder
 {
     private static readonly ParameterExpression _context =
         Expression.Parameter(typeof(HttpContext), "context");

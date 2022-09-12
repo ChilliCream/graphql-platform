@@ -2,9 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <AzureFunctionsVersion>v4</AzureFunctionsVersion>
-    <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AzureFunctionsVersion>v4</AzureFunctionsVersion>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(ImplicitUsings)' == 'enable'">
@@ -16,8 +16,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.0.1" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
-    <PackageReference Include="HotChocolate.AzureFunctions" Version="13.0.0-preview.36" />
-    <PackageReference Include="HotChocolate.Types.Analyzers" Version="13.0.0-preview.36">
+    <PackageReference Include="HotChocolate.AzureFunctions" Version="11.1.0" />
+    <PackageReference Include="HotChocolate.Types.Analyzers" Version="11.1.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>

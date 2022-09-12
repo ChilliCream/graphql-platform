@@ -1,52 +1,33 @@
+using HotChocolate.AzureFunctions.IsolatedProcess;
 using Microsoft.Azure.Functions.Worker.Http;
 
-namespace HotChocolate.AzureFunctions.IsolatedProcess;
+namespace HotChocolate.AzureFunctions;
 
 public static class GraphQLRequestExecutorExtensions
 {
     public static Task<HttpResponseData> ExecuteAsync(
-        this IGraphQLRequestExecutor graphqlRequestExecutor,
-        HttpRequestData httpRequestData)
+        this IGraphQLRequestExecutor executor,
+        HttpRequestData requestData)
     {
-        if (graphqlRequestExecutor is null)
+        if (executor is null)
         {
-            throw new ArgumentNullException(nameof(graphqlRequestExecutor));
+            throw new ArgumentNullException(nameof(executor));
         }
 
-        if (httpRequestData is null)
+        if (requestData is null)
         {
-            throw new ArgumentNullException(nameof(httpRequestData));
+            throw new ArgumentNullException(nameof(requestData));
         }
 
-        // Factored out Async logic to Address SonarCloud concern for exceptions in Async flow ...
-        return ExecuteGraphQLRequestInternalAsync(graphqlRequestExecutor, httpRequestData);
+        return ExecuteGraphQLRequestInternalAsync(executor, requestData);
     }
 
     private static async Task<HttpResponseData> ExecuteGraphQLRequestInternalAsync(
-        IGraphQLRequestExecutor graphqlRequestExecutor,
-        HttpRequestData httpRequestData)
+        IGraphQLRequestExecutor executor,
+        HttpRequestData requestData)
     {
-        // Adapt the Isolated Process HttpRequestData to the HttpContext needed by
-        // HotChocolate and execute the Pipeline...
-        // NOTE: This must be disposed of properly to ensure our request/response
-        // resources are managed efficiently.
-        using var shim =
-            await HttpContextShim.CreateHttpContextAsync(httpRequestData).ConfigureAwait(false);
-
-        // Isolated Process doesn't natively support HttpContext so we must manually enable
-        // support for HttpContext injection within HotChocolate (e.g. into Resolvers) for
-        // low-level access.
-        httpRequestData.SetCurrentHttpContext(shim.HttpContext);
-
-        // Now we can execute the request by marshalling the HttpContext into the
-        // DefaultGraphQLRequestExecutor which will handle pre & post processing as needed ...
-        // NOTE: We discard the result returned (likely an EmptyResult) as all content is already
-        // written to the HttpContext Response.
-        await graphqlRequestExecutor.ExecuteAsync(shim.HttpContext.Request).ConfigureAwait(false);
-
-        // Last, in the Isolated Process model we marshall all data back to the HttpResponseData
-        // model and return it to the AzureFunctions process ...
-        // Therefore we need to marshall the Response back to the Isolated Process model ...
-        return await shim.CreateHttpResponseDataAsync().ConfigureAwait(false);
+        var context = new AzureHttpContext(requestData);
+        await executor.ExecuteAsync(context).ConfigureAwait(false);
+        return context.CreateResponseData();
     }
 }
