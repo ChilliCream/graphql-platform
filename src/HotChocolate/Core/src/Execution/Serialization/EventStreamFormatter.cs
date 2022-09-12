@@ -8,6 +8,10 @@ using static HotChocolate.Execution.ExecutionResultKind;
 
 namespace HotChocolate.Execution.Serialization;
 
+/// <summary>
+/// The default GraphQL-SSE formatter for <see cref="IExecutionResult"/>.
+/// https://github.com/enisdenjo/graphql-sse/blob/master/PROTOCOL.md
+/// </summary>
 public sealed class EventStreamFormatter : IExecutionResultFormatter
 {
     private static ReadOnlySpan<byte> EventField
@@ -28,7 +32,7 @@ public sealed class EventStreamFormatter : IExecutionResultFormatter
     private readonly JsonWriterOptions _options;
 
     /// <summary>
-    /// Creates a new instance of <see cref="MultiPartResponseStreamFormatter" />.
+    /// Creates a new instance of <see cref="EventStreamFormatter" />.
     /// </summary>
     /// <param name="indented">
     /// Defines whether the underlying <see cref="Utf8JsonWriter"/>
@@ -48,6 +52,7 @@ public sealed class EventStreamFormatter : IExecutionResultFormatter
         _payloadFormatter = new JsonQueryResultFormatter(indented, encoder);
     }
 
+    /// <inheritdoc cref="IExecutionResultFormatter.FormatAsync(IExecutionResult, Stream, CancellationToken)" />
     public ValueTask FormatAsync(
         IExecutionResult result,
         Stream outputStream,
