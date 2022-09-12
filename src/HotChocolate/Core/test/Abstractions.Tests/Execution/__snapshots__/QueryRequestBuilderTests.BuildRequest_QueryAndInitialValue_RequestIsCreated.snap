@@ -7,10 +7,11 @@
   "OperationName": null,
   "VariableValues": null,
   "Extensions": null,
-  "ContextData": null,
-  "Services": null,
-  "InitialValue": {
-    "a": "123"
+  "ContextData": {
+    "HotChocolate.Execution.InitialValue": {
+      "a": "123"
+    }
   },
-  "AllowedOperations": null
+  "Services": null,
+  "Flags": "AllowAll"
 }

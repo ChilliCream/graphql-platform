@@ -15,7 +15,6 @@ namespace StrawberryShake.Tools
             root.Command("update", UpdateCommand.Build);
             root.Command("download", DownloadCommand.Build);
             root.Command("generate", GenerateCommand.Build);
-            root.Command("export", ExportCommand.Build);
             root.Command("where", WhereCommand.Build);
 
             root.OnExecute(() =>

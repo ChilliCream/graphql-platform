@@ -20,6 +20,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble\CookieCrumble.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
     <PackageReference Include="coverlet.collector" Version="3.1.2">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -31,9 +35,6 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Moq" Version="4.18.1" />
-    <PackageReference Include="Snapshooter.Xunit" Version="0.5.4" />
-    <PackageReference Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
   </ItemGroup>
-
 
 </Project>

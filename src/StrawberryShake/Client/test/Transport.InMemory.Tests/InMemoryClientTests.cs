@@ -8,7 +8,6 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Xunit;
 
 namespace StrawberryShake.Transport.InMemory;
 

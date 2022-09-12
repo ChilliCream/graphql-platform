@@ -1,6 +1,5 @@
 using System;
 using Moq;
-using Xunit;
 
 namespace StrawberryShake;
 
@@ -54,7 +53,7 @@ public class OperationStoreTests
         var observer = new ResultObserver();
 
         // act
-        using IDisposable session = store
+        using var session = store
             .Watch<string>(request)
             .Subscribe(observer);
 
@@ -76,7 +75,7 @@ public class OperationStoreTests
 
 
         // act
-        using IDisposable session =
+        using var session =
             System.ObservableExtensions.Subscribe(
                 store.Watch<string>(request),
                 r =>
@@ -100,7 +99,7 @@ public class OperationStoreTests
         var request = new OperationRequest("abc", document.Object);
         var observer = new ResultObserver();
 
-        IDisposable session = store
+        var session = store
             .Watch<string>(request)
             .Subscribe(observer);
 

@@ -32,6 +32,7 @@ public sealed partial class OperationCompiler
     private int _nextSelectionSetRefId;
     private int _nextSelectionSetId;
     private int _nextFragmentId;
+    private bool _hasIncrementalParts;
 
     public OperationCompiler(InputParser parser)
     {
@@ -124,6 +125,7 @@ public sealed partial class OperationCompiler
             _nextSelectionSetRefId = 0;
             _nextSelectionId = 0;
             _nextFragmentId = 0;
+            _hasIncrementalParts = false;
 
             _backlog.Clear();
             _selectionLookup.Clear();
@@ -175,7 +177,8 @@ public sealed partial class OperationCompiler
                 operationType,
                 variants,
                 _includeConditions,
-                _contextData);
+                _contextData,
+                _hasIncrementalParts);
 
             foreach (var item in _selectionVariants)
             {
@@ -202,7 +205,8 @@ public sealed partial class OperationCompiler
             operationType,
             variants,
             _includeConditions,
-            new Dictionary<string, object?>(_contextData));
+            new Dictionary<string, object?>(_contextData),
+            _hasIncrementalParts);
     }
 
     private void CompleteResolvers(ISchema schema)
@@ -303,6 +307,7 @@ public sealed partial class OperationCompiler
                      }
 
                      selection.MarkAsStream(ifConditionFlags);
+                     _hasIncrementalParts = true;
                 }
             }
 
@@ -527,6 +532,7 @@ public sealed partial class OperationCompiler
                     ifConditionFlags);
 
                 context.Fragments.Add(fragment);
+                _hasIncrementalParts = true;
 
                 // if we have if condition flags there will be a runtime validation if something
                 // shall be deferred, so we need to prepare for both cases.

@@ -3,6 +3,7 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Types.Tests</AssemblyName>
     <RootNamespace>HotChocolate</RootNamespace>
+    <LangVersion>Preview</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

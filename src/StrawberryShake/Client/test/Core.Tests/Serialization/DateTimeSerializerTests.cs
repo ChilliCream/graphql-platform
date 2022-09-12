@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using Xunit;
 
 namespace StrawberryShake.Serialization;
 
@@ -17,7 +16,7 @@ public class DateTimeSerializerTests
         var value = "2011-08-30T13:22:53.108Z";
 
         // act
-        DateTimeOffset result = Serializer.Parse(value);
+        var result = Serializer.Parse(value);
 
         // assert
         Assert.Equal(2011, result.Year);
@@ -35,7 +34,7 @@ public class DateTimeSerializerTests
         // arrange
 
         // act
-        object? result = Serializer.Format(null);
+        var result = Serializer.Format(null);
 
         // assert
         Assert.Null(result);
@@ -48,7 +47,7 @@ public class DateTimeSerializerTests
         var value = new DateTimeOffset(2011, 8, 30, 13, 22, 53, 108, TimeSpan.Zero);
 
         // act
-        object? result = Serializer.Format(value);
+        var result = Serializer.Format(value);
 
         // assert
         Assert.Equal("2011-08-30T13:22:53.108Z", result);
@@ -58,7 +57,7 @@ public class DateTimeSerializerTests
     public void Format_Exception()
     {
         // arrange
-        int value = 1;
+        var value = 1;
 
         // act
         void Action() => Serializer.Format(value);
@@ -75,7 +74,7 @@ public class DateTimeSerializerTests
         // arrange
 
         // act
-        string typeName = Serializer.TypeName;
+        var typeName = Serializer.TypeName;
 
         // assert
         Assert.Equal("DateTime", typeName);
@@ -87,7 +86,7 @@ public class DateTimeSerializerTests
         // arrange
 
         // act
-        string typeName = CustomSerializer.TypeName;
+        var typeName = CustomSerializer.TypeName;
 
         // assert
         Assert.Equal("Abc", typeName);

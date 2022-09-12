@@ -27,12 +27,6 @@ public partial class EntityStore
                 !_updates.Reader.Completion.IsCompleted)
             {
                 var update = await _updates.Reader.ReadAsync(_cts.Token);
-
-                if (_cts.Token.IsCancellationRequested)
-                {
-                    break;
-                }
-
                 _entityUpdateObservable.OnUpdated(update);
             }
         }

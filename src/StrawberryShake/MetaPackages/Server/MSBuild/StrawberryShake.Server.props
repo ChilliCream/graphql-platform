@@ -1,0 +1,31 @@
+<Project>
+  <PropertyGroup>
+  <!--enable/disable-->
+    <GraphQLStrictSchemaValidation>enable</GraphQLStrictSchemaValidation>
+    <!--enable/disable-->
+    <GraphQLClientStore>disable</GraphQLClientStore>
+    <!--enable/disable-->
+    <GraphQLRazorComponents>disable</GraphQLRazorComponents>
+    <!--md5/sha1/sha256-->
+    <GraphQLRequestHash>md5</GraphQLRequestHash>
+    <!--intermediate/project-->
+    <GraphQLOutput>intermediate</GraphQLOutput>
+    <!--A relative path from the project root to where the persisted queries output dir-->
+    <GraphQLPersistedQueryOutput></GraphQLPersistedQueryOutput>
+    <!--default/relay-->
+    <GraphQLPersistedQueryFormat>default</GraphQLPersistedQueryFormat>
+    <!--enable/disable-->
+    <GraphQLDebug>disable</GraphQLDebug>
+  </PropertyGroup>
+
+  <ItemDefinitionGroup>
+    <GraphQL>
+      <Generator>MSBuild:GenerateGraphQLCode</Generator>
+    </GraphQL>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <None Remove="**/*.graphql"/>
+    <GraphQL Include="**/*.graphql"/>
+  </ItemGroup>
+</Project>

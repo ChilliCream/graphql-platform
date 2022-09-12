@@ -1,6 +1,5 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace StrawberryShake.Transport.WebSockets;
 
@@ -27,7 +26,7 @@ public class DefaultWebSocketClientBuilderTests
         var name = "Foo";
 
         // act
-        Exception? ex = Record.Exception(() => new DefaultWebSocketClientBuilder(null!, name));
+        var ex = Record.Exception(() => new DefaultWebSocketClientBuilder(null!, name));
 
         // assert
         Assert.IsType<ArgumentNullException>(ex);
@@ -40,7 +39,7 @@ public class DefaultWebSocketClientBuilderTests
         var services = new ServiceCollection();
 
         // act
-        Exception? ex =
+        var ex =
             Record.Exception(() => new DefaultWebSocketClientBuilder(services, null!));
 
         // assert

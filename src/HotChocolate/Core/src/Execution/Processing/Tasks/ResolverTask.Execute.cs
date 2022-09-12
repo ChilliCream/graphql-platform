@@ -13,7 +13,7 @@ internal sealed partial class ResolverTask
     {
         try
         {
-            using (DiagnosticEvents.ResolveFieldValue(_resolverContext))
+            using (DiagnosticEvents.ResolveFieldValue(_context))
             {
                 var success = await TryExecuteAsync(cancellationToken).ConfigureAwait(false);
                 CompleteValue(success, cancellationToken);
@@ -47,15 +47,15 @@ internal sealed partial class ResolverTask
 
             // The exception on this level is most likely caused by a cancellation of the request.
             Status = ExecutionTaskStatus.Faulted;
-            _resolverContext.Result = null;
+            _context.Result = null;
         }
         finally
         {
             _operationContext.Scheduler.Complete(this);
 
-            if (_resolverContext.HasCleanupTasks)
+            if (_context.HasCleanupTasks)
             {
-                await _resolverContext.ExecuteCleanupTasksAsync().ConfigureAwait(false);
+                await _context.ExecuteCleanupTasksAsync().ConfigureAwait(false);
             }
 
             _objectPool.Return(this);
@@ -79,19 +79,32 @@ internal sealed partial class ResolverTask
             // Arguments need no pre-processing if they have no variables.
             if (Selection.Arguments.IsFinalNoErrors)
             {
-                _resolverContext.Arguments = Selection.Arguments;
+                _context.Arguments = Selection.Arguments;
                 await ExecuteResolverPipelineAsync(cancellationToken).ConfigureAwait(false);
                 return true;
             }
 
+            // if we have errors on the compiled execution plan we will report the errors and
+            // signal that this resolver task has errors and shall end.
+            if (Selection.Arguments.HasErrors)
+            {
+                foreach (var argument in Selection.Arguments.Values)
+                {
+                    if (argument.HasError)
+                    {
+                        _context.ReportError(argument.Error!);
+                    }
+                }
+                return false;
+            }
+
             // if this field has arguments that contain variables we first need to coerce them
             // before we can start executing the resolver.
-            if (Selection.Arguments.TryCoerceArguments(_resolverContext, out var coercedArgs))
-            {
-                _resolverContext.Arguments = coercedArgs;
-                await ExecuteResolverPipelineAsync(cancellationToken).ConfigureAwait(false);
-                return true;
-            }
+            // We coerce on the args dictionary that is pooled together with this task.
+            Selection.Arguments.CoerceArguments(_context.Variables, _args);
+            _context.Arguments = _args;
+            await ExecuteResolverPipelineAsync(cancellationToken).ConfigureAwait(false);
+            return true;
         }
         catch (Exception ex)
         {
@@ -101,8 +114,8 @@ internal sealed partial class ResolverTask
                 // be a GraphQL resolver error and report it as such.
                 // This will let the error handler produce a GraphQL error and
                 // we set the result to null.
-                ResolverContext.ReportError(ex);
-                ResolverContext.Result = null;
+                Context.ReportError(ex);
+                Context.Result = null;
             }
         }
 
@@ -111,9 +124,9 @@ internal sealed partial class ResolverTask
 
     private async ValueTask ExecuteResolverPipelineAsync(CancellationToken cancellationToken)
     {
-        await _resolverContext.ResolverPipeline!(_resolverContext).ConfigureAwait(false);
+        await _context.ResolverPipeline!(_context).ConfigureAwait(false);
 
-        var result = _resolverContext.Result;
+        var result = _context.Result;
 
         if (result is null)
         {
@@ -122,8 +135,8 @@ internal sealed partial class ResolverTask
 
         if (result is IError error)
         {
-            _resolverContext.ReportError(error);
-            _resolverContext.Result = null;
+            _context.ReportError(error);
+            _context.Result = null;
             return;
         }
 
@@ -135,26 +148,26 @@ internal sealed partial class ResolverTask
 
         if (_selection.HasStreamDirective(_operationContext.IncludeFlags))
         {
-            _resolverContext.Result = await CreateStreamResultAsync(result).ConfigureAwait(false);
+            _context.Result = await CreateStreamResultAsync(result).ConfigureAwait(false);
             return;
         }
 
         if (_selection.HasStreamResult)
         {
-            _resolverContext.Result = await CreateListFromStreamAsync(result).ConfigureAwait(false);
+            _context.Result = await CreateListFromStreamAsync(result).ConfigureAwait(false);
             return;
         }
 
-        switch (_resolverContext.Result)
+        switch (_context.Result)
         {
             case IExecutable executable:
-                _resolverContext.Result = await executable
+                _context.Result = await executable
                     .ToListAsync(cancellationToken)
                     .ConfigureAwait(false);
                 break;
 
             case IQueryable queryable:
-                _resolverContext.Result = await Task.Run(() =>
+                _context.Result = await Task.Run(() =>
                 {
                     var items = new List<object?>();
                     foreach (var o in queryable)
@@ -176,8 +189,8 @@ internal sealed partial class ResolverTask
     private async ValueTask<List<object?>> CreateStreamResultAsync(object result)
     {
         var stream = StreamHelper.CreateStream(result);
-        var streamDirective = _selection.GetStreamDirective(_resolverContext.Variables)!;
-        var enumerator = stream.GetAsyncEnumerator(_resolverContext.RequestAborted);
+        var streamDirective = _selection.GetStreamDirective(_context.Variables)!;
+        var enumerator = stream.GetAsyncEnumerator(_context.RequestAborted);
         var next = true;
 
         try
@@ -209,11 +222,11 @@ internal sealed partial class ResolverTask
                     new DeferredStream(
                         Selection,
                         streamDirective.Label,
-                        _resolverContext.Path.Clone(),
-                        _resolverContext.Parent<object>(),
+                        _context.Path.Clone(),
+                        _context.Parent<object>(),
                         count - 1,
                         enumerator,
-                        _resolverContext.ScopedContextData));
+                        _context.ScopedContextData));
             }
 
             return list;
@@ -236,7 +249,7 @@ internal sealed partial class ResolverTask
         var list = new List<object?>();
 
         await foreach (var item in enumerable
-            .WithCancellation(_resolverContext.RequestAborted)
+            .WithCancellation(_context.RequestAborted)
             .ConfigureAwait(false))
         {
             list.Add(item);
@@ -245,11 +258,24 @@ internal sealed partial class ResolverTask
         return list;
     }
 
-
-    public void CompleteUnsafe()
+    /// <summary>
+    /// In most cases a resolver task is rented and returned to its pool after execution.
+    /// The execute method itself will return the task.
+    ///
+    /// But there are a couple of edge cases where we rent a dummy task and do not execute it.
+    /// In these we do want to return it manually.
+    ///
+    /// Caution: This method is unsafe and could lead to double returns to the pool.
+    /// </summary>
+    public async ValueTask CompleteUnsafeAsync()
     {
         if (!this.IsCompleted())
         {
+            if (_context.HasCleanupTasks)
+            {
+                await _context.ExecuteCleanupTasksAsync().ConfigureAwait(false);
+            }
+
             Status = _completionStatus;
             _operationContext.Scheduler.Complete(this);
             _objectPool.Return(this);
