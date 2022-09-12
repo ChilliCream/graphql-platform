@@ -126,4 +126,16 @@
   <data name="ThrowHelper_Formatter_InvalidAcceptMediaType" xml:space="preserve">
     <value>Invalid accept media types specified.</value>
   </data>
+  <data name="ErrorHelper_InvalidAcceptMediaType" xml:space="preserve">
+    <value>Unable to parse the accept header value `{0}`.</value>
+  </data>
+  <data name="ErrorHelper_TypeNotFound" xml:space="preserve">
+    <value>The type `{0}` does not exist.</value>
+  </data>
+  <data name="ErrorHelper_InvalidTypeName" xml:space="preserve">
+    <value>The type name is invalid.</value>
+  </data>
+  <data name="ErrorHelper_TypeNameIsEmpty" xml:space="preserve">
+    <value>The specified types argument is empty.</value>
+  </data>
 </root>
