@@ -210,9 +210,9 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
             new ClientQueryRequest
             {
                 Query = query,
-                Variables = new Dictionary<string, object>
+                Variables = new Dictionary<string, object?>
                 {
-                        { "upload", null }
+                    { "upload", null }
                 }
             });
 
@@ -245,9 +245,9 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
             new ClientQueryRequest
             {
                 Query = query,
-                Variables = new Dictionary<string, object>
+                Variables = new Dictionary<string, object?>
                 {
-                        { "upload", null }
+                    { "upload", null }
                 }
             });
 
@@ -280,9 +280,9 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
             new ClientQueryRequest
             {
                 Query = query,
-                Variables = new Dictionary<string, object>
+                Variables = new Dictionary<string, object?>
                 {
-                        { "input", new Dictionary<string, object> { { "file", null } } }
+                    { "input", new Dictionary<string, object?> { { "file", null } } }
                 }
             });
 
@@ -315,9 +315,9 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
             new ClientQueryRequest
             {
                 Query = query,
-                Variables = new Dictionary<string, object>
+                Variables = new Dictionary<string, object?>
                 {
-                        { "upload", null }
+                    { "upload", null }
                 }
             });
 
@@ -350,9 +350,9 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
             new ClientQueryRequest
             {
                 Query = query,
-                Variables = new Dictionary<string, object>
+                Variables = new Dictionary<string, object?>
                 {
-                        { "input", new Dictionary<string, object> { { "file", null } } }
+                    { "input", new Dictionary<string, object?> { { "file", null } } }
                 }
             });
 
@@ -385,9 +385,9 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
             new ClientQueryRequest
             {
                 Query = query,
-                Variables = new Dictionary<string, object>
+                Variables = new Dictionary<string, object?>
                 {
-                        { "upload", null }
+                    { "upload", null }
                 }
             });
 
@@ -411,27 +411,27 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
         // arrange
         var server = CreateStarWarsServer();
 
-        var query = @"
-                query ($input: [[InputWithFileInput!]!]!) {
-                    listUpload(input: $input)
-                }";
+        const string query =
+            @"query ($input: [[InputWithFileInput!]!]!) {
+                listUpload(input: $input)
+            }";
 
         var request = JsonConvert.SerializeObject(
             new ClientQueryRequest
             {
                 Query = query,
-                Variables = new Dictionary<string, object>
+                Variables = new Dictionary<string, object?>
                 {
+                    {
+                        "input",
+                        new List<object>
                         {
-                            "input",
                             new List<object>
                             {
-                                new List<object>
-                                {
-                                    new Dictionary<string, object> { { "file", null } }
-                                }
+                                new Dictionary<string, object?> { { "file", null } }
                             }
                         }
+                    }
                 }
             });
 
@@ -464,9 +464,9 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
             new ClientQueryRequest
             {
                 Query = query,
-                Variables = new Dictionary<string, object>
+                Variables = new Dictionary<string, object?>
                 {
-                        { "upload", null }
+                    { "upload", null }
                 }
             });
 
