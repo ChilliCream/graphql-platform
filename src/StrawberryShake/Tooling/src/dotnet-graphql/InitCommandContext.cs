@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using StrawberryShake.Tools.Configuration;
 
 namespace StrawberryShake.Tools
@@ -36,6 +34,5 @@ namespace StrawberryShake.Tools
         public string? Scheme { get; }
         public Dictionary<string, IEnumerable<string>> CustomHeaders { get; }
         public string? CustomNamespace { get; set; }
-        public bool UseDependencyInjection { get; set; } = true;
     }
 }

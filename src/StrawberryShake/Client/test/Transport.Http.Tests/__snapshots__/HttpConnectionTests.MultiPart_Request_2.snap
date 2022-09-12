@@ -1,4 +1,9 @@
-﻿Result 1:
-00:00:00.1701112
-{"errors":[{"message":"The specified operation \u0060GetHero\u0060 cannot be found.","locations":[{"line":1,"column":1}],"extensions":{"operationName":"GetHero"}}]}
+Result 1
+---------------
+{"data":{"hero":{"name":"R2-D2","friends":{"nodes":[{"name":"Luke Skywalker"},{"name":"Han Solo"},{"name":"Leia Organa"}]}}},"hasNext":true}
+---------------
 
+Result 2
+---------------
+{"label":"HeroAppearsIn","path":["hero"],"data":{"appearsIn":["NEW_HOPE","EMPIRE","JEDI"]},"hasNext":false}
+---------------

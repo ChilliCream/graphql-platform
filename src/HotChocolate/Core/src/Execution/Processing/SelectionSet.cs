@@ -19,24 +19,9 @@ internal sealed class SelectionSet : ISelectionSet
     /// <summary>
     /// Initializes a new instance of <see cref="SelectionSet"/>.
     /// </summary>
-    /// <param name="selections">
-    /// A list of executable field selections.
+    /// <param name="id">
+    /// The selection set unique id.
     /// </param>
-    /// <param name="isConditional">
-    /// Defines if this list needs post processing for skip and include.
-    /// </param>
-    public SelectionSet(
-        Selection[] selections,
-        bool isConditional)
-    {
-        _selections = selections;
-        _fragments = _empty;
-        _flags = isConditional ? Flags.Conditional : Flags.None;
-    }
-
-    /// <summary>
-    /// Initializes a new instance of <see cref="SelectionSet"/>.
-    /// </summary>
     /// <param name="selections">
     /// A list of executable field selections.
     /// </param>
@@ -48,14 +33,19 @@ internal sealed class SelectionSet : ISelectionSet
     /// Defines if this list needs post processing for skip and include.
     /// </param>
     public SelectionSet(
+        int id,
         Selection[] selections,
         Fragment[]? fragments,
         bool isConditional)
     {
+        Id = id;
         _selections = selections;
         _fragments = fragments ?? _empty;
         _flags = isConditional ? Flags.Conditional : Flags.None;
     }
+
+    /// <inheritdoc />
+    public int Id { get; }
 
     /// <inheritdoc />
     public bool IsConditional => (_flags & Flags.Conditional) == Flags.Conditional;

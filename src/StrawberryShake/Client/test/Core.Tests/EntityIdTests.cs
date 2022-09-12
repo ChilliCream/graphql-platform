@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace StrawberryShake;
 
 public class EntityIdTests

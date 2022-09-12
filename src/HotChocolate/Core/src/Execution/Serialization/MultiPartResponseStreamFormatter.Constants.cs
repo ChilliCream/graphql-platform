@@ -13,12 +13,18 @@ public sealed partial class MultiPartResponseStreamFormatter
         (byte)'f', (byte)'-', (byte)'8'
     };
 
-    private static byte[] Start { get; } = { (byte)'-', (byte)'-', (byte)'-' };
+    private static byte[] Start { get; } =
+    {
+        (byte)'-', (byte)'-', (byte)'-'
+    };
 
     private static byte[] End { get; } =
     {
         (byte)'-', (byte)'-', (byte)'-', (byte)'-', (byte)'-'
     };
 
-    private static byte[] CrLf { get; } = { (byte)'\r', (byte)'\n' };
+    private static byte[] CrLf { get; } =
+    {
+        (byte)'\r', (byte)'\n'
+    };
 }

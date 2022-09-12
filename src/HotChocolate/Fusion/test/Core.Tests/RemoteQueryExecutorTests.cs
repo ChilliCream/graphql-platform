@@ -121,9 +121,7 @@ public class RemoteQueryExecutorTests
                 .Create());
 
         // assert
-        var index = 0;
         var snapshot = new Snapshot();
-        var formatter = new JsonQueryResultFormatter(indented: true);
 
         snapshot.Add(request, "User Request");
 
@@ -131,16 +129,10 @@ public class RemoteQueryExecutorTests
             result.ContextData.TryGetValue("queryPlan", out var value) &&
             value is QueryPlan queryPlan)
         {
-            foreach (var executionNode in queryPlan.ExecutionNodes)
-            {
-                if (executionNode is RequestNode rn)
-                {
-                    snapshot.Add(rn.Handler.Document, $"Request {++index}");
-                }
-            }
+            snapshot.Add(queryPlan, "QueryPlan");
         }
 
-        snapshot.Add(formatter.Format((QueryResult)result), "Result");
+        snapshot.Add(result, "Result");
 
         await snapshot.MatchAsync();
     }

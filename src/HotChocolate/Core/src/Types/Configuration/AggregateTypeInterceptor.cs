@@ -251,8 +251,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
     internal override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
         DefinitionBase definition,
-        OperationType operationType,
-        IDictionary<string, object?> contextData)
+        OperationType operationType)
     {
         foreach (var interceptor in _typeInterceptors)
         {
@@ -261,8 +260,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
                 interceptor.OnAfterResolveRootType(
                     completionContext,
                     definition,
-                    operationType,
-                    contextData);
+                    operationType);
             }
         }
     }

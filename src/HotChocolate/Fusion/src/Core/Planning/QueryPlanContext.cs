@@ -7,6 +7,7 @@ internal sealed class QueryPlanContext
 {
     private readonly string _opName;
     private int _opId;
+    private int _nodeId;
 
     public QueryPlanContext(IOperation operation)
     {
@@ -22,10 +23,14 @@ internal sealed class QueryPlanContext
 
     public Dictionary<string, IValueNode> VariableValues { get; } = new();
 
-    public Dictionary<IExecutionStep, RequestNode> RequestNodes { get; } = new();
+    public Dictionary<IExecutionStep, QueryPlanNode> Nodes { get; } = new();
+
+    public HashSet<ISelectionSet> HasNodes { get; } = new();
 
     public bool HasIntrospectionSelections { get; set; }
 
     public NameNode CreateRemoteOperationName()
         => new($"{_opName}_{++_opId}");
+
+    public int CreateNodeId() => ++_nodeId;
 }

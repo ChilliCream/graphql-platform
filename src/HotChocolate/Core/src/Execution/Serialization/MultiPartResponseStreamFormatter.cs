@@ -5,11 +5,16 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Utilities;
+using static HotChocolate.Execution.ExecutionResultKind;
+using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Serialization;
 
-// https://github.com/graphql/graphql-over-http/blob/master/rfcs/IncrementalDelivery.md
-public sealed partial class MultiPartResponseStreamFormatter : IResponseStreamFormatter
+/// <summary>
+/// The default MultiPart formatter for <see cref="IExecutionResult"/>.
+/// https://github.com/graphql/graphql-over-http/blob/master/rfcs/IncrementalDelivery.md
+/// </summary>
+public sealed partial class MultiPartResponseStreamFormatter : IExecutionResultFormatter
 {
     private readonly IQueryResultFormatter _payloadFormatter;
 
@@ -49,7 +54,55 @@ public sealed partial class MultiPartResponseStreamFormatter : IResponseStreamFo
             throw new ArgumentNullException(nameof(queryResultFormatter));
     }
 
-    public Task FormatAsync(
+    /// <inheritdoc cref="IExecutionResultFormatter.FormatAsync"/>
+    public ValueTask FormatAsync(
+        IExecutionResult result,
+        Stream outputStream,
+        CancellationToken cancellationToken = default)
+    {
+        if (result is null)
+        {
+            throw new ArgumentNullException(nameof(result));
+        }
+
+        if (outputStream is null)
+        {
+            throw new ArgumentNullException(nameof(outputStream));
+        }
+
+        return result.Kind switch
+        {
+            SingleResult =>
+                WriteSingleResponseAsync(
+                    (IQueryResult)result,
+                    outputStream,
+                    cancellationToken),
+            DeferredResult or BatchResult or SubscriptionResult
+                => WriteManyResponsesAsync(
+                    (IResponseStream)result,
+                    outputStream,
+                    cancellationToken),
+            _ => throw MultiPartFormatter_ResultNotSupported(
+                nameof(MultiPartResponseStreamFormatter))
+        };
+    }
+
+    /// <summary>
+    /// Formats a response stream and writes the formatted result to
+    /// the given <paramref name="outputStream"/>.
+    /// </summary>
+    /// <param name="responseStream">
+    /// The response stream that shall be formatted.
+    /// </param>
+    /// <param name="outputStream">
+    /// The stream to which the formatted <paramref name="responseStream"/> shall be written to.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public ValueTask FormatAsync(
         IResponseStream responseStream,
         Stream outputStream,
         CancellationToken cancellationToken = default)
@@ -64,46 +117,85 @@ public sealed partial class MultiPartResponseStreamFormatter : IResponseStreamFo
             throw new ArgumentNullException(nameof(outputStream));
         }
 
-        return WriteResponseStreamAsync(responseStream, outputStream, cancellationToken);
+        return WriteManyResponsesAsync(responseStream, outputStream, cancellationToken);
     }
 
-    private async Task WriteResponseStreamAsync(
+    private async ValueTask WriteManyResponsesAsync(
         IResponseStream responseStream,
         Stream outputStream,
         CancellationToken ct = default)
     {
-        await WriteNextAsync(outputStream, ct).ConfigureAwait(false);
+        // first we create the iterator.
+        await using var enumerator =  responseStream.ReadResultsAsync().GetAsyncEnumerator(ct);
 
-        await foreach (var result in
-            responseStream.ReadResultsAsync().WithCancellation(ct).ConfigureAwait(false))
+        // next we write a leading CRLF
+        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
+
+        while (await enumerator.MoveNextAsync().ConfigureAwait(false))
         {
             try
             {
-                await WriteResultAsync(result, outputStream, ct).ConfigureAwait(false);
+                // Before each part of the multi-part response, a boundary (---, CRLF)
+                // is sent.
+                await WriteNextAsync(outputStream, ct).ConfigureAwait(false);
 
-                if (result.HasNext ?? false)
-                {
-                    await WriteNextAsync(outputStream, ct).ConfigureAwait(false);
-                    await outputStream.FlushAsync(ct).ConfigureAwait(false);
-                }
-                else
-                {
-                    // we will exit the foreach even if there are more items left
-                    // since we were signaled that there are no more items
-                    break;
-                }
+                // Now we can write the header and body of the part.
+                await WriteResultAsync(enumerator.Current, outputStream, ct).ConfigureAwait(false);
+
+                // after each result we write a CRLF signaling the next or final part.
+                await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
+
+                // we flush to make sure that the result is written to the network stream.
+                await outputStream.FlushAsync(ct).ConfigureAwait(false);
             }
             finally
             {
-                await result.DisposeAsync().ConfigureAwait(false);
+                // The result objects use pooled memory so we need to ensure that they
+                // return the memory by disposing them.
+                await enumerator.Current.DisposeAsync().ConfigureAwait(false);
             }
         }
 
+        // After the final payload, the terminating boundary of
+        // ----- followed by CRLF is sent.
         await WriteEndAsync(outputStream, ct).ConfigureAwait(false);
         await outputStream.FlushAsync(ct).ConfigureAwait(false);
     }
 
-    private async Task WriteResultAsync(
+    private async ValueTask WriteSingleResponseAsync(
+        IQueryResult queryResult,
+        Stream outputStream,
+        CancellationToken ct = default)
+    {
+        // first we write a leading CRLF
+        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
+
+        // Before each part of the multi-part response, a boundary (---, CRLF)
+        // is sent.
+        await WriteNextAsync(outputStream, ct).ConfigureAwait(false);
+
+        try
+        {
+            // Now we can write the header and body of the part.
+            await WriteResultAsync(queryResult, outputStream, ct).ConfigureAwait(false);
+
+            // after each result we write a CRLF signaling the next or final part.
+            await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
+        }
+        finally
+        {
+            // The result objects use pooled memory so we need to ensure that they
+            // return the memory by disposing them.
+            await queryResult.DisposeAsync().ConfigureAwait(false);
+        }
+
+        // After the final payload, the terminating boundary of
+        // ----- followed by CRLF is sent.
+        await WriteEndAsync(outputStream, ct).ConfigureAwait(false);
+        await outputStream.FlushAsync(ct).ConfigureAwait(false);
+    }
+
+    private async ValueTask WriteResultAsync(
         IQueryResult result,
         Stream outputStream,
         CancellationToken ct)
@@ -116,10 +208,9 @@ public sealed partial class MultiPartResponseStreamFormatter : IResponseStreamFo
         // The payload is sent, followed by a CRLF.
         var buffer = writer.GetInternalBuffer();
         await outputStream.WriteAsync(buffer, 0, writer.Length, ct).ConfigureAwait(false);
-        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
     }
 
-    private static async Task WriteResultHeaderAsync(
+    private static async ValueTask WriteResultHeaderAsync(
         Stream outputStream,
         CancellationToken ct)
     {
@@ -134,21 +225,18 @@ public sealed partial class MultiPartResponseStreamFormatter : IResponseStreamFo
         await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
     }
 
-    private static async Task WriteNextAsync(
+    private static async ValueTask WriteNextAsync(
         Stream outputStream,
         CancellationToken ct)
     {
-        // Each part of the multipart response must start with --- and a CRLF
         await outputStream.WriteAsync(Start, 0, Start.Length, ct).ConfigureAwait(false);
         await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
     }
 
-    private static async Task WriteEndAsync(
+    private static async ValueTask WriteEndAsync(
         Stream outputStream,
         CancellationToken ct)
     {
-        // After the last part of the multipart response is sent, the terminating
-        // boundary ----- is sent, followed by a CRLF
         await outputStream.WriteAsync(End, 0, End.Length, ct).ConfigureAwait(false);
         await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
     }

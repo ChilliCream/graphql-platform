@@ -237,6 +237,9 @@ public static class TypeNames
 
     public const string UseQuery = StrawberryShakeNamespace + "Razor." + nameof(UseQuery);
 
+    public const string UseSubscription =
+        StrawberryShakeNamespace + "Razor." + nameof(UseSubscription);
+
     public const string Upload = StrawberryShakeNamespace +  nameof(Upload);
 
     public const string StringSerializer =

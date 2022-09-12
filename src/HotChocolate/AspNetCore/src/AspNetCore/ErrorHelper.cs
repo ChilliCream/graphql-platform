@@ -19,20 +19,11 @@ internal static class ErrorHelper
             .SetCode(ErrorCodes.Server.RequestInvalid)
             .Build();
 
-    public static IQueryResult ResponseTypeNotSupported()
-        => QueryResultBuilder.CreateError(
-            ErrorBuilder.New()
-                .SetMessage(AspNetCoreResources.ErrorHelper_ResponseTypeNotSupported)
-                .Build());
-
-    public static IQueryResult UnknownSubscriptionError(Exception ex)
-        => QueryResultBuilder.CreateError(
-            ErrorBuilder
-                .New()
-                .SetException(ex)
-                .SetCode(ErrorCodes.Execution.TaskProcessingError)
-                .SetMessage(AspNetCoreResources.Subscription_SendResultsAsync)
-                .Build());
+    public static IError NoSupportedAcceptMediaType()
+        => ErrorBuilder.New()
+            .SetMessage(AspNetCoreResources.ErrorHelper_NoSupportedAcceptMediaType)
+            .SetCode(ErrorCodes.Server.NoSupportedAcceptMediaType)
+            .Build();
 
     public static IQueryResult TypeNameIsEmpty()
         => QueryResultBuilder.CreateError(

@@ -12,31 +12,60 @@ using System.Threading.Tasks;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.Serialization.JsonConstants;
+using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Serialization;
 
-public sealed class JsonQueryResultFormatter : IQueryResultFormatter
+/// <summary>
+/// The default JSON formatter for <see cref="IQueryResult"/>.
+/// </summary>
+public sealed class JsonQueryResultFormatter : IQueryResultFormatter, IExecutionResultFormatter
 {
     private readonly JsonWriterOptions _options;
 
     /// <summary>
-    /// Creates a new instance of <see cref="JsonQueryResultFormatter" />.
+    /// Initializes a new instance of <see cref="JsonQueryResultFormatter"/>.
     /// </summary>
     /// <param name="indented">
-    /// Defines whether the underlying <see cref="Utf8JsonWriter"/>
-    /// should pretty print the JSON which includes:
-    /// indenting nested JSON tokens, adding new lines, and adding
-    /// white space between property names and values.
-    /// By default, the JSON is written without any extra white space.
+    /// Defines if the resulting JSON string will contain indentations.
     /// </param>
     /// <param name="encoder">
-    /// Gets or sets the encoder to use when escaping strings, or null to use the default encoder.
+    /// The JavaScript encoder.
     /// </param>
     public JsonQueryResultFormatter(bool indented = false, JavaScriptEncoder? encoder = null)
     {
         _options = new JsonWriterOptions { Indented = indented, Encoder = encoder };
     }
 
+    /// <inheritdoc cref="IExecutionResultFormatter.FormatAsync"/>
+    public async ValueTask FormatAsync(
+        IExecutionResult result,
+        Stream outputStream,
+        CancellationToken cancellationToken = default)
+    {
+        if (result.Kind is ExecutionResultKind.SingleResult)
+        {
+            await FormatAsync((IQueryResult)result, outputStream, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        else
+        {
+            throw JsonFormatter_ResultNotSupported(nameof(JsonQueryResultFormatter));
+        }
+    }
+
+    /// <summary>
+    /// Formats a query result as JSON string.
+    /// </summary>
+    /// <param name="result">
+    /// The query result.
+    /// </param>
+    /// <returns>
+    /// Returns the JSON string.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="result"/> is <c>null</c>.
+    /// </exception>
     public unsafe string Format(IQueryResult result)
     {
         if (result is null)
@@ -54,6 +83,19 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         }
     }
 
+    /// <summary>
+    /// Formats a query result as JSON string.
+    /// </summary>
+    /// <param name="result">
+    /// The query result.
+    /// </param>
+    /// <param name="writer">
+    /// The JSON writer.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="result"/> is <c>null</c>.
+    /// <paramref name="writer"/> is <c>null</c>.
+    /// </exception>
     public void Format(IQueryResult result, Utf8JsonWriter writer)
     {
         if (result is null)
@@ -69,7 +111,20 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         WriteResult(writer, result);
     }
 
-    public void Format(IError error, Utf8JsonWriter writer)
+    /// <summary>
+    /// Formats a <see cref="IError"/> as JSON string.
+    /// </summary>
+    /// <param name="error">
+    /// The error object.
+    /// </param>
+    /// <param name="writer">
+    /// The JSON writer.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="error"/> is <c>null</c>.
+    /// <paramref name="writer"/> is <c>null</c>.
+    /// </exception>
+    public void FormatError(IError error, Utf8JsonWriter writer)
     {
         if (error is null)
         {
@@ -84,7 +139,20 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         WriteError(writer, error);
     }
 
-    public void Format(IReadOnlyList<IError> errors, Utf8JsonWriter writer)
+    /// <summary>
+    /// Formats a list of <see cref="IError"/>s as JSON array string.
+    /// </summary>
+    /// <param name="errors">
+    /// The list of error objects.
+    /// </param>
+    /// <param name="writer">
+    /// The JSON writer.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="errors"/> is <c>null</c>.
+    /// <paramref name="writer"/> is <c>null</c>.
+    /// </exception>
+    public void FormatErrors(IReadOnlyList<IError> errors, Utf8JsonWriter writer)
     {
         if (errors is null)
         {
@@ -106,7 +174,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         writer.WriteEndArray();
     }
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IQueryResultFormatter.Format"/>
     public void Format(IQueryResult result, IBufferWriter<byte> writer)
     {
         if (result is null)
@@ -124,8 +192,8 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         jsonWriter.Flush();
     }
 
-    /// <inheritdoc />
-    public async Task FormatAsync(
+    /// <inheritdoc cref="IQueryResultFormatter.FormatAsync"/>
+    public ValueTask FormatAsync(
         IQueryResult result,
         Stream outputStream,
         CancellationToken cancellationToken = default)
@@ -140,6 +208,14 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
             throw new ArgumentNullException(nameof(outputStream));
         }
 
+        return FormatInternalAsync(result, outputStream, cancellationToken);
+    }
+
+    private async ValueTask FormatInternalAsync(
+        IQueryResult result,
+        Stream outputStream,
+        CancellationToken cancellationToken = default)
+    {
         await using var writer = new Utf8JsonWriter(outputStream, _options);
 
         WriteResult(writer, result);
@@ -362,6 +438,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
         for (var i = 0; i < objectResult.Capacity; i++)
         {
             var field = Unsafe.Add(ref searchSpace, i);
+
             if (field.IsInitialized)
             {
                 writer.WritePropertyName(field.Name);
@@ -496,6 +573,10 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter
 #if NET5_0_OR_GREATER
             case JsonElement element:
                 WriteJsonElement(writer, element);
+                break;
+
+            case RawJsonValue rawJsonValue:
+                writer.WriteRawValue(rawJsonValue.Value.Span, true);
                 break;
 #endif
             case Dictionary<string, object?> dict:

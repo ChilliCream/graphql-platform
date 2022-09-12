@@ -10,7 +10,7 @@ namespace HotChocolate.Execution.Processing;
 /// <summary>
 /// Represents a compiled GraphQL operation.
 /// </summary>
-public interface IOperation : IHasReadOnlyContextData
+public interface IOperation : IHasReadOnlyContextData, IEnumerable<ISelectionSet>
 {
     /// <summary>
     /// Gets the internal unique identifier for this operation.
@@ -55,6 +55,11 @@ public interface IOperation : IHasReadOnlyContextData
     /// Gets all selection variants of this operation.
     /// </summary>
     IReadOnlyList<ISelectionVariants> SelectionVariants { get; }
+
+    /// <summary>
+    /// Defines if this operation has deferred fragments or streams.
+    /// </summary>
+    bool HasIncrementalParts { get; }
 
     /// <summary>
     /// Gets the selection set for the specified <paramref name="selection"/> and

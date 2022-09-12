@@ -16,7 +16,7 @@ using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate.Configuration;
 
-internal class TypeInitializer
+internal sealed class TypeInitializer
 {
     private readonly List<FieldMiddleware> _globalComps = new();
     private readonly List<ISchemaError> _errors = new();
@@ -187,9 +187,11 @@ internal class TypeInitializer
 
     private void CompleteNames()
     {
+        var rootTypes = new List<RegisteredRootType>();
+
         _interceptor.OnBeforeCompleteTypeNames();
 
-        if (ProcessTypes(TypeDependencyKind.Named, CompleteTypeName) &&
+        if (ProcessTypes(TypeDependencyKind.Named, type => CompleteTypeName(type, rootTypes)) &&
             _interceptor.TriggerAggregations)
         {
             _interceptor.OnTypesCompletedName(_typeRegistry.Types);
@@ -198,6 +200,14 @@ internal class TypeInitializer
         EnsureNoErrors();
 
         _interceptor.OnAfterCompleteTypeNames();
+
+        foreach (var type in rootTypes)
+        {
+            _interceptor.OnAfterResolveRootType(
+                type.Context,
+                ((ObjectType)type.Type.Type).Definition!,
+                type.Kind);
+        }
     }
 
     internal RegisteredType InitializeType(
@@ -221,6 +231,11 @@ internal class TypeInitializer
     }
 
     internal bool CompleteTypeName(RegisteredType registeredType)
+        => CompleteTypeName(registeredType, new List<RegisteredRootType>());
+
+    private bool CompleteTypeName(
+        RegisteredType registeredType,
+        List<RegisteredRootType> rootTypes)
     {
         registeredType.PrepareForCompletion(
             _typeReferenceResolver,
@@ -241,19 +256,11 @@ internal class TypeInitializer
 
         if (kind is not RootTypeKind.None)
         {
-            var operationType = kind switch
-            {
-                RootTypeKind.Query => OperationType.Query,
-                RootTypeKind.Mutation => OperationType.Mutation,
-                RootTypeKind.Subscription => OperationType.Subscription,
-                _ => throw new NotSupportedException()
-            };
-
-            _interceptor.OnAfterResolveRootType(
-                registeredType,
-                ((ObjectType)registeredType.Type).Definition!,
-                operationType,
-                _context.ContextData);
+            rootTypes.Add(
+                new RegisteredRootType(
+                    registeredType,
+                    registeredType,
+                    (OperationType)(int)kind));
         }
 
         return true;
@@ -282,7 +289,7 @@ internal class TypeInitializer
                 .Select(t => t.Name)
                 .Distinct())
             {
-                var type = types.FirstOrDefault(t => t.Type.Name.EqualsOrdinal(typeName));
+                var type = types.Find(t => t.Type.Name.EqualsOrdinal(typeName));
                 if (type?.Type is INamedType namedType)
                 {
                     MergeTypeExtension(
@@ -374,7 +381,7 @@ internal class TypeInitializer
 
     private void CompleteTypes()
     {
-        bool CompleteType(RegisteredType registeredType)
+        static bool CompleteType(RegisteredType registeredType)
         {
             if (!registeredType.IsExtension)
             {
@@ -451,9 +458,20 @@ internal class TypeInitializer
 
                 IReadOnlyList<ITypeReference> needed =
                     TryNormalizeDependencies(type.Conditionals,
-                        out var normalized)
+                        out var normalized,
+                        out var notFound)
                         ? normalized.Except(processed).ToArray()
                         : type.Conditionals.Select(t => t.TypeReference).ToArray();
+
+                if (notFound != null)
+                {
+                    _errors.Add(SchemaErrorBuilder.New()
+                        .SetMessage(
+                            TypeInitializer_CannotFindType,
+                            string.Join(", ", notFound.Reverse()))
+                        .SetTypeSystemObject(type.Type)
+                        .Build());
+                }
 
                 _errors.Add(SchemaErrorBuilder.New()
                     .SetMessage(
@@ -505,7 +523,9 @@ internal class TypeInitializer
     {
         foreach (var type in _next)
         {
-            if (TryNormalizeDependencies(type.Conditionals, out var normalized) &&
+            if (TryNormalizeDependencies(type.Conditionals,
+                    out var normalized,
+                    out var _) &&
                 processed.IsSupersetOf(GetTypeRefsExceptSelfRefs(type, normalized)))
             {
                 yield return type;
@@ -546,7 +566,8 @@ internal class TypeInitializer
 
     private bool TryNormalizeDependencies(
         List<TypeDependency> dependencies,
-        [NotNullWhen(true)] out IReadOnlyList<ITypeReference>? normalized)
+        [NotNullWhen(true)] out IReadOnlyList<ITypeReference>? normalized,
+        [NotNullWhen(false)] out IReadOnlyList<ITypeReference>? notFound)
     {
         var n = new List<ITypeReference>();
 
@@ -557,6 +578,8 @@ internal class TypeInitializer
                 out var nr))
             {
                 normalized = null;
+                n.Add(dependency.TypeReference);
+                notFound = n;
                 return false;
             }
 
@@ -567,6 +590,7 @@ internal class TypeInitializer
         }
 
         normalized = n;
+        notFound = null;
         return true;
     }
 
@@ -588,5 +612,24 @@ internal class TypeInitializer
         {
             throw new SchemaException(errors);
         }
+    }
+
+    private readonly struct RegisteredRootType
+    {
+        public RegisteredRootType(
+            ITypeCompletionContext context,
+            RegisteredType type,
+            OperationType kind)
+        {
+            Context = context;
+            Type = type;
+            Kind = kind;
+        }
+
+        public ITypeCompletionContext Context { get; }
+
+        public RegisteredType Type { get; }
+
+        public OperationType Kind { get; }
     }
 }

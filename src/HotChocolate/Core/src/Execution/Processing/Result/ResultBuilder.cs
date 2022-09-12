@@ -59,6 +59,14 @@ internal sealed partial class ResultBuilder
         }
     }
 
+    public void RegisterForCleanup<T>(T state, Func<T, ValueTask> action)
+    {
+        lock (_syncExtensions)
+        {
+            _cleanupTasks.Add(() => action(state));
+        }
+    }
+
     public void SetPath(Path? path)
         => _path = path;
 

@@ -8,6 +8,10 @@ Extracting queries is supported by client libraries like [Relay](https://relay.d
 
 > Note: While this feature is called persisted _queries_ it works for all other GraphQL operations as well.
 
+<iframe width="560" height="315"
+src="https://www.youtube.com/embed/ZZ5PF3_P_r4"frameborder="0"
+allowfullscreen></iframe>
+
 # How it works
 
 - All queries our client(s) will execute are extracted during their build process. Individual queries are hashed to generate a unique identifier for each query.
