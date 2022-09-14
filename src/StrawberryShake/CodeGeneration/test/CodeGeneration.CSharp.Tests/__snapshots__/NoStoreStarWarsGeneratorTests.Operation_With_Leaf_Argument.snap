@@ -113,7 +113,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Name.Equals(other.Name)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(AppearsIn, other.AppearsIn);
+            return (Name.Equals(other.Name)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(AppearsIn, other.AppearsIn);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -189,7 +189,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Name.Equals(other.Name)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(AppearsIn, other.AppearsIn);
+            return (Name.Equals(other.Name)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(AppearsIn, other.AppearsIn);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
