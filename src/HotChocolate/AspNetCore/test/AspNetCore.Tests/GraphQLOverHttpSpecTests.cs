@@ -625,6 +625,91 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
     }
 
     /// <summary>
+    /// This request specifies the application/unsupported content types as accept header value.
+    /// expected response content-type: application/graphql-response+json
+    /// expected status code: 400
+    /// </summary>
+    [Fact]
+    public async Task New_Query_No_Streams_10()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        {
+            Content = JsonContent.Create(
+                new ClientQueryRequest
+                {
+                    Query = "{ __typename }"
+                })
+        };
+
+        request.Headers.TryAddWithoutValidation("Accept", "unsupported");
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        // expected response content-type: application/graphql-response+json
+        // expected status code: 400
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                @"Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {""errors"":[{""message"":""Unable to parse the accept header value " +
+                @"\u0060unsupported\u0060."",""extensions"":{""headerValue"":""unsupported""," +
+                @"""code"":""HC0064""}}]}");
+    }
+
+    /// <summary>
+    /// This request specifies the application/unsupported content types as accept header value.
+    /// expected response content-type: application/graphql-response+json
+    /// expected status code: 206
+    /// </summary>
+    [Fact]
+    public async Task New_Query_No_Streams_12()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        {
+            Content = JsonContent.Create(
+                new ClientQueryRequest
+                {
+                    Query = "{ __typename }"
+                })
+        };
+
+        request.Headers.TryAddWithoutValidation("Accept", "application/unsupported");
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        // expected response content-type: application/graphql-response+json
+        // expected status code: 206
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                @"Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: NotAcceptable
+                -------------------------->
+                {""errors"":[{""message"":""None of the proved accept header media types " +
+                @"is supported."",""extensions"":{""code"":""HC0063""}}]}");
+    }
+
+    /// <summary>
     /// This request specifies the application/graphql-response+json and
     /// the multipart/mixed content type as accept header value.
     /// expected response content-type: multipart/mixed
@@ -770,20 +855,13 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
             .Add(response)
             .MatchInline(
                 @"Headers:
-                Content-Type: multipart/mixed; boundary=""-""; charset=utf-8
+                Content-Type: text/event-stream; charset=utf-8
                 -------------------------->
                 Status Code: OK
                 -------------------------->
-
-                ---
-                Content-Type: application/json; charset=utf-8
-
-                {""data"":{},""hasNext"":true}
-                ---
-                Content-Type: application/json; charset=utf-8
-
-                {""path"":[],""data"":{""__typename"":""Query""},""hasNext"":false}
-                -----
+                {""event"":""next"",""data"":{""data"":{},""hasNext"":true}}
+                {""event"":""next"",""data"":{""path"":[],""data"":{""__typename"":""Query""},""hasNext"":false}}
+                {""event"":""complete""}
                 ");
     }
 }

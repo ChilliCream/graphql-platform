@@ -1,6 +1,5 @@
 using System.Net;
 using System.Text;
-using HotChocolate.Execution.Processing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.AspNetCore.WebUtilities;
 using Newtonsoft.Json;

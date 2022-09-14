@@ -176,6 +176,11 @@ public static class ErrorCodes
         /// The request did not specify any supported accept media type.
         /// </summary>
         public const string NoSupportedAcceptMediaType = "HC0063";
+
+        /// <summary>
+        /// The request did not specify any supported accept media type.
+        /// </summary>
+        public const string InvalidAcceptHeaderValue = "HC0064";
     }
 
     public static class Schema

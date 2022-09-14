@@ -127,23 +127,25 @@ public sealed partial class MultiPartResponseStreamFormatter : IExecutionResultF
     {
         // first we create the iterator.
         await using var enumerator =  responseStream.ReadResultsAsync().GetAsyncEnumerator(ct);
-
-        // next we write a leading CRLF
-        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
+        var first = true;
 
         while (await enumerator.MoveNextAsync().ConfigureAwait(false))
         {
             try
             {
-                // Before each part of the multi-part response, a boundary (---, CRLF)
-                // is sent.
-                await WriteNextAsync(outputStream, ct).ConfigureAwait(false);
+                if (first || responseStream.Kind is not DeferredResult)
+                {
+                    await WriteNextAsync(outputStream, ct).ConfigureAwait(false);
+                    first = false;
+                }
 
                 // Now we can write the header and body of the part.
                 await WriteResultAsync(enumerator.Current, outputStream, ct).ConfigureAwait(false);
 
-                // after each result we write a CRLF signaling the next or final part.
-                await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
+                if (responseStream.Kind is DeferredResult && (enumerator.Current.HasNext ?? false))
+                {
+                    await WriteNextAsync(outputStream, ct).ConfigureAwait(false);
+                }
 
                 // we flush to make sure that the result is written to the network stream.
                 await outputStream.FlushAsync(ct).ConfigureAwait(false);
@@ -156,8 +158,7 @@ public sealed partial class MultiPartResponseStreamFormatter : IExecutionResultF
             }
         }
 
-        // After the final payload, the terminating boundary of
-        // ----- followed by CRLF is sent.
+
         await WriteEndAsync(outputStream, ct).ConfigureAwait(false);
         await outputStream.FlushAsync(ct).ConfigureAwait(false);
     }
@@ -189,8 +190,6 @@ public sealed partial class MultiPartResponseStreamFormatter : IExecutionResultF
             await queryResult.DisposeAsync().ConfigureAwait(false);
         }
 
-        // After the final payload, the terminating boundary of
-        // ----- followed by CRLF is sent.
         await WriteEndAsync(outputStream, ct).ConfigureAwait(false);
         await outputStream.FlushAsync(ct).ConfigureAwait(false);
     }
@@ -229,6 +228,9 @@ public sealed partial class MultiPartResponseStreamFormatter : IExecutionResultF
         Stream outputStream,
         CancellationToken ct)
     {
+        // Before each part of the multi-part response, a boundary (CRLF, ---, CRLF)
+        // is sent.
+        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
         await outputStream.WriteAsync(Start, 0, Start.Length, ct).ConfigureAwait(false);
         await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
     }
@@ -237,6 +239,9 @@ public sealed partial class MultiPartResponseStreamFormatter : IExecutionResultF
         Stream outputStream,
         CancellationToken ct)
     {
+        // After the final payload, the terminating boundary of
+        // CRLF, ----- followed by CRLF is sent.
+        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
         await outputStream.WriteAsync(End, 0, End.Length, ct).ConfigureAwait(false);
         await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
     }

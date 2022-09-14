@@ -26,7 +26,7 @@ public sealed class EventStreamFormatter : IExecutionResultFormatter
             (byte)'c', (byte)'o', (byte)'m', (byte)'p',
             (byte)'l', (byte)'e', (byte)'t', (byte)'e'
         };
-    private static readonly byte[] _newLine = new byte[] { (byte)'\n' };
+    private static readonly byte[] _newLine = { (byte)'\n' };
 
     private readonly JsonQueryResultFormatter _payloadFormatter;
     private readonly JsonWriterOptions _options;
@@ -79,7 +79,9 @@ public sealed class EventStreamFormatter : IExecutionResultFormatter
         if (result.Kind is SingleResult)
         {
             await WriteNextMessageAsync((IQueryResult)result, outputStream).ConfigureAwait(false);
+            await WriteNewLineAndFlushAsync(outputStream, ct).ConfigureAwait(false);
             await WriteCompleteMessage(outputStream).ConfigureAwait(false);
+            await WriteNewLineAndFlushAsync(outputStream, ct).ConfigureAwait(false);
         }
         else if (result.Kind is DeferredResult or BatchResult or SubscriptionResult)
         {
@@ -98,11 +100,11 @@ public sealed class EventStreamFormatter : IExecutionResultFormatter
                     await queryResult.DisposeAsync().ConfigureAwait(false);
                 }
 
-                await WriteNewLineAndFlushAsync(outputStream, ct);
+                await WriteNewLineAndFlushAsync(outputStream, ct).ConfigureAwait(false);
             }
 
             await WriteCompleteMessage(outputStream).ConfigureAwait(false);
-            await WriteNewLineAndFlushAsync(outputStream, ct);
+            await WriteNewLineAndFlushAsync(outputStream, ct).ConfigureAwait(false);
         }
         else
         {
@@ -139,7 +141,11 @@ public sealed class EventStreamFormatter : IExecutionResultFormatter
         Stream outputStream,
         CancellationToken ct)
     {
+#if NETCOREAPP3_1_OR_GREATER
         await outputStream.WriteAsync(_newLine, ct).ConfigureAwait(false);
+#else
+        await outputStream.WriteAsync(_newLine, 0, _newLine.Length, ct).ConfigureAwait(false);
+#endif
         await outputStream.FlushAsync(ct);
     }
 }
