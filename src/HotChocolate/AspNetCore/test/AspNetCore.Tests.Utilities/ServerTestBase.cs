@@ -29,7 +29,7 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
             {
                 services
                     .AddRouting()
-                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
+                    .AddHttpResponseFormatter()
                     .AddGraphQLServer()
                     .AddStarWarsTypes()
                     .AddTypeExtension<QueryExtension>()
@@ -90,7 +90,7 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
         return ServerFactory.Create(
             services => services
                 .AddRouting()
-                .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
+                .AddHttpResponseFormatter()
                 .AddGraphQLServer()
                 .AddStarWarsTypes()
                 .AddTypeExtension<QueryExtension>()

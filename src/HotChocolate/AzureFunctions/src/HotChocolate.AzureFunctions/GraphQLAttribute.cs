@@ -4,6 +4,6 @@ namespace HotChocolate.AzureFunctions;
 
 [Binding]
 [AttributeUsage(AttributeTargets.Parameter)]
-public class GraphQLAttribute : Attribute
+public sealed class GraphQLAttribute : Attribute
 {
 }

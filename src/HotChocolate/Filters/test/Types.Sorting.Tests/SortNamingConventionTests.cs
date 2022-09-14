@@ -1,7 +1,5 @@
-using System;
 using HotChocolate.Types.Descriptors;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.Sorting;
 
@@ -94,6 +92,7 @@ internal class Foo
 
 internal static class TestExtension
 {
+    [Obsolete]
     public static ISchemaBuilder AddSortingType(this ISchemaBuilder ctx, Foo[] resolvedItems = null)
     {
         ctx.AddObjectType(x => x.Name("Test")

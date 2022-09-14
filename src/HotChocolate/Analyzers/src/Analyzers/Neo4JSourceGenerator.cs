@@ -27,7 +27,7 @@ namespace HotChocolate.Analyzers
             {
                 var codeGenerator = new Neo4JCodeGenerator();
 
-                foreach (GraphQLConfig config in context.GetConfigurations())
+                foreach (var config in context.GetConfigurations())
                 {
 
                     if (config.Extensions.Neo4J is { } settings &&
@@ -36,11 +36,12 @@ namespace HotChocolate.Analyzers
                         var codeGeneratorContext = new CodeGeneratorContext(
                             settings.Name,
                             settings.DatabaseName,
-                            settings.Namespace ?? throw new Exception("Namespace is required"), // TODO: Review in PR!!
+                            // TODO: Review in PR!!
+                            settings.Namespace ?? throw new Exception("Namespace is required"),
                             schemaDocuments);
 
-                        CodeGenerationResult? result = codeGenerator.Generate(codeGeneratorContext);
-                        foreach (SourceFile? sourceFile in result.SourceFiles)
+                        var result = codeGenerator.Generate(codeGeneratorContext);
+                        foreach (var sourceFile in result.SourceFiles)
                         {
                             context.AddSource(sourceFile.Name, sourceFile.Source);
                         }

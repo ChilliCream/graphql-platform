@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.AspNetCore.WebUtilities;
 using Newtonsoft.Json;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities;
@@ -50,15 +51,31 @@ public static class TestServerExtensions
             return new[] { new ClientQueryResult { StatusCode = HttpStatusCode.NotFound } };
         }
 
-        var json = await response.Content.ReadAsStringAsync();
-        var result =
-            JsonConvert.DeserializeObject<List<ClientQueryResult>>(json);
+        var stream = await response.Content.ReadAsStreamAsync();
+        var reader = new MultipartReader("-", stream);
+        var result = new List<ClientQueryResult>();
+        MultipartSection? section;
 
-        foreach (var item in result)
+        do
         {
-            item.StatusCode = response.StatusCode;
-            item.ContentType = response.Content.Headers.ContentType?.ToString();
+            section = await reader.ReadNextSectionAsync();
+            if (section is not null)
+            {
+                await using (section.Body)
+                {
+                    using var mem = new MemoryStream();
+                    await section.Body.CopyToAsync(mem);
+
+                    var item =
+                        JsonConvert.DeserializeObject<ClientQueryResult>(
+                            Encoding.UTF8.GetString(mem.ToArray()));
+                    item.ContentType = section.ContentType;
+                    item.StatusCode = response.StatusCode;
+                    result.Add(item);
+                }
+            }
         }
+        while (section is not null);
 
         return result;
     }
@@ -86,14 +103,31 @@ public static class TestServerExtensions
 
         try
         {
-            var result =
-                JsonConvert.DeserializeObject<List<ClientQueryResult>>(json);
+            var stream = await response.Content.ReadAsStreamAsync();
+            var reader = new MultipartReader("-", stream);
+            var result = new List<ClientQueryResult>();
+            MultipartSection? section;
 
-            foreach (var item in result)
+            do
             {
-                item.StatusCode = response.StatusCode;
-                item.ContentType = response.Content.Headers.ContentType?.ToString();
+                section = await reader.ReadNextSectionAsync();
+                if (section is not null)
+                {
+                    await using (section.Body)
+                    {
+                        using var mem = new MemoryStream();
+                        await section.Body.CopyToAsync(mem);
+
+                        var item =
+                            JsonConvert.DeserializeObject<ClientQueryResult>(
+                                Encoding.UTF8.GetString(mem.ToArray()));
+                        item.ContentType = section.ContentType;
+                        item.StatusCode = response.StatusCode;
+                        result.Add(item);
+                    }
+                }
             }
+            while (section is not null);
 
             return result;
         }

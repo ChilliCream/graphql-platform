@@ -303,4 +303,10 @@
   <data name="OperationCompiler_OperationIdNullOrEmpty" xml:space="preserve">
     <value>Value cannot be null or empty.</value>
   </data>
+  <data name="ThrowHelper_Operation_NoSelectionSet" xml:space="preserve">
+    <value>The specified selection does not have a selection set.</value>
+  </data>
+  <data name="ThrowHelper_JsonFormatter_ResultNotSupported" xml:space="preserve">
+    <value>The {0} only supports formatting `IQueryResult`.</value>
+  </data>
 </root>
