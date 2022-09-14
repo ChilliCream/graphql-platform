@@ -17,13 +17,14 @@ public sealed class QueryResult : ExecutionResult, IQueryResult
         IReadOnlyList<IError>? errors,
         IReadOnlyDictionary<string, object?>? extension,
         IReadOnlyDictionary<string, object?>? contextData,
+        IReadOnlyList<IQueryResult>? incremental,
         string? label,
         Path? path,
         bool? hasNext,
         Func<ValueTask>[] cleanupTasks)
         : base(cleanupTasks)
     {
-        if (data is null && errors is null && hasNext is not false)
+        if (data is null && errors is null && incremental is null && hasNext is not false)
         {
             throw new ArgumentException(
                 AbstractionResources.QueryResult_DataAndResultAreNull,
@@ -34,6 +35,7 @@ public sealed class QueryResult : ExecutionResult, IQueryResult
         Errors = errors;
         Extensions = extension;
         ContextData = contextData;
+        Incremental = incremental;
         Label = label;
         Path = path;
         HasNext = hasNext;
@@ -47,11 +49,12 @@ public sealed class QueryResult : ExecutionResult, IQueryResult
         IReadOnlyList<IError>? errors = null,
         IReadOnlyDictionary<string, object?>? extension = null,
         IReadOnlyDictionary<string, object?>? contextData = null,
+        IReadOnlyList<IQueryResult>? incremental = null,
         string? label = null,
         Path? path = null,
         bool? hasNext = null)
     {
-        if (data is null && errors is null && hasNext is not false)
+        if (data is null && errors is null && incremental is null && hasNext is not false)
         {
             throw new ArgumentException(
                 AbstractionResources.QueryResult_DataAndResultAreNull,
@@ -62,6 +65,7 @@ public sealed class QueryResult : ExecutionResult, IQueryResult
         Errors = errors;
         Extensions = extension;
         ContextData = contextData;
+        Incremental = incremental;
         Label = label;
         Path = path;
         HasNext = hasNext;
@@ -84,6 +88,9 @@ public sealed class QueryResult : ExecutionResult, IQueryResult
 
     /// <inheritdoc />
     public IReadOnlyDictionary<string, object?>? Extensions { get; }
+
+    /// <inheritdoc />
+    public IReadOnlyList<IQueryResult>? Incremental { get; }
 
     /// <inheritdoc />
     public override IReadOnlyDictionary<string, object?>? ContextData { get; }

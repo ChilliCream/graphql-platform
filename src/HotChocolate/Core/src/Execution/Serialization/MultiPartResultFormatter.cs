@@ -14,12 +14,12 @@ namespace HotChocolate.Execution.Serialization;
 /// The default MultiPart formatter for <see cref="IExecutionResult"/>.
 /// https://github.com/graphql/graphql-over-http/blob/master/rfcs/IncrementalDelivery.md
 /// </summary>
-public sealed partial class MultiPartResponseStreamFormatter : IExecutionResultFormatter
+public sealed partial class MultiPartResultFormatter : IExecutionResultFormatter
 {
     private readonly IQueryResultFormatter _payloadFormatter;
 
     /// <summary>
-    /// Creates a new instance of <see cref="MultiPartResponseStreamFormatter" />.
+    /// Creates a new instance of <see cref="MultiPartResultFormatter" />.
     /// </summary>
     /// <param name="indented">
     /// Defines whether the underlying <see cref="Utf8JsonWriter"/>
@@ -31,15 +31,15 @@ public sealed partial class MultiPartResponseStreamFormatter : IExecutionResultF
     /// <param name="encoder">
     /// Gets or sets the encoder to use when escaping strings, or null to use the default encoder.
     /// </param>
-    public MultiPartResponseStreamFormatter(
+    public MultiPartResultFormatter(
         bool indented = false,
         JavaScriptEncoder? encoder = null)
     {
-        _payloadFormatter = new JsonQueryResultFormatter(indented, encoder);
+        _payloadFormatter = new JsonResultFormatter(indented, encoder);
     }
 
     /// <summary>
-    /// Creates a new instance of <see cref="MultiPartResponseStreamFormatter" />.
+    /// Creates a new instance of <see cref="MultiPartResultFormatter" />.
     /// </summary>
     /// <param name="queryResultFormatter">
     /// The serializer that shall be used to serialize query results.
@@ -47,7 +47,7 @@ public sealed partial class MultiPartResponseStreamFormatter : IExecutionResultF
     /// <exception cref="ArgumentNullException">
     /// <paramref name="queryResultFormatter"/> is <c>null</c>.
     /// </exception>
-    public MultiPartResponseStreamFormatter(
+    public MultiPartResultFormatter(
         IQueryResultFormatter queryResultFormatter)
     {
         _payloadFormatter = queryResultFormatter ??
@@ -83,7 +83,7 @@ public sealed partial class MultiPartResponseStreamFormatter : IExecutionResultF
                     outputStream,
                     cancellationToken),
             _ => throw MultiPartFormatter_ResultNotSupported(
-                nameof(MultiPartResponseStreamFormatter))
+                nameof(MultiPartResultFormatter))
         };
     }
 

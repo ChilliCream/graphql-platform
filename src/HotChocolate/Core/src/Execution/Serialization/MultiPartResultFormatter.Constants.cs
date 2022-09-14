@@ -1,6 +1,6 @@
 namespace HotChocolate.Execution.Serialization;
 
-public sealed partial class MultiPartResponseStreamFormatter
+public sealed partial class MultiPartResultFormatter
 {
     private static byte[] ContentType { get; } =
     {

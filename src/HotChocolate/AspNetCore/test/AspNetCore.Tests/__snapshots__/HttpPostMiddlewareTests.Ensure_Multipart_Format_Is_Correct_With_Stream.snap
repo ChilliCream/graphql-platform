@@ -6,11 +6,7 @@ Content-Type: application/json; charset=utf-8
 ---
 Content-Type: application/json; charset=utf-8
 
-{"label":"foo","path":["hero","friends","nodes",1],"data":{"name":"Han Solo"},"hasNext":true}
----
-Content-Type: application/json; charset=utf-8
-
-{"label":"foo","path":["hero","friends","nodes",2],"data":{"name":"Leia Organa"},"hasNext":true}
+{"incremental":[{"data":{"name":"Han Solo"},"label":"foo","path":["hero","friends","nodes",1]},{"data":{"name":"Leia Organa"},"label":"foo","path":["hero","friends","nodes",2]}],"hasNext":true}
 ---
 Content-Type: application/json; charset=utf-8
 

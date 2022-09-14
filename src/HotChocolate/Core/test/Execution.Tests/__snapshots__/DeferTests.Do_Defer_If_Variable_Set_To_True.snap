@@ -1,29 +1,34 @@
-﻿[{
+{
   "data": {
     "hero": {
       "id": "2001"
     }
   },
   "hasNext": true
-},{
-  "label": "friends",
-  "path": [
-    "hero"
-  ],
-  "data": {
-    "friends": {
-      "nodes": [
-        {
-          "id": "1000"
-        },
-        {
-          "id": "1002"
-        },
-        {
-          "id": "1003"
+}
+{
+  "incremental": [
+    {
+      "data": {
+        "friends": {
+          "nodes": [
+            {
+              "id": "1000"
+            },
+            {
+              "id": "1002"
+            },
+            {
+              "id": "1003"
+            }
+          ]
         }
+      },
+      "label": "friends",
+      "path": [
+        "hero"
       ]
     }
-  },
+  ],
   "hasNext": false
-}]
+}

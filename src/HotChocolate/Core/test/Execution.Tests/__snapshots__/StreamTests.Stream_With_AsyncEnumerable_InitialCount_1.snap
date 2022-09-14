@@ -10,13 +10,17 @@
 }
 
 {
-  "path": [
-    "persons",
-    1
+  "incremental": [
+    {
+      "data": {
+        "name": "Bar"
+      },
+      "path": [
+        "persons",
+        1
+      ]
+    }
   ],
-  "data": {
-    "name": "Bar"
-  },
   "hasNext": true
 }
 

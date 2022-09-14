@@ -19,12 +19,12 @@ namespace HotChocolate.Execution.Serialization;
 /// <summary>
 /// The default JSON formatter for <see cref="IQueryResult"/>.
 /// </summary>
-public sealed class JsonQueryResultFormatter : IQueryResultFormatter, IExecutionResultFormatter
+public sealed class JsonResultFormatter : IQueryResultFormatter, IExecutionResultFormatter
 {
     private readonly JsonWriterOptions _options;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="JsonQueryResultFormatter"/>.
+    /// Initializes a new instance of <see cref="JsonResultFormatter"/>.
     /// </summary>
     /// <param name="indented">
     /// Defines if the resulting JSON string will contain indentations.
@@ -32,7 +32,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter, IExecution
     /// <param name="encoder">
     /// The JavaScript encoder.
     /// </param>
-    public JsonQueryResultFormatter(bool indented = false, JavaScriptEncoder? encoder = null)
+    public JsonResultFormatter(bool indented = false, JavaScriptEncoder? encoder = null)
     {
         _options = new JsonWriterOptions { Indented = indented, Encoder = encoder };
     }
@@ -50,7 +50,7 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter, IExecution
         }
         else
         {
-            throw JsonFormatter_ResultNotSupported(nameof(JsonQueryResultFormatter));
+            throw JsonFormatter_ResultNotSupported(nameof(JsonResultFormatter));
         }
     }
 
@@ -227,10 +227,11 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter, IExecution
     {
         writer.WriteStartObject();
 
-        WritePatchInfo(writer, result);
         WriteErrors(writer, result.Errors);
         WriteData(writer, result.Data);
+        WriteIncremental(writer, result.Incremental);
         WriteExtensions(writer, result.Extensions);
+        WritePatchInfo(writer, result);
         WriteHasNext(writer, result);
 
         writer.WriteEndObject();
@@ -394,6 +395,23 @@ public sealed class JsonQueryResultFormatter : IQueryResultFormatter, IExecution
         {
             writer.WritePropertyName(Extensions);
             WriteDictionary(writer, dict);
+        }
+    }
+
+    private void WriteIncremental(Utf8JsonWriter writer, IReadOnlyList<IQueryResult>? patches)
+    {
+        if (patches is { Count: > 0 })
+        {
+            writer.WritePropertyName(Incremental);
+
+            writer.WriteStartArray();
+
+            for (var i = 0; i < patches.Count; i++)
+            {
+                WriteResult(writer, patches[i]);
+            }
+
+            writer.WriteEndArray();
         }
     }
 

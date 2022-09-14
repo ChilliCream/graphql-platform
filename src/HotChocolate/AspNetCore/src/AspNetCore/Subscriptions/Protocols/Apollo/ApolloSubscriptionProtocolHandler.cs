@@ -15,7 +15,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 
 internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
 {
-    private readonly JsonQueryResultFormatter _formatter = new();
+    private readonly JsonResultFormatter _formatter = new();
     private readonly ISocketSessionInterceptor _interceptor;
 
     public ApolloSubscriptionProtocolHandler(ISocketSessionInterceptor interceptor)

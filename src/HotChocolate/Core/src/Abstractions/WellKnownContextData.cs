@@ -136,4 +136,20 @@ public static class WellKnownContextData
     /// The key to overwrite the root type instance for a request.
     /// </summary>
     public const string InitialValue = "HotChocolate.Execution.InitialValue";
+
+    /// <summary>
+    /// The key to lookup significant results that were removed during execution.
+    /// </summary>
+    public const string RemovedResults = "HotChocolate.Execution.RemovedResults";
+
+    /// <summary>
+    /// The key to lookup result sets that expect data patches.
+    /// </summary>
+    public const string ExpectedPatches = "HotChocolate.Execution.ExpectedPatches";
+
+    /// <summary>
+    /// The key to the patch ID of a result set. The patch ID references the result into which
+    /// the result set containing the patch ID shall be patched into.
+    /// </summary>
+    public const string PatchId = "HotChocolate.Execution.PatchId";
 }

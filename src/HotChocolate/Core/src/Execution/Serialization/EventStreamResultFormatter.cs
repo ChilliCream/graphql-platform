@@ -12,7 +12,7 @@ namespace HotChocolate.Execution.Serialization;
 /// The default GraphQL-SSE formatter for <see cref="IExecutionResult"/>.
 /// https://github.com/enisdenjo/graphql-sse/blob/master/PROTOCOL.md
 /// </summary>
-public sealed class EventStreamFormatter : IExecutionResultFormatter
+public sealed class EventStreamResultFormatter : IExecutionResultFormatter
 {
     private static ReadOnlySpan<byte> EventField
         => new[] { (byte)'e', (byte)'v', (byte)'e', (byte)'n', (byte)'t' };
@@ -28,11 +28,11 @@ public sealed class EventStreamFormatter : IExecutionResultFormatter
         };
     private static readonly byte[] _newLine = { (byte)'\n' };
 
-    private readonly JsonQueryResultFormatter _payloadFormatter;
+    private readonly JsonResultFormatter _payloadFormatter;
     private readonly JsonWriterOptions _options;
 
     /// <summary>
-    /// Creates a new instance of <see cref="EventStreamFormatter" />.
+    /// Creates a new instance of <see cref="EventStreamResultFormatter" />.
     /// </summary>
     /// <param name="indented">
     /// Defines whether the underlying <see cref="Utf8JsonWriter"/>
@@ -44,12 +44,12 @@ public sealed class EventStreamFormatter : IExecutionResultFormatter
     /// <param name="encoder">
     /// Gets or sets the encoder to use when escaping strings, or null to use the default encoder.
     /// </param>
-    public EventStreamFormatter(
+    public EventStreamResultFormatter(
         bool indented = false,
         JavaScriptEncoder? encoder = null)
     {
         _options = new JsonWriterOptions { Indented = indented, Encoder = encoder };
-        _payloadFormatter = new JsonQueryResultFormatter(indented, encoder);
+        _payloadFormatter = new JsonResultFormatter(indented, encoder);
     }
 
     /// <inheritdoc cref="IExecutionResultFormatter.FormatAsync(IExecutionResult, Stream, CancellationToken)" />

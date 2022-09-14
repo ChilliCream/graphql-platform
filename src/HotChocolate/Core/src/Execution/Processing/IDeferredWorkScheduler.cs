@@ -7,9 +7,19 @@ namespace HotChocolate.Execution.Processing;
 /// </summary>
 internal interface IDeferredWorkScheduler
 {
+    /// <summary>
+    /// Specifies if there was deferred work enqueued.
+    /// </summary>
     bool HasResults { get; }
 
-    void Register(DeferredExecutionTask task);
+    /// <summary>
+    /// Registers deferred work
+    /// </summary>
+    /// <param name="task"></param>
+    /// <param name="deferId"></param>
+    void Register(DeferredExecutionTask task, ResultData parentResult);
+
+    void Register(DeferredExecutionTask task, uint patchId);
 
     void Complete(DeferredExecutionTaskResult result);
 
