@@ -14,7 +14,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 
 internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocketProtocolHandler
 {
-    private readonly JsonQueryResultFormatter _formatter = new();
+    private readonly JsonResultFormatter _formatter = new();
     private readonly ISocketSessionInterceptor _interceptor;
 
     public GraphQLOverWebSocketProtocolHandler(ISocketSessionInterceptor interceptor)

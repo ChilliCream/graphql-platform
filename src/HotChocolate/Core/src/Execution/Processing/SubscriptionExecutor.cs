@@ -64,7 +64,7 @@ internal sealed partial class SubscriptionExecutor
                 .ConfigureAwait(false);
 
             var response = new ResponseStream(
-                subscription.ExecuteAsync,
+                () => subscription.ExecuteAsync(),
                 contextData: new SingleValueExtensionData(
                     WellKnownContextData.Subscription,
                     subscription));

@@ -10,4 +10,5 @@ internal static class JsonConstants
     public const string Path = "path";
     public const string Line = "line";
     public const string Column = "column";
+    public const string Incremental = "incremental";
 }

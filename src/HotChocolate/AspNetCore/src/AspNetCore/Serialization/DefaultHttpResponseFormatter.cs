@@ -17,9 +17,9 @@ namespace HotChocolate.AspNetCore.Serialization;
 /// </summary>
 public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 {
-    private readonly JsonQueryResultFormatter _jsonFormatter;
-    private readonly MultiPartResponseStreamFormatter _multiPartFormatter;
-    private readonly EventStreamFormatter _eventStreamFormatter;
+    private readonly JsonResultFormatter _jsonFormatter;
+    private readonly MultiPartResultFormatter _multiPartFormatter;
+    private readonly EventStreamResultFormatter _eventStreamResultFormatter;
 
     /// <summary>
     /// Creates a new instance of <see cref="DefaultHttpResponseFormatter" />.
@@ -38,9 +38,9 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         bool indented = false,
         JavaScriptEncoder? encoder = null)
     {
-        _jsonFormatter = new JsonQueryResultFormatter(indented, encoder);
-        _multiPartFormatter = new MultiPartResponseStreamFormatter(_jsonFormatter);
-        _eventStreamFormatter = new EventStreamFormatter(indented, encoder);
+        _jsonFormatter = new JsonResultFormatter(indented, encoder);
+        _multiPartFormatter = new MultiPartResultFormatter(_jsonFormatter);
+        _eventStreamResultFormatter = new EventStreamResultFormatter(indented, encoder);
     }
 
     public GraphQLRequestFlags CreateRequestFlags(
@@ -275,7 +275,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 formatInfo = new FormatInfo(
                     ContentType.EventStream,
                     ResponseContentType.EventStream,
-                    _eventStreamFormatter);
+                    _eventStreamResultFormatter);
                 return true;
             }
 
@@ -333,7 +333,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 formatInfo = new FormatInfo(
                     ContentType.EventStream,
                     ResponseContentType.EventStream,
-                    _eventStreamFormatter);
+                    _eventStreamResultFormatter);
                 return true;
             }
 
@@ -408,7 +408,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                     formatInfo = new FormatInfo(
                         ContentType.EventStream,
                         ResponseContentType.EventStream,
-                        _eventStreamFormatter);
+                        _eventStreamResultFormatter);
                     return true;
                 }
 

@@ -193,7 +193,8 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 ---
                 Content-Type: application/json; charset=utf-8
 
-                {""path"":[],""data"":{""__typename"":""Query""},""hasNext"":false}
+                {""incremental"":[{""data"":{""__typename"":""Query""}," +
+                @"""path"":[]}],""hasNext"":false}
                 -----
                 ");
     }
@@ -763,7 +764,8 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 ---
                 Content-Type: application/json; charset=utf-8
 
-                {""path"":[],""data"":{""__typename"":""Query""},""hasNext"":false}
+                {""incremental"":[{""data"":{""__typename"":""Query""}," +
+                @"""path"":[]}],""hasNext"":false}
                 -----
                 ");
     }

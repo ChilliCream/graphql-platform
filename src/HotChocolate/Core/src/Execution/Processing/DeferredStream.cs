@@ -71,7 +71,8 @@ internal sealed class DeferredStream : DeferredExecutionTask
     protected override async Task ExecuteAsync(
         OperationContextOwner operationContextOwner,
         uint resultId,
-        uint parentResultId)
+        uint parentResultId,
+        uint patchId)
     {
         var operationContext = operationContextOwner.OperationContext;
         var aborted = operationContext.RequestAborted;
@@ -97,12 +98,13 @@ internal sealed class DeferredStream : DeferredExecutionTask
                 .SetLabel(Label)
                 .SetPath(operationContext.PathFactory.Append(Path, Index))
                 .SetData((ObjectResult)_task.ChildTask.ParentResult[0].Value!)
+                .SetPatchId(patchId)
                 .BuildResultBuilder();
 
             await _task.ChildTask.CompleteUnsafeAsync().ConfigureAwait(false);
 
             // we will register this same task again to get the next item.
-            operationContext.DeferredScheduler.Register(this);
+            operationContext.DeferredScheduler.Register(this, patchId);
             operationContext.DeferredScheduler.Complete(new(resultId, parentResultId, result));
         }
         catch
