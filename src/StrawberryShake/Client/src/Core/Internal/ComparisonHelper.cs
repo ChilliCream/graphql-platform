@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace StrawberryShake.Helper;
+namespace StrawberryShake.Internal;
 
 public static class ComparisonHelper
 {
@@ -155,46 +155,30 @@ public static class ComparisonHelper
             return false;
         }
 
-        var firstType = first.GetType();
-        var secondType = second.GetType();
-
-        if (firstType != secondType)
+        if (first is Dictionary<string, object?> firstDict &&
+            second is Dictionary<string, object?> secondDict)
         {
-            return false;
-        }
-
-        if (firstType == typeof(Dictionary<string, object?>) &&
-            firstType == typeof(Dictionary<string, object?>))
-        {
-            var firstDict = Unsafe.As<Dictionary<string, object?>>(first);
-            var secondDict = Unsafe.As<Dictionary<string, object?>>(second);
-
             return DictionaryEqualInternal(firstDict, secondDict);
         }
 
-        if (firstType == typeof(List<object?>) &&
-            firstType == typeof(List<object?>))
+        if (first is List<object?> firstList &&
+            second is List<object?> secondList)
         {
-            var firstDict = Unsafe.As<List<object?>>(first);
-            var secondDict = Unsafe.As<List<object?>>(second);
-
-            return ListEqualInternal(firstDict, secondDict);
+            return ListEqualInternal(firstList, secondList);
         }
 
-        if (typeof(IReadOnlyDictionary<string, object?>).IsAssignableFrom(firstType) &&
-            typeof(IReadOnlyDictionary<string, object?>).IsAssignableFrom(secondType))
+        if (first is IReadOnlyDictionary<string, object?> firstReadDict &&
+            second is IReadOnlyDictionary<string, object?> secondReadDict)
         {
-            return DictionaryEqualInternal(
-                (IReadOnlyDictionary<string, object?>)first,
-                (IReadOnlyDictionary<string, object?>)second);
+            return DictionaryEqualInternal(firstReadDict, secondReadDict);
         }
 
-        if (firstType != typeof(string) &&
-            secondType != typeof(string) &&
-            typeof(IEnumerable).IsAssignableFrom(firstType) &&
-            typeof(IEnumerable).IsAssignableFrom(secondType))
+        if (first is not string &&
+            second is not string &&
+            first is IEnumerable firstEnum &&
+            second is IEnumerable secondEnum)
         {
-            return SequenceEqual((IEnumerable)first, (IEnumerable)second);
+            return SequenceEqual(firstEnum, secondEnum);
         }
 
         return Equals(first, second);
