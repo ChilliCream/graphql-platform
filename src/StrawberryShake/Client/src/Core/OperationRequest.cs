@@ -221,7 +221,7 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
 
             foreach (var variable in Variables)
             {
-                if (variable.Value is IEnumerable inner)
+                if (variable.Value is not string && variable.Value is IEnumerable inner)
                 {
                     hash ^= GetHashCodeFromList(inner) * 397;
                 }
@@ -235,13 +235,13 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
         }
     }
 
-    private int GetHashCodeFromList(IEnumerable enumerable)
+    private static int GetHashCodeFromList(IEnumerable enumerable)
     {
         var hash = 17;
 
         foreach (var element in enumerable)
         {
-            if (element is IEnumerable inner)
+            if (element is not string && element is IEnumerable inner)
             {
                 hash ^= GetHashCodeFromList(inner) * 397;
             }
