@@ -158,7 +158,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (((Str is null && other.Str is null) || Str != null && Str.Equals(other.Str))) && StrNonNullable.Equals(other.StrNonNullable) && ((Nested is null && other.Nested is null) || Nested != null && Nested.Equals(other.Nested)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(NestedList, other.NestedList) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(NestedMatrix, other.NestedMatrix);
+            return (((Str is null && other.Str is null) || Str != null && Str.Equals(other.Str))) && StrNonNullable.Equals(other.StrNonNullable) && ((Nested is null && other.Nested is null) || Nested != null && Nested.Equals(other.Nested)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(NestedList, other.NestedList) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(NestedMatrix, other.NestedMatrix);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)

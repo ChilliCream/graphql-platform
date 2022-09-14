@@ -242,7 +242,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Username.Equals(other.Username)) && Address.Equals(other.Address) && ProfilePicture.Equals(other.ProfilePicture) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Photos, other.Photos);
+            return (Username.Equals(other.Username)) && Address.Equals(other.Address) && ProfilePicture.Equals(other.ProfilePicture) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Photos, other.Photos);
         }
 
         public override global::System.Int32 GetHashCode()

@@ -2,9 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Security.Cryptography;
-using StrawberryShake.Helper;
 using StrawberryShake.Internal;
 using StrawberryShake.Json;
 
@@ -167,11 +165,11 @@ namespace StrawberryShake
                 return true;
             }
 
-            return Id == other.Id &&
-                Name == other.Name &&
-                Document.Equals(other.Document) &&
-                EqualsVariables(other._variables);
-        }
+        return Id == other.Id &&
+            Name == other.Name &&
+            Document.Equals(other.Document) &&
+            ComparisonHelper.DictionaryEqual(_variables ,other._variables);
+    }
 
         public override bool Equals(object? obj)
         {
@@ -193,51 +191,13 @@ namespace StrawberryShake
             return Equals((OperationRequest)obj);
         }
 
-        private bool EqualsVariables(IReadOnlyDictionary<string, object?> others)
+    public string GetHash()
+    {
+        if (_hash is null)
         {
-            // the variables dictionary is the same or both are null.
-            if (ReferenceEquals(_variables, others))
-            {
-                return true;
-            }
-
-            if (_variables.Count != others.Count)
-            {
-                return false;
-            }
-
-            foreach (var key in _variables.Keys)
-            {
-                if (!_variables.TryGetValue(key, out object? a) ||
-                    !others.TryGetValue(key, out object? b))
-                {
-                    return false;
-                }
-
-                if (a is IEnumerable e1 && b is IEnumerable e2)
-                {
-                    // Check the contents of the collection, assuming order is important
-                    if (!ComparisonHelper.SequenceEqual(e1, e2))
-                    {
-                        return false;
-                    }
-                }
-                else if (!Equals(a, b))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        public string GetHash()
-        {
-            if (_hash is null)
-            {
-                using var writer = new ArrayWriter();
-                var serializer = new JsonOperationRequestSerializer();
-                serializer.Serialize(this, writer, ignoreExtensions: true);
+            using var writer = new ArrayWriter();
+            var serializer = new JsonOperationRequestSerializer();
+            serializer.Serialize(this, writer, ignoreExtensions: true);
 
                 using var sha256 = SHA256.Create();
                 byte[] buffer = sha256.ComputeHash(writer.GetInternalBuffer(), 0, writer.Length);
@@ -258,7 +218,7 @@ namespace StrawberryShake
 
                 foreach (KeyValuePair<string, object?> variable in _variables)
                 {
-                    if (variable.Value is IEnumerable inner)
+                    if (variable.Value is not string && variable.Value is IEnumerable inner)
                     {
                         hash ^= GetHashCodeFromList(inner) * 397;
                     }
@@ -272,21 +232,21 @@ namespace StrawberryShake
             }
         }
 
-        private int GetHashCodeFromList(IEnumerable enumerable)
-        {
-            var hash = 17;
+    private static int GetHashCodeFromList(IEnumerable enumerable)
+    {
+        var hash = 17;
 
-            foreach (var element in enumerable)
+        foreach (var element in enumerable)
+        {
+            if (element is not string && element is IEnumerable inner)
             {
-                if (element is IEnumerable inner)
-                {
-                    hash ^= GetHashCodeFromList(inner) * 397;
-                }
-                else if(element is not null)
-                {
-                    hash ^= element.GetHashCode() * 397;
-                }
+                hash ^= GetHashCodeFromList(inner) * 397;
             }
+            else if (element is not null)
+            {
+                hash ^= element.GetHashCode() * 397;
+            }
+        }
 
             return hash;
         }

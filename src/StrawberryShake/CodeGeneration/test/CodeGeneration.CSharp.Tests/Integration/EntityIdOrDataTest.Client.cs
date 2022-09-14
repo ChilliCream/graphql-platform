@@ -133,7 +133,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
                 return false;
             }
 
-            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Foo, other.Foo));
+            return (global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Foo, other.Foo));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)

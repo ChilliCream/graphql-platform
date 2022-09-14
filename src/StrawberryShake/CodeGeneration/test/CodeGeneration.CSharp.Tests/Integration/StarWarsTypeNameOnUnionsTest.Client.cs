@@ -134,7 +134,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUn
                 return false;
             }
 
-            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Search, other.Search));
+            return (global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Search, other.Search));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)

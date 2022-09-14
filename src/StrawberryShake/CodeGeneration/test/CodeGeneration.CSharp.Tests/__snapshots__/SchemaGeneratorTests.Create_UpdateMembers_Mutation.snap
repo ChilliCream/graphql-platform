@@ -375,7 +375,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Id.Equals(other.Id)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Members, other.Members);
+            return (Id.Equals(other.Id)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Members, other.Members);
         }
 
         public override global::System.Int32 GetHashCode()
