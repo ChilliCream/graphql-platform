@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace StrawberryShake.Helper;
 
@@ -10,150 +11,192 @@ public static class ComparisonHelper
         IEnumerable<TSource>? first,
         IEnumerable<TSource>? second)
     {
-        if (first is null && second is null)
+        if (ReferenceEquals(first, second))
         {
             return true;
         }
 
-        if (second is not null && first is not null)
+        if (ReferenceEquals(first, null) || ReferenceEquals(second, null))
         {
-            return first.SequenceEqual(second);
+            return false;
         }
 
-        return false;
+        return first.SequenceEqual(second);
     }
 
     public static bool SequenceEqual<TSource>(
         IEnumerable<IEnumerable<TSource>?>? first,
         IEnumerable<IEnumerable<TSource>?>? second)
     {
-        if (first is null && second is null)
+        if (ReferenceEquals(first, second))
         {
             return true;
         }
 
-        if (first is not null && second is not null)
+        if (ReferenceEquals(first, null) || ReferenceEquals(second, null))
         {
-            using var e1 = first.GetEnumerator();
-            using var e2 = second.GetEnumerator();
-
-            while (e1.MoveNext())
-            {
-                if (!(e2.MoveNext() && SequenceEqual(e1.Current, e2.Current)))
-                {
-                    return false;
-                }
-            }
-
-            return !e2.MoveNext();
+            return false;
         }
 
-        return false;
+        using var e1 = first.GetEnumerator();
+        using var e2 = second.GetEnumerator();
+
+        while (e1.MoveNext())
+        {
+            if (!(e2.MoveNext() && SequenceEqual(e1.Current, e2.Current)))
+            {
+                return false;
+            }
+        }
+
+        return !e2.MoveNext();
     }
 
-    public static bool SequenceEqual(
-        IEnumerable? first,
-        IEnumerable? second)
+    public static bool SequenceEqual(IEnumerable? first, IEnumerable? second)
     {
-        if (first is null && second is null)
+        if (ReferenceEquals(first, second))
         {
             return true;
         }
 
-        if (first is not null && second is not null)
+        if (ReferenceEquals(first, null) || ReferenceEquals(second, null))
         {
-            var e1 = first.GetEnumerator();
-            var e2 = second.GetEnumerator();
-
-            while (e1.MoveNext())
-            {
-                if (!e2.MoveNext())
-                {
-                    return false;
-                }
-
-                if (e1.Current is null && e2.Current is not null)
-                {
-                    return false;
-                }
-
-                if (e1.Current is not null && e2.Current is null)
-                {
-                    return false;
-                }
-
-                if (e1.Current is IEnumerable i1 &&
-                    e2.Current is IEnumerable i2 &&
-                    !SequenceEqual(i1, i2))
-                {
-                    return false;
-                }
-
-                if (e1.Current is not null &&
-                    e2.Current is not null &&
-                    !e1.Current.Equals(e2.Current))
-                {
-                    return false;
-                }
-            }
-
-            return !e2.MoveNext();
+            return false;
         }
 
-        return false;
+        var e1 = first.GetEnumerator();
+        var e2 = second.GetEnumerator();
+
+        while (e1.MoveNext())
+        {
+            if (!e2.MoveNext())
+            {
+                return false;
+            }
+
+            if (!ObjEqual(e1.Current, e2.Current))
+            {
+                return false;
+            }
+        }
+
+        return !e2.MoveNext();
     }
 
     public static bool DictionaryEqual(
         IReadOnlyDictionary<string, object?>? first,
         IReadOnlyDictionary<string, object?>? second)
     {
-        // the variables dictionary is the same or both are null.
         if (ReferenceEquals(first, second))
         {
             return true;
         }
 
-        if ((first == null) || (second == null))
+        if (ReferenceEquals(first, null) || ReferenceEquals(second, null))
         {
             return false;
         }
 
+        return DictionaryEqualInternal(second, first);
+    }
+
+    private static bool DictionaryEqualInternal<T>(T first, T second)
+        where T : IReadOnlyDictionary<string, object?>
+    {
         if (first.Count != second.Count)
         {
             return false;
         }
 
-        foreach (var key in first.Keys)
+        foreach (var firstItem in first)
         {
-            if (!first.TryGetValue(key, out var a) ||
-                !second.TryGetValue(key, out var b))
+            if (!second.TryGetValue(firstItem.Key, out var secondValue))
             {
                 return false;
             }
 
-            if (a is IEnumerable<KeyValuePair<string, object?>> k1 &&
-                b is IEnumerable<KeyValuePair<string, object?>> k2)
-            {
-                if (!DictionaryEqual(k1.ToDictionary(x => x.Key, x => x.Value), k2.ToDictionary(x => x.Key, x => x.Value)))
-                {
-                    return false;
-                }
-            }
-            else if (a is IEnumerable e1 &&
-                     b is IEnumerable e2)
-            {
-                // Check the contents of the collection, assuming order is important
-                if (!SequenceEqual(e1, e2))
-                {
-                    return false;
-                }
-            }
-            else if (!Equals(a, b))
+            if (!ObjEqual(firstItem.Value, secondValue))
             {
                 return false;
             }
         }
 
         return true;
+    }
+
+    private static bool ListEqualInternal<T>(T first, T second)
+        where T : IReadOnlyList<object?>
+    {
+        if (first.Count != second.Count)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < first.Count; i++)
+        {
+            if (!ObjEqual(first[i], second[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool ObjEqual(object? first, object? second)
+    {
+        if (ReferenceEquals(first, second))
+        {
+            return true;
+        }
+
+        if (ReferenceEquals(first, null) || ReferenceEquals(second, null))
+        {
+            return false;
+        }
+
+        var firstType = first.GetType();
+        var secondType = second.GetType();
+
+        if (firstType != secondType)
+        {
+            return false;
+        }
+
+        if (firstType == typeof(Dictionary<string, object?>) &&
+            firstType == typeof(Dictionary<string, object?>))
+        {
+            var firstDict = Unsafe.As<Dictionary<string, object?>>(first);
+            var secondDict = Unsafe.As<Dictionary<string, object?>>(second);
+
+            return DictionaryEqualInternal(firstDict, secondDict);
+        }
+
+        if (firstType == typeof(List<object?>) &&
+            firstType == typeof(List<object?>))
+        {
+            var firstDict = Unsafe.As<List<object?>>(first);
+            var secondDict = Unsafe.As<List<object?>>(second);
+
+            return ListEqualInternal(firstDict, secondDict);
+        }
+
+        if (typeof(IReadOnlyDictionary<string, object?>).IsAssignableFrom(firstType) &&
+            typeof(IReadOnlyDictionary<string, object?>).IsAssignableFrom(secondType))
+        {
+            return DictionaryEqualInternal(
+                (IReadOnlyDictionary<string, object?>)first,
+                (IReadOnlyDictionary<string, object?>)second);
+        }
+
+        if (firstType != typeof(string) &&
+            secondType != typeof(string) &&
+            typeof(IEnumerable).IsAssignableFrom(firstType) &&
+            typeof(IEnumerable).IsAssignableFrom(secondType))
+        {
+            return SequenceEqual((IEnumerable)first, (IEnumerable)second);
+        }
+
+        return Equals(first, second);
     }
 }
