@@ -43,6 +43,11 @@ internal sealed class AzureHttpContext : HttpContext
         {
             request.Headers.TryAdd(key, new StringValues(value.ToArray()));
         }
+
+        foreach(var (key, value) in requestData.FunctionContext.Items)
+        {
+            Items.Add(key, value);
+        }
     }
 
     public override IFeatureCollection Features => _innerContext.Features;
