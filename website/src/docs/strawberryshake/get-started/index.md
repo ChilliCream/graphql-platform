@@ -138,6 +138,7 @@ query GetSessions {
   }
 }
 ```
+Edit the properties of GetSessions.graphql and set the build action for the graphql file to GraphQL compiler
 
 5. Compile your project.
 
