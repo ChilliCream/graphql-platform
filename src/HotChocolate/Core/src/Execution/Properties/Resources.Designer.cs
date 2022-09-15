@@ -416,5 +416,17 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("OperationCompiler_OperationIdNullOrEmpty", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_Operation_NoSelectionSet {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Operation_NoSelectionSet", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_JsonFormatter_ResultNotSupported {
+            get {
+                return ResourceManager.GetString("ThrowHelper_JsonFormatter_ResultNotSupported", resourceCulture);
+            }
+        }
     }
 }

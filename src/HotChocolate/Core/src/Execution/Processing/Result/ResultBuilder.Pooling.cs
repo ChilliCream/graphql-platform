@@ -32,6 +32,8 @@ internal sealed partial class ResultBuilder
         _extensions.Clear();
         _contextData.Clear();
         _cleanupTasks.Clear();
+        _removedResults.Clear();
+        _patchIds.Clear();
 
         InitializeResult();
 

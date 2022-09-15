@@ -11,6 +11,5 @@
     "three": "baz"
   },
   "Services": null,
-  "InitialValue": null,
-  "AllowedOperations": null
+  "Flags": "AllowAll"
 }

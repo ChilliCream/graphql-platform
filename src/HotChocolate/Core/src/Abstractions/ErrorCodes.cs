@@ -171,6 +171,16 @@ public static class ErrorCodes
         /// The requested type does not exist.
         /// </summary>
         public const string TypeDoesNotExist = "HC0060";
+
+        /// <summary>
+        /// The request did not specify any supported accept media type.
+        /// </summary>
+        public const string NoSupportedAcceptMediaType = "HC0063";
+
+        /// <summary>
+        /// The request did not specify any supported accept media type.
+        /// </summary>
+        public const string InvalidAcceptHeaderValue = "HC0064";
     }
 
     public static class Schema

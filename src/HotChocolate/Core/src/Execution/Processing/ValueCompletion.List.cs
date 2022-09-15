@@ -35,6 +35,7 @@ internal static partial class ValueCompletion
 
                 if (!TryCompleteElement(resultList, elementPath, elementResult))
                 {
+                    operationContext.Result.AddRemovedResult(resultList);
                     return null;
                 }
             }
@@ -52,6 +53,7 @@ internal static partial class ValueCompletion
                 var elementPath = operationContext.PathFactory.Append(path, i);
                 if (!TryCompleteElement(resultList, elementPath, list[i]))
                 {
+                    operationContext.Result.AddRemovedResult(resultList);
                     return null;
                 }
             }
@@ -75,6 +77,7 @@ internal static partial class ValueCompletion
                 var elementPath = operationContext.PathFactory.Append(path, index++);
                 if (!TryCompleteElement(resultList, elementPath, element))
                 {
+                    operationContext.Result.AddRemovedResult(resultList);
                     return null;
                 }
             }

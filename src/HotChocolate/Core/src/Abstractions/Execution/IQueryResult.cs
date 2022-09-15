@@ -41,6 +41,11 @@ public interface IQueryResult : IExecutionResult
     IReadOnlyDictionary<string, object?>? Extensions { get; }
 
     /// <summary>
+    /// Gets the incremental patches provided with this result.
+    /// </summary>
+    IReadOnlyList<IQueryResult>? Incremental { get; }
+
+    /// <summary>
     /// A boolean that is present and <c>true</c> when there are more payloads
     /// that will be sent for this operation. The last payload in a multi payload response
     /// should return HasNext: <c>false</c>.

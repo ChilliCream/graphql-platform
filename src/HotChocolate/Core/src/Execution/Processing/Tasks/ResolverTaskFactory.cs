@@ -76,7 +76,8 @@ internal static class ResolverTaskFactory
                     selectionSet,
                     scopedContext,
                     path,
-                    parent);
+                    parent,
+                    parentResult);
             }
 
             return parentResult;
@@ -192,7 +193,8 @@ internal static class ResolverTaskFactory
                 selectionSet,
                 resolverContext.ScopedContextData,
                 path,
-                parent);
+                parent,
+                parentResult);
         }
 
         return parentResult;
@@ -346,7 +348,8 @@ internal static class ResolverTaskFactory
         ISelectionSet selectionSet,
         IImmutableDictionary<string, object?> scopedContext,
         Path path,
-        object? parent)
+        object? parent,
+        ObjectResult parentResult)
     {
         var fragments = selectionSet.Fragments;
         var includeFlags = operationContext.IncludeFlags;
@@ -362,7 +365,8 @@ internal static class ResolverTaskFactory
                         fragment.GetLabel(operationContext.Variables),
                         path.Clone(),
                         parent,
-                        scopedContext));
+                        scopedContext),
+                    parentResult);
             }
         }
     }

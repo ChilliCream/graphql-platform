@@ -113,6 +113,14 @@ internal static class OperationContextExtensions
         return context;
     }
 
+    public static OperationContext SetPatchId(
+        this OperationContext context,
+        uint patchId)
+    {
+        context.Result.SetContextData(WellKnownContextData.PatchId, patchId);
+        return context;
+    }
+
     public static OperationContext ClearResult(
         this OperationContext context)
     {

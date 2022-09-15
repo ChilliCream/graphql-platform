@@ -57,6 +57,11 @@ public interface IOperation : IHasReadOnlyContextData, IEnumerable<ISelectionSet
     IReadOnlyList<ISelectionVariants> SelectionVariants { get; }
 
     /// <summary>
+    /// Defines if this operation has deferred fragments or streams.
+    /// </summary>
+    bool HasIncrementalParts { get; }
+
+    /// <summary>
     /// Gets the selection set for the specified <paramref name="selection"/> and
     /// <paramref name="typeContext"/>.
     /// </summary>

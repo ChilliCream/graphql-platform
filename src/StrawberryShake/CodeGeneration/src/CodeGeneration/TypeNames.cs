@@ -128,7 +128,7 @@ public static class TypeNames
                                                           "Transport.WebSockets.Protocol.GraphQLWebSocketProtocolFactory";
 
     public const string SequenceEqual =
-        StrawberryShakeNamespace + "Helper.ComparisonHelper.SequenceEqual";
+        StrawberryShakeNamespace + "Internal.ComparisonHelper.SequenceEqual";
 
     public const string IEquatable = "global::System.IEquatable";
     public const string Type = "global::System.Type";

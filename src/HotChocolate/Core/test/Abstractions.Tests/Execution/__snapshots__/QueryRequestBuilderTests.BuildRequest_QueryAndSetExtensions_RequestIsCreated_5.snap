@@ -12,6 +12,5 @@
   },
   "ContextData": null,
   "Services": null,
-  "InitialValue": null,
-  "AllowedOperations": null
+  "Flags": "AllowAll"
 }

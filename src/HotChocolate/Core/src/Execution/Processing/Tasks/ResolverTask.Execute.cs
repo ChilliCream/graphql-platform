@@ -226,7 +226,8 @@ internal sealed partial class ResolverTask
                         _context.Parent<object>(),
                         count - 1,
                         enumerator,
-                        _context.ScopedContextData));
+                        _context.ScopedContextData),
+                    _context.ParentResult);
             }
 
             return list;

@@ -1,4 +1,4 @@
-﻿{
+{
   "data": {
     "b": {
       "id": "2001",
@@ -7,15 +7,17 @@
   },
   "hasNext": true
 }
-
 {
-  "path": [],
-  "data": {
-    "a": {
-      "id": "2001",
-      "name": "R2-D2"
+  "incremental": [
+    {
+      "data": {
+        "a": {
+          "id": "2001",
+          "name": "R2-D2"
+        }
+      },
+      "path": []
     }
-  },
+  ],
   "hasNext": false
 }
-

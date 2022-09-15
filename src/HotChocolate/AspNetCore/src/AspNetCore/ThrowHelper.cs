@@ -42,9 +42,6 @@ internal static class ThrowHelper
             .SetCode(ErrorCodes.Server.MaxRequestSize)
             .Build());
 
-    public static NotSupportedException DataStartMessageHandler_RequestTypeNotSupported() =>
-        new(ThrowHelper_DataStartMessageHandler_RequestTypeNotSupported);
-
     public static GraphQLException HttpMultipartMiddleware_Invalid_Form(
         Exception ex) =>
          new GraphQLRequestException(
@@ -124,4 +121,14 @@ internal static class ThrowHelper
                 .SetMessage(ThrowHelper_HttpMultipartMiddleware_MapNotSpecified)
                 .SetCode(ErrorCodes.Server.MultiPartMapNotSpecified)
                 .Build());
+
+    public static NotSupportedException Formatter_ResultKindNotSupported()
+        => new(ThrowHelper_Formatter_ResultKindNotSupported);
+
+    public static NotSupportedException Formatter_ResponseContentTypeNotSupported(
+        string contentType)
+        => new(string.Format(ThrowHelper_Formatter_ResponseContentTypeNotSupported, contentType));
+
+    public static InvalidOperationException Formatter_InvalidAcceptMediaType()
+        => new(ThrowHelper_Formatter_InvalidAcceptMediaType);
 }

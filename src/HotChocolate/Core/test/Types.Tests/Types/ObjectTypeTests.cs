@@ -16,6 +16,7 @@ using Snapshooter;
 #endif
 using Snapshooter.Xunit;
 using Xunit;
+using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Types;
 
@@ -1148,7 +1149,7 @@ public class ObjectTypeTests : TypeTestBase
         var result = await executor.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ desc }")
-                .SetInitialValue(new Foo())
+                .SetGlobalState(InitialValue, new Foo())
                 .Create());
 
         // assert
@@ -1222,10 +1223,10 @@ public class ObjectTypeTests : TypeTestBase
         var descriptor = new Mock<IObjectTypeDescriptor<Foo>>();
 
         // act
-        Action a = () => descriptor.Object.Ignore(null);
+        void Action() => descriptor.Object.Ignore(null);
 
         // assert
-        Assert.Throws<ArgumentNullException>(a);
+        Assert.Throws<ArgumentNullException>(Action);
     }
 
     [Fact]
@@ -1370,15 +1371,16 @@ public class ObjectTypeTests : TypeTestBase
     {
         // arrange
         // act
-        Action action = () => SchemaBuilder.New()
-            .AddObjectType(t => t
-                .Name("abc")
-                .Field("def")
-                .Resolve((object)"ghi"))
-            .Create();
+        void Action()
+            => SchemaBuilder.New()
+                .AddObjectType(
+                    t => t.Name("abc")
+                        .Field("def")
+                        .Resolve((object)"ghi"))
+                .Create();
 
         // assert
-        Assert.Throws<SchemaException>(action)
+        Assert.Throws<SchemaException>(Action)
             .Errors.Select(t => new { t.Message, t.Code })
             .MatchSnapshot();
     }
@@ -1445,8 +1447,15 @@ public class ObjectTypeTests : TypeTestBase
         var result = await executor.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ bar baz }")
-                .SetInitialValue(new FooStruct { Qux = "Qux_Value", Baz = "Baz_Value" })
+                .SetGlobalState(
+                    InitialValue,
+                    new FooStruct
+                    {
+                        Qux = "Qux_Value",
+                        Baz = "Baz_Value"
+                    })
                 .Create());
+
         // assert
         result.ToJson().MatchSnapshot();
     }

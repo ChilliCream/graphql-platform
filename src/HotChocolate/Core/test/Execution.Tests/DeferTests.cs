@@ -2,10 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.StarWars;
-using HotChocolate.Tests;
-using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Execution.QueryResultBuilder;
 
@@ -31,24 +30,14 @@ public class DeferTests
                         }
                     }");
 
-        IResponseStream stream = Assert.IsType<ResponseStream>(result);
+        var stream = Assert.IsType<ResponseStream>(result);
 
-        var results = new StringBuilder();
-
-        await foreach (var payload in stream.ReadResultsAsync())
-        {
-            results.AppendLine(payload.ToJson());
-            results.AppendLine();
-        }
-
-        results.ToString().MatchSnapshot();
+        stream.MatchSnapshot();
     }
 
     [Fact]
     public async Task NoOptimization_Defer_Only_Root()
     {
-        Snapshot.FullName();
-
         var result =
             await new ServiceCollection()
                 .AddStarWarsRepositories()
@@ -64,7 +53,9 @@ public class DeferTests
                         }
                     }");
 
-        await Assert.IsType<ResponseStream>(result).MatchSnapshotAsync();
+        var stream = Assert.IsType<ResponseStream>(result);
+
+        stream.MatchSnapshot();
     }
 
     [Fact]
@@ -89,17 +80,9 @@ public class DeferTests
                         }
                     }");
 
-        IResponseStream stream = Assert.IsType<ResponseStream>(result);
+        var stream = Assert.IsType<ResponseStream>(result);
 
-        var results = new StringBuilder();
-
-        await foreach (var payload in stream.ReadResultsAsync())
-        {
-            results.AppendLine(payload.ToJson());
-            results.AppendLine();
-        }
-
-        results.ToString().MatchSnapshot();
+        stream.MatchSnapshot();
     }
 
     [Fact]
@@ -127,24 +110,9 @@ public class DeferTests
                         }
                     }");
 
-        IResponseStream stream = Assert.IsType<ResponseStream>(result);
-        var list = new List<(string, string)>();
+        var stream = Assert.IsType<ResponseStream>(result);
 
-        await foreach (var payload in stream.ReadResultsAsync())
-        {
-            var path = (payload.Path?.ToString() ?? string.Empty).Replace("/", "-");
-            list.Add((path, FromResult(payload).SetHasNext(null).Create().ToJson()));
-        }
-
-        var results = new StringBuilder();
-
-        foreach (var item in list.OrderBy(t => t.Item1))
-        {
-            results.AppendLine(item.Item2);
-            results.AppendLine();
-        }
-
-        results.ToString().MatchSnapshot();
+        stream.MatchSnapshot();
     }
 
     [Fact]
@@ -171,24 +139,14 @@ public class DeferTests
                         }
                     }");
 
-        IResponseStream stream = Assert.IsType<ResponseStream>(result);
+        var stream = Assert.IsType<ResponseStream>(result);
 
-        var results = new StringBuilder();
-
-        await foreach (var payload in stream.ReadResultsAsync())
-        {
-            results.AppendLine(payload.ToJson());
-            results.AppendLine();
-        }
-
-        results.ToString().MatchSnapshot();
+        stream.MatchSnapshot();
     }
 
     [Fact]
     public async Task Do_Not_Defer()
     {
-        Snapshot.FullName();
-
         var result =
             await new ServiceCollection()
                 .AddStarWarsRepositories()
@@ -210,14 +168,14 @@ public class DeferTests
                         }
                     }");
 
-        await Assert.IsType<QueryResult>(result).MatchSnapshotAsync();
+        var queryResult = Assert.IsType<QueryResult>(result);
+
+        queryResult.MatchSnapshot();
     }
 
     [Fact]
     public async Task Do_Not_Defer_If_Variable_Set_To_False()
     {
-        Snapshot.FullName();
-
         var request = QueryRequestBuilder.New()
             .SetQuery(
                 @"query($if: Boolean!) {
@@ -244,14 +202,14 @@ public class DeferTests
                 .AddStarWarsTypes()
                 .ExecuteRequestAsync(request);
 
-        await Assert.IsType<QueryResult>(result).MatchSnapshotAsync();
+        var queryResult = Assert.IsType<QueryResult>(result);
+
+        queryResult.MatchSnapshot();
     }
 
     [Fact]
     public async Task Do_Defer_If_Variable_Set_To_True()
     {
-        Snapshot.FullName();
-
         var request = QueryRequestBuilder.New()
             .SetQuery(
                 @"query($if: Boolean!) {
@@ -278,6 +236,8 @@ public class DeferTests
                 .AddStarWarsTypes()
                 .ExecuteRequestAsync(request);
 
-        await Assert.IsType<ResponseStream>(result).MatchSnapshotAsync();
+        var stream = Assert.IsType<ResponseStream>(result);
+
+        stream.MatchSnapshot();
     }
 }

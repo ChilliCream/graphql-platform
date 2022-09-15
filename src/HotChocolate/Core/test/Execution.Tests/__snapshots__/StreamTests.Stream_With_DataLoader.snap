@@ -6,24 +6,26 @@
 }
 
 {
-  "path": [
-    "persons",
-    0
+  "incremental": [
+    {
+      "data": {
+        "name": "Foo"
+      },
+      "path": [
+        "persons",
+        0
+      ]
+    },
+    {
+      "data": {
+        "name": "Bar"
+      },
+      "path": [
+        "persons",
+        1
+      ]
+    }
   ],
-  "data": {
-    "name": "Foo"
-  },
-  "hasNext": true
-}
-
-{
-  "path": [
-    "persons",
-    1
-  ],
-  "data": {
-    "name": "Bar"
-  },
   "hasNext": true
 }
 

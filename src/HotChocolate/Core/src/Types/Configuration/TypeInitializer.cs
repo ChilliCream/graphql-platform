@@ -458,9 +458,20 @@ internal sealed class TypeInitializer
 
                 IReadOnlyList<ITypeReference> needed =
                     TryNormalizeDependencies(type.Conditionals,
-                        out var normalized)
+                        out var normalized,
+                        out var notFound)
                         ? normalized.Except(processed).ToArray()
                         : type.Conditionals.Select(t => t.TypeReference).ToArray();
+
+                if (notFound != null)
+                {
+                    _errors.Add(SchemaErrorBuilder.New()
+                        .SetMessage(
+                            TypeInitializer_CannotFindType,
+                            string.Join(", ", notFound.Reverse()))
+                        .SetTypeSystemObject(type.Type)
+                        .Build());
+                }
 
                 _errors.Add(SchemaErrorBuilder.New()
                     .SetMessage(
@@ -512,7 +523,9 @@ internal sealed class TypeInitializer
     {
         foreach (var type in _next)
         {
-            if (TryNormalizeDependencies(type.Conditionals, out var normalized) &&
+            if (TryNormalizeDependencies(type.Conditionals,
+                    out var normalized,
+                    out var _) &&
                 processed.IsSupersetOf(GetTypeRefsExceptSelfRefs(type, normalized)))
             {
                 yield return type;
@@ -553,7 +566,8 @@ internal sealed class TypeInitializer
 
     private bool TryNormalizeDependencies(
         List<TypeDependency> dependencies,
-        [NotNullWhen(true)] out IReadOnlyList<ITypeReference>? normalized)
+        [NotNullWhen(true)] out IReadOnlyList<ITypeReference>? normalized,
+        [NotNullWhen(false)] out IReadOnlyList<ITypeReference>? notFound)
     {
         var n = new List<ITypeReference>();
 
@@ -564,6 +578,8 @@ internal sealed class TypeInitializer
                 out var nr))
             {
                 normalized = null;
+                n.Add(dependency.TypeReference);
+                notFound = n;
                 return false;
             }
 
@@ -574,6 +590,7 @@ internal sealed class TypeInitializer
         }
 
         normalized = n;
+        notFound = null;
         return true;
     }
 

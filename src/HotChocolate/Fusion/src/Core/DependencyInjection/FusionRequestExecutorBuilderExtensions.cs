@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
-public static class RequestExecutorBuilderExtensions
+public static class FusionRequestExecutorBuilderExtensions
 {
     public static IRequestExecutorBuilder AddFusionGatewayServer(
         this IServiceCollection services,

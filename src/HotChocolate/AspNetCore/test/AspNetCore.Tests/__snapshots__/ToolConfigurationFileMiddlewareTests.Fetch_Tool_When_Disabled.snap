@@ -10,5 +10,5 @@
     ],
     "MediaType": "application/json"
   },
-  "StatusCode": "BadRequest"
+  "StatusCode": "OK"
 }
