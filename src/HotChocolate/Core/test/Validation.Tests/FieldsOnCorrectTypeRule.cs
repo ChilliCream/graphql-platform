@@ -1,20 +1,20 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HotChocolate.Validation
-{
-    public class FieldsOnCorrectTypeRuleTests
-        : DocumentValidatorVisitorTestBase
-    {
-        public FieldsOnCorrectTypeRuleTests()
-            : base(services => services.AddFieldRules())
-        {
-        }
+namespace HotChocolate.Validation;
 
-        [Fact]
-        public void GoodObjectFieldSelection()
-        {
-            ExpectValid(@"
+public class FieldsOnCorrectTypeRuleTests
+    : DocumentValidatorVisitorTestBase
+{
+    public FieldsOnCorrectTypeRuleTests()
+        : base(services => services.AddFieldRules())
+    {
+    }
+
+    [Fact]
+    public void GoodObjectFieldSelection()
+    {
+        ExpectValid(@"
                 fragment objectFieldSelection on Dog {
                     __typename
                     name
@@ -26,12 +26,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void GoodAliasedObjectFieldSelection()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void GoodAliasedObjectFieldSelection()
+    {
+        ExpectValid(@"
                 fragment aliasedObjectFieldSelection on Dog {
                     tn : __typename
                     otherName : name
@@ -43,12 +43,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void GoodInterfacesObjectFieldSelection()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void GoodInterfacesObjectFieldSelection()
+    {
+        ExpectValid(@"
                 fragment interfaceFieldSelection on Pet {
                     otherName : name
                 }
@@ -59,12 +59,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void BadReportsErrorWhenTypeIsKnown()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void BadReportsErrorWhenTypeIsKnown()
+    {
+        ExpectErrors(@"
                 fragment typeKnownAgain on Pet {
                     unknown_pet_field {
                         ... on Cat {
@@ -78,12 +78,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void BadFieldNotDefinedOnFragement()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void BadFieldNotDefinedOnFragement()
+    {
+        ExpectErrors(@"
                 fragment fieldNotDefined on Dog {
                     meowVolume
                 }
@@ -94,12 +94,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void BadIgnoresDeeplyUnknownField()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void BadIgnoresDeeplyUnknownField()
+    {
+        ExpectErrors(@"
                 fragment deepFieldNotDefined on Dog {
                     unknown_field {
                         deeper_unknown_field
@@ -112,12 +112,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void BadSubFieldNotDefined()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void BadSubFieldNotDefined()
+    {
+        ExpectErrors(@"
                 fragment subFieldNotDefined on Human {
                     pets {
                         unknown_field
@@ -130,12 +130,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void BadFieldNotDefinedOnInlineFragment()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void BadFieldNotDefinedOnInlineFragment()
+    {
+        ExpectErrors(@"
                 fragment fieldNotDefined on Pet {
                     ... on Dog {
                         meowVolume
@@ -148,12 +148,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void BadAliasedFieldTargetNotDefined()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void BadAliasedFieldTargetNotDefined()
+    {
+        ExpectErrors(@"
                 fragment aliasedFieldTargetNotDefined on Dog {
                     volume : mooVolume
                 }
@@ -164,12 +164,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void BadAliasedLyingFieldTargetNotDefined()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void BadAliasedLyingFieldTargetNotDefined()
+    {
+        ExpectErrors(@"
                 fragment aliasedLyingFieldTargetNotDefined on Dog {
                     barkVolume : kawVolume
                 }
@@ -180,12 +180,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void BadNotDefinedOnInterface()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void BadNotDefinedOnInterface()
+    {
+        ExpectErrors(@"
                 fragment notDefinedOnInterface on Pet {
                     tailLength
                 }
@@ -196,12 +196,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void DefinedOnImplementorsButNotOnInterface()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void DefinedOnImplementorsButNotOnInterface()
+    {
+        ExpectErrors(@"
                 fragment definedOnImplementorsButNotInterface on Pet {
                     nickname
                 }
@@ -212,12 +212,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void MetaFieldSelectionOnUnion()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void MetaFieldSelectionOnUnion()
+    {
+        ExpectValid(@"
                 fragment directFieldSelectionOnUnion on CatOrDog {
                   __typename
                 }
@@ -228,12 +228,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void DireftFieldSelectionOnUnion()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void DireftFieldSelectionOnUnion()
+    {
+        ExpectErrors(@"
                 fragment directFieldSelectionOnUnion on CatOrDog {
                     directField
                 }
@@ -244,12 +244,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void DefinedOnImplementorQueriedOnUnion()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void DefinedOnImplementorQueriedOnUnion()
+    {
+        ExpectErrors(@"
                fragment definedOnImplementorsQueriedOnUnion on CatOrDog {
                     name
                 }
@@ -260,12 +260,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void FieldInInlineFragment()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void FieldInInlineFragment()
+    {
+        ExpectValid(@"
                 fragment objectFieldSelection on Pet {
                     ... on Dog {
                         name
@@ -281,36 +281,35 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void WrongFieldsOnUnionTypeList()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder
-                .New()
-                .AddDocumentFromString(@"
+    [Fact]
+    public void WrongFieldsOnUnionTypeList()
+    {
+        // arrange
+        ISchema schema = SchemaBuilder
+            .New()
+            .AddDocumentFromString(@"
                     type Bar { baz: String }
                     type Baz { baz: String }
                     union Foo = Bar | Baz
                     type Query {
                         list: [Foo!]
                     }")
-                .AddResolver("Query", "list", ctx => null!)
-                .AddResolver("Bar", "baz", ctx => null!)
-                .AddResolver("Baz", "baz", ctx => null!)
-                .Create();
+            .AddResolver("Query", "list", ctx => null!)
+            .AddResolver("Bar", "baz", ctx => null!)
+            .AddResolver("Baz", "baz", ctx => null!)
+            .Create();
 
 
-            ExpectErrors(
-                schema,
-                @"
+        ExpectErrors(
+            schema,
+            @"
                 query {
                     list {
                         qux
                     }
                 }
             ");
-        }
     }
 }

@@ -296,5 +296,11 @@ namespace HotChocolate.Validation.Properties {
                 return ResourceManager.GetString("ErrorHelper_OneOfVariablesMustBeNonNull", resourceCulture);
             }
         }
+        
+        internal static string ErrorHelper_DeferAndStreamNotAllowedOnMutationOrSubscriptionRoot {
+            get {
+                return ResourceManager.GetString("ErrorHelper_DeferAndStreamNotAllowedOnMutationOrSubscriptionRoot", resourceCulture);
+            }
+        }
     }
 }

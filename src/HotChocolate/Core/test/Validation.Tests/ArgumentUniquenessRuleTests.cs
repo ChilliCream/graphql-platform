@@ -1,20 +1,20 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HotChocolate.Validation
-{
-    public class ArgumentUniquenessRuleTests
-        : DocumentValidatorVisitorTestBase
-    {
-        public ArgumentUniquenessRuleTests()
-            : base(builder => builder.AddArgumentRules())
-        {
-        }
+namespace HotChocolate.Validation;
 
-        [Fact]
-        public void NoDuplicateArgument()
-        {
-            ExpectValid(@"
+public class ArgumentUniquenessRuleTests
+    : DocumentValidatorVisitorTestBase
+{
+    public ArgumentUniquenessRuleTests()
+        : base(builder => builder.AddArgumentRules())
+    {
+    }
+
+    [Fact]
+    public void NoDuplicateArgument()
+    {
+        ExpectValid(@"
                 query {
                     arguments {
                         ... goodNonNullArg
@@ -25,12 +25,12 @@ namespace HotChocolate.Validation
                     nonNullBooleanArgField(nonNullBooleanArg: true)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void DuplicateArgument()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void DuplicateArgument()
+    {
+        ExpectErrors(@"
                 query {
                     arguments {
                         ... goodNonNullArg
@@ -45,6 +45,5 @@ namespace HotChocolate.Validation
                 "More than one argument with the same name in an argument " +
                 "set is ambiguous and invalid.",
                 t.Message));
-        }
     }
 }

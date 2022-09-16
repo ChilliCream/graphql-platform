@@ -539,4 +539,14 @@ internal static class ThrowHelper
 
         return new SchemaException(builder.Build());
     }
+
+    public static GraphQLException MissingIfArgument(
+        DirectiveNode directive)
+        => new(
+            ErrorBuilder.New()
+                .SetMessage(
+                    ThrowHelper_MissingDirectiveIfArgument,
+                    directive.Name.Value)
+                .AddLocation(directive)
+                .Build());
 }

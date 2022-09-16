@@ -122,6 +122,9 @@
       PublicKeyToken=b77a5c561934e089
     </value>
   </resheader>
+  <data name="ThrowHelper_MissingDirectiveIfArgument" xml:space="preserve">
+    <value>The {0}-directive is missing the if-argument.</value>
+  </data>
   <data name="ArgumentDescriptor_InputTypeViolation" xml:space="preserve">
     <value>The argument type has to be an input-type.</value>
   </data>

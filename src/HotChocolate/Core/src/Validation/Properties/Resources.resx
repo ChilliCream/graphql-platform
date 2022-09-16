@@ -224,4 +224,7 @@
   <data name="ErrorHelper_OneOfVariablesMustBeNonNull" xml:space="preserve">
     <value>The variable `${0}` assigned to the field `{1}` of the Oneof Input Object `{2}` must be non-null.</value>
   </data>
+  <data name="ErrorHelper_DeferAndStreamNotAllowedOnMutationOrSubscriptionRoot" xml:space="preserve">
+    <value>The defer and stream directives are not allowed to be used on root fields of the mutation or subscription type.</value>
+  </data>
 </root>

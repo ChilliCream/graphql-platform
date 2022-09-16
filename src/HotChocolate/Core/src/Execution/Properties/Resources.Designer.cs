@@ -45,12 +45,6 @@ namespace HotChocolate.Execution.Properties {
             }
         }
         
-        internal static string ThrowHelper_MissingDirectiveIfArgument {
-            get {
-                return ResourceManager.GetString("ThrowHelper_MissingDirectiveIfArgument", resourceCulture);
-            }
-        }
-        
         internal static string ThrowHelper_FieldDoesNotExistOnType {
             get {
                 return ResourceManager.GetString("ThrowHelper_FieldDoesNotExistOnType", resourceCulture);

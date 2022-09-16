@@ -12,12 +12,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Execution" />
     <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
     <InternalsVisibleTo Include="HotChocolate.Validation" />
     <InternalsVisibleTo Include="HotChocolate.Types.CursorPagination" />
     <InternalsVisibleTo Include="HotChocolate.Types.OffsetPagination" />
     <InternalsVisibleTo Include="HotChocolate.ApolloFederation" />
     <InternalsVisibleTo Include="HotChocolate.Data" />
+    <InternalsVisibleTo Include="StrawberryShake.CodeGeneration" />
 
     <!--Legacy Support-->
     <InternalsVisibleTo Include="HotChocolate.Types.Filters" />

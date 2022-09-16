@@ -683,4 +683,12 @@ internal static class ErrorHelper
             .SetExtension(nameof(field), field.ToString())
             .SpecifiedBy("sec-Oneof–Input-Objects-Have-Exactly-One-Field", rfc: 825)
             .Build();
+
+    public static IError DeferAndStreamNotAllowedOnMutationOrSubscriptionRoot(
+        ISelectionNode selection)
+        => ErrorBuilder.New()
+            .SetMessage(Resources.ErrorHelper_DeferAndStreamNotAllowedOnMutationOrSubscriptionRoot)
+            .AddLocation(selection)
+            .SpecifiedBy("sec-Defer-And-Stream-Directives-Are-Used-On-Valid-Root-Field")
+            .Build();
 }
