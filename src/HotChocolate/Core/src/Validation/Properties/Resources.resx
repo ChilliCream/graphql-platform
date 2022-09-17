@@ -227,4 +227,10 @@
   <data name="ErrorHelper_DeferAndStreamNotAllowedOnMutationOrSubscriptionRoot" xml:space="preserve">
     <value>The defer and stream directives are not allowed to be used on root fields of the mutation or subscription type.</value>
   </data>
+  <data name="ErrorHelper_DeferAndStreamDuplicateLabel" xml:space="preserve">
+    <value>If a label is passed, it must be unique within all other @defer and @stream directives in the document.</value>
+  </data>
+  <data name="ErrorHelper_DeferAndStreamLabelIsVariable" xml:space="preserve">
+    <value>If a label for @defer or @stream is passed, it must not be a variable.</value>
+  </data>
 </root>

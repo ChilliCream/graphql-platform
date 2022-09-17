@@ -691,4 +691,28 @@ internal static class ErrorHelper
             .AddLocation(selection)
             .SpecifiedBy("sec-Defer-And-Stream-Directives-Are-Used-On-Valid-Root-Field")
             .Build();
+
+    public static IError DeferAndStreamDuplicateLabel(
+        this IDocumentValidatorContext context,
+        ISyntaxNode selection,
+        string label)
+        => ErrorBuilder.New()
+            .SetMessage(Resources.ErrorHelper_DeferAndStreamDuplicateLabel)
+            .AddLocation(selection)
+            .SpecifiedBy("sec-Defer-And-Stream-Directive-Labels-Are-Unique")
+            .SetExtension(nameof(label), label)
+            .SetPath(context.CreateErrorPath())
+            .Build();
+
+    public static IError DeferAndStreamLabelIsVariable(
+        this IDocumentValidatorContext context,
+        ISyntaxNode selection,
+        string variable)
+        => ErrorBuilder.New()
+            .SetMessage(Resources.ErrorHelper_DeferAndStreamLabelIsVariable)
+            .AddLocation(selection)
+            .SpecifiedBy("sec-Defer-And-Stream-Directive-Labels-Are-Unique")
+            .SetExtension(nameof(variable),$"${variable}")
+            .SetPath(context.CreateErrorPath())
+            .Build();
 }

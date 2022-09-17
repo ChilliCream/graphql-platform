@@ -233,6 +233,21 @@ public static class DirectiveCollectionExtensions
         return null;
     }
 
+    internal static IValueNode? GetLabelArgumentValueOrDefault(this DirectiveNode directive)
+    {
+        for (var i = 0; i < directive.Arguments.Count; i++)
+        {
+            var argument = directive.Arguments[i];
+
+            if (argument.Name.Value.EqualsOrdinal(WellKnownDirectives.LabelArgument))
+            {
+                return argument.Value;
+            }
+        }
+
+        return null;
+    }
+
     internal static bool StreamDirectiveEquals(
         this DirectiveNode streamA,
         DirectiveNode streamB)
