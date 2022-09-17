@@ -76,6 +76,11 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 
         if (IntrospectionFields.TypeName.EqualsOrdinal(node.Name.Value))
         {
+            if (node.IsStreamable())
+            {
+                context.ReportError(context.StreamOnNonListField(node));
+            }
+
             fields.Add(new FieldInfo(context.Types.Peek(), context.NonNullString, node));
             return Skip;
         }
@@ -103,6 +108,13 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
                             context.LeafFieldsCannotHaveSelections(node, ct, of.Type));
                         return Skip;
                     }
+                }
+
+                // if the directive is annotated with the @stream directive then the fields
+                // return type must bi a list.
+                if (node.IsStreamable() && !of.Type.IsListType())
+                {
+                    context.ReportError(context.StreamOnNonListField(node));
                 }
 
                 context.OutputFields.Push(of);

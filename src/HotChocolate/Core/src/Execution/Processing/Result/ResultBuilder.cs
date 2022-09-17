@@ -23,6 +23,7 @@ internal sealed partial class ResultBuilder
 
     private ResultMemoryOwner _resultOwner = default!;
     private ObjectResult? _data;
+    private IReadOnlyList<object?>? _items;
     private Path? _path;
     private string? _label;
     private bool? _hasNext;
@@ -30,7 +31,26 @@ internal sealed partial class ResultBuilder
     public IReadOnlyList<IError> Errors => _errors;
 
     public void SetData(ObjectResult data)
-        => _data = data;
+    {
+        if (_items is not null)
+        {
+            throw new InvalidOperationException(
+                Resources.ResultBuilder_DataAndItemsNotAllowed);
+        }
+
+        _data = data;
+    }
+
+    public void SetItems(IReadOnlyList<object?> items)
+    {
+        if (_data is not null)
+        {
+            throw new InvalidOperationException(
+                Resources.ResultBuilder_DataAndItemsNotAllowed);
+        }
+
+        _items = items;
+    }
 
     public void SetExtension(string key, object? value)
     {
@@ -150,17 +170,19 @@ internal sealed partial class ResultBuilder
             _contextData.Add(WellKnownContextData.ExpectedPatches, _patchIds.ToArray());
         }
 
-        var result = new QueryResult
-        (
+        var result = new QueryResult(
             _data,
-            _errors.Count == 0 ? null : new List<IError>(_errors),
+            _errors.Count == 0
+                ? null
+                : new List<IError>(_errors),
             CreateExtensionData(_extensions),
             CreateExtensionData(_contextData),
-            null,
-            _label,
-            _path,
-            _hasNext,
-            _cleanupTasks.Count > 0
+            incremental: null,
+            items: _items,
+            label: _label,
+            path: _path,
+            hasNext: _hasNext,
+            cleanupTasks: _cleanupTasks.Count > 0
                 ? _cleanupTasks.ToArray()
                 : Array.Empty<Func<ValueTask>>()
         );
@@ -191,6 +213,11 @@ internal sealed partial class ResultBuilder
         var builder = QueryResultBuilder.New();
 
         builder.SetData(_data);
+
+        if (_items is not null)
+        {
+            builder.SetItems(_items);
+        }
 
         if (_errors.Count > 0)
         {

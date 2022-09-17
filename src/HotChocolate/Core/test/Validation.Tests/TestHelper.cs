@@ -32,18 +32,18 @@ public static class TestHelper
         // arrange
         var serviceCollection = new ServiceCollection();
 
-        IValidationBuilder builder = serviceCollection
+        var builder = serviceCollection
             .AddValidation()
             .ConfigureValidation(c => c.Modifiers.Add(o => o.Rules.Clear()));
         configure(builder);
 
         IServiceProvider services = serviceCollection.BuildServiceProvider();
-        IDocumentValidatorRule rule =
+        var rule =
             services.GetRequiredService<IValidationConfiguration>()
                 .GetRules(Schema.DefaultName).First();
 
-        DocumentValidatorContext context = ValidationUtils.CreateContext(schema);
-        DocumentNode query = Utf8GraphQLParser.Parse(sourceText);
+        var context = ValidationUtils.CreateContext(schema);
+        var query = Utf8GraphQLParser.Parse(sourceText);
         context.Prepare(query);
 
         context.ContextData = new Dictionary<string, object>();
@@ -88,20 +88,20 @@ public static class TestHelper
         // arrange
         var serviceCollection = new ServiceCollection();
 
-        IValidationBuilder builder = serviceCollection
+        var builder = serviceCollection
             .AddValidation()
             .ConfigureValidation(c => c.Modifiers.Add(o => o.Rules.Clear()));
         configure(builder);
 
         IServiceProvider services = serviceCollection.BuildServiceProvider();
-        IDocumentValidatorRule rule =
+        var rule =
             services.GetRequiredService<IValidationConfiguration>()
                 .GetRules(Schema.DefaultName).First();
 
-        DocumentValidatorContext context = ValidationUtils.CreateContext(schema);
+        var context = ValidationUtils.CreateContext(schema);
         context.MaxAllowedErrors = int.MaxValue;
 
-        DocumentNode query = Utf8GraphQLParser.Parse(sourceText);
+        var query = Utf8GraphQLParser.Parse(sourceText);
         context.Prepare(query);
 
         context.ContextData = new Dictionary<string, object>();

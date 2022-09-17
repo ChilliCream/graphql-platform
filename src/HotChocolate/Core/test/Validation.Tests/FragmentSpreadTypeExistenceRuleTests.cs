@@ -18,7 +18,7 @@ public class FragmentSpreadTypeExistenceRuleTests
     {
         // arrange
         IDocumentValidatorContext context = ValidationUtils.CreateContext();
-        DocumentNode query = Utf8GraphQLParser.Parse(@"
+        var query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                         ...correctType
@@ -43,7 +43,7 @@ public class FragmentSpreadTypeExistenceRuleTests
     {
         // arrange
         IDocumentValidatorContext context = ValidationUtils.CreateContext();
-        DocumentNode query = Utf8GraphQLParser.Parse(@"
+        var query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                         ...inlineFragment
@@ -70,7 +70,7 @@ public class FragmentSpreadTypeExistenceRuleTests
     {
         // arrange
         IDocumentValidatorContext context = ValidationUtils.CreateContext();
-        DocumentNode query = Utf8GraphQLParser.Parse(@"
+        var query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                         ...inlineFragment2
@@ -96,10 +96,10 @@ public class FragmentSpreadTypeExistenceRuleTests
     public void NotOnExistingTypeOnFragment()
     {
         // arrange
-        DocumentValidatorContext context = ValidationUtils.CreateContext();
+        var context = ValidationUtils.CreateContext();
         context.MaxAllowedErrors = int.MaxValue;
 
-        DocumentNode query = Utf8GraphQLParser.Parse(@"
+        var query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                         ...notOnExistingType
@@ -130,10 +130,10 @@ public class FragmentSpreadTypeExistenceRuleTests
     public void NotExistingTypeOnInlineFragment()
     {
         // arrange
-        DocumentValidatorContext context = ValidationUtils.CreateContext();
+        var context = ValidationUtils.CreateContext();
         context.MaxAllowedErrors = int.MaxValue;
 
-        DocumentNode query = Utf8GraphQLParser.Parse(@"
+        var query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                         ...inlineNotExistingType

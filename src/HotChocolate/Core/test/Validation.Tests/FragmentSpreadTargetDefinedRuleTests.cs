@@ -17,10 +17,10 @@ public class FragmentSpreadTargetDefinedRuleTests
     public void UndefinedFragment()
     {
         // arrange
-        DocumentValidatorContext context = ValidationUtils.CreateContext();
+        var context = ValidationUtils.CreateContext();
         context.MaxAllowedErrors = int.MaxValue;
 
-        DocumentNode query = Utf8GraphQLParser.Parse(@"
+        var query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                         ...undefinedFragment
@@ -46,7 +46,7 @@ public class FragmentSpreadTargetDefinedRuleTests
     {
         // arrange
         IDocumentValidatorContext context = ValidationUtils.CreateContext();
-        DocumentNode query = Utf8GraphQLParser.Parse(@"
+        var query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                         ...definedFragment

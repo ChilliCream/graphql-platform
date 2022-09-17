@@ -306,4 +306,7 @@
   <data name="ThrowHelper_JsonFormatter_ResultNotSupported" xml:space="preserve">
     <value>The {0} only supports formatting `IQueryResult`.</value>
   </data>
+  <data name="ResultBuilder_DataAndItemsNotAllowed" xml:space="preserve">
+    <value>Its not allowed to set `items` and `data` at the same time.</value>
+  </data>
 </root>

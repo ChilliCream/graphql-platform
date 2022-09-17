@@ -16,8 +16,8 @@ public class DocumentValidatorTests
     public void DocumentIsNull()
     {
         // arrange
-        ISchema schema = ValidationUtils.CreateSchema();
-        IDocumentValidator queryValidator = CreateValidator();
+        var schema = ValidationUtils.CreateSchema();
+        var queryValidator = CreateValidator();
 
         // act
         Action a = () => queryValidator.Validate(schema, null!);
@@ -30,7 +30,7 @@ public class DocumentValidatorTests
     public void SchemaIsNull()
     {
         // arrange
-        IDocumentValidator queryValidator = CreateValidator();
+        var queryValidator = CreateValidator();
 
         // act
         // act
@@ -666,15 +666,15 @@ public class DocumentValidatorTests
     public void DuplicatesWillBeIgnoredOnFieldMerging()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
 
-        DocumentNode document = Utf8GraphQLParser.Parse(
+        var document = Utf8GraphQLParser.Parse(
             FileResource.Open("InvalidIntrospectionQuery.graphql"));
 
         var originalOperation = ((OperationDefinitionNode)document.Definitions[0]);
-        OperationDefinitionNode operationWithDuplicates = originalOperation.WithSelectionSet(
+        var operationWithDuplicates = originalOperation.WithSelectionSet(
             originalOperation.SelectionSet.WithSelections(
                 new List<ISelectionNode>
                 {
@@ -688,16 +688,16 @@ public class DocumentValidatorTests
                 operationWithDuplicates
             });
 
-        ServiceProvider services = new ServiceCollection()
+        var services = new ServiceCollection()
             .AddValidation()
             .Services
             .BuildServiceProvider();
 
-        IDocumentValidatorFactory factory = services.GetRequiredService<IDocumentValidatorFactory>();
-        IDocumentValidator validator = factory.CreateValidator();
+        var factory = services.GetRequiredService<IDocumentValidatorFactory>();
+        var validator = factory.CreateValidator();
 
         // act
-        DocumentValidatorResult result = validator.Validate(schema, document);
+        var result = validator.Validate(schema, document);
 
         // assert
         Assert.False(result.HasErrors);
@@ -820,10 +820,10 @@ public class DocumentValidatorTests
         // arrange
         schema ??= ValidationUtils.CreateSchema();
         validator ??= CreateValidator();
-        DocumentNode query = Utf8GraphQLParser.Parse(sourceText);
+        var query = Utf8GraphQLParser.Parse(sourceText);
 
         // act
-        DocumentValidatorResult result = validator.Validate(schema, query);
+        var result = validator.Validate(schema, query);
 
         // assert
         Assert.Empty(result.Errors);
@@ -841,10 +841,10 @@ public class DocumentValidatorTests
         // arrange
         schema ??= ValidationUtils.CreateSchema();
         validator ??= CreateValidator();
-        DocumentNode query = Utf8GraphQLParser.Parse(sourceText);
+        var query = Utf8GraphQLParser.Parse(sourceText);
 
         // act
-        DocumentValidatorResult result = validator.Validate(schema, query);
+        var result = validator.Validate(schema, query);
 
         // assert
         Assert.NotEmpty(result.Errors);

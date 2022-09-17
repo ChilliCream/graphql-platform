@@ -422,5 +422,11 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("ThrowHelper_JsonFormatter_ResultNotSupported", resourceCulture);
             }
         }
+        
+        internal static string ResultBuilder_DataAndItemsNotAllowed {
+            get {
+                return ResourceManager.GetString("ResultBuilder_DataAndItemsNotAllowed", resourceCulture);
+            }
+        }
     }
 }

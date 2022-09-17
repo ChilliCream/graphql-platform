@@ -17,7 +17,7 @@ public class VariablesAreInputTypesRuleTests
     {
         // arrange
         IDocumentValidatorContext context = ValidationUtils.CreateContext();
-        DocumentNode query = Utf8GraphQLParser.Parse(@"
+        var query = Utf8GraphQLParser.Parse(@"
                 query takesBoolean($atOtherHomes: Boolean) {
                     dog {
                         isHouseTrained(atOtherHomes: $atOtherHomes)

@@ -17,10 +17,10 @@ public class FragmentsMustBeUsedRuleTests
     public void UnusedFragment()
     {
         // arrange
-        DocumentValidatorContext context = ValidationUtils.CreateContext();
+        var context = ValidationUtils.CreateContext();
         context.MaxAllowedErrors = int.MaxValue;
 
-        DocumentNode query = Utf8GraphQLParser.Parse(@"
+        var query = Utf8GraphQLParser.Parse(@"
                 fragment nameFragment on Dog { # unused
                     name
                 }
@@ -49,7 +49,7 @@ public class FragmentsMustBeUsedRuleTests
     {
         // arrange
         IDocumentValidatorContext context = ValidationUtils.CreateContext();
-        DocumentNode query = Utf8GraphQLParser.Parse(@"
+        var query = Utf8GraphQLParser.Parse(@"
                 fragment nameFragment on Dog {
                     name
                 }
@@ -75,7 +75,7 @@ public class FragmentsMustBeUsedRuleTests
     {
         // arrange
         IDocumentValidatorContext context = ValidationUtils.CreateContext();
-        DocumentNode query = Utf8GraphQLParser.Parse(@"
+        var query = Utf8GraphQLParser.Parse(@"
                 fragment nameFragment on Dog {
                     name
                     ... nestedNameFragment

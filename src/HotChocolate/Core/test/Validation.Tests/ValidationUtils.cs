@@ -21,7 +21,7 @@ public static class ValidationUtils
 
         for (var i = 0; i < document.Definitions.Count; i++)
         {
-            IDefinitionNode definitionNode = document.Definitions[i];
+            var definitionNode = document.Definitions[i];
             if (definitionNode.Kind == SyntaxKind.FragmentDefinition)
             {
                 var fragmentDefinition = (FragmentDefinitionNode)definitionNode;

@@ -715,4 +715,14 @@ internal static class ErrorHelper
             .SetExtension(nameof(variable),$"${variable}")
             .SetPath(context.CreateErrorPath())
             .Build();
+
+    public static IError StreamOnNonListField(
+        this IDocumentValidatorContext context,
+        ISyntaxNode selection)
+        => ErrorBuilder.New()
+            .SetMessage("@stream directive is only valid on list fields.")
+            .AddLocation(selection)
+            .SpecifiedBy("sec-Stream-Directives-Are-Used-On-List-Fields")
+            .SetPath(context.CreateErrorPath())
+            .Build();
 }

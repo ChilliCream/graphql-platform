@@ -986,7 +986,7 @@ public class ValuesOfCorrectTypeRuleTests
     {
         // arrange
         IDocumentValidatorContext context = ValidationUtils.CreateContext();
-        DocumentNode query = Utf8GraphQLParser.Parse(@"
+        var query = Utf8GraphQLParser.Parse(@"
                 {
                     complicatedArgs {
                         complexArgField(complexArg: {

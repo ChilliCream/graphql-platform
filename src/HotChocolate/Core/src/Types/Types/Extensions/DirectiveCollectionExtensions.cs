@@ -61,7 +61,7 @@ public static class DirectiveCollectionExtensions
 
     internal static bool IsStreamable(this FieldNode field)
     {
-        var directive = field.Directives.GetDeferDirectiveNode();
+        var directive = field.Directives.GetStreamDirectiveNode();
         var ifValue = directive?.GetIfArgumentValueOrDefault();
 
         // a field is not streamable if we do not find a streamable directive or

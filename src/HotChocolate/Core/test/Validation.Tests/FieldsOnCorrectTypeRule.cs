@@ -287,7 +287,7 @@ public class FieldsOnCorrectTypeRuleTests
     public void WrongFieldsOnUnionTypeList()
     {
         // arrange
-        ISchema schema = SchemaBuilder
+        var schema = SchemaBuilder
             .New()
             .AddDocumentFromString(@"
                     type Bar { baz: String }

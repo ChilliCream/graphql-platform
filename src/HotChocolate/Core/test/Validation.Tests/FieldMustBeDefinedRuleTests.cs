@@ -18,10 +18,10 @@ public class FieldMustBeDefinedRuleTests
     public void FieldIsNotDefinedOnTypeInFragment()
     {
         // arrange
-        DocumentValidatorContext context = ValidationUtils.CreateContext();
+        var context = ValidationUtils.CreateContext();
         context.MaxAllowedErrors = int.MaxValue;
 
-        DocumentNode query = Utf8GraphQLParser.Parse(@"
+        var query = Utf8GraphQLParser.Parse(@"
                 query {
                     dog {
                         ... fieldNotDefined
@@ -58,7 +58,7 @@ public class FieldMustBeDefinedRuleTests
     {
         // arrange
         IDocumentValidatorContext context = ValidationUtils.CreateContext();
-        DocumentNode query = Utf8GraphQLParser.Parse(@"
+        var query = Utf8GraphQLParser.Parse(@"
                 query {
                     dog {
                         ... interfaceFieldSelection
@@ -82,10 +82,10 @@ public class FieldMustBeDefinedRuleTests
     public void DefinedOnImplementorsButNotInterfaceOnPet()
     {
         // arrange
-        DocumentValidatorContext context = ValidationUtils.CreateContext();
+        var context = ValidationUtils.CreateContext();
         context.MaxAllowedErrors = int.MaxValue;
 
-        DocumentNode query = Utf8GraphQLParser.Parse(@"
+        var query = Utf8GraphQLParser.Parse(@"
                 query {
                     dog {
                         ... definedOnImplementorsButNotInterface
@@ -114,7 +114,7 @@ public class FieldMustBeDefinedRuleTests
     {
         // arrange
         IDocumentValidatorContext context = ValidationUtils.CreateContext();
-        DocumentNode query = Utf8GraphQLParser.Parse(@"
+        var query = Utf8GraphQLParser.Parse(@"
                 query {
                     dog {
                         ... inDirectFieldSelectionOnUnion
@@ -145,10 +145,10 @@ public class FieldMustBeDefinedRuleTests
     public void DirectFieldSelectionOnUnion()
     {
         // arrange
-        DocumentValidatorContext context = ValidationUtils.CreateContext();
+        var context = ValidationUtils.CreateContext();
         context.MaxAllowedErrors = int.MaxValue;
 
-        DocumentNode query = Utf8GraphQLParser.Parse(@"
+        var query = Utf8GraphQLParser.Parse(@"
                 query {
                     catOrDog {
                         ... directFieldSelectionOnUnion
@@ -178,7 +178,7 @@ public class FieldMustBeDefinedRuleTests
     {
         // arrange
         IDocumentValidatorContext context = ValidationUtils.CreateContext();
-        DocumentNode query = Utf8GraphQLParser.Parse(@"
+        var query = Utf8GraphQLParser.Parse(@"
                 query {
                     dog {
                         ... interfaceFieldSelection
@@ -203,7 +203,7 @@ public class FieldMustBeDefinedRuleTests
     {
         // arrange
         IDocumentValidatorContext context = ValidationUtils.CreateContext();
-        DocumentNode query = Utf8GraphQLParser.Parse(@"
+        var query = Utf8GraphQLParser.Parse(@"
                 query {
                     dog {
                         ... unionFieldSelection
@@ -228,7 +228,7 @@ public class FieldMustBeDefinedRuleTests
     {
         // arrange
         IDocumentValidatorContext context = ValidationUtils.CreateContext();
-        DocumentNode query = Utf8GraphQLParser.Parse(@"
+        var query = Utf8GraphQLParser.Parse(@"
                 query {
                     catOrDog {
                         ... unionFieldSelection

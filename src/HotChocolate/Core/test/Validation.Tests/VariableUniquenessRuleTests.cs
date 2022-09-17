@@ -16,10 +16,10 @@ public class VariableUniquenessRuleTests
     public void OperationWithTwoVariablesThatHaveTheSameName()
     {
         // arrange
-        DocumentValidatorContext context = ValidationUtils.CreateContext();
+        var context = ValidationUtils.CreateContext();
         context.MaxAllowedErrors = int.MaxValue;
 
-        DocumentNode query = Utf8GraphQLParser.Parse(@"
+        var query = Utf8GraphQLParser.Parse(@"
                 query houseTrainedQuery($atOtherHomes: Boolean, $atOtherHomes: Boolean) {
                     dog {
                         isHouseTrained(atOtherHomes: $atOtherHomes)
@@ -45,7 +45,7 @@ public class VariableUniquenessRuleTests
     {
         // arrange
         IDocumentValidatorContext context = ValidationUtils.CreateContext();
-        DocumentNode query = Utf8GraphQLParser.Parse(@"
+        var query = Utf8GraphQLParser.Parse(@"
                 query ($foo: Boolean = true, $bar: Boolean = false) {
                     dog @skip(if: $foo) {
                         isHouseTrained
@@ -69,7 +69,7 @@ public class VariableUniquenessRuleTests
     {
         // arrange
         IDocumentValidatorContext context = ValidationUtils.CreateContext();
-        DocumentNode query = Utf8GraphQLParser.Parse(@"
+        var query = Utf8GraphQLParser.Parse(@"
                 query A($atOtherHomes: Boolean) {
                   ...HouseTrainedFragment
                 }

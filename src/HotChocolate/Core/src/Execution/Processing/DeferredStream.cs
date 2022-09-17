@@ -94,10 +94,12 @@ internal sealed class DeferredStream : DeferredExecutionTask
                 return;
             }
 
+            var item = _task.ChildTask.ParentResult[0].Value!;
+
             var result = operationContext
                 .SetLabel(Label)
                 .SetPath(operationContext.PathFactory.Append(Path, Index))
-                .SetData((ObjectResult)_task.ChildTask.ParentResult[0].Value!)
+                .SetItems(new[] { item })
                 .SetPatchId(patchId)
                 .BuildResultBuilder();
 

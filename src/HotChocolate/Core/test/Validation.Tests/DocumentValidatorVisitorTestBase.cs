@@ -15,7 +15,7 @@ public abstract class DocumentValidatorVisitorTestBase
     {
         var serviceCollection = new ServiceCollection();
 
-        IValidationBuilder builder = serviceCollection
+        var builder = serviceCollection
             .AddValidation()
             .ConfigureValidation(c => c.Modifiers.Add(o => o.Rules.Clear()))
             .ModifyValidationOptions(o => o.MaxAllowedErrors = int.MaxValue);
@@ -41,10 +41,10 @@ public abstract class DocumentValidatorVisitorTestBase
     public void ContextIsNull()
     {
         // arrange
-        DocumentNode query = Utf8GraphQLParser.Parse(@"{ foo }");
+        var query = Utf8GraphQLParser.Parse(@"{ foo }");
 
         // act
-        Action a = () => Rule.Validate(null!, query);
+        var a = () => Rule.Validate(null!, query);
 
         // assert
         Assert.Throws<ArgumentNullException>(a);
@@ -57,7 +57,7 @@ public abstract class DocumentValidatorVisitorTestBase
         IDocumentValidatorContext context = ValidationUtils.CreateContext();
 
         // act
-        Action a = () => Rule.Validate(context, null);
+        var a = () => Rule.Validate(context, null);
 
         // assert
         Assert.Throws<ArgumentNullException>(a);
@@ -69,7 +69,7 @@ public abstract class DocumentValidatorVisitorTestBase
     {
         // arrange
         IDocumentValidatorContext context = ValidationUtils.CreateContext(schema);
-        DocumentNode query = Utf8GraphQLParser.Parse(sourceText);
+        var query = Utf8GraphQLParser.Parse(sourceText);
         context.Prepare(query);
 
         // act
@@ -89,9 +89,9 @@ public abstract class DocumentValidatorVisitorTestBase
         params Action<IError>[] elementInspectors)
     {
         // arrange
-        DocumentValidatorContext context = ValidationUtils.CreateContext(schema);
+        var context = ValidationUtils.CreateContext(schema);
         context.MaxAllowedErrors = int.MaxValue;
-        DocumentNode query = Utf8GraphQLParser.Parse(sourceText);
+        var query = Utf8GraphQLParser.Parse(sourceText);
         context.Prepare(query);
 
         // act
