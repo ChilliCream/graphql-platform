@@ -166,9 +166,13 @@ public sealed partial class OperationCompiler
             // more mutations on the compiled selection variants.
             // after we have executed all optimizers we will seal the selection variants.
             var context = new OperationOptimizerContext(
+                operationId,
+                document,
+                operationDefinition,
                 schema,
                 operationType,
                 variants,
+                _includeConditions,
                 _contextData);
 
             foreach (var item in _selectionVariants)

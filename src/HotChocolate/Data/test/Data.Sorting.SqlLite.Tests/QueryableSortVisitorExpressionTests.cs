@@ -42,10 +42,10 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
             .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "DESC")
-            .AddSqlFrom(res2, "ASC")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "DESC"), res2, "ASC")
             .MatchAsync();
     }
 
@@ -92,10 +92,10 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
             .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1, "ASC")
-            .AddSqlFrom(res2, "DESC")
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
             .MatchAsync();;
     }
 

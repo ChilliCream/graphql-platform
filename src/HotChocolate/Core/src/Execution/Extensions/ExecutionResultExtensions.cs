@@ -49,8 +49,8 @@ public static class ExecutionResultExtensions
         if (result is IQueryResult queryResult)
         {
             return withIndentations
-                ? _formatterIndented.Serialize(queryResult)
-                : _formatter.Serialize(queryResult);
+                ? _formatterIndented.Format(queryResult)
+                : _formatter.Format(queryResult);
         }
 
         throw new NotSupportedException(ExecutionResultExtensions_OnlyQueryResults);

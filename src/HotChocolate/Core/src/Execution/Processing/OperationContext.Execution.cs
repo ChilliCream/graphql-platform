@@ -39,7 +39,7 @@ internal sealed partial class OperationContext
         get
         {
             AssertInitialized();
-            return _resultHelper;
+            return _resultBuilder;
         }
     }
 

@@ -63,9 +63,9 @@ public class QueryableProjectionVisitorTests
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1)
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), res1)
             .MatchAsync();
     }
 

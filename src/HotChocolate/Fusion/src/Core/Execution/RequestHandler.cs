@@ -1,6 +1,8 @@
 using System.Text.Json;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Fusion.Clients;
 using HotChocolate.Language;
+using GraphQLRequest = HotChocolate.Fusion.Clients.GraphQLRequest;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -42,7 +44,7 @@ internal sealed class RequestHandler
     /// </summary>
     public IReadOnlyList<RequiredState> Requires { get; }
 
-    public Request CreateRequest(IReadOnlyDictionary<string, IValueNode> variableValues)
+    public GraphQLRequest CreateRequest(IReadOnlyDictionary<string, IValueNode> variableValues)
     {
         ObjectValueNode? vars = null;
 
@@ -69,10 +71,10 @@ internal sealed class RequestHandler
             vars ??= new ObjectValueNode(fields);
         }
 
-        return new Request(SchemaName, Document, vars, null);
+        return new GraphQLRequest(SchemaName, Document, vars, null);
     }
 
-    public JsonElement UnwrapResult(Response response)
+    public JsonElement UnwrapResult(GraphQLResponse response)
     {
         if (_path.Count == 0)
         {

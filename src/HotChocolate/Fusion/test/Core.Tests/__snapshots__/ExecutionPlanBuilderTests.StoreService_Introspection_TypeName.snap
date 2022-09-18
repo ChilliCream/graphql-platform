@@ -1,0 +1,40 @@
+User Request
+---------------
+query Me {
+  me {
+    name
+    reviews {
+      nodes {
+        product {
+          __typename
+        }
+      }
+    }
+  }
+}
+---------------
+
+Request 1
+---------------
+query Me_1 {
+  me: authorById(id: 1) {
+    reviews {
+      nodes {
+        product {
+          __typename
+        }
+      }
+    }
+    __fusion_exports__1: id
+  }
+}
+---------------
+
+Request 2
+---------------
+query Me_2($__fusion_exports__1: Int!) {
+  user(id: $__fusion_exports__1) {
+    name
+  }
+}
+---------------

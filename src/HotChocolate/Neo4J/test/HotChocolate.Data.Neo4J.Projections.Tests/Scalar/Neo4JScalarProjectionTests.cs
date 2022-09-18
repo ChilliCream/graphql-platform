@@ -36,9 +36,9 @@ public class Neo4JScalarProjectionTest
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1)
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), res1)
             .MatchAsync();
     }
 
@@ -55,9 +55,9 @@ public class Neo4JScalarProjectionTest
                 .Create());
 
         // assert
-        await Snapshot
-            .Create()
-            .AddSqlFrom(res1)
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), res1)
             .MatchAsync();
     }
 }

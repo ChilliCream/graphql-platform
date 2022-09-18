@@ -1,6 +1,7 @@
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Execution.Serialization;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Utilities;
@@ -18,6 +19,7 @@ public class RemoteQueryExecutorTests
     [Fact]
     public async Task Do()
     {
+        // arrange
         using var server1 = _testServerFactory.Create(
             s => s
                 .AddRouting()
@@ -37,90 +39,6 @@ public class RemoteQueryExecutorTests
             c => c
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL()));
-
-        // arrange
-        const string sdl = @"
-            type Query {
-                personById(id: ID!) : Person
-            }
-
-            type Person {
-                id: ID!
-                name: String!
-                bio: String
-                friends: [Person!]
-            }";
-
-        const string serviceDefinition = @"
-            type Query {
-              personById(id: ID!): Person
-                @variable(name: ""personId"", argument: ""id"")
-                @fetch(from: ""a"", select: ""personById(id: $personId) { ... Person }"")
-                @fetch(from: ""b"", select: ""personById(id: $personId) { ... Person }"")
-            }
-
-            type Person
-              @variable(name: ""personId"", select: ""id"" from: ""a"" type: ""Int!"")
-              @variable(name: ""personId"", select: ""id"" from: ""b"" type: ""Int!"")
-              @fetch(from: ""a"", select: ""personById(id: $personId) { ... Person }"")
-              @fetch(from: ""b"", select: ""personById(id: $personId) { ... Person }"") {
-
-              id: ID!
-                @bind(to: ""a"")
-                @bind(to: ""b"")
-                @bind(to: ""c"")
-              name: String!
-                @bind(to: ""a"")
-              bio: String
-                @bind(to: ""b"")
-
-              friends: [Person!]
-                @bind(to: ""a"")
-            }
-
-            schema
-              @httpClient(name: ""a"" baseAddress: ""https://a/graphql"")
-              @httpClient(name: ""b"" baseAddress: ""https://b/graphql"") {
-              query: Query
-            }";
-
-        var schema = await new ServiceCollection()
-            .AddGraphQL()
-            .AddDocumentFromString(sdl)
-            .UseField(n => n)
-            .BuildSchemaAsync();
-
-        var serviceConfig = Metadata.ServiceConfiguration.Load(serviceDefinition);
-
-        var request =
-            Parse(
-                @"query GetPersonById {
-                    personById(id: 4) {
-                        name
-                        friends {
-                            name
-                            bio
-                        }
-                    }
-                }");
-
-        var operationCompiler = new OperationCompiler(new());
-        var operation = operationCompiler.Compile(
-            "abc",
-            (OperationDefinitionNode)request.Definitions.First(),
-            schema.QueryType,
-            request,
-            schema);
-
-        // act
-        var queryPlanContext = new QueryPlanContext(operation);
-        var requestPlaner = new RequestPlaner(serviceConfig);
-        var requirementsPlaner = new RequirementsPlaner();
-        var executionPlanBuilder = new ExecutionPlanBuilder(serviceConfig, schema);
-
-        requestPlaner.Plan(queryPlanContext);
-        requirementsPlaner.Plan(queryPlanContext);
-        var queryPlan = executionPlanBuilder.Build(queryPlanContext);
 
         var clients = new Dictionary<string, Func<HttpClient>>
         {
@@ -146,24 +64,61 @@ public class RemoteQueryExecutorTests
 
         var clientFactory = new MockHttpClientFactory(clients);
 
-        var executor1 = new HttpRequestExecutor("a", clientFactory);
-        var executor2 = new HttpRequestExecutor("b", clientFactory);
+        const string serviceConfiguration = @"
+            type Query {
+              personById(id: ID!): Person
+                @variable(name: ""personId"", argument: ""id"")
+                @fetch(schema: ""a"", select: ""personById(id: $personId) { ... Person }"")
+                @fetch(schema: ""b"", select: ""personById(id: $personId) { ... Person }"")
+            }
 
-        var executorFactory = new RemoteRequestExecutorFactory(new[] { executor1, executor2 });
+            type Person
+              @variable(name: ""personId"", select: ""id"" schema: ""a"" type: ""Int!"")
+              @variable(name: ""personId"", select: ""id"" schema: ""b"" type: ""Int!"")
+              @fetch(schema: ""a"", select: ""personById(id: $personId) { ... Person }"")
+              @fetch(schema: ""b"", select: ""personById(id: $personId) { ... Person }"") {
 
-        var executor = new RemoteQueryExecutor2(serviceConfig, executorFactory);
-        var context = new RemoteExecutorContext(
-            schema,
-            new ResultBuilder(
-                new ResultPool(
-                    new ObjectResultPool(32, 32),
-                    new ListResultPool(32, 32))),
-            operation,
-            queryPlan,
-            new HashSet<ISelectionSet>(queryPlan.ExecutionNodes.OfType<RequestNode>().Select(t => t.Handler.SelectionSet)));
+              id: ID!
+                @source(schema: ""a"")
+                @source(schema: ""b"")
+                @source(schema: ""c"")
+              name: String!
+                @source(schema: ""a"")
+              bio: String
+                @source(schema: ""b"")
 
+              friends: [Person!]
+                @source(schema: ""a"")
+            }
 
-        var result = await executor.ExecuteAsync(context);
+            schema
+              @httpClient(schema: ""a"" baseAddress: ""https://a/graphql"")
+              @httpClient(schema: ""b"" baseAddress: ""https://b/graphql"") {
+              query: Query
+            }";
+
+        var request = Parse(
+            @"query GetPersonById {
+                personById(id: 4) {
+                    name
+                    friends {
+                        name
+                        bio
+                    }
+                }
+            }");
+
+         var executor = await new ServiceCollection()
+            .AddSingleton<IHttpClientFactory>(clientFactory)
+            .AddFusionGatewayServer(serviceConfiguration)
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .Create());
 
         // assert
         var index = 0;
@@ -172,15 +127,20 @@ public class RemoteQueryExecutorTests
 
         snapshot.Add(request, "User Request");
 
-        foreach (var executionNode in queryPlan.ExecutionNodes)
+        if (result.ContextData is not null &&
+            result.ContextData.TryGetValue("queryPlan", out var value) &&
+            value is QueryPlan queryPlan)
         {
-            if (executionNode is RequestNode rn)
+            foreach (var executionNode in queryPlan.ExecutionNodes)
             {
-                snapshot.Add(rn.Handler.Document, $"Request {++index}");
+                if (executionNode is RequestNode rn)
+                {
+                    snapshot.Add(rn.Handler.Document, $"Request {++index}");
+                }
             }
         }
 
-        snapshot.Add(formatter.Format(result), "Result");
+        snapshot.Add(formatter.Format((QueryResult)result), "Result");
 
         await snapshot.MatchAsync();
     }
