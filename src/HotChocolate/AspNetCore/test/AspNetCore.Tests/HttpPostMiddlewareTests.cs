@@ -240,6 +240,9 @@ public class HttpPostMiddlewareTests : ServerTestBase
             {
                 Query = @"
                     {
+                        ... @defer {
+                            wait(m: 300)
+                        }
                         hero(episode: NEW_HOPE)
                         {
                             name
@@ -271,6 +274,9 @@ public class HttpPostMiddlewareTests : ServerTestBase
         {
             Query = @"
                 {
+                    ... @defer {
+                        wait(m: 300)
+                    }
                     hero(episode: NEW_HOPE)
                     {
                         name
@@ -304,6 +310,9 @@ public class HttpPostMiddlewareTests : ServerTestBase
         {
             Query = @"
                 {
+                    ... @defer {
+                        wait(m: 300)
+                    }
                     hero(episode: NEW_HOPE)
                     {
                         name
@@ -332,6 +341,9 @@ public class HttpPostMiddlewareTests : ServerTestBase
             {
                 Query = @"
                     {
+                        ... @defer {
+                            wait(m: 300)
+                        }
                         hero(episode: NEW_HOPE)
                         {
                             name
@@ -359,6 +371,9 @@ public class HttpPostMiddlewareTests : ServerTestBase
             {
                 Query = @"
                     query ($if: Boolean!){
+                        ... @defer {
+                            wait(m: 300)
+                        }
                         hero(episode: NEW_HOPE)
                         {
                             name
@@ -421,6 +436,9 @@ public class HttpPostMiddlewareTests : ServerTestBase
             {
                 Query = @"
                     {
+                        ... @defer {
+                            wait(m: 300)
+                        }
                         hero(episode: NEW_HOPE)
                         {
                             name

@@ -1,41 +1,30 @@
-﻿{
-  "data": {
-    "persons": []
-  },
+{
+  "data": {},
   "hasNext": true
 }
-
 {
   "incremental": [
     {
       "data": {
-        "name": "Foo"
+        "person": {
+          "id": "UGVyc29uCmkx"
+        }
       },
-      "path": [
-        "persons",
-        0
-      ]
+      "path": []
     }
   ],
   "hasNext": true
 }
-
 {
   "incremental": [
     {
       "data": {
-        "name": "Bar"
+        "name": "Pascal"
       },
       "path": [
-        "persons",
-        1
+        "person"
       ]
     }
   ],
-  "hasNext": true
-}
-
-{
   "hasNext": false
 }
-

@@ -15,4 +15,5 @@ type Query {
   droid(id: String): Droid
   time: Long!
   evict: Boolean!
+  wait(m: Int!): Boolean!
 }

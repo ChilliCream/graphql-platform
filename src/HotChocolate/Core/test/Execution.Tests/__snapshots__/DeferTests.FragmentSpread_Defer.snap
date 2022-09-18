@@ -6,9 +6,8 @@
   "incremental": [
     {
       "data": {
-        "hero": {
-          "id": "2001",
-          "name": "R2-D2"
+        "person": {
+          "id": "UGVyc29uCmkx"
         }
       },
       "path": []

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using static HotChocolate.WellKnownContextData;
@@ -19,14 +20,18 @@ internal sealed class DeferredWorkState
     private SemaphoreSlim _semaphore = new(0);
     private uint _taskId;
     private uint _delivered;
+    private uint _work;
     private uint _patchId;
 
     public bool HasResults => _taskId > 0;
+
+    public bool IsCompleted => _work is 0;
 
     public uint CreateId()
     {
         lock (_deliverSync)
         {
+            _work++;
             return ++_taskId;
         }
     }
@@ -51,55 +56,72 @@ internal sealed class DeferredWorkState
 
     public void Complete(DeferredExecutionTaskResult result)
     {
-        lock (_completeSync)
+        var update = true;
+
+        try
         {
-            if (result.ParentTaskId is 0 || _completed.Contains(result.ParentTaskId))
+            lock (_completeSync)
             {
-                _completed.Add(result.TaskId);
-                EnqueueResult(result.Result);
-
-                var evaluateDeferredResults = _ready.Count > 0;
-
-                while (evaluateDeferredResults)
+                if (result.ParentTaskId is 0 || _completed.Contains(result.ParentTaskId))
                 {
-                    var i = 0;
-                    evaluateDeferredResults = false;
+                    _completed.Add(result.TaskId);
+                    EnqueueResult(result.Result);
 
-                    while (_ready.Count > 0 && i < _ready.Count)
+                    var evaluateDeferredResults = _ready.Count > 0;
+
+                    while (evaluateDeferredResults)
                     {
-                        var current = _ready[i];
+                        var i = 0;
+                        evaluateDeferredResults = false;
 
-                        if (_completed.Contains(current.ParentTaskId))
+                        while (_ready.Count > 0 && i < _ready.Count)
                         {
-                            _completed.Add(current.TaskId);
-                            _ready.RemoveAt(i);
-                            EnqueueResult(current.Result);
-                            evaluateDeferredResults = true;
-                        }
-                        else
-                        {
-                            i++;
+                            var current = _ready[i];
+
+                            if (_completed.Contains(current.ParentTaskId))
+                            {
+                                _completed.Add(current.TaskId);
+                                _ready.RemoveAt(i);
+                                EnqueueResult(current.Result);
+                                evaluateDeferredResults = true;
+                            }
+                            else
+                            {
+                                i++;
+                            }
                         }
                     }
                 }
+                else
+                {
+                    _ready.Add(result);
+                    update = false;
+                }
             }
-            else
+        }
+        finally
+        {
+            if (update)
             {
-                _ready.Add(result);
+                _semaphore.Release();
             }
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void EnqueueResult(IQueryResult? queryResult)
     {
-        if (queryResult is not null)
+        lock (_deliverSync)
         {
-            lock (_deliverSync)
+            if (queryResult is not null)
             {
                 _deliverable.Enqueue(queryResult);
             }
+            else
+            {
+                _work--;
+            }
         }
-        _semaphore.Release();
     }
 
     public async ValueTask<IQueryResult?> TryDequeueResultsAsync(
@@ -119,7 +141,7 @@ internal sealed class DeferredWorkState
                 {
                     var deliverable = _deliverable.Dequeue();
 
-                    if (++_delivered == _taskId)
+                    if (--_work is 0)
                     {
                         _semaphore.Release();
                         hasNext = false;
@@ -191,6 +213,7 @@ internal sealed class DeferredWorkState
         _deliverable.Clear();
         _taskId = 0;
         _delivered = 0;
+        _work = 0;
         _patchId = 0;
     }
 }

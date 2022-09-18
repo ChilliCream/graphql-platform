@@ -129,7 +129,7 @@ internal sealed class DeferredWorkScheduler : IDeferredWorkScheduler
                         hasNext = result.HasNext ?? false;
                         yield return result;
                     }
-                    else
+                    else if (_stateOwner.State.IsCompleted)
                     {
                         if (hasNext)
                         {

@@ -32,6 +32,19 @@ public class QueryResultBuilderTests
     }
 
     [Fact]
+    public void Create_Result_Set_Items()
+    {
+        // arrange
+        var builder = new QueryResultBuilder();
+
+        // act
+        builder.SetItems(new List<object> { 1 });
+
+        // assert
+        builder.Create().MatchSnapshot();
+    }
+
+    [Fact]
     public void ExpectQueryResult()
     {
         // arrange
