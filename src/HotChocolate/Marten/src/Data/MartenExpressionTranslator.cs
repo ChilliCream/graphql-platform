@@ -7,21 +7,15 @@ public static class MartenExpressionTranslator
     public static Expression TranslateFilterExpression(Expression filterExpression)
     {
         if (filterExpression is BinaryExpression
-                {
-                    NodeType: ExpressionType.AndAlso,
-                    Left: BinaryExpression leftBinaryExpression,
-                    Right: BinaryExpression rightBinaryExpression
-                })
+            {
+                NodeType: ExpressionType.AndAlso,
+                Left: BinaryExpression leftBinaryExpression,
+                Right: { } rightExpression
+            })
         {
-            if (ReferenceComparisonExpressionShouldBeRemoved(leftBinaryExpression)
-                && rightBinaryExpression.Left is MemberExpression)
+            if (ReferenceComparisonExpressionShouldBeRemoved(leftBinaryExpression))
             {
-                return rightBinaryExpression;
-            }
-            else if (ReferenceComparisonExpressionShouldBeRemoved(rightBinaryExpression)
-                     && leftBinaryExpression.Left is MemberExpression)
-            {
-                return leftBinaryExpression;
+                return rightExpression;
             }
         }
         return filterExpression;
@@ -31,6 +25,7 @@ public static class MartenExpressionTranslator
     {
         return expression.NodeType == ExpressionType.NotEqual
                && expression.Method == null
+               && expression.Left.NodeType != ExpressionType.MemberAccess
                && !expression.Left.Type.IsValueType && !expression.Right.Type.IsValueType;
     }
 
