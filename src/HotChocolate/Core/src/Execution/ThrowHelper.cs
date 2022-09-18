@@ -66,18 +66,6 @@ internal static class ThrowHelper
         return new GraphQLException(errorBuilder.Build());
     }
 
-    public static GraphQLException MissingIfArgument(
-        DirectiveNode directive)
-    {
-        return new(
-            ErrorBuilder.New()
-                .SetMessage(
-                    ThrowHelper_MissingDirectiveIfArgument,
-                    directive.Name.Value)
-                .AddLocation(directive)
-                .Build());
-    }
-
     public static GraphQLException FieldDoesNotExistOnType(
         FieldNode selection, string typeName)
     {

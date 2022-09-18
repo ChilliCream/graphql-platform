@@ -23,6 +23,7 @@ internal sealed partial class ResultBuilder
 
     private ResultMemoryOwner _resultOwner = default!;
     private ObjectResult? _data;
+    private IReadOnlyList<object?>? _items;
     private Path? _path;
     private string? _label;
     private bool? _hasNext;
@@ -30,7 +31,26 @@ internal sealed partial class ResultBuilder
     public IReadOnlyList<IError> Errors => _errors;
 
     public void SetData(ObjectResult data)
-        => _data = data;
+    {
+        if (_items is not null)
+        {
+            throw new InvalidOperationException(
+                Resources.ResultBuilder_DataAndItemsNotAllowed);
+        }
+
+        _data = data;
+    }
+
+    public void SetItems(IReadOnlyList<object?> items)
+    {
+        if (_data is not null)
+        {
+            throw new InvalidOperationException(
+                Resources.ResultBuilder_DataAndItemsNotAllowed);
+        }
+
+        _items = items;
+    }
 
     public void SetExtension(string key, object? value)
     {
@@ -127,7 +147,7 @@ internal sealed partial class ResultBuilder
             _resultOwner.Dispose();
         }
 
-        if (_data is null && _errors.Count == 0 && _hasNext is not false)
+        if (_data is null && _items is null && _errors.Count == 0 && _hasNext is not false)
         {
             throw new InvalidOperationException(
                 Resources.ResultHelper_BuildResult_InvalidResult);
@@ -150,17 +170,19 @@ internal sealed partial class ResultBuilder
             _contextData.Add(WellKnownContextData.ExpectedPatches, _patchIds.ToArray());
         }
 
-        var result = new QueryResult
-        (
+        var result = new QueryResult(
             _data,
-            _errors.Count == 0 ? null : new List<IError>(_errors),
+            _errors.Count == 0
+                ? null
+                : new List<IError>(_errors),
             CreateExtensionData(_extensions),
             CreateExtensionData(_contextData),
-            null,
-            _label,
-            _path,
-            _hasNext,
-            _cleanupTasks.Count > 0
+            incremental: null,
+            items: _items,
+            label: _label,
+            path: _path,
+            hasNext: _hasNext,
+            cleanupTasks: _cleanupTasks.Count > 0
                 ? _cleanupTasks.ToArray()
                 : Array.Empty<Func<ValueTask>>()
         );
@@ -171,50 +193,6 @@ internal sealed partial class ResultBuilder
         }
 
         return result;
-    }
-
-    public IQueryResultBuilder BuildResultBuilder()
-    {
-        if (!ApplyNonNullViolations(_errors, _nonNullViolations, _fieldErrors))
-        {
-            // The non-null violation cased the whole result being deleted.
-            _data = null;
-            _resultOwner.Dispose();
-        }
-
-        if (_data is null && _errors.Count == 0 && _hasNext is not false)
-        {
-            throw new InvalidOperationException(
-                Resources.ResultHelper_BuildResult_InvalidResult);
-        }
-
-        var builder = QueryResultBuilder.New();
-
-        builder.SetData(_data);
-
-        if (_errors.Count > 0)
-        {
-            _errors.Sort(ErrorComparer.Default);
-            builder.AddErrors(_errors);
-        }
-
-        _removedResults.Remove(0);
-        if (_removedResults.Count > 0)
-        {
-            _contextData.Add(WellKnownContextData.RemovedResults, _removedResults.ToArray());
-        }
-
-        builder.SetExtensions(CreateExtensionData(_extensions));
-        builder.SetContextData(CreateExtensionData(_contextData));
-        builder.SetLabel(_label);
-        builder.SetPath(_path);
-
-        if (_data is not null)
-        {
-            builder.RegisterForCleanup(_resultOwner);
-        }
-
-        return builder;
     }
 
     private static IReadOnlyDictionary<string, object?>? CreateExtensionData(

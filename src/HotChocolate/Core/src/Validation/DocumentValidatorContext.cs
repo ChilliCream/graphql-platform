@@ -34,6 +34,8 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
         }
     }
 
+    public OperationType? OperationType { get; set; }
+
     public IOutputType NonNullString
     {
         get

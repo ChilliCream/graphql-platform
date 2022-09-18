@@ -16,4 +16,10 @@ public class QueryExtension
         executorResolver.EvictRequestExecutor(schema.Name);
         return true;
     }
+
+    public async Task<bool> Wait(int m, CancellationToken ct)
+    {
+        await Task.Delay(m, ct);
+        return true;
+    }
 }

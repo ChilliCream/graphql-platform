@@ -16,7 +16,7 @@ internal interface IDeferredWorkScheduler
     /// Registers deferred work
     /// </summary>
     /// <param name="task"></param>
-    /// <param name="deferId"></param>
+    /// <param name="parentResult"></param>
     void Register(DeferredExecutionTask task, ResultData parentResult);
 
     void Register(DeferredExecutionTask task, uint patchId);
@@ -31,7 +31,7 @@ internal readonly struct DeferredExecutionTaskResult
     public DeferredExecutionTaskResult(
         uint taskId,
         uint parentTaskId,
-        IQueryResultBuilder? result = null)
+        IQueryResult? result = null)
     {
         TaskId = taskId;
         ParentTaskId = parentTaskId;
@@ -42,5 +42,5 @@ internal readonly struct DeferredExecutionTaskResult
 
     public  uint ParentTaskId { get; }
 
-    public IQueryResultBuilder? Result { get; }
+    public IQueryResult? Result { get; }
 }

@@ -1,0 +1,84 @@
+﻿[
+  {
+    "Message": "The defer and stream directives are not allowed to be used on root fields of the mutation or subscription type.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 10,
+        "Column": 17
+      }
+    ],
+    "Extensions": {
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Defer-And-Stream-Directives-Are-Used-On-Valid-Root-Field"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "InlineFragment",
+      "Location": {
+        "Start": 187,
+        "End": 277,
+        "Line": 10,
+        "Column": 17
+      },
+      "TypeCondition": null,
+      "Directives": [
+        {
+          "Kind": "Directive",
+          "Location": {
+            "Start": 191,
+            "End": 199,
+            "Line": 10,
+            "Column": 21
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 192,
+              "End": 199,
+              "Line": 10,
+              "Column": 22
+            },
+            "Value": "defer"
+          },
+          "Arguments": []
+        }
+      ],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 198,
+          "End": 277,
+          "Line": 10,
+          "Column": 28
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "Required": null,
+            "SelectionSet": null,
+            "Location": {
+              "Start": 220,
+              "End": 263,
+              "Line": 11,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 220,
+                "End": 263,
+                "Line": 11,
+                "Column": 21
+              },
+              "Value": "disallowedSecondRootField"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
+  }
+]

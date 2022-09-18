@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Utilities;
-using static HotChocolate.Execution.Serialization.JsonConstants;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Serialization;
@@ -19,7 +18,7 @@ namespace HotChocolate.Execution.Serialization;
 /// <summary>
 /// The default JSON formatter for <see cref="IQueryResult"/>.
 /// </summary>
-public sealed class JsonResultFormatter : IQueryResultFormatter, IExecutionResultFormatter
+public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecutionResultFormatter
 {
     private readonly JsonWriterOptions _options;
 
@@ -229,6 +228,7 @@ public sealed class JsonResultFormatter : IQueryResultFormatter, IExecutionResul
 
         WriteErrors(writer, result.Errors);
         WriteData(writer, result.Data);
+        WriteItems(writer, result.Items);
         WriteIncremental(writer, result.Incremental);
         WriteExtensions(writer, result.Extensions);
         WritePatchInfo(writer, result);
@@ -281,11 +281,28 @@ public sealed class JsonResultFormatter : IQueryResultFormatter, IExecutionResul
         }
     }
 
+    private void WriteItems(Utf8JsonWriter writer, IReadOnlyList<object?>? items)
+    {
+        if (items is { Count: > 0 })
+        {
+            writer.WritePropertyName(Items);
+
+            writer.WriteStartArray();
+
+            for (var i = 0; i < items.Count; i++)
+            {
+                WriteFieldValue(writer, items[i]);
+            }
+
+            writer.WriteEndArray();
+        }
+    }
+
     private void WriteErrors(Utf8JsonWriter writer, IReadOnlyList<IError>? errors)
     {
         if (errors is { Count: > 0 })
         {
-            writer.WritePropertyName(JsonConstants.Errors);
+            writer.WritePropertyName(Errors);
 
             writer.WriteStartArray();
 
@@ -340,7 +357,7 @@ public sealed class JsonResultFormatter : IQueryResultFormatter, IExecutionResul
     {
         if (path is not null)
         {
-            writer.WritePropertyName(JsonConstants.Path);
+            writer.WritePropertyName(Path);
             WritePathValue(writer, path);
         }
     }

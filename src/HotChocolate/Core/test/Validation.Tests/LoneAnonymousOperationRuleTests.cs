@@ -1,32 +1,32 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HotChocolate.Validation
-{
-    public class LoneAnonymousOperationRuleTests
-        : DocumentValidatorVisitorTestBase
-    {
-        public LoneAnonymousOperationRuleTests()
-            : base(builder => builder.AddOperationRules())
-        {
-        }
+namespace HotChocolate.Validation;
 
-        [Fact]
-        public void QueryContainsOneAnonymousOperation()
-        {
-            ExpectValid(@"
+public class LoneAnonymousOperationRuleTests
+    : DocumentValidatorVisitorTestBase
+{
+    public LoneAnonymousOperationRuleTests()
+        : base(builder => builder.AddOperationRules())
+    {
+    }
+
+    [Fact]
+    public void QueryContainsOneAnonymousOperation()
+    {
+        ExpectValid(@"
                 {
                     dog {
                         name
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void QueryWithOneAnonymousAndOneNamedOperation()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void QueryWithOneAnonymousAndOneNamedOperation()
+    {
+        ExpectErrors(@"
                 {
                     dog {
                         name
@@ -45,12 +45,12 @@ namespace HotChocolate.Validation
                 "GraphQL allows a short‐hand form for defining query " +
                 "operations when only that one operation exists in the " +
                 "document.", t.Message));
-        }
+    }
 
-        [Fact]
-        public void QueryWithTwoAnonymousOperations()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void QueryWithTwoAnonymousOperations()
+    {
+        ExpectErrors(@"
                 {
                     dog {
                         name
@@ -67,12 +67,12 @@ namespace HotChocolate.Validation
                 "GraphQL allows a short‐hand form for defining query " +
                 "operations when only that one operation exists in the " +
                 "document.", t.Message));
-        }
+    }
 
-        [Fact]
-        public void MultipleNamedOperations()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void MultipleNamedOperations()
+    {
+        ExpectValid(@"
                 query Foo {
                     dog {
                         name
@@ -84,12 +84,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void AnonymousOperationWithFragment()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void AnonymousOperationWithFragment()
+    {
+        ExpectValid(@"
                 {
                     ...Foo
                 }
@@ -99,12 +99,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void AnonymousOperationWithAMutation()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void AnonymousOperationWithAMutation()
+    {
+        ExpectErrors(@"
                 {
                     dog {
                         name
@@ -114,12 +114,12 @@ namespace HotChocolate.Validation
                     fieldB
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void AnonymousOperationWithASubscription()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void AnonymousOperationWithASubscription()
+    {
+        ExpectErrors(@"
                 {
                     dog {
                         name
@@ -129,6 +129,5 @@ namespace HotChocolate.Validation
                     newMessage
                 }
             ");
-        }
     }
 }

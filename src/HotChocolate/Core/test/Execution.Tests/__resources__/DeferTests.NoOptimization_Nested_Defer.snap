@@ -31,17 +31,6 @@
     },
     {
       "data": {
-        "name": "Luke Skywalker"
-      },
-      "path": [
-        "hero",
-        "friends",
-        "nodes",
-        0
-      ]
-    },
-    {
-      "data": {
         "name": "Leia Organa"
       },
       "path": [
@@ -60,6 +49,17 @@
         "friends",
         "nodes",
         1
+      ]
+    },
+    {
+      "data": {
+        "name": "Luke Skywalker"
+      },
+      "path": [
+        "hero",
+        "friends",
+        "nodes",
+        0
       ]
     }
   ],

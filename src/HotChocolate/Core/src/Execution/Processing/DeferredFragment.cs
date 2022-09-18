@@ -82,7 +82,7 @@ internal sealed class DeferredFragment : DeferredExecutionTask
                     .SetPath(Path)
                     .SetData(parentResult)
                     .SetPatchId(patchId)
-                    .BuildResultBuilder();
+                    .BuildResult();
 
             // complete the task and provide the result
             operationContext.DeferredScheduler.Complete(new(resultId, parentResultId, result));

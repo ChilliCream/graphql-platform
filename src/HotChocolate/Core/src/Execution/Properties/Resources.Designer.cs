@@ -45,12 +45,6 @@ namespace HotChocolate.Execution.Properties {
             }
         }
         
-        internal static string ThrowHelper_MissingDirectiveIfArgument {
-            get {
-                return ResourceManager.GetString("ThrowHelper_MissingDirectiveIfArgument", resourceCulture);
-            }
-        }
-        
         internal static string ThrowHelper_FieldDoesNotExistOnType {
             get {
                 return ResourceManager.GetString("ThrowHelper_FieldDoesNotExistOnType", resourceCulture);
@@ -426,6 +420,12 @@ namespace HotChocolate.Execution.Properties {
         internal static string ThrowHelper_JsonFormatter_ResultNotSupported {
             get {
                 return ResourceManager.GetString("ThrowHelper_JsonFormatter_ResultNotSupported", resourceCulture);
+            }
+        }
+        
+        internal static string ResultBuilder_DataAndItemsNotAllowed {
+            get {
+                return ResourceManager.GetString("ResultBuilder_DataAndItemsNotAllowed", resourceCulture);
             }
         }
     }
