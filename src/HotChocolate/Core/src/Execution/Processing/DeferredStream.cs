@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -101,7 +102,7 @@ internal sealed class DeferredStream : DeferredExecutionTask
                 .SetPath(operationContext.PathFactory.Append(Path, Index))
                 .SetItems(new[] { item })
                 .SetPatchId(patchId)
-                .BuildResultBuilder();
+                .BuildResult();
 
             await _task.ChildTask.CompleteUnsafeAsync().ConfigureAwait(false);
 
@@ -109,8 +110,11 @@ internal sealed class DeferredStream : DeferredExecutionTask
             operationContext.DeferredScheduler.Register(this, patchId);
             operationContext.DeferredScheduler.Complete(new(resultId, parentResultId, result));
         }
-        catch
+        catch(Exception ex)
         {
+            var builder = operationContext.ErrorHandler.CreateUnexpectedError(ex);
+            var result = QueryResultBuilder.CreateError(builder.Build());
+            operationContext.DeferredScheduler.Complete(new(resultId, parentResultId, result));
             error = true;
         }
         finally

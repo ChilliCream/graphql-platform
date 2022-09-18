@@ -140,8 +140,4 @@ internal static class OperationContextExtensions
     public static IQueryResult BuildResult(
         this OperationContext context) =>
         context.Result.BuildResult();
-
-    public static IQueryResultBuilder BuildResultBuilder(
-        this OperationContext context) =>
-        context.Result.BuildResultBuilder();
 }

@@ -168,10 +168,7 @@ public sealed partial class MultiPartResultFormatter : IExecutionResultFormatter
         Stream outputStream,
         CancellationToken ct = default)
     {
-        // first we write a leading CRLF
-        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
-
-        // Before each part of the multi-part response, a boundary (---, CRLF)
+        // Before each part of the multi-part response, a boundary (CRLF, ---, CRLF)
         // is sent.
         await WriteNextAsync(outputStream, ct).ConfigureAwait(false);
 
@@ -179,9 +176,6 @@ public sealed partial class MultiPartResultFormatter : IExecutionResultFormatter
         {
             // Now we can write the header and body of the part.
             await WriteResultAsync(queryResult, outputStream, ct).ConfigureAwait(false);
-
-            // after each result we write a CRLF signaling the next or final part.
-            await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
         }
         finally
         {

@@ -13,7 +13,7 @@ internal sealed class DeferredWorkState
     private readonly object _patchSync = new();
 
     private readonly List<DeferredExecutionTaskResult> _ready = new();
-    private readonly Queue<IQueryResultBuilder> _deliverable = new();
+    private readonly Queue<IQueryResult> _deliverable = new();
     private readonly HashSet<uint> _completed = new();
     private readonly HashSet<uint> _notPatchable = new();
     private SemaphoreSlim _semaphore = new(0);
@@ -90,7 +90,7 @@ internal sealed class DeferredWorkState
         }
     }
 
-    private void EnqueueResult(IQueryResultBuilder? queryResult)
+    private void EnqueueResult(IQueryResult? queryResult)
     {
         if (queryResult is not null)
         {
@@ -117,15 +117,13 @@ internal sealed class DeferredWorkState
 
                 for (var i = 0; i < result.Length; i++)
                 {
-                    var builder = _deliverable.Dequeue();
+                    var deliverable = _deliverable.Dequeue();
 
                     if (++_delivered == _taskId)
                     {
                         _semaphore.Release();
                         hasNext = false;
                     }
-
-                    var deliverable = builder.Create();
 
                     // if the deferred result can still be patched into the result set from which
                     // it was being spawned of we will add it to the result batch.

@@ -385,7 +385,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
 
     /// <summary>
     /// This request specifies the */* accept header.
-    /// expected response content-type: application/graphql-response+json; charset=utf-8
+    /// expected response content-type: application/json; charset=utf-8
     /// expected status code: 200
     /// </summary>
     [Fact]
@@ -412,14 +412,14 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         using var response = await client.SendAsync(request);
 
         // assert
-        // expected response content-type: application/graphql-response+json; charset=utf-8
+        // expected response content-type: application/json; charset=utf-8
         // expected status code: 200
         Snapshot
             .Create()
             .Add(response)
             .MatchInline(
                 @"Headers:
-                Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Type: application/json; charset=utf-8
                 -------------------------->
                 Status Code: OK
                 -------------------------->
@@ -862,7 +862,8 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 Status Code: OK
                 -------------------------->
                 {""event"":""next"",""data"":{""data"":{},""hasNext"":true}}
-                {""event"":""next"",""data"":{""path"":[],""data"":{""__typename"":""Query""},""hasNext"":false}}
+                {""event"":""next"",""data"":{""incremental"":[{""data"":{" +
+                @"""__typename"":""Query""},""path"":[]}],""hasNext"":false}}
                 {""event"":""complete""}
                 ");
     }

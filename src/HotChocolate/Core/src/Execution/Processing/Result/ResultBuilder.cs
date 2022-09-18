@@ -147,7 +147,7 @@ internal sealed partial class ResultBuilder
             _resultOwner.Dispose();
         }
 
-        if (_data is null && _errors.Count == 0 && _hasNext is not false)
+        if (_data is null && _items is null && _errors.Count == 0 && _hasNext is not false)
         {
             throw new InvalidOperationException(
                 Resources.ResultHelper_BuildResult_InvalidResult);
@@ -193,55 +193,6 @@ internal sealed partial class ResultBuilder
         }
 
         return result;
-    }
-
-    public IQueryResultBuilder BuildResultBuilder()
-    {
-        if (!ApplyNonNullViolations(_errors, _nonNullViolations, _fieldErrors))
-        {
-            // The non-null violation cased the whole result being deleted.
-            _data = null;
-            _resultOwner.Dispose();
-        }
-
-        if (_data is null && _errors.Count == 0 && _hasNext is not false)
-        {
-            throw new InvalidOperationException(
-                Resources.ResultHelper_BuildResult_InvalidResult);
-        }
-
-        var builder = QueryResultBuilder.New();
-
-        builder.SetData(_data);
-
-        if (_items is not null)
-        {
-            builder.SetItems(_items);
-        }
-
-        if (_errors.Count > 0)
-        {
-            _errors.Sort(ErrorComparer.Default);
-            builder.AddErrors(_errors);
-        }
-
-        _removedResults.Remove(0);
-        if (_removedResults.Count > 0)
-        {
-            _contextData.Add(WellKnownContextData.RemovedResults, _removedResults.ToArray());
-        }
-
-        builder.SetExtensions(CreateExtensionData(_extensions));
-        builder.SetContextData(CreateExtensionData(_contextData));
-        builder.SetLabel(_label);
-        builder.SetPath(_path);
-
-        if (_data is not null)
-        {
-            builder.RegisterForCleanup(_resultOwner);
-        }
-
-        return builder;
     }
 
     private static IReadOnlyDictionary<string, object?>? CreateExtensionData(

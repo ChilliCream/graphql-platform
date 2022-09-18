@@ -9,7 +9,6 @@ using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Execution;
 
@@ -25,21 +24,20 @@ public class StreamTests
                 .AddStarWarsTypes()
                 .ExecuteRequestAsync(
                     @"{
-                            hero(episode: NEW_HOPE) {
-                                id
-                                ... @defer(label: ""friends"") {
-                                    friends {
-                                        nodes @stream(initialCount: 1) {
-                                            id
-                                            name
-                                        }
+                        hero(episode: NEW_HOPE) {
+                            id
+                            ... @defer(label: ""friends"") {
+                                friends {
+                                    nodes @stream(initialCount: 1) {
+                                        id
+                                        name
                                     }
                                 }
                             }
-                        }");
+                        }
+                    }");
 
-        IResponseStream stream = Assert.IsType<ResponseStream>(result);
-
+        var stream = Assert.IsType<ResponseStream>(result);
         var results = new StringBuilder();
 
         await foreach (var payload in stream.ReadResultsAsync())
@@ -247,10 +245,10 @@ public class StreamTests
                 .AddDataLoader<PersonsGroupDataLoader>()
                 .ExecuteRequestAsync(
                     @"{
-                            persons @stream(initialCount: 0) {
-                                name
-                            }
-                        }");
+                        persons @stream(initialCount: 0) {
+                            name
+                        }
+                    }");
 
         IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
@@ -275,10 +273,10 @@ public class StreamTests
                 .AddDataLoader<PersonsGroupDataLoader>()
                 .ExecuteRequestAsync(
                     @"{
-                            persons @stream(initialCount: 1) {
-                                name
-                            }
-                        }");
+                        persons @stream(initialCount: 1) {
+                            name
+                        }
+                    }");
 
         IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
