@@ -96,7 +96,7 @@ internal static class RelayIdFieldHelpers
             (_, r) => r,
             isRepeatable: false,
             key: WellKnownMiddleware.GlobalId);
-        definition.ResultFormatterDefinitions.Add(placeholder);
+        definition.FormatterDefinitions.Add(placeholder);
 
         var configuration = new CompleteConfiguration(
             (ctx, def) => AddSerializerToObjectField(
@@ -213,11 +213,11 @@ internal static class RelayIdFieldHelpers
         var serializer =
             completionContext.Services.GetService<IIdSerializer>() ??
             new IdSerializer();
-        var index = definition.ResultFormatterDefinitions.IndexOf(placeholder);
+        var index = definition.FormatterDefinitions.IndexOf(placeholder);
 
         typeName ??= completionContext.Type.Name;
 
-        definition.ResultFormatterDefinitions[index] = new((_, result) =>
+        definition.FormatterDefinitions[index] = new((_, result) =>
             {
                 if (result is not null)
                 {

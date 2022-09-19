@@ -172,7 +172,7 @@ public abstract class NodeDescriptorBase : DescriptorBase<NodeDefinition>
 
         public static IObjectFieldDescriptor TryAdd(IObjectFieldDescriptor descriptor)
         {
-            var converters = descriptor.Extend().Definition.ResultFormatterDefinitions;
+            var converters = descriptor.Extend().Definition.FormatterDefinitions;
 
             if (!converters.Contains(Formatter))
             {

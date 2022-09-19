@@ -129,7 +129,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     /// <summary>
     /// A list of formatters that can transform the resolver result.
     /// </summary>
-    public IList<ResultFormatterDefinition> ResultFormatterDefinitions
+    public IList<ResultFormatterDefinition> FormatterDefinitions
     {
         get
         {
