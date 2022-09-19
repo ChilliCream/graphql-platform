@@ -8,7 +8,7 @@ internal static class ContentType
     private const string _boundary = "boundary=\"-\"";
     public const string GraphQL = $"{Types.Application}/{SubTypes.GraphQL};{_utf8}";
     public const string Json = $"{Types.Application}/{SubTypes.Json};{_utf8}";
-    public const string MultiPartMixed = $"{Types.MultiPart}/{SubTypes.Mixed};{_utf8};{_boundary}";
+    public const string MultiPartMixed = $"{Types.MultiPart}/{SubTypes.Mixed};{_boundary}";
     public const string GraphQLResponse = $"{Types.Application}/{SubTypes.GraphQLResponse};{_utf8}";
     public const string EventStream = $"{Types.Text}/{SubTypes.EventStream};{_utf8}";
 
