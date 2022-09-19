@@ -20,30 +20,26 @@ public class BatchScheduler
     private const int _waitTimeout = 30_000;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly object _sync = new();
+    private readonly object _syncTaskEnqueued = new();
     private readonly List<Func<ValueTask>> _tasks = new();
     private bool _dispatchOnSchedule;
+    private readonly List<EventHandler> _listeners = new();
 
     /// <inheritdoc />
-    private event EventHandler? _taskEnqueued;
-    private int _i;
-
-    /// <inheritdoc />
-    public event EventHandler? TaskEnqueued
+    public event EventHandler TaskEnqueued
     {
         add
         {
-            lock (_sync)
+            lock (_syncTaskEnqueued)
             {
-                _i++;
-                _taskEnqueued += value;
+                _listeners.Add(value);
             }
         }
         remove
         {
-            lock (_sync)
+            lock (_syncTaskEnqueued)
             {
-                _i--;
-                _taskEnqueued -= value;
+                _listeners.Remove(value);
             }
         }
     }
@@ -84,7 +80,17 @@ public class BatchScheduler
         }
         else
         {
-            _taskEnqueued?.Invoke(this, EventArgs.Empty);
+            lock (_syncTaskEnqueued)
+            {
+                for (var i = 0; i < _listeners.Count; i++)
+                {
+                    try
+                    {
+                        _listeners[i].Invoke(this, EventArgs.Empty);
+                    }
+                    catch { }
+                }
+            }
         }
     }
 
