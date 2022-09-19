@@ -568,7 +568,7 @@ public class InputParser
     {
         return field.Formatter is null || value is null
             ? value
-            : field.Formatter.OnAfterDeserialize(value);
+            : field.Formatter.Format(value);
     }
 
     private object? ConvertValue(Type requestedType, object? value)

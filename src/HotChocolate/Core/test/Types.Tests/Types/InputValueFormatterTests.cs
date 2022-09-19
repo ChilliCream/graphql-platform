@@ -123,7 +123,7 @@ public class InputValueFormatterTests
 
     public class UpperCaseInputValueFormatter : IInputValueFormatter
     {
-        public object OnAfterDeserialize(object runtimeValue)
+        public object Format(object runtimeValue)
         {
             return runtimeValue is string s ? s.ToUpperInvariant() : runtimeValue;
         }
@@ -131,7 +131,7 @@ public class InputValueFormatterTests
 
     public class AddTwoInputValueFormatter : IInputValueFormatter
     {
-        public object OnAfterDeserialize(object runtimeValue)
+        public object Format(object runtimeValue)
         {
             return runtimeValue is string s ? s + "2" : runtimeValue;
         }
