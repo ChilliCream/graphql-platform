@@ -106,6 +106,7 @@ internal sealed partial class OperationContext
             _pathFactory.Clear();
             _workScheduler.Clear();
             _resultBuilder.Clear();
+            _deferredWorkScheduler.Clear();
             _schema = default!;
             _errorHandler = default!;
             _activator = default!;

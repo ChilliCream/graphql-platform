@@ -24,7 +24,29 @@ public class BatchScheduler
     private bool _dispatchOnSchedule;
 
     /// <inheritdoc />
-    public event EventHandler? TaskEnqueued;
+    private event EventHandler? _taskEnqueued;
+    private int _i;
+
+    /// <inheritdoc />
+    public event EventHandler? TaskEnqueued
+    {
+        add
+        {
+            lock (_sync)
+            {
+                _i++;
+                _taskEnqueued += value;
+            }
+        }
+        remove
+        {
+            lock (_sync)
+            {
+                _i--;
+                _taskEnqueued -= value;
+            }
+        }
+    }
 
     /// <inheritdoc />
     public bool DispatchOnSchedule
@@ -62,7 +84,7 @@ public class BatchScheduler
         }
         else
         {
-            TaskEnqueued?.Invoke(this, EventArgs.Empty);
+            _taskEnqueued?.Invoke(this, EventArgs.Empty);
         }
     }
 
@@ -132,9 +154,9 @@ public class BatchScheduler
         await Task.Yield();
 
         // First we will get a list to hold on to the tasks.
-        List<Task<Exception?>> processing = Exchange(ref _localProcessing, null) ?? new();
+        var processing = Exchange(ref _localProcessing, null) ?? new();
 
-        foreach (Func<ValueTask> task in tasks)
+        foreach (var task in tasks)
         {
             processing.Add(ExecuteBatchAsync(task, cancellationToken));
         }

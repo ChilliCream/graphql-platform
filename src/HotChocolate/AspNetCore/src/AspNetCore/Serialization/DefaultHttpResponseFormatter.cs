@@ -119,6 +119,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             response.ContentType = format.ContentType;
             response.StatusCode = statusCode;
 
+            await response.StartAsync(cancellationToken);
             await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
         }
         else if (result.Kind is DeferredResult or BatchResult or SubscriptionResult)
@@ -129,6 +130,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             response.ContentType = format.ContentType;
             response.StatusCode = statusCode;
 
+            await response.StartAsync(cancellationToken);
             await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
         }
         else
