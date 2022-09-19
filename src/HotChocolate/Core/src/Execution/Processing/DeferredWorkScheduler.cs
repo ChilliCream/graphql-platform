@@ -37,6 +37,7 @@ internal sealed class DeferredWorkScheduler : IDeferredWorkScheduler
     {
         var services = operationContext.Services;
 
+        _stateOwner = null;
         _parentContext = operationContext;
         _operationContextFactory = services.GetRequiredService<IFactory<OperationContextOwner>>();
         _deferredWorkStateFactory = services.GetRequiredService<IFactory<DeferredWorkStateOwner>>();
@@ -90,6 +91,14 @@ internal sealed class DeferredWorkScheduler : IDeferredWorkScheduler
             StateOwner,
             _parentContext.Operation,
             _parentContext.DiagnosticEvents);
+
+    public void Clear()
+    {
+        _stateOwner = null;
+        _operationContextFactory = default!;
+        _deferredWorkStateFactory = default!;
+        _parentContext = default!;
+    }
 
     private class DeferResultStream : IAsyncEnumerable<IQueryResult>
     {

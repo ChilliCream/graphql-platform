@@ -19,7 +19,6 @@ internal sealed class DeferredWorkState
     private readonly HashSet<uint> _notPatchable = new();
     private SemaphoreSlim _semaphore = new(0);
     private uint _taskId;
-    private uint _delivered;
     private uint _work;
     private uint _patchId;
 
@@ -212,7 +211,6 @@ internal sealed class DeferredWorkState
         _completed.Clear();
         _deliverable.Clear();
         _taskId = 0;
-        _delivered = 0;
         _work = 0;
         _patchId = 0;
     }

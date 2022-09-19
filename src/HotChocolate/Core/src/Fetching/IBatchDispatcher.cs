@@ -11,7 +11,7 @@ public interface IBatchDispatcher
     /// <summary>
     /// Signals that a batch task was enqueued.
     /// </summary>
-    event EventHandler? TaskEnqueued;
+    event EventHandler TaskEnqueued;
 
     /// <summary>
     /// Defines if the batch dispatcher shall dispatch tasks directly when they are enqueued.
