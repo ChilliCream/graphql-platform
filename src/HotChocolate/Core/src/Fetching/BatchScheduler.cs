@@ -88,7 +88,10 @@ public class BatchScheduler
                     {
                         _listeners[i].Invoke(this, EventArgs.Empty);
                     }
-                    catch { }
+                    catch
+                    {
+                        // ignored
+                    }
                 }
             }
         }
