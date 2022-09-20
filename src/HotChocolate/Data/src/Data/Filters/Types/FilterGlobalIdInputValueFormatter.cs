@@ -13,7 +13,7 @@ internal class FilterGlobalIdInputValueFormatter : IInputValueFormatter
         _idSerializer = idSerializer;
     }
 
-    public object? OnAfterDeserialize(object? runtimeValue)
+    public object? Format(object? runtimeValue)
     {
         if (runtimeValue is null)
         {

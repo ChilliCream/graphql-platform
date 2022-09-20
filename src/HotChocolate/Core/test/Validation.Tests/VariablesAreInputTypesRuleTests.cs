@@ -2,22 +2,22 @@ using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HotChocolate.Validation
-{
-    public class VariablesAreInputTypesRuleTests
-        : DocumentValidatorVisitorTestBase
-    {
-        public VariablesAreInputTypesRuleTests()
-            : base(builder => builder.AddVariableRules())
-        {
-        }
+namespace HotChocolate.Validation;
 
-        [Fact]
-        public void QueriesWithValidVariableTypes()
-        {
-            // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+public class VariablesAreInputTypesRuleTests
+    : DocumentValidatorVisitorTestBase
+{
+    public VariablesAreInputTypesRuleTests()
+        : base(builder => builder.AddVariableRules())
+    {
+    }
+
+    [Fact]
+    public void QueriesWithValidVariableTypes()
+    {
+        // arrange
+        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        var query = Utf8GraphQLParser.Parse(@"
                 query takesBoolean($atOtherHomes: Boolean) {
                     dog {
                         isHouseTrained(atOtherHomes: $atOtherHomes)
@@ -34,19 +34,19 @@ namespace HotChocolate.Validation
                     booleanList(booleanListArg: $booleans)
                 }
             ");
-            context.Prepare(query);
+        context.Prepare(query);
 
-            // act
-            Rule.Validate(context, query);
+        // act
+        Rule.Validate(context, query);
 
-            // assert
-            Assert.Empty(context.Errors);
-        }
+        // assert
+        Assert.Empty(context.Errors);
+    }
 
-        [Fact]
-        public void QueriesWithInvalidVariableTypes()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void QueriesWithInvalidVariableTypes()
+    {
+        ExpectErrors(@"
                 query takesCat($cat: Cat) {
                     # ...
                 }
@@ -63,6 +63,5 @@ namespace HotChocolate.Validation
                     # ...
                 }
             ");
-        }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
@@ -62,11 +63,16 @@ public interface IDescriptorContext : IHasContextData, IDisposable
     InputFormatter InputFormatter { get; }
 
     /// <summary>
-    /// Tries to resolve a schema building directive for the 
+    /// Gets the registered type discovery handlers.
+    /// </summary>
+    ReadOnlySpan<TypeDiscoveryHandler> GetTypeDiscoveryHandlers();
+
+    /// <summary>
+    /// Tries to resolve a schema building directive for the
     /// specified <paramref name="directiveNode"/>.
     /// </summary>
     bool TryGetSchemaDirective(
-        DirectiveNode directiveNode, 
+        DirectiveNode directiveNode,
         [NotNullWhen(true)] out ISchemaDirective? directive);
 
     /// <summary>

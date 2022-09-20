@@ -17,6 +17,7 @@ public sealed class QueryResult : ExecutionResult, IQueryResult
         IReadOnlyList<IError>? errors,
         IReadOnlyDictionary<string, object?>? extension,
         IReadOnlyDictionary<string, object?>? contextData,
+        IReadOnlyList<object?>? items,
         IReadOnlyList<IQueryResult>? incremental,
         string? label,
         Path? path,
@@ -24,7 +25,11 @@ public sealed class QueryResult : ExecutionResult, IQueryResult
         Func<ValueTask>[] cleanupTasks)
         : base(cleanupTasks)
     {
-        if (data is null && errors is null && incremental is null && hasNext is not false)
+        if (data is null &&
+            items is null &&
+            errors is null &&
+            incremental is null &&
+            hasNext is not false)
         {
             throw new ArgumentException(
                 AbstractionResources.QueryResult_DataAndResultAreNull,
@@ -32,6 +37,7 @@ public sealed class QueryResult : ExecutionResult, IQueryResult
         }
 
         Data = data;
+        Items = items;
         Errors = errors;
         Extensions = extension;
         ContextData = contextData;
@@ -49,12 +55,17 @@ public sealed class QueryResult : ExecutionResult, IQueryResult
         IReadOnlyList<IError>? errors = null,
         IReadOnlyDictionary<string, object?>? extension = null,
         IReadOnlyDictionary<string, object?>? contextData = null,
+        IReadOnlyList<object?>? items = null,
         IReadOnlyList<IQueryResult>? incremental = null,
         string? label = null,
         Path? path = null,
         bool? hasNext = null)
     {
-        if (data is null && errors is null && incremental is null && hasNext is not false)
+        if (data is null &&
+            items is null &&
+            errors is null &&
+            incremental is null &&
+            hasNext is not false)
         {
             throw new ArgumentException(
                 AbstractionResources.QueryResult_DataAndResultAreNull,
@@ -62,6 +73,7 @@ public sealed class QueryResult : ExecutionResult, IQueryResult
         }
 
         Data = data;
+        Items = items;
         Errors = errors;
         Extensions = extension;
         ContextData = contextData;
@@ -82,6 +94,9 @@ public sealed class QueryResult : ExecutionResult, IQueryResult
 
     /// <inheritdoc />
     public IReadOnlyDictionary<string, object?>? Data { get; }
+
+    /// <inheritdoc />
+    public IReadOnlyList<object?>? Items { get; }
 
     /// <inheritdoc />
     public IReadOnlyList<IError>? Errors { get; }

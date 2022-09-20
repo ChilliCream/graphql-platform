@@ -1,20 +1,20 @@
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HotChocolate.Validation
-{
-    public class ArgumentNamesRuleTests
-        : DocumentValidatorVisitorTestBase
-    {
-        public ArgumentNamesRuleTests()
-            : base(builder => builder.AddArgumentRules())
-        {
-        }
+namespace HotChocolate.Validation;
 
-        [Fact]
-        public void ArgOnRequiredArg()
-        {
-            ExpectValid(@"
+public class ArgumentNamesRuleTests
+    : DocumentValidatorVisitorTestBase
+{
+    public ArgumentNamesRuleTests()
+        : base(builder => builder.AddArgumentRules())
+    {
+    }
+
+    [Fact]
+    public void ArgOnRequiredArg()
+    {
+        ExpectValid(@"
                 query {
                     dog {
                         ... argOnRequiredArg
@@ -25,12 +25,12 @@ namespace HotChocolate.Validation
                     doesKnowCommand(dogCommand: SIT)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void ArgOnOptional()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void ArgOnOptional()
+    {
+        ExpectValid(@"
                 query {
                     dog {
                         ... argOnOptional
@@ -41,12 +41,12 @@ namespace HotChocolate.Validation
                     isHouseTrained(atOtherHomes: true) @include(if: true)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void InvalidFieldArgName()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void InvalidFieldArgName()
+    {
+        ExpectErrors(@"
                 query {
                     dog {
                         ... invalidArgName
@@ -61,12 +61,12 @@ namespace HotChocolate.Validation
                 $"The argument `command` does not exist.", t.Message),
             t => Assert.Equal(
                 $"The argument `dogCommand` is required.", t.Message));
-        }
+    }
 
-        [Fact]
-        public void InvalidDirectiveArgName()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void InvalidDirectiveArgName()
+    {
+        ExpectErrors(@"
                 query {
                     dog {
                         ... invalidArgName
@@ -81,12 +81,12 @@ namespace HotChocolate.Validation
                 $"The argument `unless` does not exist.", t.Message),
             t => Assert.Equal(
                 $"The argument `if` is required.", t.Message));
-        }
+    }
 
-        [Fact]
-        public void ArgumentOrderDoesNotMatter()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void ArgumentOrderDoesNotMatter()
+    {
+        ExpectValid(@"
                 query {
                     arguments {
                         ... multipleArgs
@@ -102,12 +102,12 @@ namespace HotChocolate.Validation
                     multipleReqs(y: 1, x: 2)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void ArgsAreKnowDeeply()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void ArgsAreKnowDeeply()
+    {
+        ExpectValid(@"
                 {
                     dog {
                         doesKnowCommand(dogCommand: SIT)
@@ -121,52 +121,52 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void DirectiveArgsAreKnown()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void DirectiveArgsAreKnown()
+    {
+        ExpectValid(@"
                 {
                     dog @skip(if: true)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void DirectiveWithoutArgsIsValid()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void DirectiveWithoutArgsIsValid()
+    {
+        ExpectValid(@"
                 {
                     dog @complex
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void DirectiveWithWrongArgsIsInvalid()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void DirectiveWithWrongArgsIsInvalid()
+    {
+        ExpectErrors(@"
                 {
                     dog @complex(if:false)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void MisspelledDirectiveArgsAreReported()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void MisspelledDirectiveArgsAreReported()
+    {
+        ExpectErrors(@"
                 {
                     dog @skip(iff: true)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void MisspelledFieldArgsAreReported()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void MisspelledFieldArgsAreReported()
+    {
+        ExpectErrors(@"
                 query {
                     dog {
                         ... invalidArgName
@@ -176,12 +176,12 @@ namespace HotChocolate.Validation
                     doesKnowCommand(DogCommand: true)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void UnknownArgsAmongstKnowArgs()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void UnknownArgsAmongstKnowArgs()
+    {
+        ExpectErrors(@"
                 query {
                     dog {
                         ... oneGoodArgOneInvalidArg
@@ -191,12 +191,12 @@ namespace HotChocolate.Validation
                     doesKnowCommand(whoKnows: 1, dogCommand: SIT, unknown: true)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void UnknownArgsDeeply()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void UnknownArgsDeeply()
+    {
+        ExpectErrors(@"
                 {
                     dog {
                         doesKnowCommand(unknown: true)
@@ -210,150 +210,149 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void NoArgumentsOnField()
-        {
-            // arrange
-            ExpectValid(@"
+    [Fact]
+    public void NoArgumentsOnField()
+    {
+        // arrange
+        ExpectValid(@"
                 {
                     fieldWithArg
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void NoArgumentsOnDirective()
-        {
-            // arrange
-            ExpectValid(@"
+    [Fact]
+    public void NoArgumentsOnDirective()
+    {
+        // arrange
+        ExpectValid(@"
                 {
                     fieldWithArg @directive
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void ArgumentOnField()
-        {
-            // arrange
-            ExpectValid(@"
+    [Fact]
+    public void ArgumentOnField()
+    {
+        // arrange
+        ExpectValid(@"
                 {
                     fieldWithArg(arg: ""value"")
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void ArgumentOnDirective()
-        {
-            // arrange
-            ExpectValid(@"
+    [Fact]
+    public void ArgumentOnDirective()
+    {
+        // arrange
+        ExpectValid(@"
                 {
                     fieldWithArg @directive(arg: ""value"")
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void SameArgumentOnTwoFields()
-        {
-            // arrange
-            ExpectValid(@"
+    [Fact]
+    public void SameArgumentOnTwoFields()
+    {
+        // arrange
+        ExpectValid(@"
                 {      
                     one: fieldWithArg(arg: ""value"")
                     two: fieldWithArg(arg: ""value"")
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void SameArgumentOnFieldAndDirective()
-        {
-            // arrange
-            ExpectValid(@"
+    [Fact]
+    public void SameArgumentOnFieldAndDirective()
+    {
+        // arrange
+        ExpectValid(@"
                 {      
                     fieldWithArg(arg: ""value"") @directive(arg: ""value"")
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void SameArgumentOnTwoDirectives()
-        {
-            // arrange
-            ExpectValid(@"
+    [Fact]
+    public void SameArgumentOnTwoDirectives()
+    {
+        // arrange
+        ExpectValid(@"
                 {       
                     fieldWithArg @directive1(arg: ""value"") @directive2(arg: ""value"")
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void MultipleFieldArguments()
-        {
-            // arrange
-            ExpectValid(@"
+    [Fact]
+    public void MultipleFieldArguments()
+    {
+        // arrange
+        ExpectValid(@"
                 {
                 fieldWithArg(arg1: ""value"", arg2: ""value"", arg3: ""value"")
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void MultipleDirectiveArguments()
-        {
-            // arrange
-            ExpectValid(@"
+    [Fact]
+    public void MultipleDirectiveArguments()
+    {
+        // arrange
+        ExpectValid(@"
                 {       
                     fieldWithArg @directive(arg1: ""value"", arg2: ""value"", arg3: ""value"")
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void DuplicateFieldArguments()
-        {
-            // arrange
-            ExpectErrors(@"
+    [Fact]
+    public void DuplicateFieldArguments()
+    {
+        // arrange
+        ExpectErrors(@"
                 {       
                     fieldWithArg(arg1: ""value"", arg1: ""value"")
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void ManyDuplicateFieldArguments()
-        {
-            // arrange
-            ExpectErrors(@"
+    [Fact]
+    public void ManyDuplicateFieldArguments()
+    {
+        // arrange
+        ExpectErrors(@"
                 {       
                     fieldWithArg(arg1: ""value"", arg1: ""value"", arg1: ""value"")
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void DuplicateDirectiveArguments()
-        {
-            // arrange
-            ExpectErrors(@"
+    [Fact]
+    public void DuplicateDirectiveArguments()
+    {
+        // arrange
+        ExpectErrors(@"
                 {       
                     fieldWithArg @directive(arg1: ""value"", arg1: ""value"")
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void ManyDuplicateDirectiveArguments()
-        {
-            // arrange
-            ExpectErrors(@"
+    [Fact]
+    public void ManyDuplicateDirectiveArguments()
+    {
+        // arrange
+        ExpectErrors(@"
                 {       
                     fieldWithArg @directive(arg1: ""value"", arg1: ""value"", arg1: ""value"")
                 }
             ");
-        }
     }
 }

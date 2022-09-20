@@ -1,0 +1,49 @@
+{
+  "data": {
+    "personNodes": {
+      "nodes": []
+    }
+  },
+  "hasNext": true
+}
+{
+  "incremental": [
+    {
+      "items": [
+        {}
+      ],
+      "path": [
+        "personNodes",
+        "nodes",
+        0
+      ]
+    }
+  ],
+  "hasNext": true
+}
+{
+  "incremental": [
+    {
+      "data": {
+        "name": "Pascal"
+      },
+      "path": [
+        "personNodes",
+        "nodes",
+        0
+      ]
+    }
+  ],
+  "hasNext": true
+}
+{
+  "incremental": [
+    {
+      "data": {
+        "wait": true
+      },
+      "path": []
+    }
+  ],
+  "hasNext": false
+}

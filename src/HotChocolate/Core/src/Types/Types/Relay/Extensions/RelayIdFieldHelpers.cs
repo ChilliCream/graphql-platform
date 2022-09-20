@@ -8,7 +8,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.Types.WellKnownContextData;
+using static HotChocolate.WellKnownContextData;
 
 #nullable enable
 
@@ -92,11 +92,11 @@ internal static class RelayIdFieldHelpers
         ObjectFieldDefinition definition,
         string? typeName = default)
     {
-        var placeholder = new ResultConverterDefinition(
+        var placeholder = new ResultFormatterDefinition(
             (_, r) => r,
             isRepeatable: false,
             key: WellKnownMiddleware.GlobalId);
-        definition.ResultConverters.Add(placeholder);
+        definition.FormatterDefinitions.Add(placeholder);
 
         var configuration = new CompleteConfiguration(
             (ctx, def) => AddSerializerToObjectField(
@@ -185,7 +185,7 @@ internal static class RelayIdFieldHelpers
     private static void AddSerializerToObjectField(
         ITypeCompletionContext completionContext,
         ObjectFieldDefinition definition,
-        ResultConverterDefinition placeholder,
+        ResultFormatterDefinition placeholder,
         string? typeName)
     {
         var typeInspector = completionContext.TypeInspector;
@@ -213,11 +213,11 @@ internal static class RelayIdFieldHelpers
         var serializer =
             completionContext.Services.GetService<IIdSerializer>() ??
             new IdSerializer();
-        var index = definition.ResultConverters.IndexOf(placeholder);
+        var index = definition.FormatterDefinitions.IndexOf(placeholder);
 
         typeName ??= completionContext.Type.Name;
 
-        definition.ResultConverters[index] = new((_, result) =>
+        definition.FormatterDefinitions[index] = new((_, result) =>
             {
                 if (result is not null)
                 {

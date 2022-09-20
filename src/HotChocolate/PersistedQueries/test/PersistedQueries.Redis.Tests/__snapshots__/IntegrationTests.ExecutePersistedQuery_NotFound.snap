@@ -3,6 +3,7 @@
   "Label": null,
   "Path": null,
   "Data": null,
+  "Items": null,
   "Errors": [
     {
       "Message": "The query request contains no document.",
@@ -17,6 +18,7 @@
     }
   ],
   "Extensions": null,
+  "Incremental": null,
   "ContextData": null,
   "HasNext": null
 }
