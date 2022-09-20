@@ -1,8 +1,10 @@
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.AzureFunctions.IsolatedProcess.Tests.Helpers;
 using HotChocolate.Types;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,8 +36,7 @@ public class IsolatedProcessEndToEndTests
             }");
 
         // Execute Query Test for end-to-end validation...
-        // NOTE: This uses the new Az Func Isolated Process extension
-        // to execute via HttpRequestData...
+        // NOTE: This uses the new Az Func Isolated Process extension to execute via HttpRequestData...
         var response = await requestExecutor.ExecuteAsync(request).ConfigureAwait(false);
 
         // Read, Parse & Validate the response...
@@ -45,6 +46,53 @@ public class IsolatedProcessEndToEndTests
         dynamic json = JObject.Parse(resultContent!);
         Assert.Null(json.errors);
         Assert.Equal("Luke Skywalker",json.data.person.ToString());
+    }
+
+    [Fact]
+    public async Task AzFuncIsolatedProcess_FunctionsContextItemsTestAsync()
+    {
+        const string DarkSideLeaderKey = "DarkSideLeader";
+
+        var host = new MockIsolatedProcessHostBuilder()
+            .AddGraphQLFunction(graphQL =>
+            {
+                graphQL.AddQueryType(
+                    d => d.Name("Query").Field("person").Resolve(ctx =>
+                    {
+
+                        var darkSideLeader = ctx.ContextData.TryGetValue(nameof(HttpContext), out var httpContext)
+                            ? (httpContext as HttpContext)?.Items[DarkSideLeaderKey] as string
+                            : default;
+
+                        return darkSideLeader;
+                    }));
+            })
+            .Build();
+
+        // The executor should resolve without error as a Required service...
+        var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
+
+        // Build an HttpRequestData that is valid for the Isolated Process to execute with...
+        var request = TestHttpRequestDataHelper.NewGraphQLHttpRequestData(
+            host.Services,
+            @"query {
+                person
+            }");
+
+        //Set Up our global Items now available from the Functions Context...
+        request.FunctionContext.Items.Add(DarkSideLeaderKey, "Darth Vader");
+
+        // Execute Query Test for end-to-end validation...
+        // NOTE: This uses the new Az Func Isolated Process extension to execute via HttpRequestData...
+        var response = await requestExecutor.ExecuteAsync(request).ConfigureAwait(false);
+
+        // Read, Parse & Validate the response...
+        var resultContent = await ReadResponseAsStringAsync(response).ConfigureAwait(false);
+        Assert.False(string.IsNullOrWhiteSpace(resultContent));
+
+        dynamic json = JObject.Parse(resultContent!);
+        Assert.Null(json.errors);
+        Assert.Equal("Darth Vader", json.data.person.ToString());
     }
 
     [Fact]
