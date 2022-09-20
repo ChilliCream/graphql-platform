@@ -3,7 +3,9 @@
     "doSomething": {
       "string": null,
       "errors": [
-        {}
+        {
+          "message": "Hello4"
+        }
       ]
     }
   }

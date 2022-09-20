@@ -420,7 +420,7 @@ public class AnnotationBasedMutations
                     doSomething(input: {
                         something: ""abc""
                     }) {
-                        errors { ... on Custom2Error { message } }
+                        errors { ... on Error { message } }
                     }
                 }")
             .MatchSnapshotAsync();
@@ -456,7 +456,7 @@ public class AnnotationBasedMutations
                         something: ""abc""
                     }) {
                         string
-                        errors { ... on Custom2Error { message } }
+                        errors { ... on Error { message } }
                     }
                 }")
             .MatchSnapshotAsync();
@@ -478,7 +478,7 @@ public class AnnotationBasedMutations
                         something: ""abc""
                     }) {
                         string
-                        errors { ... on Custom2Error { message } }
+                        errors { ... on Error { message } }
                     }
                 }")
             .MatchSnapshotAsync();
@@ -514,7 +514,7 @@ public class AnnotationBasedMutations
                         something: ""abc""
                     }) {
                         string
-                        errors { ... on Custom2Error { message } }
+                        errors { ... on Error { message } }
                     }
                 }")
             .MatchSnapshotAsync();
@@ -536,7 +536,7 @@ public class AnnotationBasedMutations
                         something: ""abc""
                     }) {
                         string
-                        errors { ... on Custom2Error { message } }
+                        errors { ... on Error { message } }
                     }
                 }")
             .MatchSnapshotAsync();
@@ -572,7 +572,7 @@ public class AnnotationBasedMutations
                         something: ""abc""
                     }) {
                         string
-                        errors { ... on Custom2Error { message } }
+                        errors { ... on Error { message } }
                     }
                 }")
             .MatchSnapshotAsync();
@@ -594,7 +594,7 @@ public class AnnotationBasedMutations
                         something: ""abc""
                     }) {
                         string
-                        errors { ... on Custom2Error { message } }
+                        errors { ... on Error { message } }
                     }
                 }")
             .MatchSnapshotAsync();
@@ -630,7 +630,7 @@ public class AnnotationBasedMutations
                         something: ""abc""
                     }) {
                         string
-                        errors { ... on Custom2Error { message } }
+                        errors { ... on Error { message } }
                     }
                 }")
             .MatchSnapshotAsync();
@@ -652,7 +652,7 @@ public class AnnotationBasedMutations
                         something: ""abc""
                     }) {
                         string
-                        errors { ... on Custom2Error { message } }
+                        errors { ... on Error { message } }
                     }
                 }")
             .MatchSnapshotAsync();
@@ -688,7 +688,7 @@ public class AnnotationBasedMutations
                         something: ""abc""
                     }) {
                         string
-                        errors { ... on Custom2Error { message } }
+                        errors { ... on Error { message } }
                     }
                 }")
             .MatchSnapshotAsync();
@@ -710,7 +710,7 @@ public class AnnotationBasedMutations
                         something: ""abc""
                     }) {
                         string
-                        errors { ... on Custom2Error { message } }
+                        errors { ... on Error { message } }
                     }
                 }")
             .MatchSnapshotAsync();
@@ -746,7 +746,7 @@ public class AnnotationBasedMutations
                         something: ""abc""
                     }) {
                         string
-                        errors { ... on Custom2Error { message } }
+                        errors { ... on Error { message } }
                     }
                 }")
             .MatchSnapshotAsync();
@@ -768,7 +768,7 @@ public class AnnotationBasedMutations
                         something: ""abc""
                     }) {
                         string
-                        errors { ... on Custom2Error { message } }
+                        errors { ... on Error { message } }
                     }
                 }")
             .MatchSnapshotAsync();
