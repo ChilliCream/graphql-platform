@@ -19,28 +19,25 @@ internal sealed class MutationResultTypeDiscoveryHandler : TypeDiscoveryHandler
         var runtimeType = typeReference.Type.Type;
 
         if (runtimeType is { IsValueType: true, IsGenericType: true } &&
-            typeReference.Type.Definition is {  } typeDef)
+            typeof(IMutationResult).IsAssignableFrom(runtimeType))
         {
-            if (typeDef == typeof(MutationResult<>) ||
-                typeDef == typeof(MutationResult<,>))
+            var type = _typeInspector.GetType(runtimeType.GenericTypeArguments[0]);
+            schemaTypeRefs = new ITypeReference[runtimeType.GenericTypeArguments.Length];
+            schemaTypeRefs[0] = typeReference.WithType(type);
+
+            for (var i = 1; i < runtimeType.GenericTypeArguments.Length; i++)
             {
-                var type = _typeInspector.GetType(runtimeType.GenericTypeArguments[0]);
-                schemaTypeRefs = new ITypeReference[runtimeType.GenericTypeArguments.Length];
-                schemaTypeRefs[0] = typeReference.WithType(type);
+                var errorType = runtimeType.GenericTypeArguments[i];
 
-                for(var i = 1; i < runtimeType.GenericTypeArguments.Length; i++)
-                {
-                    var errorType = runtimeType.GenericTypeArguments[i];
-
-                    type = _typeInspector.GetType(typeof(Exception).IsAssignableFrom(errorType)
+                type = _typeInspector.GetType(
+                    typeof(Exception).IsAssignableFrom(errorType)
                         ? typeof(ExceptionObjectType<>).MakeGenericType(errorType)
                         : typeof(ErrorObjectType<>).MakeGenericType(errorType));
 
-                    schemaTypeRefs[i] = typeReference.WithType(type);
-                };
-
-                return true;
+                schemaTypeRefs[i] = typeReference.WithType(type);
             }
+
+            return true;
         }
 
         schemaTypeRefs = null;
