@@ -282,8 +282,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             {
                 var parent = ctx.Parent<object?>();
 
-                if (ReferenceEquals(ErrorMiddleware.ErrorObject, parent) ||
-                    ReferenceEquals(MutationConventionMiddleware.Null, parent))
+                if (ReferenceEquals(MarkerObjects.ErrorObject, parent) ||
+                    ReferenceEquals(MarkerObjects.Null, parent))
                 {
                     return null;
                 }

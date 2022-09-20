@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Internal;
 using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -15,10 +16,10 @@ internal sealed class TypeDiscoverer
     private readonly List<ITypeReference> _unregistered = new();
     private readonly List<ISchemaError> _errors = new();
     private readonly List<ITypeReference> _resolved = new();
+    private readonly IDescriptorContext _context;
     private readonly TypeRegistry _typeRegistry;
     private readonly TypeRegistrar _typeRegistrar;
     private readonly ITypeRegistrarHandler[] _handlers;
-    private readonly ITypeInspector _typeInspector;
     private readonly ITypeInterceptor _interceptor;
 
     public TypeDiscoverer(
@@ -54,6 +55,7 @@ internal sealed class TypeDiscoverer
             throw new ArgumentNullException(nameof(interceptor));
         }
 
+        _context = context;
         _typeRegistry = typeRegistry;
 
         if (includeSystemTypes)
@@ -76,7 +78,6 @@ internal sealed class TypeDiscoverer
             new DependantFactoryTypeReferenceHandler(context)
         };
 
-        _typeInspector = context.TypeInspector;
         _interceptor = interceptor;
     }
 
@@ -158,24 +159,18 @@ DISCOVER:
 
         foreach (var typeRef in _typeRegistrar.Unresolved)
         {
-            if (typeRef is ExtendedTypeReference unresolvedType)
+            if (typeRef is ExtendedTypeReference unresolvedTypeRef &&
+                _context.TryInferSchemaType(unresolvedTypeRef, out var schemaTypeRefs))
             {
-                if (Scalars.TryGetScalar(unresolvedType.Type.Type, out var scalarType))
-                {
-                    inferred = true;
+                inferred = true;
 
-                    var typeReference = _typeInspector.GetTypeRef(scalarType);
-                    _unregistered.Add(typeReference);
-                    _resolved.Add(unresolvedType);
-                    _typeRegistry.TryRegister(unresolvedType, typeReference);
-                }
-                else if (SchemaTypeResolver.TryInferSchemaType(
-                    _typeInspector, unresolvedType, out var schemaType))
+                foreach (var schemaTypeRef in schemaTypeRefs)
                 {
-                    inferred = true;
-                    _unregistered.Add(schemaType);
-                    _resolved.Add(unresolvedType);
+                    _unregistered.Add(schemaTypeRef);
+                    _typeRegistry.TryRegister(unresolvedTypeRef, schemaTypeRef);
                 }
+
+                _resolved.Add(unresolvedTypeRef);
             }
         }
 

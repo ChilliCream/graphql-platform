@@ -64,14 +64,24 @@ internal sealed class MutationConventionMiddleware
         {
             await _next(context);
 
-            context.Result ??= Null;
+            if (context.Result is IMutationResult result)
+            {
+                if (result.IsSuccess)
+                {
+                    context.Result = result.Value;
+                }
+                else
+                {
+                    context.SetScopedState(ErrorContextDataKeys.Errors, result.Value);
+                    context.Result = MarkerObjects.ErrorObject;
+                }
+            }
+
+            context.Result ??= MarkerObjects.Null;
         }
         finally
         {
             context.ReplaceArguments(preservedArguments);
         }
     }
-
-    internal static object Null { get; } = new();
 }
-

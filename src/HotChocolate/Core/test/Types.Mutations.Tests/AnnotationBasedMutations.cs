@@ -402,9 +402,9 @@ public class AnnotationBasedMutations
             .ExecuteRequestAsync(
                 @"mutation {
                     doSomething(input: {
-                        id: ""Rm9vCmdhYWY1ZjAzNjk0OGU0NDRkYWRhNTM2ZTY1MTNkNTJjZA==""
+                        something: ""test""
                     }) {
-                        user { name id }
+
                     }
                 }")
             .MatchSnapshotAsync();
@@ -430,6 +430,41 @@ public class AnnotationBasedMutations
                         user { name }
                     }
                 }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Union_Result_2()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithUnionResult1>()
+            .AddMutationConventions(true)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                    doSomething(input: {
+                        something: ""abc""
+                    }) {
+                        errors { message }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Union_Result_2_Schema()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithUnionResult1>()
+            .AddMutationConventions()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
 
@@ -546,6 +581,20 @@ public class AnnotationBasedMutations
         [Error(typeof(Custom2Exception))]
         public string DoSomething(string something)
             => throw new CustomException();
+    }
+
+    public class MutationWithUnionResult1
+    {
+        public MutationResult<string, Custom2Exception> DoSomething(string something)
+            => new Custom2Exception();
+    }
+
+    public class MutationWithUnionResult2
+    {
+        [Error(typeof(CustomException))]
+        [Error(typeof(Custom2Exception))]
+        public MutationResult<string> DoSomething(string something)
+            => new(new Custom2Exception());
     }
 
     public class CustomException : Exception

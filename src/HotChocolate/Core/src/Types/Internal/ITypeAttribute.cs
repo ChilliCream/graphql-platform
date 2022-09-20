@@ -1,12 +1,14 @@
 #nullable enable
 
-namespace HotChocolate.Types;
+using HotChocolate.Types;
+
+namespace HotChocolate.Internal;
 
 /// <summary>
 /// The type attribute interface is implement by GraphQL type attributes and provides
 /// additional information about the annotated type.
 /// </summary>
-internal interface ITypeAttribute
+public interface ITypeAttribute
 {
     /// <summary>
     /// Defines if this attribute is inherited. The default is <c>false</c>.

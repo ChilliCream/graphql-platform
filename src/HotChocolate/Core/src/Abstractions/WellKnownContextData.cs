@@ -152,4 +152,23 @@ public static class WellKnownContextData
     /// the result set containing the patch ID shall be patched into.
     /// </summary>
     public const string PatchId = "HotChocolate.Execution.PatchId";
+
+    /// <summary>
+    /// The key to get the type discovery interceptors from the schema context data.
+    /// </summary>
+    public const string TypeDiscoveryHandlers = "HotChocolate.Execution.TypeDiscoveryHandlers";
+
+    public const string NodeResolver = "HotChocolate.Relay.Node.Resolver";
+
+    public const string IsRelaySupportEnabled = "HotChocolate.Relay.IsEnabled";
+
+    public const string GlobalIdSupportEnabled = "HotChocolate.Relay.GlobalId";
+
+    public const string NodeId = "HotChocolate.Relay.Node.Id";
+
+    public const string InternalId = "HotChocolate.Relay.Node.Id.InternalId";
+
+    public const string InternalType = "HotChocolate.Relay.Node.Id.InternalType";
+
+    public const string IdValue = "HotChocolate.Relay.Node.Id.Value";
 }
