@@ -1,24 +1,23 @@
 using HotChocolate.Types;
 
-namespace HotChocolate.Validation.Types
+namespace HotChocolate.Validation.Types;
+
+public class ComplexDirective
+    : DirectiveType
 {
-    public class ComplexDirective
-        : DirectiveType
+    protected override void Configure(
+        IDirectiveTypeDescriptor descriptor)
     {
-        protected override void Configure(
-            IDirectiveTypeDescriptor descriptor)
-        {
-            descriptor.Repeatable();
+        descriptor.Repeatable();
 
-            descriptor.Name("complex");
+        descriptor.Name("complex");
 
-            descriptor.Location(HotChocolate.Types.DirectiveLocation.Field);
+        descriptor.Location(HotChocolate.Types.DirectiveLocation.Field);
 
-            descriptor.Argument("anyArg")
-                .Type<AnyType>();
+        descriptor.Argument("anyArg")
+            .Type<AnyType>();
 
-            descriptor.Argument("stringArg")
-                .Type<StringType>();
-        }
+        descriptor.Argument("stringArg")
+            .Type<StringType>();
     }
 }

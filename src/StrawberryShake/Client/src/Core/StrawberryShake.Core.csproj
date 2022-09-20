@@ -46,8 +46,4 @@
     </Compile>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Helper" />
-  </ItemGroup>
-
 </Project>

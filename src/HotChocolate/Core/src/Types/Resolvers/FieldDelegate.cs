@@ -21,6 +21,6 @@ public delegate ValueTask FieldDelegate(IMiddlewareContext context);
 public delegate object? PureFieldDelegate(IPureResolverContext context);
 
 /// <summary>
-/// This delegate allows to convert/transform a resolver result after it has completed.
+/// This delegate allows to format a resolver result after it has completed.
 /// </summary>
-public delegate object? ResultConverterDelegate(IPureResolverContext context, object? result);
+public delegate object? ResultFormatterDelegate(IPureResolverContext context, object? result);

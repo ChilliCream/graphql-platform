@@ -123,6 +123,12 @@ internal static class ResolverTaskFactory
                 parentResult,
                 value.Current,
                 bufferedTasks);
+
+            // if we have child tasks we need to register them.
+            if (bufferedTasks.Count > 0)
+            {
+                operationContext.Scheduler.Register(bufferedTasks);
+            }
         }
         finally
         {

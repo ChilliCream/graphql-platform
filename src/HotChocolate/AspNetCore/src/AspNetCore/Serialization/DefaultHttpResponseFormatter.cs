@@ -119,6 +119,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             response.ContentType = format.ContentType;
             response.StatusCode = statusCode;
 
+            await response.StartAsync(cancellationToken);
             await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
         }
         else if (result.Kind is DeferredResult or BatchResult or SubscriptionResult)
@@ -129,6 +130,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             response.ContentType = format.ContentType;
             response.StatusCode = statusCode;
 
+            await response.StartAsync(cancellationToken);
             await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
         }
         else
@@ -299,7 +301,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             var mediaType = acceptMediaTypes[0];
 
             if (resultKind is ResultKind.Single &&
-                mediaType.Kind is ApplicationGraphQL or AllApplication or All)
+                mediaType.Kind is ApplicationGraphQL or AllApplication)
             {
                 formatInfo = new FormatInfo(
                     ContentType.GraphQLResponse,
@@ -309,7 +311,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             }
 
             if (resultKind is ResultKind.Single &&
-                mediaType.Kind is ApplicationJson)
+                mediaType.Kind is ApplicationJson or All)
             {
                 formatInfo = new FormatInfo(
                     ContentType.Json,
@@ -350,7 +352,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             var mediaType = Unsafe.Add(ref searchSpace, i);
 
             if (resultKind is ResultKind.Single &&
-                mediaType.Kind is ApplicationGraphQL or AllApplication or All)
+                mediaType.Kind is ApplicationGraphQL or AllApplication)
             {
                 formatInfo = new FormatInfo(
                     ContentType.GraphQLResponse,
@@ -360,7 +362,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             }
 
             if (resultKind is ResultKind.Single &&
-                mediaType.Kind is ApplicationJson)
+                mediaType.Kind is ApplicationJson or All)
             {
                 // application/json is a legacy response content-type.
                 // We will create a formatInfo but keep on validating for

@@ -41,6 +41,7 @@ internal sealed partial class ResultBuilder
         _errorHandler = default!;
         _diagnosticEvents = default!;
         _data = null;
+        _items = null;
         _path = null;
         _label = null;
         _hasNext = null;

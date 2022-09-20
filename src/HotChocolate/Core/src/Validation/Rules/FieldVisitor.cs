@@ -53,9 +53,10 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 
         if (node.SelectionSet.Selections.Count == 0)
         {
-            context.ReportError(context.NoSelectionOnRootType(
-                node,
-                context.Schema.GetOperationType(node.Operation)!));
+            context.ReportError(
+                context.NoSelectionOnRootType(
+                    node,
+                    context.Schema.GetOperationType(node.Operation)!));
         }
 
         return base.Leave(node, context);
@@ -66,6 +67,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         IDocumentValidatorContext context)
     {
         var selectionSet = context.SelectionSets.Peek();
+
         if (!context.FieldSets.TryGetValue(selectionSet, out var fields))
         {
             fields = context.RentFieldInfoList();
@@ -74,6 +76,11 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 
         if (IntrospectionFields.TypeName.EqualsOrdinal(node.Name.Value))
         {
+            if (node.IsStreamable())
+            {
+                context.ReportError(context.StreamOnNonListField(node));
+            }
+
             fields.Add(new FieldInfo(context.Types.Peek(), context.NonNullString, node));
             return Skip;
         }
@@ -101,6 +108,13 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
                             context.LeafFieldsCannotHaveSelections(node, ct, of.Type));
                         return Skip;
                     }
+                }
+
+                // if the directive is annotated with the @stream directive then the fields
+                // return type must bi a list.
+                if (node.IsStreamable() && !of.Type.IsListType())
+                {
+                    context.ReportError(context.StreamOnNonListField(node));
                 }
 
                 context.OutputFields.Push(of);
@@ -168,8 +182,8 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         IDocumentValidatorContext context)
     {
         if (context.Fragments.TryGetValue(
-            node.Name.Value,
-            out var fragment) &&
+                node.Name.Value,
+                out var fragment) &&
             context.VisitedFragments.Add(fragment.Name.Value))
         {
             var result = Visit(fragment, node, context);
@@ -189,6 +203,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         for (var i = 0; i < selectionSet.Selections.Count; i++)
         {
             var selection = selectionSet.Selections[i];
+
             if (selection.Kind is SyntaxKind.Field)
             {
                 if (!IsTypeNameField(((FieldNode)selection).Name.Value))
@@ -221,15 +236,18 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             for (var i = 0; i < fields.Count - 1; i++)
             {
                 var fieldA = fields[i];
+
                 for (var j = i + 1; j < fields.Count; j++)
                 {
                     var fieldB = fields[j];
+
                     if (!ReferenceEquals(fieldA.Field, fieldB.Field) &&
                         string.Equals(fieldA.ResponseName, fieldB.ResponseName, Ordinal))
                     {
                         if (SameResponseShape(
                             fieldA.Type.RewriteNullability(fieldA.Field.Required),
-                            fieldB.Type.RewriteNullability(fieldB.Field.Required)))
+                            fieldB.Type.RewriteNullability(fieldB.Field.Required)) &&
+                            SameStreamDirective(fieldA, fieldB))
                         {
                             if (IsParentTypeAligned(fieldA, fieldB))
                             {
@@ -303,9 +321,11 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         for (var i = 0; i < fieldA.Arguments.Count; i++)
         {
             var argumentA = fieldA.Arguments[i];
+
             for (var j = 0; j < fieldB.Arguments.Count; j++)
             {
                 var argumentB = fieldB.Arguments[j];
+
                 if (BySyntax.Equals(argumentA.Name, argumentB.Name))
                 {
                     if (BySyntax.Equals(argumentA.Value, argumentB.Value))
@@ -358,5 +378,26 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         }
 
         return false;
+    }
+
+    private static bool SameStreamDirective(FieldInfo fieldA, FieldInfo fieldB)
+    {
+        var streamA = fieldA.Field.GetStreamDirectiveNode();
+        var streamB = fieldB.Field.GetStreamDirectiveNode();
+
+        // if both fields do not have any stream directive they are mergeable.
+        if (streamA is null)
+        {
+            return streamB is null;
+        }
+
+        // if stream a is not nullable and stream b is null then we cannot merge.
+        if (streamB is null)
+        {
+            return false;
+        }
+
+        // if both fields have a stream directive we need to check if they are equal.
+        return streamA.StreamDirectiveEquals(streamB);
     }
 }

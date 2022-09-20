@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Execution.Processing;
 
 // ReSharper disable once CheckNamespace
@@ -113,6 +114,14 @@ internal static class OperationContextExtensions
         return context;
     }
 
+    public static OperationContext SetItems(
+        this OperationContext context,
+        IReadOnlyList<object?> items)
+    {
+        context.Result.SetItems(items);
+        return context;
+    }
+
     public static OperationContext SetPatchId(
         this OperationContext context,
         uint patchId)
@@ -131,8 +140,4 @@ internal static class OperationContextExtensions
     public static IQueryResult BuildResult(
         this OperationContext context) =>
         context.Result.BuildResult();
-
-    public static IQueryResultBuilder BuildResultBuilder(
-        this OperationContext context) =>
-        context.Result.BuildResultBuilder();
 }

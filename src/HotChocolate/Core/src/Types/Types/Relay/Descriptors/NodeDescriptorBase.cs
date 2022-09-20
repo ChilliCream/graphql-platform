@@ -163,20 +163,20 @@ public abstract class NodeDescriptorBase : DescriptorBase<NodeDefinition>
 
     protected static class ConverterHelper
     {
-        private static ResultConverterDefinition? _resultConverter;
+        private static ResultFormatterDefinition? _resultConverter;
 
-        private static ResultConverterDefinition Converter
+        private static ResultFormatterDefinition Formatter
         {
             get => _resultConverter ??= IdMiddleware.Create();
         }
 
         public static IObjectFieldDescriptor TryAdd(IObjectFieldDescriptor descriptor)
         {
-            var converters = descriptor.Extend().Definition.ResultConverters;
+            var converters = descriptor.Extend().Definition.FormatterDefinitions;
 
-            if (!converters.Contains(Converter))
+            if (!converters.Contains(Formatter))
             {
-                converters.Add(Converter);
+                converters.Add(Formatter);
             }
 
             return descriptor;

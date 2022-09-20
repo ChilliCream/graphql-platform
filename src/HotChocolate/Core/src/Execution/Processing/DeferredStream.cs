@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -94,12 +95,14 @@ internal sealed class DeferredStream : DeferredExecutionTask
                 return;
             }
 
+            var item = _task.ChildTask.ParentResult[0].Value!;
+
             var result = operationContext
                 .SetLabel(Label)
                 .SetPath(operationContext.PathFactory.Append(Path, Index))
-                .SetData((ObjectResult)_task.ChildTask.ParentResult[0].Value!)
+                .SetItems(new[] { item })
                 .SetPatchId(patchId)
-                .BuildResultBuilder();
+                .BuildResult();
 
             await _task.ChildTask.CompleteUnsafeAsync().ConfigureAwait(false);
 
@@ -107,8 +110,11 @@ internal sealed class DeferredStream : DeferredExecutionTask
             operationContext.DeferredScheduler.Register(this, patchId);
             operationContext.DeferredScheduler.Complete(new(resultId, parentResultId, result));
         }
-        catch
+        catch(Exception ex)
         {
+            var builder = operationContext.ErrorHandler.CreateUnexpectedError(ex);
+            var result = QueryResultBuilder.CreateError(builder.Build());
+            operationContext.DeferredScheduler.Complete(new(resultId, parentResultId, result));
             error = true;
         }
         finally

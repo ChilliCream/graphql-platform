@@ -149,7 +149,7 @@ public class FooByIdDataLoader : BatchDataLoader<string, Foo>
 {
     private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
 
-    public UserByIdDataLoader(
+    public FooByIdDataLoader(
         IDbContextFactory<ApplicationDbContext> dbContextFactory,
         IBatchScheduler batchScheduler, DataLoaderOptions options)
         : base(batchScheduler, options)
