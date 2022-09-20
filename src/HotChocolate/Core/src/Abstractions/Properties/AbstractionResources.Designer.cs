@@ -242,5 +242,17 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("NameUtils_InvalidGraphQLName", resourceCulture);
             }
         }
+        
+        internal static string MutationResult_ErrorElementIsNull {
+            get {
+                return ResourceManager.GetString("MutationResult_ErrorElementIsNull", resourceCulture);
+            }
+        }
+        
+        internal static string MutationResult_ErrorsIsEmpty {
+            get {
+                return ResourceManager.GetString("MutationResult_ErrorsIsEmpty", resourceCulture);
+            }
+        }
     }
 }

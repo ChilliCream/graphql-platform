@@ -1,0 +1,8 @@
+﻿{
+  "data": {
+    "doSomething": {
+      "string": "abc",
+      "errors": null
+    }
+  }
+}

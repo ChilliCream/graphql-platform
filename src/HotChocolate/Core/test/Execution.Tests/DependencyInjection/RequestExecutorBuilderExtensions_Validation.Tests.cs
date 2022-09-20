@@ -1,16 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
-using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Validation;
-using Xunit;
 using HotChocolate.Types;
+using HotChocolate.Validation;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 
-namespace HotChocolate.DependencyInjection;
+namespace HotChocolate.Execution.DependencyInjection;
 
 public class RequestExecutorBuilderExtensionsValidationTests
 {
