@@ -17,5 +17,6 @@
   "ValidatePipelineOrder": true,
   "StrictRuntimeTypeValidation": false,
   "DefaultIsOfTypeCheck": null,
-  "EnableOneOf": true
+  "EnableOneOf": true,
+  "EnableFlagEnums": false
 }

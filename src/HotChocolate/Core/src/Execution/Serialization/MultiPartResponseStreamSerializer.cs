@@ -72,22 +72,39 @@ public sealed partial class MultiPartResponseStreamSerializer : IResponseStreamS
         Stream outputStream,
         CancellationToken ct)
     {
-        await foreach (IQueryResult result in
-            responseStream.ReadResultsAsync().WithCancellation(ct).ConfigureAwait(false))
+        // first we create the iterator.
+        await using var enumerator = responseStream.ReadResultsAsync().GetAsyncEnumerator(ct);
+        var first = true;
+
+        while (await enumerator.MoveNextAsync().ConfigureAwait(false))
         {
             try
             {
-                await WriteNextAsync(outputStream, ct).ConfigureAwait(false);
-                await WriteResultAsync(result, outputStream, ct).ConfigureAwait(false);
+                if (first || enumerator.Current.HasNext is null)
+                {
+                    await WriteNextAsync(outputStream, ct).ConfigureAwait(false);
+                    first = false;
+                }
+
+                // Now we can write the header and body of the part.
+                await WriteResultAsync(enumerator.Current, outputStream, ct).ConfigureAwait(false);
+
+                if (enumerator.Current.HasNext is true)
+                {
+                    await WriteNextAsync(outputStream, ct).ConfigureAwait(false);
+                }
+
+                // we flush to make sure that the result is written to the network stream.
                 await outputStream.FlushAsync(ct).ConfigureAwait(false);
             }
             finally
             {
                 // The result objects use pooled memory so we need to ensure that they
                 // return the memory by disposing them.
-                result.Dispose();
+                enumerator.Current.Dispose();
             }
         }
+
 
         await WriteEndAsync(outputStream, ct).ConfigureAwait(false);
         await outputStream.FlushAsync(ct).ConfigureAwait(false);
@@ -106,7 +123,10 @@ public sealed partial class MultiPartResponseStreamSerializer : IResponseStreamS
 
         // The payload is sent, followed by a CRLF.
         await outputStream.WriteAsync(
-            writer.GetInternalBuffer(), 0, writer.Length, ct)
+                writer.GetInternalBuffer(),
+                0,
+                writer.Length,
+                ct)
             .ConfigureAwait(false);
     }
 
@@ -119,7 +139,10 @@ public sealed partial class MultiPartResponseStreamSerializer : IResponseStreamS
         // a specific serialization format. For consistency and ease of notation,
         // examples of the response are given in JSON throughout the spec.
         await outputStream.WriteAsync(
-                ContentType, 0, ContentType.Length, ct)
+                ContentType,
+                0,
+                ContentType.Length,
+                ct)
             .ConfigureAwait(false);
         await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct)
             .ConfigureAwait(false);
