@@ -5,7 +5,6 @@ using HotChocolate.Tests;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types;
 
@@ -402,9 +401,9 @@ public class AnnotationBasedMutations
             .ExecuteRequestAsync(
                 @"mutation {
                     doSomething(input: {
-                        something: ""test""
+                        id: ""Rm9vCmdhYWY1ZjAzNjk0OGU0NDRkYWRhNTM2ZTY1MTNkNTJjZA==""
                     }) {
-
+                        user { name id }
                     }
                 }")
             .MatchSnapshotAsync();
@@ -434,7 +433,7 @@ public class AnnotationBasedMutations
     }
 
     [Fact]
-    public async Task Union_Result_2()
+    public async Task Union_Result_1()
     {
         Snapshot.FullName();
 
@@ -448,7 +447,42 @@ public class AnnotationBasedMutations
                     doSomething(input: {
                         something: ""abc""
                     }) {
-                        errors { message }
+                        errors { ... on Custom2Error { message } }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Union_Result_1_Schema()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithUnionResult1>()
+            .AddMutationConventions()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Union_Result_2()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithUnionResult2>()
+            .AddMutationConventions(true)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                    doSomething(input: {
+                        something: ""abc""
+                    }) {
+                        errors { ... on Custom2Error { message } }
                     }
                 }")
             .MatchSnapshotAsync();
@@ -461,7 +495,7 @@ public class AnnotationBasedMutations
 
         await new ServiceCollection()
             .AddGraphQL()
-            .AddMutationType<MutationWithUnionResult1>()
+            .AddMutationType<MutationWithUnionResult2>()
             .AddMutationConventions()
             .ModifyOptions(o => o.StrictValidation = false)
             .BuildSchemaAsync()
@@ -585,16 +619,16 @@ public class AnnotationBasedMutations
 
     public class MutationWithUnionResult1
     {
-        public MutationResult<string, Custom2Exception> DoSomething(string something)
-            => new Custom2Exception();
-    }
-
-    public class MutationWithUnionResult2
-    {
         [Error(typeof(CustomException))]
         [Error(typeof(Custom2Exception))]
         public MutationResult<string> DoSomething(string something)
             => new(new Custom2Exception());
+    }
+
+    public class MutationWithUnionResult2
+    {
+        public MutationResult<string, Custom2Exception> DoSomething(string something)
+            => new Custom2Exception();
     }
 
     public class CustomException : Exception

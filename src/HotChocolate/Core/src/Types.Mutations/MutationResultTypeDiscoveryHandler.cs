@@ -24,12 +24,21 @@ internal sealed class MutationResultTypeDiscoveryHandler : TypeDiscoveryHandler
             if (typeDef == typeof(MutationResult<>) ||
                 typeDef == typeof(MutationResult<,>))
             {
-                schemaTypeRefs = new ITypeReference[]
+                var type = _typeInspector.GetType(runtimeType.GenericTypeArguments[0]);
+                schemaTypeRefs = new ITypeReference[runtimeType.GenericTypeArguments.Length];
+                schemaTypeRefs[0] = typeReference.WithType(type);
+
+                for(var i = 1; i < runtimeType.GenericTypeArguments.Length; i++)
                 {
-                    typeReference.WithType(
-                        _typeInspector.GetType(
-                            runtimeType.GenericTypeArguments[0]))
+                    var errorType = runtimeType.GenericTypeArguments[i];
+
+                    type = _typeInspector.GetType(typeof(Exception).IsAssignableFrom(errorType)
+                        ? typeof(ExceptionObjectType<>).MakeGenericType(errorType)
+                        : typeof(ErrorObjectType<>).MakeGenericType(errorType));
+
+                    schemaTypeRefs[i] = typeReference.WithType(type);
                 };
+
                 return true;
             }
         }
