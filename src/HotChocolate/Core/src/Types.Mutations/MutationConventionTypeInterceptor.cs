@@ -112,6 +112,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                 {
                     // if the mutation options indicate that we shall apply the mutation
                     // conventions we will start rewriting the field.
+                    ApplyResultMiddleware(mutationField);
                     TryApplyInputConvention(mutationField, mutationOptions);
                     TryApplyPayloadConvention(mutationField, cd?.PayloadFieldName, mutationOptions);
                 }
@@ -122,6 +123,38 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                 throw ThrowHelper.NonMutationFields(unprocessed);
             }
         }
+    }
+
+    private void ApplyResultMiddleware(ObjectFieldDefinition mutation)
+    {
+        var middlewareDef = new FieldMiddlewareDefinition(
+            next => async context =>
+            {
+                await next(context).ConfigureAwait(false);
+
+                if (context.Result is IMutationResult result)
+                {
+                    // by checking if it is not an error we can accept the default
+                    // value of the struct as null.
+                    if (!result.IsError)
+                    {
+                        context.Result = result.Value;
+                    }
+                    else
+                    {
+                        context.SetScopedState(Errors, result.Value);
+                        context.Result = MarkerObjects.ErrorObject;
+                    }
+                }
+
+                // we will replace null with our null marker object so
+                // that
+                context.Result ??= MarkerObjects.Null;
+            },
+            isRepeatable: false,
+            key: MutationResult);
+
+        mutation.MiddlewareDefinitions.Insert(0, middlewareDef);
     }
 
     private void TryApplyInputConvention(ObjectFieldDefinition mutation, Options options)
@@ -437,6 +470,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         if (resultType?.IsGenericType ?? false)
         {
             var typeDefinition = resultType.GetGenericTypeDefinition();
+
             if (typeDefinition == typeof(Task<>) || typeDefinition == typeof(ValueTask<>))
             {
                 resultType = resultType.GenericTypeArguments[0];

@@ -62,22 +62,7 @@ internal sealed class MutationConventionMiddleware
 
         try
         {
-            await _next(context);
-
-            if (context.Result is IMutationResult result)
-            {
-                if (result.IsSuccess)
-                {
-                    context.Result = result.Value;
-                }
-                else
-                {
-                    context.SetScopedState(ErrorContextDataKeys.Errors, result.Value);
-                    context.Result = MarkerObjects.ErrorObject;
-                }
-            }
-
-            context.Result ??= MarkerObjects.Null;
+            await _next(context).ConfigureAwait(false);
         }
         finally
         {

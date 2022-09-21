@@ -23,11 +23,12 @@ public readonly struct MutationResult<TResult> : IMutationResult
     /// <exception cref="ArgumentNullException">
     /// <paramref name="result"/> is <c>null</c>.
     /// </exception>
-    public MutationResult([DisallowNull] TResult result)
+    public MutationResult(TResult result)
     {
-        Result = result ?? throw new ArgumentNullException(nameof(result));
+        Result = result;
         Errors = null;
         IsSuccess = true;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -49,6 +50,7 @@ public readonly struct MutationResult<TResult> : IMutationResult
         Result = default;
         Errors = new[] { error };
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -89,6 +91,7 @@ public readonly struct MutationResult<TResult> : IMutationResult
         Result = default;
         Errors = temp;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -109,6 +112,8 @@ public readonly struct MutationResult<TResult> : IMutationResult
         Result = default;
         Errors = errors ?? throw new ArgumentNullException(nameof(errors));
         IsSuccess = false;
+        IsError = !IsSuccess;
+        IsError = !IsSuccess;
 
         if (errors.Length == 0)
         {
@@ -139,16 +144,20 @@ public readonly struct MutationResult<TResult> : IMutationResult
     /// <summary>
     /// Defines if this mutation result represents a success result.
     /// </summary>
-#if NET5_0_OR_GREATER
-    [MemberNotNullWhen(true, nameof(Result))]
-    [MemberNotNullWhen(false, nameof(Errors))]
-#endif
     public bool IsSuccess { get; }
 
+    /// <summary>
+    /// Defines if the mutation had an error and if the result represents a error result.
+    /// </summary>
 #if NET5_0_OR_GREATER
-    object IMutationResult.Value => IsSuccess ? Result : Errors;
+    [MemberNotNullWhen(true, nameof(Errors))]
+#endif
+    public bool IsError { get; }
+
+#if NET5_0_OR_GREATER
+    object? IMutationResult.Value => IsSuccess ? Result : Errors;
 #else
-    object IMutationResult.Value => IsSuccess ? Result! : Errors!;
+    object? IMutationResult.Value => IsSuccess ? Result : Errors!;
 #endif
 
     /// <summary>
@@ -196,11 +205,12 @@ public readonly struct MutationResult<TResult, TError> : IMutationResult
     /// <exception cref="ArgumentNullException">
     /// <paramref name="result"/> is <c>null</c>.
     /// </exception>
-    public MutationResult([DisallowNull] TResult result)
+    public MutationResult(TResult result)
     {
-        Result = result ?? throw new ArgumentNullException(nameof(result));
+        Result = result;
         Errors = null;
         IsSuccess = true;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -222,6 +232,7 @@ public readonly struct MutationResult<TResult, TError> : IMutationResult
         Result = default;
         Errors = new object[] { error };
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -264,6 +275,7 @@ public readonly struct MutationResult<TResult, TError> : IMutationResult
         Result = default;
         Errors = list;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -308,6 +320,7 @@ public readonly struct MutationResult<TResult, TError> : IMutationResult
         Result = default;
         Errors = array;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -325,16 +338,20 @@ public readonly struct MutationResult<TResult, TError> : IMutationResult
     /// <summary>
     /// Defines if this mutation result represents a success result.
     /// </summary>
-#if NET5_0_OR_GREATER
-    [MemberNotNullWhen(true, nameof(Result))]
-    [MemberNotNullWhen(false, nameof(Errors))]
-#endif
     public bool IsSuccess { get; }
 
+    /// <summary>
+    /// Defines if the mutation had an error and if the result represents a error result.
+    /// </summary>
 #if NET5_0_OR_GREATER
-    object IMutationResult.Value => IsSuccess ? Result : Errors;
+    [MemberNotNullWhen(true, nameof(Errors))]
+#endif
+    public bool IsError { get; }
+
+#if NET5_0_OR_GREATER
+    object? IMutationResult.Value => IsSuccess ? Result : Errors;
 #else
-    object IMutationResult.Value => IsSuccess ? Result! : Errors!;
+    object? IMutationResult.Value => IsSuccess ? Result : Errors!;
 #endif
 
     /// <summary>
@@ -409,11 +426,12 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
     /// <exception cref="ArgumentNullException">
     /// <paramref name="result"/> is <c>null</c>.
     /// </exception>
-    public MutationResult([DisallowNull] TResult result)
+    public MutationResult(TResult result)
     {
-        Result = result ?? throw new ArgumentNullException(nameof(result));
+        Result = result;
         Errors = null;
         IsSuccess = true;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -435,6 +453,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
         Result = default;
         Errors = new object[] { error };
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -477,6 +496,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
         Result = default;
         Errors = list;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -521,6 +541,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
         Result = default;
         Errors = array;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -542,6 +563,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
         Result = default;
         Errors = new object[] { error };
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -584,6 +606,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
         Result = default;
         Errors = list;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -628,6 +651,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
         Result = default;
         Errors = array;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -668,6 +692,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
         Result = default;
         Errors = temp;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -688,6 +713,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
         Result = default;
         Errors = errors ?? throw new ArgumentNullException(nameof(errors));
         IsSuccess = false;
+        IsError = !IsSuccess;
 
         if (errors.Length == 0)
         {
@@ -718,16 +744,20 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
     /// <summary>
     /// Defines if this mutation result represents a success result.
     /// </summary>
-#if NET5_0_OR_GREATER
-    [MemberNotNullWhen(true, nameof(Result))]
-    [MemberNotNullWhen(false, nameof(Errors))]
-#endif
     public bool IsSuccess { get; }
 
+    /// <summary>
+    /// Defines if the mutation had an error and if the result represents a error result.
+    /// </summary>
 #if NET5_0_OR_GREATER
-    object IMutationResult.Value => IsSuccess ? Result : Errors;
+    [MemberNotNullWhen(true, nameof(Errors))]
+#endif
+    public bool IsError { get; }
+
+#if NET5_0_OR_GREATER
+    object? IMutationResult.Value => IsSuccess ? Result : Errors;
 #else
-    object IMutationResult.Value => IsSuccess ? Result! : Errors!;
+    object? IMutationResult.Value => IsSuccess ? Result : Errors!;
 #endif
 
     /// <summary>
@@ -832,11 +862,12 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
     /// <exception cref="ArgumentNullException">
     /// <paramref name="result"/> is <c>null</c>.
     /// </exception>
-    public MutationResult([DisallowNull] TResult result)
+    public MutationResult(TResult result)
     {
-        Result = result ?? throw new ArgumentNullException(nameof(result));
+        Result = result;
         Errors = null;
         IsSuccess = true;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -858,6 +889,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
         Result = default;
         Errors = new object[] { error };
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -900,6 +932,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
         Result = default;
         Errors = list;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -944,6 +977,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
         Result = default;
         Errors = array;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -965,6 +999,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
         Result = default;
         Errors = new object[] { error };
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -1007,6 +1042,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
         Result = default;
         Errors = list;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -1051,6 +1087,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
         Result = default;
         Errors = array;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -1072,6 +1109,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
         Result = default;
         Errors = new object[] { error };
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -1114,6 +1152,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
         Result = default;
         Errors = list;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -1158,6 +1197,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
         Result = default;
         Errors = array;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -1198,6 +1238,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
         Result = default;
         Errors = temp;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -1218,6 +1259,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
         Result = default;
         Errors = errors ?? throw new ArgumentNullException(nameof(errors));
         IsSuccess = false;
+        IsError = !IsSuccess;
 
         if (errors.Length == 0)
         {
@@ -1248,16 +1290,20 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
     /// <summary>
     /// Defines if this mutation result represents a success result.
     /// </summary>
-#if NET5_0_OR_GREATER
-    [MemberNotNullWhen(true, nameof(Result))]
-    [MemberNotNullWhen(false, nameof(Errors))]
-#endif
     public bool IsSuccess { get; }
 
+    /// <summary>
+    /// Defines if the mutation had an error and if the result represents a error result.
+    /// </summary>
 #if NET5_0_OR_GREATER
-    object IMutationResult.Value => IsSuccess ? Result : Errors;
+    [MemberNotNullWhen(true, nameof(Errors))]
+#endif
+    public bool IsError { get; }
+
+#if NET5_0_OR_GREATER
+    object? IMutationResult.Value => IsSuccess ? Result : Errors;
 #else
-    object IMutationResult.Value => IsSuccess ? Result! : Errors!;
+    object? IMutationResult.Value => IsSuccess ? Result : Errors!;
 #endif
 
     /// <summary>
@@ -1390,11 +1436,12 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// <exception cref="ArgumentNullException">
     /// <paramref name="result"/> is <c>null</c>.
     /// </exception>
-    public MutationResult([DisallowNull] TResult result)
+    public MutationResult(TResult result)
     {
-        Result = result ?? throw new ArgumentNullException(nameof(result));
+        Result = result;
         Errors = null;
         IsSuccess = true;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -1416,6 +1463,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = new object[] { error };
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -1458,6 +1506,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = list;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -1502,6 +1551,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = array;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -1523,6 +1573,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = new object[] { error };
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -1565,6 +1616,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = list;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -1609,6 +1661,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = array;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -1630,6 +1683,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = new object[] { error };
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -1672,6 +1726,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = list;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -1716,6 +1771,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = array;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -1737,6 +1793,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = new object[] { error };
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -1779,6 +1836,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = list;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -1823,6 +1881,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = array;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -1863,6 +1922,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = temp;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -1883,6 +1943,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = errors ?? throw new ArgumentNullException(nameof(errors));
         IsSuccess = false;
+        IsError = !IsSuccess;
 
         if (errors.Length == 0)
         {
@@ -1913,16 +1974,20 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// <summary>
     /// Defines if this mutation result represents a success result.
     /// </summary>
-#if NET5_0_OR_GREATER
-    [MemberNotNullWhen(true, nameof(Result))]
-    [MemberNotNullWhen(false, nameof(Errors))]
-#endif
     public bool IsSuccess { get; }
 
+    /// <summary>
+    /// Defines if the mutation had an error and if the result represents a error result.
+    /// </summary>
 #if NET5_0_OR_GREATER
-    object IMutationResult.Value => IsSuccess ? Result : Errors;
+    [MemberNotNullWhen(true, nameof(Errors))]
+#endif
+    public bool IsError { get; }
+
+#if NET5_0_OR_GREATER
+    object? IMutationResult.Value => IsSuccess ? Result : Errors;
 #else
-    object IMutationResult.Value => IsSuccess ? Result! : Errors!;
+    object? IMutationResult.Value => IsSuccess ? Result : Errors!;
 #endif
 
     /// <summary>
@@ -2083,11 +2148,12 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// <exception cref="ArgumentNullException">
     /// <paramref name="result"/> is <c>null</c>.
     /// </exception>
-    public MutationResult([DisallowNull] TResult result)
+    public MutationResult(TResult result)
     {
-        Result = result ?? throw new ArgumentNullException(nameof(result));
+        Result = result;
         Errors = null;
         IsSuccess = true;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -2109,6 +2175,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = new object[] { error };
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -2151,6 +2218,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = list;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -2195,6 +2263,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = array;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -2216,6 +2285,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = new object[] { error };
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -2258,6 +2328,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = list;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -2302,6 +2373,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = array;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -2323,6 +2395,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = new object[] { error };
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -2365,6 +2438,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = list;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -2409,6 +2483,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = array;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -2430,6 +2505,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = new object[] { error };
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -2472,6 +2548,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = list;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -2516,6 +2593,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = array;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
         /// <summary>
@@ -2537,6 +2615,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = new object[] { error };
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -2579,6 +2658,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = list;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -2623,6 +2703,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = array;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -2663,6 +2744,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = temp;
         IsSuccess = false;
+        IsError = !IsSuccess;
     }
 
     /// <summary>
@@ -2683,6 +2765,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         Result = default;
         Errors = errors ?? throw new ArgumentNullException(nameof(errors));
         IsSuccess = false;
+        IsError = !IsSuccess;
 
         if (errors.Length == 0)
         {
@@ -2713,16 +2796,20 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// <summary>
     /// Defines if this mutation result represents a success result.
     /// </summary>
-#if NET5_0_OR_GREATER
-    [MemberNotNullWhen(true, nameof(Result))]
-    [MemberNotNullWhen(false, nameof(Errors))]
-#endif
     public bool IsSuccess { get; }
 
+    /// <summary>
+    /// Defines if the mutation had an error and if the result represents a error result.
+    /// </summary>
 #if NET5_0_OR_GREATER
-    object IMutationResult.Value => IsSuccess ? Result : Errors;
+    [MemberNotNullWhen(true, nameof(Errors))]
+#endif
+    public bool IsError { get; }
+
+#if NET5_0_OR_GREATER
+    object? IMutationResult.Value => IsSuccess ? Result : Errors;
 #else
-    object IMutationResult.Value => IsSuccess ? Result! : Errors!;
+    object? IMutationResult.Value => IsSuccess ? Result : Errors!;
 #endif
 
     /// <summary>

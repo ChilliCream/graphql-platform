@@ -74,4 +74,9 @@ public static class WellKnownMiddleware
     /// This key identifies the mutation convention middleware.
     /// </summary>
     public const string MutationErrors = "HotChocolate.Types.Mutations.Errors";
+
+    /// <summary>
+    ///The key identifies the mutation result middleware.
+    /// </summary>
+    public const string MutationResult = "HotChocolate.Types.Mutations.Result";
 }

@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace HotChocolate;
 
 /// <summary>
@@ -8,10 +10,18 @@ public interface IMutationResult
     /// <summary>
     /// Gets the mutation result value.
     /// </summary>
-    object Value { get; }
+    object? Value { get; }
 
     /// <summary>
     /// Defines if the mutation was successful and if the result represents a success result.
     /// </summary>
     bool IsSuccess { get; }
+
+    /// <summary>
+    /// Defines if the mutation had an error and if the result represents a error result.
+    /// </summary>
+#if NET5_0_OR_GREATER
+    [MemberNotNullWhen(true, nameof(Value))]
+#endif
+    bool IsError { get; }
 }
