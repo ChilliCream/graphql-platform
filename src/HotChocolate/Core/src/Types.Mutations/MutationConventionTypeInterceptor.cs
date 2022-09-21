@@ -157,13 +157,14 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                     _ => new AggregateInputValueFormatter(argument.Formatters)
                 };
 
-            resolverArguments.Add(new ResolverArgument(
-                argument.Name,
-                new FieldCoordinate(inputTypeName, argument.Name),
-                _completionContext.GetType<IInputType>(argument.Type!),
-                runtimeType,
-                argument.DefaultValue,
-                formatter));
+            resolverArguments.Add(
+                new ResolverArgument(
+                    argument.Name,
+                    new FieldCoordinate(inputTypeName, argument.Name),
+                    _completionContext.GetType<IInputType>(argument.Type!),
+                    runtimeType,
+                    argument.DefaultValue,
+                    formatter));
         }
 
         var argumentMiddleware =
@@ -262,7 +263,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
             inputFieldDef.RuntimeType =
                 argumentDef.RuntimeType ??
-                    argumentDef.Parameter?.ParameterType;
+                argumentDef.Parameter?.ParameterType;
 
             inputObjectDef.Fields.Add(inputFieldDef);
         }
@@ -410,7 +411,9 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                         var definition = new ErrorDefinition(
                             errorType,
                             schemaType,
-                            ex => ex.GetType() == errorType ? ex : null);
+                            ex => ex.GetType() == errorType
+                                ? ex
+                                : null);
                         tempErrors.Add(definition);
                     }
                     else
@@ -429,7 +432,19 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
     private static Type[] GetErrorResultTypes(ObjectFieldDefinition mutation)
     {
-        if(mutation.ResultType is { IsValueType: true, IsGenericType: true } resultType &&
+        var resultType = mutation.ResultType;
+
+        if (resultType?.IsGenericType ?? false)
+        {
+            var typeDefinition = resultType.GetGenericTypeDefinition();
+            if (typeDefinition == typeof(Task<>) || typeDefinition == typeof(ValueTask<>))
+            {
+                resultType = resultType.GenericTypeArguments[0];
+            }
+        }
+
+
+        if (resultType is { IsValueType: true, IsGenericType: true } &&
             typeof(IMutationResult).IsAssignableFrom(resultType))
         {
             var types = resultType.GenericTypeArguments;

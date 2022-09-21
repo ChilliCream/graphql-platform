@@ -463,6 +463,29 @@ public class AnnotationBasedMutations
     }
 
     [Fact]
+    public async Task Union_Result_2_Task()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType()
+            .AddTypeExtension<MutationWithUnionResult2_Task>()
+            .AddMutationConventions(true)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                        doSomething(input: {
+                            something: ""abc""
+                        }) {
+                            string
+                            errors { ... on Error { message } }
+                        }
+                    }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
     public async Task Union_Result_2_Success()
     {
         Snapshot.FullName();
@@ -492,6 +515,21 @@ public class AnnotationBasedMutations
         await new ServiceCollection()
             .AddGraphQL()
             .AddMutationType<MutationWithUnionResult2>()
+            .AddMutationConventions()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Union_Result_2_Task_Schema()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType()
+            .AddTypeExtension<MutationWithUnionResult2_Task>()
             .AddMutationConventions()
             .ModifyOptions(o => o.StrictValidation = false)
             .BuildSchemaAsync()
@@ -915,6 +953,13 @@ public class AnnotationBasedMutations
     {
         public MutationResult<string, Custom2Exception> DoSomething(string something)
             => new Custom2Exception();
+    }
+
+    [ExtendObjectType(OperationTypeNames.Mutation)]
+    public class MutationWithUnionResult2_Task
+    {
+        public async Task<MutationResult<string, Custom2Exception>> DoSomething(string something)
+            => await Task.FromResult(new Custom2Exception());
     }
 
     public class MutationWithUnionResult2_Success
