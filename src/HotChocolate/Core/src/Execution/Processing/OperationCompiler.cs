@@ -466,7 +466,7 @@ public sealed partial class OperationCompiler
                     responseName: responseName,
                     isParallelExecutable: field.IsParallelExecutable,
                     arguments: CoerceArgumentValues(field, selection, responseName),
-                    includeCondition: includeCondition);
+                    includeConditions: includeCondition == 0 ? null : new[] { includeCondition });
 
                 context.Fields.Add(responseName, preparedSelection);
 

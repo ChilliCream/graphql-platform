@@ -184,6 +184,11 @@ public static class WellKnownContextData
     public const string InternalId = "HotChocolate.Relay.Node.Id.InternalId";
 
     /// <summary>
+    /// The key to get the id type name from the context data.
+    /// </summary>
+    public const string InternalTypeName = "HotChocolate.Relay.Node.Id.InternalTypeName";
+
+    /// <summary>
     /// The key to get the id type from the context data.
     /// </summary>
     public const string InternalType = "HotChocolate.Relay.Node.Id.InternalType";

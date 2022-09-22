@@ -109,7 +109,7 @@ public abstract class DescriptorBase<T>
         var configuration = new CompleteConfiguration(
             (c, d) => configure(c, (T)d),
             Definition,
-            ApplyConfigurationOn.Naming);
+            ApplyConfigurationOn.BeforeNaming);
 
         Definition.Configurations.Add(configuration);
 
@@ -130,7 +130,7 @@ public abstract class DescriptorBase<T>
         var configuration = new CompleteConfiguration(
             (c, d) => configure(c, (T)d),
             Definition,
-            ApplyConfigurationOn.Completion);
+            ApplyConfigurationOn.BeforeCompletion);
 
         Definition.Configurations.Add(configuration);
 

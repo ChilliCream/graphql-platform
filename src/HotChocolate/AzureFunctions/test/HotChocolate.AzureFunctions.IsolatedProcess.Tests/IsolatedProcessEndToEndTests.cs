@@ -36,7 +36,8 @@ public class IsolatedProcessEndToEndTests
             }");
 
         // Execute Query Test for end-to-end validation...
-        // NOTE: This uses the new Az Func Isolated Process extension to execute via HttpRequestData...
+        // NOTE: This uses the new Az Func Isolated Process extension to execute
+        // via HttpRequestData...
         var response = await requestExecutor.ExecuteAsync(request).ConfigureAwait(false);
 
         // Read, Parse & Validate the response...
@@ -60,7 +61,9 @@ public class IsolatedProcessEndToEndTests
                     d => d.Name("Query").Field("person").Resolve(ctx =>
                     {
 
-                        var darkSideLeader = ctx.ContextData.TryGetValue(nameof(HttpContext), out var httpContext)
+                        var darkSideLeader = ctx.ContextData.TryGetValue(
+                            nameof(HttpContext),
+                            out var httpContext)
                             ? (httpContext as HttpContext)?.Items[DarkSideLeaderKey] as string
                             : default;
 
@@ -83,7 +86,8 @@ public class IsolatedProcessEndToEndTests
         request.FunctionContext.Items.Add(DarkSideLeaderKey, "Darth Vader");
 
         // Execute Query Test for end-to-end validation...
-        // NOTE: This uses the new Az Func Isolated Process extension to execute via HttpRequestData...
+        // NOTE: This uses the new Az Func Isolated Process extension to execute
+        // via HttpRequestData...
         var response = await requestExecutor.ExecuteAsync(request).ConfigureAwait(false);
 
         // Read, Parse & Validate the response...

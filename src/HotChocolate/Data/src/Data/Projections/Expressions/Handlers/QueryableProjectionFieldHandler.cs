@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Types;
 using static HotChocolate.Data.Projections.Expressions.ProjectionExpressionBuilder;
 
 namespace HotChocolate.Data.Projections.Expressions.Handlers;
@@ -59,7 +58,7 @@ public class QueryableProjectionFieldHandler
             return false;
         }
 
-        // Deque last
+        // Dequeue last
         var scope = context.PopScope();
 
         if (scope is not QueryableProjectionScope queryableScope)
