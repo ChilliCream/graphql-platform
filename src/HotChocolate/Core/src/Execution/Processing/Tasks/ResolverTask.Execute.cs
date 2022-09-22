@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Internal;
+using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing.Tasks;
 
@@ -226,7 +227,8 @@ internal sealed partial class ResolverTask
                         _context.Parent<object>(),
                         count - 1,
                         enumerator,
-                        _context.ScopedContextData));
+                        _context.ScopedContextData),
+                    _context.ParentResult);
             }
 
             return list;

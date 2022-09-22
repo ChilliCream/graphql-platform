@@ -1556,7 +1556,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        return builder.ConfigureSchema(b => b.BindClrType<TRuntimeType, TSchemaType>());
+        return builder.ConfigureSchema(b => b.BindRuntimeType<TRuntimeType, TSchemaType>());
     }
 
     [Obsolete("Use BindRuntimeType")]

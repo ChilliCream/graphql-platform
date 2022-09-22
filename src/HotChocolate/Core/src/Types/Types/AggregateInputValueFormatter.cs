@@ -27,13 +27,13 @@ internal sealed class AggregateInputValueFormatter : IInputValueFormatter
         }
     }
 
-    public object? OnAfterDeserialize(object? runtimeValue)
+    public object? Format(object? runtimeValue)
     {
         var current = runtimeValue;
 
         foreach (var formatter in _formatters)
         {
-            current = formatter.OnAfterDeserialize(current);
+            current = formatter.Format(current);
         }
 
         return current;

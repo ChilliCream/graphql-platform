@@ -265,7 +265,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
         var typeInspector = context.TypeInspector;
 
         itemsType ??= TypeReference.Create(
-            PagingHelper.GetSchemaType(typeInspector, resolverMember),
+            PagingHelper.GetSchemaType(context, resolverMember),
             TypeContext.Output);
 
         // if the node type is a syntax type reference we will try to preserve the actual

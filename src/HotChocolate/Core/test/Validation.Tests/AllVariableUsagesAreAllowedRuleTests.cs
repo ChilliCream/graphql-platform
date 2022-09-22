@@ -1,21 +1,21 @@
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HotChocolate.Validation
-{
-    public class AllVariableUsagesAreAllowedRuleTests
-        : DocumentValidatorVisitorTestBase
-    {
-        public AllVariableUsagesAreAllowedRuleTests()
-            : base(builder => builder.AddVariableRules())
-        {
-        }
+namespace HotChocolate.Validation;
 
-        [Fact]
-        public void IntCannotGoIntoBoolean()
-        {
-            // arrange
-            ExpectErrors(@"
+public class AllVariableUsagesAreAllowedRuleTests
+    : DocumentValidatorVisitorTestBase
+{
+    public AllVariableUsagesAreAllowedRuleTests()
+        : base(builder => builder.AddVariableRules())
+    {
+    }
+
+    [Fact]
+    public void IntCannotGoIntoBoolean()
+    {
+        // arrange
+        ExpectErrors(@"
                 query intCannotGoIntoBoolean($intArg: Int) {
                     arguments {
                         booleanArgField(booleanArg: $intArg)
@@ -26,13 +26,13 @@ namespace HotChocolate.Validation
                 "The variable `intArg` is not compatible with the " +
                 "type of the current location.",
                 t.Message));
-        }
+    }
 
-        [Fact]
-        public void BooleanListCannotGoIntoBoolean()
-        {
-            // arrange
-            ExpectErrors(@"
+    [Fact]
+    public void BooleanListCannotGoIntoBoolean()
+    {
+        // arrange
+        ExpectErrors(@"
                 query booleanListCannotGoIntoBoolean($booleanListArg: [Boolean]) {
                     arguments {
                         booleanArgField(booleanArg: $booleanListArg)
@@ -43,13 +43,13 @@ namespace HotChocolate.Validation
                 "The variable `booleanListArg` is not compatible with the " +
                 "type of the current location.",
                 t.Message));
-        }
+    }
 
-        [Fact]
-        public void BooleanArgQuery()
-        {
-            // arrange
-            ExpectErrors(@"
+    [Fact]
+    public void BooleanArgQuery()
+    {
+        // arrange
+        ExpectErrors(@"
                 query booleanArgQuery($booleanArg: Boolean) {
                     arguments {
                         nonNullBooleanArgField(nonNullBooleanArg: $booleanArg)
@@ -60,39 +60,39 @@ namespace HotChocolate.Validation
                 "The variable `booleanArg` is not compatible with the " +
                 "type of the current location.",
                 t.Message));
-        }
+    }
 
-        [Fact]
-        public void NonNullListToList()
-        {
-            // arrange
-            ExpectValid(@"
+    [Fact]
+    public void NonNullListToList()
+    {
+        // arrange
+        ExpectValid(@"
                 query nonNullListToList($nonNullBooleanList: [Boolean]!) {
                     arguments {
                         booleanListArgField(booleanListArg: $nonNullBooleanList)
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void BooleanVariableAsListElement()
-        {
-            // arrange
-            ExpectValid(@"
+    [Fact]
+    public void BooleanVariableAsListElement()
+    {
+        // arrange
+        ExpectValid(@"
                 query nonNullListToList($b: Boolean) {
                     arguments {
                         booleanListArgField(booleanListArg: [$b])
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void NullableBooleanVariableAsListElement()
-        {
-            // arrange
-            ExpectErrors(@"
+    [Fact]
+    public void NullableBooleanVariableAsListElement()
+    {
+        // arrange
+        ExpectErrors(@"
                 query nonNullBooleanListArgField($nullableBoolean: Boolean) {
                     arguments {
                         nonNullBooleanListArgField(booleanListArg: [$nullableBoolean])
@@ -103,13 +103,13 @@ namespace HotChocolate.Validation
                 "The variable `nullableBoolean` is not compatible with the " +
                 "type of the current location.",
                 t.Message));
-        }
+    }
 
-        [Fact]
-        public void ListToNonNullList()
-        {
-            // arrange
-            ExpectErrors(@"
+    [Fact]
+    public void ListToNonNullList()
+    {
+        // arrange
+        ExpectErrors(@"
                 query listToNonNullList($booleanList: [Boolean]) {
                     arguments {
                         nonNullBooleanListField(nonNullBooleanListArg: $booleanList)
@@ -120,36 +120,36 @@ namespace HotChocolate.Validation
                 "The variable `booleanList` is not compatible with the " +
                 "type of the current location.",
                 t.Message));
-        }
+    }
 
-        [Fact]
-        public void BooleanArgQueryWithDefault1()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void BooleanArgQueryWithDefault1()
+    {
+        ExpectValid(@"
                 query booleanArgQueryWithDefault($booleanArg: Boolean) {
                     arguments {
                         optionalNonNullBooleanArgField(optionalBooleanArg: $booleanArg)
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void BooleanArgQueryWithDefault2()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void BooleanArgQueryWithDefault2()
+    {
+        ExpectValid(@"
                 query booleanArgQueryWithDefault($booleanArg: Boolean = true) {
                     arguments {
                         nonNullBooleanArgField(nonNullBooleanArg: $booleanArg)
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void BooleanToBoolean()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void BooleanToBoolean()
+    {
+        ExpectValid(@"
                 query Query($booleanArg: Boolean)
                 {
                     arguments {
@@ -157,12 +157,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void BooleanToBooleanWithinFragment()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void BooleanToBooleanWithinFragment()
+    {
+        ExpectValid(@"
                 fragment booleanArgFrag on Arguments {
                     booleanArgField(booleanArg: $booleanArg)
                 }
@@ -174,12 +174,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void NonNullableBooleanToBoolean()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void NonNullableBooleanToBoolean()
+    {
+        ExpectValid(@"
                 query Query($nonNullBooleanArg: Boolean!)
                 {
                     arguments {
@@ -187,12 +187,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void NonNullableBooleanToBooleanWithinFragment()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void NonNullableBooleanToBooleanWithinFragment()
+    {
+        ExpectValid(@"
                 fragment booleanArgFrag on Arguments {
                     booleanArgField(booleanArg: $nonNullBooleanArg)
                 }
@@ -204,12 +204,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void StringArrayToStringArray()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void StringArrayToStringArray()
+    {
+        ExpectValid(@"
                 query Query($stringListVar: [String])
                 {
                     arguments {
@@ -217,12 +217,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void ElemenIsNonNullableStringArrayToStringArray()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void ElemenIsNonNullableStringArrayToStringArray()
+    {
+        ExpectValid(@"
                 query Query($stringListVar: [String!])
                 {
                     arguments {
@@ -230,12 +230,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void StringToStringInItemPosition()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void StringToStringInItemPosition()
+    {
+        ExpectValid(@"
                 query Query($stringVar: String)
                 {
                     arguments {
@@ -243,12 +243,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void NonNullableStringToStringInItemPosition()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void NonNullableStringToStringInItemPosition()
+    {
+        ExpectValid(@"
                 query Query($stringVar: String!)
                 {
                     arguments {
@@ -256,12 +256,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void ComplexInputToComplexInput()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void ComplexInputToComplexInput()
+    {
+        ExpectValid(@"
                 query Query($complexVar: Complex3Input)
                 {
                     arguments {
@@ -269,12 +269,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void ComplexInputToComplexInputInFieldPosition()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void ComplexInputToComplexInputInFieldPosition()
+    {
+        ExpectValid(@"
                 query Query($boolVar: Boolean = false)
                 {
                     arguments {
@@ -282,35 +282,35 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void NullableBooleanToBooleanInDirective()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void NullableBooleanToBooleanInDirective()
+    {
+        ExpectValid(@"
                 query Query($boolVar: Boolean!)
                 {
                     dog @include(if: $boolVar)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void IntToNullableInt()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void IntToNullableInt()
+    {
+        ExpectErrors(@"
                 query Query($intArg: Int) {
                     arguments {
                         nonNullIntArgField(intArg: $intArg)
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void IntNullableToIntWithinFragment()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void IntNullableToIntWithinFragment()
+    {
+        ExpectErrors(@"
                 fragment nonNullIntArgFieldFrag on Arguments {
                     nonNullIntArgField(intArg: $intArg)
                 }
@@ -321,12 +321,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void IntNullableToIntWithinNestedFragment()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void IntNullableToIntWithinNestedFragment()
+    {
+        ExpectErrors(@"
                 fragment outerFrag on Arguments {
                     ...nonNullIntArgFieldFrag
                 }
@@ -341,56 +341,56 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void StringOverBoolean()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void StringOverBoolean()
+    {
+        ExpectErrors(@"
                 query Query($stringVar: String) {
                     arguments {
                         booleanArgField(booleanArg: $stringVar)
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void StringToStringArray()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void StringToStringArray()
+    {
+        ExpectErrors(@"
                 query Query($stringVar: String) {
                     arguments {
                         stringListArgField(stringListArg: $stringVar)
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void BooleanToBooleanInDirective()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void BooleanToBooleanInDirective()
+    {
+        ExpectErrors(@"
                 query Query($boolVar: Boolean) {
                     dog @include(if: $boolVar)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void StringToNullableBooleanInDirective()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void StringToNullableBooleanInDirective()
+    {
+        ExpectErrors(@"
                 query Query($stringVar: String) {
                     dog @include(if: $stringVar)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void StringToElementIsNullableString()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void StringToElementIsNullableString()
+    {
+        ExpectErrors(@"
                 query Query($stringListVar: [String])
                 {
                     arguments {
@@ -398,52 +398,51 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void IntToNullableIntFailsWhenVariableProvidesNullDefaultValue()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void IntToNullableIntFailsWhenVariableProvidesNullDefaultValue()
+    {
+        ExpectErrors(@"
                 query Query($intVar: Int = null) {
                     arguments {
                         nonNullIntArgField(intArg: $intVar)
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void IntToNullableIntWhenVariableProvidesNonNullDefaultValue()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void IntToNullableIntWhenVariableProvidesNonNullDefaultValue()
+    {
+        ExpectValid(@"
                 query Query($intVar: Int = 1) {
                     arguments {
                         nonNullIntArgField(intArg: $intVar)
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void IntToNullableIntWhenOptionalArgumentProvidesDefaultValue()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void IntToNullableIntWhenOptionalArgumentProvidesDefaultValue()
+    {
+        ExpectValid(@"
                 query Query($intVar: Int) {
                     arguments {
                         nonNullFieldWithDefault(nonNullIntArg: $intVar)
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void BooleanToNullableBooleanInDirectiveWithDefaultValueWithOption()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void BooleanToNullableBooleanInDirectiveWithDefaultValueWithOption()
+    {
+        ExpectValid(@"
                 query Query($boolVar: Boolean = false) {
                     dog @include(if: $boolVar)
                 }
             ");
-        }
     }
 }

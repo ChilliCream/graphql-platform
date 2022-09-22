@@ -3,4 +3,8 @@
 Content-Type: application/json; charset=utf-8
 
 {"data":{"hero":{"id":"1000"}}}
+---
+Content-Type: application/json; charset=utf-8
+
+{"data":{"human":{"name":"Luke Skywalker"}}}
 -----

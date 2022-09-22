@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Utilities;
+using Microsoft.VisualBasic;
 
 namespace HotChocolate.Execution.Processing;
 

@@ -18,18 +18,20 @@ public class SchemaTypeResolverTests
     public void InferObjectType(TypeContext context)
     {
         // arrange
+        var descriptorContext = DescriptorContext.Create();
         var typeReference = TypeReference.Create(TypeOf<Bar>(), context);
 
         // act
-        var success = SchemaTypeResolver.TryInferSchemaType(
-            _typeInspector,
-            typeReference,
-            out var schemaType);
+        var success = descriptorContext.TryInferSchemaType(typeReference, out var schemaTypes);
 
         // assert
         Assert.True(success);
-        Assert.Equal(TypeContext.Output, schemaType.Context);
-        Assert.Equal(typeof(ObjectType<Bar>), schemaType.Type.Source);
+        Assert.Collection(schemaTypes,
+            type =>
+            {
+                Assert.Equal(TypeContext.Output, type.Context);
+                Assert.Equal(typeof(ObjectType<Bar>), ((ExtendedTypeReference)type).Type.Source);
+            });
     }
 
     [InlineData(TypeContext.Output)]
@@ -38,36 +40,41 @@ public class SchemaTypeResolverTests
     public void InferInterfaceType(TypeContext context)
     {
         // arrange
+        var descriptorContext = DescriptorContext.Create();
         var typeReference = TypeReference.Create(TypeOf<IBar>(), context);
 
         // act
-        var success = SchemaTypeResolver.TryInferSchemaType(
-            _typeInspector,
-            typeReference,
-            out var schemaType);
+        var success = descriptorContext.TryInferSchemaType(typeReference, out var schemaTypes);
 
         // assert
         Assert.True(success);
-        Assert.Equal(TypeContext.Output, schemaType.Context);
-        Assert.Equal(typeof(InterfaceType<IBar>), schemaType.Type.Source);
+        Assert.Collection(schemaTypes,
+            type =>
+            {
+                Assert.Equal(TypeContext.Output, type.Context);
+                Assert.Equal(typeof(InterfaceType<IBar>), ((ExtendedTypeReference)type).Type.Source);
+            });
+
     }
 
     [Fact]
     public void InferInputObjectType()
     {
         // arrange
+        var descriptorContext = DescriptorContext.Create();
         var typeReference = TypeReference.Create(TypeOf<Bar>(), TypeContext.Input);
 
         // act
-        var success = SchemaTypeResolver.TryInferSchemaType(
-            _typeInspector,
-            typeReference,
-            out var schemaType);
+        var success = descriptorContext.TryInferSchemaType(typeReference, out var schemaTypes);
 
         // assert
         Assert.True(success);
-        Assert.Equal(TypeContext.Input, schemaType.Context);
-        Assert.Equal(typeof(InputObjectType<Bar>), schemaType.Type.Source);
+        Assert.Collection(schemaTypes,
+            type =>
+            {
+                Assert.Equal(TypeContext.Input, type.Context);
+                Assert.Equal(typeof(InputObjectType<Bar>), ((ExtendedTypeReference)type).Type.Source);
+            });
     }
 
     [InlineData(TypeContext.Output)]
@@ -77,18 +84,21 @@ public class SchemaTypeResolverTests
     public void InferEnumType(TypeContext context)
     {
         // arrange
+        var descriptorContext = DescriptorContext.Create();
         var typeReference = TypeReference.Create(TypeOf<Foo>(), context);
 
         // act
-        var success = SchemaTypeResolver.TryInferSchemaType(
-            _typeInspector,
-            typeReference,
-            out var schemaType);
+        var success = descriptorContext.TryInferSchemaType(typeReference, out var schemaTypes);
 
         // assert
         Assert.True(success);
-        Assert.Equal(TypeContext.None, schemaType.Context);
-        Assert.Equal(typeof(EnumType<Foo>), schemaType.Type.Source);
+        Assert.Collection(
+            schemaTypes,
+            type =>
+            {
+                Assert.Equal(TypeContext.None, type.Context);
+                Assert.Equal(typeof(EnumType<Foo>), ((ExtendedTypeReference)type).Type.Source);
+            });
     }
 
     public class Bar

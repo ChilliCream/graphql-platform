@@ -44,7 +44,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Test, other.Test));
+            return (global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Test, other.Test));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)

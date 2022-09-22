@@ -672,7 +672,7 @@ public static partial class SchemaBuilderExtensions
         return builder.SetSchema(typeof(TSchema));
     }
 
-    public static ISchemaBuilder BindClrType<TClrType, TSchemaType>(
+    public static ISchemaBuilder BindRuntimeType<TRuntimeType, TSchemaType>(
         this ISchemaBuilder builder)
         where TSchemaType : INamedType
     {
@@ -681,7 +681,7 @@ public static partial class SchemaBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        return builder.BindRuntimeType(typeof(TClrType), typeof(TSchemaType));
+        return builder.BindRuntimeType(typeof(TRuntimeType), typeof(TSchemaType));
     }
 
     public static ISchemaBuilder BindRuntimeType<TRuntimeType>(

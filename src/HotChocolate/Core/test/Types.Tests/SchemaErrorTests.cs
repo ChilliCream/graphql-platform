@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate;
@@ -115,7 +117,6 @@ public class SchemaErrorTests
         var message = "FooBar";
         var node = new NameNode("foo");
 
-
         // act
         var schemaError = SchemaErrorBuilder.New()
             .SetMessage(message)
@@ -151,9 +152,28 @@ public class SchemaErrorTests
             ex => Assert.IsType<SchemaException>(ex));
     }
 
+    [Fact]
+    public void IncorrectType_In_Parameters_ShouldThrow()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddDocumentFromString(
+                @"type Query {
+                    test(bar: Input123): String
+                }")
+            .Use(_ => _ => default);
+
+        // act
+        var ex = Assert.Throws<SchemaException>(() => schema.Create());
+
+        // assert
+        Assert.Equal(2, ex.Errors.Count);
+        ex.Errors.First().Message.MatchSnapshot();
+    }
+
     private sealed class ErrorInterceptor : SchemaInterceptor
     {
-        public List<Exception> Exceptions { get; } = new List<Exception>();
+        public List<Exception> Exceptions { get; } = new();
 
         public override void OnError(IDescriptorContext context, Exception exception)
         {

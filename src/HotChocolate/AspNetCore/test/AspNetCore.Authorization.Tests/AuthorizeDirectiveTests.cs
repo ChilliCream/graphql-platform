@@ -98,7 +98,7 @@ public class AuthorizeDirectiveTests
         // arrange
         // act
         Action action = () =>
-            AuthorizeObjectTypeDescriptorExtensions.Authorize(null);
+            AuthorizeObjectTypeDescriptorExtensions.Authorize(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -129,7 +129,7 @@ public class AuthorizeDirectiveTests
         // act
         Action action = () =>
             AuthorizeObjectTypeDescriptorExtensions
-                .Authorize(null, "MyPolicy");
+                .Authorize(null!, "MyPolicy");
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -226,7 +226,7 @@ public class AuthorizeDirectiveTests
         // act
         Action action = () =>
             AuthorizeObjectFieldDescriptorExtensions
-                .Authorize(null);
+                .Authorize(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -293,7 +293,7 @@ public class AuthorizeDirectiveTests
         // act
         Action action = () =>
             AuthorizeObjectFieldDescriptorExtensions
-                .Authorize(null, "MyPolicy");
+                .Authorize(null!, "MyPolicy");
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -324,7 +324,7 @@ public class AuthorizeDirectiveTests
         // act
         Action action = () =>
             AuthorizeObjectFieldDescriptorExtensions
-                .Authorize(null, new[] { "MyRole" });
+                .Authorize(null!, new[] { "MyRole" });
 
         // assert
         Assert.Throws<ArgumentNullException>(action);

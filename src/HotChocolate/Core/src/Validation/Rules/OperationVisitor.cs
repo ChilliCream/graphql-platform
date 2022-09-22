@@ -1,7 +1,9 @@
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
+using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
+using static HotChocolate.Validation.ErrorHelper;
 
 namespace HotChocolate.Validation.Rules;
 
@@ -23,6 +25,12 @@ namespace HotChocolate.Validation.Rules;
 /// Subscription operations must have exactly one root field.
 ///
 /// http://spec.graphql.org/June2018/#sec-Single-root-field
+///
+/// AND
+///
+/// Defer And Stream Directives Are Used On Valid Root Field
+///
+/// http://spec.graphql.org/draft/#sec-Defer-And-Stream-Directives-Are-Used-On-Valid-Root-Field
 /// </summary>
 /// <remarks>
 /// http://spec.graphql.org/draft/#sec-Validation.Operations
@@ -75,6 +83,12 @@ public class OperationVisitor : DocumentValidatorVisitor
         IDocumentValidatorContext context)
     {
         context.Names.Clear();
+        context.OperationType = node.Operation;
+
+        if (node.Operation == OperationType.Mutation)
+        {
+            return Continue;
+        }
 
         if (node.Operation == OperationType.Subscription)
         {
@@ -88,13 +102,16 @@ public class OperationVisitor : DocumentValidatorVisitor
         OperationDefinitionNode node,
         IDocumentValidatorContext context)
     {
-        if (context.Names.Count > 1)
+        if (node.Operation == OperationType.Subscription)
         {
-            context.ReportError(context.SubscriptionSingleRootField(node));
-        }
-        else if (IntrospectionFields.TypeName.Equals(context.Names.Single()))
-        {
-            context.ReportError(context.SubscriptionNoTopLevelIntrospectionField(node));
+            if (context.Names.Count > 1)
+            {
+                context.ReportError(context.SubscriptionSingleRootField(node));
+            }
+            else if (IntrospectionFields.TypeName.Equals(context.Names.Single()))
+            {
+                context.ReportError(context.SubscriptionNoTopLevelIntrospectionField(node));
+            }
         }
 
         return Continue;
@@ -105,6 +122,39 @@ public class OperationVisitor : DocumentValidatorVisitor
         IDocumentValidatorContext context)
     {
         context.Names.Add((node.Alias ?? node.Name).Value);
+
+        if (context.OperationType is OperationType.Mutation or OperationType.Subscription &&
+            node.Directives.HasStreamOrDeferDirective())
+        {
+            context.ReportError(DeferAndStreamNotAllowedOnMutationOrSubscriptionRoot(node));
+        }
+
         return Skip;
+    }
+
+    protected override ISyntaxVisitorAction Enter(
+        InlineFragmentNode node,
+        IDocumentValidatorContext context)
+    {
+        if (context.OperationType is OperationType.Mutation or OperationType.Subscription &&
+            node.Directives.HasStreamOrDeferDirective())
+        {
+            context.ReportError(DeferAndStreamNotAllowedOnMutationOrSubscriptionRoot(node));
+        }
+
+        return base.Enter(node, context);
+    }
+
+    protected override ISyntaxVisitorAction Enter(
+        FragmentSpreadNode node,
+        IDocumentValidatorContext context)
+    {
+        if (context.OperationType is OperationType.Mutation or OperationType.Subscription &&
+            node.Directives.HasStreamOrDeferDirective())
+        {
+            context.ReportError(DeferAndStreamNotAllowedOnMutationOrSubscriptionRoot(node));
+        }
+
+        return base.Enter(node, context);
     }
 }

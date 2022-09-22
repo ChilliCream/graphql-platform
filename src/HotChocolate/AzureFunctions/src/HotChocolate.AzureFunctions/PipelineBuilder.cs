@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AzureFunctions;
 
-internal class PipelineBuilder
+internal sealed class PipelineBuilder
 {
     private static readonly ParameterExpression _context =
         Expression.Parameter(typeof(HttpContext), "context");
@@ -139,7 +139,7 @@ internal class PipelineBuilder
         Expression requestDelegate = Expression.Call(_compileInvoke, instance, invoke);
 
         return Expression.Lambda<Func<IServiceProvider, RequestDelegate, RequestDelegate>>(
-                requestDelegate, _services, _next)
+            requestDelegate, _services, _next)
             .Compile();
     }
 

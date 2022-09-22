@@ -9,7 +9,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 using static HotChocolate.Types.Relay.NodeConstants;
-using static HotChocolate.Types.WellKnownContextData;
+using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Types.Relay;
 
@@ -45,8 +45,8 @@ internal static class NodeFieldResolvers
         {
             context.ReportError(
                 ErrorHelper.Relay_NoNodeResolver(
-                    typeName, 
-                    context.Path, 
+                    typeName,
+                    context.Path,
                     context.Selection.SyntaxNode));
 
             context.Result = null;
@@ -97,8 +97,8 @@ internal static class NodeFieldResolvers
 
                         context.ReportError(
                             ErrorHelper.Relay_NoNodeResolver(
-                                typeName, 
-                                context.Path, 
+                                typeName,
+                                context.Path,
                                 context.Selection.SyntaxNode));
                     }
                 }
@@ -166,8 +166,8 @@ internal static class NodeFieldResolvers
 
                 context.ReportError(
                     ErrorHelper.Relay_NoNodeResolver(
-                        typeName, 
-                        context.Path, 
+                        typeName,
+                        context.Path,
                         context.Selection.SyntaxNode));
             }
 
@@ -218,7 +218,7 @@ internal static class NodeFieldResolvers
 
             // Note that in standard middleware we should restore the original
             // argument after we have invoked the next pipeline element.
-            // However, the node field is under our control and we can guarantee 
+            // However, the node field is under our control and we can guarantee
             // that there are no other middleware involved and allowed,
             // meaning we skip the restore.
             context.ReplaceArgument(argumentName, idArg);

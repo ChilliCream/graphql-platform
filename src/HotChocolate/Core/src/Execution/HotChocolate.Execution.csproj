@@ -180,6 +180,9 @@
     <Compile Update="Processing\OperationContext.Utilities.cs">
       <DependentUpon>OperationContext.cs</DependentUpon>
     </Compile>
+    <Compile Update="Serialization\JsonResultFormatter.FieldNames.cs">
+      <DependentUpon>JsonResultFormatter.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

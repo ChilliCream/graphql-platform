@@ -122,6 +122,9 @@
       PublicKeyToken=b77a5c561934e089
     </value>
   </resheader>
+  <data name="ThrowHelper_MissingDirectiveIfArgument" xml:space="preserve">
+    <value>The {0}-directive is missing the if-argument.</value>
+  </data>
   <data name="ArgumentDescriptor_InputTypeViolation" xml:space="preserve">
     <value>The argument type has to be an input-type.</value>
   </data>
@@ -875,6 +878,9 @@ Type: `{0}`</value>
   </data>
   <data name="ThrowHelper_FieldBase_Sealed" xml:space="preserve">
     <value>The field is already sealed and cannot be mutated.</value>
+  </data>
+  <data name="TypeInitializer_CannotFindType" xml:space="preserve">
+    <value>Unable to find type(s) {0}</value>
   </data>
   <data name="ThrowHelper_RelayIdFieldHelpers_NoFieldType" xml:space="preserve">
     <value>Unable to resolve type from field `{0}`.</value>

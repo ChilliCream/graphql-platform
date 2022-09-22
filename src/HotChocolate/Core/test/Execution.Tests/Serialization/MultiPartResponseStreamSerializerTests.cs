@@ -39,7 +39,7 @@ public class MultiPartResponseStreamSerializerTests
         IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
         var memoryStream = new MemoryStream();
-        var serializer = new MultiPartResponseStreamFormatter();
+        var serializer = new MultiPartResultFormatter();
 
         // act
         await serializer.FormatAsync(stream, memoryStream, CancellationToken.None);
@@ -53,29 +53,27 @@ public class MultiPartResponseStreamSerializerTests
     public async Task Serialize_ResponseStream_Is_Null()
     {
         // arrange
-        var serializer = new MultiPartResponseStreamFormatter();
+        var serializer = new MultiPartResultFormatter();
         var stream = new Mock<Stream>();
 
         // act
-        Task Action() =>
-            serializer.FormatAsync(null!, stream.Object, CancellationToken.None);
+        ValueTask Action() => serializer.FormatAsync(null!, stream.Object, CancellationToken.None);
 
         // assert
-        await Assert.ThrowsAsync<ArgumentNullException>(Action);
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => await Action());
     }
 
     [Fact]
     public async Task Serialize_OutputStream_Is_Null()
     {
         // arrange
-        var serializer = new MultiPartResponseStreamFormatter();
+        var serializer = new MultiPartResultFormatter();
         var stream = new Mock<IResponseStream>();
 
         // act
-        Task Action() =>
-            serializer.FormatAsync(stream.Object, null!, CancellationToken.None);
+        ValueTask Action() => serializer.FormatAsync(stream.Object, null!, CancellationToken.None);
 
         // assert
-        await Assert.ThrowsAsync<ArgumentNullException>(Action);
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => await Action());
     }
 }

@@ -26,7 +26,7 @@ public class BatchQueryExecutorTests
             .AddStarWarsRepositories());
 
         // act
-        var batch = new List<IReadOnlyQueryRequest>
+        var batch = new List<IQueryRequest>
         {
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -67,7 +67,7 @@ public class BatchQueryExecutorTests
             .AddStarWarsRepositories());
 
         // act
-        var batch = new List<IReadOnlyQueryRequest>
+        var batch = new List<IQueryRequest>
         {
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -112,7 +112,7 @@ public class BatchQueryExecutorTests
             .AddStarWarsRepositories());
 
         // act
-        var batch = new List<IReadOnlyQueryRequest>
+        var batch = new List<IQueryRequest>
         {
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -158,7 +158,7 @@ public class BatchQueryExecutorTests
             .AddStarWarsRepositories());
 
         // act
-        var batch = new List<IReadOnlyQueryRequest>
+        var batch = new List<IQueryRequest>
         {
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -222,7 +222,7 @@ public class BatchQueryExecutorTests
             .AddExportDirectiveType());
 
         // act
-        var batch = new List<IReadOnlyQueryRequest>
+        var batch = new List<IQueryRequest>
         {
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -298,7 +298,7 @@ public class BatchQueryExecutorTests
             .AddExportDirectiveType());
 
         // act
-        var batch = new List<IReadOnlyQueryRequest>
+        var batch = new List<IQueryRequest>
         {
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -346,7 +346,7 @@ public class BatchQueryExecutorTests
             .AddExportDirectiveType());
 
         // act
-        var batch = new List<IReadOnlyQueryRequest>
+        var batch = new List<IQueryRequest>
         {
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -397,7 +397,7 @@ public class BatchQueryExecutorTests
             .AddExportDirectiveType());
 
         // act
-        var batch = new List<IReadOnlyQueryRequest>
+        var batch = new List<IQueryRequest>
         {
             QueryRequestBuilder.New()
                 .SetQuery(
