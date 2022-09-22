@@ -1,4 +1,3 @@
-using HotChocolate.Caching;
 using Xunit;
 
 namespace HotChocolate.Caching.Tests;

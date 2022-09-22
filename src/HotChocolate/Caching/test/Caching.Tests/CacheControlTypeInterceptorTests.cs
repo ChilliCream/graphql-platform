@@ -270,7 +270,7 @@ public class CacheControlTypeInterceptorTests
 
             var text = new StringBuilder();
 
-            foreach (ISchemaError error in ex.Errors)
+            foreach (var error in ex.Errors)
             {
                 text.AppendLine(error.ToString());
                 text.AppendLine();

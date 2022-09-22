@@ -514,7 +514,7 @@ public class CacheControlCalculationTests : CacheControlTestBase
             ")
             .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
-        IQueryRequest request = QueryRequestBuilder.New()
+        var request = QueryRequestBuilder.New()
                     .SetQuery(@"
                          query First {
                              field1
@@ -527,8 +527,8 @@ public class CacheControlCalculationTests : CacheControlTestBase
                     .SetOperation("Second")
                     .Create();
 
-        IExecutionResult result = await builder.ExecuteRequestAsync(request);
-        IQueryResult queryResult = result.ExpectQueryResult();
+        var result = await builder.ExecuteRequestAsync(request);
+        var queryResult = result.ExpectQueryResult();
 
         Assert.Null(queryResult.Errors);
         AssertOneWriteToCache(cache,

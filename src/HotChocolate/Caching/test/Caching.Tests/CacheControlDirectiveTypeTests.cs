@@ -11,7 +11,7 @@ public class CacheControlDirectiveTypeTests
     [Fact]
     public void CreateCacheControlDirective()
     {
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(d => d
                 .Name("Query")
                 .Field("field")
@@ -19,7 +19,7 @@ public class CacheControlDirectiveTypeTests
             .AddDirectiveType<CacheControlDirectiveType>()
             .Use(_ => _)
             .Create();
-        CacheControlDirectiveType directive =
+        var directive =
             schema.DirectiveTypes.OfType<CacheControlDirectiveType>().FirstOrDefault()!;
 
         Assert.NotNull(directive);
@@ -51,7 +51,7 @@ public class CacheControlDirectiveTypeTests
     [Fact]
     public void CacheControlDirective_Cannot_Be_Applied_Multiple_Times()
     {
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddQueryType(d => d
                 .Name("ObjectType")
                 .Field("field")
@@ -70,7 +70,7 @@ public class CacheControlDirectiveTypeTests
     [Fact]
     public void CacheControlDirectiveType_ObjectField_CodeFirst()
     {
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(d => d
                 .Name("ObjectType")
                 .Field("field")
@@ -80,10 +80,10 @@ public class CacheControlDirectiveTypeTests
             .Use(_ => _)
             .Create();
 
-        ObjectType type = schema.GetType<ObjectType>("ObjectType");
-        IDirective directive = type.Fields["field"].Directives
+        var type = schema.GetType<ObjectType>("ObjectType");
+        var directive = type.Fields["field"].Directives
             .Single(d => d.Name == "cacheControl");
-        CacheControlDirective obj = directive.ToObject<CacheControlDirective>();
+        var obj = directive.ToObject<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
@@ -93,7 +93,7 @@ public class CacheControlDirectiveTypeTests
     [Fact]
     public void CacheControlDirectiveType_ObjectField_SchemaFirst()
     {
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString(
             @"
             type Query {
@@ -108,10 +108,10 @@ public class CacheControlDirectiveTypeTests
             .Use(_ => _)
             .Create();
 
-        ObjectType type = schema.GetType<ObjectType>("ObjectType");
-        IDirective directive = type.Fields["field"].Directives
+        var type = schema.GetType<ObjectType>("ObjectType");
+        var directive = type.Fields["field"].Directives
             .Single(d => d.Name == "cacheControl");
-        CacheControlDirective obj = directive.ToObject<CacheControlDirective>();
+        var obj = directive.ToObject<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
@@ -121,16 +121,16 @@ public class CacheControlDirectiveTypeTests
     [Fact]
     public void CacheControlDirectiveType_ObjectField_Annotation()
     {
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<ObjectQuery>()
             .AddDirectiveType<CacheControlDirectiveType>()
             .Use(_ => _)
             .Create();
 
-        ObjectType type = schema.GetType<ObjectType>("ObjectType");
-        IDirective directive = type.Fields["field"].Directives
+        var type = schema.GetType<ObjectType>("ObjectType");
+        var directive = type.Fields["field"].Directives
             .Single(d => d.Name == "cacheControl");
-        CacheControlDirective obj = directive.ToObject<CacheControlDirective>();
+        var obj = directive.ToObject<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
@@ -140,7 +140,7 @@ public class CacheControlDirectiveTypeTests
     [Fact]
     public void CacheControlDirectiveType_ObjectType_CodeFirst()
     {
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(d => d
                 .Name("ObjectType")
                 .CacheControl(500, CacheControlScope.Private, true)
@@ -150,10 +150,10 @@ public class CacheControlDirectiveTypeTests
             .Use(_ => _)
             .Create();
 
-        ObjectType type = schema.GetType<ObjectType>("ObjectType");
-        IDirective directive = type.Directives
+        var type = schema.GetType<ObjectType>("ObjectType");
+        var directive = type.Directives
             .Single(d => d.Name == "cacheControl");
-        CacheControlDirective obj = directive.ToObject<CacheControlDirective>();
+        var obj = directive.ToObject<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
@@ -163,7 +163,7 @@ public class CacheControlDirectiveTypeTests
     [Fact]
     public void CacheControlDirectiveType_ObjectType_SchemaFirst()
     {
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString(
             @"
             type Query {
@@ -178,10 +178,10 @@ public class CacheControlDirectiveTypeTests
             .Use(_ => _)
             .Create();
 
-        ObjectType type = schema.GetType<ObjectType>("ObjectType");
-        IDirective directive = type.Directives
+        var type = schema.GetType<ObjectType>("ObjectType");
+        var directive = type.Directives
             .Single(d => d.Name == "cacheControl");
-        CacheControlDirective obj = directive.ToObject<CacheControlDirective>();
+        var obj = directive.ToObject<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
@@ -191,16 +191,16 @@ public class CacheControlDirectiveTypeTests
     [Fact]
     public void CacheControlDirectiveType_ObjectType_Annotation()
     {
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<ObjectQuery>()
             .AddDirectiveType<CacheControlDirectiveType>()
             .Use(_ => _)
             .Create();
 
-        ObjectType type = schema.GetType<ObjectType>("ObjectType");
-        IDirective directive = type.Directives
+        var type = schema.GetType<ObjectType>("ObjectType");
+        var directive = type.Directives
             .Single(d => d.Name == "cacheControl");
-        CacheControlDirective obj = directive.ToObject<CacheControlDirective>();
+        var obj = directive.ToObject<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
@@ -210,7 +210,7 @@ public class CacheControlDirectiveTypeTests
     [Fact]
     public void CacheControlDirectiveType_InterfaceField_CodeFirst()
     {
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(d => d
                 .Name("Query")
                 .Field("field")
@@ -224,10 +224,10 @@ public class CacheControlDirectiveTypeTests
             .Use(_ => _)
             .Create();
 
-        InterfaceType type = schema.GetType<InterfaceType>("InterfaceType");
-        IDirective directive = type.Fields["field"].Directives
+        var type = schema.GetType<InterfaceType>("InterfaceType");
+        var directive = type.Fields["field"].Directives
             .Single(d => d.Name == "cacheControl");
-        CacheControlDirective obj = directive.ToObject<CacheControlDirective>();
+        var obj = directive.ToObject<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
@@ -237,7 +237,7 @@ public class CacheControlDirectiveTypeTests
     [Fact]
     public void CacheControlDirectiveType_InterfaceField_SchemaFirst()
     {
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString(
             @"
             type Query {
@@ -256,10 +256,10 @@ public class CacheControlDirectiveTypeTests
             .Use(_ => _)
             .Create();
 
-        InterfaceType type = schema.GetType<InterfaceType>("InterfaceType");
-        IDirective directive = type.Fields["field"].Directives
+        var type = schema.GetType<InterfaceType>("InterfaceType");
+        var directive = type.Fields["field"].Directives
             .Single(d => d.Name == "cacheControl");
-        CacheControlDirective obj = directive.ToObject<CacheControlDirective>();
+        var obj = directive.ToObject<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
@@ -269,17 +269,17 @@ public class CacheControlDirectiveTypeTests
     [Fact]
     public void CacheControlDirectiveType_InterfaceField_Annotation()
     {
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<InterfaceQuery>()
             .AddType<InterfaceObjectType>()
             .AddDirectiveType<CacheControlDirectiveType>()
             .Use(_ => _)
             .Create();
 
-        InterfaceType type = schema.GetType<InterfaceType>("InterfaceType");
-        IDirective directive = type.Directives
+        var type = schema.GetType<InterfaceType>("InterfaceType");
+        var directive = type.Directives
             .Single(d => d.Name == "cacheControl");
-        CacheControlDirective obj = directive.ToObject<CacheControlDirective>();
+        var obj = directive.ToObject<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
@@ -289,7 +289,7 @@ public class CacheControlDirectiveTypeTests
     [Fact]
     public void CacheControlDirectiveType_InterfaceType_CodeFirst()
     {
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(d => d
                 .Name("Query")
                 .Field("field")
@@ -303,10 +303,10 @@ public class CacheControlDirectiveTypeTests
             .Use(_ => _)
             .Create();
 
-        InterfaceType type = schema.GetType<InterfaceType>("InterfaceType");
-        IDirective directive = type.Directives
+        var type = schema.GetType<InterfaceType>("InterfaceType");
+        var directive = type.Directives
             .Single(d => d.Name == "cacheControl");
-        CacheControlDirective obj = directive.ToObject<CacheControlDirective>();
+        var obj = directive.ToObject<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
@@ -316,7 +316,7 @@ public class CacheControlDirectiveTypeTests
     [Fact]
     public void CacheControlDirectiveType_InterfaceType_SchemaFirst()
     {
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString(
             @"
             type Query {
@@ -335,10 +335,10 @@ public class CacheControlDirectiveTypeTests
             .Use(_ => _)
             .Create();
 
-        InterfaceType type = schema.GetType<InterfaceType>("InterfaceType");
-        IDirective directive = type.Directives
+        var type = schema.GetType<InterfaceType>("InterfaceType");
+        var directive = type.Directives
             .Single(d => d.Name == "cacheControl");
-        CacheControlDirective obj = directive.ToObject<CacheControlDirective>();
+        var obj = directive.ToObject<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
@@ -348,17 +348,17 @@ public class CacheControlDirectiveTypeTests
     [Fact]
     public void CacheControlDirectiveType_InterfaceType_Annotation()
     {
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<InterfaceQuery>()
             .AddType<InterfaceObjectType>()
             .AddDirectiveType<CacheControlDirectiveType>()
             .Use(_ => _)
             .Create();
 
-        InterfaceType type = schema.GetType<InterfaceType>("InterfaceType");
-        IDirective directive = type.Directives
+        var type = schema.GetType<InterfaceType>("InterfaceType");
+        var directive = type.Directives
             .Single(d => d.Name == "cacheControl");
-        CacheControlDirective obj = directive.ToObject<CacheControlDirective>();
+        var obj = directive.ToObject<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
@@ -368,7 +368,7 @@ public class CacheControlDirectiveTypeTests
     [Fact]
     public void CacheControlDirectiveType_UnionType_CodeFirst()
     {
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(d => d
                 .Name("Query")
                 .Field("field")
@@ -385,10 +385,10 @@ public class CacheControlDirectiveTypeTests
             .Use(_ => _)
             .Create();
 
-        UnionType type = schema.GetType<UnionType>("UnionType");
-        IDirective directive = type.Directives
+        var type = schema.GetType<UnionType>("UnionType");
+        var directive = type.Directives
             .Single(d => d.Name == "cacheControl");
-        CacheControlDirective obj = directive.ToObject<CacheControlDirective>();
+        var obj = directive.ToObject<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
@@ -398,7 +398,7 @@ public class CacheControlDirectiveTypeTests
     [Fact]
     public void CacheControlDirectiveType_UnionType_SchemaFirst()
     {
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString(
             @"
             type Query {
@@ -415,10 +415,10 @@ public class CacheControlDirectiveTypeTests
             .Use(_ => _)
             .Create();
 
-        UnionType type = schema.GetType<UnionType>("UnionType");
-        IDirective directive = type.Directives
+        var type = schema.GetType<UnionType>("UnionType");
+        var directive = type.Directives
             .Single(d => d.Name == "cacheControl");
-        CacheControlDirective obj = directive.ToObject<CacheControlDirective>();
+        var obj = directive.ToObject<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
@@ -428,17 +428,17 @@ public class CacheControlDirectiveTypeTests
     [Fact]
     public void CacheControlDirectiveType_UnionType_Annotation()
     {
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<UnionQuery>()
             .AddType<UnionObjectType>()
             .AddDirectiveType<CacheControlDirectiveType>()
             .Use(_ => _)
             .Create();
 
-        UnionType type = schema.GetType<UnionType>("UnionType");
-        IDirective directive = type.Directives
+        var type = schema.GetType<UnionType>("UnionType");
+        var directive = type.Directives
             .Single(d => d.Name == "cacheControl");
-        CacheControlDirective obj = directive.ToObject<CacheControlDirective>();
+        var obj = directive.ToObject<CacheControlDirective>();
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);

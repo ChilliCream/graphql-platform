@@ -20,7 +20,7 @@ public class HttpCachingTests : ServerTestBase
     [Fact]
     public async Task MaxAge_NonZero_Should_Cache()
     {
-        TestServer server = CreateServer(services =>
+        var server = CreateServer(services =>
         {
             services.AddGraphQLServer()
                 .UseQueryCachePipeline()
@@ -33,8 +33,8 @@ public class HttpCachingTests : ServerTestBase
                     .CacheControl(2000));
         });
 
-        HttpClient client = server.CreateClient();
-        GraphQLResult result = await client.PostQueryAsync("{ field }");
+        var client = server.CreateClient();
+        var result = await client.PostQueryAsync("{ field }");
 
         result.MatchSnapshot();
     }
@@ -42,7 +42,7 @@ public class HttpCachingTests : ServerTestBase
     [Fact]
     public async Task MaxAge_Zero_Should_Cache()
     {
-        TestServer server = CreateServer(services =>
+        var server = CreateServer(services =>
         {
             services.AddGraphQLServer()
                 .UseQueryCachePipeline()
@@ -55,7 +55,7 @@ public class HttpCachingTests : ServerTestBase
                     .CacheControl(0));
         });
 
-        HttpClient client = server.CreateClient();
+        var client = server.CreateClient();
         GraphQLResult result = await client.PostQueryAsync("{ field }");
 
         result.MatchSnapshot();
@@ -64,7 +64,7 @@ public class HttpCachingTests : ServerTestBase
     [Fact]
     public async Task JustScope_Should_Not_Cache()
     {
-        TestServer server = CreateServer(services =>
+        var server = CreateServer(services =>
         {
             services.AddGraphQLServer()
                 .UseQueryCachePipeline()
@@ -77,7 +77,7 @@ public class HttpCachingTests : ServerTestBase
                     .CacheControl(scope: CacheControlScope.Private));
         });
 
-        HttpClient client = server.CreateClient();
+        var client = server.CreateClient();
         GraphQLResult result = await client.PostQueryAsync("{ field }");
 
         result.MatchSnapshot();
@@ -86,7 +86,7 @@ public class HttpCachingTests : ServerTestBase
     [Fact]
     public async Task MaxAgeAndScope_Should_Cache()
     {
-        TestServer server = CreateServer(services =>
+        var server = CreateServer(services =>
         {
             services.AddGraphQLServer()
                 .UseQueryCachePipeline()
@@ -99,7 +99,7 @@ public class HttpCachingTests : ServerTestBase
                     .CacheControl(2000, CacheControlScope.Private));
         });
 
-        HttpClient client = server.CreateClient();
+        var client = server.CreateClient();
         GraphQLResult result = await client.PostQueryAsync("{ field }");
 
         result.MatchSnapshot();
@@ -123,7 +123,7 @@ internal static class TestServerExtensions
 
         var content = new StringContent(payload, Encoding.UTF8, "application/json");
 
-        HttpResponseMessage response = await client.PostAsync("/graphql", content);
+        var response = await client.PostAsync("/graphql", content);
 
         var result = new GraphQLResult
         {

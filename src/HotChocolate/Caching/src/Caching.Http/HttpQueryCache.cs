@@ -2,9 +2,6 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Microsoft.AspNetCore.Http;
-#if !NET6_0_OR_GREATER
-using Microsoft.Net.Http.Headers;
-#endif
 
 namespace HotChocolate.Caching.Http;
 

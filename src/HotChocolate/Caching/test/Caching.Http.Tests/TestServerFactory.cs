@@ -15,7 +15,7 @@ public class TestServerFactory : IDisposable
         Action<IServiceCollection> configureServices,
         Action<IApplicationBuilder> configureApplication)
     {
-        IWebHostBuilder builder = new WebHostBuilder()
+        var builder = new WebHostBuilder()
             .Configure(configureApplication)
             .ConfigureServices(services =>
             {
@@ -29,7 +29,7 @@ public class TestServerFactory : IDisposable
 
     public void Dispose()
     {
-        foreach (TestServer testServer in _instances)
+        foreach (var testServer in _instances)
         {
             testServer.Dispose();
         }

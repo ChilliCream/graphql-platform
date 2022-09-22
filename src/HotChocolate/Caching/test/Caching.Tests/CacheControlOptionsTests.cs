@@ -3,7 +3,6 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using Xunit;
 
 namespace HotChocolate.Caching.Tests;
@@ -19,7 +18,7 @@ public class CacheControlOptionsTests : CacheControlTestBase
             .Field("field").Resolve("")
             .CacheControl(100));
 
-        ISchema schema = await builder.BuildSchemaAsync();
+        var schema = await builder.BuildSchemaAsync();
 
         var accessor = schema.Services?
             .GetRequiredService<ICacheControlOptionsAccessor>();
@@ -48,7 +47,7 @@ public class CacheControlOptionsTests : CacheControlTestBase
                 .Field("field").Resolve("")
                 .CacheControl(100));
 
-        ISchema schema = await builder.BuildSchemaAsync();
+        var schema = await builder.BuildSchemaAsync();
 
         var accessor = schema.Services?
             .GetRequiredService<ICacheControlOptionsAccessor>();
@@ -72,7 +71,7 @@ public class CacheControlOptionsTests : CacheControlTestBase
                 .Field("field").Resolve("")
                 .CacheControl(100));
 
-        ISchema schema = await builder.BuildSchemaAsync();
+        var schema = await builder.BuildSchemaAsync();
 
         var accessor = schema.Services?
             .GetRequiredService<ICacheControlOptionsAccessor>();
@@ -96,7 +95,7 @@ public class CacheControlOptionsTests : CacheControlTestBase
             }
         ";
 
-        IRequestExecutorBuilder builder = new ServiceCollection()
+        var builder = new ServiceCollection()
             .AddGraphQLServer("schema1")
             .AddDocumentFromString(schema)
             .UseField(_ => _ => default)
@@ -110,7 +109,7 @@ public class CacheControlOptionsTests : CacheControlTestBase
             .UseQueryCachePipeline()
             .ModifyCacheControlOptions(o => o.DefaultMaxAge = 200);
 
-        ISchema schema1 = await builder.BuildSchemaAsync("schema1");
+        var schema1 = await builder.BuildSchemaAsync("schema1");
 
         var accessor1 = schema1.Services?
             .GetRequiredService<ICacheControlOptionsAccessor>();
@@ -118,7 +117,7 @@ public class CacheControlOptionsTests : CacheControlTestBase
         Assert.NotNull(accessor1);
         Assert.Equal(100, accessor1!.CacheControl.DefaultMaxAge);
 
-        ISchema schema2 = await builder.BuildSchemaAsync("schema2");
+        var schema2 = await builder.BuildSchemaAsync("schema2");
 
         var accessor2 = schema2.Services?
             .GetRequiredService<ICacheControlOptionsAccessor>();

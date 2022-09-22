@@ -81,9 +81,9 @@ public abstract class CacheControlTestBase
         GetExecutorBuilderAndCache<TCache>()
         where TCache : class, IQueryCache
     {
-        Mock<TCache> cache = GetMock<TCache>();
+        var cache = GetMock<TCache>();
 
-        IRequestExecutorBuilder builder = new ServiceCollection()
+        var builder = new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryCache(_ => cache.Object)
             .UseQueryCachePipeline()
@@ -101,8 +101,8 @@ public abstract class CacheControlTestBase
     protected async Task ExecuteRequestAsync(
         IRequestExecutorBuilder builder, string? schemaName, string query)
     {
-        IExecutionResult result = await builder.ExecuteRequestAsync(query, schemaName!);
-        IQueryResult queryResult = result.ExpectQueryResult();
+        var result = await builder.ExecuteRequestAsync(query, schemaName!);
+        var queryResult = result.ExpectQueryResult();
 
         Assert.Null(queryResult.Errors);
     }

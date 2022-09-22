@@ -14,9 +14,9 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
     [Fact]
     public async Task QueryCachingDisabled()
     {
-        Mock<DefaultQueryCache> cache = GetMock();
+        var cache = GetMock();
 
-        IRequestExecutorBuilder builder = new ServiceCollection()
+        var builder = new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query")
                 .Field("field").Type<StringType>().CacheControl(100))
@@ -36,9 +36,9 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
     [Fact]
     public async Task SkipQueryCaching()
     {
-        Mock<DefaultQueryCache> cache = GetMock();
+        var cache = GetMock();
 
-        IRequestExecutorBuilder builder = new ServiceCollection()
+        var builder = new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query")
                 .Field("field").Type<StringType>().CacheControl(100))
@@ -47,15 +47,15 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
             .UseQueryCachePipeline()
             .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
 
-        IRequestExecutor executor = await builder.BuildRequestExecutorAsync();
+        var executor = await builder.BuildRequestExecutorAsync();
 
-        IReadOnlyQueryRequest query = QueryRequestBuilder.New()
+        var query = QueryRequestBuilder.New()
             .SetQuery("{ field }")
             .SkipQueryCaching()
             .Create();
 
-        IExecutionResult result = await executor.ExecuteAsync(query);
-        IQueryResult queryResult = result.ExpectQueryResult();
+        var result = await executor.ExecuteAsync(query);
+        var queryResult = result.ExpectQueryResult();
 
         Assert.Null(queryResult.Errors);
 
@@ -65,9 +65,9 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
     [Fact]
     public async Task QueryCachingIsOnlyAppliedToTargetSchema()
     {
-        Mock<DefaultQueryCache> cache = GetMock();
+        var cache = GetMock();
 
-        IRequestExecutorBuilder builder = new ServiceCollection()
+        var builder = new ServiceCollection()
             .AddGraphQLServer("withcache")
             .AddQueryType(d => d.Name("Query")
                 .Field("field").Type<StringType>().CacheControl(100))
@@ -80,18 +80,18 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
                 .Field("field").Type<StringType>())
             .UseField(_ => _ => default);
 
-        IRequestExecutor executorWithCache = await builder
+        var executorWithCache = await builder
             .BuildRequestExecutorAsync("withcache");
-        IExecutionResult executorWithCacheResult = await executorWithCache
+        var executorWithCacheResult = await executorWithCache
             .ExecuteAsync("{ a: field }");
-        IQueryResult executorWithCacheQueryResult = executorWithCacheResult
+        var executorWithCacheQueryResult = executorWithCacheResult
             .ExpectQueryResult();
 
-        IRequestExecutor executorWithoutCache = await builder
+        var executorWithoutCache = await builder
             .BuildRequestExecutorAsync("withoutcache");
-        IExecutionResult executorWithoutCacheResult = await executorWithoutCache
+        var executorWithoutCacheResult = await executorWithoutCache
             .ExecuteAsync("{ b: field }");
-        IQueryResult executorWithoutCacheQueryResult = executorWithoutCacheResult
+        var executorWithoutCacheQueryResult = executorWithoutCacheResult
             .ExpectQueryResult();
 
         Assert.Null(executorWithCacheQueryResult.Errors);
@@ -103,10 +103,10 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
     [Fact(Skip = "Until reading is enabled")]
     public async Task ReadFromAllCaches()
     {
-        Mock<DefaultQueryCache> cache1 = GetMock();
-        Mock<DefaultQueryCache> cache2 = GetMock();
+        var cache1 = GetMock();
+        var cache2 = GetMock();
 
-        IRequestExecutorBuilder builder = new ServiceCollection()
+        var builder = new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query")
                 .Field("field").Type<StringType>().CacheControl(100))
@@ -125,10 +125,10 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
     [Fact(Skip = "Until reading is enabled")]
     public async Task DoNotReadFromAllCachesIfOneResolvesTheCachedResult()
     {
-        Mock<DefaultQueryCache> cache1 = GetMock();
-        Mock<DefaultQueryCache> cache2 = GetMock();
+        var cache1 = GetMock();
+        var cache2 = GetMock();
 
-        IQueryResult cachedResult = QueryResultBuilder.New()
+        var cachedResult = QueryResultBuilder.New()
             .SetData(new Dictionary<string, object?>
             {
                 { "field", "value" }
@@ -140,7 +140,7 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
                 It.IsAny<ICacheControlOptions>()))
             .Returns(Task.FromResult<IQueryResult?>(cachedResult));
 
-        IRequestExecutorBuilder builder = new ServiceCollection()
+        var builder = new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query")
                 .Field("field").Type<StringType>().CacheControl(100))
@@ -159,13 +159,13 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
     [Fact(Skip = "Until reading is enabled")]
     public async Task SkipReadIfShouldReadResultFromCacheReturnsFalse()
     {
-        Mock<DefaultQueryCache> cache = GetMock();
+        var cache = GetMock();
 
         cache.Setup(x => x.ShouldReadResultFromCache(
                 It.IsAny<IRequestContext>()))
             .Returns(false);
 
-        IRequestExecutorBuilder builder = new ServiceCollection()
+        var builder = new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query")
                 .Field("field").Type<StringType>().CacheControl(100))
@@ -182,13 +182,13 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
     [Fact(Skip = "Until reading is enabled")]
     public async Task IgnoreExceptionInShouldReadFromCache()
     {
-        Mock<DefaultQueryCache> cache = GetMock();
+        var cache = GetMock();
 
         cache.Setup(x => x.ShouldReadResultFromCache(
                 It.IsAny<IRequestContext>()))
             .Throws(new System.Exception());
 
-        IRequestExecutorBuilder builder = new ServiceCollection()
+        var builder = new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query")
                 .Field("field").Type<StringType>().CacheControl(100))
@@ -205,14 +205,14 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
     [Fact(Skip = "Until reading is enabled")]
     public async Task IgnoreExceptionInTryReadCachedQueryResultAsync()
     {
-        Mock<DefaultQueryCache> cache = GetMock();
+        var cache = GetMock();
 
         cache.Setup(x => x.TryReadCachedQueryResultAsync(
                 It.IsAny<IRequestContext>(),
                 It.IsAny<ICacheControlOptions>()))
             .Throws(new System.Exception());
 
-        IRequestExecutorBuilder builder = new ServiceCollection()
+        var builder = new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query")
                 .Field("field").Type<StringType>().CacheControl(100))
@@ -229,10 +229,10 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
     [Fact]
     public async Task WriteToAllCaches()
     {
-        Mock<DefaultQueryCache> cache1 = GetMock();
-        Mock<DefaultQueryCache> cache2 = GetMock();
+        var cache1 = GetMock();
+        var cache2 = GetMock();
 
-        IRequestExecutorBuilder builder = new ServiceCollection()
+        var builder = new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query")
                 .Field("field").Type<StringType>().CacheControl(100))
@@ -251,9 +251,9 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
     [Fact]
     public async Task DoNotWriteToCacheIfNoMaxAgeCouldBeComputed()
     {
-        Mock<DefaultQueryCache> cache = GetMock();
+        var cache = GetMock();
 
-        IRequestExecutorBuilder builder = new ServiceCollection()
+        var builder = new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query")
                 .Field("field").Type<StringType>().CacheControl(100))
@@ -270,13 +270,13 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
     [Fact]
     public async Task SkipWriteIfShouldCacheResultReturnsFalse()
     {
-        Mock<DefaultQueryCache> cache = GetMock();
+        var cache = GetMock();
 
         cache.Setup(x => x.ShouldCacheResult(
             It.IsAny<IRequestContext>()))
             .Returns(false);
 
-        IRequestExecutorBuilder builder = new ServiceCollection()
+        var builder = new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query")
                 .Field("field").Type<StringType>().CacheControl(100))
@@ -293,13 +293,13 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
     [Fact]
     public async Task IgnoreExceptionInShouldCacheResult()
     {
-        Mock<DefaultQueryCache> cache = GetMock();
+        var cache = GetMock();
 
         cache.Setup(x => x.ShouldCacheResult(
             It.IsAny<IRequestContext>()))
             .Throws(new System.Exception());
 
-        IRequestExecutorBuilder builder = new ServiceCollection()
+        var builder = new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query")
                 .Field("field").Type<StringType>().CacheControl(100))
@@ -316,7 +316,7 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
     [Fact]
     public async Task IgnoreExceptionInCacheQueryResult()
     {
-        Mock<DefaultQueryCache> cache = GetMock();
+        var cache = GetMock();
 
         cache.Setup(x => x.CacheQueryResultAsync(
             It.IsAny<IRequestContext>(),
@@ -324,7 +324,7 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
             It.IsAny<ICacheControlOptions>()))
             .Throws(new System.Exception());
 
-        IRequestExecutorBuilder builder = new ServiceCollection()
+        var builder = new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType(d => d.Name("Query")
                 .Field("field").Type<StringType>().CacheControl(100))

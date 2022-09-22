@@ -1,11 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>$(AspNetTargetFrameworks)</TargetFrameworks>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <PackageId>HotChocolate.Caching.Http</PackageId>
     <AssemblyName>HotChocolate.Caching.Http</AssemblyName>
     <RootNamespace>HotChocolate.Caching.Http</RootNamespace>
@@ -14,7 +9,7 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <ProjectReference Include="..\Caching\HotChocolate.Caching.csproj" />
   </ItemGroup>
@@ -22,7 +17,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Caching.Http.Tests" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <Compile Update="Properties\HttpQueryCacheResources.Designer.cs">
       <DesignTime>True</DesignTime>
@@ -30,7 +25,7 @@
       <DependentUpon>HttpQueryCacheResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
-  
+
   <ItemGroup>
     <EmbeddedResource Update="Properties\HttpQueryCacheResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
