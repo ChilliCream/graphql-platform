@@ -43,7 +43,7 @@ public static class PagingHelper
                     options,
                     placeholder),
                 definition,
-                ApplyConfigurationOn.Completion));
+                ApplyConfigurationOn.BeforeCompletion));
 
         return descriptor;
     }

@@ -159,7 +159,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
                                     c,
                                     scope),
                             definition,
-                            ApplyConfigurationOn.Completion));
+                            ApplyConfigurationOn.BeforeCompletion));
                 });
 
         return descriptor;

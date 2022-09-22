@@ -67,7 +67,7 @@ public static class DataLoaderObjectFieldExtensions
                                     dataLoaderType);
                             },
                             definition,
-                            ApplyConfigurationOn.Completion));
+                            ApplyConfigurationOn.BeforeCompletion));
                 });
 
         return descriptor;

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
+using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data;
@@ -113,6 +114,36 @@ public class IntegrationTests
 
         result.MatchSnapshot();
     }
+
+    [Fact]
+    public async Task Node_Resolver_With_SingleOrDefault_Schema()
+    {
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithNodeResolvers>()
+            .AddObjectType<Foo>(d => d.ImplementsNode().IdField(t => t.Bar))
+            .AddGlobalObjectIdentification()
+            .AddProjections()
+            .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Node_Resolver_With_SingleOrDefault()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithNodeResolvers>()
+            .AddObjectType<Foo>(d => d.ImplementsNode().IdField(t => t.Bar))
+            .AddGlobalObjectIdentification()
+            .AddProjections()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(@"{ node(id: ""Rm9vCmRB"") { id __typename } }");
+
+        result.MatchSnapshot();
+    }
 }
 
 public class Query
@@ -120,8 +151,8 @@ public class Query
     [UseProjection]
     public IQueryable<Foo> Foos => new Foo[]
     {
-            new() { Bar = "A" },
-            new() { Bar = "B" }
+        new() { Bar = "A" },
+        new() { Bar = "B" }
     }.AsQueryable();
 }
 
@@ -146,4 +177,23 @@ public class FooExtensions
 public class Foo
 {
     public string? Bar { get; set; }
+}
+
+public class QueryWithNodeResolvers
+{
+    [UseProjection]
+    public IQueryable<Foo> All()
+        => new Foo[]
+        {
+            new() { Bar = "A" },
+        }.AsQueryable();
+
+    [NodeResolver]
+    [UseSingleOrDefault]
+    [UseProjection]
+    public IQueryable<Foo> GetById(string id)
+        => new Foo[]
+        {
+            new() { Bar = "A" },
+        }.AsQueryable();
 }
