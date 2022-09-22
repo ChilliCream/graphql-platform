@@ -1,7 +1,6 @@
 #nullable enable
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Relay;
@@ -12,10 +11,12 @@ namespace HotChocolate.Types.Relay;
 /// </summary>
 internal sealed class NodeResolverInfo
 {
-    public NodeResolverInfo(Argument? id, FieldDelegate pipeline)
+    public NodeResolverInfo(ObjectField? resolverField, FieldDelegate pipeline)
     {
-        Id = id;
+        Id = resolverField?.Arguments[0];
         Pipeline = pipeline;
+        QueryField = resolverField;
+        IsQueryFieldResolver = resolverField is not null;
     }
 
     /// <summary>
@@ -28,4 +29,18 @@ internal sealed class NodeResolverInfo
     /// Gets the node resolver pipeline.
     /// </summary>
     public FieldDelegate Pipeline { get; }
+
+    /// <summary>
+    /// Gets the query field from which we inferred the node resolver.
+    /// </summary>
+    public ObjectField? QueryField { get; }
+
+    /// <summary>
+    /// Defines if the node resolver was inferred from a query field.
+    /// </summary>
+    /// <value></value>
+#if NET5_0_OR_GREATER
+    [MemberNotNullWhen(true, nameof(QueryField), nameof(Id))]
+#endif
+    public bool IsQueryFieldResolver { get; }
 }
