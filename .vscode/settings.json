@@ -1,4 +1,5 @@
 {
+  "omnisharp.defaultLaunchSolution": "src/All.sln",
   "search.exclude": {
     "**/node_modules": true,
     "**/bower_components": true,
@@ -6,4 +7,17 @@
     "**/PublicAPI*.txt": true
   },
   "editor.rulers": [100],
+  "files.trimTrailingWhitespace": true,
+  "files.associations": {
+    "*.*proj": "xml",
+    "*.props": "xml",
+    "*.targets": "xml",
+    "*.tasks": "xml"
+  },
+  "markdownlint.config": {
+    "MD028": false,
+    "MD025": {
+      "front_matter_title": ""
+    }
+  }
 }
