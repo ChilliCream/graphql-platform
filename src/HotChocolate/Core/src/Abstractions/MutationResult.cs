@@ -17,15 +17,15 @@ public readonly struct MutationResult<TResult> : IMutationResult
     /// <summary>
     /// Initializes a mutation success result.
     /// </summary>
-    /// <param name="result">
+    /// <param name="value">
     /// The success result value.
     /// </param>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="result"/> is <c>null</c>.
+    /// <paramref name="value"/> is <c>null</c>.
     /// </exception>
-    public MutationResult(TResult result)
+    public MutationResult(TResult value)
     {
-        Result = result;
+        Value = value;
         Errors = null;
         IsSuccess = true;
         IsError = !IsSuccess;
@@ -47,7 +47,7 @@ public readonly struct MutationResult<TResult> : IMutationResult
             throw new ArgumentNullException(nameof(error));
         }
 
-        Result = default;
+        Value = default;
         Errors = new[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -88,7 +88,7 @@ public readonly struct MutationResult<TResult> : IMutationResult
             }
         }
 
-        Result = default;
+        Value = default;
         Errors = temp;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -109,7 +109,7 @@ public readonly struct MutationResult<TResult> : IMutationResult
     /// </exception>
     public MutationResult(params object[] errors)
     {
-        Result = default;
+        Value = default;
         Errors = errors ?? throw new ArgumentNullException(nameof(errors));
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -133,7 +133,7 @@ public readonly struct MutationResult<TResult> : IMutationResult
     /// Gets the success result value.
     /// If <see cref="IsSuccess"/> is <c>false</c> then this property will return <c>null</c>.
     /// </summary>
-    public TResult? Result { get; }
+    public TResult? Value { get; }
 
     /// <summary>
     /// Gets the errors of this result.
@@ -155,9 +155,9 @@ public readonly struct MutationResult<TResult> : IMutationResult
     public bool IsError { get; }
 
 #if NET5_0_OR_GREATER
-    object? IMutationResult.Value => IsSuccess ? Result : Errors;
+    object? IMutationResult.Value => IsSuccess ? Value : Errors;
 #else
-    object? IMutationResult.Value => IsSuccess ? Result : Errors!;
+    object? IMutationResult.Value => IsSuccess ? Value : Errors!;
 #endif
 
     /// <summary>
@@ -168,21 +168,14 @@ public readonly struct MutationResult<TResult> : IMutationResult
     /// The success result value.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Result"/>
+    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Value"/>
     /// set to <paramref name="result"/>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="result"/> is <c>null</c>.
     /// </exception>
-    public static implicit operator MutationResult<TResult>([DisallowNull] TResult result)
-    {
-        if (result is null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
-
-        return new MutationResult<TResult>(result);
-    }
+    public static implicit operator MutationResult<TResult>(TResult result)
+        => new(result);
 }
 
 /// <summary>
@@ -199,15 +192,15 @@ public readonly struct MutationResult<TResult, TError> : IMutationResult
     /// <summary>
     /// Initializes a mutation success result.
     /// </summary>
-    /// <param name="result">
+    /// <param name="value">
     /// The success result value.
     /// </param>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="result"/> is <c>null</c>.
+    /// <paramref name="value"/> is <c>null</c>.
     /// </exception>
-    public MutationResult(TResult result)
+    public MutationResult(TResult value)
     {
-        Result = result;
+        Value = value;
         Errors = null;
         IsSuccess = true;
         IsError = !IsSuccess;
@@ -229,7 +222,7 @@ public readonly struct MutationResult<TResult, TError> : IMutationResult
             throw new ArgumentNullException(nameof(error));
         }
 
-        Result = default;
+        Value = default;
         Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -272,7 +265,7 @@ public readonly struct MutationResult<TResult, TError> : IMutationResult
             throw new ArgumentException(MutationResult_ErrorsIsEmpty, nameof(errors));
         }
 
-        Result = default;
+        Value = default;
         Errors = list;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -317,7 +310,7 @@ public readonly struct MutationResult<TResult, TError> : IMutationResult
             array[i] = error;
         }
 
-        Result = default;
+        Value = default;
         Errors = array;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -327,7 +320,7 @@ public readonly struct MutationResult<TResult, TError> : IMutationResult
     /// Gets the success result value.
     /// If <see cref="IsSuccess"/> is <c>false</c> then this property will return <c>null</c>.
     /// </summary>
-    public TResult? Result { get; }
+    public TResult? Value { get; }
 
     /// <summary>
     /// Gets the errors of this result.
@@ -349,9 +342,9 @@ public readonly struct MutationResult<TResult, TError> : IMutationResult
     public bool IsError { get; }
 
 #if NET5_0_OR_GREATER
-    object? IMutationResult.Value => IsSuccess ? Result : Errors;
+    object? IMutationResult.Value => IsSuccess ? Value : Errors;
 #else
-    object? IMutationResult.Value => IsSuccess ? Result : Errors!;
+    object? IMutationResult.Value => IsSuccess ? Value : Errors!;
 #endif
 
     /// <summary>
@@ -362,21 +355,14 @@ public readonly struct MutationResult<TResult, TError> : IMutationResult
     /// The success result value.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Result"/>
+    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Value"/>
     /// set to <paramref name="result"/>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="result"/> is <c>null</c>.
     /// </exception>
-    public static implicit operator MutationResult<TResult, TError>([DisallowNull] TResult result)
-    {
-        if (result is null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
-
-        return new MutationResult<TResult, TError>(result);
-    }
+    public static implicit operator MutationResult<TResult, TError>(TResult result)
+        => new(result);
 
     /// <summary>
     /// Implicitly converts the error object <typeparamref name="TError"/>
@@ -420,15 +406,15 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
     /// <summary>
     /// Initializes a mutation success result.
     /// </summary>
-    /// <param name="result">
+    /// <param name="value">
     /// The success result value.
     /// </param>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="result"/> is <c>null</c>.
+    /// <paramref name="value"/> is <c>null</c>.
     /// </exception>
-    public MutationResult(TResult result)
+    public MutationResult(TResult value)
     {
-        Result = result;
+        Value = value;
         Errors = null;
         IsSuccess = true;
         IsError = !IsSuccess;
@@ -450,7 +436,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
             throw new ArgumentNullException(nameof(error));
         }
 
-        Result = default;
+        Value = default;
         Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -493,7 +479,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
             throw new ArgumentException(MutationResult_ErrorsIsEmpty, nameof(errors));
         }
 
-        Result = default;
+        Value = default;
         Errors = list;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -538,7 +524,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
             array[i] = error;
         }
 
-        Result = default;
+        Value = default;
         Errors = array;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -560,7 +546,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
             throw new ArgumentNullException(nameof(error));
         }
 
-        Result = default;
+        Value = default;
         Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -603,7 +589,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
             throw new ArgumentException(MutationResult_ErrorsIsEmpty, nameof(errors));
         }
 
-        Result = default;
+        Value = default;
         Errors = list;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -648,7 +634,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
             array[i] = error;
         }
 
-        Result = default;
+        Value = default;
         Errors = array;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -689,7 +675,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
             }
         }
 
-        Result = default;
+        Value = default;
         Errors = temp;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -710,7 +696,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
     /// </exception>
     public MutationResult(params object[] errors)
     {
-        Result = default;
+        Value = default;
         Errors = errors ?? throw new ArgumentNullException(nameof(errors));
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -733,7 +719,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
     /// Gets the success result value.
     /// If <see cref="IsSuccess"/> is <c>false</c> then this property will return <c>null</c>.
     /// </summary>
-    public TResult? Result { get; }
+    public TResult? Value { get; }
 
     /// <summary>
     /// Gets the errors of this result.
@@ -755,9 +741,9 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
     public bool IsError { get; }
 
 #if NET5_0_OR_GREATER
-    object? IMutationResult.Value => IsSuccess ? Result : Errors;
+    object? IMutationResult.Value => IsSuccess ? Value : Errors;
 #else
-    object? IMutationResult.Value => IsSuccess ? Result : Errors!;
+    object? IMutationResult.Value => IsSuccess ? Value : Errors!;
 #endif
 
     /// <summary>
@@ -768,22 +754,14 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
     /// The success result value.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Result"/>
+    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Value"/>
     /// set to <paramref name="result"/>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="result"/> is <c>null</c>.
     /// </exception>
-    public static implicit operator MutationResult<TResult, TError1, TError2>(
-        [DisallowNull] TResult result)
-    {
-        if (result is null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
-
-        return new MutationResult<TResult, TError1, TError2>(result);
-    }
+    public static implicit operator MutationResult<TResult, TError1, TError2>(TResult result)
+        => new(result);
 
     /// <summary>
     /// Implicitly converts the error object <typeparamref name="TError1"/>
@@ -856,15 +834,15 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
     /// <summary>
     /// Initializes a mutation success result.
     /// </summary>
-    /// <param name="result">
+    /// <param name="value">
     /// The success result value.
     /// </param>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="result"/> is <c>null</c>.
+    /// <paramref name="value"/> is <c>null</c>.
     /// </exception>
-    public MutationResult(TResult result)
+    public MutationResult(TResult value)
     {
-        Result = result;
+        Value = value;
         Errors = null;
         IsSuccess = true;
         IsError = !IsSuccess;
@@ -886,7 +864,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
             throw new ArgumentNullException(nameof(error));
         }
 
-        Result = default;
+        Value = default;
         Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -929,7 +907,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
             throw new ArgumentException(MutationResult_ErrorsIsEmpty, nameof(errors));
         }
 
-        Result = default;
+        Value = default;
         Errors = list;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -974,7 +952,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
             array[i] = error;
         }
 
-        Result = default;
+        Value = default;
         Errors = array;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -996,7 +974,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
             throw new ArgumentNullException(nameof(error));
         }
 
-        Result = default;
+        Value = default;
         Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -1039,7 +1017,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
             throw new ArgumentException(MutationResult_ErrorsIsEmpty, nameof(errors));
         }
 
-        Result = default;
+        Value = default;
         Errors = list;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -1084,7 +1062,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
             array[i] = error;
         }
 
-        Result = default;
+        Value = default;
         Errors = array;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -1106,7 +1084,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
             throw new ArgumentNullException(nameof(error));
         }
 
-        Result = default;
+        Value = default;
         Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -1149,7 +1127,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
             throw new ArgumentException(MutationResult_ErrorsIsEmpty, nameof(errors));
         }
 
-        Result = default;
+        Value = default;
         Errors = list;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -1194,7 +1172,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
             array[i] = error;
         }
 
-        Result = default;
+        Value = default;
         Errors = array;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -1235,7 +1213,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
             }
         }
 
-        Result = default;
+        Value = default;
         Errors = temp;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -1256,7 +1234,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
     /// </exception>
     public MutationResult(params object[] errors)
     {
-        Result = default;
+        Value = default;
         Errors = errors ?? throw new ArgumentNullException(nameof(errors));
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -1279,7 +1257,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
     /// Gets the success result value.
     /// If <see cref="IsSuccess"/> is <c>false</c> then this property will return <c>null</c>.
     /// </summary>
-    public TResult? Result { get; }
+    public TResult? Value { get; }
 
     /// <summary>
     /// Gets the errors of this result.
@@ -1301,9 +1279,9 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
     public bool IsError { get; }
 
 #if NET5_0_OR_GREATER
-    object? IMutationResult.Value => IsSuccess ? Result : Errors;
+    object? IMutationResult.Value => IsSuccess ? Value : Errors;
 #else
-    object? IMutationResult.Value => IsSuccess ? Result : Errors!;
+    object? IMutationResult.Value => IsSuccess ? Value : Errors!;
 #endif
 
     /// <summary>
@@ -1314,22 +1292,14 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
     /// The success result value.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Result"/>
+    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Value"/>
     /// set to <paramref name="result"/>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="result"/> is <c>null</c>.
     /// </exception>
-    public static implicit operator MutationResult<TResult, TError1, TError2, TError3>(
-        [DisallowNull] TResult result)
-    {
-        if (result is null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
-
-        return new MutationResult<TResult, TError1, TError2, TError3>(result);
-    }
+    public static implicit operator MutationResult<TResult, TError1, TError2, TError3>(TResult result)
+        => new(result);
 
     /// <summary>
     /// Implicitly converts the error object <typeparamref name="TError1"/>
@@ -1430,15 +1400,15 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// <summary>
     /// Initializes a mutation success result.
     /// </summary>
-    /// <param name="result">
+    /// <param name="value">
     /// The success result value.
     /// </param>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="result"/> is <c>null</c>.
+    /// <paramref name="value"/> is <c>null</c>.
     /// </exception>
-    public MutationResult(TResult result)
+    public MutationResult(TResult value)
     {
-        Result = result;
+        Value = value;
         Errors = null;
         IsSuccess = true;
         IsError = !IsSuccess;
@@ -1460,7 +1430,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             throw new ArgumentNullException(nameof(error));
         }
 
-        Result = default;
+        Value = default;
         Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -1503,7 +1473,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             throw new ArgumentException(MutationResult_ErrorsIsEmpty, nameof(errors));
         }
 
-        Result = default;
+        Value = default;
         Errors = list;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -1548,7 +1518,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             array[i] = error;
         }
 
-        Result = default;
+        Value = default;
         Errors = array;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -1570,7 +1540,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             throw new ArgumentNullException(nameof(error));
         }
 
-        Result = default;
+        Value = default;
         Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -1613,7 +1583,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             throw new ArgumentException(MutationResult_ErrorsIsEmpty, nameof(errors));
         }
 
-        Result = default;
+        Value = default;
         Errors = list;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -1658,7 +1628,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             array[i] = error;
         }
 
-        Result = default;
+        Value = default;
         Errors = array;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -1680,7 +1650,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             throw new ArgumentNullException(nameof(error));
         }
 
-        Result = default;
+        Value = default;
         Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -1723,7 +1693,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             throw new ArgumentException(MutationResult_ErrorsIsEmpty, nameof(errors));
         }
 
-        Result = default;
+        Value = default;
         Errors = list;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -1768,7 +1738,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             array[i] = error;
         }
 
-        Result = default;
+        Value = default;
         Errors = array;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -1790,7 +1760,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             throw new ArgumentNullException(nameof(error));
         }
 
-        Result = default;
+        Value = default;
         Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -1833,7 +1803,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             throw new ArgumentException(MutationResult_ErrorsIsEmpty, nameof(errors));
         }
 
-        Result = default;
+        Value = default;
         Errors = list;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -1878,7 +1848,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             array[i] = error;
         }
 
-        Result = default;
+        Value = default;
         Errors = array;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -1919,7 +1889,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             }
         }
 
-        Result = default;
+        Value = default;
         Errors = temp;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -1940,7 +1910,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// </exception>
     public MutationResult(params object[] errors)
     {
-        Result = default;
+        Value = default;
         Errors = errors ?? throw new ArgumentNullException(nameof(errors));
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -1963,7 +1933,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// Gets the success result value.
     /// If <see cref="IsSuccess"/> is <c>false</c> then this property will return <c>null</c>.
     /// </summary>
-    public TResult? Result { get; }
+    public TResult? Value { get; }
 
     /// <summary>
     /// Gets the errors of this result.
@@ -1985,9 +1955,9 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     public bool IsError { get; }
 
 #if NET5_0_OR_GREATER
-    object? IMutationResult.Value => IsSuccess ? Result : Errors;
+    object? IMutationResult.Value => IsSuccess ? Value : Errors;
 #else
-    object? IMutationResult.Value => IsSuccess ? Result : Errors!;
+    object? IMutationResult.Value => IsSuccess ? Value : Errors!;
 #endif
 
     /// <summary>
@@ -1998,22 +1968,14 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// The success result value.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Result"/>
+    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Value"/>
     /// set to <paramref name="result"/>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="result"/> is <c>null</c>.
     /// </exception>
-    public static implicit operator MutationResult<TResult, TError1, TError2, TError3, TError4>(
-        [DisallowNull] TResult result)
-    {
-        if (result is null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
-
-        return new MutationResult<TResult, TError1, TError2, TError3, TError4>(result);
-    }
+    public static implicit operator MutationResult<TResult, TError1, TError2, TError3, TError4>(TResult result)
+        => new(result);
 
     /// <summary>
     /// Implicitly converts the error object <typeparamref name="TError1"/>
@@ -2142,15 +2104,15 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// <summary>
     /// Initializes a mutation success result.
     /// </summary>
-    /// <param name="result">
+    /// <param name="value">
     /// The success result value.
     /// </param>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="result"/> is <c>null</c>.
+    /// <paramref name="value"/> is <c>null</c>.
     /// </exception>
-    public MutationResult(TResult result)
+    public MutationResult(TResult value)
     {
-        Result = result;
+        Value = value;
         Errors = null;
         IsSuccess = true;
         IsError = !IsSuccess;
@@ -2172,7 +2134,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             throw new ArgumentNullException(nameof(error));
         }
 
-        Result = default;
+        Value = default;
         Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -2215,7 +2177,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             throw new ArgumentException(MutationResult_ErrorsIsEmpty, nameof(errors));
         }
 
-        Result = default;
+        Value = default;
         Errors = list;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -2260,7 +2222,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             array[i] = error;
         }
 
-        Result = default;
+        Value = default;
         Errors = array;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -2282,7 +2244,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             throw new ArgumentNullException(nameof(error));
         }
 
-        Result = default;
+        Value = default;
         Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -2325,7 +2287,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             throw new ArgumentException(MutationResult_ErrorsIsEmpty, nameof(errors));
         }
 
-        Result = default;
+        Value = default;
         Errors = list;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -2370,7 +2332,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             array[i] = error;
         }
 
-        Result = default;
+        Value = default;
         Errors = array;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -2392,7 +2354,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             throw new ArgumentNullException(nameof(error));
         }
 
-        Result = default;
+        Value = default;
         Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -2435,7 +2397,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             throw new ArgumentException(MutationResult_ErrorsIsEmpty, nameof(errors));
         }
 
-        Result = default;
+        Value = default;
         Errors = list;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -2480,7 +2442,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             array[i] = error;
         }
 
-        Result = default;
+        Value = default;
         Errors = array;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -2502,7 +2464,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             throw new ArgumentNullException(nameof(error));
         }
 
-        Result = default;
+        Value = default;
         Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -2545,7 +2507,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             throw new ArgumentException(MutationResult_ErrorsIsEmpty, nameof(errors));
         }
 
-        Result = default;
+        Value = default;
         Errors = list;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -2590,7 +2552,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             array[i] = error;
         }
 
-        Result = default;
+        Value = default;
         Errors = array;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -2612,7 +2574,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             throw new ArgumentNullException(nameof(error));
         }
 
-        Result = default;
+        Value = default;
         Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -2655,7 +2617,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             throw new ArgumentException(MutationResult_ErrorsIsEmpty, nameof(errors));
         }
 
-        Result = default;
+        Value = default;
         Errors = list;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -2700,7 +2662,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             array[i] = error;
         }
 
-        Result = default;
+        Value = default;
         Errors = array;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -2741,7 +2703,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             }
         }
 
-        Result = default;
+        Value = default;
         Errors = temp;
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -2762,7 +2724,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// </exception>
     public MutationResult(params object[] errors)
     {
-        Result = default;
+        Value = default;
         Errors = errors ?? throw new ArgumentNullException(nameof(errors));
         IsSuccess = false;
         IsError = !IsSuccess;
@@ -2785,7 +2747,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// Gets the success result value.
     /// If <see cref="IsSuccess"/> is <c>false</c> then this property will return <c>null</c>.
     /// </summary>
-    public TResult? Result { get; }
+    public TResult? Value { get; }
 
     /// <summary>
     /// Gets the errors of this result.
@@ -2807,9 +2769,9 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     public bool IsError { get; }
 
 #if NET5_0_OR_GREATER
-    object? IMutationResult.Value => IsSuccess ? Result : Errors;
+    object? IMutationResult.Value => IsSuccess ? Value : Errors;
 #else
-    object? IMutationResult.Value => IsSuccess ? Result : Errors!;
+    object? IMutationResult.Value => IsSuccess ? Value : Errors!;
 #endif
 
     /// <summary>
@@ -2820,22 +2782,14 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// The success result value.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Result"/>
+    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Value"/>
     /// set to <paramref name="result"/>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="result"/> is <c>null</c>.
     /// </exception>
-    public static implicit operator MutationResult<TResult, TError1, TError2, TError3, TError4, TError5>(
-        [DisallowNull] TResult result)
-    {
-        if (result is null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
-
-        return new MutationResult<TResult, TError1, TError2, TError3, TError4, TError5>(result);
-    }
+    public static implicit operator MutationResult<TResult, TError1, TError2, TError3, TError4, TError5>(TResult result)
+        => new(result);
 
     /// <summary>
     /// Implicitly converts the error object <typeparamref name="TError1"/>

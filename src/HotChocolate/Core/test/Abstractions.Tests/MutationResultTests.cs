@@ -8,20 +8,17 @@ public class MutationResultTests
     [Fact]
     public void Union_1_Result_Null()
     {
-        void Error() => new MutationResult<string>(default(string));
-
-        Assert.Throws<ArgumentNullException>(Error);
+        var result = new MutationResult<string>(default(string));
+        Assert.Null(result.Value);
     }
 
     [Fact]
     public void Union_1_Cast_Result_Null()
     {
-        void Error()
-        {
-            MutationResult<string> result = default(string)!;
-        }
-
-        Assert.Throws<ArgumentNullException>(Error);
+        MutationResult<string> result = default(string)!;
+        Assert.True(result.IsSuccess);
+        Assert.False(result.IsError);
+        Assert.Null(result.Value);
     }
 
     [Fact]
@@ -30,8 +27,9 @@ public class MutationResultTests
         MutationResult<string> result = "abc";
 
         Assert.True(result.IsSuccess);
-        Assert.Equal("abc", result.Result);
-        Assert.Equal(result.Result, ((IMutationResult)result).Value);
+        Assert.False(result.IsError);
+        Assert.Equal("abc", result.Value);
+        Assert.Equal(result.Value, ((IMutationResult)result).Value);
     }
 
     [Fact]
@@ -40,8 +38,8 @@ public class MutationResultTests
         var result = new MutationResult<string>("abc");
 
         Assert.True(result.IsSuccess);
-        Assert.Equal("abc", result.Result);
-        Assert.Equal(result.Result, ((IMutationResult)result).Value);
+        Assert.Equal("abc", result.Value);
+        Assert.Equal(result.Value, ((IMutationResult)result).Value);
     }
 
     [Fact]
@@ -59,6 +57,7 @@ public class MutationResultTests
         var result = new MutationResult<string>(error);
 
         Assert.False(result.IsSuccess);
+        Assert.True(result.IsError);
         Assert.Collection(result.Errors!, obj => Assert.Equal(error, obj));
         Assert.Equal(result.Errors!, ((IMutationResult)result).Value);
     }
@@ -140,20 +139,17 @@ public class MutationResultTests
     [Fact]
     public void Union_2_Result_Null()
     {
-        void Error() => new MutationResult<string, ErrorObj1>(default(string));
-
-        Assert.Throws<ArgumentNullException>(Error);
+        var result = new MutationResult<string, ErrorObj1>(default(string));
+        Assert.Null(result.Value);
     }
 
     [Fact]
     public void Union_2_Cast_Result_Null()
     {
-        void Error()
-        {
-            MutationResult<string, ErrorObj1> result = default(string)!;
-        }
-
-        Assert.Throws<ArgumentNullException>(Error);
+        MutationResult<string, ErrorObj1> result = default(string)!;
+        Assert.True(result.IsSuccess);
+        Assert.False(result.IsError);
+        Assert.Null(result.Value);
     }
 
     [Fact]
@@ -162,8 +158,9 @@ public class MutationResultTests
         MutationResult<string, ErrorObj1> result = "abc";
 
         Assert.True(result.IsSuccess);
-        Assert.Equal("abc", result.Result);
-        Assert.Equal(result.Result, ((IMutationResult)result).Value);
+        Assert.False(result.IsError);
+        Assert.Equal("abc", result.Value);
+        Assert.Equal(result.Value, ((IMutationResult)result).Value);
     }
 
     [Fact]
@@ -172,8 +169,8 @@ public class MutationResultTests
         var result = new MutationResult<string, ErrorObj1>("abc");
 
         Assert.True(result.IsSuccess);
-        Assert.Equal("abc", result.Result);
-        Assert.Equal(result.Result, ((IMutationResult)result).Value);
+        Assert.Equal("abc", result.Value);
+        Assert.Equal(result.Value, ((IMutationResult)result).Value);
     }
 
     [Fact]
@@ -183,6 +180,7 @@ public class MutationResultTests
         MutationResult<string, ErrorObj1> result = error;
 
         Assert.False(result.IsSuccess);
+        Assert.True(result.IsError);
         Assert.Collection(result.Errors!, err => Assert.Equal(error, err));
         Assert.Equal(result.Errors, ((IMutationResult)result).Value);
     }
@@ -296,20 +294,17 @@ public class MutationResultTests
     [Fact]
     public void Union_3_Result_Null()
     {
-        void Error() => new MutationResult<string, ErrorObj1, ErrorObj2>(default(string));
-
-        Assert.Throws<ArgumentNullException>(Error);
+        var result = new MutationResult<string, ErrorObj1, ErrorObj2>(default(string));
+        Assert.Null(result.Value);
     }
 
     [Fact]
     public void Union_3_Cast_Result_Null()
     {
-        void Error()
-        {
-            MutationResult<string, ErrorObj1, ErrorObj2> result = default(string)!;
-        }
-
-        Assert.Throws<ArgumentNullException>(Error);
+        MutationResult<string, ErrorObj1, ErrorObj2> result = default(string)!;
+        Assert.True(result.IsSuccess);
+        Assert.False(result.IsError);
+        Assert.Null(result.Value);
     }
 
     [Fact]
@@ -318,8 +313,8 @@ public class MutationResultTests
         MutationResult<string, ErrorObj1, ErrorObj2> result = "abc";
 
         Assert.True(result.IsSuccess);
-        Assert.Equal("abc", result.Result);
-        Assert.Equal(result.Result, ((IMutationResult)result).Value);
+        Assert.Equal("abc", result.Value);
+        Assert.Equal(result.Value, ((IMutationResult)result).Value);
     }
 
     [Fact]
@@ -328,8 +323,8 @@ public class MutationResultTests
         var result = new MutationResult<string, ErrorObj1, ErrorObj2>("abc");
 
         Assert.True(result.IsSuccess);
-        Assert.Equal("abc", result.Result);
-        Assert.Equal(result.Result, ((IMutationResult)result).Value);
+        Assert.Equal("abc", result.Value);
+        Assert.Equal(result.Value, ((IMutationResult)result).Value);
     }
 
     [Fact]
@@ -661,21 +656,19 @@ public class MutationResultTests
     [Fact]
     public void Union_4_Result_Null()
     {
-        void Error()
-            => new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3>(default(string));
-
-        Assert.Throws<ArgumentNullException>(Error);
+        var result = new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3>(default(string));
+        Assert.True(result.IsSuccess);
+        Assert.False(result.IsError);
+        Assert.Null(result.Value);
     }
 
     [Fact]
     public void Union_4_Cast_Result_Null()
     {
-        void Error()
-        {
-            MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3> result = default(string)!;
-        }
-
-        Assert.Throws<ArgumentNullException>(Error);
+        MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3> result = default(string)!;
+        Assert.True(result.IsSuccess);
+        Assert.False(result.IsError);
+        Assert.Null(result.Value);
     }
 
     [Fact]
@@ -684,8 +677,8 @@ public class MutationResultTests
         MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3> result = "abc";
 
         Assert.True(result.IsSuccess);
-        Assert.Equal("abc", result.Result);
-        Assert.Equal(result.Result, ((IMutationResult)result).Value);
+        Assert.Equal("abc", result.Value);
+        Assert.Equal(result.Value, ((IMutationResult)result).Value);
     }
 
     [Fact]
@@ -694,8 +687,8 @@ public class MutationResultTests
         var result = new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3>("abc");
 
         Assert.True(result.IsSuccess);
-        Assert.Equal("abc", result.Result);
-        Assert.Equal(result.Result, ((IMutationResult)result).Value);
+        Assert.Equal("abc", result.Value);
+        Assert.Equal(result.Value, ((IMutationResult)result).Value);
     }
 
     [Fact]
@@ -1181,23 +1174,21 @@ public class MutationResultTests
     [Fact]
     public void Union_5_Result_Null()
     {
-        void Error()
-            => new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4>(
-                default(string));
-
-        Assert.Throws<ArgumentNullException>(Error);
+        var result = new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4>(
+            default(string));
+        Assert.True(result.IsSuccess);
+        Assert.False(result.IsError);
+        Assert.Null(result.Value);
     }
 
     [Fact]
     public void Union_5_Cast_Result_Null()
     {
-        void Error()
-        {
-            MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4> result =
-                default(string)!;
-        }
-
-        Assert.Throws<ArgumentNullException>(Error);
+        MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4> result =
+            default(string)!;
+        Assert.True(result.IsSuccess);
+        Assert.False(result.IsError);
+        Assert.Null(result.Value);
     }
 
     [Fact]
@@ -1206,8 +1197,8 @@ public class MutationResultTests
         MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4> result = "abc";
 
         Assert.True(result.IsSuccess);
-        Assert.Equal("abc", result.Result);
-        Assert.Equal(result.Result, ((IMutationResult)result).Value);
+        Assert.Equal("abc", result.Value);
+        Assert.Equal(result.Value, ((IMutationResult)result).Value);
     }
 
     [Fact]
@@ -1216,8 +1207,8 @@ public class MutationResultTests
         var result = new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4>("abc");
 
         Assert.True(result.IsSuccess);
-        Assert.Equal("abc", result.Result);
-        Assert.Equal(result.Result, ((IMutationResult)result).Value);
+        Assert.Equal("abc", result.Value);
+        Assert.Equal(result.Value, ((IMutationResult)result).Value);
     }
 
     [Fact]
@@ -1856,23 +1847,23 @@ public class MutationResultTests
     [Fact]
     public void Union_6_Result_Null()
     {
-        void Error()
-            => new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5>(
-                default(string));
+        var result = new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5>(
+            default(string));
 
-        Assert.Throws<ArgumentNullException>(Error);
+        Assert.True(result.IsSuccess);
+        Assert.False(result.IsError);
+        Assert.Null(result.Value);
     }
 
     [Fact]
     public void Union_6_Cast_Result_Null()
     {
-        void Error()
-        {
-            MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5> result =
-                default(string)!;
-        }
+        MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5> result =
+            default(string)!;
 
-        Assert.Throws<ArgumentNullException>(Error);
+        Assert.True(result.IsSuccess);
+        Assert.False(result.IsError);
+        Assert.Null(result.Value);
     }
 
     [Fact]
@@ -1882,8 +1873,8 @@ public class MutationResultTests
             result = "abc";
 
         Assert.True(result.IsSuccess);
-        Assert.Equal("abc", result.Result);
-        Assert.Equal(result.Result, ((IMutationResult)result).Value);
+        Assert.Equal("abc", result.Value);
+        Assert.Equal(result.Value, ((IMutationResult)result).Value);
     }
 
     [Fact]
@@ -1894,8 +1885,8 @@ public class MutationResultTests
                 "abc");
 
         Assert.True(result.IsSuccess);
-        Assert.Equal("abc", result.Result);
-        Assert.Equal(result.Result, ((IMutationResult)result).Value);
+        Assert.Equal("abc", result.Value);
+        Assert.Equal(result.Value, ((IMutationResult)result).Value);
     }
 
     [Fact]
@@ -2707,5 +2698,4 @@ public class MutationResultTests
     public class ErrorObj4 { }
 
     public class ErrorObj5 { }
-
 }
