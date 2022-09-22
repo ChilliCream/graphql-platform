@@ -3,7 +3,6 @@ using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Data;
 using HotChocolate.Data.Projections;
-using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Data.Projections.ProjectionProvider;
@@ -18,13 +17,16 @@ public static class ProjectionObjectFieldDescriptorExtensions
             .GetMethod(nameof(CreateMiddleware), BindingFlags.Static | BindingFlags.NonPublic)!;
 
     /// <summary>
+    /// <para>
     /// Configure if this field should be projected by <see cref="UseProjection{T}"/> or if it
     /// should be skipped
-    ///
+    /// </para>
+    /// <para>
     /// if <paramref name="isProjected"/> is false, this field will never be projected even if
     /// it is in the selection set
     /// if <paramref name="isProjected"/> is true, this field will always be projected even it
     /// it is not in the selection set
+    /// </para>
     /// </summary>
     /// <param name="descriptor">The descriptor</param>
     /// <param name="isProjected">
@@ -101,12 +103,12 @@ public static class ProjectionObjectFieldDescriptorExtensions
     /// uses the registered <see cref="ProjectionConvention"/> to apply the projections
     /// </summary>
     /// <param name="descriptor">The descriptor</param>
+    /// <param name="type">
+    /// The <see cref="Type"/> of the resolved field
+    /// </param>
     /// <param name="scope">
     /// Specify which <see cref="ProjectionConvention"/> is used, based on the value passed in
     /// <see cref="ProjectionsSchemaBuilderExtensions.AddProjections{T}"/>
-    /// </param>
-    /// <param name="type">
-    /// The <see cref="Type"/> of the resolved field
     /// </param>
     /// <returns>The descriptor passed in by <paramref name="descriptor"/></returns>
     /// <exception cref="ArgumentNullException">
@@ -172,8 +174,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
         ITypeCompletionContext context,
         string? scope)
     {
-        var convention =
-            context.DescriptorContext.GetProjectionConvention(scope);
+        var convention = context.DescriptorContext.GetProjectionConvention(scope);
         RegisterOptimizer(definition.ContextData, convention.CreateOptimizer());
 
         definition.ContextData[ProjectionContextIdentifier] = true;

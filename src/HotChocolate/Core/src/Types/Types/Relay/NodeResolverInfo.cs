@@ -1,11 +1,13 @@
 #nullable enable
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Relay;
 
 /// <summary>
-/// The node resolver info is used by the fields node and nodes to execute 
+/// The node resolver info is used by the fields node and nodes to execute
 /// the node resolver pipeline for a specific node.
 /// </summary>
 internal sealed class NodeResolverInfo
