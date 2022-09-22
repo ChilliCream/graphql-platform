@@ -187,7 +187,7 @@ public static class FilterObjectFieldDescriptorExtensions
                                     placeholder,
                                     scope),
                             definition,
-                            ApplyConfigurationOn.Completion,
+                            ApplyConfigurationOn.BeforeCompletion,
                             argumentTypeReference,
                             TypeDependencyKind.Completed));
 
@@ -197,7 +197,7 @@ public static class FilterObjectFieldDescriptorExtensions
                                 argDef.Name =
                                     context.GetFilterConvention(scope).GetArgumentName(),
                             argumentDefinition,
-                            ApplyConfigurationOn.Naming));
+                            ApplyConfigurationOn.BeforeNaming));
                 });
 
         return descriptor;

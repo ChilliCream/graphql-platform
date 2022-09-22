@@ -80,7 +80,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
 
         OnBeforeCompleteName(context, definition, definition.ContextData);
 
-        ExecuteConfigurations(context, definition, ApplyConfigurationOn.Naming);
+        ExecuteConfigurations(context, definition, ApplyConfigurationOn.BeforeNaming);
         OnCompleteName(context, definition);
 
         Debug.Assert(
@@ -99,6 +99,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         }
 
         OnAfterCompleteName(context, definition, definition.ContextData);
+        ExecuteConfigurations(context, definition, ApplyConfigurationOn.AfterNaming);
 
         MarkNamed();
     }
@@ -121,7 +122,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
 
         OnBeforeCompleteType(context, definition, definition.ContextData);
 
-        ExecuteConfigurations(context, definition, ApplyConfigurationOn.Completion);
+        ExecuteConfigurations(context, definition, ApplyConfigurationOn.BeforeCompletion);
         Description = definition.Description;
         OnCompleteType(context, definition);
 
@@ -129,6 +130,8 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         _definition = null;
 
         OnAfterCompleteType(context, definition, _contextData);
+        ExecuteConfigurations(context, definition, ApplyConfigurationOn.AfterCompletion);
+
         OnValidateType(context, definition, _contextData);
 
         MarkCompleted();

@@ -33,10 +33,16 @@ public class NodeDescriptor<TNode>
     {
         _typeDescriptor = descriptor;
 
-        _typeDescriptor
-            .Implements<NodeType>()
-            .Extend()
-            .OnBeforeCompletion(OnCompleteDefinition);
+        // we use the CompleteConfiguration  instead of the higher level api since
+        // we want to target a specific event.
+        var ownerDef = _typeDescriptor.Implements<NodeType>().Extend().Definition;
+
+        var configuration = new CompleteConfiguration(
+            (c, d) => OnCompleteDefinition(c, (ObjectTypeDefinition)d),
+            ownerDef,
+            ApplyConfigurationOn.AfterNaming);
+
+        ownerDef.Configurations.Add(configuration);
     }
 
     private void OnCompleteDefinition(
@@ -45,7 +51,21 @@ public class NodeDescriptor<TNode>
     {
         if (Definition.ResolverField is null)
         {
-            ResolveNodeWith<TNode>();
+            var resolverMethod =
+                Context.TypeInspector.GetNodeResolverMethod(typeof(TNode), typeof(TNode));
+
+            // we allow a node to not have a node resolver.
+            // this opens up type interceptors bringing these in later.
+            // we also introduced a validation option that makes sure that node resolvers are
+            // available after the schema is completed.
+            if (resolverMethod is not null)
+            {
+                ResolveNodeWith(resolverMethod);
+            }
+            else
+            {
+                ConfigureNodeField();
+            }
         }
 
         CompleteResolver(context, definition);
@@ -150,11 +170,13 @@ public class NodeDescriptor<TNode>
     }
 
     /// <inheritdoc cref="INodeDescriptor{TNode}.ResolveNodeWith{TResolver}()"/>
-    public IObjectFieldDescriptor ResolveNodeWith<TResolver>() =>
-        ResolveNodeWith(
+    public IObjectFieldDescriptor ResolveNodeWith<TResolver>()
+    {
+        return ResolveNodeWith(
             Context.TypeInspector.GetNodeResolverMethod(
                 typeof(TNode),
                 typeof(TResolver))!);
+    }
 
     /// <inheritdoc cref="INodeDescriptor{TNode}.ResolveNodeWith(Type)"/>
     public IObjectFieldDescriptor ResolveNodeWith(Type type) =>

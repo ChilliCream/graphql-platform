@@ -68,7 +68,7 @@ public static class SingleOrDefaultObjectFieldDescriptorExtensions
                                     middlewareDefinition);
                             },
                             definition,
-                            ApplyConfigurationOn.Completion));
+                            ApplyConfigurationOn.BeforeCompletion));
                 });
 
         return descriptor;

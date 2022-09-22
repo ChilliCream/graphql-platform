@@ -24,7 +24,7 @@ public static class DirectiveCollectionExtensions
             }
         }
 
-        return default;
+        return default!;
     }
 
     internal static IValueNode? SkipValue(this IReadOnlyList<DirectiveNode> directives)

@@ -105,7 +105,7 @@ internal static class RelayIdFieldHelpers
                 placeholder,
                 typeName),
             definition,
-            ApplyConfigurationOn.Completion);
+            ApplyConfigurationOn.BeforeCompletion);
 
         definition.Configurations.Add(configuration);
     }

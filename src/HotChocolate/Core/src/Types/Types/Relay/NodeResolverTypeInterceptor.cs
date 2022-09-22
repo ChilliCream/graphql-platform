@@ -191,7 +191,8 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
             {
                 var fieldName = (string)node[NodeResolver]!;
                 var field = QueryType.Fields[fieldName];
-                node[NodeResolver] = new NodeResolverInfo(field.Arguments[0], field.Middleware);
+
+                node[NodeResolver] = new NodeResolverInfo(field, field.Middleware);
             }
         }
     }

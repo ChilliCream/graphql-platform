@@ -2,6 +2,7 @@
 
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -36,7 +37,7 @@ internal static class NodeFieldResolvers
             type.ContextData.TryGetValue(NodeResolver, out var o) &&
             o is NodeResolverInfo nodeResolverInfo)
         {
-            SetLocalContext(context, nodeId, deserializedId, typeName);
+            SetLocalContext(context, nodeId, deserializedId, type);
             TryReplaceArguments(context, nodeResolverInfo, Id, nodeId);
 
             await nodeResolverInfo.Pipeline.Invoke(context);
@@ -86,7 +87,7 @@ internal static class NodeFieldResolvers
                     {
                         var nodeContext = context.Clone();
 
-                        SetLocalContext(nodeContext, nodeId, deserializedId, typeName);
+                        SetLocalContext(nodeContext, nodeId, deserializedId, type);
                         TryReplaceArguments(nodeContext, nodeResolverInfo, Ids, nodeId);
 
                         tasks[i] = ExecutePipelineAsync(nodeContext, nodeResolverInfo);
@@ -155,7 +156,7 @@ internal static class NodeFieldResolvers
             {
                 var nodeContext = context.Clone();
 
-                SetLocalContext(nodeContext, nodeId, deserializedId, typeName);
+                SetLocalContext(nodeContext, nodeId, deserializedId, type);
                 TryReplaceArguments(nodeContext, nodeResolverInfo, Ids, nodeId);
 
                 result[0] = await ExecutePipelineAsync(nodeContext, nodeResolverInfo);
@@ -188,11 +189,12 @@ internal static class NodeFieldResolvers
         IMiddlewareContext context,
         StringValueNode nodeId,
         IdValue deserializedId,
-        string typeName)
+        ObjectType type)
     {
         context.SetLocalState(NodeId, nodeId.Value);
         context.SetLocalState(InternalId, deserializedId.Value);
-        context.SetLocalState(InternalType, typeName);
+        context.SetLocalState(InternalType, type);
+        context.SetLocalState(InternalTypeName, type.Name);
         context.SetLocalState(WellKnownContextData.IdValue, deserializedId);
     }
 

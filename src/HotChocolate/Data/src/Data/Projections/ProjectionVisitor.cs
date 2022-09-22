@@ -11,8 +11,13 @@ public class ProjectionVisitor<TContext>
 {
     public virtual void Visit(TContext context)
     {
-        context.Selection.Push((ISelection)context.Context.Selection);
-        Visit(context.Context.Selection.Field, context);
+        Visit(context, context.ResolverContext.Selection);
+    }
+
+    public virtual void Visit(TContext context, ISelection selection)
+    {
+        context.Selection.Push(selection);
+        Visit(selection.Field, context);
     }
 
     protected override TContext OnBeforeLeave(ISelection selection, TContext localContext)
@@ -123,7 +128,7 @@ public class ProjectionVisitor<TContext>
         if (field.Type is IPageType and ObjectType pageType &&
             context.Selection.Peek() is { } pagingFieldSelection)
         {
-            var selections = context.Context.GetSelections(pageType, pagingFieldSelection, true);
+            var selections = context.ResolverContext.GetSelections(pageType, pagingFieldSelection, true);
 
             foreach (var selection in selections)
             {
