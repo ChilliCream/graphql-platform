@@ -69,10 +69,16 @@ public static class FieldDescriptorUtilities
     {
         if (fieldBindingType != typeof(object))
         {
-            var members = descriptor.Context.TypeInspector
-                .GetMembers(fieldBindingType, includeIgnoredMembers)
-                .OfType<TMember>()
-                .ToList();
+            var inspector = descriptor.Context.TypeInspector;
+            var members = new List<TMember>();
+
+            foreach (var member in inspector.GetMembers(fieldBindingType, includeIgnoredMembers))
+            {
+                if (member is TMember m)
+                {
+                    members.Add(m);
+                }
+            }
 
             foreach (var member in members)
             {

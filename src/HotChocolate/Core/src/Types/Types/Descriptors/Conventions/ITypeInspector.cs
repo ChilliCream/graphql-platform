@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HotChocolate.Internal;
+using HotChocolate.Types.Relay;
 
 #nullable enable
 
@@ -23,7 +24,7 @@ public interface ITypeInspector : IConvention
     /// <returns>
     /// Returns the relevant members of a object or input object.
     /// </returns>
-    IEnumerable<MemberInfo> GetMembers(Type type);
+    ReadOnlySpan<MemberInfo> GetMembers(Type type);
 
     /// <summary>
     /// Gets the relevant members of a object or input object.
@@ -37,7 +38,9 @@ public interface ITypeInspector : IConvention
     /// <returns>
     /// Returns the relevant members of a object or input object.
     /// </returns>
-    IEnumerable<MemberInfo> GetMembers(Type type, bool includeIgnored);
+    ReadOnlySpan<MemberInfo> GetMembers(Type type, bool includeIgnored);
+
+    ReadOnlySpan<MemberInfo> GetMembers(Type type, bool includeIgnored, bool includeStatic);
 
     /// <summary>
     /// Defines if a member shall be ignored. This method interprets ignore attributes.

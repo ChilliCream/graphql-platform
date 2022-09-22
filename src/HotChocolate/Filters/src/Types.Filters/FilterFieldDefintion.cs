@@ -13,6 +13,6 @@ public class FilterFieldDefintion
     /// <summary>
     /// Gets the filters that can be applied on this field.
     /// </summary>
-    public IBindableList<FilterOperationDefintion> Filters { get; } =
-        new BindableList<FilterOperationDefintion>();
+    public IBindableList<FilterOperationDefinition> Filters { get; } =
+        new BindableList<FilterOperationDefinition>();
 }

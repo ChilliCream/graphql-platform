@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Internal;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -19,6 +20,11 @@ public sealed class ExtendObjectTypeAttribute
     public ExtendObjectTypeAttribute(string? name = null)
     {
         _name = name;
+    }
+
+    public ExtendObjectTypeAttribute(OperationType operationType)
+    {
+        _name = operationType.ToString();
     }
 
     public ExtendObjectTypeAttribute(Type extendsType)

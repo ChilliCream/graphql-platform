@@ -12,7 +12,6 @@ using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 
@@ -634,7 +633,7 @@ public class ObjectTypeExtensionTests
         Assert.Equal("GetFoo", field.Member?.Name);
         Assert.Equal("GetFoo1", field.ResolverMember?.Name);
     }
-    #endif
+#endif
 
     [Fact]
     public async Task Ensure_Member_And_ResolverMember_Are_The_Same_When_Not_Extending()
@@ -658,6 +657,19 @@ public class ObjectTypeExtensionTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<FooQueryType>()
+            .ExecuteRequestAsync("{ sayHello }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Static_Query_Extensions()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType()
+            .AddTypeExtension(typeof(StaticExtensions))
             .ExecuteRequestAsync("{ sayHello }")
             .MatchSnapshotAsync();
     }
@@ -1014,5 +1026,12 @@ public class ObjectTypeExtensionTests
                 return default;
             });
         }
+    }
+
+    [ExtendObjectType(OperationType.Query)]
+    public static class StaticExtensions
+    {
+        public static string Hello()
+            => "abc";
     }
 }
