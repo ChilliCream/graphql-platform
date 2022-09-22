@@ -42,7 +42,7 @@ internal sealed class FromJsonSchemaDirective : ISchemaDirective
                         throw ThrowHelper.CannotInferTypeFromJsonObj(ctx.Type.Name);
                     },
                     fieldDef,
-                    ApplyConfigurationOn.Completion));
+                    ApplyConfigurationOn.BeforeCompletion));
         }
     }
 

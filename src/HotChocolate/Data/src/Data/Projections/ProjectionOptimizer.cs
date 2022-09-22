@@ -4,7 +4,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Data.Projections;
 
-public class ProjectionOptimizer : ISelectionSetOptimizer
+internal sealed class ProjectionOptimizer : ISelectionSetOptimizer
 {
     private readonly IProjectionProvider _provider;
 

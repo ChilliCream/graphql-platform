@@ -36,7 +36,7 @@ public class QueryableFilterInterceptor : IProjectionFieldInterceptor<QueryableP
             argVisitor is VisitFilterArgument argumentVisitor &&
             context.Selection.Count > 0 &&
             context.Selection.Peek().Arguments
-                .TryCoerceArguments(context.Context, out var coercedArgs) &&
+                .TryCoerceArguments(context.ResolverContext, out var coercedArgs) &&
             coercedArgs.TryGetValue(argumentName, out var argumentValue) &&
             argumentValue.Type is IFilterInputType filterInputType &&
             argumentValue.ValueLiteral is { } valueNode and not NullValueNode)
