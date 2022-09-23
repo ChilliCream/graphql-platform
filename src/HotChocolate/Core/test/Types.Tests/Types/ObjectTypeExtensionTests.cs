@@ -666,14 +666,14 @@ public class ObjectTypeExtensionTests
     [Fact]
     public async Task Static_Query_Extensions()
     {
-        Snapshot.FullName();
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType()
+                .AddTypeExtension(typeof(StaticExtensions))
+                .ExecuteRequestAsync("{ hello }");
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType()
-            .AddTypeExtension(typeof(StaticExtensions))
-            .ExecuteRequestAsync("{ sayHello }")
-            .MatchSnapshotAsync();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
