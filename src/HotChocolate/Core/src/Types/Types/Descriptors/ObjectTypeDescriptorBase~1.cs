@@ -11,8 +11,8 @@ namespace HotChocolate.Types.Descriptors;
 
 public abstract class ObjectTypeDescriptorBase<T>
     : ObjectTypeDescriptor
-        , IObjectTypeDescriptor<T>
-        , IHasRuntimeType
+    , IObjectTypeDescriptor<T>
+    , IHasRuntimeType
 {
     protected ObjectTypeDescriptorBase(
         IDescriptorContext context,
