@@ -203,11 +203,3 @@ public interface IObjectTypeDescriptor<TRuntimeType>
     /// <typeparam name="TExtendsType">The type to extend.</typeparam>
     IObjectTypeDescriptor ExtendsType<TExtendsType>();
 }
-
-[Flags]
-public enum FieldBindingFlags
-{
-    Default = 0x00,
-    Instance = 0x01,
-    Static = 0x02
-}
