@@ -107,6 +107,11 @@ public class ObjectTypeDescriptor
 
         OnCompleteFields(fields, handledMembers);
 
+        foreach (var ignore in Definition.FieldIgnores)
+        {
+            fields.Remove(ignore.Name);
+        }
+
         Definition.Fields.Clear();
         Definition.Fields.AddRange(fields.Values);
 
