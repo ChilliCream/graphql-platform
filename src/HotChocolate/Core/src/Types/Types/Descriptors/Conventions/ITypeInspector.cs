@@ -21,26 +21,19 @@ public interface ITypeInspector : IConvention
     /// <param name="type">
     /// The type that represents the object type.
     /// </param>
-    /// <returns>
-    /// Returns the relevant members of a object or input object.
-    /// </returns>
-    ReadOnlySpan<MemberInfo> GetMembers(Type type);
-
-    /// <summary>
-    /// Gets the relevant members of a object or input object.
-    /// </summary>
-    /// <param name="type">
-    /// The type that represents the object type.
-    /// </param>
     /// <param name="includeIgnored">
-    /// The type that represents the object type.
+    /// Specifies if also by default ignored members shall be returned.
+    /// </param>
+    /// <param name="includeStatic">
+    /// Specifies if static members shall be returned.
     /// </param>
     /// <returns>
     /// Returns the relevant members of a object or input object.
     /// </returns>
-    ReadOnlySpan<MemberInfo> GetMembers(Type type, bool includeIgnored);
-
-    ReadOnlySpan<MemberInfo> GetMembers(Type type, bool includeIgnored, bool includeStatic);
+    ReadOnlySpan<MemberInfo> GetMembers(
+        Type type,
+        bool includeIgnored = false,
+        bool includeStatic = false);
 
     /// <summary>
     /// Defines if a member shall be ignored. This method interprets ignore attributes.

@@ -45,15 +45,10 @@ public class DefaultTypeInspector : Convention, ITypeInspector
     public bool IgnoreRequiredAttribute { get; protected set; }
 
     /// <inheritdoc />
-    public virtual ReadOnlySpan<MemberInfo> GetMembers(Type type)
-        => GetMembers(type, false);
-
-    /// <inheritdoc />
-    public virtual ReadOnlySpan<MemberInfo> GetMembers(Type type, bool includeIgnored)
-        => GetMembers(type, includeIgnored, false);
-
-    /// <inheritdoc />
-    public ReadOnlySpan<MemberInfo> GetMembers(Type type, bool includeIgnored, bool includeStatic)
+    public ReadOnlySpan<MemberInfo> GetMembers(
+        Type type,
+        bool includeIgnored = false,
+        bool includeStatic = false)
     {
         if (type is null)
         {
