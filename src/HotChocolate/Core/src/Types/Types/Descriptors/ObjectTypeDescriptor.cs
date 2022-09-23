@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Descriptors;
 
 public class ObjectTypeDescriptor
     : DescriptorBase<ObjectTypeDefinition>
-    , IObjectTypeDescriptor
+        , IObjectTypeDescriptor
 {
     private readonly List<ObjectFieldDescriptor> _fields = new();
     private static Dictionary<string, ObjectFieldDefinition>? _definitionMap = null;
@@ -74,21 +74,20 @@ public class ObjectTypeDescriptor
 
         foreach (var field in _fields)
         {
-            if (!field.Definition.Ignore)
+            if (field.Definition.Ignore)
             {
-                continue;
+                // if this definition is used for a type extension we need a
+                // binding to a field which shall be ignored. In case this is a
+                // definition for the type it will be ignored by the type initialization.
+                Definition.FieldIgnores.Add(
+                    new ObjectFieldBinding(field.Definition.Name, ObjectFieldBindingType.Field));
             }
-
-            // if this definition is used for a type extension we need a
-            // binding to a field which shall be ignored. In case this is a
-            // definition for the type it will be ignored by the type initialization.
-            Definition.FieldIgnores.Add(new(field.Definition.Name, ObjectFieldBindingType.Field));
         }
 
-        var fields = Interlocked.Exchange(ref _definitionMap, null)
-            ?? new Dictionary<string, ObjectFieldDefinition>();
-        var handledMembers = Interlocked.Exchange(ref _memberSet, null)
-            ?? new HashSet<MemberInfo>();
+        var fields = Interlocked.Exchange(ref _definitionMap, null) ??
+            new Dictionary<string, ObjectFieldDefinition>();
+        var handledMembers =
+            Interlocked.Exchange(ref _memberSet, null) ?? new HashSet<MemberInfo>();
 
         foreach (var fieldDescriptor in _fields)
         {
@@ -107,6 +106,8 @@ public class ObjectTypeDescriptor
 
         OnCompleteFields(fields, handledMembers);
 
+        // if we find fields that match field name that are ignored we will
+        // remove them from the field map.
         foreach (var ignore in Definition.FieldIgnores)
         {
             fields.Remove(ignore.Name);
@@ -126,10 +127,10 @@ public class ObjectTypeDescriptor
 
     internal void InferFieldsFromFieldBindingType()
     {
-        var fields = Interlocked.Exchange(ref _definitionMap, null)
-            ?? new Dictionary<string, ObjectFieldDefinition>();
-        var handledMembers = Interlocked.Exchange(ref _memberSet, null)
-            ?? new HashSet<MemberInfo>();
+        var fields = Interlocked.Exchange(ref _definitionMap, null) ??
+            new Dictionary<string, ObjectFieldDefinition>();
+        var handledMembers =
+            Interlocked.Exchange(ref _memberSet, null) ?? new HashSet<MemberInfo>();
 
         InferFieldsFromFieldBindingType(fields, handledMembers);
 
@@ -144,7 +145,7 @@ public class ObjectTypeDescriptor
         IDictionary<string, ObjectFieldDefinition> fields,
         ISet<MemberInfo> handledMembers)
     {
-         HashSet<string>? subscribeResolver = null;
+        HashSet<string>? subscribeResolver = null;
 
         if (Definition.Fields.IsImplicitBinding() &&
             Definition.FieldBindingType is not null)
@@ -160,7 +161,7 @@ public class ObjectTypeDescriptor
             {
                 var name = naming.GetMemberName(member, MemberKind.ObjectField);
 
-                if(handledMembers.Add(member) &&
+                if (handledMembers.Add(member) &&
                     !fields.ContainsKey(name) &&
                     IncludeField(ref subscribeResolver, members, member))
                 {
@@ -220,10 +221,7 @@ public class ObjectTypeDescriptor
 
     protected virtual void OnCompleteFields(
         IDictionary<string, ObjectFieldDefinition> fields,
-        ISet<MemberInfo> handledMembers)
-    {
-
-    }
+        ISet<MemberInfo> handledMembers) { }
 
     public IObjectTypeDescriptor SyntaxNode(
         ObjectTypeDefinitionNode? objectTypeDefinition)
@@ -282,8 +280,9 @@ public class ObjectTypeDescriptor
             throw new ArgumentNullException(nameof(type));
         }
 
-        Definition.Interfaces.Add(new SchemaTypeReference(
-            type));
+        Definition.Interfaces.Add(
+            new SchemaTypeReference(
+                type));
         return this;
     }
 
@@ -300,8 +299,7 @@ public class ObjectTypeDescriptor
 
     public IObjectTypeDescriptor IsOfType(IsOfType? isOfType)
     {
-        Definition.IsOfType = isOfType
-            ?? throw new ArgumentNullException(nameof(isOfType));
+        Definition.IsOfType = isOfType ?? throw new ArgumentNullException(nameof(isOfType));
         return this;
     }
 
@@ -452,10 +450,7 @@ public class ObjectTypeDescriptor
     public static ObjectTypeDescriptor FromSchemaType(
         IDescriptorContext context,
         Type schemaType) =>
-        new(context, schemaType)
-        {
-            Definition = { RuntimeType = typeof(object) }
-        };
+        new(context, schemaType) { Definition = { RuntimeType = typeof(object) } };
 
     public static ObjectTypeDescriptor From(
         IDescriptorContext context,
