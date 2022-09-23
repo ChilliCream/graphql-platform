@@ -66,7 +66,7 @@ public class BooleanFilterFieldDescriptor
         return this;
     }
 
-    protected override FilterOperationDefintion CreateOperationDefinition(
+    protected override FilterOperationDefinition CreateOperationDefinition(
         FilterOperationKind operationKind) =>
         CreateOperation(operationKind).CreateDefinition();
 

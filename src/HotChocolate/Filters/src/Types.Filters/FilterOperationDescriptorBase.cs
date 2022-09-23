@@ -5,7 +5,7 @@ namespace HotChocolate.Types.Filters;
 
 [Obsolete("Use HotChocolate.Data.")]
 public class FilterOperationDescriptorBase
-    : ArgumentDescriptorBase<FilterOperationDefintion>
+    : ArgumentDescriptorBase<FilterOperationDefinition>
 {
     protected FilterOperationDescriptorBase(
         IDescriptorContext context)
@@ -13,7 +13,7 @@ public class FilterOperationDescriptorBase
     {
     }
 
-    protected internal override FilterOperationDefintion Definition { get; protected set; } =
+    protected internal override FilterOperationDefinition Definition { get; protected set; } =
         new();
 
     protected void Name(string value)
