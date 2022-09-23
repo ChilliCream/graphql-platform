@@ -1,15 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
+using static HotChocolate.Types.FieldBindingFlags;
 
 #nullable enable
 
@@ -20,6 +21,8 @@ public class ObjectTypeDescriptor
     , IObjectTypeDescriptor
 {
     private readonly List<ObjectFieldDescriptor> _fields = new();
+    private static Dictionary<string, ObjectFieldDefinition>? _definitionMap = null;
+    private static HashSet<MemberInfo>? _memberSet = null;
 
     protected ObjectTypeDescriptor(IDescriptorContext context, Type clrType)
         : base(context)
@@ -57,11 +60,6 @@ public class ObjectTypeDescriptor
 
     protected ICollection<ObjectFieldDescriptor> Fields => _fields;
 
-#if NET5_0_OR_GREATER
-    internal ReadOnlySpan<ObjectFieldDescriptor> GetFieldsAsSpan()
-        => CollectionsMarshal.AsSpan(_fields);
-#endif
-
     protected override void OnCreateDefinition(
         ObjectTypeDefinition definition)
     {
@@ -74,7 +72,7 @@ public class ObjectTypeDescriptor
             Definition.AttributesAreApplied = true;
         }
 
-        foreach (var field in Fields)
+        foreach (var field in _fields)
         {
             if (!field.Definition.Ignore)
             {
@@ -87,21 +85,132 @@ public class ObjectTypeDescriptor
             Definition.FieldIgnores.Add(new(field.Definition.Name, ObjectFieldBindingType.Field));
         }
 
-        var fields = new Dictionary<string, ObjectFieldDefinition>();
-        var handledMembers = new HashSet<MemberInfo>();
+        var fields = Interlocked.Exchange(ref _definitionMap, null)
+            ?? new Dictionary<string, ObjectFieldDefinition>();
+        var handledMembers = Interlocked.Exchange(ref _memberSet, null)
+            ?? new HashSet<MemberInfo>();
 
-        FieldDescriptorUtilities.AddExplicitFields(
-            Fields.Select(t => t.CreateDefinition()),
-            f => f.Member,
-            fields,
-            handledMembers);
+        foreach (var fieldDescriptor in _fields)
+        {
+            var fieldDefinition = fieldDescriptor.CreateDefinition();
+
+            if (!fieldDefinition.Ignore && !string.IsNullOrEmpty(fieldDefinition.Name))
+            {
+                fields[fieldDefinition.Name] = fieldDefinition;
+            }
+
+            if (fieldDefinition.Member is { } member)
+            {
+                handledMembers.Add(member);
+            }
+        }
 
         OnCompleteFields(fields, handledMembers);
 
         Definition.Fields.Clear();
         Definition.Fields.AddRange(fields.Values);
 
+        fields.Clear();
+        handledMembers.Clear();
+
+        Interlocked.CompareExchange(ref _definitionMap, fields, null);
+        Interlocked.CompareExchange(ref _memberSet, handledMembers, null);
+
         base.OnCreateDefinition(definition);
+    }
+
+    internal void InferFieldsFromFieldBindingType()
+    {
+        var fields = Interlocked.Exchange(ref _definitionMap, null)
+            ?? new Dictionary<string, ObjectFieldDefinition>();
+        var handledMembers = Interlocked.Exchange(ref _memberSet, null)
+            ?? new HashSet<MemberInfo>();
+
+        InferFieldsFromFieldBindingType(fields, handledMembers);
+
+        fields.Clear();
+        handledMembers.Clear();
+
+        Interlocked.CompareExchange(ref _definitionMap, fields, null);
+        Interlocked.CompareExchange(ref _memberSet, handledMembers, null);
+    }
+
+    protected void InferFieldsFromFieldBindingType(
+        IDictionary<string, ObjectFieldDefinition> fields,
+        ISet<MemberInfo> handledMembers)
+    {
+         HashSet<string>? subscribeResolver = null;
+
+        if (Definition.Fields.IsImplicitBinding() &&
+            Definition.FieldBindingType is not null)
+        {
+            var inspector = Context.TypeInspector;
+            var naming = Context.Naming;
+            var type = Definition.FieldBindingType;
+            var isExtension = Definition.IsExtension;
+            var includeStatic = (Definition.FieldBindingFlags & Static) == Static;
+            var members = inspector.GetMembers(type, isExtension, includeStatic);
+
+            foreach (var member in members)
+            {
+                var name = naming.GetMemberName(member, MemberKind.ObjectField);
+
+                if(handledMembers.Add(member) &&
+                    !fields.ContainsKey(name) &&
+                    IncludeField(ref subscribeResolver, members, member))
+                {
+                    var descriptor = ObjectFieldDescriptor.New(
+                        Context,
+                        member,
+                        Definition.RuntimeType,
+                        type);
+
+                    if (isExtension && inspector.IsMemberIgnored(member))
+                    {
+                        descriptor.Ignore();
+                    }
+
+                    Fields.Add(descriptor);
+                    handledMembers.Add(member);
+
+                    // the create definition call will trigger the OnCompleteField call
+                    // on the field description and trigger the initialization of the
+                    // fields arguments.
+                    fields[name] = descriptor.CreateDefinition();
+                }
+            }
+        }
+
+        static bool IncludeField(
+            ref HashSet<string>? subscribeResolver,
+            ReadOnlySpan<MemberInfo> allMembers,
+            MemberInfo current)
+        {
+            if (subscribeResolver is null)
+            {
+                subscribeResolver = new HashSet<string>();
+
+                foreach (var member in allMembers)
+                {
+                    HandlePossibleSubscribeMember(subscribeResolver, member);
+                }
+            }
+
+            return !subscribeResolver.Contains(current.Name);
+        }
+
+        static void HandlePossibleSubscribeMember(
+            HashSet<string> subscribeResolver,
+            MemberInfo member)
+        {
+            if (member.IsDefined(typeof(SubscribeAttribute)))
+            {
+                if (member.GetCustomAttribute<SubscribeAttribute>() is { With: not null } attr)
+                {
+                    subscribeResolver.Add(attr.With);
+                }
+            }
+        }
     }
 
     protected virtual void OnCompleteFields(

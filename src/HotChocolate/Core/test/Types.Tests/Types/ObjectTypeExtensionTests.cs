@@ -677,6 +677,19 @@ public class ObjectTypeExtensionTests
     }
 
     [Fact]
+    public async Task Static_Query_Extensions_Schema()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType()
+                .AddTypeExtension(typeof(StaticExtensions))
+                .BuildSchemaAsync();
+
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
+    [Fact]
     public async Task Query_Extension_With_Static_Members_Schema()
     {
         var schema =

@@ -4,7 +4,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
 using static HotChocolate.Types.FieldBindingFlags;
 
 namespace HotChocolate.Types.Descriptors;
@@ -34,102 +33,8 @@ public abstract class ObjectTypeDescriptorBase<T>
         IDictionary<string, ObjectFieldDefinition> fields,
         ISet<MemberInfo> handledMembers)
     {
-        HashSet<string> subscribeResolver = null;
-
-        if (Definition.Fields.IsImplicitBinding() &&
-            Definition.FieldBindingType is not null)
-        {
-            var inspector = Context.TypeInspector;
-            var naming = Context.Naming;
-            var type = Definition.FieldBindingType;
-            var isExtension = Definition.IsExtension;
-            var includeStatic = (Definition.FieldBindingFlags & Static) == Static;
-            var members = inspector.GetMembers(type, isExtension, includeStatic);
-
-            foreach (var member in members)
-            {
-                var name = naming.GetMemberName(member, MemberKind.ObjectField);
-#if NET5_0_OR_GREATER
-                if(handledMembers.Add(member) &&
-                    !ContainsField(GetFieldsAsSpan(), name) &&
-                    IncludeField(ref subscribeResolver, members, member))
-#else
-                if(handledMembers.Add(member) &&
-                    !ContainsField(Fields, name) &&
-                    IncludeField(ref subscribeResolver, members, member))
-#endif
-                {
-                    var descriptor = ObjectFieldDescriptor.New(
-                        Context,
-                        member,
-                        Definition.RuntimeType,
-                        type);
-
-                    if (isExtension && inspector.IsMemberIgnored(member))
-                    {
-                        descriptor.Ignore();
-                    }
-
-                    Fields.Add(descriptor);
-                    handledMembers.Add(member);
-
-                    // the create definition call will trigger the OnCompleteField call
-                    // on the field description and trigger the initialization of the
-                    // fields arguments.
-                    fields[name] = descriptor.CreateDefinition();
-                }
-            }
-        }
-
+        InferFieldsFromFieldBindingType(fields, handledMembers);
         base.OnCompleteFields(fields, handledMembers);
-
-        static bool IncludeField(
-            ref HashSet<string> subscribeResolver,
-            ReadOnlySpan<MemberInfo> allMembers,
-            MemberInfo current)
-        {
-            if (subscribeResolver is null)
-            {
-                subscribeResolver = new HashSet<string>();
-
-                foreach (var member in allMembers)
-                {
-                    HandlePossibleSubscribeMember(subscribeResolver, member);
-                }
-            }
-
-            return !subscribeResolver.Contains(current.Name);
-        }
-
-#if NET5_0_OR_GREATER
-        static bool ContainsField(ReadOnlySpan<ObjectFieldDescriptor> fields, string name)
-#else
-        static bool ContainsField(IEnumerable<ObjectFieldDescriptor> fields, string name)
-#endif
-        {
-            foreach (var field in fields)
-            {
-                if (field.Definition.Name.EqualsOrdinal(name))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        static void HandlePossibleSubscribeMember(
-            HashSet<string> subscribeResolver,
-            MemberInfo member)
-        {
-            if (member.IsDefined(typeof(SubscribeAttribute)))
-            {
-                if (member.GetCustomAttribute<SubscribeAttribute>() is { With: not null } attr)
-                {
-                    subscribeResolver.Add(attr.With);
-                }
-            }
-        }
     }
 
     public new IObjectTypeDescriptor<T> Name(string value)
