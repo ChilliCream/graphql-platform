@@ -56,6 +56,8 @@ public interface IObjectTypeDescriptor<TRuntimeType>
     /// </param>
     IObjectTypeDescriptor<TRuntimeType> BindFields(BindingBehavior behavior);
 
+    IObjectTypeDescriptor<TRuntimeType> BindFields(FieldBindingFlags bindingFlags);
+
     /// <summary>
     /// Defines that all fields have to be specified explicitly.
     /// </summary>
@@ -200,4 +202,12 @@ public interface IObjectTypeDescriptor<TRuntimeType>
     /// </summary>
     /// <typeparam name="TExtendsType">The type to extend.</typeparam>
     IObjectTypeDescriptor ExtendsType<TExtendsType>();
+}
+
+[Flags]
+public enum FieldBindingFlags
+{
+    Default = 0x00,
+    Instance = 0x01,
+    Static = 0x02
 }

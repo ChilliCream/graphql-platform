@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
@@ -17,6 +19,8 @@ public class ObjectTypeDescriptor
     : DescriptorBase<ObjectTypeDefinition>
     , IObjectTypeDescriptor
 {
+    private readonly List<ObjectFieldDescriptor> _fields = new();
+
     protected ObjectTypeDescriptor(IDescriptorContext context, Type clrType)
         : base(context)
     {
@@ -51,8 +55,12 @@ public class ObjectTypeDescriptor
 
     protected internal override ObjectTypeDefinition Definition { get; protected set; } = new();
 
-    protected ICollection<ObjectFieldDescriptor> Fields { get; } =
-        new List<ObjectFieldDescriptor>();
+    protected ICollection<ObjectFieldDescriptor> Fields => _fields;
+
+#if NET5_0_OR_GREATER
+    internal ReadOnlySpan<ObjectFieldDescriptor> GetFieldsAsSpan()
+        => CollectionsMarshal.AsSpan(_fields);
+#endif
 
     protected override void OnCreateDefinition(
         ObjectTypeDefinition definition)

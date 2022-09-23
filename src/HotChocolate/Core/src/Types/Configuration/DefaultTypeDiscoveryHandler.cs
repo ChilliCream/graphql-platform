@@ -61,10 +61,6 @@ internal sealed class DefaultTypeDiscoveryHandler : TypeDiscoveryHandler
                 TypeInspector.GetType(
                     typeof(EnumType<>).MakeGenericType(typeInfo.RuntimeType)));
         }
-        else if (Scalars.TryGetScalar(typeReference.Type.Type, out var scalarType))
-        {
-            schemaType = typeReference.With(TypeInspector.GetType(scalarType));
-        }
         else
         {
             schemaTypeRefs = null;

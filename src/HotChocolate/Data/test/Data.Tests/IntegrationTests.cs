@@ -530,8 +530,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    public async Task
-        ExecuteAsync_Should_ProjectAndPage_When_AliasIsSameAsAlwaysProjectedField()
+    public async Task ExecuteAsync_Should_ProjectAndPage_When_AliasIsSameAsAlwaysProjectedField()
     {
         // arrange
         var executor = await new ServiceCollection()
@@ -543,20 +542,20 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .AddQueryType(c => c.Name("Query"))
             .AddTypeExtension<PagingAndProjectionExtension>()
             .AddObjectType<Book>(x =>
-                x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+                x.ImplementsNode()
+                    .IdField(book => book.Id)
+                    .ResolveNode(_ => default!))
             .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            @"
-                {
-                    books {
-                        nodes {
-                            authorId: title
-                        }
+            @"{
+                books {
+                    nodes {
+                        authorId: title
                     }
                 }
-                ");
+            }");
 
         // assert
         await Snapshot

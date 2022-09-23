@@ -1,39 +1,32 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
+using static HotChocolate.Types.FieldBindingFlags;
 
 namespace HotChocolate.Types.Descriptors;
 
 public abstract class ObjectTypeDescriptorBase<T>
     : ObjectTypeDescriptor
-    , IObjectTypeDescriptor<T>
-    , IHasRuntimeType
+        , IObjectTypeDescriptor<T>
+        , IHasRuntimeType
 {
     protected ObjectTypeDescriptorBase(
         IDescriptorContext context,
         Type clrType)
-        : base(context, clrType)
-    {
-    }
+        : base(context, clrType) { }
 
     protected ObjectTypeDescriptorBase(
         IDescriptorContext context)
-        : base(context)
-    {
-    }
+        : base(context) { }
 
     protected ObjectTypeDescriptorBase(
         IDescriptorContext context,
         ObjectTypeDefinition definition)
-        : base(context, definition)
-    {
-    }
+        : base(context, definition) { }
 
     Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
 
@@ -46,56 +39,88 @@ public abstract class ObjectTypeDescriptorBase<T>
         if (Definition.Fields.IsImplicitBinding() &&
             Definition.FieldBindingType is not null)
         {
-            FieldDescriptorUtilities.AddImplicitFields(
-                this,
-                Definition.FieldBindingType,
-                p =>
+            var inspector = Context.TypeInspector;
+            var naming = Context.Naming;
+            var type = Definition.FieldBindingType;
+            var isExtension = Definition.IsExtension;
+            var includeStatic = (Definition.FieldBindingFlags & Static) == Static;
+            var members = inspector.GetMembers(type, isExtension, includeStatic);
+
+            foreach (var member in members)
+            {
+                var name = naming.GetMemberName(member, MemberKind.ObjectField);
+#if NET5_0_OR_GREATER
+                if(handledMembers.Add(member) &&
+                    !ContainsField(GetFieldsAsSpan(), name) &&
+                    IncludeField(ref subscribeResolver, members, member))
+#else
+                if(handledMembers.Add(member) &&
+                    !ContainsField(Fields, name) &&
+                    IncludeField(ref subscribeResolver, members, member))
+#endif
                 {
                     var descriptor = ObjectFieldDescriptor.New(
                         Context,
-                        p,
+                        member,
                         Definition.RuntimeType,
-                        Definition.FieldBindingType);
+                        type);
 
-                    if (Definition.IsExtension && Context.TypeInspector.IsMemberIgnored(p))
+                    if (isExtension && inspector.IsMemberIgnored(member))
                     {
                         descriptor.Ignore();
                     }
 
                     Fields.Add(descriptor);
-                    return descriptor.CreateDefinition();
-                },
-                fields,
-                handledMembers,
-                include: IncludeField,
-                includeIgnoredMembers: Definition.IsExtension);
+                    handledMembers.Add(member);
+
+                    // the create definition call will trigger the OnCompleteField call
+                    // on the field description and trigger the initialization of the
+                    // fields arguments.
+                    fields[name] = descriptor.CreateDefinition();
+                }
+            }
         }
 
         base.OnCompleteFields(fields, handledMembers);
 
-        bool IncludeField(IReadOnlyList<MemberInfo> all, MemberInfo current)
+        static bool IncludeField(
+            ref HashSet<string> subscribeResolver,
+            ReadOnlySpan<MemberInfo> allMembers,
+            MemberInfo current)
         {
-            var name = Context.Naming.GetMemberName(current, MemberKind.ObjectField);
-
-            if (Fields.Any(t => t.Definition.Name.EqualsOrdinal(name)))
-            {
-                return false;
-            }
-
             if (subscribeResolver is null)
             {
                 subscribeResolver = new HashSet<string>();
 
-                foreach (var member in all)
+                foreach (var member in allMembers)
                 {
-                    HandlePossibleSubscribeMember(member);
+                    HandlePossibleSubscribeMember(subscribeResolver, member);
                 }
             }
 
             return !subscribeResolver.Contains(current.Name);
         }
 
-        void HandlePossibleSubscribeMember(MemberInfo member)
+#if NET5_0_OR_GREATER
+        static bool ContainsField(ReadOnlySpan<ObjectFieldDescriptor> fields, string name)
+#else
+        static bool ContainsField(IEnumerable<ObjectFieldDescriptor> fields, string name)
+#endif
+        {
+            foreach (var field in fields)
+            {
+                if (field.Definition.Name.EqualsOrdinal(name))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        static void HandlePossibleSubscribeMember(
+            HashSet<string> subscribeResolver,
+            MemberInfo member)
         {
             if (member.IsDefined(typeof(SubscribeAttribute)))
             {
@@ -123,7 +148,46 @@ public abstract class ObjectTypeDescriptorBase<T>
     public IObjectTypeDescriptor<T> BindFields(
         BindingBehavior behavior)
     {
-        Definition.Fields.BindingBehavior = behavior;
+        if (behavior == Definition.Fields.BindingBehavior)
+        {
+            // nothing changed so we just return!
+            return this;
+        }
+
+        if (behavior == BindingBehavior.Explicit)
+        {
+            Definition.Fields.BindingBehavior = BindingBehavior.Explicit;
+            Definition.FieldBindingFlags = Default;
+        }
+        else
+        {
+            Definition.Fields.BindingBehavior = BindingBehavior.Implicit;
+            Definition.FieldBindingFlags = Instance;
+        }
+
+        return this;
+    }
+
+    public IObjectTypeDescriptor<T> BindFields(
+        FieldBindingFlags bindingFlags)
+    {
+        if (bindingFlags == Definition.FieldBindingFlags)
+        {
+            // nothing changed so we just return!
+            return this;
+        }
+
+        if (bindingFlags == Default)
+        {
+            Definition.Fields.BindingBehavior = BindingBehavior.Explicit;
+            Definition.FieldBindingFlags = Default;
+        }
+        else
+        {
+            Definition.Fields.BindingBehavior = BindingBehavior.Implicit;
+            Definition.FieldBindingFlags = bindingFlags;
+        }
+
         return this;
     }
 
@@ -208,3 +272,4 @@ public abstract class ObjectTypeDescriptorBase<T>
         return this;
     }
 }
+
