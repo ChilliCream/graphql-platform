@@ -5,17 +5,14 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-#if NETCOREAPP2_1
-using Snapshooter;
-#endif
 using Snapshooter.Xunit;
-using Xunit;
 using static HotChocolate.Types.FieldBindingFlags;
 using static HotChocolate.WellKnownContextData;
 using SnapshotExtensions = CookieCrumble.SnapshotExtensions;
@@ -2020,6 +2017,22 @@ public class ObjectTypeTests : TypeTestBase
     }
 
     [Fact]
+        public async Task Static_Field_Inference_3_Execute()
+        {
+            // arrange
+            // act
+            var result =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<WithStaticField>()
+                    .ModifyOptions(o => o.DefaultBindingBehavior = BindingBehavior.Explicit)
+                    .ExecuteRequestAsync("{ hello }");
+
+            // assert
+            SnapshotExtensions.MatchSnapshot(result);
+        }
+
+    [Fact]
     public async Task Static_Field_Inference_4()
     {
         // arrange
@@ -2039,6 +2052,42 @@ public class ObjectTypeTests : TypeTestBase
         SnapshotExtensions.MatchSnapshot(schema);
     }
 
+    [Fact]
+    public async Task Static_Field_Inference_4_Execute()
+    {
+        // arrange
+        // act
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<WithStaticField>()
+                .ModifyOptions(o =>
+                {
+                    o.DefaultBindingBehavior = BindingBehavior.Explicit;
+                    o.DefaultFieldBindingFlags = Instance | Static;
+                })
+                .ExecuteRequestAsync("{ hello staticHello }");
+
+        // assert
+        SnapshotExtensions.MatchSnapshot(result);
+    }
+
+    [Fact]
+    public async Task Static_Field_Inference_5()
+    {
+        // arrange
+        // act
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType()
+                .AddTypeExtension(typeof(BookQuery))
+                .ModifyOptions(o => o.DefaultFieldBindingFlags = InstanceAndStatic)
+                .BuildSchemaAsync();
+
+        // assert
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
 
     public class GenericFoo<T>
     {
@@ -2337,5 +2386,21 @@ public class ObjectTypeTests : TypeTestBase
         public static string StaticHello() => "hello";
 
         public string Hello() => "hello";
+    }
+
+    [ExtendObjectType(OperationType.Query)]
+    public static class BookQuery
+    {
+        public static Book GetBook()
+            => new Book();
+    }
+
+    public class Book
+    {
+        public int Id { get; }
+
+        public string Title { get; set; }
+
+        public static bool IsComic => true;
     }
 }
