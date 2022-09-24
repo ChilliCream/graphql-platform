@@ -143,7 +143,7 @@ public class CacheControlDirectiveTypeTests
         var schema = SchemaBuilder.New()
             .AddQueryType(d => d
                 .Name("ObjectType")
-                .CacheControl(500, CacheControlScope.Private, true)
+                .CacheControl(500, CacheControlScope.Private)
                 .Field("field")
                 .Type<StringType>())
             .AddDirectiveType<CacheControlDirectiveType>()
@@ -157,7 +157,7 @@ public class CacheControlDirectiveTypeTests
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
-        Assert.Equal(true, obj.InheritMaxAge);
+        Assert.Null(obj.InheritMaxAge);
     }
 
     [Fact]
@@ -204,34 +204,7 @@ public class CacheControlDirectiveTypeTests
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
-        Assert.Equal(true, obj.InheritMaxAge);
-    }
-
-    [Fact]
-    public void CacheControlDirectiveType_InterfaceField_CodeFirst()
-    {
-        var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("field")
-                .Type<StringType>())
-            .AddInterfaceType(d => d
-                .Name("InterfaceType")
-                .Field("field")
-                .Type<StringType>()
-                .CacheControl(500, CacheControlScope.Private, true))
-            .AddDirectiveType<CacheControlDirectiveType>()
-            .Use(_ => _)
-            .Create();
-
-        var type = schema.GetType<InterfaceType>("InterfaceType");
-        var directive = type.Fields["field"].Directives
-            .Single(d => d.Name == "cacheControl");
-        var obj = directive.ToObject<CacheControlDirective>();
-
-        Assert.Equal(500, obj.MaxAge);
-        Assert.Equal(CacheControlScope.Private, obj.Scope);
-        Assert.Equal(true, obj.InheritMaxAge);
+        Assert.Null(obj.InheritMaxAge);
     }
 
     [Fact]
@@ -283,7 +256,7 @@ public class CacheControlDirectiveTypeTests
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
-        Assert.Equal(true, obj.InheritMaxAge);
+        Assert.Null(obj.InheritMaxAge);
     }
 
     [Fact]
@@ -296,7 +269,7 @@ public class CacheControlDirectiveTypeTests
                 .Type<StringType>())
             .AddInterfaceType(d => d
                 .Name("InterfaceType")
-                .CacheControl(500, CacheControlScope.Private, true)
+                .CacheControl(500, CacheControlScope.Private)
                 .Field("field")
                 .Type<StringType>())
             .AddDirectiveType<CacheControlDirectiveType>()
@@ -310,7 +283,7 @@ public class CacheControlDirectiveTypeTests
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
-        Assert.Equal(true, obj.InheritMaxAge);
+        Assert.Null(obj.InheritMaxAge);
     }
 
     [Fact]
@@ -362,7 +335,7 @@ public class CacheControlDirectiveTypeTests
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
-        Assert.Equal(true, obj.InheritMaxAge);
+        Assert.Null(obj.InheritMaxAge);
     }
 
     [Fact]
@@ -375,7 +348,7 @@ public class CacheControlDirectiveTypeTests
                 .Type<StringType>())
             .AddUnionType(d => d
                 .Name("UnionType")
-                .CacheControl(500, CacheControlScope.Private, true)
+                .CacheControl(500, CacheControlScope.Private)
                 .Type(new NamedTypeNode("ObjectType")))
             .AddObjectType(d => d
                 .Name("ObjectType")
@@ -392,7 +365,7 @@ public class CacheControlDirectiveTypeTests
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
-        Assert.Equal(true, obj.InheritMaxAge);
+        Assert.Null(obj.InheritMaxAge);
     }
 
     [Fact]
@@ -442,7 +415,7 @@ public class CacheControlDirectiveTypeTests
 
         Assert.Equal(500, obj.MaxAge);
         Assert.Equal(CacheControlScope.Private, obj.Scope);
-        Assert.Equal(true, obj.InheritMaxAge);
+        Assert.Null(obj.InheritMaxAge);
     }
 
     [ObjectType("ObjectType")]

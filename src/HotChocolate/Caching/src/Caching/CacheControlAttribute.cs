@@ -41,17 +41,14 @@ public sealed class CacheControlAttribute : DescriptorAttribute
             case IObjectFieldDescriptor objectField:
                 objectField.CacheControl(_maxAge, _scope, _inheritMaxAge);
                 break;
-            case IInterfaceFieldDescriptor interfaceField:
-                interfaceField.CacheControl(_maxAge, _scope, _inheritMaxAge);
-                break;
             case IObjectTypeDescriptor objectType:
-                objectType.CacheControl(_maxAge, _scope, _inheritMaxAge);
+                objectType.CacheControl(_maxAge, _scope);
                 break;
             case IInterfaceTypeDescriptor interfaceType:
-                interfaceType.CacheControl(_maxAge, _scope, _inheritMaxAge);
+                interfaceType.CacheControl(_maxAge, _scope);
                 break;
             case IUnionTypeDescriptor unionType:
-                unionType.CacheControl(_maxAge, _scope, _inheritMaxAge);
+                unionType.CacheControl(_maxAge, _scope);
                 break;
         }
     }

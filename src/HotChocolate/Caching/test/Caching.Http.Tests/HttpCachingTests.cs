@@ -3,7 +3,6 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.Types;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
