@@ -6,6 +6,12 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class HttpQueryCacheRequestExecutorBuilderExtensions
 {
+    /// <summary>
+    /// Adds the <see cref="HttpQueryCache"/>.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
     public static IRequestExecutorBuilder AddHttpQueryCache(
         this IRequestExecutorBuilder builder)
     {

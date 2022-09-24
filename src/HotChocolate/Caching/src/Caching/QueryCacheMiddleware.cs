@@ -10,7 +10,7 @@ using static HotChocolate.Caching.WellKnownContextData;
 
 namespace HotChocolate.Caching;
 
-public sealed class QueryCacheMiddleware
+internal sealed class QueryCacheMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly QueryCache[] _caches;
@@ -42,9 +42,9 @@ public sealed class QueryCacheMiddleware
             return;
         }
 
-        var result = ComputeCacheControlResullt(context.Operation);
+        var constraints = ComputeCacheControlConstraints(context.Operation);
 
-        if (result is null || !result.MaxAge.HasValue)
+        if (constraints is null || !constraints.MaxAge.HasValue)
         {
             // No field in the query specified a maxAge value,
             // so we do not attempt to cache it.
@@ -59,7 +59,7 @@ public sealed class QueryCacheMiddleware
             }
 
             await cache.WriteQueryResultToCacheAsync(context,
-                result, _options);
+                constraints, _options);
         }
     }
 
@@ -90,7 +90,7 @@ public sealed class QueryCacheMiddleware
         return true;
     }
 
-    private static CacheControlResult? ComputeCacheControlResullt(
+    private static CacheControlConstraints? ComputeCacheControlConstraints(
         IOperation? operation)
     {
         if (operation is null)
@@ -98,7 +98,7 @@ public sealed class QueryCacheMiddleware
             return null;
         }
 
-        var result = new CacheControlResult();
+        var constraints = new CacheControlConstraints();
 
         var rootSelections = operation.RootSelectionSet.Selections;
 
@@ -106,7 +106,7 @@ public sealed class QueryCacheMiddleware
         {
             foreach (var rootSelection in rootSelections)
             {
-                ProcessSelection(rootSelection, result, operation);
+                ProcessSelection(rootSelection, constraints, operation);
             }
         }
         catch (EncounteredIntrospectionFieldException)
@@ -116,18 +116,18 @@ public sealed class QueryCacheMiddleware
             return null;
         }
 
-        return result;
+        return constraints;
     }
 
     private static void ProcessSelection(ISelection selection,
-        CacheControlResult result, IOperation operation)
+        CacheControlConstraints constraints, IOperation operation)
     {
         var field = selection.Field;
 
         if (field.IsIntrospectionField && field.Name != IntrospectionFields.TypeName)
         {
             // If we encounter an introspection field, we immediately stop
-            // trying to compute a cache control result.
+            // trying to compute the cache constraints.
             throw ThrowHelper.EncounteredIntrospectionField();
         }
 
@@ -163,7 +163,7 @@ public sealed class QueryCacheMiddleware
 
                 foreach (var typeSelection in typeSet)
                 {
-                    ProcessSelection(typeSelection, result, operation);
+                    ProcessSelection(typeSelection, constraints, operation);
                 }
             }
         }
@@ -182,12 +182,12 @@ public sealed class QueryCacheMiddleware
             if (directive is not null)
             {
                 if (!maxAgeSet && directive.MaxAge.HasValue &&
-                 (!result.MaxAge.HasValue ||
-                     directive.MaxAge < result.MaxAge.Value))
+                 (!constraints.MaxAge.HasValue ||
+                     directive.MaxAge < constraints.MaxAge.Value))
                 {
                     // The maxAge of the @cacheControl directive is lower
                     // than the previously lowest maxAge value.
-                    result.MaxAge = directive.MaxAge.Value;
+                    constraints.MaxAge = directive.MaxAge.Value;
                     maxAgeSet = true;
                 }
                 else if (directive.InheritMaxAge == true)
@@ -198,11 +198,11 @@ public sealed class QueryCacheMiddleware
                 }
 
                 if (directive.Scope.HasValue &&
-                    directive.Scope < result.Scope)
+                    directive.Scope < constraints.Scope)
                 {
                     // The scope of the @cacheControl directive is more
                     // restrivive than the computed scope.
-                    result.Scope = directive.Scope.Value;
+                    constraints.Scope = directive.Scope.Value;
                     scopeSet = true;
                 }
             }

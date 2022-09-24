@@ -2,12 +2,14 @@ using Microsoft.Extensions.Options;
 
 namespace HotChocolate.Caching;
 
-internal class CacheControlOptionsAccessor : ICacheControlOptionsAccessor
+/// <inheritdoc/>
+internal sealed class CacheControlOptionsAccessor : ICacheControlOptionsAccessor
 {
     public CacheControlOptionsAccessor(IOptions<CacheControlOptions> options)
     {
         CacheControl = options.Value;
     }
 
+    /// <inheritdoc/>
     public ICacheControlOptions CacheControl { get; }
 }

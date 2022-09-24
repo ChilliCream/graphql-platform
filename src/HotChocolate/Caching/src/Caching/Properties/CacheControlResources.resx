@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -154,6 +154,6 @@
     <value>Can not specify @cacheControl directive on interface fields, such as {0}.</value>
   </data>
   <data name="ThrowHelper_EncounteredIntrospectionField" xml:space="preserve">
-    <value>CacheControlResult could not be computed, since query contained an introspection field.</value>
+    <value>CacheControlConstraints could not be computed, since query contained an introspection field.</value>
   </data>
 </root>

@@ -4,6 +4,10 @@ using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.Caching.Http;
 
+/// <summary>
+/// A <see cref="QueryCache"/> implementation that utilizes the
+/// <c>Cache-Control header</c> to cache query results.
+/// </summary>
 public class HttpQueryCache : QueryCache
 {
     private const string _httpContextKey = nameof(HttpContext);
@@ -11,8 +15,9 @@ public class HttpQueryCache : QueryCache
     private const string _cacheControlPrivateScope = "private";
     private const string _cacheControlPublicScope = "public";
 
+    /// <inheritdoc />
     public override ValueTask WriteQueryResultToCacheAsync(IRequestContext context,
-        ICacheControlResult result, ICacheControlOptions options)
+        ICacheConstraints constraints, ICacheControlOptions options)
     {
         if (!context.ContextData.TryGetValue(_httpContextKey, out var httpContextValue)
             || httpContextValue is not HttpContext httpContext)
@@ -20,15 +25,15 @@ public class HttpQueryCache : QueryCache
             return ValueTask.CompletedTask;
         }
 
-        var cacheType = result.Scope switch
+        var cacheType = constraints.Scope switch
         {
             CacheControlScope.Private => _cacheControlPrivateScope,
             CacheControlScope.Public => _cacheControlPublicScope,
-            _ => throw ThrowHelper.UnexpectedCacheControlScopeValue(result.Scope)
+            _ => throw ThrowHelper.UnexpectedCacheControlScopeValue(constraints.Scope)
         };
 
         var headerValue = string.Format(_cacheControlValueTemplate,
-            cacheType, result.MaxAge);
+            cacheType, constraints.MaxAge);
 
         context.ContextData.Add(HotChocolate.WellKnownContextData.CacheControlHeaderValue,
             headerValue);

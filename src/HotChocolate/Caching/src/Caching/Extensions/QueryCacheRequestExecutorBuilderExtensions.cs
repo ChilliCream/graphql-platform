@@ -7,10 +7,23 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class QueryCacheRequestExecutorBuilderExtensions
 {
+    /// <summary>
+    /// Registers the <see cref="QueryCacheMiddleware"/>.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
     public static IRequestExecutorBuilder UseQueryCache(
         this IRequestExecutorBuilder builder) =>
         builder.UseRequest<QueryCacheMiddleware>();
 
+    /// <summary>
+    /// Uses the default request pipeline including the
+    /// <see cref="QueryCacheMiddleware"/>.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
     public static IRequestExecutorBuilder UseQueryCachePipeline(
         this IRequestExecutorBuilder builder)
     {
@@ -34,7 +47,14 @@ public static class QueryCacheRequestExecutorBuilderExtensions
             .UseOperationExecution();
     }
 
-    public static IRequestExecutorBuilder AddCacheControl(this IRequestExecutorBuilder builder)
+    /// <summary>
+    /// Add CacheControl types and 
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    public static IRequestExecutorBuilder AddCacheControl(
+        this IRequestExecutorBuilder builder)
     {
         if (builder is null)
         {
@@ -44,7 +64,8 @@ public static class QueryCacheRequestExecutorBuilderExtensions
         builder.ConfigureSchemaServices(services =>
         {
             services.AddOptions();
-            services.AddSingleton<ICacheControlOptionsAccessor, CacheControlOptionsAccessor>();
+            services.AddSingleton<ICacheControlOptionsAccessor,
+                CacheControlOptionsAccessor>();
         });
 
         return builder.ConfigureSchema(b =>
@@ -54,6 +75,15 @@ public static class QueryCacheRequestExecutorBuilderExtensions
         });
     }
 
+    /// <summary>
+    /// Modify the <see cref="CacheControlOptions"/>.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="modifyOptions">
+    /// Configure the <see cref="CacheControlOptions"/>.
+    /// </param>
     public static IRequestExecutorBuilder ModifyCacheControlOptions(
         this IRequestExecutorBuilder builder,
         Action<CacheControlOptions> modifyOptions)

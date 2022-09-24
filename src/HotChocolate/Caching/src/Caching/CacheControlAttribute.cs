@@ -5,6 +5,9 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Caching;
 
+/// <summary>
+/// Specifies caching rules for the annotated resource.
+/// </summary>
 [AttributeUsage(AttributeTargets.Property
     | AttributeTargets.Method
     | AttributeTargets.Class
@@ -18,9 +21,11 @@ public sealed class CacheControlAttribute : DescriptorAttribute
 
     public CacheControlAttribute()
     {
-
     }
 
+    /// <param name="maxAge">
+    /// The maximum time, in Milliseconds, the resource can be cached.
+    /// </param>
     public CacheControlAttribute(int maxAge)
     {
         _maxAge = maxAge;
@@ -51,14 +56,24 @@ public sealed class CacheControlAttribute : DescriptorAttribute
         }
     }
 
+    /// <summary>
+    /// The maximum time, in Milliseconds, this resource can be cached.
+    /// </summary>
     public int MaxAge { get => _maxAge ?? 0; set => _maxAge = value; }
 
+    /// <summary>
+    /// The scope of this resource.
+    /// </summary>
     public CacheControlScope Scope
     {
         get => _scope ?? CacheControlScope.Public;
         set => _scope = value;
     }
 
+    /// <summary>
+    /// Whether this resource should inherit the <c>MaxAge</c>
+    /// of its parent.
+    /// </summary>
     public bool InheritMaxAge
     {
         get => _inheritMaxAge ?? false;

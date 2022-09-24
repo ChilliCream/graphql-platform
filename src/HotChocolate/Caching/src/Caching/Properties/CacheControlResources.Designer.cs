@@ -169,7 +169,7 @@ namespace HotChocolate.Caching.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to CacheControlResult could not be computed, since query contained an introspection field..
+        ///   Looks up a localized string similar to CacheControlConstraints could not be computed, since query contained an introspection field..
         /// </summary>
         internal static string ThrowHelper_EncounteredIntrospectionField {
             get {

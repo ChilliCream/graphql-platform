@@ -1,9 +1,11 @@
 namespace HotChocolate.Caching;
 
-internal class CacheControlResult : ICacheControlResult
+internal class CacheControlConstraints : ICacheConstraints
 {
-    int ICacheControlResult.MaxAge => MaxAge ?? 0;
+    /// <inheritdoc />
+    int ICacheConstraints.MaxAge => MaxAge ?? 0;
 
+    /// <inheritdoc />
     public CacheControlScope Scope { get; internal set; } = CacheControlScope.Public;
 
     internal int? MaxAge { get; set; }

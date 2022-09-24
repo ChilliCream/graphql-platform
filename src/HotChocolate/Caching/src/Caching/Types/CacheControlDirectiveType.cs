@@ -3,14 +3,16 @@ using static HotChocolate.Caching.Properties.CacheControlResources;
 
 namespace HotChocolate.Caching;
 
-public class CacheControlDirectiveType : DirectiveType<CacheControlDirective>
+public sealed class CacheControlDirectiveType
+    : DirectiveType<CacheControlDirective>
 {
     public const string DirectiveName = "cacheControl";
     public const string MaxAgeArgName = "maxAge";
     public const string ScopeArgName = "scope";
     public const string InheritMaxAgeArgName = "inheritMaxAge";
 
-    protected override void Configure(IDirectiveTypeDescriptor<CacheControlDirective> descriptor)
+    protected override void Configure(
+        IDirectiveTypeDescriptor<CacheControlDirective> descriptor)
     {
         descriptor
             .Name(DirectiveName)

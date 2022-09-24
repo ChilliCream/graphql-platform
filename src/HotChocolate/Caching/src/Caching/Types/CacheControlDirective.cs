@@ -1,6 +1,6 @@
 namespace HotChocolate.Caching;
 
-public class CacheControlDirective
+public sealed class CacheControlDirective
 {
     public CacheControlDirective()
     {
