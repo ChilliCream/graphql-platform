@@ -73,7 +73,9 @@ public class SchemaTypeResolverTests
             type =>
             {
                 Assert.Equal(TypeContext.Input, type.Context);
-                Assert.Equal(typeof(InputObjectType<Bar>), ((ExtendedTypeReference)type).Type.Source);
+                Assert.Equal(
+                    typeof(InputObjectType<Bar>),
+                    ((ExtendedTypeReference)type).Type.Source);
             });
     }
 

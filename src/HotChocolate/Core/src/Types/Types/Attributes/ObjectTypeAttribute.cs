@@ -1,6 +1,7 @@
 using System;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
+using static HotChocolate.Types.FieldBindingFlags;
 
 #nullable enable
 
@@ -33,6 +34,11 @@ public sealed class ObjectTypeAttribute
     /// </summary>
     public bool Inherited { get; set; }
 
+    /// <summary>
+    /// Defines that static members are included.
+    /// </summary>
+    public bool IncludeStaticMembers { get; set; }
+
     TypeKind ITypeAttribute.Kind => TypeKind.Object;
 
     bool ITypeAttribute.IsTypeExtension => false;
@@ -45,6 +51,11 @@ public sealed class ObjectTypeAttribute
         if (!string.IsNullOrEmpty(Name))
         {
             descriptor.Name(Name);
+        }
+
+        if (IncludeStaticMembers)
+        {
+            descriptor.Extend().Definition.FieldBindingFlags = Instance | Static;
         }
     }
 }

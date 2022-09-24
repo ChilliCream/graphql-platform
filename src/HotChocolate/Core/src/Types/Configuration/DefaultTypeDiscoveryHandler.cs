@@ -23,9 +23,26 @@ internal sealed class DefaultTypeDiscoveryHandler : TypeDiscoveryHandler
         TypeDiscoveryInfo typeInfo,
         [NotNullWhen(true)] out ITypeReference[]? schemaTypeRefs)
     {
-        ExtendedTypeReference? schemaType;
+        ITypeReference? schemaType;
 
-        if (IsObjectTypeExtension(typeInfo))
+
+        if (typeInfo.IsStatic)
+        {
+            if (IsStaticObjectTypeExtension(typeInfo))
+            {
+                var typeExtension = new StaticObjectTypeExtension(typeInfo.RuntimeType);
+                schemaType = TypeReference.Create(typeExtension, typeReference.Scope);
+            }
+            else
+            {
+                // we only allow static classes for object type extensions,
+                // which are already handled above. All other static types
+                // cannot be inferred.
+                schemaTypeRefs = null;
+                return false;
+            }
+        }
+        else if (IsObjectTypeExtension(typeInfo))
         {
             schemaType = typeReference.With(
                 TypeInspector.GetType(
@@ -60,10 +77,6 @@ internal sealed class DefaultTypeDiscoveryHandler : TypeDiscoveryHandler
             schemaType = typeReference.With(
                 TypeInspector.GetType(
                     typeof(EnumType<>).MakeGenericType(typeInfo.RuntimeType)));
-        }
-        else if (Scalars.TryGetScalar(typeReference.Type.Type, out var scalarType))
-        {
-            schemaType = typeReference.With(TypeInspector.GetType(scalarType));
         }
         else
         {
@@ -121,14 +134,19 @@ internal sealed class DefaultTypeDiscoveryHandler : TypeDiscoveryHandler
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsObjectType(TypeDiscoveryInfo typeInfo)
-        => (typeInfo.Attribute is { Kind: TypeKind.Object, IsTypeExtension: false } ||
-                typeInfo.Attribute is null && typeInfo.IsComplex) &&
-            typeInfo is { Context: TypeContext.Output or TypeContext.None };
+    private static bool IsStaticObjectTypeExtension(TypeDiscoveryInfo typeInfo)
+        => typeInfo.IsStatic &&
+            typeInfo.Attribute is { Kind: TypeKind.Object, IsTypeExtension: true };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsObjectTypeExtension(TypeDiscoveryInfo typeInfo)
         => typeInfo.Attribute is { Kind: TypeKind.Object, IsTypeExtension: true };
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsObjectType(TypeDiscoveryInfo typeInfo)
+        => (typeInfo.Attribute is { Kind: TypeKind.Object, IsTypeExtension: false } ||
+                typeInfo.Attribute is null && typeInfo.IsComplex) &&
+            typeInfo is { Context: TypeContext.Output or TypeContext.None };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsUnionType(TypeDiscoveryInfo typeInfo)
@@ -152,4 +170,5 @@ internal sealed class DefaultTypeDiscoveryHandler : TypeDiscoveryHandler
         => (typeInfo.Attribute is { Kind: TypeKind.Enum, IsTypeExtension: false } ||
                 typeInfo.Attribute is null && typeInfo.IsEnum) &&
             typeInfo.IsPublic;
+
 }

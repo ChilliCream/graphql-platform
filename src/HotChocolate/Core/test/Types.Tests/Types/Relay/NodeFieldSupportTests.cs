@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.Relay;
 
@@ -51,7 +50,7 @@ public class NodeFieldSupportTests
                 await next(ctx);
 
                 if (ctx.LocalContextData.TryGetValue(
-                    WellKnownContextData.InternalType,
+                    WellKnownContextData.InternalTypeName,
                     out var value))
                 {
                     type = (string)value;

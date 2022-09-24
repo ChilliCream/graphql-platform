@@ -34,7 +34,9 @@ public class TypeAttributeInspector : ISyntaxInspector
                     if (fullName.StartsWith(ExtendObjectTypeAttribute, Ordinal) &&
                         context.SemanticModel.GetDeclaredSymbol(possibleType) is { } typeExt)
                     {
-                        syntaxInfo = new TypeExtensionInfo(typeExt.ToDisplayString());
+                        syntaxInfo = new TypeExtensionInfo(
+                            typeExt.ToDisplayString(),
+                            possibleType.Modifiers.Any(t => t.IsKind(SyntaxKind.StaticKeyword)));
                         return true;
                     }
 

@@ -20,7 +20,7 @@ internal class IgnoredFilterFieldDescriptor
     protected override ISet<FilterOperationKind> AllowedOperations { get; } =
         new HashSet<FilterOperationKind>();
 
-    protected override FilterOperationDefintion CreateOperationDefinition(
+    protected override FilterOperationDefinition CreateOperationDefinition(
         FilterOperationKind operationKind)
     {
         throw new NotSupportedException();

@@ -20,8 +20,7 @@ public class DirectiveTypeDescriptor<T>
     protected internal DirectiveTypeDescriptor(IDescriptorContext context)
         : base(context, typeof(T))
     {
-        Definition.Arguments.BindingBehavior =
-            context.Options.DefaultBindingBehavior;
+        Definition.Arguments.BindingBehavior = context.Options.DefaultBindingBehavior;
     }
 
     protected internal DirectiveTypeDescriptor(

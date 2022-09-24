@@ -112,7 +112,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     }
 
     /// <inheritdoc />
-    public ISchemaBuilder ModifyOptions(Action<ISchemaOptions> configure)
+    public ISchemaBuilder ModifyOptions(Action<SchemaOptions> configure)
     {
         if (configure is null)
         {
