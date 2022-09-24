@@ -12,18 +12,18 @@ namespace HotChocolate.Caching.Tests;
 public abstract class CacheControlTestBase
 {
     protected Mock<TCache> GetMock<TCache>()
-        where TCache : class, IQueryCache
+        where TCache : QueryCache
     {
         return new Mock<TCache>() { CallBase = true };
     }
 
-    protected Mock<DefaultQueryCache> GetMock()
+    protected Mock<QueryCache> GetMock()
     {
-        return GetMock<DefaultQueryCache>();
+        return GetMock<QueryCache>();
     }
 
     protected void AssertNoReadsFromCache<TCache>(Mock<TCache> cacheMock)
-        where TCache : class, IQueryCache
+        where TCache : QueryCache
     {
         cacheMock.Verify(x => x.TryReadCachedQueryResultAsync(
             It.IsAny<IRequestContext>(),
@@ -32,7 +32,7 @@ public abstract class CacheControlTestBase
     }
 
     protected void AssertOneReadFromCache<TCache>(Mock<TCache> cacheMock)
-        where TCache : class, IQueryCache
+        where TCache : QueryCache
     {
         cacheMock.Verify(x => x.TryReadCachedQueryResultAsync(
             It.IsAny<IRequestContext>(),
@@ -41,7 +41,7 @@ public abstract class CacheControlTestBase
     }
 
     protected void AssertNoWritesToCache<TCache>(Mock<TCache> cacheMock)
-        where TCache : class, IQueryCache
+        where TCache : QueryCache
     {
         cacheMock.Verify(x => x.CacheQueryResultAsync(
             It.IsAny<IRequestContext>(),
@@ -51,7 +51,7 @@ public abstract class CacheControlTestBase
     }
 
     protected void AssertOneWriteToCache<TCache>(Mock<TCache> cacheMock)
-        where TCache : class, IQueryCache
+        where TCache : QueryCache
     {
         cacheMock.Verify(x => x.CacheQueryResultAsync(
             It.IsAny<IRequestContext>(),
@@ -62,7 +62,7 @@ public abstract class CacheControlTestBase
 
     protected void AssertOneWriteToCache<TCache>(Mock<TCache> cacheMock,
         Expression<Func<ICacheControlResult, bool>>? isValidResult)
-        where TCache : class, IQueryCache
+        where TCache : QueryCache
     {
         cacheMock.Verify(x => x.CacheQueryResultAsync(
             It.IsAny<IRequestContext>(),
@@ -71,15 +71,15 @@ public abstract class CacheControlTestBase
         Times.Once());
     }
 
-    protected (IRequestExecutorBuilder, Mock<DefaultQueryCache>)
+    protected (IRequestExecutorBuilder, Mock<QueryCache>)
         GetExecutorBuilderAndCache()
     {
-        return GetExecutorBuilderAndCache<DefaultQueryCache>();
+        return GetExecutorBuilderAndCache<QueryCache>();
     }
 
     protected (IRequestExecutorBuilder, Mock<TCache>)
         GetExecutorBuilderAndCache<TCache>()
-        where TCache : class, IQueryCache
+        where TCache : QueryCache
     {
         var cache = GetMock<TCache>();
 

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.Caching.Http;
 
-public class HttpQueryCache : DefaultQueryCache
+public class HttpQueryCache : QueryCache
 {
     private const string _httpContextKey = nameof(HttpContext);
     private const string _cacheControlValueTemplate = "{0}, max-age={1}";

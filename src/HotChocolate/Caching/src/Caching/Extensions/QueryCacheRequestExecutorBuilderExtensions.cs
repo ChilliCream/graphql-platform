@@ -78,7 +78,7 @@ public static class QueryCacheRequestExecutorBuilderExtensions
 
     internal static IRequestExecutorBuilder AddQueryCache<TCache>(
         this IRequestExecutorBuilder builder)
-        where TCache : class, IQueryCache
+        where TCache : QueryCache
     {
         if (builder is null)
         {
@@ -87,7 +87,7 @@ public static class QueryCacheRequestExecutorBuilderExtensions
 
         builder.ConfigureSchemaServices(services =>
         {
-            services.AddSingleton<IQueryCache, TCache>();
+            services.AddSingleton<QueryCache, TCache>();
         });
 
         return builder.AddCacheControl();
@@ -96,7 +96,7 @@ public static class QueryCacheRequestExecutorBuilderExtensions
     internal static IRequestExecutorBuilder AddQueryCache<TCache>(
         this IRequestExecutorBuilder builder,
         Func<IServiceProvider, TCache> cacheFactory)
-        where TCache : class, IQueryCache
+        where TCache : QueryCache
     {
         if (builder is null)
         {
@@ -105,7 +105,7 @@ public static class QueryCacheRequestExecutorBuilderExtensions
 
         builder.ConfigureSchemaServices(services =>
         {
-            services.AddSingleton<IQueryCache>(cacheFactory);
+            services.AddSingleton<QueryCache>(cacheFactory);
         });
 
         return builder.AddCacheControl();

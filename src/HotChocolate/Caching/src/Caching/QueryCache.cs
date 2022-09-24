@@ -3,7 +3,7 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.Caching;
 
-public abstract class DefaultQueryCache : IQueryCache
+public abstract class QueryCache
 {
     public virtual bool ShouldReadResultFromCache(IRequestContext context)
         => true;

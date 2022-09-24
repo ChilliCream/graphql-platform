@@ -13,12 +13,12 @@ namespace HotChocolate.Caching;
 public sealed class QueryCacheMiddleware
 {
     private readonly RequestDelegate _next;
-    private readonly IQueryCache[] _caches;
+    private readonly QueryCache[] _caches;
     private readonly ICacheControlOptions _options;
 
     public QueryCacheMiddleware(
         RequestDelegate next,
-        [SchemaService] IEnumerable<IQueryCache> caches,
+        [SchemaService] IEnumerable<QueryCache> caches,
         [SchemaService] ICacheControlOptionsAccessor optionsAccessor)
     {
         _next = next;
