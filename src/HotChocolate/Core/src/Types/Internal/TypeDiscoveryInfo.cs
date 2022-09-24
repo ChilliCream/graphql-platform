@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
@@ -23,12 +25,15 @@ public readonly ref struct TypeDiscoveryInfo
         }
 
         RuntimeType = typeReference.Type.Type;
-        IsPublic = IsPublicInternal(typeReference);
+
+        var attributes = RuntimeType.Attributes;
+        IsPublic = IsPublicInternal(RuntimeType);
         IsComplex = IsComplexTypeInternal(typeReference, IsPublic);
-        IsInterface = RuntimeType.IsInterface;
-        IsAbstract = RuntimeType.IsAbstract;
+        IsInterface = (attributes & TypeAttributes.Interface) == TypeAttributes.Interface;
+        IsAbstract = (attributes & TypeAttributes.Abstract) == TypeAttributes.Abstract;
+        IsStatic = IsAbstract && (attributes & TypeAttributes.Sealed) == TypeAttributes.Sealed;
         IsEnum = RuntimeType.IsEnum;
-        Attribute = GetTypeAttributeInternal(typeReference);
+        Attribute = GetTypeAttributeInternal(typeReference, RuntimeType);
         Context = typeReference.Context;
     }
 
@@ -58,6 +63,11 @@ public readonly ref struct TypeDiscoveryInfo
     public bool IsAbstract { get; }
 
     /// <summary>
+    /// Specifies if the <see cref="RuntimeType"/> is static.
+    /// </summary>
+    public bool IsStatic { get; }
+
+    /// <summary>
     /// Specifies if the <see cref="RuntimeType"/> is an enum.
     /// </summary>
     public bool IsEnum { get; }
@@ -72,24 +82,22 @@ public readonly ref struct TypeDiscoveryInfo
     /// </summary>
     public TypeContext Context { get; }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static ITypeAttribute? GetTypeAttributeInternal(
-        ExtendedTypeReference unresolvedType)
+        ExtendedTypeReference unresolvedType,
+        Type runtimeType)
     {
-        var runtimeType = unresolvedType.Type.Type;
-
-        foreach (var attribute in
-            runtimeType.GetCustomAttributes(typeof(DescriptorAttribute), false))
+        foreach (var attr in runtimeType.GetCustomAttributes(typeof(DescriptorAttribute), false))
         {
-            if (attribute is ITypeAttribute typeAttribute)
+            if (attr is ITypeAttribute typeAttribute)
             {
                 return typeAttribute;
             }
         }
 
-        foreach (var attribute in
-            runtimeType.GetCustomAttributes(typeof(DescriptorAttribute), true))
+        foreach (var attr in runtimeType.GetCustomAttributes(typeof(DescriptorAttribute), true))
         {
-            if (attribute is ITypeAttribute { Inherited: true } typeAttribute)
+            if (attr is ITypeAttribute { Inherited: true } typeAttribute)
             {
                 return typeAttribute;
             }
@@ -98,13 +106,14 @@ public readonly ref struct TypeDiscoveryInfo
         return null;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsComplexTypeInternal(
         ExtendedTypeReference unresolvedType,
         bool isPublic)
     {
         var isComplexType =
-            unresolvedType.Type.Type.IsClass &&
             isPublic &&
+            unresolvedType.Type.Type.IsClass &&
             unresolvedType.Type.Type != typeof(string);
 
         if (!isComplexType && unresolvedType.Type.IsGeneric)
@@ -116,7 +125,7 @@ public readonly ref struct TypeDiscoveryInfo
         return isComplexType;
     }
 
-    private static bool IsPublicInternal(ExtendedTypeReference unresolvedType)
-        => unresolvedType.Type.Type.IsPublic ||
-            unresolvedType.Type.Type.IsNestedPublic;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsPublicInternal(Type runtimeType)
+        => runtimeType.IsPublic || runtimeType.IsNestedPublic;
 }

@@ -9,6 +9,7 @@
   "PreserveSyntaxNodes": false,
   "RemoveUnreachableTypes": false,
   "DefaultBindingBehavior": "Implicit",
+  "DefaultFieldBindingFlags": "Instance",
   "FieldMiddleware": "UserDefinedFields",
   "EnableDirectiveIntrospection": false,
   "DefaultDirectiveVisibility": "Public",

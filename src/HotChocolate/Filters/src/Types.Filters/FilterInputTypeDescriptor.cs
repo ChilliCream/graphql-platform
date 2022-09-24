@@ -91,7 +91,7 @@ public class FilterInputTypeDescriptor<T>
             Definition.AttributesAreApplied = true;
         }
 
-        var fields = new Dictionary<string, FilterOperationDefintion>();
+        var fields = new Dictionary<string, FilterOperationDefinition>();
         var handledProperties = new HashSet<PropertyInfo>();
 
         var explicitFields = Fields.Select(t => t.CreateDefinition()).ToList();
@@ -113,20 +113,17 @@ public class FilterInputTypeDescriptor<T>
     }
 
     protected virtual void OnCompleteFields(
-        IDictionary<string, FilterOperationDefintion> fields,
+        IDictionary<string, FilterOperationDefinition> fields,
         ISet<PropertyInfo> handledProperties)
     {
         if (Definition.Fields.IsImplicitBinding()
             && Definition.EntityType != typeof(object))
         {
-            foreach (var property in Context.TypeInspector
-                .GetMembers(Definition.EntityType!)
-                .OfType<PropertyInfo>())
+            foreach (var member in Context.TypeInspector.GetMembers(Definition.EntityType!))
             {
-                if (!handledProperties.Contains(property)
-                    && TryCreateImplicitFilter(
-                        property,
-                        out var definition))
+                if (member is PropertyInfo property
+                    && !handledProperties.Contains(property)
+                    && TryCreateImplicitFilter(property, out var definition))
                 {
                     foreach (var filter in definition.Filters)
                     {

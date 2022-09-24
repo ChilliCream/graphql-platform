@@ -16,7 +16,9 @@ using Snapshooter;
 #endif
 using Snapshooter.Xunit;
 using Xunit;
+using static HotChocolate.Types.FieldBindingFlags;
 using static HotChocolate.WellKnownContextData;
+using SnapshotExtensions = CookieCrumble.SnapshotExtensions;
 
 namespace HotChocolate.Types;
 
@@ -1970,6 +1972,74 @@ public class ObjectTypeTests : TypeTestBase
         ex.Errors.Single().ToString().MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Static_Field_Inference_1()
+    {
+        // arrange
+        // act
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<WithStaticField>(d => d.BindFields(Instance | Static))
+                .BuildSchemaAsync();
+
+        // assert
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
+    [Fact]
+    public async Task Static_Field_Inference_2()
+    {
+        // arrange
+        // act
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<WithStaticField2>()
+                .BuildSchemaAsync();
+
+        // assert
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
+
+    [Fact]
+    public async Task Static_Field_Inference_3()
+    {
+        // arrange
+        // act
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<WithStaticField>()
+                .ModifyOptions(o => o.DefaultBindingBehavior = BindingBehavior.Explicit)
+                .BuildSchemaAsync();
+
+        // assert
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
+    [Fact]
+    public async Task Static_Field_Inference_4()
+    {
+        // arrange
+        // act
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<WithStaticField>()
+                .ModifyOptions(o =>
+                {
+                    o.DefaultBindingBehavior = BindingBehavior.Explicit;
+                    o.DefaultFieldBindingFlags = Instance | Static;
+                })
+                .BuildSchemaAsync();
+
+        // assert
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
+
     public class GenericFoo<T>
     {
         public T Value { get; }
@@ -2252,5 +2322,20 @@ public class ObjectTypeTests : TypeTestBase
     public class QueryWithDeprecatedArgumentsIllegal
     {
         public string Field([GraphQLDeprecated("Not longer allowed")] int deprecated) => "";
+    }
+
+    public class WithStaticField
+    {
+        public static string StaticHello() => "hello";
+
+        public string Hello() => "hello";
+    }
+
+    [ObjectType(IncludeStaticMembers = true)]
+    public class WithStaticField2
+    {
+        public static string StaticHello() => "hello";
+
+        public string Hello() => "hello";
     }
 }
