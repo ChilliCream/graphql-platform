@@ -144,7 +144,7 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
     {
         var cache = GetMock();
 
-        cache.Setup(x => x.ShouldCacheResult(
+        cache.Setup(x => x.ShouldWriteQueryToCache(
             It.IsAny<IRequestContext>()))
             .Returns(false);
 
@@ -167,7 +167,7 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
     {
         var cache = GetMock();
 
-        cache.Setup(x => x.ShouldCacheResult(
+        cache.Setup(x => x.ShouldWriteQueryToCache(
             It.IsAny<IRequestContext>()))
             .Throws(new System.Exception());
 
@@ -190,7 +190,7 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
     {
         var cache = GetMock();
 
-        cache.Setup(x => x.CacheQueryResultAsync(
+        cache.Setup(x => x.WriteQueryToCacheAsync(
             It.IsAny<IRequestContext>(),
             It.IsAny<ICacheControlResult>(),
             It.IsAny<ICacheControlOptions>()))

@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Microsoft.AspNetCore.Http;
@@ -12,13 +11,13 @@ public class HttpQueryCache : QueryCache
     private const string _cacheControlPrivateScope = "private";
     private const string _cacheControlPublicScope = "public";
 
-    public override Task CacheQueryResultAsync(IRequestContext context,
+    public override ValueTask WriteQueryToCacheAsync(IRequestContext context,
         ICacheControlResult result, ICacheControlOptions options)
     {
         if (!context.ContextData.TryGetValue(_httpContextKey, out var httpContextValue)
             || httpContextValue is not HttpContext httpContext)
         {
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
         var cacheType = result.Scope switch
@@ -31,14 +30,12 @@ public class HttpQueryCache : QueryCache
         var headerValue = string.Format(_cacheControlValueTemplate,
             cacheType, result.MaxAge);
 
-
-
 #if NET6_0_OR_GREATER
         httpContext.Response.Headers.CacheControl = headerValue;
 #else
         httpContext.Response.Headers.Add(HeaderNames.CacheControl, headerValue);
 #endif
 
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 }

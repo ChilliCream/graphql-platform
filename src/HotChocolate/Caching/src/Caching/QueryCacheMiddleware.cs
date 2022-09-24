@@ -81,12 +81,12 @@ public sealed class QueryCacheMiddleware
             {
                 try
                 {
-                    if (!cache.ShouldCacheResult(context))
+                    if (!cache.ShouldWriteQueryToCache(context))
                     {
                         continue;
                     }
 
-                    await cache.CacheQueryResultAsync(context,
+                    await cache.WriteQueryToCacheAsync(context,
                         result, _options);
                 }
                 catch

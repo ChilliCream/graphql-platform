@@ -9,7 +9,7 @@ using Xunit;
 
 namespace HotChocolate.Caching.Tests;
 
-public class DefaultQueryCacheTests : CacheControlTestBase
+public class QueryCacheTests : CacheControlTestBase
 {
     [Fact]
     public async Task CacheRegularResult()

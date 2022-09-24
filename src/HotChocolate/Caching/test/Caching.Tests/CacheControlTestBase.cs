@@ -25,7 +25,7 @@ public abstract class CacheControlTestBase
     protected void AssertNoWritesToCache<TCache>(Mock<TCache> cacheMock)
         where TCache : QueryCache
     {
-        cacheMock.Verify(x => x.CacheQueryResultAsync(
+        cacheMock.Verify(x => x.WriteQueryToCacheAsync(
             It.IsAny<IRequestContext>(),
             It.IsAny<ICacheControlResult>(),
             It.IsAny<ICacheControlOptions>()),
@@ -35,7 +35,7 @@ public abstract class CacheControlTestBase
     protected void AssertOneWriteToCache<TCache>(Mock<TCache> cacheMock)
         where TCache : QueryCache
     {
-        cacheMock.Verify(x => x.CacheQueryResultAsync(
+        cacheMock.Verify(x => x.WriteQueryToCacheAsync(
             It.IsAny<IRequestContext>(),
             It.IsAny<ICacheControlResult>(),
             It.IsAny<ICacheControlOptions>()),
@@ -46,7 +46,7 @@ public abstract class CacheControlTestBase
         Expression<Func<ICacheControlResult, bool>>? isValidResult)
         where TCache : QueryCache
     {
-        cacheMock.Verify(x => x.CacheQueryResultAsync(
+        cacheMock.Verify(x => x.WriteQueryToCacheAsync(
             It.IsAny<IRequestContext>(),
             It.Is(isValidResult),
             It.IsAny<ICacheControlOptions>()),
