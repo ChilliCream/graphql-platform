@@ -34,35 +34,6 @@ public sealed class QueryCacheMiddleware
             return;
         }
 
-        // Since we are only "writing" to a cache using HTTP Cache-Control,
-        // we do not yet have to worry about the details for reading from
-        // a user-space cache implementation.
-
-        //foreach (IQueryCache cache in _caches)
-        //{
-        //    try
-        //    {
-        //        if (!cache.ShouldReadResultFromCache(context))
-        //        {
-        //            continue;
-        //        }
-
-        //        IQueryResult? cachedResult =
-        //            await cache.TryReadCachedQueryResultAsync(context, _options);
-
-        //        if (cachedResult is not null)
-        //        {
-        //            context.Result = cachedResult;
-        //            return;
-        //        }
-        //    }
-        //    catch
-        //    {
-        //        // An exception while trying to retrieve the cached query result
-        //        // should not error out the actual query, so we are ignoring it.
-        //    }
-        //}
-
         await _next(context).ConfigureAwait(false);
 
         if (context.Result is not IQueryResult queryResult)

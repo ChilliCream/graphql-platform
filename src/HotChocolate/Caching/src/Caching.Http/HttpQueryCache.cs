@@ -12,15 +12,6 @@ public class HttpQueryCache : QueryCache
     private const string _cacheControlPrivateScope = "private";
     private const string _cacheControlPublicScope = "public";
 
-    public override bool ShouldReadResultFromCache(IRequestContext context)
-        => false;
-
-    public override Task<IQueryResult?> TryReadCachedQueryResultAsync(
-        IRequestContext context, ICacheControlOptions options)
-    {
-        throw new NotSupportedException();
-    }
-
     public override Task CacheQueryResultAsync(IRequestContext context,
         ICacheControlResult result, ICacheControlOptions options)
     {

@@ -22,24 +22,6 @@ public abstract class CacheControlTestBase
         return GetMock<QueryCache>();
     }
 
-    protected void AssertNoReadsFromCache<TCache>(Mock<TCache> cacheMock)
-        where TCache : QueryCache
-    {
-        cacheMock.Verify(x => x.TryReadCachedQueryResultAsync(
-            It.IsAny<IRequestContext>(),
-            It.IsAny<ICacheControlOptions>()),
-        Times.Never());
-    }
-
-    protected void AssertOneReadFromCache<TCache>(Mock<TCache> cacheMock)
-        where TCache : QueryCache
-    {
-        cacheMock.Verify(x => x.TryReadCachedQueryResultAsync(
-            It.IsAny<IRequestContext>(),
-            It.IsAny<ICacheControlOptions>()),
-        Times.Once());
-    }
-
     protected void AssertNoWritesToCache<TCache>(Mock<TCache> cacheMock)
         where TCache : QueryCache
     {

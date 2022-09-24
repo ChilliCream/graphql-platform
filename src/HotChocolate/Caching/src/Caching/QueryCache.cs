@@ -5,12 +5,6 @@ namespace HotChocolate.Caching;
 
 public abstract class QueryCache
 {
-    public virtual bool ShouldReadResultFromCache(IRequestContext context)
-        => true;
-
-    public abstract Task<IQueryResult?> TryReadCachedQueryResultAsync(
-        IRequestContext context, ICacheControlOptions options);
-
     public virtual bool ShouldCacheResult(IRequestContext context)
         => true;
 
