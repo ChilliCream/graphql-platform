@@ -5,6 +5,7 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Data.Projections;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Internal;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -199,12 +200,16 @@ public static class HotChocolateDataRequestBuilderExtensions
     public static IRequestExecutorBuilder AddProjections(
         this IRequestExecutorBuilder builder,
         Action<IProjectionConventionDescriptor> configure,
-        string? name = null) =>
-        builder.ConfigureSchema(s => s
+        string? name = null)
+    {
+        //builder.ConfigureSchemaServices(x
+         //   => x.AddSingleton<IOperationCompilerOptimizer, NodeSelectionSetOptimizer>());
+        return builder.ConfigureSchema(s => s
             .TryAddTypeInterceptor<ProjectionTypeInterceptor>()
             .TryAddConvention<IProjectionConvention>(
-                sp => new ProjectionConvention(configure),
+                _ => new ProjectionConvention(configure),
                 name));
+    }
 
     /// <summary>
     /// Adds projection support.
@@ -224,8 +229,12 @@ public static class HotChocolateDataRequestBuilderExtensions
     public static IRequestExecutorBuilder AddProjections<TConvention>(
         this IRequestExecutorBuilder builder,
         string? name = null)
-        where TConvention : class, IProjectionConvention =>
-        builder.ConfigureSchema(s => s
+        where TConvention : class, IProjectionConvention
+    {
+        //builder.ConfigureSchemaServices(x
+        //    => x.AddSingleton<IOperationCompilerOptimizer, NodeSelectionSetOptimizer>());
+        return builder.ConfigureSchema(s => s
             .TryAddTypeInterceptor<ProjectionTypeInterceptor>()
             .TryAddConvention<IProjectionConvention, TConvention>(name));
+    }
 }

@@ -1,13 +1,46 @@
 using System.Collections.Generic;
 using HotChocolate.Configuration;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Data.Projections.ProjectionConvention;
+using static HotChocolate.Execution.Processing.OperationCompilerOptimizerHelper;
 
 namespace HotChocolate.Data.Projections;
 
-public class ProjectionTypeInterceptor : TypeInterceptor
+internal sealed class ProjectionTypeInterceptor : TypeInterceptor
 {
     public override bool CanHandle(ITypeSystemObjectContext context) => true;
+
+    public override void OnAfterCompleteType(
+        ITypeCompletionContext completionContext,
+        DefinitionBase? definition,
+        IDictionary<string, object?> contextData)
+    {
+        if ((completionContext.IsQueryType ?? false) &&
+            completionContext.Type is ObjectType { Fields: var fields })
+        {
+            foreach (var field in fields)
+            {
+                if (field.Name == "node")
+                {
+                    var selectionOptimizer = completionContext.DescriptorContext
+                        .GetProjectionConvention()
+                        .CreateOptimizer();
+
+                    if (field.ContextData is not ExtensionData extensionData)
+                    {
+                        throw ThrowHelper.ProjectionConvention_NodeFieldWasInInvalidState();
+                    }
+
+                    RegisterOptimizer(
+                        extensionData,
+                        new NodeSelectionSetOptimizer(selectionOptimizer));
+
+                    break;
+                }
+            }
+        }
+    }
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
