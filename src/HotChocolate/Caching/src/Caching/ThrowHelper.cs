@@ -5,6 +5,14 @@ namespace HotChocolate.Caching;
 
 internal static class ThrowHelper
 {
-    public static Exception EncounteredIntrospectionField()
-        => new(ThrowHelper_EncounteredIntrospectionField);
+    public static EncounteredIntrospectionFieldException EncounteredIntrospectionField()
+        => new();
+}
+
+internal class EncounteredIntrospectionFieldException : Exception
+{
+    public EncounteredIntrospectionFieldException()
+        : base(ThrowHelper_EncounteredIntrospectionField)
+    {
+    }
 }

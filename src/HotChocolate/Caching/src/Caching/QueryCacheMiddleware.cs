@@ -28,79 +28,95 @@ public sealed class QueryCacheMiddleware
 
     public async ValueTask InvokeAsync(IRequestContext context)
     {
+        await _next(context).ConfigureAwait(false);
+
         if (!_options.Enable || context.ContextData.ContainsKey(SkipQueryCaching))
         {
-            await _next(context).ConfigureAwait(false);
+            // If query caching is disabled or skipped,
+            // we do not attempt to cache the result.
             return;
         }
 
-        await _next(context).ConfigureAwait(false);
+        if (!CanOperationResultBeCached(context))
+        {
+            return;
+        }
 
+        var result = ComputeCacheControlResullt(context.Operation);
+
+        if (result is null || !result.MaxAge.HasValue)
+        {
+            // No field in the query specified a maxAge value,
+            // so we do not attempt to cache it.
+            return;
+        }
+
+        foreach (var cache in _caches)
+        {
+            if (!cache.ShouldWriteQueryResultToCache(context))
+            {
+                continue;
+            }
+
+            await cache.WriteQueryResultToCacheAsync(context,
+                result, _options);
+        }
+    }
+
+    private static bool CanOperationResultBeCached(IRequestContext context)
+    {
         if (context.Result is not IQueryResult queryResult)
         {
             // Result is potentially deferred or batched,
             // we can not cache the entire query.
 
-            return;
+            return false;
         }
 
         if (context.Operation?.Definition.Operation != OperationType.Query)
         {
             // Request is not a query, so we do not cache it.
 
-            return;
+            return false;
         }
 
         if (queryResult.Errors is { Count: > 0 })
         {
             // Result has unexpected errors, we do not want to cache it.
 
-            return;
+            return false;
+        }
+
+        return true;
+    }
+
+    private static CacheControlResult? ComputeCacheControlResullt(
+        IOperation? operation)
+    {
+        if (operation is null)
+        {
+            return null;
         }
 
         var result = new CacheControlResult();
 
+        var rootSelections = operation.RootSelectionSet.Selections;
+
         try
         {
-            var operation = context.Operation;
-            var rootSelections = operation.RootSelectionSet.Selections;
-
             foreach (var rootSelection in rootSelections)
             {
                 ProcessSelection(rootSelection, result, operation);
             }
-
-            if (!result.MaxAge.HasValue)
-            {
-                // No field in the query specified a maxAge value,
-                // so we do not attempt to cache it.
-                return;
-            }
-
-            foreach (var cache in _caches)
-            {
-                try
-                {
-                    if (!cache.ShouldWriteQueryToCache(context))
-                    {
-                        continue;
-                    }
-
-                    await cache.WriteQueryToCacheAsync(context,
-                        result, _options);
-                }
-                catch
-                {
-                    // An exception while trying to cache the query result
-                    // should not error out the actual query, so we are ignoring it.
-                }
-            }
         }
-        catch (System.Exception exc)
+        catch (EncounteredIntrospectionFieldException)
         {
-            // An exception during the calculation of the CacheControlResult
-            // should not error out the actual query, so we are ignoring it.
+            // The operation specified introspection fields and should
+            // therefore not be cached.
+            return null;
         }
+
+        return result;
     }
 
     private static void ProcessSelection(ISelection selection,

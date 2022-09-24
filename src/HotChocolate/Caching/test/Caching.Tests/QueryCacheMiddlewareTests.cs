@@ -144,7 +144,7 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
     {
         var cache = GetMock();
 
-        cache.Setup(x => x.ShouldWriteQueryToCache(
+        cache.Setup(x => x.ShouldWriteQueryResultToCache(
             It.IsAny<IRequestContext>()))
             .Returns(false);
 
@@ -160,53 +160,5 @@ public class QueryCacheMiddlewareTests : CacheControlTestBase
         await ExecuteRequestAsync(builder, "{ field }");
 
         AssertNoWritesToCache(cache);
-    }
-
-    [Fact]
-    public async Task IgnoreExceptionInShouldCacheResult()
-    {
-        var cache = GetMock();
-
-        cache.Setup(x => x.ShouldWriteQueryToCache(
-            It.IsAny<IRequestContext>()))
-            .Throws(new System.Exception());
-
-        var builder = new ServiceCollection()
-            .AddGraphQLServer()
-            .AddQueryType(d => d.Name("Query")
-                .Field("field").Type<StringType>().CacheControl(100))
-            .UseField(_ => _ => default)
-            .AddQueryCache(_ => cache.Object)
-            .UseQueryCachePipeline()
-            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
-
-        await ExecuteRequestAsync(builder, "{ field }");
-
-        AssertNoWritesToCache(cache);
-    }
-
-    [Fact]
-    public async Task IgnoreExceptionInCacheQueryResult()
-    {
-        var cache = GetMock();
-
-        cache.Setup(x => x.WriteQueryToCacheAsync(
-            It.IsAny<IRequestContext>(),
-            It.IsAny<ICacheControlResult>(),
-            It.IsAny<ICacheControlOptions>()))
-            .Throws(new System.Exception());
-
-        var builder = new ServiceCollection()
-            .AddGraphQLServer()
-            .AddQueryType(d => d.Name("Query")
-                .Field("field").Type<StringType>().CacheControl(100))
-            .UseField(_ => _ => default)
-            .AddQueryCache(_ => cache.Object)
-            .UseQueryCachePipeline()
-            .ModifyCacheControlOptions(o => o.ApplyDefaults = false);
-
-        await ExecuteRequestAsync(builder, "{ field }");
-
-        AssertOneWriteToCache(cache);
     }
 }

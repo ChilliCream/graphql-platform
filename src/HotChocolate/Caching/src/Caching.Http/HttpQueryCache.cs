@@ -11,7 +11,7 @@ public class HttpQueryCache : QueryCache
     private const string _cacheControlPrivateScope = "private";
     private const string _cacheControlPublicScope = "public";
 
-    public override ValueTask WriteQueryToCacheAsync(IRequestContext context,
+    public override ValueTask WriteQueryResultToCacheAsync(IRequestContext context,
         ICacheControlResult result, ICacheControlOptions options)
     {
         if (!context.ContextData.TryGetValue(_httpContextKey, out var httpContextValue)
