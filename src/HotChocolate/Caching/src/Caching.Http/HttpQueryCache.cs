@@ -30,11 +30,8 @@ public class HttpQueryCache : QueryCache
         var headerValue = string.Format(_cacheControlValueTemplate,
             cacheType, result.MaxAge);
 
-#if NET6_0_OR_GREATER
-        httpContext.Response.Headers.CacheControl = headerValue;
-#else
-        httpContext.Response.Headers.Add(HeaderNames.CacheControl, headerValue);
-#endif
+        context.ContextData.Add(HotChocolate.WellKnownContextData.CacheControlHeaderValue,
+            headerValue);
 
         return ValueTask.CompletedTask;
     }

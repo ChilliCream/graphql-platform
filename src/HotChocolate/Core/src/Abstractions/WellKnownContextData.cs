@@ -197,4 +197,9 @@ public static class WellKnownContextData
     /// The key to get the IdValue object from the context data.
     /// </summary>
     public const string IdValue = "HotChocolate.Relay.Node.Id.Value";
+
+    /// <summary>
+    /// The key to get the Cache-Control header value from the context data.
+    /// </summary>
+    public const string CacheControlHeaderValue = "HotChocolate.Caching.CacheControlHeaderValue";
 }

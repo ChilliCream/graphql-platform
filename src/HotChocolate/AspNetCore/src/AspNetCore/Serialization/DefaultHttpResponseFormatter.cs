@@ -119,6 +119,18 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             response.ContentType = format.ContentType;
             response.StatusCode = statusCode;
 
+            if (result.ContextData is not null &&
+                result.ContextData.TryGetValue(WellKnownContextData.CacheControlHeaderValue,
+                    out var untypedCacheControlHeaderValue) &&
+                untypedCacheControlHeaderValue is string cacheControlHeaderValue)
+            {
+#if NET6_0_OR_GREATER
+                response.Headers.CacheControl = cacheControlHeaderValue;
+#else
+                response.Headers.Add(HeaderNames.CacheControl, cacheControlHeaderValue);
+#endif
+            }
+
             await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
         }
         else if (result.Kind is DeferredResult or BatchResult or SubscriptionResult)
