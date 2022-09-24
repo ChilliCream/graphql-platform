@@ -27,7 +27,6 @@ public class CacheControlOptionsTests : CacheControlTestBase
         Assert.True(accessor!.CacheControl.Enable);
         Assert.True(accessor!.CacheControl.ApplyDefaults);
         Assert.Equal(0, accessor!.CacheControl.DefaultMaxAge);
-        Assert.Null(accessor!.CacheControl.GetSessionId);
     }
 
     [Fact]
@@ -41,7 +40,6 @@ public class CacheControlOptionsTests : CacheControlTestBase
                 options.Enable = false;
                 options.ApplyDefaults = false;
                 options.DefaultMaxAge = 100;
-                options.GetSessionId = context => "Test";
             })
             .AddQueryType(d => d.Name("Query")
                 .Field("field").Resolve("")
@@ -56,7 +54,6 @@ public class CacheControlOptionsTests : CacheControlTestBase
         Assert.False(accessor!.CacheControl.Enable);
         Assert.False(accessor!.CacheControl.ApplyDefaults);
         Assert.Equal(100, accessor!.CacheControl.DefaultMaxAge);
-        Assert.NotNull(accessor!.CacheControl.GetSessionId);
     }
 
     [Fact]
@@ -80,7 +77,6 @@ public class CacheControlOptionsTests : CacheControlTestBase
         Assert.True(accessor!.CacheControl.Enable);
         Assert.False(accessor!.CacheControl.ApplyDefaults);
         Assert.Equal(10, accessor!.CacheControl.DefaultMaxAge);
-        Assert.Null(accessor!.CacheControl.GetSessionId);
     }
 
     [Fact]

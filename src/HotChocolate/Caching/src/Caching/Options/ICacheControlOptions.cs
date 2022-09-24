@@ -7,6 +7,4 @@ public interface ICacheControlOptions
     int DefaultMaxAge { get; }
 
     bool ApplyDefaults { get; }
-
-    GetSessionIdDelegate? GetSessionId { get; }
 }

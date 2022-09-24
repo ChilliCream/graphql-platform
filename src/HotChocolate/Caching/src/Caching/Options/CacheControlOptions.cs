@@ -7,6 +7,4 @@ public class CacheControlOptions : ICacheControlOptions
     public int DefaultMaxAge { get; set; } = 0;
 
     public bool ApplyDefaults { get; set; } = true;
-
-    public GetSessionIdDelegate? GetSessionId { get; set; } = null;
 }
