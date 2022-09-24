@@ -201,15 +201,11 @@ public static class HotChocolateDataRequestBuilderExtensions
         this IRequestExecutorBuilder builder,
         Action<IProjectionConventionDescriptor> configure,
         string? name = null)
-    {
-        //builder.ConfigureSchemaServices(x
-         //   => x.AddSingleton<IOperationCompilerOptimizer, NodeSelectionSetOptimizer>());
-        return builder.ConfigureSchema(s => s
+        => builder.ConfigureSchema(s => s
             .TryAddTypeInterceptor<ProjectionTypeInterceptor>()
             .TryAddConvention<IProjectionConvention>(
                 _ => new ProjectionConvention(configure),
                 name));
-    }
 
     /// <summary>
     /// Adds projection support.
@@ -230,11 +226,7 @@ public static class HotChocolateDataRequestBuilderExtensions
         this IRequestExecutorBuilder builder,
         string? name = null)
         where TConvention : class, IProjectionConvention
-    {
-        //builder.ConfigureSchemaServices(x
-        //    => x.AddSingleton<IOperationCompilerOptimizer, NodeSelectionSetOptimizer>());
-        return builder.ConfigureSchema(s => s
+        => builder.ConfigureSchema(s => s
             .TryAddTypeInterceptor<ProjectionTypeInterceptor>()
             .TryAddConvention<IProjectionConvention, TConvention>(name));
-    }
 }
