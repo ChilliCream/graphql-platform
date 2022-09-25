@@ -84,10 +84,10 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         OnCompleteName(context, definition);
 
         Debug.Assert(
-            Name is not null,
+            !string.IsNullOrEmpty(Name),
             "After the naming is completed the name has to have a value.");
 
-        if (Name is null)
+        if (string.IsNullOrEmpty(Name))
         {
             context.ReportError(SchemaErrorBuilder.New()
                 .SetMessage(
@@ -108,7 +108,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         ITypeCompletionContext context,
         TDefinition definition)
     {
-        if (definition.Name is not null)
+        if (!string.IsNullOrEmpty(definition.Name))
         {
             Name = definition.Name;
         }

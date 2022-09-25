@@ -1062,4 +1062,7 @@ Type: `{0}`</value>
   <data name="ThrowHelper_InvalidInputFieldNames_Single" xml:space="preserve">
     <value>The field `{0}` does not exist on the type `{1}`.</value>
   </data>
+  <data name="ThrowHelper_MutationDuplicateErrorName" xml:space="preserve">
+    <value>Mutation conventions infer the error name from the mutation. In this case the error union was inferred from the mutation `{0}` as `{1}`, but the type initialization encountered another object with the name `{1}`. Either rename the error object or specify a naming exception for this particular mutation. You can do that by using the `UseMutationConventionAttribute` for instance.</value>
+  </data>
 </root>

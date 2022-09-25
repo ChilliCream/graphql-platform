@@ -134,8 +134,30 @@ internal static class ThrowHelper
                     TypeInitializer_CompleteName_Duplicate,
                     type.Name)
                 .SetTypeSystemObject(type)
+                .SetCode(ErrorCodes.Schema.DuplicateTypeName)
                 .SetExtension(nameof(otherType), otherType)
                 .Build());
+
+    public static SchemaException TypeInitializer_MutationDuplicateErrorName(
+        ITypeSystemObject type,
+        string mutationName,
+        string errorName,
+        IReadOnlyList<ISchemaError> originalErrors)
+    {
+        var mutationError = SchemaErrorBuilder.New()
+            .SetMessage(
+                ThrowHelper_MutationDuplicateErrorName,
+                mutationName,
+                errorName)
+            .SetTypeSystemObject(type)
+            .SetCode(ErrorCodes.Schema.DuplicateMutationErrorTypeName)
+            .Build();
+
+        var errors = new List<ISchemaError>(originalErrors);
+        errors.Insert(0, mutationError);
+
+        return new SchemaException(errors);
+    }
 
     public static SchemaException NodeAttribute_NodeResolverNotFound(
         Type type,

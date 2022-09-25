@@ -3,6 +3,7 @@ using static HotChocolate.WellKnownMiddleware;
 using static HotChocolate.Types.Descriptors.TypeReference;
 using static HotChocolate.Resolvers.FieldClassMiddlewareFactory;
 using static HotChocolate.Types.ErrorContextDataKeys;
+using static HotChocolate.Utilities.ThrowHelper;
 
 #nullable enable
 
@@ -248,7 +249,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         {
             // create error type
             var errorTypeName = options.FormatErrorTypeName(mutation.Name);
-            RegisterType(CreateErrorType(errorTypeName, errorDefinitions));
+            RegisterErrorType(CreateErrorType(errorTypeName, errorDefinitions), mutation.Name);
             var errorListTypeRef = Parse($"[{errorTypeName}!]");
             errorField = new FieldDef(options.PayloadErrorsFieldName, errorListTypeRef);
 
@@ -546,6 +547,26 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
     {
         var registeredType = _typeInitializer.InitializeType(type);
         _typeInitializer.CompleteTypeName(registeredType);
+    }
+
+    private void RegisterErrorType(
+        TypeSystemObjectBase type,
+        string mutationName)
+    {
+        try
+        {
+            var registeredType = _typeInitializer.InitializeType(type);
+            _typeInitializer.CompleteTypeName(registeredType);
+        }
+        catch (SchemaException ex)
+            when (ex.Errors[0].Code.EqualsOrdinal(ErrorCodes.Schema.DuplicateTypeName))
+        {
+            throw TypeInitializer_MutationDuplicateErrorName(
+                type,
+                mutationName,
+                type.Name,
+                ex.Errors);
+        }
     }
 
     private ITypeReference EnsureNullable(ITypeReference typeRef)
