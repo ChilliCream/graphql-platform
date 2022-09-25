@@ -19,10 +19,17 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
         if ((completionContext.IsQueryType ?? false) &&
             completionContext.Type is ObjectType { Fields: var fields })
         {
+            bool foundNode = false;
+            bool foundNodes = false;
+
             foreach (var field in fields)
             {
-                if (field.Name == "node")
+                if (field.Name is "node" or "nodes")
                 {
+                    if (field.Name is "node") { foundNode = true; }
+
+                    if (field.Name is "nodes") { foundNodes = true; }
+
                     var selectionOptimizer = completionContext.DescriptorContext
                         .GetProjectionConvention()
                         .CreateOptimizer();
@@ -36,7 +43,10 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
                         extensionData,
                         new NodeSelectionSetOptimizer(selectionOptimizer));
 
-                    break;
+                    if (foundNode && foundNodes)
+                    {
+                        break;
+                    }
                 }
             }
         }
