@@ -1263,9 +1263,9 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string DefaultResolverCompilerService_CreateResolver_ArgumentValudationError {
+        internal static string DefaultResolverCompilerService_CreateResolver_ArgumentValidationError {
             get {
-                return ResourceManager.GetString("DefaultResolverCompilerService_CreateResolver_ArgumentValudationError", resourceCulture);
+                return ResourceManager.GetString("DefaultResolverCompilerService_CreateResolver_ArgumentValidationError", resourceCulture);
             }
         }
         
