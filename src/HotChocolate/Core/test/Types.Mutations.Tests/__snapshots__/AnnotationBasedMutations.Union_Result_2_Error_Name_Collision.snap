@@ -1,0 +1,4 @@
+For more details look at the `Errors` property.
+
+1. Mutation conventions infer the error name from the mutation. In this case the error union was inferred from the mutation `foo` as `FooError`, but the type initialization encountered another object with the name `FooError`. Either rename the error object or specify a naming exception for this particular mutation. You can do that by using the `UseMutationConventionAttribute` for instance. (HotChocolate.Types.UnionType)
+2. The name `FooError` was already registered by another type. (HotChocolate.Types.UnionType)

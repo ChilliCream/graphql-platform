@@ -5,6 +5,7 @@ using HotChocolate.Tests;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
+using SnapshotExtensions = CookieCrumble.SnapshotExtensions;
 
 namespace HotChocolate.Types;
 
@@ -534,6 +535,21 @@ public class AnnotationBasedMutations
             .ModifyOptions(o => o.StrictValidation = false)
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Union_Result_2_Error_Name_Collision()
+    {
+        async Task Error() => await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithErrorCollision>()
+            .AddMutationConventions()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .BuildSchemaAsync();
+
+        var exception = await Assert.ThrowsAsync<SchemaException>(Error);
+
+        SnapshotExtensions.MatchSnapshot(exception.Message);
     }
 
     [Fact]
@@ -1097,5 +1113,21 @@ public class AnnotationBasedMutations
         public Guid Id { get; set; }
 
         public string? Name { get; set; }
+    }
+
+    public class MutationWithErrorCollision
+    {
+        public MutationResult<string, FooError> Foo()
+            => new FooError("some error");
+    }
+
+    public class FooError
+    {
+        public FooError(string message)
+        {
+            Message = message;
+        }
+
+        public string Message { get; }
     }
 }

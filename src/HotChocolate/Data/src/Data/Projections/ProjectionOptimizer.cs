@@ -24,7 +24,9 @@ internal sealed class ProjectionOptimizer : ISelectionSetOptimizer
             {
                 var rewrittenSelection =
                     _provider.RewriteSelection(context, context.Selections[responseName]);
+
                 context.ReplaceSelection(responseName, rewrittenSelection);
+
                 processedSelections.Add(responseName);
             }
         }

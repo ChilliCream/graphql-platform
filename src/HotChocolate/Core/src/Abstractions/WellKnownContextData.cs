@@ -198,6 +198,15 @@ public static class WellKnownContextData
     /// </summary>
     public const string IdValue = "HotChocolate.Relay.Node.Id.Value";
 
+    /// The key to get check if a field is the node field.
+    /// </summary>
+    public const string IsNodeField = "HotChocolate.Relay.Node.IsNodeField";
+
+    /// <summary>
+    /// The key to get check if a field is the nodes field.
+    /// </summary>
+    public const string IsNodesField = "HotChocolate.Relay.Node.IsNodeField";
+
     /// <summary>
     /// The key to get the Cache-Control header value from the context data.
     /// </summary>

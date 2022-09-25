@@ -1263,9 +1263,9 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string DefaultResolverCompilerService_CreateResolver_ArgumentValudationError {
+        internal static string DefaultResolverCompilerService_CreateResolver_ArgumentValidationError {
             get {
-                return ResourceManager.GetString("DefaultResolverCompilerService_CreateResolver_ArgumentValudationError", resourceCulture);
+                return ResourceManager.GetString("DefaultResolverCompilerService_CreateResolver_ArgumentValidationError", resourceCulture);
             }
         }
         
@@ -1902,6 +1902,12 @@ namespace HotChocolate.Properties {
         internal static string ThrowHelper_InvalidInputFieldNames_Single {
             get {
                 return ResourceManager.GetString("ThrowHelper_InvalidInputFieldNames_Single", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_MutationDuplicateErrorName {
+            get {
+                return ResourceManager.GetString("ThrowHelper_MutationDuplicateErrorName", resourceCulture);
             }
         }
     }
