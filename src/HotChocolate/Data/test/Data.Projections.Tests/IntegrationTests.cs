@@ -122,6 +122,8 @@ public class IntegrationTests
             .AddGraphQL()
             .AddQueryType<QueryWithNodeResolvers>()
             .AddObjectType<Foo>(d => d.ImplementsNode().IdField(t => t.Bar))
+            .AddObjectType<Bar>(d => d.ImplementsNode().IdField(t => t.IdOfBar))
+            .AddObjectType<Baz>(d => d.ImplementsNode().IdField(t => t.Bar2))
             .AddGlobalObjectIdentification()
             .AddProjections()
             .BuildSchemaAsync();
@@ -192,6 +194,81 @@ public class IntegrationTests
             .ExecuteAsync("""
                 {
                     node(id: "QmFyCmRB") {
+                        id
+                        __typename
+                        ... on Baz { fieldOfBaz }
+                        ... on Foo { fieldOfFoo }
+                        ... on Bar { fieldOfBar }
+                    }
+                }
+                """);
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Nodes_Resolver_With_SingleOrDefault()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithNodeResolvers>()
+            .AddObjectType<Foo>(d => d.ImplementsNode().IdField(t => t.Bar))
+            .AddObjectType<Bar>(d => d.ImplementsNode().IdField(t => t.IdOfBar))
+            .AddObjectType<Baz>(d => d.ImplementsNode().IdField(t => t.Bar2))
+            .AddGlobalObjectIdentification()
+            .AddProjections()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(@"{ nodes(ids: ""Rm9vCmRB"") { id __typename } }");
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Nodes_Resolver_With_SingleOrDefault_Fragments()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithNodeResolvers>()
+            .AddObjectType<Foo>(d => d.ImplementsNode().IdField(t => t.Bar))
+            .AddObjectType<Bar>(d => d.ImplementsNode().IdField(t => t.IdOfBar))
+            .AddObjectType<Baz>(d => d.ImplementsNode().IdField(t => t.Bar2))
+            .AddGlobalObjectIdentification()
+            .AddProjections()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor
+            .ExecuteAsync("""
+                {
+                    nodes(ids: "Rm9vCmRB") {
+                        id
+                        __typename
+                        ... on Baz { fieldOfBaz }
+                        ... on Foo { fieldOfFoo }
+                    }
+                }
+                """);
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Nodes_Resolver_Without_SingleOrDefault()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithNodeResolvers>()
+            .AddObjectType<Foo>(d => d.ImplementsNode().IdField(t => t.Bar))
+            .AddObjectType<Bar>(d => d.ImplementsNode().IdField(t => t.IdOfBar))
+            .AddObjectType<Baz>(d => d.ImplementsNode().IdField(t => t.Bar2))
+            .AddGlobalObjectIdentification()
+            .AddProjections()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor
+            .ExecuteAsync("""
+                {
+                    nodes(ids: "QmFyCmRB") {
                         id
                         __typename
                         ... on Baz { fieldOfBaz }
