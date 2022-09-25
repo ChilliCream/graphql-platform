@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using HotChocolate.Configuration;
 using HotChocolate.Properties;
@@ -13,7 +14,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
     where TDefinition : DefinitionBase
 {
     private TDefinition? _definition;
-    private ExtensionData? _contextData;
+    private IReadOnlyDictionary<string, object?>? _contextData;
 
     public override IReadOnlyDictionary<string, object?> ContextData
     {
@@ -129,10 +130,10 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         _contextData = definition.ContextData;
         _definition = null;
 
-        OnAfterCompleteType(context, definition, _contextData);
+        OnAfterCompleteType(context, definition, definition.ContextData);
         ExecuteConfigurations(context, definition, ApplyConfigurationOn.AfterCompletion);
 
-        OnValidateType(context, definition, _contextData);
+        OnValidateType(context, definition, definition.ContextData);
 
         MarkCompleted();
     }
@@ -143,7 +144,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         // collected by the GC.
         if (_contextData!.Count == 0)
         {
-            _contextData = ExtensionData.Empty;
+            _contextData = ImmutableDictionary<string, object?>.Empty;
         }
 
         MarkFinalized();

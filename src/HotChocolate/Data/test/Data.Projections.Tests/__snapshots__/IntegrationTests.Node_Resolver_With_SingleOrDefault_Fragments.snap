@@ -2,7 +2,8 @@
   "data": {
     "node": {
       "id": "Rm9vCmRB",
-      "__typename": "Foo"
+      "__typename": "Foo",
+      "fieldOfFoo": "fieldOfFoo"
     }
   }
 }
