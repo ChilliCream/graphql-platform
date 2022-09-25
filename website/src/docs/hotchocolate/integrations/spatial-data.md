@@ -478,7 +478,7 @@ input GeometryIntersectsOperationFilterInput {
         intersects: {
           geometry: {
             type: LineString,
-            coordinates: [[1, 1], ....]
+            coordinates: [[[1, 1], [2, 2]....]]
           }
         }
       }
