@@ -5,6 +5,9 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.Execution.Serialization;
 using Microsoft.AspNetCore.Http;
+#if !NET6_0_OR_GREATER
+using Microsoft.Net.Http.Headers;
+#endif
 using static HotChocolate.AspNetCore.AcceptMediaTypeKind;
 using static HotChocolate.Execution.ExecutionResultKind;
 
