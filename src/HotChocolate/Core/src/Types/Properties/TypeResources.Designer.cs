@@ -1904,5 +1904,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ThrowHelper_InvalidInputFieldNames_Single", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_MutationDuplicateErrorName {
+            get {
+                return ResourceManager.GetString("ThrowHelper_MutationDuplicateErrorName", resourceCulture);
+            }
+        }
     }
 }
