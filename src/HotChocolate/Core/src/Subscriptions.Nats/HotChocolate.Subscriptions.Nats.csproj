@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <TargetFrameworks />
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Execution\HotChocolate.Execution.csproj" />
+      <ProjectReference Include="..\Subscriptions\HotChocolate.Subscriptions.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="AlterNats.Hosting" Version="1.0.5" />
+      <PackageReference Include="AlterNats.MessagePack" Version="1.0.5" />
+      <PackageReference Include="System.Linq.Async" Version="6.0.1" />
+    </ItemGroup>
+
+</Project>
