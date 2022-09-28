@@ -17,11 +17,11 @@ Everything you need to get started with **Banana Cake Pop** you'll find on [bana
 
 ## Drag & Drop
 
-We've added _Drag & Drop_ support to the document explorer. That makes moving documents, files and folders around so much easier. Moreover, we've added support for dropping files for _File Upload_ from the outside. Just drag one or multiple files from your _OS_ (_Operation System_) and drop it on the document explorer root or a specific folder.
+We've added _Drag & Drop_ support to the document explorer. That makes moving documents, files and folders around so much easier. Moreover, we've added support for dropping files for _File Upload_ from outside. Just drag one or multiple files (e.g. a photo) from your computer and drop it on the document explorer root or a specific folder.
 
 ## Defer/Stream Spec
 
-We've updated to the latest `@defer`/`@stream` spec draft version, but in a way that we are backward-compatible. It still works with previous versions of Hot Chocolate or other servers that implemented the prior spec.
+We've updated to the latest Defer/Stream spec draft version, but with backward-compatibility in mind. It still works with previous versions of Hot Chocolate or other servers that implemented the prior spec version.
 
 ## Operation Extraction
 
