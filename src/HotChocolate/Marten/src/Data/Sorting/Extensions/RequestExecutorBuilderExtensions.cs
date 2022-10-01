@@ -29,9 +29,15 @@ public static class RequestExecutorBuilderExtensions
     private static ISortProviderDescriptor<QueryableSortContext> AddMartenFieldHandlers(
         this ISortProviderDescriptor<QueryableSortContext> descriptor)
     {
-        descriptor.AddOperationHandler<MartenQueryableAscendingSortOperationHandler>();
-        descriptor.AddOperationHandler<MartenQueryableDescendingSortOperationHandler>();
-        descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
+        descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
+        descriptor.AddOperationHandler<QueryableDescendingSortOperationHandler>();
+
+        /*
+         * Custom field handler that generates sorting expressions that
+         * are digestible for the Marten LINQ provider.
+         * See https://github.com/ChilliCream/hotchocolate/issues/5282 for more details.
+         */
+        descriptor.AddFieldHandler<MartenQueryableSortFieldHandler>();
         return descriptor;
     }
 }
