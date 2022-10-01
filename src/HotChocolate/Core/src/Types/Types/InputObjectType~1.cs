@@ -29,6 +29,14 @@ public class InputObjectType<T> : InputObjectType
         _configure!(descriptor);
         _configure = null;
 
+        // if the object type is inferred from a runtime time we will bind fields implicitly
+        // even if the schema building option are set to bind explicitly by default;
+        // otherwise we would end up with types that have no fields.
+        if (context.IsInferred)
+        {
+            descriptor.BindFieldsImplicitly();
+        }
+
         return descriptor.CreateDefinition();
     }
 

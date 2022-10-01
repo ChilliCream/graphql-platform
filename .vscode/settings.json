@@ -1,8 +1,23 @@
 {
-    "azureFunctions.deploySubpath": "templates/v12/function/bin/Release/net6.0/publish",
-    "azureFunctions.projectLanguage": "C#",
-    "azureFunctions.projectRuntime": "~4",
-    "debug.internalConsoleOptions": "neverOpen",
-    "azureFunctions.projectSubpath": "templates/v12/function",
-    "azureFunctions.preDeployTask": "publish (functions)"
+  "omnisharp.defaultLaunchSolution": "src/All.sln",
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/bower_components": true,
+    "**/*.code-search": true,
+    "**/PublicAPI*.txt": true
+  },
+  "editor.rulers": [100],
+  "files.trimTrailingWhitespace": true,
+  "files.associations": {
+    "*.*proj": "xml",
+    "*.props": "xml",
+    "*.targets": "xml",
+    "*.tasks": "xml"
+  },
+  "markdownlint.config": {
+    "MD028": false,
+    "MD025": {
+      "front_matter_title": ""
+    }
+  }
 }

@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ThrowHelper_MissingDirectiveIfArgument" xml:space="preserve">
-    <value>The {0}-directive is missing the if-argument.</value>
-  </data>
   <data name="ThrowHelper_FieldDoesNotExistOnType" xml:space="preserve">
     <value>Field `{0}` does not exist on type `{1}`.</value>
   </data>
@@ -302,5 +299,14 @@
   </data>
   <data name="OperationCompiler_OperationIdNullOrEmpty" xml:space="preserve">
     <value>Value cannot be null or empty.</value>
+  </data>
+  <data name="ThrowHelper_Operation_NoSelectionSet" xml:space="preserve">
+    <value>The specified selection does not have a selection set.</value>
+  </data>
+  <data name="ThrowHelper_JsonFormatter_ResultNotSupported" xml:space="preserve">
+    <value>The {0} only supports formatting `IQueryResult`.</value>
+  </data>
+  <data name="ResultBuilder_DataAndItemsNotAllowed" xml:space="preserve">
+    <value>Its not allowed to set `items` and `data` at the same time.</value>
   </data>
 </root>

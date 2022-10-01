@@ -54,7 +54,8 @@ internal sealed class DeferredFragment : DeferredExecutionTask
     protected override async Task ExecuteAsync(
         OperationContextOwner operationContextOwner,
         uint resultId,
-        uint parentResultId)
+        uint parentResultId,
+        uint patchId)
     {
         try
         {
@@ -80,7 +81,8 @@ internal sealed class DeferredFragment : DeferredExecutionTask
                     .SetLabel(Label)
                     .SetPath(Path)
                     .SetData(parentResult)
-                    .BuildResultBuilder();
+                    .SetPatchId(patchId)
+                    .BuildResult();
 
             // complete the task and provide the result
             operationContext.DeferredScheduler.Complete(new(resultId, parentResultId, result));

@@ -123,7 +123,7 @@ const IndexPage: FC = () => {
             <Link to="https://bananacakepop.com">
               <BananaCakePop shadow />
               <SlideContent>
-                <SlideTitle>Try Banana Cake Pop Preview 22</SlideTitle>
+                <SlideTitle>Try Banana Cake Pop</SlideTitle>
                 <SlideDescription>
                   Our GraphQL IDE to explore schemas, execute operations and get
                   deep performance insights.

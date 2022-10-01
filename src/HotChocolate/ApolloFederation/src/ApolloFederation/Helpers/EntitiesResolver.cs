@@ -31,10 +31,14 @@ internal static class EntitiesResolver
                     objectType.ContextData.TryGetValue(EntityResolver, out var value) &&
                     value is FieldResolverDelegate resolver)
                 {
-                    context.SetLocalState(TypeField, objectType);
-                    context.SetLocalState(DataField, current.Data);
+                    // We clone the resolver context here so that we can split the work
+                    // into sub tasks that can be awaited in parallel and produce separate results.
+                    var entityContext = context.Clone();
 
-                    tasks[i] = resolver.Invoke(new ResolverContextProxy(context)).AsTask();
+                    entityContext.SetLocalState(TypeField, objectType);
+                    entityContext.SetLocalState(DataField, current.Data);
+
+                    tasks[i] = resolver.Invoke(entityContext).AsTask();
                 }
                 else
                 {

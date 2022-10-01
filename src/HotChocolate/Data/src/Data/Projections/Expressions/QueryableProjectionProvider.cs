@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
 
 namespace HotChocolate.Data.Projections.Expressions;
 
@@ -26,7 +24,7 @@ public class QueryableProjectionProvider : ProjectionProvider
 
     public override FieldMiddleware CreateExecutor<TEntityType>()
     {
-        var applyProjection = CreateApplicatorAsync<TEntityType>();
+        var applyProjection = CreateApplicator<TEntityType>();
 
         return next => context => ExecuteAsync(next, context);
 
@@ -44,9 +42,8 @@ public class QueryableProjectionProvider : ProjectionProvider
         }
     }
 
-    private static ApplyProjection CreateApplicatorAsync<TEntityType>()
-    {
-        return (context, input) =>
+    private static ApplyProjection CreateApplicator<TEntityType>()
+        => (context, input) =>
         {
             if (input is null)
             {
@@ -55,12 +52,12 @@ public class QueryableProjectionProvider : ProjectionProvider
 
             // if projections are already applied we can skip
             var skipProjection =
-            context.LocalContextData.TryGetValue(SkipProjectionKey, out var skip) &&
-            skip is true;
+                context.LocalContextData.TryGetValue(SkipProjectionKey, out var skip) &&
+                skip is true;
 
             // ensure sorting is only applied once
             context.LocalContextData =
-            context.LocalContextData.SetItem(SkipProjectionKey, true);
+                context.LocalContextData.SetItem(SkipProjectionKey, true);
 
             if (skipProjection)
             {
@@ -72,22 +69,19 @@ public class QueryableProjectionProvider : ProjectionProvider
                     context,
                     context.ObjectType,
                     context.Selection.Type.UnwrapRuntimeType());
+
             var visitor = new QueryableProjectionVisitor();
+
             visitor.Visit(visitorContext);
 
-            var projection =
-                visitorContext.Project<TEntityType>();
+            var projection = visitorContext.Project<TEntityType>();
 
-            input = input switch
+            return input switch
             {
                 IQueryable<TEntityType> q => q.Select(projection),
                 IEnumerable<TEntityType> e => e.AsQueryable().Select(projection),
-                QueryableExecutable<TEntityType> ex =>
-                    ex.WithSource(ex.Source.Select(projection)),
+                QueryableExecutable<TEntityType> ex => ex.WithSource(ex.Source.Select(projection)),
                 _ => input
             };
-
-            return input;
         };
-    }
 }

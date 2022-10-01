@@ -34,9 +34,12 @@ public class DefaultDataLoaderRegistry : IDataLoaderRegistry
     {
         if (!_disposed)
         {
-            foreach (IDisposable disposable in _dataLoaders.Values.OfType<IDisposable>())
+            foreach (var value in _dataLoaders.Values)
             {
-                disposable.Dispose();
+                if (value is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
             }
             _disposed = true;
         }

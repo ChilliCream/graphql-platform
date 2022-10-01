@@ -17,7 +17,7 @@ public class QueryableProjectionVisitor : ProjectionVisitor<QueryableProjectionC
         var isAbstractType = field.Type.NamedType().IsAbstractType();
         if (isAbstractType && context.TryGetQueryableScope(out var scope))
         {
-            var selections = context.Context.GetSelections(objectType, selection, true);
+            var selections = context.ResolverContext.GetSelections(objectType, selection, true);
 
             if (selections.Count == 0)
             {

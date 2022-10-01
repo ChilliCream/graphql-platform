@@ -190,7 +190,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Baz, other.Baz));
+            return (global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Baz, other.Baz));
         }
 
         public override global::System.Int32 GetHashCode()

@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using static System.Runtime.InteropServices.MemoryMarshal;
 using static System.StringComparer;
 using static HotChocolate.Execution.Properties.Resources;
 using static HotChocolate.Execution.ThrowHelper;
@@ -29,8 +32,10 @@ public sealed partial class OperationCompiler
     private IncludeCondition[] _includeConditions = Array.Empty<IncludeCondition>();
     private CompilerContext? _deferContext;
     private int _nextSelectionId;
+    private int _nextSelectionSetRefId;
     private int _nextSelectionSetId;
     private int _nextFragmentId;
+    private bool _hasIncrementalParts;
 
     public OperationCompiler(InputParser parser)
     {
@@ -86,7 +91,7 @@ public sealed partial class OperationCompiler
 
             // collect root fields
             var rootPath = SelectionPath.Root;
-            var id = GetOrCreateSelectionSetId(operationDefinition.SelectionSet, rootPath);
+            var id = GetOrCreateSelectionSetRefId(operationDefinition.SelectionSet, rootPath);
             var variants = GetOrCreateSelectionVariants(id);
             SelectionSetInfo[] infos = { new(operationDefinition.SelectionSet, 0) };
 
@@ -120,8 +125,10 @@ public sealed partial class OperationCompiler
         finally
         {
             _nextSelectionId = 0;
-            _nextSelectionSetId = 0;
+            _nextSelectionSetRefId = 0;
+            _nextSelectionId = 0;
             _nextFragmentId = 0;
+            _hasIncrementalParts = false;
 
             _backlog.Clear();
             _selectionLookup.Clear();
@@ -173,23 +180,35 @@ public sealed partial class OperationCompiler
                 operationType,
                 variants,
                 _includeConditions,
-                _contextData);
+                _contextData,
+                _hasIncrementalParts);
 
             foreach (var item in _selectionVariants)
             {
                 variants[item.Key] = item.Value;
             }
 
+#if NET5_0_OR_GREATER
+            ref var optSpace = ref GetReference(CollectionsMarshal.AsSpan(_operationOptimizers));
+
+            for (var i = 0; i < _operationOptimizers.Count; i++)
+            {
+                Unsafe.Add(ref optSpace, i).OptimizeOperation(context);
+            }
+#else
             for (var i = 0; i < _operationOptimizers.Count; i++)
             {
                 _operationOptimizers[i].OptimizeOperation(context);
             }
+#endif
 
             CompleteResolvers(schema);
 
-            for (var i = 0; i < variants.Length; i++)
+            ref var varSpace = ref GetReference(variants.AsSpan());
+
+            for (var i = 0; i < _operationOptimizers.Count; i++)
             {
-                variants[i].Seal();
+                Unsafe.Add(ref varSpace, i).Seal();
             }
         }
 
@@ -200,11 +219,30 @@ public sealed partial class OperationCompiler
             operationType,
             variants,
             _includeConditions,
-            new Dictionary<string, object?>(_contextData));
+            new Dictionary<string, object?>(_contextData),
+            _hasIncrementalParts);
     }
 
     private void CompleteResolvers(ISchema schema)
     {
+#if NET5_0_OR_GREATER
+        ref var searchSpace = ref GetReference(CollectionsMarshal.AsSpan(_selections));
+
+        for (var i = 0; i < _selections.Count; i++)
+        {
+            var selection = Unsafe.Add(ref searchSpace, i);
+
+            if (selection.ResolverPipeline is null && selection.PureResolver is null)
+            {
+                var field = selection.Field;
+                var syntaxNode = selection.SyntaxNode;
+                var resolver = CreateFieldMiddleware(schema, field, syntaxNode);
+                var pureResolver = TryCreatePureField(field, syntaxNode);
+                selection.SetResolvers(resolver, pureResolver);
+            }
+        }
+
+#else
         foreach (var selection in _selections)
         {
             if (selection.ResolverPipeline is null && selection.PureResolver is null)
@@ -216,6 +254,7 @@ public sealed partial class OperationCompiler
                 selection.SetResolvers(resolver, pureResolver);
             }
         }
+#endif
     }
 
     private void CompileSelectionSet(CompilerContext context)
@@ -263,7 +302,7 @@ public sealed partial class OperationCompiler
                 }
 
                 var selectionPath = context.Path.Append(selection.ResponseName);
-                selectionSetId = GetOrCreateSelectionSetId(selection.SelectionSet, selectionPath);
+                selectionSetId = GetOrCreateSelectionSetRefId(selection.SelectionSet, selectionPath);
                 var selectionVariants = GetOrCreateSelectionVariants(selectionSetId);
                 var possibleTypes = context.Schema.GetPossibleTypes(fieldType);
 
@@ -289,7 +328,7 @@ public sealed partial class OperationCompiler
                 // For now we only allow streams on lists of composite types.
                 if (selection.SyntaxNode.IsStreamable())
                 {
-                     var streamDirective = selection.SyntaxNode.GetStreamDirective();
+                     var streamDirective = selection.SyntaxNode.GetStreamDirectiveNode();
                      var nullValue = NullValueNode.Default;
                      var ifValue = streamDirective?.GetIfArgumentValueOrDefault() ?? nullValue;
                      long ifConditionFlags = 0;
@@ -301,6 +340,7 @@ public sealed partial class OperationCompiler
                      }
 
                      selection.MarkAsStream(ifConditionFlags);
+                     _hasIncrementalParts = true;
                 }
             }
 
@@ -318,6 +358,7 @@ public sealed partial class OperationCompiler
         }
 
         context.SelectionVariants.AddSelectionSet(
+            _nextSelectionSetId++,
             context.Type,
             selections,
             fragments,
@@ -425,7 +466,7 @@ public sealed partial class OperationCompiler
                     responseName: responseName,
                     isParallelExecutable: field.IsParallelExecutable,
                     arguments: CoerceArgumentValues(field, selection, responseName),
-                    includeCondition: includeCondition);
+                    includeConditions: includeCondition == 0 ? null : new[] { includeCondition });
 
                 context.Fields.Add(responseName, preparedSelection);
 
@@ -490,7 +531,7 @@ public sealed partial class OperationCompiler
 
             if (directives.IsDeferrable())
             {
-                var deferDirective = directives.GetDeferDirective();
+                var deferDirective = directives.GetDeferDirectiveNode();
                 var nullValue = NullValueNode.Default;
                 var ifValue = deferDirective?.GetIfArgumentValueOrDefault() ?? nullValue;
 
@@ -501,7 +542,7 @@ public sealed partial class OperationCompiler
                     ifConditionFlags = GetSelectionIncludeCondition(ifCondition, includeCondition);
                 }
 
-                var id = GetOrCreateSelectionSetId(selectionSet, context.Path);
+                var id = GetOrCreateSelectionSetRefId(selectionSet, context.Path);
                 var variants = GetOrCreateSelectionVariants(id);
                 var infos = new SelectionSetInfo[] { new(selectionSet, includeCondition) };
 
@@ -524,6 +565,7 @@ public sealed partial class OperationCompiler
                     ifConditionFlags);
 
                 context.Fragments.Add(fragment);
+                _hasIncrementalParts = true;
 
                 // if we have if condition flags there will be a runtime validation if something
                 // shall be deferred, so we need to prepare for both cases.
@@ -586,13 +628,13 @@ public sealed partial class OperationCompiler
 
     private int GetNextFragmentId() => _nextFragmentId++;
 
-    private int GetOrCreateSelectionSetId(SelectionSetNode selectionSet, SelectionPath path)
+    private int GetOrCreateSelectionSetRefId(SelectionSetNode selectionSet, SelectionPath path)
     {
         var selectionSetRef = new SelectionSetRef(selectionSet, path);
 
         if (!_selectionSetIdLookup.TryGetValue(selectionSetRef, out var selectionSetId))
         {
-            selectionSetId = _nextSelectionSetId++;
+            selectionSetId = _nextSelectionSetRefId++;
             _selectionSetIdLookup.Add(selectionSetRef, selectionSetId);
         }
 

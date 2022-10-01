@@ -19,6 +19,8 @@ namespace HotChocolate.Types.Descriptors;
 /// <summary>
 /// The descriptor context is passed around during the schema creation and
 /// allows access to conventions and context data.
+///
+/// Essentially this is the schema building context.
 /// </summary>
 public sealed class DescriptorContext : IDescriptorContext
 {
@@ -28,6 +30,7 @@ public sealed class DescriptorContext : IDescriptorContext
 
     private readonly IServiceProvider _services;
 
+    private TypeDiscoveryHandler[]? _typeDiscoveryHandlers;
     private INamingConventions? _naming;
     private ITypeInspector? _inspector;
 
@@ -52,10 +55,9 @@ public sealed class DescriptorContext : IDescriptorContext
         ResolverCompiler = new DefaultResolverCompiler(
             services.GetService<IEnumerable<IParameterExpressionBuilder>>());
 
-        InputParser = services.GetService<InputParser>() ??
-            new InputParser(Services.GetTypeConverter());
-        InputFormatter = services.GetService<InputFormatter>() ??
-            new InputFormatter(Services.GetTypeConverter());
+        var typeConverter = Services.GetTypeConverter();
+        InputParser = services.GetService<InputParser>() ?? new InputParser(typeConverter);
+        InputFormatter = services.GetService<InputFormatter>() ?? new InputFormatter(typeConverter);
 
         schema.Completed += OnSchemaOnCompleted;
 
@@ -131,6 +133,10 @@ public sealed class DescriptorContext : IDescriptorContext
     public IDictionary<string, object?> ContextData { get; }
 
     /// <inheritdoc />
+    public ReadOnlySpan<TypeDiscoveryHandler> GetTypeDiscoveryHandlers()
+        => _typeDiscoveryHandlers ??= CreateTypeDiscoveryHandlers(this);
+
+    /// <inheritdoc />
     public bool TryGetSchemaDirective(
         DirectiveNode directiveNode,
         [NotNullWhen(true)] out ISchemaDirective? directive)
@@ -202,9 +208,7 @@ public sealed class DescriptorContext : IDescriptorContext
         createdConvention = null;
         extensions = new List<IConventionExtension>();
 
-        if (_cFactories.TryGetValue(
-            (typeof(T), scope),
-            out var factories))
+        if (_cFactories.TryGetValue((typeof(T), scope), out var factories))
         {
             for (var i = 0; i < factories.Count; i++)
             {
@@ -244,6 +248,34 @@ public sealed class DescriptorContext : IDescriptorContext
                 extensionConvention.Complete(context);
             }
         }
+    }
+
+    private static TypeDiscoveryHandler[] CreateTypeDiscoveryHandlers(
+        IDescriptorContext self)
+    {
+        TypeDiscoveryHandler[] array;
+
+        if (self.ContextData.TryGetValue(TypeDiscoveryHandlers, out var value) &&
+            value is IReadOnlyList<Func<IDescriptorContext, TypeDiscoveryHandler>> { Count: > 0 } h)
+        {
+            array = new TypeDiscoveryHandler[h.Count + 2];
+
+            for (var i = 0; i < h.Count; i++)
+            {
+                array[i] = h[i](self);
+            }
+
+            array[h.Count] = new ScalarTypeDiscoveryHandler(self.TypeInspector);
+            array[h.Count + 1] = new DefaultTypeDiscoveryHandler(self.TypeInspector);
+        }
+        else
+        {
+            array = new TypeDiscoveryHandler[2];
+            array[0] = new ScalarTypeDiscoveryHandler(self.TypeInspector);
+            array[1] = new DefaultTypeDiscoveryHandler(self.TypeInspector);
+        }
+
+        return array;
     }
 
     public void Dispose() => ResolverCompiler.Dispose();

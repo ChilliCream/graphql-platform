@@ -116,18 +116,18 @@ public class IdAttributeTests
                     QueryRequestBuilder.New()
                         .SetQuery(
                             @"query foo ($someId: ID! $someIntId: ID!) {
-                                    foo(input: {
-                                        someId: $someId someIds: [$someIntId]
-                                        someNullableId: $someId someNullableIds: [$someIntId] })
-                                    {
-                                        someId
-                                        someNullableId
-                                        ... on FooPayload {
-                                            someIds
-                                            someNullableIds
-                                        }
+                                foo(input: {
+                                    someId: $someId someIds: [$someIntId]
+                                    someNullableId: $someId someNullableIds: [$someIntId] })
+                                {
+                                    someId
+                                    someNullableId
+                                    ... on FooPayload {
+                                        someIds
+                                        someNullableIds
                                     }
-                                }")
+                                }
+                            }")
                         .SetVariableValue("someId", someId)
                         .SetVariableValue("someNullableId", null)
                         .SetVariableValue("someIntId", someIntId)
@@ -163,22 +163,22 @@ public class IdAttributeTests
                     QueryRequestBuilder.New()
                         .SetQuery(
                             @"query foo (
-                                    $someId: ID! $someIntId: ID!
-                                    $someNullableId: ID
-                                    $someNullableIntId: ID) {
-                                    foo(input: {
-                                        someId: $someId someIds: [$someIntId]
-                                        someNullableId: $someNullableId
-                                        someNullableIds: [$someNullableIntId, $someIntId] })
-                                    {
-                                        someId
-                                        someNullableId
-                                        ... on FooPayload {
-                                            someIds
-                                            someNullableIds
-                                        }
+                                $someId: ID! $someIntId: ID!
+                                $someNullableId: ID
+                                $someNullableIntId: ID) {
+                                foo(input: {
+                                    someId: $someId someIds: [$someIntId]
+                                    someNullableId: $someNullableId
+                                    someNullableIds: [$someNullableIntId, $someIntId] })
+                                {
+                                    someId
+                                    someNullableId
+                                    ... on FooPayload {
+                                        someIds
+                                        someNullableIds
                                     }
-                                }")
+                                }
+                            }")
                         .SetVariableValue("someId", someId)
                         .SetVariableValue("someNullableId", null)
                         .SetVariableValue("someIntId", someIntId)
@@ -496,7 +496,7 @@ public class IdAttributeTests
 
         private sealed class InterceptingFormatter : IInputValueFormatter
         {
-            public object? OnAfterDeserialize(object? runtimeValue) =>
+            public object? Format(object? runtimeValue) =>
                 runtimeValue is IEnumerable<string> list
                     ? list
                         .Select(x => new IdValue("x", "y", int.Parse(x)))

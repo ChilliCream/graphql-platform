@@ -128,7 +128,7 @@ public static class TypeNames
                                                           "Transport.WebSockets.Protocol.GraphQLWebSocketProtocolFactory";
 
     public const string SequenceEqual =
-        StrawberryShakeNamespace + "Helper.ComparisonHelper.SequenceEqual";
+        StrawberryShakeNamespace + "Internal.ComparisonHelper.SequenceEqual";
 
     public const string IEquatable = "global::System.IEquatable";
     public const string Type = "global::System.Type";
@@ -236,6 +236,9 @@ public static class TypeNames
         "Extensions.ServiceCollectionDescriptorExtensions.";
 
     public const string UseQuery = StrawberryShakeNamespace + "Razor." + nameof(UseQuery);
+
+    public const string UseSubscription =
+        StrawberryShakeNamespace + "Razor." + nameof(UseSubscription);
 
     public const string Upload = StrawberryShakeNamespace +  nameof(Upload);
 

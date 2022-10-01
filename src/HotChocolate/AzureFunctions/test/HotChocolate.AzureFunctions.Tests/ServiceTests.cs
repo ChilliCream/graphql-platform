@@ -1,7 +1,7 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Types;
-using Xunit;
+using static HotChocolate.AzureFunctions.Tests.Helpers.AzFuncTestHelper;
 
 namespace HotChocolate.AzureFunctions.Tests;
 
@@ -10,16 +10,14 @@ public class ServiceTests
     [Fact]
     public void AddGraphQLFunction_RegisterExecutor()
     {
-        var serviceCollection = new ServiceCollection();
-        
-        serviceCollection
-            .AddGraphQLFunction()
-            .AddQueryType(d => d.Name("Query").Field("test").Resolve("test"));
+        var serviceProvider =
+            CreateTestServiceCollectionWithGraphQLFunction()
+                .BuildServiceProvider();
 
-        var serviceProvider = serviceCollection.BuildServiceProvider();
+        // The executor should resolve without error as a Required service...
+        var requestExecutor = serviceProvider.GetRequiredService<IGraphQLRequestExecutor>();
 
-        // the executor should resolve without error
-        serviceProvider.GetRequiredService<IGraphQLRequestExecutor>();
+        Assert.Equal(nameof(DefaultGraphQLRequestExecutor), requestExecutor.GetType().Name);
     }
 
     [Fact]

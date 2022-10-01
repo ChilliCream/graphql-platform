@@ -178,19 +178,20 @@ public class SortInputTypeDescriptor<T>
             return;
         }
 
-        foreach (var property in Context.TypeInspector
-            .GetMembers(Definition.EntityType!)
-            .OfType<PropertyInfo>())
+        foreach (var member in Context.TypeInspector.GetMembers(Definition.EntityType!))
         {
-            if (handledProperties.Contains(property))
+            if (member is PropertyInfo property)
             {
-                continue;
-            }
+                if (handledProperties.Contains(property))
+                {
+                    continue;
+                }
 
-            if (TryCreateImplicitSorting(property, out var definition)
-                && !fields.ContainsKey(definition.Name))
-            {
-                fields[definition.Name] = definition;
+                if (TryCreateImplicitSorting(property, out var definition)
+                    && !fields.ContainsKey(definition.Name))
+                {
+                    fields[definition.Name] = definition;
+                }
             }
         }
     }
@@ -216,7 +217,7 @@ public class SortInputTypeDescriptor<T>
         }
 
         if (Context.TypeInspector.TryCreateTypeInfo(type, out var typeInfo) &&
-            typeInfo.GetExtendedType()?.IsList is {} isList)
+            typeInfo.GetExtendedType()?.IsList is { } isList)
         {
             if (type.IsClass && !isList)
             {

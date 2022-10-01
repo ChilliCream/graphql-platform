@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -71,7 +72,8 @@ internal sealed class DeferredStream : DeferredExecutionTask
     protected override async Task ExecuteAsync(
         OperationContextOwner operationContextOwner,
         uint resultId,
-        uint parentResultId)
+        uint parentResultId,
+        uint patchId)
     {
         var operationContext = operationContextOwner.OperationContext;
         var aborted = operationContext.RequestAborted;
@@ -93,20 +95,26 @@ internal sealed class DeferredStream : DeferredExecutionTask
                 return;
             }
 
+            var item = _task.ChildTask.ParentResult[0].Value!;
+
             var result = operationContext
                 .SetLabel(Label)
                 .SetPath(operationContext.PathFactory.Append(Path, Index))
-                .SetData((ObjectResult)_task.ChildTask.ParentResult[0].Value!)
-                .BuildResultBuilder();
+                .SetItems(new[] { item })
+                .SetPatchId(patchId)
+                .BuildResult();
 
-            _task.ChildTask.CompleteUnsafe();
+            await _task.ChildTask.CompleteUnsafeAsync().ConfigureAwait(false);
 
             // we will register this same task again to get the next item.
-            operationContext.DeferredScheduler.Register(this);
+            operationContext.DeferredScheduler.Register(this, patchId);
             operationContext.DeferredScheduler.Complete(new(resultId, parentResultId, result));
         }
-        catch
+        catch(Exception ex)
         {
+            var builder = operationContext.ErrorHandler.CreateUnexpectedError(ex);
+            var result = QueryResultBuilder.CreateError(builder.Build());
+            operationContext.DeferredScheduler.Complete(new(resultId, parentResultId, result));
             error = true;
         }
         finally

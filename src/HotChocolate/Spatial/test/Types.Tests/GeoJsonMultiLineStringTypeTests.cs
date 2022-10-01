@@ -31,7 +31,7 @@ public class GeoJsonMultiLineStringTypeTests
         // arrange
         var schema = SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
-            .BindClrType<Coordinate, GeoJsonPositionType>()
+            .BindRuntimeType<Coordinate, GeoJsonPositionType>()
             .AddType<GeoJsonMultiLineStringType>()
             .AddQueryType(d => d
                 .Name("Query")
@@ -76,7 +76,7 @@ public class GeoJsonMultiLineStringTypeTests
     public void MultiLineString_Execution_Tests() =>
         SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
-            .BindClrType<Coordinate, GeoJsonPositionType>()
+            .BindRuntimeType<Coordinate, GeoJsonPositionType>()
             .AddType<GeoJsonMultiLineStringType>()
             .AddQueryType(d => d
                 .Name("Query")

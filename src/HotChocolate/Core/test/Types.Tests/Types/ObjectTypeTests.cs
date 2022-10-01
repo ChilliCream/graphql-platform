@@ -5,17 +5,17 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-#if NETCOREAPP2_1
-using Snapshooter;
-#endif
 using Snapshooter.Xunit;
-using Xunit;
+using static HotChocolate.Types.FieldBindingFlags;
+using static HotChocolate.WellKnownContextData;
+using SnapshotExtensions = CookieCrumble.SnapshotExtensions;
 
 namespace HotChocolate.Types;
 
@@ -1148,7 +1148,7 @@ public class ObjectTypeTests : TypeTestBase
         var result = await executor.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ desc }")
-                .SetInitialValue(new Foo())
+                .SetGlobalState(InitialValue, new Foo())
                 .Create());
 
         // assert
@@ -1222,10 +1222,10 @@ public class ObjectTypeTests : TypeTestBase
         var descriptor = new Mock<IObjectTypeDescriptor<Foo>>();
 
         // act
-        Action a = () => descriptor.Object.Ignore(null);
+        void Action() => descriptor.Object.Ignore(null);
 
         // assert
-        Assert.Throws<ArgumentNullException>(a);
+        Assert.Throws<ArgumentNullException>(Action);
     }
 
     [Fact]
@@ -1370,15 +1370,16 @@ public class ObjectTypeTests : TypeTestBase
     {
         // arrange
         // act
-        Action action = () => SchemaBuilder.New()
-            .AddObjectType(t => t
-                .Name("abc")
-                .Field("def")
-                .Resolve((object)"ghi"))
-            .Create();
+        void Action()
+            => SchemaBuilder.New()
+                .AddObjectType(
+                    t => t.Name("abc")
+                        .Field("def")
+                        .Resolve((object)"ghi"))
+                .Create();
 
         // assert
-        Assert.Throws<SchemaException>(action)
+        Assert.Throws<SchemaException>(Action)
             .Errors.Select(t => new { t.Message, t.Code })
             .MatchSnapshot();
     }
@@ -1445,8 +1446,15 @@ public class ObjectTypeTests : TypeTestBase
         var result = await executor.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ bar baz }")
-                .SetInitialValue(new FooStruct { Qux = "Qux_Value", Baz = "Baz_Value" })
+                .SetGlobalState(
+                    InitialValue,
+                    new FooStruct
+                    {
+                        Qux = "Qux_Value",
+                        Baz = "Baz_Value"
+                    })
                 .Create());
+
         // assert
         result.ToJson().MatchSnapshot();
     }
@@ -1961,6 +1969,126 @@ public class ObjectTypeTests : TypeTestBase
         ex.Errors.Single().ToString().MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Static_Field_Inference_1()
+    {
+        // arrange
+        // act
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<WithStaticField>(d => d.BindFields(Instance | Static))
+                .BuildSchemaAsync();
+
+        // assert
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
+    [Fact]
+    public async Task Static_Field_Inference_2()
+    {
+        // arrange
+        // act
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<WithStaticField2>()
+                .BuildSchemaAsync();
+
+        // assert
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
+
+    [Fact]
+    public async Task Static_Field_Inference_3()
+    {
+        // arrange
+        // act
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<WithStaticField>()
+                .ModifyOptions(o => o.DefaultBindingBehavior = BindingBehavior.Explicit)
+                .BuildSchemaAsync();
+
+        // assert
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
+    [Fact]
+        public async Task Static_Field_Inference_3_Execute()
+        {
+            // arrange
+            // act
+            var result =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<WithStaticField>()
+                    .ModifyOptions(o => o.DefaultBindingBehavior = BindingBehavior.Explicit)
+                    .ExecuteRequestAsync("{ hello }");
+
+            // assert
+            SnapshotExtensions.MatchSnapshot(result);
+        }
+
+    [Fact]
+    public async Task Static_Field_Inference_4()
+    {
+        // arrange
+        // act
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<WithStaticField>()
+                .ModifyOptions(o =>
+                {
+                    o.DefaultBindingBehavior = BindingBehavior.Explicit;
+                    o.DefaultFieldBindingFlags = Instance | Static;
+                })
+                .BuildSchemaAsync();
+
+        // assert
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
+    [Fact]
+    public async Task Static_Field_Inference_4_Execute()
+    {
+        // arrange
+        // act
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<WithStaticField>()
+                .ModifyOptions(o =>
+                {
+                    o.DefaultBindingBehavior = BindingBehavior.Explicit;
+                    o.DefaultFieldBindingFlags = Instance | Static;
+                })
+                .ExecuteRequestAsync("{ hello staticHello }");
+
+        // assert
+        SnapshotExtensions.MatchSnapshot(result);
+    }
+
+    [Fact]
+    public async Task Static_Field_Inference_5()
+    {
+        // arrange
+        // act
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType()
+                .AddTypeExtension(typeof(BookQuery))
+                .ModifyOptions(o => o.DefaultFieldBindingFlags = InstanceAndStatic)
+                .BuildSchemaAsync();
+
+        // assert
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
     public class GenericFoo<T>
     {
         public T Value { get; }
@@ -2243,5 +2371,36 @@ public class ObjectTypeTests : TypeTestBase
     public class QueryWithDeprecatedArgumentsIllegal
     {
         public string Field([GraphQLDeprecated("Not longer allowed")] int deprecated) => "";
+    }
+
+    public class WithStaticField
+    {
+        public static string StaticHello() => "hello";
+
+        public string Hello() => "hello";
+    }
+
+    [ObjectType(IncludeStaticMembers = true)]
+    public class WithStaticField2
+    {
+        public static string StaticHello() => "hello";
+
+        public string Hello() => "hello";
+    }
+
+    [ExtendObjectType(OperationType.Query)]
+    public static class BookQuery
+    {
+        public static Book GetBook()
+            => new Book();
+    }
+
+    public class Book
+    {
+        public int Id { get; }
+
+        public string Title { get; set; }
+
+        public static bool IsComic => true;
     }
 }

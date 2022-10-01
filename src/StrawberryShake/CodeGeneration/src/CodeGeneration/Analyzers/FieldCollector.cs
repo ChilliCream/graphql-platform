@@ -222,7 +222,7 @@ internal sealed class FieldCollector
 
         if (DoesTypeApply(fragment.TypeCondition, type))
         {
-            var deferDirective = fragmentSpreadSyntax.Directives.GetDeferDirective();
+            var deferDirective = fragmentSpreadSyntax.Directives.GetDeferDirectiveNode();
             var nodes = new List<FragmentNode>();
             var fragmentNode = new FragmentNode(fragment, nodes, deferDirective);
             fragmentNodes.Add(fragmentNode);
@@ -247,7 +247,7 @@ internal sealed class FieldCollector
 
         if (DoesTypeApply(fragment.TypeCondition, type))
         {
-            var deferDirective = inlineFragmentSyntax.Directives.GetDeferDirective();
+            var deferDirective = inlineFragmentSyntax.Directives.GetDeferDirectiveNode();
             var nodes = new List<FragmentNode>();
             var fragmentNode = new FragmentNode(fragment, nodes, deferDirective);
             fragmentNodes.Add(fragmentNode);

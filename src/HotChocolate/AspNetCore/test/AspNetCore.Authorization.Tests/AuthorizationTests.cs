@@ -586,7 +586,7 @@ public class AuthorizationTests : ServerTestBase
         // act
         Action action = () =>
             AuthorizeSchemaBuilderExtensions
-                .AddAuthorizeDirectiveType(null);
+                .AddAuthorizeDirectiveType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);

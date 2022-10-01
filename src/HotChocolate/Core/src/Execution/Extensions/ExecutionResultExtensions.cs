@@ -9,8 +9,8 @@ namespace HotChocolate;
 
 public static class ExecutionResultExtensions
 {
-    private static readonly JsonQueryResultFormatter _formatter = new(false);
-    private static readonly JsonQueryResultFormatter _formatterIndented = new(true);
+    private static readonly JsonResultFormatter _formatter = new(false);
+    private static readonly JsonResultFormatter _formatterIndented = new(true);
 
     public static void WriteTo(
         this IQueryResult result,

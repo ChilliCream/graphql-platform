@@ -14,6 +14,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Data" />
     <InternalsVisibleTo Include="HotChocolate.Fusion" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Tests" />
     <InternalsVisibleTo Include="StrawberryShake.CodeGeneration" />
@@ -178,6 +179,9 @@
     </Compile>
     <Compile Update="Processing\OperationContext.Utilities.cs">
       <DependentUpon>OperationContext.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Serialization\JsonResultFormatter.FieldNames.cs">
+      <DependentUpon>JsonResultFormatter.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 

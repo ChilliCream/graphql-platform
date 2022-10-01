@@ -3,6 +3,7 @@ using static HotChocolate.WellKnownMiddleware;
 using static HotChocolate.Types.Descriptors.TypeReference;
 using static HotChocolate.Resolvers.FieldClassMiddlewareFactory;
 using static HotChocolate.Types.ErrorContextDataKeys;
+using static HotChocolate.Utilities.ThrowHelper;
 
 #nullable enable
 
@@ -10,6 +11,8 @@ namespace HotChocolate.Types;
 
 internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 {
+    private readonly HashSet<Type> _handled = new();
+    private readonly List<ErrorDefinition> _tempErrors = new();
     private TypeInitializer _typeInitializer = default!;
     private TypeRegistry _typeRegistry = default!;
     private TypeLookup _typeLookup = default!;
@@ -53,8 +56,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
     internal override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
         DefinitionBase? definition,
-        OperationType operationType,
-        IDictionary<string, object?> contextData)
+        OperationType operationType)
     {
         // if the type initialization resolved the root type we will capture its definition
         // so we can use it after the type extensions are merged into this type.
@@ -111,6 +113,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                 {
                     // if the mutation options indicate that we shall apply the mutation
                     // conventions we will start rewriting the field.
+                    ApplyResultMiddleware(mutationField);
                     TryApplyInputConvention(mutationField, mutationOptions);
                     TryApplyPayloadConvention(mutationField, cd?.PayloadFieldName, mutationOptions);
                 }
@@ -121,6 +124,38 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                 throw ThrowHelper.NonMutationFields(unprocessed);
             }
         }
+    }
+
+    private void ApplyResultMiddleware(ObjectFieldDefinition mutation)
+    {
+        var middlewareDef = new FieldMiddlewareDefinition(
+            next => async context =>
+            {
+                await next(context).ConfigureAwait(false);
+
+                if (context.Result is IMutationResult result)
+                {
+                    // by checking if it is not an error we can accept the default
+                    // value of the struct as null.
+                    if (!result.IsError)
+                    {
+                        context.Result = result.Value;
+                    }
+                    else
+                    {
+                        context.SetScopedState(Errors, result.Value);
+                        context.Result = MarkerObjects.ErrorObject;
+                    }
+                }
+
+                // we will replace null with our null marker object so
+                // that
+                context.Result ??= MarkerObjects.Null;
+            },
+            isRepeatable: false,
+            key: MutationResult);
+
+        mutation.MiddlewareDefinitions.Insert(0, middlewareDef);
     }
 
     private void TryApplyInputConvention(ObjectFieldDefinition mutation, Options options)
@@ -156,13 +191,14 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                     _ => new AggregateInputValueFormatter(argument.Formatters)
                 };
 
-            resolverArguments.Add(new ResolverArgument(
-                argument.Name,
-                new FieldCoordinate(inputTypeName, argument.Name),
-                _completionContext.GetType<IInputType>(argument.Type!),
-                runtimeType,
-                argument.DefaultValue,
-                formatter));
+            resolverArguments.Add(
+                new ResolverArgument(
+                    argument.Name,
+                    new FieldCoordinate(inputTypeName, argument.Name),
+                    _completionContext.GetType<IInputType>(argument.Type!),
+                    runtimeType,
+                    argument.DefaultValue,
+                    formatter));
         }
 
         var argumentMiddleware =
@@ -213,7 +249,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         {
             // create error type
             var errorTypeName = options.FormatErrorTypeName(mutation.Name);
-            RegisterType(CreateErrorType(errorTypeName, errorDefinitions));
+            RegisterErrorType(CreateErrorType(errorTypeName, errorDefinitions), mutation.Name);
             var errorListTypeRef = Parse($"[{errorTypeName}!]");
             errorField = new FieldDef(options.PayloadErrorsFieldName, errorListTypeRef);
 
@@ -261,7 +297,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
             inputFieldDef.RuntimeType =
                 argumentDef.RuntimeType ??
-                    argumentDef.Parameter?.ParameterType;
+                argumentDef.Parameter?.ParameterType;
 
             inputObjectDef.Fields.Add(inputFieldDef);
         }
@@ -283,8 +319,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             {
                 var parent = ctx.Parent<object?>();
 
-                if (ReferenceEquals(ErrorMiddleware.ErrorObject, parent) ||
-                    ReferenceEquals(MutationConventionMiddleware.Null, parent))
+                if (ReferenceEquals(MarkerObjects.ErrorObject, parent) ||
+                    ReferenceEquals(MarkerObjects.Null, parent))
                 {
                     return null;
                 }
@@ -354,15 +390,114 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         }
     }
 
-    private static IReadOnlyList<ErrorDefinition> GetErrorDefinitions(
+    private IReadOnlyList<ErrorDefinition> GetErrorDefinitions(
         ObjectFieldDefinition mutation)
     {
+        var errorTypes = GetErrorResultTypes(mutation);
+
         if (mutation.ContextData.TryGetValue(ErrorDefinitions, out var value) &&
             value is IReadOnlyList<ErrorDefinition> errorDefs)
         {
-            return errorDefs;
+            if (errorTypes.Length == 0)
+            {
+                return errorDefs;
+            }
+
+            _handled.Clear();
+            _tempErrors.Clear();
+
+            foreach (var errorDef in errorDefs)
+            {
+                _handled.Add(errorDef.RuntimeType);
+                _tempErrors.Add(errorDef);
+            }
+
+            CreateErrorDefinitions(errorTypes, _handled, _tempErrors);
+
+            return _tempErrors.ToArray();
         }
+
+        if (errorTypes.Length > 0)
+        {
+            _handled.Clear();
+            _tempErrors.Clear();
+
+            CreateErrorDefinitions(errorTypes, _handled, _tempErrors);
+
+            return _tempErrors.ToArray();
+        }
+
         return Array.Empty<ErrorDefinition>();
+
+        // ReSharper disable once VariableHidesOuterVariable
+        static void CreateErrorDefinitions(
+            Type[] errorTypes,
+            HashSet<Type> handled,
+            List<ErrorDefinition> tempErrors)
+        {
+            foreach (var errorType in errorTypes)
+            {
+                if (handled.Add(errorType))
+                {
+                    if (typeof(Exception).IsAssignableFrom(errorType))
+                    {
+                        var schemaType = typeof(ExceptionObjectType<>).MakeGenericType(errorType);
+                        var definition = new ErrorDefinition(
+                            errorType,
+                            schemaType,
+                            ex => ex.GetType() == errorType
+                                ? ex
+                                : null);
+                        tempErrors.Add(definition);
+                    }
+                    else
+                    {
+                        var schemaType = typeof(ErrorObjectType<>).MakeGenericType(errorType);
+                        var definition = new ErrorDefinition(
+                            errorType,
+                            schemaType,
+                            obj => obj);
+                        tempErrors.Add(definition);
+                    }
+                }
+            }
+        }
+    }
+
+    private static Type[] GetErrorResultTypes(ObjectFieldDefinition mutation)
+    {
+        var resultType = mutation.ResultType;
+
+        if (resultType?.IsGenericType ?? false)
+        {
+            var typeDefinition = resultType.GetGenericTypeDefinition();
+
+            if (typeDefinition == typeof(Task<>) || typeDefinition == typeof(ValueTask<>))
+            {
+                resultType = resultType.GenericTypeArguments[0];
+            }
+        }
+
+
+        if (resultType is { IsValueType: true, IsGenericType: true } &&
+            typeof(IMutationResult).IsAssignableFrom(resultType))
+        {
+            var types = resultType.GenericTypeArguments;
+
+            if (types.Length > 1)
+            {
+                var errorTypes = new Type[types.Length - 1];
+
+                for (var i = 1; i < types.Length; i++)
+                {
+                    errorTypes[i - 1] = types[i];
+                }
+
+                return errorTypes;
+            }
+        }
+
+        return Array.Empty<Type>();
     }
 
     private static Options CreateOptions(
@@ -412,6 +547,26 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
     {
         var registeredType = _typeInitializer.InitializeType(type);
         _typeInitializer.CompleteTypeName(registeredType);
+    }
+
+    private void RegisterErrorType(
+        TypeSystemObjectBase type,
+        string mutationName)
+    {
+        try
+        {
+            var registeredType = _typeInitializer.InitializeType(type);
+            _typeInitializer.CompleteTypeName(registeredType);
+        }
+        catch (SchemaException ex)
+            when (ex.Errors[0].Code.EqualsOrdinal(ErrorCodes.Schema.DuplicateTypeName))
+        {
+            throw TypeInitializer_MutationDuplicateErrorName(
+                type,
+                mutationName,
+                type.Name,
+                ex.Errors);
+        }
     }
 
     private ITypeReference EnsureNullable(ITypeReference typeRef)

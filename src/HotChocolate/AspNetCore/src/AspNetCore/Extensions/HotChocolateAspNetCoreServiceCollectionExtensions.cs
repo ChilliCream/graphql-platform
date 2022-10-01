@@ -38,8 +38,8 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         }
 
         services.AddGraphQLCore();
-        services.TryAddSingleton<IHttpResultSerializer>(
-            new DefaultHttpResultSerializer());
+        services.TryAddSingleton<IHttpResponseFormatter>(
+            new DefaultHttpResponseFormatter());
         services.TryAddSingleton<IHttpRequestParser>(
             sp => new DefaultHttpRequestParser(
                 sp.GetRequiredService<IDocumentCache>(),

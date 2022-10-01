@@ -32,7 +32,7 @@ public class GeoJsonMultiPolygonTypeTests
         // arrange
         var schema = SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
-            .BindClrType<Coordinate, GeoJsonPositionType>()
+            .BindRuntimeType<Coordinate, GeoJsonPositionType>()
             .AddType<GeoJsonMultiPolygonType>()
             .AddQueryType(
                 d => d
@@ -81,7 +81,7 @@ public class GeoJsonMultiPolygonTypeTests
         // arrange
         var schema = SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
-            .BindClrType<Coordinate, GeoJsonPositionType>()
+            .BindRuntimeType<Coordinate, GeoJsonPositionType>()
             .AddType<GeoJsonMultiPolygonType>()
             .AddQueryType(
                 d => d

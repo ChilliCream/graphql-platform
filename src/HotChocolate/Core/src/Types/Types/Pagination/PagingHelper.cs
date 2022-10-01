@@ -43,7 +43,7 @@ public static class PagingHelper
                     options,
                     placeholder),
                 definition,
-                ApplyConfigurationOn.Completion));
+                ApplyConfigurationOn.BeforeCompletion));
 
         return descriptor;
     }
@@ -100,10 +100,12 @@ public static class PagingHelper
             (typeof(IPagingHandler), handler));
 
     public static IExtendedType GetSchemaType(
-        ITypeInspector typeInspector,
+        IDescriptorContext context,
         MemberInfo? member,
         Type? type = null)
     {
+        var typeInspector = context.TypeInspector;
+
         if (type is null &&
             member is not null &&
             typeInspector.GetOutputReturnTypeRef(member) is ExtendedTypeReference r &&
@@ -122,10 +124,11 @@ public static class PagingHelper
             // It might be that we either are unable to infer or get the wrong type
             // in special cases. In the case we are getting it wrong the user has
             // to explicitly bind the type.
-            if (SchemaTypeResolver.TryInferSchemaType(
-                typeInspector,
+            if (context.TryInferSchemaType(
                 r.WithType(typeInspector.GetType(typeInfo.NamedType)),
-                out var schemaTypeRef))
+                out var schemaTypeRefs) &&
+                schemaTypeRefs is { Length:> 0 } &&
+                schemaTypeRefs[0] is ExtendedTypeReference schemaTypeRef)
             {
                 // if we are able to infer the type we will reconstruct its structure so that
                 // we can correctly extract from it the element type with the correct

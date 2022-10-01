@@ -2,17 +2,22 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using static HotChocolate.Types.WellKnownContextData;
+using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
+using static HotChocolate.WellKnownContextData;
 
 #nullable enable
 
 namespace HotChocolate.Types.Relay;
 
+/// <summary>
+/// This class provides internal helpers to apply value rewriter on input and output types
+/// so that node IDs are correctly encoded or decoded.
+/// </summary>
 internal static class RelayIdFieldHelpers
 {
     private static IdSerializer? _idSerializer;
@@ -24,9 +29,6 @@ internal static class RelayIdFieldHelpers
     /// <remarks>
     /// You most likely want to call `<c>.ID()</c>` directly and do not use this helper
     /// </remarks>
-    /// <param name="descriptor"></param>
-    /// <param name="typeName"></param>
-    /// <exception cref="ArgumentNullException"></exception>
     public static void ApplyIdToField(
         IDescriptor<ArgumentDefinition> descriptor,
         string? typeName = default)
@@ -55,9 +57,6 @@ internal static class RelayIdFieldHelpers
     /// <remarks>
     /// You most likely want to call `<c>.ID()</c>` directly and do not use this helper
     /// </remarks>
-    /// <param name="descriptor"></param>
-    /// <param name="typeName"></param>
-    /// <exception cref="ArgumentNullException"></exception>
     public static void ApplyIdToField(
         IDescriptor<OutputFieldDefinitionBase> descriptor,
         string? typeName = default)
@@ -77,13 +76,38 @@ internal static class RelayIdFieldHelpers
             // add serializer if globalID support is enabled.
             if (extend.Context.ContextData.ContainsKey(GlobalIdSupportEnabled))
             {
-                ResultConverterDefinition placeholder =
-                    new((_, r) => r, key: WellKnownMiddleware.GlobalId, isRepeatable: false);
-                extend.Definition.ResultConverters.Add(placeholder);
-                extend.OnBeforeCompletion(
-                    (c, d) => AddSerializerToObjectField(c, d, placeholder, typeName));
+                ApplyIdToField(extend.Definition, typeName);
             }
         }
+    }
+
+    /// <summary>
+    /// Applies the <see cref="RelayIdFieldExtensions"><c>.ID()</c></see> to a argument
+    /// descriptor
+    /// </summary>
+    /// <remarks>
+    /// You most likely want to call `<c>.ID()</c>` directly and do not use this helper
+    /// </remarks>
+    internal static void ApplyIdToField(
+        ObjectFieldDefinition definition,
+        string? typeName = default)
+    {
+        var placeholder = new ResultFormatterDefinition(
+            (_, r) => r,
+            isRepeatable: false,
+            key: WellKnownMiddleware.GlobalId);
+        definition.FormatterDefinitions.Add(placeholder);
+
+        var configuration = new CompleteConfiguration(
+            (ctx, def) => AddSerializerToObjectField(
+                ctx,
+                (ObjectFieldDefinition)def,
+                placeholder,
+                typeName),
+            definition,
+            ApplyConfigurationOn.BeforeCompletion);
+
+        definition.Configurations.Add(configuration);
     }
 
     private static void RewriteDefinition(
@@ -98,9 +122,7 @@ internal static class RelayIdFieldHelpers
         }
         else
         {
-            throw new SchemaException(SchemaErrorBuilder.New()
-                .SetMessage("Unable to resolve type from field `{0}`.", definition.Name)
-                .Build());
+            throw ThrowHelper.RelayIdFieldHelpers_NoFieldType(definition.Name);
         }
     }
 
@@ -126,7 +148,7 @@ internal static class RelayIdFieldHelpers
         return typeInspector.GetType(current);
     }
 
-    private static void AddSerializerToInputField(
+    internal static void AddSerializerToInputField(
         ITypeCompletionContext completionContext,
         ArgumentDefinition definition,
         string? typeName)
@@ -152,10 +174,9 @@ internal static class RelayIdFieldHelpers
         }
         else
         {
-            throw new SchemaException(SchemaErrorBuilder.New()
-                .SetMessage("Unable to resolve type from field `{0}`.", definition.Name)
-                .SetTypeSystemObject(completionContext.Type)
-                .Build());
+            throw ThrowHelper.RelayIdFieldHelpers_NoFieldType(
+                definition.Name,
+                completionContext.Type);
         }
 
         definition.Formatters.Add(CreateSerializer(completionContext, resultType, typeName));
@@ -164,7 +185,7 @@ internal static class RelayIdFieldHelpers
     private static void AddSerializerToObjectField(
         ITypeCompletionContext completionContext,
         ObjectFieldDefinition definition,
-        ResultConverterDefinition placeholder,
+        ResultFormatterDefinition placeholder,
         string? typeName)
     {
         var typeInspector = completionContext.TypeInspector;
@@ -180,10 +201,9 @@ internal static class RelayIdFieldHelpers
         }
         else
         {
-            throw new SchemaException(SchemaErrorBuilder.New()
-                .SetMessage("Unable to resolve type from field `{0}`.", definition.Name)
-                .SetTypeSystemObject(completionContext.Type)
-                .Build());
+            throw ThrowHelper.RelayIdFieldHelpers_NoFieldType(
+                definition.Name,
+                completionContext.Type);
         }
 
         string? schemaName = default;
@@ -193,11 +213,11 @@ internal static class RelayIdFieldHelpers
         var serializer =
             completionContext.Services.GetService<IIdSerializer>() ??
             new IdSerializer();
-        var index = definition.ResultConverters.IndexOf(placeholder);
+        var index = definition.FormatterDefinitions.IndexOf(placeholder);
 
         typeName ??= completionContext.Type.Name;
 
-        definition.ResultConverters[index] = new((_, result) =>
+        definition.FormatterDefinitions[index] = new((_, result) =>
             {
                 if (result is not null)
                 {
@@ -220,8 +240,8 @@ internal static class RelayIdFieldHelpers
 
                 return result;
             },
-            key: WellKnownMiddleware.GlobalId,
-            isRepeatable: false);
+            isRepeatable: false,
+            key: WellKnownMiddleware.GlobalId);
     }
 
     private static IInputValueFormatter CreateSerializer(

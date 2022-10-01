@@ -147,7 +147,7 @@ public class SortInputType
             new CompleteConfiguration<SortInputTypeDefinition>(
                 CreateNamingConfiguration,
                 sortTypeDefinition,
-                ApplyConfigurationOn.Naming,
+                ApplyConfigurationOn.BeforeNaming,
                 new TypeDependency[]
                 {
                     new(sortOperationType, TypeDependencyKind.Named),

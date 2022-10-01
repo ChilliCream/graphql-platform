@@ -13,7 +13,7 @@ internal static class HttpResponseExtensions
     private static readonly JsonSerializerOptions _serializerOptions = new()
     {
 #if NETCOREAPP3_1
-            IgnoreNullValues = true,
+        IgnoreNullValues = true,
 #else
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
 #endif

@@ -1,6 +1,9 @@
 {
   "recommendations": [
-    "ms-azuretools.vscode-azurefunctions",
-    "ms-dotnettools.csharp"
+    "ms-dotnettools.csharp",
+    "EditorConfig.EditorConfig",
+    "k--kato.docomment",
+    "dbaeumer.vscode-eslint",
+    "josefpihrt-vscode.roslynator"
   ]
 }

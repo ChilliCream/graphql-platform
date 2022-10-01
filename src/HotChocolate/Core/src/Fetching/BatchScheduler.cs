@@ -20,11 +20,29 @@ public class BatchScheduler
     private const int _waitTimeout = 30_000;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly object _sync = new();
+    private readonly object _syncTaskEnqueued = new();
     private readonly List<Func<ValueTask>> _tasks = new();
     private bool _dispatchOnSchedule;
+    private readonly List<EventHandler> _listeners = new();
 
     /// <inheritdoc />
-    public event EventHandler? TaskEnqueued;
+    public event EventHandler TaskEnqueued
+    {
+        add
+        {
+            lock (_syncTaskEnqueued)
+            {
+                _listeners.Add(value);
+            }
+        }
+        remove
+        {
+            lock (_syncTaskEnqueued)
+            {
+                _listeners.Remove(value);
+            }
+        }
+    }
 
     /// <inheritdoc />
     public bool DispatchOnSchedule
@@ -62,7 +80,20 @@ public class BatchScheduler
         }
         else
         {
-            TaskEnqueued?.Invoke(this, EventArgs.Empty);
+            lock (_syncTaskEnqueued)
+            {
+                for (var i = 0; i < _listeners.Count; i++)
+                {
+                    try
+                    {
+                        _listeners[i].Invoke(this, EventArgs.Empty);
+                    }
+                    catch
+                    {
+                        // ignored
+                    }
+                }
+            }
         }
     }
 
@@ -132,9 +163,9 @@ public class BatchScheduler
         await Task.Yield();
 
         // First we will get a list to hold on to the tasks.
-        List<Task<Exception?>> processing = Exchange(ref _localProcessing, null) ?? new();
+        var processing = Exchange(ref _localProcessing, null) ?? new();
 
-        foreach (Func<ValueTask> task in tasks)
+        foreach (var task in tasks)
         {
             processing.Add(ExecuteBatchAsync(task, cancellationToken));
         }

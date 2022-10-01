@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace StrawberryShake.Serialization;
 
 public class BooleanSerializerTests
@@ -63,7 +61,7 @@ public class BooleanSerializerTests
         var serializer = new BooleanSerializer();
 
         // act
-        string typeName = serializer.TypeName;
+        var typeName = serializer.TypeName;
 
         // assert
         Assert.Equal("Boolean", typeName);
@@ -76,7 +74,7 @@ public class BooleanSerializerTests
         var serializer = new BooleanSerializer("Abc");
 
         // act
-        string typeName = serializer.TypeName;
+        var typeName = serializer.TypeName;
 
         // assert
         Assert.Equal("Abc", typeName);

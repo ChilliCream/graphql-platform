@@ -25,7 +25,7 @@ public static class OperationDescriptorMapper
                         var namedTypeDescriptor =
                             context.Types.Single(type => type.Name.EqualsOrdinal(typeName));
 
-                        hasUpload = namedTypeDescriptor.HasUpload();
+                        hasUpload = hasUpload || namedTypeDescriptor.HasUpload();
 
                         return new PropertyDescriptor(
                             arg.Name,

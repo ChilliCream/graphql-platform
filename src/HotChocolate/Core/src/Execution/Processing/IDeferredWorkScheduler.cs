@@ -7,9 +7,19 @@ namespace HotChocolate.Execution.Processing;
 /// </summary>
 internal interface IDeferredWorkScheduler
 {
+    /// <summary>
+    /// Specifies if there was deferred work enqueued.
+    /// </summary>
     bool HasResults { get; }
 
-    void Register(DeferredExecutionTask task);
+    /// <summary>
+    /// Registers deferred work
+    /// </summary>
+    /// <param name="task"></param>
+    /// <param name="parentResult"></param>
+    void Register(DeferredExecutionTask task, ResultData parentResult);
+
+    void Register(DeferredExecutionTask task, uint patchId);
 
     void Complete(DeferredExecutionTaskResult result);
 
@@ -21,7 +31,7 @@ internal readonly struct DeferredExecutionTaskResult
     public DeferredExecutionTaskResult(
         uint taskId,
         uint parentTaskId,
-        IQueryResultBuilder? result = null)
+        IQueryResult? result = null)
     {
         TaskId = taskId;
         ParentTaskId = parentTaskId;
@@ -32,5 +42,5 @@ internal readonly struct DeferredExecutionTaskResult
 
     public  uint ParentTaskId { get; }
 
-    public IQueryResultBuilder? Result { get; }
+    public IQueryResult? Result { get; }
 }

@@ -632,7 +632,11 @@ public class DefaultTypeInspectorTests
         var typeInspector = new DefaultTypeInspector();
 
         // act
-        var members = typeInspector.GetMembers(typeof(DoNotInfer)).ToList();
+        var members = new List<MemberInfo>();
+        foreach (var member in typeInspector.GetMembers(typeof(DoNotInfer)))
+        {
+            members.Add(member);
+        }
 
         // assert
         Assert.Collection(
@@ -768,7 +772,7 @@ public class DefaultTypeInspectorTests
 
         public string DoInfer() => "abc";
 
-        public void ReturnsVoid() {}
+        public void ReturnsVoid() { }
 
         public object ObjectProp { get; } = null;
 

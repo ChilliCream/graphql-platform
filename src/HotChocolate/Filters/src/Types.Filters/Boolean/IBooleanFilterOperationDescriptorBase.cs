@@ -5,7 +5,7 @@ namespace HotChocolate.Types.Filters;
 
 [Obsolete("Use HotChocolate.Data.")]
 public interface IBooleanFilterOperationDescriptorBase
-    : IDescriptor<FilterOperationDefintion>
+    : IDescriptor<FilterOperationDefinition>
         , IFluent
 {
     /// <summary>

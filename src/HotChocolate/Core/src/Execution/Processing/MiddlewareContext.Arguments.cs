@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -136,5 +137,58 @@ internal partial class MiddlewareContext
         var original = Arguments;
         Arguments = argumentValues;
         return original;
+    }
+
+    public ArgumentValue ReplaceArgument(string argumentName, ArgumentValue newArgumentValue)
+    {
+        if (string.IsNullOrEmpty(argumentName))
+        {
+            throw new ArgumentNullException(nameof(argumentName));
+        }
+
+        if (newArgumentValue is null)
+        {
+            throw new ArgumentNullException(nameof(newArgumentValue));
+        }
+
+        Dictionary<string, ArgumentValue> mutableArguments;
+
+        // if the arguments is a dictionary instance we will take it a mutable and will
+        // replace in-place.
+        if (Arguments is Dictionary<string, ArgumentValue> casted)
+        {
+            mutableArguments = casted;
+        }
+
+        // if we have no mutable argument map we will create a new dictionary and
+        // copy the argument state.
+        else
+        {
+#if NETSTANDARD2_0
+            mutableArguments = Arguments.ToDictionary(t => t.Key, t => t.Value);
+#else
+            mutableArguments = new Dictionary<string, ArgumentValue>(Arguments);
+#endif
+            Arguments = mutableArguments;
+        }
+
+        if (!mutableArguments.TryGetValue(argumentName, out var argumentValue))
+        {
+            // TODO : Exception / throw helper
+            throw new ArgumentException(
+                "There is no argument with the name `{argumentName}`.",
+                nameof(argumentName));
+        }
+
+        // we remove the original argument name ...
+        mutableArguments.Remove(argumentName);
+
+        // and allow the argument to be replaces with a new argument that could also have
+        // a new name.
+        mutableArguments.Add(newArgumentValue.Name, newArgumentValue);
+
+        // we return the old argument so that a middleware is able to restore the argument
+        // state at some point.
+        return argumentValue;
     }
 }

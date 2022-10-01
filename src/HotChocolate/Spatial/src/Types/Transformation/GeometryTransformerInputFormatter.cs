@@ -20,7 +20,7 @@ internal class GeometryTransformerInputFormatter : IInputValueFormatter
     }
 
     /// <inheritdoc />
-    public object? OnAfterDeserialize(object? runtimeValue)
+    public object? Format(object? runtimeValue)
     {
         TransformInPlace(runtimeValue, _targetCrs);
         return runtimeValue;

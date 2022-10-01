@@ -1,15 +1,19 @@
-﻿Result 1:
+Result 1
+---------------
 {"data":{"hero":{"name":"R2-D2","friends":{"nodes":[{"name":"Luke Skywalker"},{"name":"Han Solo"},{"name":"Leia Organa"}]}}},"hasNext":true}
+---------------
 
-Result 2:
-{"label":"HeroAppearsIn","path":["hero"],"data":{"appearsIn":["NEW_HOPE","EMPIRE","JEDI"]},"hasNext":true}
-
-Result 3:
+Result 2
+---------------
 {"label":"HeroAppearsIn2","path":["hero","friends","nodes",0],"data":{"appearsIn":["NEW_HOPE","EMPIRE","JEDI"]},"hasNext":true}
+---------------
 
-Result 4:
+Result 3
+---------------
 {"label":"HeroAppearsIn2","path":["hero","friends","nodes",1],"data":{"appearsIn":["NEW_HOPE","EMPIRE","JEDI"]},"hasNext":true}
+---------------
 
-Result 5:
-{"label":"HeroAppearsIn2","path":["hero","friends","nodes",2],"data":{"appearsIn":["NEW_HOPE","EMPIRE","JEDI"]},"hasNext":false}
-
+Result 4
+---------------
+{"label":"HeroAppearsIn2","path":["hero","friends","nodes",2],"data":{"appearsIn":["NEW_HOPE","EMPIRE","JEDI"]},"hasNext":true}
+---------------

@@ -29,7 +29,7 @@ internal class GlobalIdInputValueFormatter : IInputValueFormatter
         _createList = CreateListFactory(resultType);
     }
 
-    public object? OnAfterDeserialize(object? runtimeValue)
+    public object? Format(object? runtimeValue)
     {
         if (runtimeValue is null)
         {

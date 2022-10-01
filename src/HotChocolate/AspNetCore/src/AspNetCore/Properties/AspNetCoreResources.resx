@@ -3,7 +3,7 @@
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:element name="root" msdata:IsDataSet="true">
-      
+
     </xsd:element>
   </xsd:schema>
   <resheader name="resmimetype">
@@ -75,12 +75,6 @@
   <data name="ErrorHelper_RequestHasNoElements" xml:space="preserve">
     <value>The GraphQL batch request has no elements.</value>
   </data>
-  <data name="ErrorHelper_ResponseTypeNotSupported" xml:space="preserve">
-    <value>The response type is not supported.</value>
-  </data>
-  <data name="Subscription_SendResultsAsync" xml:space="preserve">
-    <value>Unexpected Execution Error</value>
-  </data>
   <data name="WebSocketSession_SessionEnded" xml:space="preserve">
     <value>Session ended.</value>
   </data>
@@ -119,5 +113,29 @@
   </data>
   <data name="ConnectionStatus_Reject_MessageCannotBeNullOrEmpty" xml:space="preserve">
     <value>Message cannot be null or empty.</value>
+  </data>
+  <data name="ErrorHelper_NoSupportedAcceptMediaType" xml:space="preserve">
+    <value>None of the proved accept header media types is supported.</value>
+  </data>
+  <data name="ThrowHelper_Formatter_ResultKindNotSupported" xml:space="preserve">
+    <value>The execution result kind is not supported.</value>
+  </data>
+  <data name="ThrowHelper_Formatter_ResponseContentTypeNotSupported" xml:space="preserve">
+    <value>The specified response content-type `{0}` is not supported.</value>
+  </data>
+  <data name="ThrowHelper_Formatter_InvalidAcceptMediaType" xml:space="preserve">
+    <value>Invalid accept media types specified.</value>
+  </data>
+  <data name="ErrorHelper_InvalidAcceptMediaType" xml:space="preserve">
+    <value>Unable to parse the accept header value `{0}`.</value>
+  </data>
+  <data name="ErrorHelper_TypeNotFound" xml:space="preserve">
+    <value>The type `{0}` does not exist.</value>
+  </data>
+  <data name="ErrorHelper_InvalidTypeName" xml:space="preserve">
+    <value>The type name is invalid.</value>
+  </data>
+  <data name="ErrorHelper_TypeNameIsEmpty" xml:space="preserve">
+    <value>The specified types argument is empty.</value>
   </data>
 </root>

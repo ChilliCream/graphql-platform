@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -106,7 +107,7 @@ public class DefinitionBase : IDefinition
     {
         if (_contextData is null)
         {
-            return ExtensionData.Empty;
+            return ImmutableDictionary<string, object?>.Empty;
         }
 
         return _contextData;
