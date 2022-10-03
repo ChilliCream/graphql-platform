@@ -73,7 +73,7 @@ If you think that through you can see that each GraphQL request would cause mult
 
 This, means that we reduced the roundtrips from our client to our server with GraphQL but multiplied the roundtrips between the data sources and the service layer.
 
-With _DataLoaders_ we can now centralise our person fetching and reduce the number of round trips to our data source.
+With _DataLoaders_ we can now centralize our person fetching and reduce the number of round trips to our data source.
 
 First, we have to create a _DataLoader_ that now acts as intermediary between a field resolver and the data source.
 
@@ -251,5 +251,3 @@ From a design standpoint you should avoid accessing this directly and think abou
 
 I will write some more on dependency injection sometime later this week.
 
-[hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/hotchocolate
