@@ -50,7 +50,7 @@ type Consultant {
 }
 ```
 
-In real life this schema would boast a lot more information about our customer but this will surfice for our little demo.
+In real life this schema would boast a lot more information about our customer but this will surface for our little demo.
 
 And our second schema dealing with the insurance contracts looks like the following:
 
@@ -353,4 +353,3 @@ The following query might be a good starting point since it will expose the ids 
 ```
 
 If you have further questions or need help you join our slack channel.
-
