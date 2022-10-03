@@ -146,7 +146,7 @@ public class MyExecutionEventListener : ExecutionDiagnosticEventListener
 }
 ```
 
-The following methods can be overriden.
+The following methods can be overridden.
 
 | Method name                         | Description                                                                                                                                    |
 | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -212,7 +212,7 @@ public class MyDataLoaderEventListener : DataLoaderDiagnosticEventListener
 }
 ```
 
-The following methods can be overriden.
+The following methods can be overridden.
 
 | Method name           | Description                                                                                                     |
 | --------------------- | --------------------------------------------------------------------------------------------------------------- |
