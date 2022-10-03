@@ -42,7 +42,7 @@ In our example we are using the new .NET CLI local tools. `dotnet new tool-manif
 
 This is the great thing about local tools if you think about it, you can install tools to your repository and have always the right set of tools available to you in the moment you clone that repository.
 
-The next command `dotnet tool install StrawberryShake.Tools --version 11.0.0-preview.58 --local` installs our _Strawberry Shake_ tools. Once we have a final release of _Strawberry Shake_ you do not need to speciefy the version anymore.
+The next command `dotnet tool install StrawberryShake.Tools --version 11.0.0-preview.58 --local` installs our _Strawberry Shake_ tools. Once we have a final release of _Strawberry Shake_ you do not need to specify the version anymore.
 
 Next we need a little project. Let’s create a new console application so that we can easily run and debug what we are doing.
 
