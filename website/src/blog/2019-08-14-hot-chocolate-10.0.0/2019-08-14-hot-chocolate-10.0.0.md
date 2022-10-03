@@ -346,7 +346,7 @@ The second thing we already started work on is a client API for .NET Core. We ar
 
 ## Banana Cakepop
 
-**Oh, didn`t you forget something?**
+**Oh, didn't you forget something?**
 
 Yes, yes originally, we had planned to release _Banana Cakepop_ alongside this version. We ran into some performance issues with the tree we originally selected when using large schemas with more than 1000 types.
 
@@ -364,5 +364,3 @@ Furthermore, we will rework our `Utf8GraphQLReader` to use `ReadOnlySequence<byt
 
 If you want to get into contact with us head over to our slack channel and join our community.
 
-[hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/hotchocolate
