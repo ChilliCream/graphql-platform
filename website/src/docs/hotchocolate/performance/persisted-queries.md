@@ -28,7 +28,7 @@ allowfullscreen></iframe>
 **Performance**
 
 - Only a hash and optionally variables need to be sent to the server, reducing network traffic.
-- Queries no longer need to be embeded into the client code, reducing the bundle size in the case of websites.
+- Queries no longer need to be embedded into the client code, reducing the bundle size in the case of websites.
 - Hot Chocolate can optimize the execution of persisted queries, as they will always be the same.
 
 <!-- **Security**
