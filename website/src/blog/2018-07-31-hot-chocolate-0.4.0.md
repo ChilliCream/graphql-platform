@@ -38,7 +38,7 @@ type Person {
 
 The above schema allows to fetch a person by its internal identifier and each person has a list of friends that is represented by a list of persons.
 
-Since GraphQL requests are not fixed requests like REST requests, the developer really defines what data he/she wants. This avoids over-fetching data that you do not need and also saves you unecessary roundtrips to the GraphQL backend.
+Since GraphQL requests are not fixed requests like REST requests, the developer really defines what data he/she wants. This avoids over-fetching data that you do not need and also saves you unnecessary roundtrips to the GraphQL backend.
 
 So, a query against the above schema could look like the following:
 
