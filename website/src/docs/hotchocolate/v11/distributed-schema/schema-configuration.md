@@ -110,7 +110,7 @@ type Query {
 }
 ```
 
-Hot Chocolate will autoresolve the nameing conflict by prefixing the field with the schema name:
+Hot Chocolate will autoresolve the naming conflict by prefixing the field with the schema name:
 
 ```sdl
 type Query {
