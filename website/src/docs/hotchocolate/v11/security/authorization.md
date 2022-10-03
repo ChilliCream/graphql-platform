@@ -282,9 +282,9 @@ public class UserType : ObjectType<User>
 
 ```sdl
 type User
-	@authorize(policy: "AtLeast21")
-	@authorize(policy: "HasCountry") {
-	name: String!
+ @authorize(policy: "AtLeast21")
+ @authorize(policy: "HasCountry") {
+ name: String!
 }
 ```
 
@@ -335,7 +335,7 @@ public class Startup
 
 > ⚠️ Note: This will also block unauthenticated access to GraphQL IDEs hosted on that endpoint, like Banana Cake Pop.
 
-This method also accepts [roles](#roles) and [policies](#policies) as arguments, similiar to the `Authorize` attribute / methods.
+This method also accepts [roles](#roles) and [policies](#policies) as arguments, similar to the `Authorize` attribute / methods.
 
 # Modifying the ClaimsPrincipal
 
