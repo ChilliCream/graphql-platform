@@ -38,7 +38,7 @@ type Person {
 
 The above schema allows to fetch a person by its internal identifier and each person has a list of friends that is represented by a list of persons.
 
-Since GraphQL requests are not fixed requests like REST requests, the developer really defines what data he/she wants. This avoids overfetching data that you do not need and also saves you unecessary roundtrips to the GraphQL backend.
+Since GraphQL requests are not fixed requests like REST requests, the developer really defines what data he/she wants. This avoids over-fetching data that you do not need and also saves you unecessary roundtrips to the GraphQL backend.
 
 So, a query against the above schema could look like the following:
 
@@ -250,4 +250,3 @@ It is important to know that http related services are only available if the exe
 From a design standpoint you should avoid accessing this directly and think about a custom context object which would provide some abstraction.
 
 I will write some more on dependency injection sometime later this week.
-
