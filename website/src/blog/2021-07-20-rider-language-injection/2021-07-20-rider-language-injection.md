@@ -20,7 +20,7 @@ authorImageUrl: https://avatars0.githubusercontent.com/u/14233220
 ---
 
 This post will show you how JetBrains Rider can make your life a little easier when working with GraphQL queries in string literals.
-![Syntax Highliting in String Literals](./header.png)
+![Syntax Highlighting in String Literals](./header.png)
 
 ## Testing is hard
 
