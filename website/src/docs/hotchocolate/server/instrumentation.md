@@ -41,7 +41,7 @@ public class MyExecutionEventListener : ExecutionDiagnosticEventListener
     public override void RequestError(IRequestContext context,
         Exception exception)
     {
-        _logger.LogError(exception, "A request error occured!");
+        _logger.LogError(exception, "A request error occurred!");
     }
 }
 ```
@@ -156,7 +156,7 @@ The following methods can be overridden.
 | ParseDocument                       | Scope that encloses the parsing of a document.                                                                                                 |
 | SyntaxError                         | Called if a document could not be parsed due to a syntax error.                                                                                |
 | ValidateDocument                    | Scope that encloses the validation of a document.                                                                                              |
-| ValidationErrors                    | Called if errors occured during the validation of the document.                                                                                |
+| ValidationErrors                    | Called if errors occurred during the validation of the document.                                                                                |
 | AnalyzeOperationComplexity          | Called when starting to analyze the operation complexity.                                                                                      |
 | OperationComplexityAnalyzerCompiled | Called within AnalyzeOperationComplexity scope and reports that an analyzer was compiled.                                                      |
 | OperationComplexityResult           | Called within AnalyzeOperationComplexity scope and reports the outcome of the analyzer.                                                        |
