@@ -9,6 +9,8 @@
     "Linq",
     "NodaTime",
     "pageable",
+    "Rgba",
+    "shoooe",
     "Swashbuckle",
     "Websockets"
   ],
