@@ -241,7 +241,7 @@ Since the directive instance that we have added to our type is now a strong .NET
 
 ## Locations
 
-A directive can define one or multiple locations, where it can be applied. Multiple locations are seperated by a pipe `|`.
+A directive can define one or multiple locations, where it can be applied. Multiple locations are separated by a pipe `|`.
 
 ```csharp
 descriptor.Location(DirectiveLocation.Field | DirectiveLocation.Object);
