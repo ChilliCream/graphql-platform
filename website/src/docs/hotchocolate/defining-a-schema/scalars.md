@@ -176,7 +176,7 @@ Notice how our code uses `int` for the `Id`, but in a request / response it woul
 
 # GraphQL Community Scalars
 
-The website https://www.graphql-scalars.com/ hosts specifications for GraphQL scalars defined by the community. The community scalars use the `@specifiedBy` directive to point to the spec that is implemented.
+The website <https://www.graphql-scalars.com/> hosts specifications for GraphQL scalars defined by the community. The community scalars use the `@specifiedBy` directive to point to the spec that is implemented.
 
 ```sdl
 scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
@@ -469,7 +469,7 @@ public class Startup
 
 Some scalars like `TimeSpan` or `Uuid` have options like their serialization format.
 
-We can specify these options by registering the scalar explictly.
+We can specify these options by registering the scalar explicitly.
 
 ```csharp
 services
