@@ -1374,7 +1374,7 @@ input UserFilter {
 
 ##### Hide Operations
 
-Hot Chocolate comes preconfigured with a set of operations. If you like to hide operations globally, you can use `Ignore` for it.
+Hot Chocolate comes pre-configured with a set of operations. If you like to hide operations globally, you can use `Ignore` for it.
 If your database provider does not support certain `IQueryable` methods you can just ignore the operation. Ignored operations do not generate filter input types.
 
 There are multiple ways to ignore an operation:
@@ -1873,7 +1873,7 @@ Filter conventions make it easier to change how an expression should be generate
 
 ##### Describe the Expression Visitor
 
-The expression visitor descriptor is accessible through the filter convention. By calling `UseExpressionVisitor` on the convention descriptor you gain access. The expression visitor has the default set of expressions preconfigured.
+The expression visitor descriptor is accessible through the filter convention. By calling `UseExpressionVisitor` on the convention descriptor you gain access. The expression visitor has the default set of expressions pre-configured.
 
 ```csharp
 public class CustomConvention : FilterConvention
