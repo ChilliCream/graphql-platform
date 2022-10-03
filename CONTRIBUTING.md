@@ -80,7 +80,7 @@ We use [Markdownlint](https://github.com/DavidAnson/markdownlint) to check markd
 - Install cSpell: `npm install -g cspell`
 - Install the markdownlint CLI: `npm install -g markdownlint-cli`.
 - For spellcheck, run `cspell --config ./cSpell.json "website/src/**/*.md"`
-- For markdown linting, run `markdownlint --disable MD009 -- website/src/**/*.md`
+- For markdown linting, run `markdownlint "./website/src/**/*.md" --disable MD013`
 
 ## Code of conduct
 
