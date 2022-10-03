@@ -1,0 +1,35 @@
+name: Documentation Checks
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  linting:
+    name: "Markdown linting"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        name: Check out the code
+      - name: "Docs: Markdown Linting"
+        uses: docker://ghcr.io/igorshubovych/markdownlint-cli:latest
+        with:
+          args: "--disable MD009 -- website/src/**/*.md"
+  spellcheck:
+    name: "Docs: Spellcheck"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        name: Check out the code
+      - uses: actions/setup-node@v1
+        name: Setup node
+        with:
+          node-version: "16"
+      - run: npm install -g cspell
+        name: Install cSpell
+      - run: cspell --config ./docs/cSpell.json "website/src/**/*.md"
+        name: run cSpell
