@@ -267,9 +267,9 @@ The new collection of scalars are published in the package [HotChocolate.Types.S
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | EmailAddress     | The `EmailAddress` scalar type represents an email address, represented as UTF-8 character sequences that follows the specification defined in RFC 5322.                                                                |
 | HexColor         | The `HexColor` scalar type represents a valid HEX color code.                                                                                                                                                           |
-| Hsl              | The `Hsl` scalar type represents a valid a CSS HSL color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.                                                                       |
-| Hsla             | The `Hsla` scalar type represents a valid a CSS HSLA color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.                                                                     |
-| IPv4             | The `IPv4` scalar type represents a valid a IPv4 address as defined here https://en.wikipedia.org/wiki/IPv4.                                                                                                            |
+| Hsl              | The `Hsl` scalar type represents a valid a CSS HSL color as defined here <https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors>.                                                                       |
+| Hsla             | The `Hsla` scalar type represents a valid a CSS HSLA color as defined here <https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors>.                                                                     |
+| IPv4             | The `IPv4` scalar type represents a valid a IPv4 address as defined here <https://en.wikipedia.org/wiki/IPv4>.                                                                                                            |
 | IPv6             | The `IPv6` scalar type represents a valid a IPv6 address as defined here [RFC8064](https://tools.ietf.org/html/rfc8064).                                                                                                |
 | Isbn             | The `ISBN` scalar type is a ISBN-10 or ISBN-13 number: https:\/\/en.wikipedia.org\/wiki\/International_Standard_Book_Number.                                                                                            |
 | LocalDate        | The `LocalDate` scalar type represents a ISO date string, represented as UTF-8 character sequences yyyy-mm-dd. The scalar follows the specification defined in RFC3339.                                                 |
@@ -282,7 +282,7 @@ The new collection of scalars are published in the package [HotChocolate.Types.S
 | NonNegativeInt   | The `NonNegativeIntType` scalar type represents a unsigned 32-bit numeric non-fractional value greater than or equal to 0.                                                                                              |
 | NonPositiveFloat | The `NonPositiveFloat` scalar type represents a double‐precision fractional value less than or equal to 0.                                                                                                              |
 | NonPositiveInt   | The `NonPositiveInt` scalar type represents a signed 32-bit numeric non-fractional value less than or equal to 0.                                                                                                       |
-| PhoneNumber      | The `PhoneNumber` scalar type represents a value that conforms to the standard E.164 format as specified in: https://en.wikipedia.org/wiki/E.164.                                                                       |
+| PhoneNumber      | The `PhoneNumber` scalar type represents a value that conforms to the standard E.164 format as specified in: <https://en.wikipedia.org/wiki/E.164>.                                                                       |
 | PositiveInt      | The `PositiveInt` scalar type represents a signed 32‐bit numeric non‐fractional value of at least the value 1.                                                                                                          |
 | PostalCode       | The `PostalCode` scalar type represents a valid postal code.                                                                                                                                                            |
 | Port             | The `Port` scalar type represents a field whose value is a valid TCP port within the range of 0 to 65535.                                                                                                               |
@@ -513,7 +513,7 @@ is rewritten into the Mongo query:
 
 To use the new Mongo integration, you need to add the [HotChocolate.Data.MongoDb] package to your project.
 
-You can build up queries with the native driver and then create an executable from them, representing a rewritable query to Hot Chocolate.
+You can build up queries with the native driver and then create an executable from them, representing a re-writable query to Hot Chocolate.
 
 ```csharp
 [UsePaging]
