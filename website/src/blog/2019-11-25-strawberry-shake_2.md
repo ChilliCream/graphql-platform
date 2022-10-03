@@ -579,7 +579,7 @@ The client API can be used with other dependency injection container and also wi
 
 We initially had a limited builder API for this but decided to give it a do over. So, at the moment you could look at the generated dependency injection code and build your own integration.
 
-We will allow with future build to add custom generators that can provide additional code for custom use cases. The way that would work is that such a generator would sit in a NuGet package that is being added to the project. The custom generator would register its generators to an item group and _Strawberry Shake_ would pick those up and integrate them. These custom generators however are somewhere in the version 12 timeframe.
+We will allow with future build to add custom generators that can provide additional code for custom use cases. The way that would work is that such a generator would sit in a NuGet package that is being added to the project. The custom generator would register its generators to an item group and _Strawberry Shake_ would pick those up and integrate them. These custom generators however are somewhere in the version 12 time-frame.
 
 ## Roadmap
 
@@ -596,7 +596,7 @@ We have some more ground to cover before we have this version complete.
 
    Beyond _VSCode_ we are looking at writing a nice integration with _Visual Studio for Windows_ and _Visual Studio for macOS_ that will make _Strawberry Shake_ and _GraphQL_ a first-class citizen in Microsoft IDEs.
 
-   We hope to deliver all of this in the version 11 timeframe.
+   We hope to deliver all of this in the version 11 time-frame.
 
 1. Persisted Query Support
    Persisted queries are one of our very next features that we will add to the client. We want to allow the same flows that we support on the server side.
@@ -614,4 +614,3 @@ We have some more ground to cover before we have this version complete.
 I hope you enjoy what we are building. We are tying to bring GraphQL on .NET to the next level. While we still are miles away from what the JavaScript world has to offer we hope to close these gaps over the next year and even pull ahead in some areas. We love GraphQL and are passionate about it. We strongly believe that with our newest member _Strawberry Shake_ we really can make things like _Xamarin_ and _Blazor_ so much better. We have planned a lot more and hope to bring data fetching in .NET to a whole new level over the next year. Ideally you just want to decalre in your .NET component the data that you need and all the client logic is infered from that, kind of the way relay works in JavaScript.
 
 If you want to get into contact with us head over to our slack channel and join our community.
-
