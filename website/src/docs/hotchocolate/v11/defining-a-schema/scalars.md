@@ -278,7 +278,7 @@ Lists can be accessed generically by getting them as `IReadOnlyList<object>` or 
 
 # Additional Scalars
 
-We also offer a separate package with scalars for more specific usecases.
+We also offer a separate package with scalars for more specific use cases.
 
 To use these scalars we have to add the `HotChocolate.Types.Scalars` package.
 
