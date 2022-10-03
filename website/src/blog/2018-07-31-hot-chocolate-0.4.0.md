@@ -54,7 +54,7 @@ So, a query against the above schema could look like the following:
 }
 ```
 
-The above request fetches two persons in one go without the need to call the backend twice. The problem for the GraphQL backend is that field resolvers are atomic and do not have any knoledge about the query as a whole. So, a field resolver does not know that it will be called multiple times in parallel to fetch similar or equal data from the same data source.
+The above request fetches two persons in one go without the need to call the backend twice. The problem for the GraphQL backend is that field resolvers are atomic and do not have any knowledge about the query as a whole. So, a field resolver does not know that it will be called multiple times in parallel to fetch similar or equal data from the same data source.
 
 This basically represents the first case where _DataLoaders_ help us by batching requests against our database or backend service. Currently, we allow _DataLoaders_ per request and globally.
 
