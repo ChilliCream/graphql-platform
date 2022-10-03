@@ -311,7 +311,7 @@ Moreover, we will introduce a cast feature to our delegation path. This will bas
 foo.bar<baz>(a:1).qux(b:1)
 ```
 
-This transalates basically to:
+This translates basically to:
 
 ```graphql
 {
