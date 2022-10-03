@@ -69,7 +69,7 @@ public async Task<Person> GetPerson(string id, [Service]IPersonRepository reposi
 
 The above example would result in two calls to the person repository that would than fetch the persons one by one from our data source.
 
-If you think that through you can see that each GraphQL request would cause multiple requests to our data source resulting in sluggish performance and uneccessary round-trips to our data source.
+If you think that through you can see that each GraphQL request would cause multiple requests to our data source resulting in sluggish performance and unnecessary round-trips to our data source.
 
 This, means that we reduced the round-trips from our client to our server with GraphQL but multiplied the round-trips between the data sources and the service layer.
 
