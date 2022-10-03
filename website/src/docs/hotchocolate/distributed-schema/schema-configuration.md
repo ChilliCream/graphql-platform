@@ -13,7 +13,7 @@ The name of a GraphQL type has to be unique.
 When you build a standalone GraphQL server, the schema validation will make sure that no name is duplicated.
 In case a name is duplicated, an exception is thrown and the schema will not compile.
 
-This behaviour is good for the standalone server but can be an issue in distributed schemas.
+This behavior is good for the standalone server but can be an issue in distributed schemas.
 Even with domain services covering domain-specific topics, a type may be duplicated.
 
 To avoid an invalid schema, Hot Chocolate will prefix duplicated types with the schema name and auto resolves name collisions if they are not structurally equal.

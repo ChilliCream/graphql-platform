@@ -32,7 +32,7 @@ TypeConversion.Default.Register<ObjectId, string>(from => from.ToString());
 
 # Dependency Injection Support
 
-You can also add your type converters to the dependency injection. Using dependency injection for the type converters lets you more easily write tests that verify behaviour of your API in various scenarious.
+You can also add your type converters to the dependency injection. Using dependency injection for the type converters lets you more easily write tests that verify behavior of your API in various scenarious.
 
 The first thing you have to ensure is that your schema has access to the service provider, which can be done like the following:
 

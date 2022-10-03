@@ -61,7 +61,7 @@ The following table shows the object type descriptor options:
 | `Description(string description)`                                   | Defines the description of the object type that will be accessible through the introspection.  |
 | `Interface\<T\>()`                                                  | Specifies an interface type that is implemented by this object type.                           |
 | `IsOfType(IsOfType isOfType)`                                       | Defines a function that specifies if a specific resolver type is of the specified object type. |
-| `BindFields(BindingBehavior bindingBehavior)`                       | Specifies the field binding behaviour.                                                         |
+| `BindFields(BindingBehavior bindingBehavior)`                       | Specifies the field binding behavior.                                                         |
 | `Field\<TValue\>(Expression\<Func\<T, TValue\>\> propertyOrMethod)` | Specifies field configuration of a method or property declared in T.                           |
 | `Field(string name)`                                                | Specifies a field that does not exist in T.                                                    |
 
@@ -188,7 +188,7 @@ public class BarType
 
 ## BindFields
 
-The object type descriptor will by default scan the provided entity type for additional fields. In some cases you might want to specify all the fields explicitly in order to have a more predictable schema. You might not want that a property or method that you add to your types automatically shows up in your schema. In those cases you can change the field binding behaviour to explicit.
+The object type descriptor will by default scan the provided entity type for additional fields. In some cases you might want to specify all the fields explicitly in order to have a more predictable schema. You might not want that a property or method that you add to your types automatically shows up in your schema. In those cases you can change the field binding behavior to explicit.
 
 ```csharp
 public class Bar
@@ -202,7 +202,7 @@ public class BarType
 {
     protected override void Configure(IObjectTypeDescriptor<Bar> desc)
     {
-        desc.BindFields(BindingBehaviour.Explicit);
+        desc.BindFields(Bindingbehavior.Explicit);
         desc.Field(t => t.Foo1);
     }
 }

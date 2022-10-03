@@ -224,7 +224,7 @@ If you want to change the behavior sorting globally, you want to create a conven
 
 To use a sort convention you have to extend `SortConvention` and override the `Configure` method. Alternatively, you can directly configure the convention over the constructor argument.
 You then have to register your custom convention on the schema builder with `AddConvention`.
-By default a new convention is empty. To add the default behaviour you have to add `AddDefaults`.
+By default a new convention is empty. To add the default behavior you have to add `AddDefaults`.
 
 ```csharp
 public class CustomConvention
@@ -244,7 +244,7 @@ services.AddGraphQLServer()
         x.AddDefaults()))
 ```
 
-Often you just want to extend the default behaviour of sorting. If this is the case, you can also use `SortConventionExtension`
+Often you just want to extend the default behavior of sorting. If this is the case, you can also use `SortConventionExtension`
 
 ```csharp
 public class CustomConventionExtension
