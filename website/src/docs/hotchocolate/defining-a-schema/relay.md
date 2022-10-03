@@ -196,7 +196,7 @@ The `Serialize()` method takes the schema name as a first argument, followed by 
 
 Global Object Identification, as the name suggests, is about being able to uniquely identify an object within our schema. Moreover, it allows consumers of our schema to refetch an object in a standardized way. This capability allows client applications, such as [Relay](https://relay.dev), to automatically refetch types.
 
-To identify types that can be refetched, a new `Node` interface type is introduced.
+To identify types that can be re-fetched, a new `Node` interface type is introduced.
 
 ```sdl
 interface Node {
@@ -204,7 +204,7 @@ interface Node {
 }
 ```
 
-Implementing this type signals to client applications, that the implementing type can be refetched. Implementing it also enforces the existence of an `id` field, a unique identifier, needed for the refetch operation.
+Implementing this type signals to client applications, that the implementing type can be re-fetched. Implementing it also enforces the existence of an `id` field, a unique identifier, needed for the refetch operation.
 
 To refetch the types implementing the `Node` interface, a new `node` field is added to the query.
 
@@ -262,7 +262,7 @@ There also needs to be a method, a _node resolver_, responsible for the acutal r
 - `GetProduct`
 - `GetProductAsync`
 
-The method is expected to have a return type of either `Product` or `Task<Product>`. Furthermore the first argument of this method is expected to be of the same type as the `Id` property. At runtime Hot Chocolate will invoke this method with the `id` of the object that should be refetched. Special types, such as services, can be injected as arguments as well.
+The method is expected to have a return type of either `Product` or `Task<Product>`. Furthermore the first argument of this method is expected to be of the same type as the `Id` property. At runtime Hot Chocolate will invoke this method with the `id` of the object that should be re-fetched. Special types, such as services, can be injected as arguments as well.
 
 ```csharp
 [Node]
