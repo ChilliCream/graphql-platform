@@ -295,7 +295,7 @@ The batching layer will rewrite those queries into one and send just one request
 
 This way we have just one call and your remote endpoint can better optimize the data fetching with _DataLoader_ and so on.
 
-## Comming with 0.8.0
+## coming with 0.8.0
 
 Furthermore, we will introduce the ability to rename types. This is useful when you either want to make names more clear or if you have naming collisions. So, with the next releases we will introduce '@name' as a way to rename types and fields.
 
@@ -337,7 +337,7 @@ After both schemas are running start the stitching layer. The stitching layer ha
 
 The first call on the stitched schema takes a little longer (maybe 300 ~ 500 ms) since we are compiling the resolvers into a in-memory assembly. All further calls are fast (4 ~ 8 ms) in our example. The real life performance depends on how fast your connection to the stitched remote schemas is and how many data you are fetching. With the new batching layer that is coming soon the performance of the schema stitching should further improve.
 
-Open playground on http://localhost:5000/playground in order to fire up some requests agains our stitched schema and checkout the tracing tab for performance insights.
+Open playground on <http://localhost:5000/playground> in order to fire up some requests agains our stitched schema and checkout the tracing tab for performance insights.
 
 The following query might be a good starting point since it will expose the ids of our objects.
 
@@ -354,5 +354,3 @@ The following query might be a good starting point since it will expose the ids 
 
 If you have further questions or need help you join our slack channel.
 
-[hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/hotchocolate
