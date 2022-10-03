@@ -23,6 +23,7 @@
     "NodaTime",
     "OWIN",
     "pageable",
+    "protobuf",
     "Rgba",
     "roadmap",
     "Senn",
