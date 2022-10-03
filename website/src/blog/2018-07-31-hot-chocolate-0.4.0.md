@@ -180,7 +180,7 @@ As a side note, you are not bound to our _DataLoader_ implementation. If you wan
 
 Custom context objects are basically custom .net objects that you can declare with the GraphQL engine and access throughout your request execution. Custom context objects can use dependency injection and have the same scoping as the _DataLoaders_.
 
-For example you could declare a class that handles authorithation for your service like an IPrincipal and access this in each resolver.
+For example you could declare a class that handles authorization for your service like an IPrincipal and access this in each resolver.
 
 ```csharp
 public Task<ResolverResult<Person>> GetPerson(string id, [State]MyPrincipal principal)
