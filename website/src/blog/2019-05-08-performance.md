@@ -68,7 +68,7 @@ With version 9.1 we will further optimize the resolver compilation by allowing l
 
 ## Execution Engine
 
-We have updated our execution engine to use less memory and execute faster. The new execution engine is at least 2.3 times faster and uses half of the memory GraphQL-DotNet does to execute a query. If you are using schema first we are actually seeing 8.9 times faster executon of queries with Hot Chocolate compared to GraphQL-DotNet.
+We have updated our execution engine to use less memory and execute faster. The new execution engine is at least 2.3 times faster and uses half of the memory GraphQL-DotNet does to execute a query. If you are using schema first we are actually seeing 8.9 times faster execution of queries with Hot Chocolate compared to GraphQL-DotNet.
 
 GraphQL-DotNet is still faster when validating queries, but this is offset since we are caching validation results. Validation will be one of the things we will work on for version 9.1. So, expect improvements here.
 
