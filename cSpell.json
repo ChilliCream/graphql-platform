@@ -2,10 +2,14 @@
   "version": "0.2",
   "language": "en",
   "words": [
+    "aspnetcore",
     "Blazor",
     "customizability",
     "dataloaders",
     "FIPS",
+    "greendonut",
+    "hotchocolate",
+    "jetbrains",
     "JWTs",
     "Linq",
     "middlewares",
@@ -13,11 +17,14 @@
     "pageable",
     "Rgba",
     "shoooe",
+    "Staib",
     "struct",
     "Swashbuckle",
     "Websockets"
   ],
-  "ignoreWords": ["GraphiQL"],
+  "ignoreWords": [
+    "GraphiQL"
+  ],
   "ignoreRegExpList": [
     "\\((.*)\\)", // Markdown links
     "```[a-z]*\n[\\s\\S]*?\n```", // Markdown code blocks. h/t https://coderwall.com/p/r6b4xg/regex-to-match-github-s-markdown-code-blocks,
