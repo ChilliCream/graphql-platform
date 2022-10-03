@@ -224,7 +224,7 @@ fragment HasName on Character {
 }
 ```
 
-By definig a variable with our operation we now can pass in arguments into our operation.
+By defining a variable with our operation we now can pass in arguments into our operation.
 
 ```csharp
 public interface IStarWarsClient
@@ -342,5 +342,3 @@ Please check it out and give us feedback so we can adjust and refine the experie
 
 If you want to get into contact with us head over to our slack channel and join our community.
 
-[hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/hotchocolate
