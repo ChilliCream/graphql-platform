@@ -108,7 +108,7 @@ public Task<Person> GetPerson(string id, [DataLoader]PersonDataLoader personLoad
 }
 ```
 
-Next, we have to register our _DataLoader_ with the schema. By default, _DataLoaders_ are registerd as per-request meaning that the execution engine will create one instance of each _DataLoader_ per-request **if** a field resolver has requested a _DataLoader_. This ensures that, _DataLoaders_ that are not beeing requested are not instantiated unnecessarily.
+Next, we have to register our _DataLoader_ with the schema. By default, _DataLoaders_ are registered as per-request meaning that the execution engine will create one instance of each _DataLoader_ per-request **if** a field resolver has requested a _DataLoader_. This ensures that, _DataLoaders_ that are not beeing requested are not instantiated unnecessarily.
 
 ```csharp
 Schema.Create(c =>
@@ -196,7 +196,7 @@ public Task<ResolverResult<Person>> GetPerson(string id, [State]MyPrincipal prin
 
 Moreover, you can use this custom context to store states in or caches during execution time. This will become especially usefull with our next version when we allow the writing of custom schema directives and field resolver middlewares.
 
-Custom context objects are registerd like _DataLoaders_:
+Custom context objects are registered like _DataLoaders_:
 
 ```csharp
 Schema.Create(c =>
