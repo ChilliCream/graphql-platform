@@ -18,7 +18,7 @@ jobs:
       - name: "Docs: Markdown Linting"
         uses: docker://ghcr.io/igorshubovych/markdownlint-cli:latest
         with:
-          args: "--disable MD009 -- website/src/**/*.md"
+          args: 'markdownlint "./website/src/**/*.md" --disable MD013'
   spellcheck:
     name: "Docs: Spellcheck"
     runs-on: ubuntu-latest
