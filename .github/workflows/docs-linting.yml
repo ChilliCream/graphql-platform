@@ -9,16 +9,16 @@ on:
       - main
 
 jobs:
-  linting:
-    name: "Markdown linting"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        name: Check out the code
-      - name: "Docs: Markdown Linting"
-        uses: docker://ghcr.io/igorshubovych/markdownlint-cli:latest
-        with:
-          args: 'markdownlint "./website/src/**/*.md" --disable MD013'
+  # linting:
+  #   name: "Markdown linting"
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #       name: Check out the code
+  #     - name: "Docs: Markdown Linting"
+  #       uses: docker://ghcr.io/igorshubovych/markdownlint-cli:latest
+  #       with:
+  #         args: 'markdownlint "./website/src/**/*.md" --disable MD013'
   spellcheck:
     name: "Docs: Spellcheck"
     runs-on: ubuntu-latest
