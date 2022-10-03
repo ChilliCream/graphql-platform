@@ -102,7 +102,7 @@ public class EntityType
 
 Starting with this version we have begun to invest into making Hot Chocolate one of the fastest GraphQL servers out there. Do not get me wrong, we are not quite there yet, and it will be an ongoing effort for quite a while.
 
-With version 9 we are introducing the first step on this road with our new UTF-8 GraphQL parser. This new parser is not anymore, a port of the original graphql-js parser but a reimplementation that uses the raw bytes instead of strings, meaning we are using all those nice new `Span<T>` APIs. This makes it use less memory and perform faster. The new UTF-8 GraphQL parser is the fastest and most standard compliant parser on the .Net platform.
+With version 9 we are introducing the first step on this road with our new UTF-8 GraphQL parser. This new parser is not anymore, a port of the original graphql-js parser but a re-implementation that uses the raw bytes instead of strings, meaning we are using all those nice new `Span<T>` APIs. This makes it use less memory and perform faster. The new UTF-8 GraphQL parser is the fastest and most standard compliant parser on the .Net platform.
 
 ![Lexer Memory](lexer_mem.png)
 
