@@ -38,7 +38,7 @@ type Person {
 
 The above schema allows to fetch a person by its internal identifier and each person has a list of friends that is represented by a list of persons.
 
-Since GraphQL requests are not fixed requests like REST requests, the developer really defines what data he/she wants. This avoids over-fetching data that you do not need and also saves you unnecessary roundtrips to the GraphQL backend.
+Since GraphQL requests are not fixed requests like REST requests, the developer really defines what data he/she wants. This avoids over-fetching data that you do not need and also saves you unnecessary round-trips to the GraphQL backend.
 
 So, a query against the above schema could look like the following:
 
@@ -69,9 +69,9 @@ public async Task<Person> GetPerson(string id, [Service]IPersonRepository reposi
 
 The above example would result in two calls to the person repository that would than fetch the persons one by one from our data source.
 
-If you think that through you can see that each GraphQL request would cause multiple requests to our data source resulting in slugish performance and uneccessary roundtrips to our data source.
+If you think that through you can see that each GraphQL request would cause multiple requests to our data source resulting in slugish performance and uneccessary round-trips to our data source.
 
-This, means that we reduced the roundtrips from our client to our server with GraphQL but multiplied the roundtrips between the data sources and the service layer.
+This, means that we reduced the round-trips from our client to our server with GraphQL but multiplied the round-trips between the data sources and the service layer.
 
 With _DataLoaders_ we can now centralize our person fetching and reduce the number of round trips to our data source.
 
