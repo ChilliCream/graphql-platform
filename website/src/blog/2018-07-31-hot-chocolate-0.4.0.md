@@ -174,7 +174,7 @@ This is the second problem class the _DataLoader_ utility helps us with since th
 
 For more information about our _DataLoader_ implementation head over to our _DataLoader_ [GitHub repository](https://github.com/ChilliCream/greendonut).
 
-As a side note, you are not bound to our _DataLoader_ implementation. If you want to create your own implementation of _DataLoaders_ or if you already have a _DataLoader_ implementation then you can hook this up to our execution engine as well. I will explain this in the _DataLoader_ documentation once I have finalised it.
+As a side note, you are not bound to our _DataLoader_ implementation. If you want to create your own implementation of _DataLoaders_ or if you already have a _DataLoader_ implementation then you can hook this up to our execution engine as well. I will explain this in the _DataLoader_ documentation once I have finalized it.
 
 ## Custom Context Objects
 
