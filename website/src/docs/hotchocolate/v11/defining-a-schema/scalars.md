@@ -206,7 +206,7 @@ The `Uuid` scalar supports the following serialization formats.
 
 The `UuidType` will always return the value in the specified format. In case it is used as an input type, it will first try to parse the result in the specified format. If the parsing does not succeed, it will try to parse the value in other formats.
 
-To change the default format we have to register the `UuidType` with the specfier on the schema:
+To change the default format we have to register the `UuidType` with the specifier on the schema:
 
 ```csharp
 services
