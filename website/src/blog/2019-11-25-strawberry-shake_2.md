@@ -316,7 +316,7 @@ Rebuild your project and voila ... `Episode.NewHope` is now correctly cased.
 
 The nice thing is that we are just describing what we want to change in this schema extension file, so every time you update the server schema, we will preserve this file and reapply the type extensions to the newly downloaded schema.
 
-## Subscriptions
+##  Subscriptions
 
 OK, OK, most of this was already in place, so let us have a look at something more challenging like subscriptions.
 
@@ -591,8 +591,8 @@ We have some more ground to cover before we have this version complete.
    We are working on making the _MSBuild_ integration better. There are still instances with _VSCode_ where you have to compile twice. This is OK for a preview,but we are on it and think that in the next view preview builds we will have this fixed. With _Visual Studio for Windows_ you can already enjoy design time code generation. This means that when you save a GraphQL file the generator will update the C# files.
 
 1. Tooling
-   We are heavy at work on _Bananacake Pop_ which is our GraphQL IDE that will help you write and analyze GraphQL queries.
-   We plan to use what we have done for _Bananacake Pop_ to create a nice integration with _VSCode_. We want to have a rich integration with which you can work on huge schemas.
+   We are heavy at work on _Banana Cake Pop_ which is our GraphQL IDE that will help you write and analyze GraphQL queries.
+   We plan to use what we have done for _Banana Cake Pop_ to create a nice integration with _VSCode_. We want to have a rich integration with which you can work on huge schemas.
 
    Beyond _VSCode_ we are looking at writing a nice integration with _Visual Studio for Windows_ and _Visual Studio for macOS_ that will make _Strawberry Shake_ and _GraphQL_ a first-class citizen in Microsoft IDEs.
 
@@ -615,5 +615,3 @@ I hope you enjoy what we are building. We are tying to bring GraphQL on .NET to 
 
 If you want to get into contact with us head over to our slack channel and join our community.
 
-[hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/hotchocolate
