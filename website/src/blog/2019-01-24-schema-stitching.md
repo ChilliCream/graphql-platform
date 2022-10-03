@@ -216,7 +216,7 @@ The clients must be named clients and have to use the schema name that we used i
 
 Next let's setup our remote schemas. Remote schemas are actually local schemas representing the remote schemas and allowing us to treat the remote schema as if it were a usual schema written with Hot Chocolate.
 
-This also allows us to create middleware components and other things on such a schema althogh the schema does not actually live in our process.
+This also allows us to create middleware components and other things on such a schema although the schema does not actually live in our process.
 
 So let us start with the customer schema, the customer schema does only use scalars defined in the spec. This means we do not have to declare any extra scalars to our stitching layer.
 
