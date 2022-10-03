@@ -194,7 +194,7 @@ public Task<ResolverResult<Person>> GetPerson(string id, [State]MyPrincipal prin
 }
 ```
 
-Moreover, you can use this custom context to store states in or caches during execution time. This will become especially usefull with our next version when we allow the writing of custom schema directives and field resolver middlewares.
+Moreover, you can use this custom context to store states in or caches during execution time. This will become especially useful with our next version when we allow the writing of custom schema directives and field resolver middlewares.
 
 Custom context objects are registered like _DataLoaders_:
 
