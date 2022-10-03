@@ -152,7 +152,7 @@ Also, we will create a server benchmarking suite based on _GraphQL Bench_ so tha
 
 We did our performance comparison against GraphQL-DotNet version 2.4 and 3.0.0-preview-1107.
 
-## Documentation
+##  Documentation
 
 As we promised in the past, we are adding more documentation with every release. With version 9 we are adding documentation for our type system and a completely new tutorial that starts from scratch and shows how to build a GraphQL server with mongo as a database. We know that the more effort we are putting into our documentation the easier we make the life for you.
 
@@ -321,7 +321,7 @@ The frontend will always assume that the query is already persisted with the ser
 
 If the server returns an error that it has no query stored with the specified has the client will send the request again, but this time with the hash and the full query.
 
-So, while this will cause a slower execution for the first user of a query all consequtive users will profit.
+So, while this will cause a slower execution for the first user of a query all consecutive users will profit.
 
 We will have an abstraction for the query storage and a default implementation that will use redis.
 
@@ -339,7 +339,7 @@ The main focus for performance will be our visitor implementation which is not r
 
 Specwise we will start implementing a new draft feature allowing interfaces to implement other interfaces.
 
-https://github.com/graphql/graphql-spec/pull/373
+<https://github.com/graphql/graphql-spec/pull/373>
 
 I just looked again, it is not yet draft, but we hope that this will be sorted out at the next GraphQL workgroup meeting.
 
@@ -361,5 +361,3 @@ Last but not least as another new addition we will support automatic database ma
 
 We will support two things with that, building a database with GraphQL just like Prisma does. Moreover, we will support generating a GraphQL schema from your database. So, this will be pretty interesting stuff.
 
-[hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/hotchocolate
