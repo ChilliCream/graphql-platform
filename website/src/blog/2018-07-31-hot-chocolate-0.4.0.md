@@ -226,7 +226,7 @@ We plan for full compliance with the June 2018 spec version with version 0.6.0.
 
 ## Dependency Injection
 
-We reworked out dependency injection approach and have now integreaded the request services during request execution. Meaning you are now able to access HttpContext directly as a field resolver argument.
+We reworked out dependency injection approach and have now integrated the request services during request execution. Meaning you are now able to access HttpContext directly as a field resolver argument.
 
 This was already possible with the old version through the accessor as a constructor injection.
 
