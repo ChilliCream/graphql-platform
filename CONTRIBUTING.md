@@ -60,7 +60,7 @@ Core contributors will review your pull request and provide feedback.
 
 ## How to launch and build the solution
 
-We use [Nuke](https://nuke.build/) for build automation. 
+We use [Nuke](https://nuke.build/) for build automation.
 
 To work on Hot Chocolate, you will need .NET 7, Node 14, and Yarn 1.x.
 
@@ -72,6 +72,15 @@ The smaller solution files are great when working with VSCode.
 The documentation is located in the `website` directory and can be started with `yarn start`.
 
 There are other available commands too. As set up in the [.build](./.build/) directory.
+
+## How to Check the docs
+
+We use [Markdownlint](https://github.com/DavidAnson/markdownlint) to check markdown formatting and [cSpell](https://cspell.org) for spelling. We have GitHub actions to check these for PRs, but if you'd like to check locally, you can:
+
+- Install cSpell: `npm install -g cspell`
+- Install the markdownlint CLI: `npm install -g markdownlint-cli`.
+- For spellcheck, run `cspell --config ./cSpell.json "website/src/**/*.md"`
+- For markdown linting, run `markdownlint --disable MD009 -- website/src/**/*.md`
 
 ## Code of conduct
 
