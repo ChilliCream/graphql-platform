@@ -31,5 +31,5 @@ jobs:
           node-version: "16"
       - run: npm install -g cspell
         name: Install cSpell
-      - run: cspell --config ./docs/cSpell.json "website/src/**/*.md"
+      - run: cspell --config ./cSpell.json "website/src/**/*.md"
         name: run cSpell
