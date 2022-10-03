@@ -5,9 +5,13 @@
     "aspnetcore",
     "bananacakepop",
     "Blazor",
+    "BSON",
     "Cakepop",
+    "chillicream",
+    "Contoso",
     "customizability",
     "dataloaders",
+    "entityframework",
     "FIPS",
     "greendonut",
     "hotchocolate",
@@ -25,6 +29,7 @@
     "Staib",
     "struct",
     "Swashbuckle",
+    "Tengler",
     "Websockets"
   ],
   "ignoreWords": [
