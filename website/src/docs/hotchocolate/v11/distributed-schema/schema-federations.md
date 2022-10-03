@@ -57,7 +57,7 @@ public void ConfigureServices(IServiceCollection services)
 The gateway needs HttpClients to fetch the data from the domain services.
 You have to register them on the service collection.
 The name of the HttpClient has to be the same as the name of the schema it refers to.
-As you may use the schema names in several places, it is good practise to store them as constant.
+As you may use the schema names in several places, it is good practice to store them as constant.
 
 ```csharp
 public static class WellKnownSchemaNames
