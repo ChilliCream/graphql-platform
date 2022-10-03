@@ -490,7 +490,7 @@ services.AddStitchedSchema(builder => builder
   })
 ```
 
-> There are also methods for renaming types and fields where the stitching engine will take care that the schema is consitently rewritten so that all the type references will refer to the current new type/field name.
+> There are also methods for renaming types and fields where the stitching engine will take care that the schema is consistently rewritten so that all the type references will refer to the current new type/field name.
 
 With that we have removed the types from our stitched schema. Now, let us move on to extend our message type.
 
