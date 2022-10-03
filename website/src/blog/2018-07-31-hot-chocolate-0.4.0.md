@@ -108,7 +108,7 @@ public Task<Person> GetPerson(string id, [DataLoader]PersonDataLoader personLoad
 }
 ```
 
-Next, we have to register our _DataLoader_ with the schema. By default, _DataLoaders_ are registered as per-request meaning that the execution engine will create one instance of each _DataLoader_ per-request **if** a field resolver has requested a _DataLoader_. This ensures that, _DataLoaders_ that are not beeing requested are not instantiated unnecessarily.
+Next, we have to register our _DataLoader_ with the schema. By default, _DataLoaders_ are registered as per-request meaning that the execution engine will create one instance of each _DataLoader_ per-request **if** a field resolver has requested a _DataLoader_. This ensures that, _DataLoaders_ that are not being requested are not instantiated unnecessarily.
 
 ```csharp
 Schema.Create(c =>
