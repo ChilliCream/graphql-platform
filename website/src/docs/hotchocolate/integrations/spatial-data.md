@@ -13,7 +13,7 @@ for storing this type of data. APIs often use GeoJSON to send spatial data over 
 
 The most common library used for spatial data in .NET is [NetTopologySuite](https://github.com/NetTopologySuite/NetTopologySuite).
 Entity Framework supports [Spatial Data](https://docs.microsoft.com/en-gb/ef/core/modeling/spatial) and uses
-NetToplogySuite as its data representation.
+NetTopologySuite as its data representation.
 
 The package `HotChocolate.Spatial` integrates NetTopologySuite into HotChocolate. With this package your resolvers
 can return NetTopologySuite shapes and they will be transformed into GeoJSON.
@@ -39,7 +39,7 @@ services
 If you are using our data extensions to project data from a database you also need to add the package `HotChocolate.Data.Spatial` to your project.
 
 ```bash
-dotnet add package HotChocolate.Data.Spatial 
+dotnet add package HotChocolate.Data.Spatial
 ```
 
 In order to use the data extensions in your resolvers you need to register them with the GraphQL configuration builder.
@@ -54,7 +54,7 @@ services
     .AddSpatialProjections();
 ```
 
-All NetToplogySuite runtime types are now bound to the corresponding GeoJSON type.
+All NetTopologySuite runtime types are now bound to the corresponding GeoJSON type.
 
 ```csharp
 public class Pub
