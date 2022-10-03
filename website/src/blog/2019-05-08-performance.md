@@ -90,7 +90,5 @@ The bottom line here is that if you go with Hot Chocolate you will get the most 
 
 Each time a GraphQL spec element hits draft status we will go ahead and implement it with Hot Chocolate, this means that with Hot Chocolate you will always get the latest GraphQL features.
 
-Also, we are working to have all the benchmarkings ready with GraphQL-Bench. This will make it more transparant what we are testing and will let us more easily assess where we are heading performance wise.
+Also, we are working to have all the benchmarking ready with GraphQL-Bench. This will make it more transparant what we are testing and will let us more easily assess where we are heading performance wise.
 
-[hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/hotchocolate
