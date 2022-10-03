@@ -21,6 +21,7 @@
     "Linq",
     "middlewares",
     "NodaTime",
+    "OWIN",
     "pageable",
     "Rgba",
     "roadmap",
