@@ -12,6 +12,7 @@
     "customizability",
     "dataloaders",
     "entityframework",
+    "fetchable",
     "FIPS",
     "greendonut",
     "hotchocolate",
