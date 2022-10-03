@@ -351,7 +351,7 @@ In the Code-first approach, we have multiple APIs on the `IObjectTypeDescriptor`
 
 - `ImplementsNode`: Implements the `Node` interface.
 - `IdField`: Selects the property that represents the unique identifier of the object.
-- `ResolveNode` / `ResolveNodeWith`: Method that refetches the object by its Id, also called the _node resolver_. If these methods are chained after `IdField`, they automatically infer the correct type of the `id` argument.
+- `ResolveNode` / `ResolveNodeWith`: Method that re-fetches the object by its Id, also called the _node resolver_. If these methods are chained after `IdField`, they automatically infer the correct type of the `id` argument.
 
 ```csharp
 public class Product
