@@ -54,7 +54,7 @@ query execution pipeline. This really helped us enhancing the
 _Instrumentation_ _API_ which has been evolved in two ways. First, we increased
 the amount of available diagnostic events for more fine-grained tracing
 scenarios. Second, we simplified the registering of _DiagnosticObservers_ by
-using _Dependancy Injection_ infrastructure. In the next example we can see how
+using _Dependency Injection_ infrastructure. In the next example we can see how
 to register a custom _DiagnosticObservers_.
 
 ```csharp
