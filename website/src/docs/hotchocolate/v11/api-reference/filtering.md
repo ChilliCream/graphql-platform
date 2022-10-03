@@ -587,7 +587,7 @@ public class UserFilterType : FilterInputType<User>
 
 In this example, we look at the filter configuration of a list filter.
 
-Hot Chocolate can also generate filters for IEnumerables. Like object filter, Hot Chocolate generates filters for the whole object tree. List filter addresses scalars and object values differently.
+Hot Chocolate can also generate filters for `IEnumerable`s. Like object filter, Hot Chocolate generates filters for the whole object tree. List filter addresses scalars and object values differently.
 In the case the field is a scalar value, Hot Chocolate creates and object type to address the different operations of this scalar. e.g. If you specify filters for a list of strings, Hot Chocolate creates an object type that contains all operations of the string filter.
 In case the list holds a complex object, it generates an object filter for this object instead.
 
