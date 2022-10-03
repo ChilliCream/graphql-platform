@@ -3,7 +3,10 @@
   "language": "en",
   "words": [
     "Blazor",
+    "FIPS",
     "JWTs",
+    "Linq",
+    "NodaTime",
     "Websockets"
   ],
   "ignoreWords": [],
