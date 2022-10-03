@@ -162,7 +162,7 @@ With this release we have published a first draft of the new documentation and w
 
 When we released Hot Chocolate version 8 we announced a new _Hot Chocolate Developer Tool_. Since that announcement we were heavily at work building that new tool.
 
-Today we are anouncing _Banana Cake Pop_, a new tool that will help you explore and query GraphQL schemas.
+Today we are announcing _Banana Cake Pop_, a new tool that will help you explore and query GraphQL schemas.
 
 ![Banana Cake Pop](banana.png)
 
@@ -360,4 +360,3 @@ With version 10 we will also release a production ready version of our C# client
 Last but not least as another new addition we will support automatic database mapping. This means that you can come with your database and we will make a GraphQL server from it.
 
 We will support two things with that, building a database with GraphQL just like Prisma does. Moreover, we will support generating a GraphQL schema from your database. So, this will be pretty interesting stuff.
-
