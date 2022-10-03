@@ -3,10 +3,12 @@
   "language": "en",
   "words": [
     "Blazor",
+    "customizability",
     "FIPS",
     "JWTs",
     "Linq",
     "NodaTime",
+    "pageable",
     "Swashbuckle",
     "Websockets"
   ],
