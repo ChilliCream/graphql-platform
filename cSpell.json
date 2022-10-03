@@ -7,6 +7,7 @@
     "JWTs",
     "Linq",
     "NodaTime",
+    "Swashbuckle",
     "Websockets"
   ],
   "ignoreWords": [],
