@@ -95,9 +95,9 @@ public class SchemaTests
 ```
 
 The example from above creates a snapshot of the schema in `/test/ExampleProject.Tests/__snapshots__/schema.graphql`. You now
-have to make the GraphQL extension aware of this schema by creating a .graphqlconfig
+have to make the GraphQL extension aware of this schema by creating a `.graphqlconfig`
 
-_/test/ExampleProject.TestsYourProject.Tests/.graphqlconfig_
+`_/test/ExampleProject.TestsYourProject.Tests/.graphqlconfig_`
 
 ```json
 {
@@ -106,7 +106,7 @@ _/test/ExampleProject.TestsYourProject.Tests/.graphqlconfig_
 }
 ```
 
-Now all _.gql and _.graphql files in your project will have proper syntax highlighting, IntelliSense and linting.
+Now all _.gql and_.graphql files in your project will have proper syntax highlighting, IntelliSense and linting.
 
 ## Inject GraphQL into strings
 
