@@ -255,7 +255,7 @@ Next we need to extend our object types with the `Global Object Identification` 
 
 To declare an object type as a re-fetchable, we need to annotate it using the `[Node]` attribute. This in turn causes the type to implement the `Node` interface and if present automatically turns the `id` field into a [global identifier](#global-identifiers).
 
-There also needs to be a method, a _node resolver_, responsible for the acutal refetching of the object. Assuming our class is called `Product`, Hot Chocolate looks for a static method, with one of the following names:
+There also needs to be a method, a _node resolver_, responsible for the actual refetching of the object. Assuming our class is called `Product`, Hot Chocolate looks for a static method, with one of the following names:
 
 - `Get`
 - `GetAsync`
