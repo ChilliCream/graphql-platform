@@ -49,7 +49,7 @@ After this is done converters can be registered like the following:
 services.AddTypeConverter<string, ObjectId>(from => ObjectId.Parse(from));
 ```
 
-Moreover, you are able to put your conversion code into a class like the follwing:
+Moreover, you are able to put your conversion code into a class like the following:
 
 ```csharp
 public class StringObjectIdConverter
