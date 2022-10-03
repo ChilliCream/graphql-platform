@@ -82,7 +82,7 @@ The serialization of query results is one of the areas we want to improve. Micro
 
 ## Summary
 
-We are investing heavily in performance and stability and see perfomance as feature. One other area we are working on is the subscription implementation. We will replace the current implementation with one built on top of the Microsoft pipeline API, this is why we are moving again subscription stitching to the next version.
+We are investing heavily in performance and stability and see performance as feature. One other area we are working on is the subscription implementation. We will replace the current implementation with one built on top of the Microsoft pipeline API, this is why we are moving again subscription stitching to the next version.
 
 Stitching is also one area we will start to improve performance-wise once we have the execution plan feature implemented.
 
@@ -91,4 +91,3 @@ The bottom line here is that if you go with Hot Chocolate you will get the most 
 Each time a GraphQL spec element hits draft status we will go ahead and implement it with Hot Chocolate, this means that with Hot Chocolate you will always get the latest GraphQL features.
 
 Also, we are working to have all the benchmarking ready with GraphQL-Bench. This will make it more transparant what we are testing and will let us more easily assess where we are heading performance wise.
-
