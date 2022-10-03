@@ -207,7 +207,7 @@ Schema.Create(c =>
 });
 ```
 
-Like with _DataLoaders_ we have muliple `RegisterCustomContext` overloads that allow for more control over how the object is created.
+Like with _DataLoaders_ we have multiple `RegisterCustomContext` overloads that allow for more control over how the object is created.
 
 ## Query Validation
 
