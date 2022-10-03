@@ -9,7 +9,7 @@ authorImageUrl: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4
 ---
 
 Today we have released Hot Chocolate `0.7.0`, containing one cool new feature,
-we wanne talk about here, namely _Apollo Tracing_ which is extremely powerful in
+we want to talk about here, namely _Apollo Tracing_ which is extremely powerful in
 identifying things like performance bottlenecks in our _GraphQL_ _APIs_ for
 example. As a result, we had to enhance our general instrumentation layer, which
 we all benefit from. For instance, now it's way easier to register a
