@@ -8,6 +8,7 @@ public class ObjectTypeDescriptor<T> : ObjectTypeDescriptorBase<T>
         : base(context, typeof(T))
     {
         Definition.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
+        Definition.FieldBindingFlags = context.Options.DefaultFieldBindingFlags;
     }
 
     protected internal ObjectTypeDescriptor(

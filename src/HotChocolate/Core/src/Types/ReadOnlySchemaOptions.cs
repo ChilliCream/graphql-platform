@@ -37,6 +37,7 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
         ResolveXmlDocumentationFileName = options.ResolveXmlDocumentationFileName;
         RemoveUnreachableTypes = options.RemoveUnreachableTypes;
         DefaultBindingBehavior = options.DefaultBindingBehavior;
+        DefaultFieldBindingFlags = options.DefaultFieldBindingFlags;
         FieldMiddleware = options.FieldMiddleware;
         PreserveSyntaxNodes = options.PreserveSyntaxNodes;
         EnableDirectiveIntrospection = options.EnableDirectiveIntrospection;
@@ -101,6 +102,9 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
     /// Defines the default binding behavior.
     /// </summary>
     public BindingBehavior DefaultBindingBehavior { get; }
+
+    /// <inheritdoc />
+    public FieldBindingFlags DefaultFieldBindingFlags { get; }
 
     /// <summary>
     /// Defines on which fields a middleware pipeline can be applied on.

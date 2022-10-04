@@ -133,7 +133,7 @@ public static class FilterObjectFieldDescriptorExtensions
                             argumentTypeReference,
                             placeholder),
                     definition,
-                    ApplyConfigurationOn.Completion,
+                    ApplyConfigurationOn.BeforeCompletion,
                     argumentTypeReference,
                     TypeDependencyKind.Completed);
 
@@ -212,7 +212,7 @@ public static class FilterObjectFieldDescriptorExtensions
                 d.Name = convention.ArgumentName;
             },
             definition,
-            ApplyConfigurationOn.Completion);
+            ApplyConfigurationOn.BeforeCompletion);
 
         definition.Configurations.Add(argumentConfig);
         return definition;

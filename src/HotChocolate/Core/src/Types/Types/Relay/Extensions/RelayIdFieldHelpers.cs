@@ -8,7 +8,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.Types.WellKnownContextData;
+using static HotChocolate.WellKnownContextData;
 
 #nullable enable
 
@@ -105,7 +105,7 @@ internal static class RelayIdFieldHelpers
                 placeholder,
                 typeName),
             definition,
-            ApplyConfigurationOn.Completion);
+            ApplyConfigurationOn.BeforeCompletion);
 
         definition.Configurations.Add(configuration);
     }

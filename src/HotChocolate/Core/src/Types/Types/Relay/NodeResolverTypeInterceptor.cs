@@ -1,7 +1,9 @@
 #nullable enable
 
 using System.Collections.Generic;
+#if NET5_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
+#endif
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
@@ -9,7 +11,7 @@ using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using static HotChocolate.Types.Relay.NodeConstants;
-using static HotChocolate.Types.WellKnownContextData;
+using static HotChocolate.WellKnownContextData;
 using static HotChocolate.Utilities.ErrorHelper;
 using static HotChocolate.Utilities.ThrowHelper;
 
@@ -28,7 +30,9 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
 
     private ObjectTypeDefinition? TypeDef { get; set; }
 
+#if NET5_0_OR_GREATER
     [MemberNotNullWhen(true, nameof(QueryType), nameof(TypeDef), nameof(CompletionContext))]
+#endif
     private bool IsInitialized
         => QueryType is not null &&
             TypeDef is not null &&
@@ -187,7 +191,8 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
             {
                 var fieldName = (string)node[NodeResolver]!;
                 var field = QueryType.Fields[fieldName];
-                node[NodeResolver] = new NodeResolverInfo(field.Arguments[0], field.Middleware);
+
+                node[NodeResolver] = new NodeResolverInfo(field, field.Middleware);
             }
         }
     }

@@ -67,6 +67,12 @@ public interface IReadOnlySchemaOptions
     BindingBehavior DefaultBindingBehavior { get; }
 
     /// <summary>
+    /// Defines which members shall be by default inferred as GraphQL fields.
+    /// This default applies to <see cref="ObjectType"/> and <see cref="ObjectTypeExtension"/>.
+    /// </summary>
+    FieldBindingFlags DefaultFieldBindingFlags { get; }
+
+    /// <summary>
     /// Defines on which fields a middleware pipeline can be applied on.
     /// </summary>
     FieldMiddlewareApplication FieldMiddleware { get; }

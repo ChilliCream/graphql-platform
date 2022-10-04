@@ -229,7 +229,7 @@ public class PersonsByLastNameDataloader
 
 public class Query
 {
-    public async Task<Person> GetPersonByLastName(
+    public async Task<IEnumerable<Person>> GetPersonByLastName(
         string lastName,
         PersonsByLastNameDataloader dataLoader)
         => await dataLoader.LoadAsync(lastName);

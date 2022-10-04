@@ -8,7 +8,7 @@ using static HotChocolate.Properties.AbstractionResources;
 
 namespace HotChocolate;
 
-public class ExtensionData
+public sealed class ExtensionData
     : IDictionary<string, object?>
     , IReadOnlyDictionary<string, object?>
 {
@@ -231,6 +231,4 @@ public class ExtensionData
             return GetEnumerator();
         }
     }
-
-    public static readonly ExtensionData Empty = new();
 }

@@ -7,7 +7,7 @@ public sealed class FilterOperationField
     : InputField
         , IFilterOperationField
 {
-    internal FilterOperationField(FilterOperationDefintion definition, int index)
+    internal FilterOperationField(FilterOperationDefinition definition, int index)
         : base(definition, index)
     {
         Operation = definition.Operation ??

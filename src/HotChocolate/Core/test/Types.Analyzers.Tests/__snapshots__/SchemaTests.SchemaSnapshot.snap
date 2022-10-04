@@ -15,6 +15,7 @@ type Person implements Entity {
 type Query {
   person: Entity
   enum: CustomEnum
+  staticField: String!
 }
 
 enum CustomEnum {

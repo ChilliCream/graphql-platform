@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using HotChocolate.Configuration;
 using HotChocolate.Properties;
@@ -13,7 +14,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
     where TDefinition : DefinitionBase
 {
     private TDefinition? _definition;
-    private ExtensionData? _contextData;
+    private IReadOnlyDictionary<string, object?>? _contextData;
 
     public override IReadOnlyDictionary<string, object?> ContextData
     {
@@ -80,14 +81,14 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
 
         OnBeforeCompleteName(context, definition, definition.ContextData);
 
-        ExecuteConfigurations(context, definition, ApplyConfigurationOn.Naming);
+        ExecuteConfigurations(context, definition, ApplyConfigurationOn.BeforeNaming);
         OnCompleteName(context, definition);
 
         Debug.Assert(
-            Name is not null,
+            !string.IsNullOrEmpty(Name),
             "After the naming is completed the name has to have a value.");
 
-        if (Name is null)
+        if (string.IsNullOrEmpty(Name))
         {
             context.ReportError(SchemaErrorBuilder.New()
                 .SetMessage(
@@ -99,6 +100,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         }
 
         OnAfterCompleteName(context, definition, definition.ContextData);
+        ExecuteConfigurations(context, definition, ApplyConfigurationOn.AfterNaming);
 
         MarkNamed();
     }
@@ -107,7 +109,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         ITypeCompletionContext context,
         TDefinition definition)
     {
-        if (definition.Name is not null)
+        if (!string.IsNullOrEmpty(definition.Name))
         {
             Name = definition.Name;
         }
@@ -121,15 +123,17 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
 
         OnBeforeCompleteType(context, definition, definition.ContextData);
 
-        ExecuteConfigurations(context, definition, ApplyConfigurationOn.Completion);
+        ExecuteConfigurations(context, definition, ApplyConfigurationOn.BeforeCompletion);
         Description = definition.Description;
         OnCompleteType(context, definition);
 
         _contextData = definition.ContextData;
         _definition = null;
 
-        OnAfterCompleteType(context, definition, _contextData);
-        OnValidateType(context, definition, _contextData);
+        OnAfterCompleteType(context, definition, definition.ContextData);
+        ExecuteConfigurations(context, definition, ApplyConfigurationOn.AfterCompletion);
+
+        OnValidateType(context, definition, definition.ContextData);
 
         MarkCompleted();
     }
@@ -140,7 +144,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         // collected by the GC.
         if (_contextData!.Count == 0)
         {
-            _contextData = ExtensionData.Empty;
+            _contextData = ImmutableDictionary<string, object?>.Empty;
         }
 
         MarkFinalized();

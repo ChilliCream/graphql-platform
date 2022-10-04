@@ -250,7 +250,7 @@ public class FilterFieldCollectionExtensionTest
         var typeReference = _descriptorContext.TypeInspector.GetTypeRef(
             typeof(Foo),
             TypeContext.Input);
-        var definition = new FilterOperationDefintion()
+        var definition = new FilterOperationDefinition()
         {
             Name = "Foo",
             Type = typeReference,
@@ -275,12 +275,12 @@ public class FilterFieldCollectionExtensionTest
     private ComparableFilterOperationDescriptor CreateComparableOperation(
         FilterOperationKind operationKind)
     {
-        var descirptor = new ComparableFilterFieldDescriptor(
+        var descriptor = new ComparableFilterFieldDescriptor(
             _descriptorContext, _propertyInfo);
         var typeReference = _descriptorContext.TypeInspector.GetTypeRef(
             typeof(Foo),
             TypeContext.Input);
-        var definition = new FilterOperationDefintion()
+        var definition = new FilterOperationDefinition()
         {
             Name = "Foo",
             Type = typeReference,
@@ -295,7 +295,7 @@ public class FilterFieldCollectionExtensionTest
 
         return ComparableFilterOperationDescriptor.New(
             _descriptorContext,
-            descirptor,
+            descriptor,
             "Foo",
             typeReference,
             operation);

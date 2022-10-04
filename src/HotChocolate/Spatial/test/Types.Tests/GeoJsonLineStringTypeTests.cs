@@ -20,7 +20,7 @@ public class GeoJsonLineStringTypeTests
         // arrange
         var schema = SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
-            .BindClrType<Coordinate, GeoJsonPositionType>()
+            .BindRuntimeType<Coordinate, GeoJsonPositionType>()
             .AddType<GeoJsonLineStringType>()
             .AddQueryType(d => d
                 .Name("Query")
@@ -65,7 +65,7 @@ public class GeoJsonLineStringTypeTests
     public void LineString_Execution_Tests() =>
         SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
-            .BindClrType<Coordinate, GeoJsonPositionType>()
+            .BindRuntimeType<Coordinate, GeoJsonPositionType>()
             .AddType<GeoJsonLineStringType>()
             .AddQueryType(d => d
                 .Name("Query")
@@ -80,7 +80,7 @@ public class GeoJsonLineStringTypeTests
         // arrange
         var schema = SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
-            .BindClrType<Coordinate, GeoJsonPositionType>()
+            .BindRuntimeType<Coordinate, GeoJsonPositionType>()
             .AddType<GeoJsonLineStringType>()
             .AddQueryType(d => d
                 .Name("Query")

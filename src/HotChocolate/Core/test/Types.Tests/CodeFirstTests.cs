@@ -55,7 +55,7 @@ public class CodeFirstTests
     {
         SchemaBuilder.New()
             .AddQueryType<QueryWithDateTimeType>()
-            .BindClrType<DateTime, DateTimeType>()
+            .BindRuntimeType<DateTime, DateTimeType>()
             .Create()
             .ToString()
             .MatchSnapshot();
@@ -68,8 +68,8 @@ public class CodeFirstTests
         // act
         var schema = SchemaBuilder.New()
             .AddQueryType<QueryWithDateTimeType>()
-            .BindClrType<DateTime, DateTimeType>()
-            .BindClrType<int, UrlType>()
+            .BindRuntimeType<DateTime, DateTimeType>()
+            .BindRuntimeType<int, UrlType>()
             .ModifyOptions(o => o.RemoveUnreachableTypes = true)
             .Create();
 
