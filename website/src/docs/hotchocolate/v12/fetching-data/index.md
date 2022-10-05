@@ -30,7 +30,7 @@ Hot Chocolate provides pagination capabilities out of the box. They allow us to 
 
 # Filtering
 
-When returning a list of entites, we often need to filter them using operations like `equals`, `contains`, `startsWith`, etc. Hot Chocolate takes away a lot of the boilerplate, by handling the generation of necessary input types and even translating the applied filters into native database queries.
+When returning a list of entities, we often need to filter them using operations like `equals`, `contains`, `startsWith`, etc. Hot Chocolate takes away a lot of the boilerplate, by handling the generation of necessary input types and even translating the applied filters into native database queries.
 
 [Learn more about filtering](/docs/hotchocolate/v12/fetching-data/filtering)
 
