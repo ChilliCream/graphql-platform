@@ -59,7 +59,7 @@ If you think that through you see that each GraphQL request would cause multiple
 
 This means that we reduced the round-trips from our client to our server with GraphQL but still have the round-trips between the data sources and the service layer.
 
-With data loaders we can now centralise the data fetching and reduce the number of round trips to our data source.
+With data loaders we can now centralize the data fetching and reduce the number of round trips to our data source.
 
 Instead of fetching the data from the repository directly, we fetch the data from the data loader.
 The data loader batches all the requests together into one request to the database.
