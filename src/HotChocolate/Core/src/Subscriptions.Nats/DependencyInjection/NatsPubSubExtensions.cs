@@ -13,7 +13,7 @@ public static class NatsPubSubExtensions
     /// </summary>
     /// <param name="services"></param>
     /// <returns></returns>
-    public static IServiceCollection AddNatsSubscription(this IServiceCollection services)
+    public static IServiceCollection AddNatsSubscriptions(this IServiceCollection services)
     {
         services.TryAddSingleton<NatsPubSub>();
         services.TryAddSingleton<ITopicEventSender>(sp => sp.GetRequiredService<NatsPubSub>());
