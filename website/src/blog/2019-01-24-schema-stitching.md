@@ -50,7 +50,7 @@ type Consultant {
 }
 ```
 
-In real life this schema would boast a lot more information about our customer but this will surface for our little demo.
+In real life this schema would boast a lot more information about our customer but this will suffice for our little demo.
 
 And our second schema dealing with the insurance contracts looks like the following:
 
