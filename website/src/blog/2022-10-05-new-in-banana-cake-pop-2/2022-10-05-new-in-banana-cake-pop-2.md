@@ -1,6 +1,6 @@
 ---
 path: "/blog/2022/09/29/new-in-banana-cake-pop-2"
-date: "2022-09-29"
+date: "2022-10-05"
 title: "New in Banana Cake Pop 2"
 tags: ["bananacakepop", "graphql", "ide", "cloud", "release"]
 featuredImage: "new-in-banana-cake-pop-2.png"
