@@ -42,7 +42,7 @@ Similar to filtering, Hot Chocolate can also autogenerate input types related to
 
 # Projections
 
-Projections allow Hot Chocolate to transform an incoming GraphQL query with a subselection of fields into an optimized database operation.
+Projections allow Hot Chocolate to transform an incoming GraphQL query with a sub-selection of fields into an optimized database operation.
 
 For example, if the client only requests the `name` and `id` of a user in their GraphQL query, Hot Chocolate will only query the database for those two columns.
 
