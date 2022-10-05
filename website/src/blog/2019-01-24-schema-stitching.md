@@ -295,7 +295,7 @@ The batching layer will rewrite those queries into one and send just one request
 
 This way we have just one call and your remote endpoint can better optimize the data fetching with _DataLoader_ and so on.
 
-## coming with 0.8.0
+## Coming with 0.8.0
 
 Furthermore, we will introduce the ability to rename types. This is useful when you either want to make names more clear or if you have naming collisions. So, with the next releases we will introduce '@name' as a way to rename types and fields.
 
