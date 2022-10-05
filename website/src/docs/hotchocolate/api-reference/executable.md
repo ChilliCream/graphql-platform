@@ -50,7 +50,7 @@ database.
 
 The source property stores the current state of the executable
 
-In the EnittyFramework executable this property holds the `IQueryable`. In the `MongoExecutable` it is the
+In the EntityFramework executable this property holds the `IQueryable`. In the `MongoExecutable` it is the
 `DbSet<T>` or the `IAggregateFluent<T>`. `Source` is deliberately read-only. If you have a custom implementation
 of `IExecutable` and you want to set the `Source`, you should create a method that returns a new executable
 with the new source
