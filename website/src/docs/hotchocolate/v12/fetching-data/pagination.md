@@ -666,7 +666,7 @@ Take a look at the Annotation-based or Code-first example..
 </Schema>
 </ExampleTabs>
 
-## Addings fields to a CollectionSegment
+## Adding fields to a CollectionSegment
 
 We can add new fields to a CollectionSegment type, by creating a type extension that targets the CollectionSegment by its name.
 
