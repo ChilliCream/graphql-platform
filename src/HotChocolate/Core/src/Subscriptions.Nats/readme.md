@@ -26,7 +26,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services
     .AddNats(poolSize: 1, opts => opts with
     {
-        Url = "nats://localhost:4444",
+        Url = "nats://localhost:4222",
         // Optional serializer (defaults to System.Text.Json)
         Serializer = new MessagePackNatsSerializer()
     })
