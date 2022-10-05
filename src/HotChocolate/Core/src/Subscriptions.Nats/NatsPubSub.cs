@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
+using System.Threading.Channels;
 using AlterNats;
 using HotChocolate.Execution;
 
@@ -21,7 +22,21 @@ public class NatsPubSub : ITopicEventReceiver, ITopicEventSender
         where TTopic : notnull
     {
         Debug.Assert(topic != null);
-        return await ValueTask.FromResult(new NatsEventStream<TMessage>(topic.ToString()!, _connection));
+
+        var channel = Channel.CreateUnbounded<TMessage>();
+        var subscription = await _connection.SubscribeAsync(topic.ToString()!, async (TMessage message) =>
+        {
+            if (message!.ToString() == Completed)
+            {
+                channel.Writer.Complete();
+            }
+            else
+            {
+                await channel.Writer.WriteAsync((TMessage)message, cancellationToken).ConfigureAwait(false);
+            }
+        }).ConfigureAwait(false);
+
+        return await ValueTask.FromResult(new NatsEventStream<TMessage>(channel, subscription)).ConfigureAwait(false);
     }
 
     /// <inheritdoc />

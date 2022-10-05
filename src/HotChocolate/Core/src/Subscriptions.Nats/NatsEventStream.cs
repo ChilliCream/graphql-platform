@@ -1,81 +1,54 @@
-﻿using AlterNats;
+﻿using System.Diagnostics;
+using System.Threading.Channels;
+using AlterNats;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Subscriptions.Nats;
 
 public class NatsEventStream<TMessage> : ISourceStream<TMessage>
 {
-    private readonly IObservable<TMessage> _observable;
+    private readonly Channel<TMessage> _channel;
+    private readonly IDisposable _subscription;
 
-    public NatsEventStream(string topic, NatsConnection connection)
+    public NatsEventStream(Channel<TMessage> channel, IDisposable subscription)
     {
-        _observable = connection.AsObservable<TMessage>(topic);
+        _channel = channel;
+        _subscription = subscription;
     }
 
     /// <inheritdoc />
     IAsyncEnumerable<TMessage> ISourceStream<TMessage>.ReadEventsAsync() =>
-        new NatsAsyncEnumerable<TMessage>(_observable);
-
+        new NatsAsyncEnumerable(_channel.Reader);
+    
     /// <inheritdoc />
     IAsyncEnumerable<object> ISourceStream.ReadEventsAsync() =>
-        new NatsAsyncEnumerable<object>((IObservable<object>)_observable);
+        (IAsyncEnumerable<object>)new NatsAsyncEnumerable(_channel.Reader);
 
     /// <inheritdoc />
     public ValueTask DisposeAsync()
     {
+        _subscription.Dispose();
         return ValueTask.CompletedTask;
     }
 
-    private class NatsAsyncEnumerable<T> : IAsyncEnumerable<T>
+    private class NatsAsyncEnumerable : IAsyncEnumerable<TMessage>
     {
-        private readonly IObservable<T> _observable;
+        private readonly ChannelReader<TMessage> _reader;
 
-        public NatsAsyncEnumerable(IObservable<T> observable)
+        public NatsAsyncEnumerable(ChannelReader<TMessage> reader)
         {
-            _observable = observable;
+            _reader = reader;
         }
 
-        public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = new())
+        public async IAsyncEnumerator<TMessage> GetAsyncEnumerator(CancellationToken cancellationToken = new())
         {
-            return new NatsAsyncEnumerator<T>(_observable, cancellationToken);
-        }
-    }
-
-    private class NatsAsyncEnumerator<T> : IAsyncEnumerator<T>
-    {
-        private readonly CancellationToken _cancellationToken;
-        private readonly IAsyncEnumerator<T> _enumerator;
-
-        public NatsAsyncEnumerator(IObservable<T> observable, CancellationToken cancellationToken)
-        {
-            _cancellationToken = cancellationToken;
-            _enumerator = observable.ToAsyncEnumerable().GetAsyncEnumerator(cancellationToken);
-        }
-
-        public T Current => _enumerator.Current;
-
-        public async ValueTask<bool> MoveNextAsync()
-        {
-            if (_cancellationToken.IsCancellationRequested)
+            while (await _reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
             {
-                return false;
-            }
-
-            var hasNext = await _enumerator.MoveNextAsync().ConfigureAwait(false);
-            if (hasNext)
-            {
-                if (Current != null && Current.Equals(NatsPubSub.Completed))
+                while (_reader.TryRead(out TMessage? message))
                 {
-                    return false;
+                    yield return message!;
                 }
             }
-
-            return hasNext;
-        }
-
-        public ValueTask DisposeAsync()
-        {
-            return _enumerator.DisposeAsync();
         }
     }
 }
