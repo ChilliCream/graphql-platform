@@ -1097,7 +1097,7 @@ input ISingleFilterOfInt16Filter {
 
 You can change the way Hot Chocolate names the types by supplying a delegate.
 
-This delgate must be of the following type:
+This delegate must be of the following type:
 
 ```csharp
 public delegate NameString GetFilterTypeName(
