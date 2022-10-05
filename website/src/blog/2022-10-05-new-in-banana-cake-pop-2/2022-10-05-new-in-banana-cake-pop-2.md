@@ -1,5 +1,5 @@
 ---
-path: "/blog/2022/09/29/new-in-banana-cake-pop-2"
+path: "/blog/2022/10/05/new-in-banana-cake-pop-2"
 date: "2022-10-05"
 title: "New in Banana Cake Pop 2"
 tags: ["bananacakepop", "graphql", "ide", "cloud", "release"]
@@ -9,7 +9,7 @@ authorUrl: https://github.com/rstaib
 authorImageUrl: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4
 ---
 
-[![YouTube Video](../shared/new-in-bcp-youtube.png)](https://www.youtube.com/watch?v=LlPEO2p_Bb8)
+[![YouTube Video](../shared/new-in-bcp-youtube.png)](https://youtu.be/X3cfnm0UHVQ)
 
 ## Getting started
 
