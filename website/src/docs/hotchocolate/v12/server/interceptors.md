@@ -47,7 +47,7 @@ public override ValueTask OnCreateAsync(HttpContext context,
 }
 ```
 
-> ⚠️ Note: `base.OnCreateAsync` should always be invoked, since the default implementation takes care of adding the dependencey injection services as well as some important global state variables, such as the `ClaimsPrinicpal`. Not doing this can lead to unexpected issues.
+> ⚠️ Note: `base.OnCreateAsync` should always be invoked, since the default implementation takes care of adding the dependency injection services as well as some important global state variables, such as the `ClaimsPrinicpal`. Not doing this can lead to unexpected issues.
 
 Most of the configuration will be done through the `IQueryRequestBuilder`, injected as argument to this method.
 
@@ -145,7 +145,7 @@ public override ValueTask OnRequestAsync(ISocketConnection connection,
 }
 ```
 
-> ⚠️ Note: `base.OnRequestAsync` should always be invoked, since the default implementation takes care of adding the dependencey injection services as well as some important global state variables, such as the `ClaimsPrinicpal`. Not doing this can lead to unexpected issues.
+> ⚠️ Note: `base.OnRequestAsync` should always be invoked, since the default implementation takes care of adding the dependency injection services as well as some important global state variables, such as the `ClaimsPrinicpal`. Not doing this can lead to unexpected issues.
 
 Most of the configuration will be done through the `IQueryRequestBuilder`, injected as argument to this method.
 
