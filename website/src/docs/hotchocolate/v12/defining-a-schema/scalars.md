@@ -469,7 +469,7 @@ public class Startup
 
 Some scalars like `TimeSpan` or `Uuid` have options like their serialization format.
 
-We can specify these options by registering the scalar explictly.
+We can specify these options by registering the scalar explicitly.
 
 ```csharp
 services
