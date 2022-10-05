@@ -277,7 +277,7 @@ public async Book PublishBook(Book book, [Service] ITopicEventSender sender)
 }
 ```
 
-If we do not want to mix the subscription logic with our resolver, we can also use the `With` argument on the `Subscribe` attribute to specify a seperate method that handles the event subscription.
+If we do not want to mix the subscription logic with our resolver, we can also use the `With` argument on the `Subscribe` attribute to specify a separate method that handles the event subscription.
 
 ```csharp
 public class Subscription
