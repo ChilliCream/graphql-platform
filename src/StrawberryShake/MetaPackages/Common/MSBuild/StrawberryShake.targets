@@ -22,7 +22,7 @@
     Condition="'@(GraphQL)' != ''">
     <PropertyGroup>
       <GraphQLCodeGenerationRoot>$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\</GraphQLCodeGenerationRoot>
-      <GraphQLQueryGenerationRoot>$(MSBuildProjectDirectory)\$(GraphQLPersistedQueryFormat)</GraphQLQueryGenerationRoot>
+      <GraphQLQueryGenerationRoot>$(MSBuildProjectDirectory)\$(GraphQLPersistedQueryOutput)</GraphQLQueryGenerationRoot>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -46,5 +46,5 @@
       <Compile Include="$(GraphQLCodeGenerationRoot)**\*.cs" />
     </ItemGroup>
   </Target>
-  
+
 </Project>
