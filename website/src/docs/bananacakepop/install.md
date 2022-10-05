@@ -18,8 +18,8 @@ brew install --cask banana-cake-pop
 
 Make sure to download the correct installer if you're using an Apple Silicon Mac (M1) or an Intel Mac.
 
-- [Intel Mac (x64)](https://download.chillicream.com/bananacakepop/BananaCakePop-1.0.0-mac-x64.dmg)
-- [Apple Silicon Mac (ARM 64)](https://download.chillicream.com/bananacakepop/BananaCakePop-1.0.0-mac-arm64.dmg)
+- [Intel Mac (x64)](https://download.chillicream.com/bananacakepop/BananaCakePop-2.0.0-mac-x64.dmg)
+- [Apple Silicon Mac (ARM 64)](https://download.chillicream.com/bananacakepop/BananaCakePop-2.0.0-mac-arm64.dmg)
 
 # Windows
 
@@ -44,11 +44,11 @@ scoop install banana-cake-pop
 
 ## Installer
 
-- [Windows Installer (x64)](https://download.chillicream.com/bananacakepop/BananaCakePop-1.0.0-win-x64.exe)
+- [Windows Installer (x64)](https://download.chillicream.com/bananacakepop/BananaCakePop-2.0.0-win-x64.exe)
 
 # Linux
 
 We offer an AppImage and Snap installer for Ubuntu. At the moment, we do not support other distributions or installer formats.
 
-- [Ubuntu Installer (AppImage)](https://download.chillicream.com/bananacakepop/BananaCakePop-1.0.0-linux-x86_64.AppImage)
-- [Ubuntu Installer (Snap)](https://download.chillicream.com/bananacakepop/BananaCakePop-1.0.0-linux-amd64.snap)
+- [Ubuntu Installer (AppImage)](https://download.chillicream.com/bananacakepop/BananaCakePop-2.0.0-linux-x86_64.AppImage)
+- [Ubuntu Installer (Snap)](https://download.chillicream.com/bananacakepop/BananaCakePop-2.0.0-linux-amd64.snap)
