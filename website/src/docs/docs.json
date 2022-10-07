@@ -1148,7 +1148,7 @@
     "description": "Use this GUI to get deep insights from any GraphQL API.",
     "versions": [
       {
-        "path": "",
+        "path": "v2",
         "title": "v2",
         "items": [
           {
