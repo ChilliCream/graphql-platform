@@ -144,7 +144,7 @@ dotnet build
 
 With the project compiled you now should see a directory `Generated`. The generated code is just there for the IDE, the actual code was injected directly into roslyn through source generators.
 
-![Visual Studio code showing the generated directory.](../../shared/berry_console_generated.png)
+![Visual Studio code showing the generated directory.](../../../shared/berry_console_generated.png)
 
 1. Head over to the `Program.cs` and add the new `ConferenceClient` to the dependency injection.
 
@@ -208,4 +208,4 @@ static async Task Main(string[] args)
 
 3. Start the console application with `dotnet run --project ./Demo` and see if your code works.
 
-![Started console application that shows a list of sessions](../../shared/berry_console_session_list.png)
+![Started console application that shows a list of sessions](../../../shared/berry_console_session_list.png)
