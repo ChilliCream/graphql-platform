@@ -879,7 +879,7 @@ Hot Chocolate provides different APIs to customize filtering. You can write cust
 | _You do not want all the generated filters and only allow a specific set of filters in a specific case?_                                | Custom&nbsp;FilterInputType     |
 | _You want to change the name of a field or a whole type?_                                                                               | Custom&nbsp;FilterInputType     |
 | _You want to change the name of the `where` argument?_                                                                                  | Filter Conventions ArgumentName |
-| _You want to configure how_Hot Chocolate_generates the name and the description of filters in globally? e.g. `PascalCaseFilterType`?_ | Filter&nbsp;Conventions         |
+| _You want to configure how _Hot Chocolate_ generates the name and the description of filters in globally? e.g. `PascalCaseFilterType`?_ | Filter&nbsp;Conventions         |
 | _You want to configure what the different types of filters are allowed globally?_                                                       | Filter&nbsp;Conventions         |
 | _Your database provider does not support certain operations of `IQueryable`_                                                            | Filter&nbsp;Conventions         |
 | _You want to change the naming of a specific lar filter type? e.g._ `foo_contains` _should be_ `foo_like`                               | Filter&nbsp;Conventions         |
