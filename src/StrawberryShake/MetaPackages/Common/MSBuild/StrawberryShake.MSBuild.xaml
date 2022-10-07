@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Rule xmlns="http://schemas.microsoft.com/build/2009/properties"
+      Name="GraphQLDefRule"
+      DisplayName="GraphQLDef"
+      PageTemplate="generic"
+      Description="GraphQL definition">
+    <Rule.Categories>
+        <Category Name="General" DisplayName="General" />
+    </Rule.Categories>
+    <Rule.DataSource>
+        <DataSource Persistence="ProjectFile" ItemType="GraphQL" />
+    </Rule.DataSource>
+    <StringProperty Name="Namespace" DisplayName="Namespace" />
+    <!--<EnumProperty Name="AccessModifier" DisplayName="Access Modifier">
+        <EnumValue Name="Public" DisplayName="Public"/>
+        <EnumValue Name="Internal" DisplayName="Internal"/>
+        <EnumValue Name="NoCodeGen" DisplayName="No Code Generation"/>
+    </EnumProperty>-->
+</Rule>

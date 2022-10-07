@@ -21,7 +21,7 @@ public class GeoJsonMultiPointTypeTests
         // arrange
         var schema = SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
-            .BindClrType<Coordinate, GeoJsonPositionType>()
+            .BindRuntimeType<Coordinate, GeoJsonPositionType>()
             .AddType<GeoJsonMultiPointType>()
             .AddQueryType(
                 d => d
@@ -69,7 +69,7 @@ public class GeoJsonMultiPointTypeTests
         // arrange
         var schema = SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
-            .BindClrType<Coordinate, GeoJsonPositionType>()
+            .BindRuntimeType<Coordinate, GeoJsonPositionType>()
             .AddType<GeoJsonMultiPointType>()
             .AddQueryType(
                 d => d

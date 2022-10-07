@@ -18,7 +18,7 @@ public class ModuleGenerator : ISyntaxGenerator
         Compilation compilation,
         IReadOnlyCollection<ISyntaxInfo> syntaxInfos)
     {
-        ModuleInfo module =
+        var module =
             syntaxInfos.OfType<ModuleInfo>().FirstOrDefault() ??
             new ModuleInfo(
                 compilation.AssemblyName is null
@@ -56,7 +56,7 @@ public class ModuleGenerator : ISyntaxGenerator
 
         code.Append(Indent).Append(Indent).AppendLine("{");
 
-        foreach (ISyntaxInfo syntaxInfo in batch.Distinct())
+        foreach (var syntaxInfo in batch.Distinct())
         {
             switch (syntaxInfo)
             {
@@ -77,12 +77,24 @@ public class ModuleGenerator : ISyntaxGenerator
                     if ((module.Options & ModuleOptions.RegisterTypes) ==
                         ModuleOptions.RegisterTypes)
                     {
-                        code.Append(Indent)
-                            .Append(Indent)
-                            .Append(Indent)
-                            .Append("builder.AddTypeExtension<")
-                            .Append(extension.Name)
-                            .AppendLine(">();");
+                        if (extension.IsStatic)
+                        {
+                            code.Append(Indent)
+                                .Append(Indent)
+                                .Append(Indent)
+                                .Append("builder.AddTypeExtension(typeof(")
+                                .Append(extension.Name)
+                                .AppendLine("));");
+                        }
+                        else
+                        {
+                            code.Append(Indent)
+                                .Append(Indent)
+                                .Append(Indent)
+                                .Append("builder.AddTypeExtension<")
+                                .Append(extension.Name)
+                                .AppendLine(">();");
+                        }
                     }
                     break;
 

@@ -1,0 +1,81 @@
+{
+  "data": {
+    "persons": []
+  },
+  "hasNext": true
+}
+{
+  "incremental": [
+    {
+      "items": [
+        {
+          "id": "UGVyc29uCmkx"
+        }
+      ],
+      "path": [
+        "persons",
+        0
+      ]
+    }
+  ],
+  "hasNext": true
+}
+{
+  "incremental": [
+    {
+      "items": [
+        {
+          "id": "UGVyc29uCmky"
+        }
+      ],
+      "path": [
+        "persons",
+        1
+      ]
+    }
+  ],
+  "hasNext": true
+}
+{
+  "incremental": [
+    {
+      "items": [
+        {
+          "id": "UGVyc29uCmkz"
+        }
+      ],
+      "path": [
+        "persons",
+        2
+      ]
+    }
+  ],
+  "hasNext": true
+}
+{
+  "incremental": [
+    {
+      "items": [
+        {
+          "id": "UGVyc29uCmk0"
+        }
+      ],
+      "path": [
+        "persons",
+        3
+      ]
+    }
+  ],
+  "hasNext": true
+}
+{
+  "incremental": [
+    {
+      "data": {
+        "wait": true
+      },
+      "path": []
+    }
+  ],
+  "hasNext": false
+}

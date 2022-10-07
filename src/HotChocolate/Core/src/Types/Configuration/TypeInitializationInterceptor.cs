@@ -100,10 +100,8 @@ public class TypeInterceptor
     internal virtual void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
         DefinitionBase definition,
-        OperationType operationType,
-        IDictionary<string, object?> contextData)
+        OperationType operationType)
     {
-
     }
 
     public virtual void OnTypesCompletedName(

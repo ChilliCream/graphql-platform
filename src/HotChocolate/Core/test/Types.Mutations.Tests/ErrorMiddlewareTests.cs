@@ -27,17 +27,17 @@ public class ErrorMiddlewareTests
     public async Task ErrorMiddleware_Should_CatchException_WhenRegistered()
     {
         // Arrange
-        IRequestExecutor executor =
+        var executor =
             await BuildSchemaAsync(
                 () => throw new InvalidOperationException(),
                 field => field.Error<InvalidOperationException>());
 
         // Act
-        IExecutionResult res = await executor.ExecuteAsync(_query);
+        var res = await executor.ExecuteAsync(_query);
 
         // Assert
         res.ToJson().MatchSnapshot();
-        SnapshotFullName fullName = Snapshot.FullName();
+        var fullName = Snapshot.FullName();
         SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
@@ -46,17 +46,17 @@ public class ErrorMiddlewareTests
     public async Task ErrorMiddleware_Should_CatchCustomerException_WhenRegistered()
     {
         // Arrange
-        IRequestExecutor executor =
+        var executor =
             await BuildSchemaAsync(
                 () => throw new CustomException(),
                 field => field.Error<CustomException>());
 
         // Act
-        IExecutionResult res = await executor.ExecuteAsync(_query);
+        var res = await executor.ExecuteAsync(_query);
 
         // Assert
         res.ToJson().MatchSnapshot();
-        SnapshotFullName fullName = Snapshot.FullName();
+        var fullName = Snapshot.FullName();
         SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
@@ -65,17 +65,17 @@ public class ErrorMiddlewareTests
     public async Task ErrorMiddleware_Should_MapException_WhenRegistered()
     {
         // Arrange
-        IRequestExecutor executor =
+        var executor =
             await BuildSchemaAsync(
                 () => throw new InvalidOperationException(),
                 field => field.Error<CustomError>());
 
         // Act
-        IExecutionResult res = await executor.ExecuteAsync(_query);
+        var res = await executor.ExecuteAsync(_query);
 
         // Assert
         res.ToJson().MatchSnapshot();
-        SnapshotFullName fullName = Snapshot.FullName();
+        var fullName = Snapshot.FullName();
         SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
@@ -84,7 +84,7 @@ public class ErrorMiddlewareTests
     public async Task ErrorMiddleware_Should_MapAggregateException_WhenRegistered()
     {
         // Arrange
-        IRequestExecutor executor =
+        var executor =
             await BuildSchemaAsync(
                 () => throw new AggregateException(
                     new InvalidOperationException(),
@@ -95,11 +95,11 @@ public class ErrorMiddlewareTests
                     .Error<ArgumentException>());
 
         // Act
-        IExecutionResult res = await executor.ExecuteAsync(_query);
+        var res = await executor.ExecuteAsync(_query);
 
         // Assert
         res.ToJson().MatchSnapshot();
-        SnapshotFullName fullName = Snapshot.FullName();
+        var fullName = Snapshot.FullName();
         SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
@@ -108,17 +108,17 @@ public class ErrorMiddlewareTests
     public async Task ErrorMiddleware_Should_MapFactoryMethodException_WhenRegistered()
     {
         // Arrange
-        IRequestExecutor executor =
+        var executor =
             await BuildSchemaAsync(
                 () => throw new InvalidOperationException(),
                 field => field.Error<CustomErrorWithFactory>());
 
         // Act
-        IExecutionResult res = await executor.ExecuteAsync(_query);
+        var res = await executor.ExecuteAsync(_query);
 
         // Assert
         res.ToJson().MatchSnapshot();
-        SnapshotFullName fullName = Snapshot.FullName();
+        var fullName = Snapshot.FullName();
         SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
@@ -127,17 +127,17 @@ public class ErrorMiddlewareTests
     public async Task ErrorMiddleware_Should_MapMultipleFactoryMethodException_WhenRegistered()
     {
         // Arrange
-        IRequestExecutor executor =
+        var executor =
             await BuildSchemaAsync(
                 () => throw new NullReferenceException(),
                 field => field.Error<CustomErrorWithMultipleFactory>());
 
         // Act
-        IExecutionResult res = await executor.ExecuteAsync(_query);
+        var res = await executor.ExecuteAsync(_query);
 
         // Assert
         res.ToJson().MatchSnapshot();
-        SnapshotFullName fullName = Snapshot.FullName();
+        var fullName = Snapshot.FullName();
         SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
@@ -146,17 +146,17 @@ public class ErrorMiddlewareTests
     public async Task ErrorMiddleware_Should_MapMultipleFactoriesOfDifferentType_FirstEx()
     {
         // Arrange
-        IRequestExecutor executor =
+        var executor =
             await BuildSchemaAsync(
                 () => throw new InvalidOperationException(),
                 field => field.Error<CustomErrorWithMultipleFactoriesOfDifferentType>());
 
         // Act
-        IExecutionResult res = await executor.ExecuteAsync(_query);
+        var res = await executor.ExecuteAsync(_query);
 
         // Assert
         res.ToJson().MatchSnapshot();
-        SnapshotFullName fullName = Snapshot.FullName();
+        var fullName = Snapshot.FullName();
         SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
@@ -165,17 +165,17 @@ public class ErrorMiddlewareTests
     public async Task ErrorMiddleware_Should_MapMultipleFactoriesOfDifferentType_SecondEx()
     {
         // Arrange
-        IRequestExecutor executor =
+        var executor =
             await BuildSchemaAsync(
                 () => throw new NullReferenceException(),
                 field => field.Error<CustomErrorWithMultipleFactoriesOfDifferentType>());
 
         // Act
-        IExecutionResult res = await executor.ExecuteAsync(_query);
+        var res = await executor.ExecuteAsync(_query);
 
         // Assert
         res.ToJson().MatchSnapshot();
-        SnapshotFullName fullName = Snapshot.FullName();
+        var fullName = Snapshot.FullName();
         SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
@@ -184,17 +184,17 @@ public class ErrorMiddlewareTests
     public async Task ErrorMiddleware_Should_MapMultipleFactories_When_NotStatic()
     {
         // Arrange
-        IRequestExecutor executor =
+        var executor =
             await BuildSchemaAsync(
                 () => throw new NullReferenceException(),
                 field => field.Error<CustomErrorNonStatic>());
 
         // Act
-        IExecutionResult res = await executor.ExecuteAsync(_query);
+        var res = await executor.ExecuteAsync(_query);
 
         // Assert
         res.ToJson().MatchSnapshot();
-        SnapshotFullName fullName = Snapshot.FullName();
+        var fullName = Snapshot.FullName();
         SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
@@ -203,17 +203,17 @@ public class ErrorMiddlewareTests
     public async Task ErrorMiddleware_Should_MapMultipleFactories_When_InterfaceIsUsed()
     {
         // Arrange
-        IRequestExecutor executor =
+        var executor =
             await BuildSchemaAsync(
                 () => throw new NullReferenceException(),
                 field => field.Error<CustomErrorPayloadErrorFactory>());
 
         // Act
-        IExecutionResult res = await executor.ExecuteAsync(_query);
+        var res = await executor.ExecuteAsync(_query);
 
         // Assert
         res.ToJson().MatchSnapshot();
-        SnapshotFullName fullName = Snapshot.FullName();
+        var fullName = Snapshot.FullName();
         SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
@@ -222,14 +222,14 @@ public class ErrorMiddlewareTests
     public async Task ErrorMiddleware_Should_AllowToCustomizeErrorInterfaceType()
     {
         // Arrange
-        IRequestExecutor executor =
+        var executor =
             await BuildSchemaAsync(
                 () => throw new NullReferenceException(),
                 field => field.Error<CustomInterfaceError>(),
                 b => b.AddErrorInterfaceType<CustomErrorInterfaceType>());
 
         // Act
-        IExecutionResult res = await executor.ExecuteAsync(@"
+        var res = await executor.ExecuteAsync(@"
             mutation {
                 throw {
                     errors {
@@ -244,7 +244,7 @@ public class ErrorMiddlewareTests
 
         // Assert
         res.ToJson().MatchSnapshot();
-        SnapshotFullName fullName = Snapshot.FullName();
+        var fullName = Snapshot.FullName();
         SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
@@ -253,14 +253,14 @@ public class ErrorMiddlewareTests
     public async Task ErrorMiddleware_Should_AllowToCustomizeErrorInterfaceRuntimeType()
     {
         // Arrange
-        IRequestExecutor executor =
+        var executor =
             await BuildSchemaAsync(
                 () => throw new NullReferenceException(),
                 field => field.Error<CustomInterfaceError>(),
                 b => b.AddErrorInterfaceType<IUserError>());
 
         // Act
-        IExecutionResult res = await executor.ExecuteAsync(@"
+        var res = await executor.ExecuteAsync(@"
             mutation {
                 throw {
                     errors {
@@ -275,7 +275,7 @@ public class ErrorMiddlewareTests
 
         // Assert
         res.ToJson().MatchSnapshot();
-        SnapshotFullName fullName = Snapshot.FullName();
+        var fullName = Snapshot.FullName();
         SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
@@ -285,13 +285,13 @@ public class ErrorMiddlewareTests
         Action<IObjectFieldDescriptor> configureField,
         Action<IRequestExecutorBuilder>? configureSchema = null)
     {
-        IRequestExecutorBuilder builder = new ServiceCollection()
+        var builder = new ServiceCollection()
             .AddGraphQL()
             .AddMutationConventions(true)
             .AddMutationType(x =>
             {
                 x.Name("Mutation");
-                IObjectFieldDescriptor field = x.Field("throw")
+                var field = x.Field("throw")
                     .Type<ObjectType<Payload>>()
                     .Resolve(_ =>
                     {

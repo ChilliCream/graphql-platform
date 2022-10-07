@@ -538,7 +538,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Data, other.Data)) && ((On_conflict is null && other.On_conflict is null) || On_conflict != null && On_conflict.Equals(other.On_conflict));
+            return (global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Data, other.Data)) && ((On_conflict is null && other.On_conflict is null) || On_conflict != null && On_conflict.Equals(other.On_conflict));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -1098,7 +1098,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Constraint.Equals(other.Constraint)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Update_columns, other.Update_columns) && ((Where is null && other.Where is null) || Where != null && Where.Equals(other.Where));
+            return (Constraint.Equals(other.Constraint)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Update_columns, other.Update_columns) && ((Where is null && other.Where is null) || Where != null && Where.Equals(other.Where));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -1384,7 +1384,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(_and, other._and)) && ((_not is null && other._not is null) || _not != null && _not.Equals(other._not)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(_or, other._or) && ((Cars is null && other.Cars is null) || Cars != null && Cars.Equals(other.Cars)) && ((FirstName is null && other.FirstName is null) || FirstName != null && FirstName.Equals(other.FirstName)) && ((Id is null && other.Id is null) || Id != null && Id.Equals(other.Id)) && ((LastName is null && other.LastName is null) || LastName != null && LastName.Equals(other.LastName));
+            return (global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(_and, other._and)) && ((_not is null && other._not is null) || _not != null && _not.Equals(other._not)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(_or, other._or) && ((Cars is null && other.Cars is null) || Cars != null && Cars.Equals(other.Cars)) && ((FirstName is null && other.FirstName is null) || FirstName != null && FirstName.Equals(other.FirstName)) && ((Id is null && other.Id is null) || Id != null && Id.Equals(other.Id)) && ((LastName is null && other.LastName is null) || LastName != null && LastName.Equals(other.LastName));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -1749,7 +1749,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(_and, other._and)) && ((_not is null && other._not is null) || _not != null && _not.Equals(other._not)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(_or, other._or) && ((CarName is null && other.CarName is null) || CarName != null && CarName.Equals(other.CarName)) && ((Id is null && other.Id is null) || Id != null && Id.Equals(other.Id)) && ((OwnerId is null && other.OwnerId is null) || OwnerId != null && OwnerId.Equals(other.OwnerId)) && ((Person is null && other.Person is null) || Person != null && Person.Equals(other.Person));
+            return (global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(_and, other._and)) && ((_not is null && other._not is null) || _not != null && _not.Equals(other._not)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(_or, other._or) && ((CarName is null && other.CarName is null) || CarName != null && CarName.Equals(other.CarName)) && ((Id is null && other.Id is null) || Id != null && Id.Equals(other.Id)) && ((OwnerId is null && other.OwnerId is null) || OwnerId != null && OwnerId.Equals(other.OwnerId)) && ((Person is null && other.Person is null) || Person != null && Person.Equals(other.Person));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -2314,7 +2314,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (((_eq is null && other._eq is null) || _eq != null && _eq.Equals(other._eq))) && ((_gt is null && other._gt is null) || _gt != null && _gt.Equals(other._gt)) && ((_gte is null && other._gte is null) || _gte != null && _gte.Equals(other._gte)) && ((_ilike is null && other._ilike is null) || _ilike != null && _ilike.Equals(other._ilike)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(_in, other._in) && ((_iregex is null && other._iregex is null) || _iregex != null && _iregex.Equals(other._iregex)) && _is_null == other._is_null && ((_like is null && other._like is null) || _like != null && _like.Equals(other._like)) && ((_lt is null && other._lt is null) || _lt != null && _lt.Equals(other._lt)) && ((_lte is null && other._lte is null) || _lte != null && _lte.Equals(other._lte)) && ((_neq is null && other._neq is null) || _neq != null && _neq.Equals(other._neq)) && ((_nilike is null && other._nilike is null) || _nilike != null && _nilike.Equals(other._nilike)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(_nin, other._nin) && ((_niregex is null && other._niregex is null) || _niregex != null && _niregex.Equals(other._niregex)) && ((_nlike is null && other._nlike is null) || _nlike != null && _nlike.Equals(other._nlike)) && ((_nregex is null && other._nregex is null) || _nregex != null && _nregex.Equals(other._nregex)) && ((_nsimilar is null && other._nsimilar is null) || _nsimilar != null && _nsimilar.Equals(other._nsimilar)) && ((_regex is null && other._regex is null) || _regex != null && _regex.Equals(other._regex)) && ((_similar is null && other._similar is null) || _similar != null && _similar.Equals(other._similar));
+            return (((_eq is null && other._eq is null) || _eq != null && _eq.Equals(other._eq))) && ((_gt is null && other._gt is null) || _gt != null && _gt.Equals(other._gt)) && ((_gte is null && other._gte is null) || _gte != null && _gte.Equals(other._gte)) && ((_ilike is null && other._ilike is null) || _ilike != null && _ilike.Equals(other._ilike)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(_in, other._in) && ((_iregex is null && other._iregex is null) || _iregex != null && _iregex.Equals(other._iregex)) && _is_null == other._is_null && ((_like is null && other._like is null) || _like != null && _like.Equals(other._like)) && ((_lt is null && other._lt is null) || _lt != null && _lt.Equals(other._lt)) && ((_lte is null && other._lte is null) || _lte != null && _lte.Equals(other._lte)) && ((_neq is null && other._neq is null) || _neq != null && _neq.Equals(other._neq)) && ((_nilike is null && other._nilike is null) || _nilike != null && _nilike.Equals(other._nilike)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(_nin, other._nin) && ((_niregex is null && other._niregex is null) || _niregex != null && _niregex.Equals(other._niregex)) && ((_nlike is null && other._nlike is null) || _nlike != null && _nlike.Equals(other._nlike)) && ((_nregex is null && other._nregex is null) || _nregex != null && _nregex.Equals(other._nregex)) && ((_nsimilar is null && other._nsimilar is null) || _nsimilar != null && _nsimilar.Equals(other._nsimilar)) && ((_regex is null && other._regex is null) || _regex != null && _regex.Equals(other._regex)) && ((_similar is null && other._similar is null) || _similar != null && _similar.Equals(other._similar));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -2935,7 +2935,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (((_eq is null && other._eq is null) || _eq != null && _eq.Equals(other._eq))) && ((_gt is null && other._gt is null) || _gt != null && _gt.Equals(other._gt)) && ((_gte is null && other._gte is null) || _gte != null && _gte.Equals(other._gte)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(_in, other._in) && _is_null == other._is_null && ((_lt is null && other._lt is null) || _lt != null && _lt.Equals(other._lt)) && ((_lte is null && other._lte is null) || _lte != null && _lte.Equals(other._lte)) && ((_neq is null && other._neq is null) || _neq != null && _neq.Equals(other._neq)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(_nin, other._nin);
+            return (((_eq is null && other._eq is null) || _eq != null && _eq.Equals(other._eq))) && ((_gt is null && other._gt is null) || _gt != null && _gt.Equals(other._gt)) && ((_gte is null && other._gte is null) || _gte != null && _gte.Equals(other._gte)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(_in, other._in) && _is_null == other._is_null && ((_lt is null && other._lt is null) || _lt != null && _lt.Equals(other._lt)) && ((_lte is null && other._lte is null) || _lte != null && _lte.Equals(other._lte)) && ((_neq is null && other._neq is null) || _neq != null && _neq.Equals(other._neq)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(_nin, other._nin);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -3243,7 +3243,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Constraint.Equals(other.Constraint)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Update_columns, other.Update_columns) && ((Where is null && other.Where is null) || Where != null && Where.Equals(other.Where));
+            return (Constraint.Equals(other.Constraint)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Update_columns, other.Update_columns) && ((Where is null && other.Where is null) || Where != null && Where.Equals(other.Where));
         }
 
         public override global::System.Int32 GetHashCode()

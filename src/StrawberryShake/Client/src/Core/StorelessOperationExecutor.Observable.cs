@@ -40,7 +40,7 @@ public partial class StorelessOperationExecutor<TData, TResult>
         {
             try
             {
-                var token = session.RequestSession.Token;
+                var token = session.RequestSession.Abort;
                 var resultBuilder = _resultBuilder();
 
                 await foreach (var response in
@@ -62,6 +62,10 @@ public partial class StorelessOperationExecutor<TData, TResult>
             }
             finally
             {
+                // call observer's OnCompleted method to notify observer
+                // there is no further data is available.
+                observer.OnCompleted();
+
                 // after all the transport logic is finished we will dispose
                 // the request session.
                 session.RequestSession.Dispose();

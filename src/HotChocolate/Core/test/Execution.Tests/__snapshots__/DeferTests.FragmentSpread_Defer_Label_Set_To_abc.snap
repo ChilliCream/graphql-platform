@@ -1,0 +1,18 @@
+{
+  "data": {},
+  "hasNext": true
+}
+{
+  "incremental": [
+    {
+      "data": {
+        "person": {
+          "id": "UGVyc29uCmkx"
+        }
+      },
+      "label": "abc",
+      "path": []
+    }
+  ],
+  "hasNext": false
+}

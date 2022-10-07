@@ -1,6 +1,9 @@
 using System;
+using HotChocolate.Internal;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Types.FieldBindingFlags;
 
 #nullable enable
 
@@ -18,6 +21,11 @@ public sealed class ExtendObjectTypeAttribute
     public ExtendObjectTypeAttribute(string? name = null)
     {
         _name = name;
+    }
+
+    public ExtendObjectTypeAttribute(OperationType operationType)
+    {
+        _name = operationType.ToString();
     }
 
     public ExtendObjectTypeAttribute(Type extendsType)
@@ -39,6 +47,11 @@ public sealed class ExtendObjectTypeAttribute
     /// Defines if this attribute is inherited. The default is <c>false</c>.
     /// </summary>
     public bool Inherited { get; set; }
+
+    /// <summary>
+    /// Defines that static members are included.
+    /// </summary>
+    public bool IncludeStaticMembers { get; set; }
 
     TypeKind ITypeAttribute.Kind => TypeKind.Object;
 
@@ -86,6 +99,11 @@ public sealed class ExtendObjectTypeAttribute
         if (!string.IsNullOrEmpty(Name))
         {
             descriptor.Name(Name);
+        }
+
+        if (IncludeStaticMembers)
+        {
+            descriptor.Extend().Definition.FieldBindingFlags = Instance | Static;
         }
 
         if (IgnoreFields is not null)
@@ -151,6 +169,11 @@ public sealed class ExtendObjectTypeAttribute<T>
     public string[]? IgnoreFields { get; set; }
 
     /// <summary>
+    /// Defines that static members are included.
+    /// </summary>
+    public bool IncludeStaticMembers { get; set; }
+
+    /// <summary>
     /// Gets a set of property names that will be removed from the extended type.
     /// </summary>
     public string[]? IgnoreProperties { get; set; }
@@ -175,6 +198,11 @@ public sealed class ExtendObjectTypeAttribute<T>
         if (ExtendsType is not null)
         {
             descriptor.ExtendsType(ExtendsType);
+        }
+
+        if (IncludeStaticMembers)
+        {
+            descriptor.Extend().Definition.FieldBindingFlags = Instance | Static;
         }
 
         if (IgnoreFields is not null)

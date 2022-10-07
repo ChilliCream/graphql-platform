@@ -61,7 +61,7 @@ public class TypeInitializationOrderTests
                                 }
                             },
                             d,
-                            ApplyConfigurationOn.Completion,
+                            ApplyConfigurationOn.BeforeCompletion,
                             reference,
                             TypeDependencyKind.Completed));
                 });

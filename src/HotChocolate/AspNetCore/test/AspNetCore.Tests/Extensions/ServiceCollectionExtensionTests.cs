@@ -11,15 +11,15 @@ public class ServiceCollectionExtensionTests
         var serviceCollection = new ServiceCollection();
 
         // act
-        serviceCollection.AddHttpResultSerializer<DefaultHttpResultSerializer>();
+        serviceCollection.AddHttpResponseFormatter<DefaultHttpResponseFormatter>();
 
         // assert
         Assert.Collection(
             serviceCollection,
             t =>
             {
-                Assert.Equal(typeof(IHttpResultSerializer), t.ServiceType);
-                Assert.Equal(typeof(DefaultHttpResultSerializer), t.ImplementationType);
+                Assert.Equal(typeof(IHttpResponseFormatter), t.ServiceType);
+                Assert.Equal(typeof(DefaultHttpResponseFormatter), t.ImplementationType);
             });
     }
 }

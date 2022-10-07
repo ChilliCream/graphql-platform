@@ -9,11 +9,13 @@ interface Entity {
 type Person implements Entity {
   name: String!
   address: String!
+  lastName: String!
 }
 
 type Query {
   person: Entity
   enum: CustomEnum
+  staticField: String!
 }
 
 enum CustomEnum {

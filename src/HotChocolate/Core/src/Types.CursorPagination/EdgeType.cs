@@ -32,7 +32,7 @@ internal sealed class EdgeType : ObjectType, IEdgeType
             new CompleteConfiguration(
                 (c, _) => NodeType = c.GetType<IOutputType>(nodeType),
                 Definition,
-                ApplyConfigurationOn.Completion));
+                ApplyConfigurationOn.BeforeCompletion));
     }
 
     internal EdgeType(ITypeReference nodeType)
@@ -54,14 +54,14 @@ internal sealed class EdgeType : ObjectType, IEdgeType
                     ((ObjectTypeDefinition)d).Name = NameHelper.CreateEdgeName(ConnectionName);
                 },
                 Definition,
-                ApplyConfigurationOn.Naming,
+                ApplyConfigurationOn.BeforeNaming,
                 nodeType,
                 TypeDependencyKind.Named));
         Definition.Configurations.Add(
             new CompleteConfiguration(
                 (c, _) => NodeType = c.GetType<IOutputType>(nodeType),
                 Definition,
-                ApplyConfigurationOn.Completion));
+                ApplyConfigurationOn.BeforeCompletion));
     }
 
     /// <summary>

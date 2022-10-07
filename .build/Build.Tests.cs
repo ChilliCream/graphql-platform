@@ -69,7 +69,6 @@ partial class Build
             TestHotChocolateUtilities,
             TestStrawberryShakeClient,
             TestStrawberryShakeCodeGeneration,
-            TestStrawberryShakeSourceGenerator,
             TestStrawberryShakeTooling);
 
     Target Cover => _ => _

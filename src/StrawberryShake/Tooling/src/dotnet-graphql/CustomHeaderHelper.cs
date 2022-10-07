@@ -5,7 +5,7 @@ namespace StrawberryShake.Tools
     public static class CustomHeaderHelper
     {
         public static Dictionary<string, IEnumerable<string>> ParseHeadersArgument(
-            List<string?> arguments)
+            IReadOnlyCollection<string?> arguments)
         {
             var headers = new Dictionary<string, IEnumerable<string>>();
 

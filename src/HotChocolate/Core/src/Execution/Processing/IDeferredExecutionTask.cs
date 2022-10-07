@@ -32,7 +32,10 @@ internal abstract class DeferredExecutionTask
     /// <param name="resultId">
     /// The internal result identifier.
     /// </param>
-    public void Begin(OperationContextOwner operationContextOwner, uint resultId)
+    /// <param name="patchId">
+    /// The internal identifier of the object that the result will be patched into.
+    /// </param>
+    public void Begin(OperationContextOwner operationContextOwner, uint resultId, uint patchId)
     {
         // retrieve the task on which this task depends upon. We do this to ensure that the result
         // of this task is not delivered before the parent result is delivered.
@@ -44,7 +47,7 @@ internal abstract class DeferredExecutionTask
         }
 
         Task.Factory.StartNew(
-            () => ExecuteAsync(operationContextOwner, resultId, parentResultId),
+            () => ExecuteAsync(operationContextOwner, resultId, parentResultId, patchId),
             default,
             TaskCreationOptions.None,
             TaskScheduler.Default);
@@ -62,8 +65,12 @@ internal abstract class DeferredExecutionTask
     /// <param name="parentResultId">
     /// The parent result identifier.
     /// </param>
+    /// <param name="patchId">
+    /// The internal identifier of the object that the result will be patched into.
+    /// </param>
     protected abstract Task ExecuteAsync(
         OperationContextOwner operationContextOwner,
         uint resultId,
-        uint parentResultId);
+        uint parentResultId,
+        uint patchId);
 }

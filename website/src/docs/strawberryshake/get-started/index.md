@@ -14,6 +14,10 @@ In this tutorial, we will teach you:
 - How to generate source code from .graphql files, that contain operations.
 - How to use the generated client in a classical or reactive way.
 
+<iframe width="560" height="315"
+src="https://www.youtube.com/embed/-oq7YEciouM"frameborder="0"
+allowfullscreen></iframe>
+
 # Step 1: Add the Strawberry Shake CLI tools
 
 The Strawberry Shake tool will help you to setup your project to create a GraphQL client.
@@ -134,6 +138,8 @@ query GetSessions {
   }
 }
 ```
+
+> If you are working with Visual Studio on Windows edit the properties of GetSessions.graphql and set the build action for the GraphQL file to GraphQL compiler.
 
 5. Compile your project.
 

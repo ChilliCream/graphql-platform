@@ -1,6 +1,6 @@
 using System;
 using HotChocolate.Types.Relay;
-using static HotChocolate.Types.WellKnownContextData;
+using static HotChocolate.WellKnownContextData;
 
 #nullable enable
 
@@ -55,6 +55,7 @@ public static class RelaySchemaBuilderExtensions
         {
             schemaBuilder
                 .TryAddTypeInterceptor<NodeFieldTypeInterceptor>()
+                .TryAddTypeInterceptor<NodeResolverTypeInterceptor>()
                 .AddType<NodeType>();
         }
 

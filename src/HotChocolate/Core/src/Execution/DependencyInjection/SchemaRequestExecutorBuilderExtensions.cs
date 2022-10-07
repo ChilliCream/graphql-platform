@@ -29,7 +29,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
     public static IRequestExecutorBuilder ModifyOptions(
         this IRequestExecutorBuilder builder,
-        Action<ISchemaOptions> configure)
+        Action<SchemaOptions> configure)
     {
         if (builder is null)
         {

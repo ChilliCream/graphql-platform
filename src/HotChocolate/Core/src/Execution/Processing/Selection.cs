@@ -29,7 +29,7 @@ public class Selection : ISelection
         FieldNode syntaxNode,
         string responseName,
         IArgumentMap? arguments = null,
-        long includeCondition = 0,
+        long[]? includeConditions = null,
         bool isInternal = false,
         bool isParallelExecutable = true,
         FieldDelegate? resolverPipeline = null,
@@ -46,9 +46,7 @@ public class Selection : ISelection
         PureResolver = pureResolver;
         Strategy = InferStrategy(!isParallelExecutable, pureResolver is not null);
 
-        _includeConditions = includeCondition is 0
-            ? Array.Empty<long>()
-            : new[] { includeCondition };
+        _includeConditions = includeConditions ?? Array.Empty<long>();
 
         _flags = isInternal ? Flags.Internal : Flags.None;
 
@@ -151,6 +149,8 @@ public class Selection : ISelection
     /// <inheritdoc />
     public bool IsConditional
         => _includeConditions.Length > 0 || (_flags & Flags.Internal) == Flags.Internal;
+
+    internal ReadOnlySpan<long> IncludeConditions => _includeConditions;
 
     public bool IsIncluded(long includeFlags, bool allowInternals = false)
     {

@@ -25,7 +25,8 @@ public class InterfaceTypeValidation : TypeValidationTestBase
     [Fact]
     public void Arguments_With_Two_Underscores_Are_Not_Allowed()
     {
-        ExpectError(@"
+        ExpectError(
+            @"
                 type Query {
                     foo : FooInterface
                 }

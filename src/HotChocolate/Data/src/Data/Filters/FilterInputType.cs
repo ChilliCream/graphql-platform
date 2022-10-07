@@ -188,7 +188,7 @@ public class FilterInputType
             new CompleteConfiguration<FilterInputTypeDefinition>(
                 CreateNamingConfiguration,
                 filterTypeDefinition,
-                ApplyConfigurationOn.Naming,
+                ApplyConfigurationOn.BeforeNaming,
                 new TypeDependency[] {
                     new(filterOperationType, TypeDependencyKind.Named) ,
                     new(filterType, TypeDependencyKind.Named)
@@ -197,7 +197,7 @@ public class FilterInputType
             new CompleteConfiguration<FilterInputTypeDefinition>(
                 CreateOperationFieldConfiguration,
                 filterTypeDefinition,
-                ApplyConfigurationOn.Naming,
+                ApplyConfigurationOn.BeforeNaming,
                 new TypeDependency[] {
                     new(filterOperationType, TypeDependencyKind.Named),
                     new(filterType, TypeDependencyKind.Named)

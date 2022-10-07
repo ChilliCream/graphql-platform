@@ -12,7 +12,8 @@ using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Snapshooter.Xunit;
-using Xunit;
+using SnapshotExtensions = CookieCrumble.SnapshotExtensions;
+using static HotChocolate.Types.FieldBindingFlags;
 
 #nullable enable
 
@@ -619,6 +620,23 @@ public class ObjectTypeExtensionTests
         Assert.Equal("GetFoo1", field.ResolverMember?.Name);
     }
 
+#if NET6_0_OR_GREATER
+    [Fact]
+    public async Task Ensure_Member_And_ResolverMember_Are_Correctly_Set_When_Extending_Generic()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<ObjectField_Test_Query>()
+                .AddTypeExtension<ObjectField_Test_Query_Extension_Generic>()
+                .BuildSchemaAsync();
+
+        IObjectField field = schema.QueryType.Fields["foo1"];
+        Assert.Equal("GetFoo", field.Member?.Name);
+        Assert.Equal("GetFoo1", field.ResolverMember?.Name);
+    }
+#endif
+
     [Fact]
     public async Task Ensure_Member_And_ResolverMember_Are_The_Same_When_Not_Extending()
     {
@@ -645,6 +663,73 @@ public class ObjectTypeExtensionTests
             .MatchSnapshotAsync();
     }
 
+    [Fact]
+    public async Task Static_Query_Extensions()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType()
+                .AddTypeExtension(typeof(StaticExtensions))
+                .ExecuteRequestAsync("{ hello }");
+
+        SnapshotExtensions.MatchSnapshot(result);
+    }
+
+    [Fact]
+    public async Task Static_Query_Extensions_Schema()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType()
+                .AddTypeExtension(typeof(StaticExtensions))
+                .BuildSchemaAsync();
+
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
+    [Fact]
+    public async Task Query_Extension_With_Static_Members_Schema()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType()
+                .AddTypeExtension<QueryExtensionWithStaticField>()
+                .BuildSchemaAsync();
+
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
+
+    [Fact]
+    public async Task Query_Extension_With_Static_Members_2_Schema()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType()
+                .AddTypeExtension<QueryExtensionWithStaticField2>()
+                .ModifyOptions(t => t.DefaultFieldBindingFlags = InstanceAndStatic)
+                .BuildSchemaAsync();
+
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
+    [Fact]
+    public async Task Query_Extension_With_Static_Members_Execute()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType()
+                .AddTypeExtension<QueryExtensionWithStaticField>()
+                .ExecuteRequestAsync("{ hello }");
+
+        SnapshotExtensions.MatchSnapshot(result);
+    }
+
     public class FooType : ObjectType<Foo>
     {
         protected override void Configure(IObjectTypeDescriptor<Foo> descriptor)
@@ -658,8 +743,9 @@ public class ObjectTypeExtensionTests
         protected override void Configure(
             IObjectTypeDescriptor descriptor)
         {
-            descriptor.Name("Foo");
-            descriptor.Field("test")
+            descriptor
+                .Name("Foo")
+                .Field("test")
                 .Resolve(() => new List<string>())
                 .Type<ListType<StringType>>();
         }
@@ -960,6 +1046,15 @@ public class ObjectTypeExtensionTests
         public string GetFoo1() => null!;
     }
 
+#if NET6_0_OR_GREATER
+    [ExtendObjectType<ObjectField_Test_Query>]
+    public class ObjectField_Test_Query_Extension_Generic
+    {
+        [BindMember(nameof(ObjectField_Test_Query.GetFoo))]
+        public string GetFoo1() => null!;
+    }
+#endif
+
     public class FooQueryType : ObjectType
     {
         protected override void Configure(IObjectTypeDescriptor descriptor)
@@ -988,5 +1083,26 @@ public class ObjectTypeExtensionTests
                 return default;
             });
         }
+    }
+
+    [ExtendObjectType(OperationType.Query, IncludeStaticMembers = true)]
+    public class QueryExtensionWithStaticField
+    {
+        public static string Hello()
+            => "abc";
+    }
+
+    [ExtendObjectType(OperationType.Query)]
+    public class QueryExtensionWithStaticField2
+    {
+        public static string Hello()
+            => "abc";
+    }
+
+    [ExtendObjectType(OperationType.Query)]
+    public static class StaticExtensions
+    {
+        public static string Hello()
+            => "abc";
     }
 }

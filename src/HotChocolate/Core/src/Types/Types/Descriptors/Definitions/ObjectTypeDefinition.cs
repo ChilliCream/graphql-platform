@@ -19,6 +19,7 @@ public class ObjectTypeDefinition
     private List<Type>? _knownClrTypes;
     private List<ITypeReference>? _interfaces;
     private List<ObjectFieldBinding>? _fieldIgnores;
+    private FieldBindingFlags _fieldBindingFlags = FieldBindingFlags.Instance;
 
     /// <summary>
     /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
@@ -95,6 +96,31 @@ public class ObjectTypeDefinition
     /// </summary>
     public IBindableList<ObjectFieldDefinition> Fields { get; } =
         new BindableList<ObjectFieldDefinition>();
+
+    /// <summary>
+    /// Gets the field binding flags, which defines how runtime
+    /// members are inferred as GraphQL fields.
+    /// </summary>
+    public FieldBindingFlags FieldBindingFlags
+    {
+        get
+        {
+            if (Fields.BindingBehavior == BindingBehavior.Explicit)
+            {
+                return FieldBindingFlags.Default;
+            }
+
+            return _fieldBindingFlags;
+        }
+        set
+        {
+            Fields.BindingBehavior =
+                value == FieldBindingFlags.Default
+                    ? BindingBehavior.Explicit
+                    : BindingBehavior.Implicit;
+            _fieldBindingFlags = value;
+        }
+    }
 
     public override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
     {

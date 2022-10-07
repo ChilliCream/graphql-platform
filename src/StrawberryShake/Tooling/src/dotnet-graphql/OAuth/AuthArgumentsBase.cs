@@ -57,12 +57,12 @@ namespace StrawberryShake.Tools.OAuth
 
             if (TokenEndpoint.HasValue() || ClientId.HasValue() || ClientSecret.HasValue())
             {
-                using IActivity activity = output.WriteActivity("Request token");
+                using var activity = output.WriteActivity("Request token");
                 ValidateOAuthArguments(activity);
-                IEnumerable<string> scopes = Scopes.HasValue()
-                    ? Enumerable.Empty<string>()
-                    : Scopes.Values.Where(t => t is { }).OfType<string>();
-                string token = await TokenClient.GetTokenAsync(
+                var scopes = Scopes.HasValue()
+                    ? Scopes.Values.Where(t => t is { }).OfType<string>()
+                    : Enumerable.Empty<string>();
+                var token = await TokenClient.GetTokenAsync(
                      TokenEndpoint.Value()!.Trim(),
                      ClientId.Value()!.Trim(),
                      ClientSecret.Value()!.Trim(),
