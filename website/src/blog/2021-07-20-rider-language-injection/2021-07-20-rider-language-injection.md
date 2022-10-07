@@ -106,7 +106,7 @@ have to make the GraphQL extension aware of this schema by creating a `.graphqlc
 }
 ```
 
-Now all _.gql and_.graphql files in your project will have proper syntax highlighting, IntelliSense and linting.
+Now all `.gql` and `.graphql` files in your project will have proper syntax highlighting, IntelliSense and linting.
 
 ## Inject GraphQL into strings
 
