@@ -1,8 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.StarWars.Models;
+using HotChocolate.Subscriptions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.Transport.WebSockets;
@@ -36,9 +36,26 @@ public class StarWarsOnReviewSubNoStoreTest : ServerTestBase
         StarWarsOnReviewSubNoStoreClient client = services.GetRequiredService<StarWarsOnReviewSubNoStoreClient>();
 
         // act
+        var topicEventSender = host.Services.GetRequiredService<ITopicEventSender>();
+        var topic = Episode.NewHope;
 
+        var connectCompletionSource = new TaskCompletionSource();
+        var subscribeCompletionSource = new TaskCompletionSource();
+        var session = client.OnReviewSub.Watch().Subscribe(
+            _ => connectCompletionSource.TrySetResult(),
+            () => subscribeCompletionSource.TrySetResult());
+
+        // make sure the subscription connection is successful
+        while (!connectCompletionSource.Task.IsCompleted) {
+            await topicEventSender.SendAsync(topic, new Review { Stars = 1, Commentary = "Commentary" });
+            await Task.Delay(1_000, ct);
+        }
+
+        // complete the topic of subscription from server
+        await topicEventSender.CompleteAsync(topic);
+        var completedTask = await Task.WhenAny(subscribeCompletionSource.Task, Task.Delay(Timeout.Infinite, ct));
 
         // assert
-
+        Assert.True(subscribeCompletionSource.Task == completedTask);
     }
 }
