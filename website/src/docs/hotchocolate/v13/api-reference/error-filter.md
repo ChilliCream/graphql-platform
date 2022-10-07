@@ -8,7 +8,7 @@ Moreover, you can throw a `QueryException` that will be be caught by the query e
 
 One further way to raise an error are non-terminating field errors. This can be raised by using `IResolverContext.RaiseError`. So, with this you can provide a result and raise an error for your current field.
 
-> If you do want to log errors head over to our diagnostic source [documentation](/docs/hotchocolate/v13/v10/execution-engine/instrumentation) and see how you can hook up your logging framework of choice to it.
+> If you do want to log errors head over to our diagnostic source [documentation](/docs/hotchocolate/v13/server/instrumentation) and see how you can hook up your logging framework of choice to it.
 
 # Error Builder
 

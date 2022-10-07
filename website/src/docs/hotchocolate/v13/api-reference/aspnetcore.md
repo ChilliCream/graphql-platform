@@ -284,7 +284,7 @@ services.AddHttpResultSerializer(
     deferSerialization: HttpResultSerialization.MultiPartChunked)
 ```
 
-> More about batching can be found [here](/docs/hotchocolate/v13/v10/execution-engine/batching).
+> More about batching can be found [here](/docs/hotchocolate/v10/execution-engine/batching).
 
 # Subscription Transport
 

@@ -32,4 +32,4 @@ You can now copy and paste the query below into the "Operations" editor area and
 
 ![Banana Cake Pop - Sessions By Id Query](../shared/bcp/bcp-sessionsbyid-query.png)
 
-Congratulations, you have completed a GraphQL query. Next lets check out the [Schema Reference](/docs/bananacakepop/schema-reference) area so we can explore the API and learn about it
+Congratulations, you have completed a GraphQL query. Next lets check out the [Schema Reference](/docs/bananacakepop/v2/schema-reference) area so we can explore the API and learn about it
