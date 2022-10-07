@@ -116,7 +116,7 @@ export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
                     </Button>
                   </ResponsiveMenu>
                 </ResponsiveMenuWrapper>
-                <DocumentationNotes product={product} />
+                <DocumentationNotes product={product} slug={slug} />
                 <ArticleTitle>{title}</ArticleTitle>
               </ArticleHeader>
               <ArticleContent>
@@ -393,15 +393,12 @@ const DocumentationVersionWarning = styled.div`
 
 interface DocumentationNotesProps {
   readonly product: ProductInformation;
+  readonly slug: string;
 }
 
-type DocumentationVersionType =
-  | "stable"
-  | "experimental"
-  | "outdated"
-  | unknown;
+type DocumentationVersionType = "stable" | "experimental" | "outdated" | null;
 
-const DocumentationNotes: FC<DocumentationNotesProps> = ({ product }) => {
+const DocumentationNotes: FC<DocumentationNotesProps> = ({ product, slug }) => {
   const versionType = useMemo<DocumentationVersionType>(() => {
     const parsedCurrentVersion = semverCoerce(product.version);
     const parsedStableVersion = semverCoerce(product.stableVersion);
@@ -425,33 +422,37 @@ const DocumentationNotes: FC<DocumentationNotesProps> = ({ product }) => {
       }
     }
 
-    return "unknown";
+    return null;
   }, [product.stableVersion, product.version]);
 
-  if (versionType === "experimental") {
-    return (
-      <DocumentationVersionWarning>
-        This is documentation for the unstable{" "}
-        <strong>{product.version}</strong>.
-        <br />
-        See the <Link to={`/docs/${product.name}`}>
-          latest stable version
-        </Link>{" "}
-        instead.
-      </DocumentationVersionWarning>
+  if (versionType !== null) {
+    const stableDocsUrl = slug.replace(
+      "/" + product.version,
+      "/" + product.stableVersion
     );
-  }
 
-  if (versionType === "outdated") {
-    return (
-      <DocumentationVersionWarning>
-        This is documentation for <strong>{product.version}</strong>, which is
-        no longer actively maintained.
-        <br />
-        For up-to-date documentation, see the{" "}
-        <Link to={`/docs/${product.name}`}>latest stable version</Link>.
-      </DocumentationVersionWarning>
-    );
+    if (versionType === "experimental") {
+      return (
+        <DocumentationVersionWarning>
+          This is documentation for the unstable{" "}
+          <strong>{product.version}</strong>.
+          <br />
+          See the <Link to={stableDocsUrl}>latest stable version</Link> instead.
+        </DocumentationVersionWarning>
+      );
+    }
+
+    if (versionType === "outdated") {
+      return (
+        <DocumentationVersionWarning>
+          This is documentation for <strong>{product.version}</strong>, which is
+          no longer actively maintained.
+          <br />
+          For up-to-date documentation, see the{" "}
+          <Link to={stableDocsUrl}>latest stable version</Link>.
+        </DocumentationVersionWarning>
+      );
+    }
   }
 
   return null;

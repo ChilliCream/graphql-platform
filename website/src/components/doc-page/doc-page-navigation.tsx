@@ -187,6 +187,10 @@ export const DocPageNavigation: FC<DocPageNavigationProps> = ({
           : undefined,
       })) ?? [];
 
+  const basePath = `/docs/${activeProduct!.path!}${
+    !!activeVersion?.path?.length ? "/" + activeVersion.path! : ""
+  }`;
+
   return (
     <Navigation height={height} show={showTOC}>
       <DocPagePaneHeader
@@ -244,23 +248,25 @@ export const DocPageNavigation: FC<DocPageNavigationProps> = ({
         open={versionSwitcherOpen}
         onClick={() => dispatch(closeTOC())}
       >
-        {activeProduct?.versions?.map((version, index) => (
-          <VersionLink
-            key={version!.path! + index}
-            to={`/docs/${activeProduct.path}/${version!.path!}`}
-          >
-            {version!.title!}
-          </VersionLink>
-        ))}
+        {activeProduct?.versions?.map((version, index) => {
+          const newVersionUrl = selectedPath.replace(
+            "/" + selectedVersion,
+            "/" + version!.path
+          );
+
+          return (
+            <VersionLink key={version!.path! + index} to={newVersionUrl}>
+              {version!.title!}
+            </VersionLink>
+          );
+        })}
       </ProductVersionDialog>
 
       {!productSwitcherOpen && activeVersion?.items && (
         <ScrollContainer>
           <MostProminentSection>
             <NavigationContainer
-              basePath={`/docs/${activeProduct!.path!}${
-                !!activeVersion?.path?.length ? "/" + activeVersion.path! : ""
-              }`}
+              basePath={basePath}
               items={subItems}
               selectedPath={selectedPath}
             />
