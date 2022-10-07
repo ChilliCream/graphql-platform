@@ -594,7 +594,7 @@ WHERE NOT ST_Within(c."Area", @__p_0)
 
 In upcoming releases spatial data will get re-projection features and sorting capabilities.
 
-## re-projection
+## Re-projection
 
 At the moment the coordinate reference system (crs) is fixed. The user has to know the crs of the backend
 to do spatial filtering. The API will furthermore always return the data in the crs it was stored in the database.
