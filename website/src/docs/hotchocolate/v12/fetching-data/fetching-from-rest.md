@@ -2,7 +2,7 @@
 title: "Fetching from REST"
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
 
 In this section, we will cover how you can easily integrate a REST API into your GraphQL API.
 

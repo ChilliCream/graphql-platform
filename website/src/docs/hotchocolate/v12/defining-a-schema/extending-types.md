@@ -2,7 +2,7 @@
 title: "Extending Types"
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
 
 Type extensions allow us to add, remove or replace fields on existing types, without necessarily needing access to these types.
 

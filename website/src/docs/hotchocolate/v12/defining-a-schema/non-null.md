@@ -2,7 +2,7 @@
 title: "Non-Null"
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
 
 Per default all fields on an object type can be either `null` or the specified type.
 

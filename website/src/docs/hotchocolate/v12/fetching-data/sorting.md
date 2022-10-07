@@ -2,7 +2,7 @@
 title: Sorting
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
 
 # What is sorting
 
@@ -113,13 +113,13 @@ public class Query
 </Schema>
 </ExampleTabs>
 
-> ⚠️ **Note:** If you use more than one middleware, keep in mind that **ORDER MATTERS**. The correct order is UsePaging > UseProjections > UseFiltering > UseSorting  
-  
+> ⚠️ **Note:** If you use more than one middleware, keep in mind that **ORDER MATTERS**. The correct order is UsePaging > UseProjections > UseFiltering > UseSorting
+
 The type can be sorted using the `order` field in the query:
-  
+
 ```graphql
 query {
-  users(order: [{name: ASC}]) {
+  users(order: [{ name: ASC }]) {
     name
     address {
       street
@@ -127,12 +127,12 @@ query {
   }
 }
 ```
-  
+
 Properties of nested objects can be sorted as well:
-  
+
 ```graphql
 query {
-  users(order: [{address: {street: ASC}}]) {
+  users(order: [{ address: { street: ASC } }]) {
     name
     address {
       street
@@ -140,12 +140,12 @@ query {
   }
 }
 ```
-  
+
 Note that it is possible to sort on a field and then by another field:
-  
+
 ```graphql
 query {
-  users(order: [{name: ASC}, {address: {street: DESC}}]) {
+  users(order: [{ name: ASC }, { address: { street: DESC } }]) {
     name
     address {
       street
@@ -153,7 +153,7 @@ query {
   }
 }
 ```
-  
+
 # Customization
 
 Under the hood, sorting is based on top of normal Hot Chocolate input types. You can easily customize them with a very familiar fluent interface. The sorting input types follow the same `descriptor` scheme as you are used to from the normal input types. Just extend the base class `SortInputType<T>` and override the descriptor method.

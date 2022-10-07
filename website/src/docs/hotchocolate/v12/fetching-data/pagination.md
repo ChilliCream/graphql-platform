@@ -2,7 +2,7 @@
 title: "Pagination"
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs";
+import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs";
 
 Pagination is one of the most common problems that we have to solve when implementing our backend. Often, sets of data are too large to pass them directly to the consumer of our service.
 

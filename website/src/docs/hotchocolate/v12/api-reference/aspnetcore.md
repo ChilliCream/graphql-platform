@@ -300,7 +300,7 @@ Moreover, we are working on allowing this protocol to be used over SignalR, whic
 
 The Hot Chocolate GraphQL server comes right out of the gate with excellent tooling. By default, we are mapping our GraphQL IDE Banana Cake Pop to the GraphQL endpoint. This means you just need to open your browser and navigate to the configured endpoint to send requests to your server, explore your schema, or build-up tests.
 
-![GraphQL IDE](../../../images/get-started-bcp-query.png)
+![GraphQL IDE](../../../../images/get-started-bcp-query.png)
 
 The GraphQL IDE can be disabled by specifying tool options:
 

@@ -318,7 +318,7 @@ app.Run();
 
 When running GraphQL requests, you can now inspect in _Jaeger_ how the request performed and look into the various parts of the execution telemetry.
 
-![Jaeger](../../shared/jaeger1.png)
+![Jaeger](../../../shared/jaeger1.png)
 
 ## Options
 
@@ -336,7 +336,7 @@ builder.Services
 
 > Beware, adding more instrumentation scopes is not free and will add more performance overhead.
 
-![Jaeger](../../shared/jaeger2.png)
+![Jaeger](../../../shared/jaeger2.png)
 
 Further, if you work with elastic and you want to give your root activity a name that is associated with the executed operation, you can quickly just tell the instrumentation to do just that for you.
 
@@ -350,7 +350,7 @@ builder.Services
     });
 ```
 
-![Jaeger](../../shared/jaeger3.png)
+![Jaeger](../../../shared/jaeger3.png)
 
 ## Enriching Activities
 
@@ -381,7 +381,7 @@ Register the custom activity enricher as a singleton:
 builder.Services.AddSingleton<ActivityEnricher, CustomActivityEnricher>();
 ```
 
-![Jaeger](../../shared/jaeger4.png)
+![Jaeger](../../../shared/jaeger4.png)
 
 # Apollo Tracing
 

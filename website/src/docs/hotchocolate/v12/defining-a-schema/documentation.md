@@ -2,7 +2,7 @@
 title: Documentation
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
 
 Documentation allows us to enrich our schema with additional information that is useful for a consumer of our API.
 
@@ -222,7 +222,7 @@ public class CustomNamingConventions : DefaultNamingConventions
     // Before
     public CustomNamingConventions()
         : base() { }
-  
+
     // After
     public CustomNamingConventions(IDocumentationProvider documentationProvider)
         : base(documentationProvider) { }
@@ -234,7 +234,7 @@ public class CustomNamingConventions : DefaultNamingConventions
 
 // After
 IReadOnlySchemaOptions capturedSchemaOptions;
-  
+
 services
     .AddGraphQLServer()
     .ModifyOptions(opt => capturedSchemaOptions = opt)
@@ -242,7 +242,6 @@ services
         new XmlDocumentationProvider(
             new XmlDocumentationFileResolver(
                 capturedSchemaOptions.ResolveXmlDocumentationFileName),
-            sp.GetApplicationService<ObjectPool<StringBuilder>>() 
+            sp.GetApplicationService<ObjectPool<StringBuilder>>()
               ?? new NoOpStringBuilderPool())));
-```  
-  
+```
