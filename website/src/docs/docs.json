@@ -1369,58 +1369,5 @@
         ]
       }
     ]
-  },
-  {
-    "path": "greendonut",
-    "title": "Green Donut",
-    "description": "Configure data loaders and caching for GraphQL endpoints.",
-    "versions": [
-      {
-        "path": "",
-        "title": "v11",
-        "items": [
-          {
-            "path": "index",
-            "title": "Introduction"
-          }
-        ]
-      },
-      {
-        "path": "v10",
-        "title": "v10",
-        "items": [
-          {
-            "path": "index",
-            "title": "Introduction"
-          },
-          {
-            "path": "installation",
-            "title": "Installation"
-          },
-          {
-            "path": "usage",
-            "title": "Usage"
-          },
-          {
-            "path": "api",
-            "title": "API"
-          },
-          {
-            "path": "advanced-concepts",
-            "title": "Advanced Concepts",
-            "items": [
-              {
-                "path": "index",
-                "title": "Custom DataLoader"
-              },
-              {
-                "path": "diagnostics",
-                "title": "Diagnostic Events"
-              }
-            ]
-          }
-        ]
-      }
-    ]
   }
 ]
