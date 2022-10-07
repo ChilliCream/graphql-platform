@@ -434,8 +434,8 @@ const DocumentationNotes: FC<DocumentationNotesProps> = ({ product, slug }) => {
     if (versionType === "experimental") {
       return (
         <DocumentationVersionWarning>
-          This is documentation for the unstable{" "}
-          <strong>{product.version}</strong>.
+          This is documentation for <strong>{product.version}</strong>, which is
+          currently in preview.
           <br />
           See the <Link to={stableDocsUrl}>latest stable version</Link> instead.
         </DocumentationVersionWarning>

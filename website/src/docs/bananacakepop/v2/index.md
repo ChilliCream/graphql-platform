@@ -6,7 +6,7 @@ title: "Introduction"
 
 Banana Cake Pop makes it easy and enjoyable to test your GraphQL server implementations. It works well with Hot Chocolate and any other GraphQL server.
 
-![Banana Cake Pop - Operations](../shared/bcp/bcp-operations.png)
+![Banana Cake Pop - Operations](../../shared/bcp/bcp-operations.png)
 
 # Web App
 
