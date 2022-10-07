@@ -202,7 +202,7 @@ public class BarType
 {
     protected override void Configure(IObjectTypeDescriptor<Bar> desc)
     {
-        desc.BindFields(Bindingbehavior.Explicit);
+        desc.BindFields(BindingBehavior.Explicit);
         desc.Field(t => t.Foo1);
     }
 }
