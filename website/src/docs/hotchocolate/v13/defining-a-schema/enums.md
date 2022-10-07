@@ -4,7 +4,7 @@ title: "Enums"
 
 import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
 
-An Enum is a special kind of [scalar](/docs/hotchocolate/defining-a-schema/scalars) that is restricted to a particular set of allowed values. It can be used as both an input and an output type.
+An Enum is a special kind of [scalar](/docs/hotchocolate/v13/defining-a-schema/scalars) that is restricted to a particular set of allowed values. It can be used as both an input and an output type.
 
 ```sdl
 enum UserRole {
@@ -139,7 +139,7 @@ Since there could be multiple enum types inheriting from `EnumType<UserRole>`, b
 
 **Therefore it's important to note that Code-first enum types are not automatically inferred. They need to be explicitly specified or registered.**
 
-We can either [explicitly specify the type on a per-resolver basis](/docs/hotchocolate/defining-a-schema/object-types#explicit-types) or we can register the type once globally:
+We can either [explicitly specify the type on a per-resolver basis](/docs/hotchocolate/v13/defining-a-schema/object-types#explicit-types) or we can register the type once globally:
 
 ```csharp
 public class Startup

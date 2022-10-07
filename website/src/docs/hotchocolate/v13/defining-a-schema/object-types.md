@@ -407,11 +407,11 @@ public class Startup
 
 What we have just created is a resolver. Hot Chocolate automatically creates resolvers for our properties, but we can also define them ourselves.
 
-[Learn more about resolvers](/docs/hotchocolate/fetching-data/resolvers)
+[Learn more about resolvers](/docs/hotchocolate/v13/fetching-data/resolvers)
 
 # Generics
 
-> Note: Read about [interfaces](/docs/hotchocolate/defining-a-schema/interfaces) and [unions](/docs/hotchocolate/defining-a-schema/unions) before resorting to generic object types.
+> Note: Read about [interfaces](/docs/hotchocolate/v13/defining-a-schema/interfaces) and [unions](/docs/hotchocolate/v13/defining-a-schema/unions) before resorting to generic object types.
 
 In the Code-first approach we can define generic object types.
 

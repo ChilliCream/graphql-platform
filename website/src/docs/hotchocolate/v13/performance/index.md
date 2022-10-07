@@ -37,7 +37,7 @@ This can be done by extracting the queries from our client applications at build
 
 Strawberry Shake, [Relay](https://relay.dev/docs/guides/persisted-queries/), and [Apollo](https://www.apollographql.com/docs/react/api/link/persisted-queries/) client all support this approach.
 
-[Learn more about persisted queries](/docs/hotchocolate/performance/persisted-queries)
+[Learn more about persisted queries](/docs/hotchocolate/v13/performance/persisted-queries)
 
 ## Automatic persisted queries
 
@@ -47,4 +47,4 @@ However, we do not get any bundle size improvements for our applications since t
 
 Both Strawberry Shake and [Apollo](https://www.apollographql.com/docs/apollo-server/performance/apq/) client support this approach.
 
-[Learn more about automatic persisted queries](/docs/hotchocolate/performance/automatic-persisted-queries)
+[Learn more about automatic persisted queries](/docs/hotchocolate/v13/performance/automatic-persisted-queries)

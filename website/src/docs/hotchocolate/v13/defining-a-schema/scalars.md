@@ -72,7 +72,7 @@ type Product {
 
 This scalar is used to facilitate technology-specific Ids, like `int`, `string` or `Guid`.
 
-It is **not** automatically inferred and the `IdType` needs to be [explicitly specified](/docs/hotchocolate/defining-a-schema/object-types#explicit-types).
+It is **not** automatically inferred and the `IdType` needs to be [explicitly specified](/docs/hotchocolate/v13/defining-a-schema/object-types#explicit-types).
 
 `ID` values are always represented as a [String](#string) in client-server communication, but can be coerced to their expected type on the server.
 
@@ -357,7 +357,7 @@ Most of these scalars are built on top of native .NET types. An Email Address fo
 public string GetEmail() => "test@example.com";
 ```
 
-[Learn more about explicitly specifying GraphQL types](/docs/hotchocolate/defining-a-schema/object-types#explicit-types)
+[Learn more about explicitly specifying GraphQL types](/docs/hotchocolate/v13/defining-a-schema/object-types#explicit-types)
 
 ## NodaTime
 

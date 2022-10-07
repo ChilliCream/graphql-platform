@@ -72,7 +72,7 @@ This convention is also configurable with a fluent interface, so in most cases y
 ## Descriptor
 
 Most of the capabilities of the descriptor are already documented under `Fetching Data -> Filtering`.
-If you have not done this already, it is now the right time to head over to [Filtering](/docs/hotchocolate/fetching-data/filtering) and read the parts about the `FilterConventions`
+If you have not done this already, it is now the right time to head over to [Filtering](/docs/hotchocolate/v13/fetching-data/filtering) and read the parts about the `FilterConventions`
 
 There are two things on this descriptor that are not documented in `Fetching Data`:
 
@@ -177,7 +177,7 @@ In case, of MongoDB this is a `FilterDefinition`. Provider, visitor context and 
 
 To inspect and analyze the input object, the provider uses a visitor.
 
-What a visitor is and how you can write you own visitor is explained [here](/docs/hotchocolate/api-reference/visitors)
+What a visitor is and how you can write you own visitor is explained [here](/docs/hotchocolate/v13/api-reference/visitors)
 
 Visitors are a powerful yet complex concept, we tried our best to abstract it away.
 For most cases, you will not need to create a custom visitor.

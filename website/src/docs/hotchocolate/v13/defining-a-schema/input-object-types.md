@@ -4,9 +4,9 @@ title: "Input Object Types"
 
 import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
 
-We already looked at [arguments](/docs/hotchocolate/defining-a-schema/arguments), which allow us to use simple [scalars](/docs/hotchocolate/defining-a-schema/scalars) like `String` to pass data into a field. GraphQL defines input object types to allow us to use objects as arguments on our fields.
+We already looked at [arguments](/docs/hotchocolate/v13/defining-a-schema/arguments), which allow us to use simple [scalars](/docs/hotchocolate/v13/defining-a-schema/scalars) like `String` to pass data into a field. GraphQL defines input object types to allow us to use objects as arguments on our fields.
 
-Input object type definitions differ from [object types](/docs/hotchocolate/defining-a-schema/object-types) only in the used keyword and in that their fields can not have arguments.
+Input object type definitions differ from [object types](/docs/hotchocolate/v13/defining-a-schema/object-types) only in the used keyword and in that their fields can not have arguments.
 
 ```sdl
 input BookInput {
@@ -121,7 +121,7 @@ public class MutationType : ObjectType
 
 The `IInputTypeDescriptor` is really similar to the `IObjectTypeDescriptor` and provides almost the same capabilities.
 
-[Learn more about object types](/docs/hotchocolate/defining-a-schema/object-types)
+[Learn more about object types](/docs/hotchocolate/v13/defining-a-schema/object-types)
 
 </Code>
 <Schema>

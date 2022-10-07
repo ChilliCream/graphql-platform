@@ -4,7 +4,7 @@ title: "Unions"
 
 import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
 
-A union type represents a set of object types. It is very similar to an [interface](/docs/hotchocolate/defining-a-schema/interfaces), except that there is no requirement for common fields between the specified types.
+A union type represents a set of object types. It is very similar to an [interface](/docs/hotchocolate/v13/defining-a-schema/interfaces), except that there is no requirement for common fields between the specified types.
 
 ```sdl
 type TextContent {

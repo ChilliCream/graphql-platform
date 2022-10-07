@@ -93,7 +93,7 @@ services
 
 All of this does not yet lock out unauthenticated users. It only exposes the identity of the authenticated user to our application through a `ClaimsPrincipal`. If we want to prevent certain users from querying our graph, we need to utilize authorization.
 
-[Learn more about authorization](/docs/hotchocolate/security/authorization)
+[Learn more about authorization](/docs/hotchocolate/v13/security/authorization)
 
 # Accessing the ClaimsPrincipal
 

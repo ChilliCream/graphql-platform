@@ -19,7 +19,7 @@ allowfullscreen></iframe>
 - After the server has been deployed, clients can execute persisted queries, by specifying the query id (hash) in their requests.
 - If Hot Chocolate can find a query that matches the specified hash in the query storage it will execute it and return the result to the client.
 
-> Note: There are also [automatic persisted queries](/docs/hotchocolate/performance/automatic-persisted-queries), which allow clients to persist queries at runtime. They might be a better fit, if our API is used by many clients with different requirements.
+> Note: There are also [automatic persisted queries](/docs/hotchocolate/v13/performance/automatic-persisted-queries), which allow clients to persist queries at runtime. They might be a better fit, if our API is used by many clients with different requirements.
 
 # Benefits
 

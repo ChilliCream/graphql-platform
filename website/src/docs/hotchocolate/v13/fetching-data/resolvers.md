@@ -57,7 +57,7 @@ Resolvers can be defined in a way that should feel very familiar to C# developer
 
 Hot Chocolate automatically converts properties with a public get accessor to a resolver that simply returns its value.
 
-Properties are also covered in detail by the [object type documentation](/docs/hotchocolate/defining-a-schema/object-types).
+Properties are also covered in detail by the [object type documentation](/docs/hotchocolate/v13/defining-a-schema/object-types).
 
 ## Regular Resolver
 
@@ -245,9 +245,9 @@ public class QueryType : ObjectType
 
 We can access arguments we defined for our resolver like regular arguments of a function.
 
-There are also specific arguments that will be automatically populated by Hot Chocolate when the resolver is executed. These include [Dependency injection services](#injecting-services), [DataLoaders](/docs/hotchocolate/fetching-data/dataloader), state, or even context like a [_parent_](#accessing-parent-values) value.
+There are also specific arguments that will be automatically populated by Hot Chocolate when the resolver is executed. These include [Dependency injection services](#injecting-services), [DataLoaders](/docs/hotchocolate/v13/fetching-data/dataloader), state, or even context like a [_parent_](#accessing-parent-values) value.
 
-[Learn more about arguments](/docs/hotchocolate/defining-a-schema/arguments)
+[Learn more about arguments](/docs/hotchocolate/v13/defining-a-schema/arguments)
 
 # Injecting Services
 
@@ -273,7 +273,7 @@ public class Query
 }
 ```
 
-[Learn more about dependency injection](/docs/hotchocolate/server/dependency-injection)
+[Learn more about dependency injection](/docs/hotchocolate/v13/server/dependency-injection)
 
 # Accessing the HttpContext
 
@@ -369,7 +369,7 @@ public class User
 }
 ```
 
-This is especially useful when using [type extensions](/docs/hotchocolate/defining-a-schema/extending-types).
+This is especially useful when using [type extensions](/docs/hotchocolate/v13/defining-a-schema/extending-types).
 
 </Annotation>
 <Code>

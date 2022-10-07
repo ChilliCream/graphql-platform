@@ -145,7 +145,7 @@ public class Person
 }
 ```
 
-[Reference](/docs/hotchocolate/fetching-data/pagination#naming)
+[Reference](/docs/hotchocolate/v13/fetching-data/pagination#naming)
 
 ## MongoDB Paging
 
@@ -160,7 +160,7 @@ services
     ...
 ```
 
-[Reference](/docs/hotchocolate/fetching-data/pagination#providers)
+[Reference](/docs/hotchocolate/v13/fetching-data/pagination#providers)
 
 # Records
 
@@ -174,7 +174,7 @@ public record Foo([property: ID] string Id);
 
 We added more instrumentation events and generalized more how one can tap into our internal events. The class `DiagnosticEventListener` is now obsolete and replaced with `ExecutionDiagnosticEventListener`. This is due to new event listener classes like `DataLoaderDiagnosticEventListener`. Most virtual methods previously returning IActivityScope now return IDisposable.
 
-[Learn more about instrumentation](/docs/hotchocolate/server/instrumentation)
+[Learn more about instrumentation](/docs/hotchocolate/v13/server/instrumentation)
 
 # Relay
 
@@ -202,7 +202,7 @@ services
     .AddGlobalObjectIdentification();
 ```
 
-[Learn more about Global Object Identification](/docs/hotchocolate/defining-a-schema/relay#global-object-identification)
+[Learn more about Global Object Identification](/docs/hotchocolate/v13/defining-a-schema/relay#global-object-identification)
 
 ## Query field in Mutation payloads
 
@@ -236,7 +236,7 @@ If you just want to enable the feature without further configuration, you can om
 
 > ⚠️ Note: Since `EnableRelaySupport()` previously always implied the usage of Global Object Identification, you might have to enable Global Object Identification separately as well.
 
-[Learn more about Query field in Mutation payloads](/docs/hotchocolate/defining-a-schema/relay#query-field-in-mutation-payloads)
+[Learn more about Query field in Mutation payloads](/docs/hotchocolate/v13/defining-a-schema/relay#query-field-in-mutation-payloads)
 
 # DataLoader
 
@@ -294,7 +294,7 @@ services
     .AddGraphQLServer()
     .AddConvention<INamingConventions>(sp => new CustomNamingConventions()) // or
     .AddConvention<INamingConventions, CustomNamingConventions>();
-```  
+```
 
 **v12**
 
@@ -305,7 +305,7 @@ public class CustomNamingConventions : DefaultNamingConventions
         : base(documentationProvider) { }
 }
 
-IReadOnlySchemaOptions capturedSchemaOptions;  
+IReadOnlySchemaOptions capturedSchemaOptions;
 services
     .AddGraphQLServer()
     .ModifyOptions(opt => capturedSchemaOptions = opt)
@@ -313,11 +313,11 @@ services
         new XmlDocumentationProvider(
             new XmlDocumentationFileResolver(
                 capturedSchemaOptions.ResolveXmlDocumentationFileName),
-            sp.GetApplicationService<ObjectPool<StringBuilder>>() 
+            sp.GetApplicationService<ObjectPool<StringBuilder>>()
                 ?? new NoOpStringBuilderPool())));
-```  
+```
 
 # Miscellaneous
 
-* `IObjectField`
-  * If you were using `IObjectField.Member`, you'll likely want to move to `IObjectField.ResolverMember` (as `.Member` can be `null` in some cases now where it previously wasn't; and `.ResolverMember` will fall back to `.Member`).
+- `IObjectField`
+  - If you were using `IObjectField.Member`, you'll likely want to move to `IObjectField.ResolverMember` (as `.Member` can be `null` in some cases now where it previously wasn't; and `.ResolverMember` will fall back to `.Member`).

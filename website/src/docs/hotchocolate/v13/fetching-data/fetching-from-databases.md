@@ -7,7 +7,7 @@ import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/md
 In this section, you find a simple example on how you can fetch data from a database and expose it as a GraphQL API.
 
 **Hot Chocolate is not bound to a specific database, pattern or architecture.**
-[We do have a few integrations](/docs/hotchocolate/integrations), that help with a variety of databases, though these are just additions on top of HotChocolate.
+[We do have a few integrations](/docs/hotchocolate/v13/integrations), that help with a variety of databases, though these are just additions on top of HotChocolate.
 You can couple your business logic close to the GraphQL server, or cleanly decouple your domain layer from the GraphQL layer over abstractions.
 The GraphQL server only knows its schema, types and resolvers, what you do in these resolvers and what types you expose, is up to you.
 

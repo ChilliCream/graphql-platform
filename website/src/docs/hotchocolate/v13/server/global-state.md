@@ -32,7 +32,7 @@ public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
 }
 ```
 
-[Learn more about interceptors](/docs/hotchocolate/server/interceptors)
+[Learn more about interceptors](/docs/hotchocolate/v13/server/interceptors)
 
 # Accessing Global State
 

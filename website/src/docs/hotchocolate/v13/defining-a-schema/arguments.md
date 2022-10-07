@@ -119,6 +119,6 @@ services
 </Schema>
 </ExampleTabs>
 
-Arguments can be made required by using the non-null type. Learn more about [non-null](/docs/hotchocolate/defining-a-schema/non-null)
+Arguments can be made required by using the non-null type. Learn more about [non-null](/docs/hotchocolate/v13/defining-a-schema/non-null)
 
-If we need to provide complex objects as arguments, we can use [input object types](/docs/hotchocolate/defining-a-schema/input-object-types).
+If we need to provide complex objects as arguments, we can use [input object types](/docs/hotchocolate/v13/defining-a-schema/input-object-types).

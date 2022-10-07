@@ -1865,7 +1865,7 @@ The configuration of the convention, the implicit type factory and the descripto
 
 Hot Chocolate can translate incoming filters requests directly onto collections or even on to the database. In the default implementation, the output of this translation is a Linq expression that can be applied to `IQueryable` and `IEnumerable`. You can choose to change the expression that is generated or can even create custom output. Hot Chocolate is using visitors to translate input objects.
 
-[Learn more about visitors here](/docs/hotchocolate/api-reference/visitors).
+[Learn more about visitors here](/docs/hotchocolate/v13/api-reference/visitors).
 
 ### Expression Filters
 

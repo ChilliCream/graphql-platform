@@ -8,7 +8,7 @@ Authorization allows us to determine a user's permissions within our system. We 
 
 Authentication is a prerequisite of Authorization, as we first need to validate a user's "authenticity" before we can evaluate his authorization claims.
 
-[Learn how to setup authentication](/docs/hotchocolate/security/authentication)
+[Learn how to setup authentication](/docs/hotchocolate/v13/security/authentication)
 
 # Setup
 
@@ -370,7 +370,7 @@ This method also accepts [roles](#roles) and [policies](#policies) as arguments,
 
 > ⚠️ Note: Unlike the `@authorize directive` this will return status code 401 and prevent unauthorized access to all middleware included in `MapGraphQL`. This includes our GraphQL IDE Banana Cake Pop. If we do not want to block unauthorized access to Banana Cake Pop, we can split up the `MapGraphQL` middleware and for example only apply the `RequireAuthorization` to the `MapGraphQLHttp` middleware.
 
-[Learn more about available middleware](/docs/hotchocolate/server/endpoints)
+[Learn more about available middleware](/docs/hotchocolate/v13/server/endpoints)
 
 # Modifying the ClaimsPrincipal
 
@@ -408,4 +408,4 @@ public class Startup
 }
 ```
 
-[Learn more about interceptors](/docs/hotchocolate/server/interceptors)
+[Learn more about interceptors](/docs/hotchocolate/v13/server/interceptors)

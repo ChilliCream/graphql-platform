@@ -36,7 +36,7 @@ We could also request the fields plus their arguments of a specific type using t
 }
 ```
 
-The `__typename` field will most likely be the introspection feature we as regular developers will be using the most. When working with [unions](/docs/hotchocolate/defining-a-schema/unions) for example it can tell us the name of the type that's being returned, allowing us to handle the result accordingly.
+The `__typename` field will most likely be the introspection feature we as regular developers will be using the most. When working with [unions](/docs/hotchocolate/v13/defining-a-schema/unions) for example it can tell us the name of the type that's being returned, allowing us to handle the result accordingly.
 
 ```graphql
 {
@@ -123,7 +123,7 @@ public class Startup
 }
 ```
 
-[Learn more about interceptors](/docs/hotchocolate/server/interceptors)
+[Learn more about interceptors](/docs/hotchocolate/v13/server/interceptors)
 
 ## Custom error message
 

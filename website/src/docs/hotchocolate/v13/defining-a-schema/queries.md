@@ -142,8 +142,8 @@ public class Startup
 
 > ⚠️ Note: Only **one** query type can be registered using `AddQueryType()`. If we want to split up our query type into multiple classes, we can do so using type extensions.
 >
-> [Learn more about extending types](/docs/hotchocolate/defining-a-schema/extending-types)
+> [Learn more about extending types](/docs/hotchocolate/v13/defining-a-schema/extending-types)
 
 A query type is just a regular object type, so everything that applies to an object type also applies to the query type (this is true for all root types).
 
-[Learn more about object types](/docs/hotchocolate/defining-a-schema/object-types)
+[Learn more about object types](/docs/hotchocolate/v13/defining-a-schema/object-types)

@@ -15,7 +15,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(
     options => options.UseSqlServer("YOUR_CONNECTION_STRING"));
 ```
 
-If you have read our [guidance on dependency injection](/docs/hotchocolate/server/dependency-injection#resolver-injection) you might be inclined to simply inject your `DbContext` using the `HotChocolate.ServiceAttribute`.
+If you have read our [guidance on dependency injection](/docs/hotchocolate/v13/server/dependency-injection#resolver-injection) you might be inclined to simply inject your `DbContext` using the `HotChocolate.ServiceAttribute`.
 
 ```csharp
 public Foo GetFoo([Service] ApplicationDbContext dbContext)
@@ -48,13 +48,13 @@ public Foo GetFoo(
     => // Omitted code for brevity
 ```
 
-[Learn more about `ServiceKind.Synchronized`](/docs/hotchocolate/server/dependency-injection#servicekindsynchronized)
+[Learn more about `ServiceKind.Synchronized`](/docs/hotchocolate/v13/server/dependency-injection#servicekindsynchronized)
 
 Since this is a lot of code to write, just to inject a `DbContext`, you can use [`RegisterDbContext<T>`](#registerdbcontext) to simplify the injection.
 
 # RegisterDbContext
 
-In order to simplify the injection of a `DbContext` we have introduced a method called `RegisterDbContext<T>`, similar to the [`RegisterService<T>`](/docs/hotchocolate/server/dependency-injection#registerservice) method for regular services. This method is part of the `HotChocolate.Data.EntityFramework` package, which you'll have to install.
+In order to simplify the injection of a `DbContext` we have introduced a method called `RegisterDbContext<T>`, similar to the [`RegisterService<T>`](/docs/hotchocolate/v13/server/dependency-injection#registerservice) method for regular services. This method is part of the `HotChocolate.Data.EntityFramework` package, which you'll have to install.
 
 ```bash
 dotnet add package HotChocolate.Data.EntityFramework
@@ -94,15 +94,15 @@ builder.Services
 
 # DbContextKind
 
-When registering a `DbContext` you can specify a `DbContextKind` to instruct Hot Chocolate to use a certain strategy when injecting the `DbContext`. For the most part the `DbContextKind` is really similar to the [ServiceKind](/docs/hotchocolate/server/dependency-injection#servicekind), with the exception of the [DbContextKind.Pooled](#dbcontextkindpooled).
+When registering a `DbContext` you can specify a `DbContextKind` to instruct Hot Chocolate to use a certain strategy when injecting the `DbContext`. For the most part the `DbContextKind` is really similar to the [ServiceKind](/docs/hotchocolate/v13/server/dependency-injection#servicekind), with the exception of the [DbContextKind.Pooled](#dbcontextkindpooled).
 
 ## DbContextKind.Synchronized
 
-This injection mechanism ensures that resolvers injecting the specified `DbContext` are never run in parallel. It is the default for the [`RegisterDbContext<T>`](#registerdbcontext) method and behaves in the same fashion as [ServiceKind.Synchronized](/docs/hotchocolate/server/dependency-injection#servicekindsynchronized) does for regular services.
+This injection mechanism ensures that resolvers injecting the specified `DbContext` are never run in parallel. It is the default for the [`RegisterDbContext<T>`](#registerdbcontext) method and behaves in the same fashion as [ServiceKind.Synchronized](/docs/hotchocolate/v13/server/dependency-injection#servicekindsynchronized) does for regular services.
 
 ## DbContextKind.Resolver
 
-This injection mechanism will resolve the scoped `DbContext` from a resolver-scoped [`IServiceScope`](https://docs.microsoft.com/dotnet/api/microsoft.extensions.dependencyinjection.iservicescope). It behaves in the same fashion as [ServiceKind.Resolver](/docs/hotchocolate/server/dependency-injection#servicekindresolver) does for regular services. Since a different `DbContext` instance is resolved for each resolver invocation, Hot Chocolate can parallelize the execution of resolvers using this `DbContext`.
+This injection mechanism will resolve the scoped `DbContext` from a resolver-scoped [`IServiceScope`](https://docs.microsoft.com/dotnet/api/microsoft.extensions.dependencyinjection.iservicescope). It behaves in the same fashion as [ServiceKind.Resolver](/docs/hotchocolate/v13/server/dependency-injection#servicekindresolver) does for regular services. Since a different `DbContext` instance is resolved for each resolver invocation, Hot Chocolate can parallelize the execution of resolvers using this `DbContext`.
 
 ## DbContextKind.Pooled
 

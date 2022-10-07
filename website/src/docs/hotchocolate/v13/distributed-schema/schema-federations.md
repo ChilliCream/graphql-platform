@@ -201,4 +201,4 @@ services
     .AddRemoteSchemasFromRedis("Demo", sp => sp.GetRequiredService<ConnectionMultiplexer>());
 ```
 
-For further configuration with extension files, have a look at [Schema Configuration](/docs/hotchocolate/distributed-schema/schema-configuration)
+For further configuration with extension files, have a look at [Schema Configuration](/docs/hotchocolate/v13/distributed-schema/schema-configuration)
