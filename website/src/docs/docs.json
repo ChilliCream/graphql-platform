@@ -1189,7 +1189,7 @@
     "description": "The only GraphQL client you will ever need in the .NET ecosystem.",
     "versions": [
       {
-        "path": "",
+        "path": "v13",
         "title": "v13",
         "items": [
           {

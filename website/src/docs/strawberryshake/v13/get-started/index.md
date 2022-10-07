@@ -149,7 +149,7 @@ dotnet build
 
 With the project compiled you now should see a directory `Generated`. The generated code is just there for the IDE, the actual code was injected directly into roslyn through source generators.
 
-![Visual Studio code showing the generated directory.](../../shared/berry_generated.png)
+![Visual Studio code showing the generated directory.](../../../shared/berry_generated.png)
 
 6. Head over to the `Program.cs` and add the new `ConferenceClient` to the dependency injection.
 
@@ -275,7 +275,7 @@ Welcome to your new app.
 
 5. Start the Blazor application with `dotnet run --project ./Demo` and see if your code works.
 
-![Started Blazor application in Microsoft Edge](../../shared/berry_session_list.png)
+![Started Blazor application in Microsoft Edge](../../../shared/berry_session_list.png)
 
 # Step 6: Using the built-in store with reactive APIs.
 
@@ -385,13 +385,13 @@ Every time we move away from our index page Blazor will dispose our page which c
 
 5. Start the Blazor application with `dotnet run --project ./Demo` and see if your code works.
 
-![Started Blazor application in Microsoft Edge](../../shared/berry_session_list.png)
+![Started Blazor application in Microsoft Edge](../../../shared/berry_session_list.png)
 
 The page will look unchanged.
 
 6. Next, open the developer tools of your browser and switch to the developer tools console. Refresh the site so that we get a fresh output.
 
-![Microsoft Edge developer tools show just one network interaction.](../../shared/berry_session_list_network.png)
+![Microsoft Edge developer tools show just one network interaction.](../../../shared/berry_session_list_network.png)
 
 7. Switch between the `Index` and the `Counter` page (back and forth) and watch the console output.
 
@@ -696,18 +696,18 @@ The page should now look like the following:
 
 9. Start the Blazor application with `dotnet run --project ./Demo` and see if your code works.
 
-![Started Blazor application in Microsoft Edge](../../shared/berry_mutation_1.png)
+![Started Blazor application in Microsoft Edge](../../../shared/berry_mutation_1.png)
 
 10. Click on the edit button of one of the sessions.
 
-![Clicked on session edit button](../../shared/berry_mutation_2.png)
+![Clicked on session edit button](../../../shared/berry_mutation_2.png)
 
 11. Change the title of the session and click save.
 
-![Clicked on session edit button](../../shared/berry_mutation_3.png)
+![Clicked on session edit button](../../../shared/berry_mutation_3.png)
 
 11. The item is now changed in the list although we have not explicitly written any code to update the item in our list component.
 
-![Clicked on session edit button](../../shared/berry_mutation_4.png)
+![Clicked on session edit button](../../../shared/berry_mutation_4.png)
 
 Strawberry Shake knows about your entities and how they are connected. Whenever one request updates the state, all components referring to data of the linked entities are updated.
