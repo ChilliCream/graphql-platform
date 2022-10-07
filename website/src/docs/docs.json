@@ -5,7 +5,7 @@
     "description": "Build your own thin GraphQL API layer on top of any resource.",
     "versions": [
       {
-        "path": "",
+        "path": "v13",
         "title": "v13",
         "items": [
           {
