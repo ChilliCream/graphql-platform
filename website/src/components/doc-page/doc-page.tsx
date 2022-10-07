@@ -1,9 +1,11 @@
 import { graphql, Link } from "gatsby";
 import { MDXRenderer } from "gatsby-plugin-mdx";
-import React, { FC, useCallback, useEffect, useRef } from "react";
+import React, { FC, useCallback, useEffect, useMemo, useRef } from "react";
 import { useDispatch } from "react-redux";
+import semverCoerce from "semver/functions/coerce";
+import semverCompare from "semver/functions/compare";
 import styled, { css } from "styled-components";
-import { DocPageFragment } from "../../../graphql-types";
+import { DocPageFragment, DocsJson, Maybe } from "../../../graphql-types";
 import ListAltIconSvg from "../../images/list-alt.svg";
 import NewspaperIconSvg from "../../images/newspaper.svg";
 import {
@@ -52,7 +54,7 @@ export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
   const slug = fields!.slug!;
   const title = frontmatter!.title!;
 
-  const product = useProductInformation(slug);
+  const product = useProductInformation(slug, data.productsConfig?.products);
 
   const hasScrolled$ = useObservable((state) => {
     return state.common.yScrollPosition > 20;
@@ -158,6 +160,17 @@ export const DocPageGraphQLFragment = graphql`
         ...ArticleSections
       }
     }
+    productsConfig: file(
+      sourceInstanceName: { eq: "docs" }
+      relativePath: { eq: "docs.json" }
+    ) {
+      products: childrenDocsJson {
+        path
+        title
+        description
+        latestStableVersion
+      }
+    }
     ...ArticleComments
     ...DocPageCommunity
     ...DocPageNavigation
@@ -169,9 +182,18 @@ const productAndVersionPattern = /^\/docs\/([\w-]+)(?:\/(v\d+))?/;
 interface ProductInformation {
   readonly name: string;
   readonly version: string;
+  readonly stableVersion: string;
 }
 
-function useProductInformation(slug: string): ProductInformation | null {
+type Product = Pick<
+  DocsJson,
+  "path" | "title" | "description" | "latestStableVersion"
+>;
+
+function useProductInformation(
+  slug: string,
+  products: Maybe<Array<Maybe<Product>>> | undefined
+): ProductInformation | null {
   if (!slug) {
     return null;
   }
@@ -182,9 +204,20 @@ function useProductInformation(slug: string): ProductInformation | null {
     return null;
   }
 
+  const selectedName = result[1] || "";
+  const selectedVersion = result[2] || "";
+  let stableVersion = "";
+
+  const selectedProduct = products?.find((p) => p?.path === selectedName);
+
+  if (selectedProduct) {
+    stableVersion = selectedProduct.latestStableVersion || "";
+  }
+
   return {
-    name: result[1] || "",
-    version: result[2] || "",
+    name: selectedName,
+    version: selectedVersion,
+    stableVersion,
   };
 }
 
@@ -337,7 +370,7 @@ const Button = styled.button`
   }
 `;
 
-const OutdatedDocumentationWarning = styled.div`
+const DocumentationVersionWarning = styled.div`
   padding: 20px 20px;
   background-color: ${THEME_COLORS.warning};
   color: ${THEME_COLORS.textContrast};
@@ -362,18 +395,64 @@ interface DocumentationNotesProps {
   readonly product: ProductInformation;
 }
 
+type DocumentationVersionType =
+  | "stable"
+  | "experimental"
+  | "outdated"
+  | unknown;
+
 const DocumentationNotes: FC<DocumentationNotesProps> = ({ product }) => {
-  if (product.version === "") {
-    return null;
+  const versionType = useMemo<DocumentationVersionType>(() => {
+    const parsedCurrentVersion = semverCoerce(product.version);
+    const parsedStableVersion = semverCoerce(product.stableVersion);
+
+    if (parsedCurrentVersion && parsedStableVersion) {
+      const curVersion = parsedCurrentVersion.version;
+      const stableVersion = parsedStableVersion.version;
+
+      const result = semverCompare(curVersion, stableVersion);
+
+      if (result === 0) {
+        return "stable";
+      }
+
+      if (result === 1) {
+        return "experimental";
+      }
+
+      if (result === -1) {
+        return "outdated";
+      }
+    }
+
+    return "unknown";
+  }, [product.stableVersion, product.version]);
+
+  if (versionType === "experimental") {
+    return (
+      <DocumentationVersionWarning>
+        This is documentation for the unstable{" "}
+        <strong>{product.version}</strong>.
+        <br />
+        See the <Link to={`/docs/${product.name}`}>
+          latest stable version
+        </Link>{" "}
+        instead.
+      </DocumentationVersionWarning>
+    );
   }
 
-  return (
-    <OutdatedDocumentationWarning>
-      This is documentation for <strong>{product.version}</strong>, which is no
-      longer actively maintained.
-      <br />
-      For up-to-date documentation, see the{" "}
-      <Link to={`/docs/${product.name}`}>latest version</Link>.
-    </OutdatedDocumentationWarning>
-  );
+  if (versionType === "outdated") {
+    return (
+      <DocumentationVersionWarning>
+        This is documentation for <strong>{product.version}</strong>, which is
+        no longer actively maintained.
+        <br />
+        For up-to-date documentation, see the{" "}
+        <Link to={`/docs/${product.name}`}>latest stable version</Link>.
+      </DocumentationVersionWarning>
+    );
+  }
+
+  return null;
 };

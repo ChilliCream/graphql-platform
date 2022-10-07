@@ -3,6 +3,7 @@
     "path": "hotchocolate",
     "title": "Hot Chocolate",
     "description": "Build your own thin GraphQL API layer on top of any resource.",
+    "latestStableVersion": "v12",
     "versions": [
       {
         "path": "v13",
@@ -1146,6 +1147,7 @@
     "path": "bananacakepop",
     "title": "Banana Cake Pop",
     "description": "Use this GUI to get deep insights from any GraphQL API.",
+    "latestStableVersion": "v2",
     "versions": [
       {
         "path": "v2",
@@ -1187,6 +1189,7 @@
     "path": "strawberryshake",
     "title": "Strawberry Shake",
     "description": "The only GraphQL client you will ever need in the .NET ecosystem.",
+    "latestStableVersion": "v12",
     "versions": [
       {
         "path": "v13",

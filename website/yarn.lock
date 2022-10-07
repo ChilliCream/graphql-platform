@@ -5030,6 +5030,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/semver@npm:^7.3.12":
+  version: 7.3.12
+  resolution: "@types/semver@npm:7.3.12"
+  checksum: 35536b2fc5602904f21cae681f6c9498e177dab3f54ae37c92f9a1b7e43c35f18bcd81e1c98c1cf0d33ee046bb06c771e9928c1c00a401d56a03f56549252a15
+  languageName: node
+  linkType: hard
+
 "@types/source-list-map@npm:*":
   version: 0.1.2
   resolution: "@types/source-list-map@npm:0.1.2"
@@ -7937,6 +7944,7 @@ __metadata:
     "@types/react-helmet": ^6.1.1
     "@types/react-instantsearch-dom": ^6.10.0
     "@types/react-redux": ^7.1.16
+    "@types/semver": ^7.3.12
     "@types/styled-components": ^5.1.9
     algoliasearch: ^4.9.1
     babel-loader: ^8.2.2
@@ -7982,6 +7990,7 @@ __metadata:
     react-responsive-carousel: ^3.2.18
     react-share: ^4.4.0
     rxjs: ^7.1.0
+    semver: ^7.3.8
     simple-git: ^2.39.0
     styled-components: ^5.3.0
     typescript: ^4.3.2
@@ -22312,6 +22321,17 @@ __metadata:
   bin:
     semver: bin/semver.js
   checksum: 5eafe6102bea2a7439897c1856362e31cc348ccf96efd455c8b5bc2c61e6f7e7b8250dc26b8828c1d76a56f818a7ee907a36ae9fb37a599d3d24609207001d60
+  languageName: node
+  linkType: hard
+
+"semver@npm:^7.3.8":
+  version: 7.3.8
+  resolution: "semver@npm:7.3.8"
+  dependencies:
+    lru-cache: ^6.0.0
+  bin:
+    semver: bin/semver.js
+  checksum: ba9c7cbbf2b7884696523450a61fee1a09930d888b7a8d7579025ad93d459b2d1949ee5bbfeb188b2be5f4ac163544c5e98491ad6152df34154feebc2cc337c1
   languageName: node
   linkType: hard
 
