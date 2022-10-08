@@ -206,7 +206,7 @@ The `Uuid` scalar supports the following serialization formats.
 
 The `UuidType` will always return the value in the specified format. In case it is used as an input type, it will first try to parse the result in the specified format. If the parsing does not succeed, it will try to parse the value in other formats.
 
-To change the default format we have to register the `UuidType` with the specfier on the schema:
+To change the default format we have to register the `UuidType` with the specifier on the schema:
 
 ```csharp
 services
@@ -278,7 +278,7 @@ Lists can be accessed generically by getting them as `IReadOnlyList<object>` or 
 
 # Additional Scalars
 
-We also offer a separate package with scalars for more specific usecases.
+We also offer a separate package with scalars for more specific use cases.
 
 To use these scalars we have to add the `HotChocolate.Types.Scalars` package.
 
@@ -442,7 +442,7 @@ public class Startup
 
 Some scalars like `TimeSpan` or `Uuid` have options like their serialization format.
 
-We can specify these options by registering the scalar explictly.
+We can specify these options by registering the scalar explicitly.
 
 ```csharp
 services

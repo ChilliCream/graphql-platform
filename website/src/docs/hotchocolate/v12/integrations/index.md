@@ -12,14 +12,13 @@ Using Entity Framework Core requires some additional setup to play nicely with t
 
 # MongoDB
 
-You will learn how to access MongoDB from within your resovlers and how to translate our pagination, projection, filtering and sorting capabilities to native MongoDB queries.
+You will learn how to access MongoDB from within your resolvers and how to translate our pagination, projection, filtering and sorting capabilities to native MongoDB queries.
 
 [Learn more about our MongoDB integration](/docs/hotchocolate/v12/integrations/mongodb)
 
-
 # Neo4J
 
-You will learn how to access Neo4J from within your resovlers and how to translate our pagination, projection, filtering and sorting capabilities to native Neo4J queries.
+You will learn how to access Neo4J from within your resolvers and how to translate our pagination, projection, filtering and sorting capabilities to native Neo4J queries.
 
 [Learn more about our Neo4J integration](/docs/hotchocolate/v12/integrations/neo4j)
 

@@ -178,7 +178,7 @@ The integration comes with providers for offset and cursor-based pagination
 
 ## Cursor Pagination
 
-To use cursor based pagination annoate you resolver with `[UseMongoDbPaging]` or `.UseMongoDbPaging()`
+To use cursor based pagination annotate your resolver with `[UseMongoDbPaging]` or `.UseMongoDbPaging()`
 
 ```csharp
 [UseMongoDbPaging]
@@ -211,7 +211,7 @@ query GetPersons {
 
 ## Offset Pagination
 
-To use cursor based pagination annoate you resolver with `[UseMongoDbPaging]` or `.UseMongoDbPaging()`
+To use cursor based pagination annotate your resolver with `[UseMongoDbPaging]` or `.UseMongoDbPaging()`
 
 ```csharp
 [UseMongoDbOffsetPaging]

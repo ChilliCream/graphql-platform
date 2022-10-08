@@ -12,7 +12,7 @@ You can either register a `HttpClient` directly on the `ServiceCollection` or us
 
 ## ConfigureHttpClient
 
-The generated extension method to register the client on the serivce collection, returns a builder that can be used to configure the http client.
+The generated extension method to register the client on the service collection, returns a builder that can be used to configure the http client.
 
 ```csharp
  services

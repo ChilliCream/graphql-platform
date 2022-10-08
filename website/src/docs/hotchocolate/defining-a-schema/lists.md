@@ -23,7 +23,7 @@ Clients can query list fields like any other field.
 }
 ```
 
-Querying a list field will result in an ordered list containing elements with the specified subselection of fields.
+Querying a list field will result in an ordered list containing elements with the specified sub-selection of fields.
 
 Learn more about lists [here](https://graphql.org/learn/schema/#lists-and-non-null).
 

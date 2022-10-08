@@ -164,7 +164,7 @@ services
 
 ## Cursor Pagination
 
-To use cursor based pagination annotate you resolver with `[UseNeo4JPaging]` or `.UseNeo4JPaging()`
+To use cursor based pagination annotate your resolver with `[UseNeo4JPaging]` or `.UseNeo4JPaging()`
 
 ```csharp
 [UseNeo4JDatabase("neo4j")]
@@ -196,7 +196,7 @@ query GetPersons {
 
 ## Offset Pagination
 
-To use cursor based pagination annotate you resolver with `[UseNeo4JPaging]` or `.UseNeo4JPaging()`
+To use cursor based pagination annotate your resolver with `[UseNeo4JPaging]` or `.UseNeo4JPaging()`
 
 ```csharp
 [UseNeo4JDatabase("neo4j")]

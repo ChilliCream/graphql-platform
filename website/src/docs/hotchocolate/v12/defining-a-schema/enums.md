@@ -153,7 +153,7 @@ public class Startup
 }
 ```
 
-With this configuration each `UserRole` CLR type we return from our resovlers would be assumed to be a `UserRoleType`.
+With this configuration each `UserRole` CLR type we return from our resolvers would be assumed to be a `UserRoleType`.
 
 </Code>
 <Schema>

@@ -2,7 +2,7 @@
 title: Introspection
 ---
 
-Introspection is what enables GraphQL's rich tooling echosystem as well powerful IDEs like [Banana Cake Pop](/docs/bananacakepop) or GraphiQL.
+Introspection is what enables GraphQL's rich tooling ecosystem as well powerful IDEs like [Banana Cake Pop](/docs/bananacakepop) or GraphiQL.
 
 Every GraphQL server exposes a `__schema` and `__type` field on the query type as well as an `__typename` field on each type. These fields are used to gain insights into the schema of our GraphQL server.
 
@@ -58,7 +58,7 @@ While these fields can be useful to us, they are mainly intended for use in deve
 
 # Disabling introspection
 
-While introspection is a powerful feature that can tremendously improve our development workflow, it can also be used as an attack vector. A malicous user could for example request all details about all the types of our GraphQL server. Depending on the number of types this can degrade the performance of our GraphQL server. If our API should not be browsed by other developers we have the option to disable the introspection feature.
+While introspection is a powerful feature that can tremendously improve our development workflow, it can also be used as an attack vector. A malicious user could for example request all details about all the types of our GraphQL server. Depending on the number of types this can degrade the performance of our GraphQL server. If our API should not be browsed by other developers we have the option to disable the introspection feature.
 
 We can disable introspection by calling `AllowIntrospection()` with a `false` argument on the `IRequestExecutorBuilder`.
 
