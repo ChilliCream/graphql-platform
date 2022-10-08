@@ -4,6 +4,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Utilities;
 using static HotChocolate.Execution.ExecutionResultKind;
 
 namespace HotChocolate.Execution.Serialization;
@@ -14,14 +15,14 @@ namespace HotChocolate.Execution.Serialization;
 /// </summary>
 public sealed class EventStreamResultFormatter : IExecutionResultFormatter
 {
-    private static ReadOnlySpan<byte> EventField
-        => new[] { (byte)'e', (byte)'v', (byte)'e', (byte)'n', (byte)'t' };
-    private static ReadOnlySpan<byte> DataField
-        => new[] { (byte)'d', (byte)'a', (byte)'t', (byte)'a' };
-    private static ReadOnlySpan<byte> NextEvent
-        => new[] { (byte)'n', (byte)'e', (byte)'x', (byte)'t' };
-    private static ReadOnlySpan<byte> CompleteEvent
-        => new[]
+    private static readonly byte[] EventField
+        = { (byte)'e', (byte)'v', (byte)'e', (byte)'n', (byte)'t', (byte)':' };
+    private static readonly byte[] DataField
+        = { (byte)'d', (byte)'a', (byte)'t', (byte)'a', (byte)':', (byte)' ' };
+    private static readonly byte[] NextEvent
+        = { (byte)'n', (byte)'e', (byte)'x', (byte)'t' };
+    private static readonly byte[] CompleteEvent
+        =
         {
             (byte)'c', (byte)'o', (byte)'m', (byte)'p',
             (byte)'l', (byte)'e', (byte)'t', (byte)'e'
@@ -114,27 +115,56 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
 
     private async ValueTask WriteNextMessageAsync(IQueryResult result, Stream outputStream)
     {
-        await using var writer = new Utf8JsonWriter(outputStream, _options);
+#if NETCOREAPP3_1_OR_GREATER
+        await outputStream.WriteAsync(EventField).ConfigureAwait(false);
+        await outputStream.WriteAsync(NextEvent).ConfigureAwait(false);
+        await outputStream.WriteAsync(_newLine).ConfigureAwait(false);
+#else
+        await outputStream.WriteAsync(EventField, 0, EventField.Length).ConfigureAwait(false);
+        await outputStream.WriteAsync(NextEvent, 0, NextEvent.Length).ConfigureAwait(false);
+        await outputStream.WriteAsync(_newLine, 0, _newLine.Length).ConfigureAwait(false);
+#endif
 
-        writer.WriteStartObject();
+        using var bufferWriter = new ArrayWriter();
+        await using (var writer = new Utf8JsonWriter(bufferWriter, _options))
+        {
+            _payloadFormatter.Format(result, writer);
+        }
 
-        writer.WriteString(EventField, NextEvent);
+        var read = 0;
+        while (read < bufferWriter.Length)
+        {
+            var buffer = bufferWriter.Body.Slice(read);
+            if (buffer.Span.IndexOf(_newLine) is var newLineIndex && newLineIndex != -1)
+            {
+                buffer = buffer.Slice(0, newLineIndex);
+            }
 
-        writer.WritePropertyName(DataField);
-        _payloadFormatter.Format(result, writer);
+#if NETCOREAPP3_1_OR_GREATER
+            await outputStream.WriteAsync(DataField).ConfigureAwait(false);
+            await outputStream.WriteAsync(buffer).ConfigureAwait(false);
+            await outputStream.WriteAsync(_newLine).ConfigureAwait(false);
+#else
+            await outputStream.WriteAsync(DataField, 0, DataField.Length).ConfigureAwait(false);
+            await outputStream.WriteAsync(bufferWriter.GetInternalBuffer(), read, buffer.Length).ConfigureAwait(false);
+            await outputStream.WriteAsync(_newLine, 0, _newLine.Length).ConfigureAwait(false);
+#endif
 
-        writer.WriteEndObject();
+            read += buffer.Length + 1;
+        }
     }
 
-    private async ValueTask WriteCompleteMessage(Stream outputStream)
+    private static async ValueTask WriteCompleteMessage(Stream outputStream)
     {
-        await using var writer = new Utf8JsonWriter(outputStream, _options);
-
-        writer.WriteStartObject();
-
-        writer.WriteString(EventField, CompleteEvent);
-
-        writer.WriteEndObject();
+#if NETCOREAPP3_1_OR_GREATER
+        await outputStream.WriteAsync(EventField).ConfigureAwait(false);
+        await outputStream.WriteAsync(CompleteEvent).ConfigureAwait(false);
+        await outputStream.WriteAsync(_newLine).ConfigureAwait(false);
+#else
+        await outputStream.WriteAsync(EventField, 0, EventField.Length).ConfigureAwait(false);
+        await outputStream.WriteAsync(CompleteEvent, 0, CompleteEvent.Length).ConfigureAwait(false);
+        await outputStream.WriteAsync(_newLine, 0, _newLine.Length).ConfigureAwait(false);
+#endif
     }
 
     private static async ValueTask WriteNewLineAndFlushAsync(
