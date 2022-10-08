@@ -226,7 +226,7 @@ query {
 }
 ```
 
-**⚠️ `or` does not work when you use it like this: **
+**⚠️ `or` does not work when you use it like this:**
 
 ```graphql
 query {
@@ -591,7 +591,7 @@ If you want to change the behavior filtering globally, you want to create a conv
 
 To use a filter convention you can extend `FilterConvention` and override the `Configure` method. Alternatively, you can directly configure the convention over the constructor argument.
 You then have to register your custom convention on the schema builder with `AddConvention`.
-By default a new convention is empty. To add the default behaviour you have to add `AddDefaults`.
+By default a new convention is empty. To add the default behavior you have to add `AddDefaults`.
 
 ```csharp
 public class CustomConvention : FilterConvention
@@ -610,7 +610,7 @@ services.AddGraphQLServer()
         x.AddDefaults()))
 ```
 
-Often you just want to extend the default behaviour of filtering. If this is the case, you can also use `FilterConventionExtension`
+Often you just want to extend the default behavior of filtering. If this is the case, you can also use `FilterConventionExtension`
 
 ```csharp
 public class CustomConventionExtension : FilterConventionExtension

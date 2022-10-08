@@ -44,7 +44,7 @@ You can learn more about this in the [GraphQL Cursor Connections Specification](
 
 ## Definition
 
-Adding pagination capabilties to our fields is a breeze. All we have to do is add the `UsePaging` middleware.
+Adding pagination capabilities to our fields is a breeze. All we have to do is add the `UsePaging` middleware.
 
 <ExampleTabs>
 <Annotation>
@@ -459,7 +459,7 @@ type CollectionSegmentInfo {
 
 ## Definition
 
-To add _offset-based_ pagination capabilties to our fields we have to add the `UseOffsetPaging` middleware.
+To add _offset-based_ pagination capabilities to our fields we have to add the `UseOffsetPaging` middleware.
 
 <ExampleTabs>
 <Annotation>
@@ -666,7 +666,7 @@ Take a look at the Annotation-based or Code-first example..
 </Schema>
 </ExampleTabs>
 
-## Addings fields to a CollectionSegment
+## Adding fields to a CollectionSegment
 
 We can add new fields to a CollectionSegment type, by creating a type extension that targets the CollectionSegment by its name.
 

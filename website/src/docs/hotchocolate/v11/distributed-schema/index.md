@@ -65,7 +65,7 @@ type Address {
 In the scenario of schema stitching, the configuration of the gateway schema is on the gateway itself.
 The gateway pulls the schema from the downstream services and can be extended with SDL.
 The benefit of this approach is that no configuration on the downstream services is needed.
-With this approach, it is possible to also stitch thrid party GraphQL services.
+With this approach, it is possible to also stitch third party GraphQL services.
 
 Gateway:
 

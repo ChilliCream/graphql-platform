@@ -30,7 +30,7 @@ Hot Chocolate provides pagination capabilities out of the box. They allow us to 
 
 # Filtering
 
-When returning a list of entites, we often need to filter them using operations like `equals`, `contains`, `startsWith`, etc. Hot Chocolate takes away a lot of the boilerplate, by handling the generation of necessary input types and even translating the applied filters into native database queries.
+When returning a list of entities, we often need to filter them using operations like `equals`, `contains`, `startsWith`, etc. Hot Chocolate takes away a lot of the boilerplate, by handling the generation of necessary input types and even translating the applied filters into native database queries.
 
 [Learn more about filtering](/docs/hotchocolate/fetching-data/filtering)
 
@@ -42,7 +42,7 @@ Similar to filtering, Hot Chocolate can also autogenerate input types related to
 
 # Projections
 
-Projections allow Hot Chocolate to transform an incoming GraphQL query with a subselection of fields into an optimized database operation.
+Projections allow Hot Chocolate to transform an incoming GraphQL query with a sub-selection of fields into an optimized database operation.
 
 For example, if the client only requests the `name` and `id` of a user in their GraphQL query, Hot Chocolate will only query the database for those two columns.
 
