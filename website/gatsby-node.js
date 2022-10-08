@@ -123,7 +123,7 @@ exports.onCreateNode = async ({ node, actions, getNode, reporter }) => {
     return;
   }
 
-  // if the path is defined on the frontmatter (like for posts) use that as slug
+  // if the path is defined on the frontmatter (like for blogs) use that as slug
   let path = node.frontmatter && node.frontmatter.path;
 
   if (!path) {
