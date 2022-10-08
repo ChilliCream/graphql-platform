@@ -1,6 +1,10 @@
-## Create a new documentation page
+## Guidelines for writing documentation
 
-1. Locate the directory of the product version you want to add a documentation entry for, for example `src/docs/hotchocolate/v12`.
+- When introducing links to other documentation pages, include the version, e.g. `/docs/hotchocolate/v12/some-page`.
+
+## Creating a new documentation page
+
+1. Locate the directory of the product version you want to add a documentation entry for, e.g. `src/docs/hotchocolate/v12`.
 2. Create a new Markdown file in one of the appropriate categories (or create a new one).
 3. Open the `src/docs/docs.json` file and locate the array item where the value of the `path` property matches the product.
 4. Inside of the `version` array, find the item where the value of the `path` property matches the version.
@@ -15,9 +19,9 @@
 
 6. Finish the Markdown file.
 
-## Create a new documentation version
+## Creating a new documentation version
 
-1. Create a new directory for the new version inside of the product directory, for example `src/docs/hotchocolate/v13`.
+1. Create a new directory for the new version inside of the product directory, e.g. `src/docs/hotchocolate/v13`.
 2. Copy the contents of the previous version directory into the newly created version.
 3. Open just the new version directory in a separate VS Code instance.
 4. Search for `/docs/hotchocolate/v12/` and replace it with `/docs/hotchocolate/v13/`. (`hotchocolate` being the product, `v12` the previous version and `v13` the new version)
