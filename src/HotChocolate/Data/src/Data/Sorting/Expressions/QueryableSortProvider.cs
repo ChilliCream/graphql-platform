@@ -54,10 +54,15 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
         }
     }
 
-    protected virtual bool IsInMemoryQuery<TEntityType>(object? input) =>
-        input is QueryableExecutable<TEntityType> { InMemory: true } ||
-        input is not IQueryable ||
-        input is EnumerableQuery;
+    protected virtual bool IsInMemoryQuery<TEntityType>(object? input)
+    {
+        if (input is QueryableExecutable<TEntityType> { InMemory: var inMemory })
+        {
+            return inMemory;
+        }
+
+        return input is not IQueryable || input is EnumerableQuery;
+    }
 
     private ApplySorting CreateApplicatorAsync<TEntityType>(string argumentName)
     {
