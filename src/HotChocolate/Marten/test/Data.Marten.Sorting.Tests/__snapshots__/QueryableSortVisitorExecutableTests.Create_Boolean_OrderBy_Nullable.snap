@@ -4,13 +4,13 @@ ASC
   "data": {
     "rootExecutable": [
       {
-        "bar": null
-      },
-      {
         "bar": false
       },
       {
         "bar": true
+      },
+      {
+        "bar": null
       }
     ]
   }
@@ -23,13 +23,13 @@ DESC
   "data": {
     "rootExecutable": [
       {
+        "bar": null
+      },
+      {
         "bar": true
       },
       {
         "bar": false
-      },
-      {
-        "bar": null
       }
     ]
   }
