@@ -51,8 +51,7 @@ public class QueryableFilterVisitorEnumTests
         await SnapshotExtensions.AddResult(
                 SnapshotExtensions.AddResult(
                     SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "BAR"), res2, "FOO"), res3, "null")
+                        Snapshot.Create(), res1, "BAR"), res2, "FOO"), res3, "null")
             .MatchAsync();
     }
 

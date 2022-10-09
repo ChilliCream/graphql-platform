@@ -1,0 +1,73 @@
+12and13
+---------------
+{
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "path": [
+        "root"
+      ]
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}
+---------------
+
+13and14
+---------------
+{
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "path": [
+        "root"
+      ]
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}
+---------------
+
+nullAnd14
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter \u0060in\u0060 of type ShortOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 40
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "[Short!]",
+        "filterType": "ShortOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": []
+  }
+}
+---------------

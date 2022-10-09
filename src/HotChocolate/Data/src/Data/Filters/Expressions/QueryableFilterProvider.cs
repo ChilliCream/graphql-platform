@@ -58,7 +58,12 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
         }
     }
 
-    private static ApplyFiltering CreateApplicator<TEntityType>(string argumentName)
+    protected virtual bool IsInMemoryQuery<TEntityType>(object? input) =>
+        input is QueryableExecutable<TEntityType> { InMemory: true } ||
+        input is not IQueryable ||
+        input is EnumerableQuery;
+
+    private ApplyFiltering CreateApplicator<TEntityType>(string argumentName)
     {
         return (context, input) =>
         {
@@ -85,22 +90,17 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
             }
 
             if (argument.Type is IFilterInputType filterInput &&
-                context.Selection.Field.ContextData.TryGetValue(
-                    ContextVisitFilterArgumentKey,
-                    out var executorObj) &&
+                context.Selection.Field.ContextData
+                    .TryGetValue(ContextVisitFilterArgumentKey, out var executorObj) &&
                 executorObj is VisitFilterArgument executor)
             {
-                var inMemory =
-                    input is QueryableExecutable<TEntityType> { InMemory: true } ||
-                    input is not IQueryable ||
-                    input is EnumerableQuery;
+                var inMemory = IsInMemoryQuery<TEntityType>(input);
 
-                var visitorContext =
-                    executor(filter, filterInput, inMemory);
+                var visitorContext = executor(filter, filterInput, inMemory);
 
                 // compile expression tree
                 if (visitorContext.TryCreateLambda(
-                    out Expression<Func<TEntityType, bool>>? where))
+                        out Expression<Func<TEntityType, bool>>? where))
                 {
                     input = input switch
                     {
@@ -137,8 +137,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
             IFilterInputType filterInput,
             bool inMemory)
         {
-            var visitorContext =
-                new QueryableFilterContext(filterInput, inMemory);
+            var visitorContext = new QueryableFilterContext(filterInput, inMemory);
 
             // rewrite GraphQL input object into expression tree.
             Visitor.Visit(valueNode, visitorContext);

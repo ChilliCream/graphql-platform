@@ -7,27 +7,31 @@
     <Description>Contains extensions for seamless integration of Marten into the HotChocolate.Data package.</Description>
   </PropertyGroup>
 
-    <ItemGroup>
-      <EmbeddedResource Update="MartenDataResources.resx">
-        <Generator>ResXFileCodeGenerator</Generator>
-        <LastGenOutput>MartenDataResources.Designer.cs</LastGenOutput>
-      </EmbeddedResource>
-    </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="MartenDataResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>MartenDataResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
 
-    <ItemGroup>
-      <Compile Update="MartenDataResources.Designer.cs">
-        <DesignTime>True</DesignTime>
-        <AutoGen>True</AutoGen>
-        <DependentUpon>MartenDataResources.resx</DependentUpon>
-      </Compile>
-    </ItemGroup>
+  <ItemGroup>
+    <Compile Update="MartenDataResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>MartenDataResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
 
-    <ItemGroup>
-      <None Remove="Directory.Build.props" />
-    </ItemGroup>
+  <ItemGroup>
+    <None Remove="Directory.Build.props" />
+  </ItemGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj" />
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Marten" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj" />
+  </ItemGroup>
 
 </Project>

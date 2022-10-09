@@ -1,0 +1,68 @@
+12and13
+---------------
+{
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "path": [
+        "root"
+      ]
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}
+---------------
+
+13and14
+---------------
+{
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "path": [
+        "root"
+      ]
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}
+---------------
+
+13andNull
+---------------
+{
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "path": [
+        "root"
+      ]
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}
+---------------
