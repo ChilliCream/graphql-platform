@@ -14,7 +14,7 @@ const NotFoundPage: FC<PageProps> = ({ location }) => {
       <Title>NOT FOUND</Title>
       <Content>
         <p>The page you&#39;re looking for doesn&#39;t exist.</p>
-        <Link to="/">Return to the Homepage</Link>
+        <Link to="/">Return to the homepage</Link>
       </Content>
     </>
   );
@@ -41,7 +41,12 @@ const NotFoundPage: FC<PageProps> = ({ location }) => {
             The page you&#39;re looking for doesn&#39;t exist for this version
             of the software or was moved.
           </p>
-          <Link to={newUrl}>Return to the documentation</Link>
+
+          <div>
+            <Link to={newUrl}>Return to the documentation</Link>
+            <Separator>&mdash;</Separator>
+            <Link to="/">Return to the homepage</Link>
+          </div>
         </Content>
       </>
     );
@@ -108,4 +113,8 @@ const Content = styled.div`
       padding-left: 50px;
     }
   }
+`;
+
+const Separator = styled.span`
+  margin: 0px 20px;
 `;
