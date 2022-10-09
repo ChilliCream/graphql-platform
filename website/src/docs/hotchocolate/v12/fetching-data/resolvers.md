@@ -2,7 +2,7 @@
 title: "Resolvers"
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
 
 When it comes to fetching data in a GraphQL server, it will always come down to a resolver.
 

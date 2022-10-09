@@ -2,7 +2,7 @@
 title: "Fetching from Databases"
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
 
 In this section, you find a simple example on how you can fetch data from a database and expose it as a GraphQL API.
 

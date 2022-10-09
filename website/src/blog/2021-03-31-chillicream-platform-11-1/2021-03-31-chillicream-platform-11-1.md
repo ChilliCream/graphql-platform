@@ -267,9 +267,9 @@ The new collection of scalars are published in the package [HotChocolate.Types.S
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | EmailAddress     | The `EmailAddress` scalar type represents an email address, represented as UTF-8 character sequences that follows the specification defined in RFC 5322.                                                                |
 | HexColor         | The `HexColor` scalar type represents a valid HEX color code.                                                                                                                                                           |
-| Hsl              | The `Hsl` scalar type represents a valid a CSS HSL color as defined here <https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors>.                                                                       |
-| Hsla             | The `Hsla` scalar type represents a valid a CSS HSLA color as defined here <https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors>.                                                                     |
-| IPv4             | The `IPv4` scalar type represents a valid a IPv4 address as defined here <https://en.wikipedia.org/wiki/IPv4>.                                                                                                            |
+| Hsl              | The `Hsl` scalar type represents a valid a CSS HSL color as defined here <https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors>.                                                                     |
+| Hsla             | The `Hsla` scalar type represents a valid a CSS HSLA color as defined here <https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors>.                                                                   |
+| IPv4             | The `IPv4` scalar type represents a valid a IPv4 address as defined here <https://en.wikipedia.org/wiki/IPv4>.                                                                                                          |
 | IPv6             | The `IPv6` scalar type represents a valid a IPv6 address as defined here [RFC8064](https://tools.ietf.org/html/rfc8064).                                                                                                |
 | Isbn             | The `ISBN` scalar type is a ISBN-10 or ISBN-13 number: https:\/\/en.wikipedia.org\/wiki\/International_Standard_Book_Number.                                                                                            |
 | LocalDate        | The `LocalDate` scalar type represents a ISO date string, represented as UTF-8 character sequences yyyy-mm-dd. The scalar follows the specification defined in RFC3339.                                                 |
@@ -282,7 +282,7 @@ The new collection of scalars are published in the package [HotChocolate.Types.S
 | NonNegativeInt   | The `NonNegativeIntType` scalar type represents a unsigned 32-bit numeric non-fractional value greater than or equal to 0.                                                                                              |
 | NonPositiveFloat | The `NonPositiveFloat` scalar type represents a double‐precision fractional value less than or equal to 0.                                                                                                              |
 | NonPositiveInt   | The `NonPositiveInt` scalar type represents a signed 32-bit numeric non-fractional value less than or equal to 0.                                                                                                       |
-| PhoneNumber      | The `PhoneNumber` scalar type represents a value that conforms to the standard E.164 format as specified in: <https://en.wikipedia.org/wiki/E.164>.                                                                       |
+| PhoneNumber      | The `PhoneNumber` scalar type represents a value that conforms to the standard E.164 format as specified in: <https://en.wikipedia.org/wiki/E.164>.                                                                     |
 | PositiveInt      | The `PositiveInt` scalar type represents a signed 32‐bit numeric non‐fractional value of at least the value 1.                                                                                                          |
 | PostalCode       | The `PostalCode` scalar type represents a valid postal code.                                                                                                                                                            |
 | Port             | The `Port` scalar type represents a field whose value is a valid TCP port within the range of 0 to 65535.                                                                                                               |
@@ -294,7 +294,7 @@ The new collection of scalars are published in the package [HotChocolate.Types.S
 
 Most of the work on this new library was done by [Gregory], who also put his free time into Hot Chocolate. We are happy to have you onboard, Gregory!
 
-> More about this topic can be read [here](/docs/hotchocolate/defining-a-schema/scalars).
+> More about this topic can be read [here](/docs/hotchocolate/v11/defining-a-schema/scalars).
 
 ## Type Extensions
 
@@ -474,7 +474,7 @@ As I initially said, a lot of these thing could already be achieved by using the
 
 It also completes the annotation-based approach further and gives us more tools to create schemas with only C#.
 
-> More about this topic can be read [here](/docs/hotchocolate/defining-a-schema/extending-types).
+> More about this topic can be read [here](/docs/hotchocolate/v11/defining-a-schema/extending-types).
 
 ## MongoDB integration
 
@@ -536,7 +536,7 @@ public IExecutable<Person> GetPersonById(
 
 This feature was implemented by [Pascal], who is the third person who became a Chilli. Together [Pascal] and [I] are building most of the Hot Chocolate server and gateway.
 
-> More about this topic can be read [here](/docs/hotchocolate/integrations/mongodb).
+> More about this topic can be read [here](/docs/hotchocolate/v11/integrations/mongodb).
 
 ## Mutation Transactions
 
@@ -592,7 +592,7 @@ services
     .AddTransactionScopeHandler<CustomTransactionScopeHandler>();
 ```
 
-> More about this topic can be read [here](/docs/hotchocolate/defining-a-schema/mutations#transactions).
+> More about this topic can be read [here](/docs/hotchocolate/v11/defining-a-schema/mutations#transactions).
 
 ## Directive Introspection
 

@@ -2,7 +2,7 @@
 title: Dependency Injection
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
 
 If you are unfamiliar with the term "dependency injection", we recommend the following articles to get you started:
 
