@@ -10,11 +10,6 @@ BarAndFoo Result:
       },
       {
         "foo": {
-          "barEnum": "BAR"
-        }
-      },
-      {
-        "foo": {
           "barEnum": "FOO"
         }
       }
@@ -25,10 +20,7 @@ BarAndFoo Result:
 
 BarAndFoo SQL:
 ---------------
-SELECT "d"."Id", "d"."FooId"
-FROM "Data" AS "d"
-INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarEnum" IN (1, 0)
+select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where CAST(d.data -> 'Foo' ->> 'BarEnum' as integer) = ANY(:p0)
 ---------------
 
 FOO Result:
@@ -48,10 +40,7 @@ FOO Result:
 
 FOO SQL:
 ---------------
-SELECT "d"."Id", "d"."FooId"
-FROM "Data" AS "d"
-INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarEnum" = 0
+select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where CAST(d.data -> 'Foo' ->> 'BarEnum' as integer) = ANY(:p0)
 ---------------
 
 nullAndFoo Result:

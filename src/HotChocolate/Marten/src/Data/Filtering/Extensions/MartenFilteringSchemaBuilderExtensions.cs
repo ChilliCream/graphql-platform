@@ -16,6 +16,15 @@ public static class MartenFilteringSchemaBuilderExtensions
     private static void UseMartenQueryableFilterProvider(
         this IFilterConventionDescriptor descriptor)
     {
-        descriptor.Provider(new MartenQueryableFilterProvider(x => x.AddDefaultFieldHandlers()));
+        descriptor.Provider(new MartenQueryableFilterProvider(x =>
+        {
+            x.AddFieldHandler<MartenQueryableComparableInHandler>();
+            x.AddFieldHandler<MartenQueryableComparableNotInHandler>();
+            x.AddFieldHandler<MartenQueryableEnumInHandler>();
+            x.AddFieldHandler<MartenQueryableEnumNotInHandler>();
+            x.AddFieldHandler<MartenQueryableStringInHandler>();
+            x.AddFieldHandler<MartenQueryableStringNotInHandler>();
+            x.AddDefaultFieldHandlers();
+        }));
     }
 }

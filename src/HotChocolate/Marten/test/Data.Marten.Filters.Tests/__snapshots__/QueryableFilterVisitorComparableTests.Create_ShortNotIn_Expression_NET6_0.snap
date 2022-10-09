@@ -1,47 +1,37 @@
-12and13
+12and13 Result:
 ---------------
 {
-  "errors": [
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 1,
-          "column": 3
-        }
-      ],
-      "path": [
-        "root"
-      ]
-    }
-  ],
   "data": {
-    "root": null
+    "root": [
+      {
+        "barShort": 14
+      }
+    ]
   }
 }
 ---------------
 
-13and14
+12and13 SQL:
+---------------
+select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foo as d where NOT(CAST(d.data ->> 'BarShort' as smallint) = ANY(:p0))
+---------------
+
+13and14 Result:
 ---------------
 {
-  "errors": [
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 1,
-          "column": 3
-        }
-      ],
-      "path": [
-        "root"
-      ]
-    }
-  ],
   "data": {
-    "root": null
+    "root": [
+      {
+        "barShort": 12
+      }
+    ]
   }
 }
+---------------
+
+13and14 SQL:
+---------------
+select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foo as d where NOT(CAST(d.data ->> 'BarShort' as smallint) = ANY(:p0))
 ---------------
 
 nullAnd14

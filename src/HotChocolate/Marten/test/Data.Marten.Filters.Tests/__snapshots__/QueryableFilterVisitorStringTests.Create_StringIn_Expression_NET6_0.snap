@@ -1,24 +1,22 @@
-testatestAndtestb
+testatestAndtestb Result:
 ---------------
 {
-  "errors": [
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 1,
-          "column": 3
-        }
-      ],
-      "path": [
-        "root"
-      ]
-    }
-  ],
   "data": {
-    "root": null
+    "root": [
+      {
+        "bar": "testatest"
+      },
+      {
+        "bar": "testbtest"
+      }
+    ]
   }
 }
+---------------
+
+testatestAndtestb SQL:
+---------------
+select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foo as d where d.data ->> 'Bar' = ANY(:p0)
 ---------------
 
 testbtestAndNull
@@ -49,25 +47,20 @@ testbtestAndNull
 }
 ---------------
 
-testatest
+testatest Result:
 ---------------
 {
-  "errors": [
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 1,
-          "column": 3
-        }
-      ],
-      "path": [
-        "root"
-      ]
-    }
-  ],
   "data": {
-    "root": null
+    "root": [
+      {
+        "bar": "testatest"
+      }
+    ]
   }
 }
+---------------
+
+testatest SQL:
+---------------
+select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foo as d where d.data ->> 'Bar' = ANY(:p0)
 ---------------

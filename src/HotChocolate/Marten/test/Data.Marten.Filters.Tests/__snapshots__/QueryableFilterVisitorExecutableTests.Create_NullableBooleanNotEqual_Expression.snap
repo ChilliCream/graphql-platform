@@ -4,9 +4,6 @@ true
   "data": {
     "rootExecutable": [
       {
-        "bar": null
-      },
-      {
         "bar": false
       }
     ]
@@ -21,9 +18,6 @@ false
     "rootExecutable": [
       {
         "bar": true
-      },
-      {
-        "bar": null
       }
     ]
   }

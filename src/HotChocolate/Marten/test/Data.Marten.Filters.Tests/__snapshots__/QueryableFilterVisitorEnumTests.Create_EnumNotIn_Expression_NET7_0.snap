@@ -16,9 +16,7 @@ BarAndFoo Result:
 
 BarAndFoo SQL:
 ---------------
-SELECT "d"."Id", "d"."BarEnum"
-FROM "Data" AS "d"
-WHERE "d"."BarEnum" NOT IN (1, 0)
+select d.id, d.data from public.mt_doc_queryablefiltervisitorenumtests_foo as d where NOT(CAST(d.data ->> 'BarEnum' as integer) = ANY(:p0))
 ---------------
 
 FOO Result:
@@ -42,9 +40,7 @@ FOO Result:
 
 FOO SQL:
 ---------------
-SELECT "d"."Id", "d"."BarEnum"
-FROM "Data" AS "d"
-WHERE "d"."BarEnum" <> 0
+select d.id, d.data from public.mt_doc_queryablefiltervisitorenumtests_foo as d where NOT(CAST(d.data ->> 'BarEnum' as integer) = ANY(:p0))
 ---------------
 
 nullAndFoo Result:
