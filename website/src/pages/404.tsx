@@ -39,13 +39,13 @@ const NotFoundPage: FC<PageProps> = ({ location }) => {
         <Content>
           <p>
             The page you&#39;re looking for doesn&#39;t exist for this version
-            of the software or was moved.
+            of the software or it was moved.
           </p>
 
           <div>
-            <Link to={newUrl}>Return to the documentation</Link>
-            <Separator>&mdash;</Separator>
             <Link to="/">Return to the homepage</Link>
+            <Separator>&mdash;</Separator>
+            <Link to={newUrl}>Return to the documentation</Link>
           </div>
         </Content>
       </>
@@ -105,6 +105,7 @@ const Content = styled.div`
   > * {
     padding-right: 20px;
     padding-left: 20px;
+    line-height: normal;
   }
 
   @media only screen and (min-width: 860px) {
