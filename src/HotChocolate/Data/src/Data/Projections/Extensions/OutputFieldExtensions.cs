@@ -12,7 +12,7 @@ internal static class OutputFieldExtensions
             isProjectedObject is bool isProjected && !isProjected;
 
     public static bool HasProjectionMiddleware(this IOutputField field)
-        => field.Type.Kind != TypeKind.NonNull && field.Type.InnerType() is IPageType ||
+        => (field.Type.Kind != TypeKind.NonNull && field.Type.InnerType() is IPageType) ||
            field.Type is IPageType ||
            field.ContextData.ContainsKey(ProjectionContextIdentifier);
 }

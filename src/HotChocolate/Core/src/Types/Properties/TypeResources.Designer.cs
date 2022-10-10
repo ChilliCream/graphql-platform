@@ -9,21 +9,21 @@
 
 namespace HotChocolate.Properties {
     using System;
-
-
+    
+    
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class TypeResources {
-
+        
         private static System.Resources.ResourceManager resourceMan;
-
+        
         private static System.Globalization.CultureInfo resourceCulture;
-
+        
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal TypeResources() {
         }
-
+        
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Resources.ResourceManager ResourceManager {
             get {
@@ -34,7 +34,7 @@ namespace HotChocolate.Properties {
                 return resourceMan;
             }
         }
-
+        
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Globalization.CultureInfo Culture {
             get {
@@ -44,1861 +44,1870 @@ namespace HotChocolate.Properties {
                 resourceCulture = value;
             }
         }
-
+        
+        internal static string ThrowHelper_MissingDirectiveIfArgument {
+            get {
+                return ResourceManager.GetString("ThrowHelper_MissingDirectiveIfArgument", resourceCulture);
+            }
+        }
+        
         internal static string ArgumentDescriptor_InputTypeViolation {
             get {
                 return ResourceManager.GetString("ArgumentDescriptor_InputTypeViolation", resourceCulture);
             }
         }
-
+        
         internal static string ArgumentValueBuilder_NonNull {
             get {
                 return ResourceManager.GetString("ArgumentValueBuilder_NonNull", resourceCulture);
             }
         }
-
+        
         internal static string BooleanType_Description {
             get {
                 return ResourceManager.GetString("BooleanType_Description", resourceCulture);
             }
         }
-
+        
         internal static string ByteType_Description {
             get {
                 return ResourceManager.GetString("ByteType_Description", resourceCulture);
             }
         }
-
+        
         internal static string ComplexTypeBindingBuilder_FieldBuilderNotSupported {
             get {
                 return ResourceManager.GetString("ComplexTypeBindingBuilder_FieldBuilderNotSupported", resourceCulture);
             }
         }
-
+        
         internal static string ComplexTypeBindingBuilder_FieldNotComplete {
             get {
                 return ResourceManager.GetString("ComplexTypeBindingBuilder_FieldNotComplete", resourceCulture);
             }
         }
-
+        
         internal static string DataLoaderRegistry_KeyNullOrEmpty {
             get {
                 return ResourceManager.GetString("DataLoaderRegistry_KeyNullOrEmpty", resourceCulture);
             }
         }
-
+        
         internal static string DataLoaderResolverContextExtensions_RegistryIsNull {
             get {
                 return ResourceManager.GetString("DataLoaderResolverContextExtensions_RegistryIsNull", resourceCulture);
             }
         }
-
+        
         internal static string DataLoaderResolverContextExtensions_UnableToRegister {
             get {
                 return ResourceManager.GetString("DataLoaderResolverContextExtensions_UnableToRegister", resourceCulture);
             }
         }
-
+        
         internal static string DateTimeType_Description {
             get {
                 return ResourceManager.GetString("DateTimeType_Description", resourceCulture);
             }
         }
-
+        
         internal static string DateType_Description {
             get {
                 return ResourceManager.GetString("DateType_Description", resourceCulture);
             }
         }
-
+        
         internal static string DecimalType_Description {
             get {
                 return ResourceManager.GetString("DecimalType_Description", resourceCulture);
             }
         }
-
+        
         internal static string DefaultTypeInspector_MemberInvalid {
             get {
                 return ResourceManager.GetString("DefaultTypeInspector_MemberInvalid", resourceCulture);
             }
         }
-
+        
         internal static string DependencyDescriptorBase_OnlyTsoIsAllowed {
             get {
                 return ResourceManager.GetString("DependencyDescriptorBase_OnlyTsoIsAllowed", resourceCulture);
             }
         }
-
+        
         internal static string DirectiveCollection_DirectiveIsUnique {
             get {
                 return ResourceManager.GetString("DirectiveCollection_DirectiveIsUnique", resourceCulture);
             }
         }
-
+        
         internal static string DirectiveCollection_LocationNotAllowed {
             get {
                 return ResourceManager.GetString("DirectiveCollection_LocationNotAllowed", resourceCulture);
             }
         }
-
+        
         internal static string DirectiveLocation_ArgumentDefinition {
             get {
                 return ResourceManager.GetString("DirectiveLocation_ArgumentDefinition", resourceCulture);
             }
         }
-
+        
         internal static string DirectiveLocation_Description {
             get {
                 return ResourceManager.GetString("DirectiveLocation_Description", resourceCulture);
             }
         }
-
+        
         internal static string DirectiveLocation_Enum {
             get {
                 return ResourceManager.GetString("DirectiveLocation_Enum", resourceCulture);
             }
         }
-
+        
         internal static string DirectiveLocation_EnumValue {
             get {
                 return ResourceManager.GetString("DirectiveLocation_EnumValue", resourceCulture);
             }
         }
-
+        
         internal static string DirectiveLocation_Field {
             get {
                 return ResourceManager.GetString("DirectiveLocation_Field", resourceCulture);
             }
         }
-
+        
         internal static string DirectiveLocation_FieldDefinition {
             get {
                 return ResourceManager.GetString("DirectiveLocation_FieldDefinition", resourceCulture);
             }
         }
-
+        
         internal static string DirectiveLocation_FragmentDefinition {
             get {
                 return ResourceManager.GetString("DirectiveLocation_FragmentDefinition", resourceCulture);
             }
         }
-
+        
         internal static string DirectiveLocation_FragmentSpread {
             get {
                 return ResourceManager.GetString("DirectiveLocation_FragmentSpread", resourceCulture);
             }
         }
-
+        
         internal static string DirectiveLocation_InlineFragment {
             get {
                 return ResourceManager.GetString("DirectiveLocation_InlineFragment", resourceCulture);
             }
         }
-
+        
         internal static string DirectiveLocation_InputFieldDefinition {
             get {
                 return ResourceManager.GetString("DirectiveLocation_InputFieldDefinition", resourceCulture);
             }
         }
-
+        
         internal static string DirectiveLocation_InputObject {
             get {
                 return ResourceManager.GetString("DirectiveLocation_InputObject", resourceCulture);
             }
         }
-
+        
         internal static string DirectiveLocation_Interface {
             get {
                 return ResourceManager.GetString("DirectiveLocation_Interface", resourceCulture);
             }
         }
-
+        
         internal static string DirectiveLocation_Mutation {
             get {
                 return ResourceManager.GetString("DirectiveLocation_Mutation", resourceCulture);
             }
         }
-
+        
         internal static string DirectiveLocation_Object {
             get {
                 return ResourceManager.GetString("DirectiveLocation_Object", resourceCulture);
             }
         }
-
+        
         internal static string DirectiveLocation_Query {
             get {
                 return ResourceManager.GetString("DirectiveLocation_Query", resourceCulture);
             }
         }
-
+        
         internal static string DirectiveLocation_Scalar {
             get {
                 return ResourceManager.GetString("DirectiveLocation_Scalar", resourceCulture);
             }
         }
-
+        
         internal static string DirectiveLocation_Schema {
             get {
                 return ResourceManager.GetString("DirectiveLocation_Schema", resourceCulture);
             }
         }
-
+        
         internal static string DirectiveLocation_Subscription {
             get {
                 return ResourceManager.GetString("DirectiveLocation_Subscription", resourceCulture);
             }
         }
-
+        
         internal static string DirectiveLocation_Union {
             get {
                 return ResourceManager.GetString("DirectiveLocation_Union", resourceCulture);
             }
         }
-
+        
         internal static string DirectiveTypeDescriptor_OnlyProperties {
             get {
                 return ResourceManager.GetString("DirectiveTypeDescriptor_OnlyProperties", resourceCulture);
             }
         }
-
+        
         internal static string DirectiveTypeFactory_LocationNotSupported {
             get {
                 return ResourceManager.GetString("DirectiveTypeFactory_LocationNotSupported", resourceCulture);
             }
         }
-
+        
         internal static string DirectiveType_NoLocations {
             get {
                 return ResourceManager.GetString("DirectiveType_NoLocations", resourceCulture);
             }
         }
-
+        
         internal static string DirectiveType_ReplaceWithUse {
             get {
                 return ResourceManager.GetString("DirectiveType_ReplaceWithUse", resourceCulture);
             }
         }
-
+        
         internal static string DirectiveType_UnableToConvert {
             get {
                 return ResourceManager.GetString("DirectiveType_UnableToConvert", resourceCulture);
             }
         }
-
+        
         internal static string Directive_Description {
             get {
                 return ResourceManager.GetString("Directive_Description", resourceCulture);
             }
         }
-
+        
         internal static string Directive_UseLocation {
             get {
                 return ResourceManager.GetString("Directive_UseLocation", resourceCulture);
             }
         }
-
+        
         internal static string EnumTypeExtension_CannotMerge {
             get {
                 return ResourceManager.GetString("EnumTypeExtension_CannotMerge", resourceCulture);
             }
         }
-
+        
         internal static string EnumTypeExtension_ValueTypeInvalid {
             get {
                 return ResourceManager.GetString("EnumTypeExtension_ValueTypeInvalid", resourceCulture);
             }
         }
-
+        
         internal static string EnumType_NoValues {
             get {
                 return ResourceManager.GetString("EnumType_NoValues", resourceCulture);
             }
         }
-
+        
         internal static string EnumValue_Description {
             get {
                 return ResourceManager.GetString("EnumValue_Description", resourceCulture);
             }
         }
-
+        
         internal static string EnumValue_ValueIsNull {
             get {
                 return ResourceManager.GetString("EnumValue_ValueIsNull", resourceCulture);
             }
         }
-
+        
         internal static string FieldInitHelper_InvalidDefaultValue {
             get {
                 return ResourceManager.GetString("FieldInitHelper_InvalidDefaultValue", resourceCulture);
             }
         }
-
+        
         internal static string FieldInitHelper_NoFields {
             get {
                 return ResourceManager.GetString("FieldInitHelper_NoFields", resourceCulture);
             }
         }
-
+        
         internal static string Field_Description {
             get {
                 return ResourceManager.GetString("Field_Description", resourceCulture);
             }
         }
-
+        
         internal static string FloatType_Description {
             get {
                 return ResourceManager.GetString("FloatType_Description", resourceCulture);
             }
         }
-
+        
         internal static string IdType_Description {
             get {
                 return ResourceManager.GetString("IdType_Description", resourceCulture);
             }
         }
-
+        
         internal static string InputField_CannotSetValue {
             get {
                 return ResourceManager.GetString("InputField_CannotSetValue", resourceCulture);
             }
         }
-
+        
         internal static string InputObjectTypeExtension_CannotMerge {
             get {
                 return ResourceManager.GetString("InputObjectTypeExtension_CannotMerge", resourceCulture);
             }
         }
-
+        
         internal static string InputObjectType_CannotParseLiteral {
             get {
                 return ResourceManager.GetString("InputObjectType_CannotParseLiteral", resourceCulture);
             }
         }
-
+        
         internal static string InputObjectType_NoFields {
             get {
                 return ResourceManager.GetString("InputObjectType_NoFields", resourceCulture);
             }
         }
-
+        
         internal static string InputTypeNonNullCheck_ValueIsNull {
             get {
                 return ResourceManager.GetString("InputTypeNonNullCheck_ValueIsNull", resourceCulture);
             }
         }
-
+        
         internal static string InputValue_DefaultValue {
             get {
                 return ResourceManager.GetString("InputValue_DefaultValue", resourceCulture);
             }
         }
-
+        
         internal static string InputValue_Description {
             get {
                 return ResourceManager.GetString("InputValue_Description", resourceCulture);
             }
         }
-
+        
         internal static string InterfaceImplRule_ArgumentsDontMatch {
             get {
                 return ResourceManager.GetString("InterfaceImplRule_ArgumentsDontMatch", resourceCulture);
             }
         }
-
+        
         internal static string InterfaceImplRule_ArgumentsNotImpl {
             get {
                 return ResourceManager.GetString("InterfaceImplRule_ArgumentsNotImpl", resourceCulture);
             }
         }
-
+        
         internal static string InterfaceImplRule_FieldNotImpl {
             get {
                 return ResourceManager.GetString("InterfaceImplRule_FieldNotImpl", resourceCulture);
             }
         }
-
+        
         internal static string InterfaceImplRule_FieldTypeInvalid {
             get {
                 return ResourceManager.GetString("InterfaceImplRule_FieldTypeInvalid", resourceCulture);
             }
         }
-
+        
         internal static string InterfaceImplRule_ReturnTypeInvalid {
             get {
                 return ResourceManager.GetString("InterfaceImplRule_ReturnTypeInvalid", resourceCulture);
             }
         }
-
+        
         internal static string InterfaceTypeExtension_CannotMerge {
             get {
                 return ResourceManager.GetString("InterfaceTypeExtension_CannotMerge", resourceCulture);
             }
         }
-
+        
         internal static string IntType_Description {
             get {
                 return ResourceManager.GetString("IntType_Description", resourceCulture);
             }
         }
-
+        
         internal static string LongType_Description {
             get {
                 return ResourceManager.GetString("LongType_Description", resourceCulture);
             }
         }
-
+        
         internal static string MultiplierPathType_Description {
             get {
                 return ResourceManager.GetString("MultiplierPathType_Description", resourceCulture);
             }
         }
-
+        
         internal static string NameType_Description {
             get {
                 return ResourceManager.GetString("NameType_Description", resourceCulture);
             }
         }
-
+        
         internal static string Name_Cannot_BeEmpty {
             get {
                 return ResourceManager.GetString("Name_Cannot_BeEmpty", resourceCulture);
             }
         }
-
+        
         internal static string ObjectFieldDescriptorBase_FieldType {
             get {
                 return ResourceManager.GetString("ObjectFieldDescriptorBase_FieldType", resourceCulture);
             }
         }
-
+        
         internal static string ObjectTypeDescriptor_InterfaceBaseClass {
             get {
                 return ResourceManager.GetString("ObjectTypeDescriptor_InterfaceBaseClass", resourceCulture);
             }
         }
-
+        
         internal static string InterfaceTypeDescriptor_InterfaceBaseClass {
             get {
                 return ResourceManager.GetString("InterfaceTypeDescriptor_InterfaceBaseClass", resourceCulture);
             }
         }
-
+        
         internal static string ObjectTypeDescriptor_MustBePropertyOrMethod {
             get {
                 return ResourceManager.GetString("ObjectTypeDescriptor_MustBePropertyOrMethod", resourceCulture);
             }
         }
-
+        
         internal static string NodeDescriptor_MustBeMethod {
             get {
                 return ResourceManager.GetString("NodeDescriptor_MustBeMethod", resourceCulture);
             }
         }
-
+        
         internal static string NodeDescriptor_IdMember {
             get {
                 return ResourceManager.GetString("NodeDescriptor_IdMember", resourceCulture);
             }
         }
-
+        
         internal static string ObjectTypeDescriptor_Resolver_SchemaType {
             get {
                 return ResourceManager.GetString("ObjectTypeDescriptor_Resolver_SchemaType", resourceCulture);
             }
         }
-
+        
         internal static string Reflection_MemberMust_BeMethodOrProperty {
             get {
                 return ResourceManager.GetString("Reflection_MemberMust_BeMethodOrProperty", resourceCulture);
             }
         }
-
+        
         internal static string ResolverCompiler_UnknownParameterType {
             get {
                 return ResourceManager.GetString("ResolverCompiler_UnknownParameterType", resourceCulture);
             }
         }
-
+        
         internal static string ResolverTypeBindingBuilder_FieldBuilderNotSupported {
             get {
                 return ResourceManager.GetString("ResolverTypeBindingBuilder_FieldBuilderNotSupported", resourceCulture);
             }
         }
-
+        
         internal static string ResolverTypeBindingBuilder_FieldNotComplete {
             get {
                 return ResourceManager.GetString("ResolverTypeBindingBuilder_FieldNotComplete", resourceCulture);
             }
         }
-
+        
         internal static string Scalar_Cannot_Deserialize {
             get {
                 return ResourceManager.GetString("Scalar_Cannot_Deserialize", resourceCulture);
             }
         }
-
+        
         internal static string Scalar_Cannot_ParseLiteral {
             get {
                 return ResourceManager.GetString("Scalar_Cannot_ParseLiteral", resourceCulture);
             }
         }
-
+        
         internal static string Scalar_Cannot_ParseValue {
             get {
                 return ResourceManager.GetString("Scalar_Cannot_ParseValue", resourceCulture);
             }
         }
-
+        
         internal static string Scalar_Cannot_Serialize {
             get {
                 return ResourceManager.GetString("Scalar_Cannot_Serialize", resourceCulture);
             }
         }
-
+        
         internal static string SchemaBuilderExtensions_DirectiveTypeIsBaseType {
             get {
                 return ResourceManager.GetString("SchemaBuilderExtensions_DirectiveTypeIsBaseType", resourceCulture);
             }
         }
-
+        
         internal static string SchemaBuilderExtensions_MustBeDirectiveType {
             get {
                 return ResourceManager.GetString("SchemaBuilderExtensions_MustBeDirectiveType", resourceCulture);
             }
         }
-
+        
         internal static string SchemaBuilderExtensions_SchemaIsEmpty {
             get {
                 return ResourceManager.GetString("SchemaBuilderExtensions_SchemaIsEmpty", resourceCulture);
             }
         }
-
+        
         internal static string SchemaBuilder_Binding_CannotBeHandled {
             get {
                 return ResourceManager.GetString("SchemaBuilder_Binding_CannotBeHandled", resourceCulture);
             }
         }
-
+        
         internal static string SchemaBuilder_Binding_Invalid {
             get {
                 return ResourceManager.GetString("SchemaBuilder_Binding_Invalid", resourceCulture);
             }
         }
-
+        
         internal static string SchemaBuilder_ISchemaNotTso {
             get {
                 return ResourceManager.GetString("SchemaBuilder_ISchemaNotTso", resourceCulture);
             }
         }
-
+        
         internal static string SchemaBuilder_NoQueryType {
             get {
                 return ResourceManager.GetString("SchemaBuilder_NoQueryType", resourceCulture);
             }
         }
-
+        
         internal static string SchemaBuilder_RootType_MustBeClass {
             get {
                 return ResourceManager.GetString("SchemaBuilder_RootType_MustBeClass", resourceCulture);
             }
         }
-
+        
         internal static string SchemaBuilder_RootType_MustBeObjectType {
             get {
                 return ResourceManager.GetString("SchemaBuilder_RootType_MustBeObjectType", resourceCulture);
             }
         }
-
+        
         internal static string SchemaBuilder_RootType_NonGenericType {
             get {
                 return ResourceManager.GetString("SchemaBuilder_RootType_NonGenericType", resourceCulture);
             }
         }
-
+        
         internal static string SchemaBuilder_SchemaTypeInvalid {
             get {
                 return ResourceManager.GetString("SchemaBuilder_SchemaTypeInvalid", resourceCulture);
             }
         }
-
+        
         internal static string SchemaErrorBuilder_MessageIsNull {
             get {
                 return ResourceManager.GetString("SchemaErrorBuilder_MessageIsNull", resourceCulture);
             }
         }
-
+        
         internal static string SchemaField_Description {
             get {
                 return ResourceManager.GetString("SchemaField_Description", resourceCulture);
             }
         }
-
+        
         internal static string SchemaSyntaxVisitor_UnknownOperationType {
             get {
                 return ResourceManager.GetString("SchemaSyntaxVisitor_UnknownOperationType", resourceCulture);
             }
         }
-
+        
         internal static string Schema_Description {
             get {
                 return ResourceManager.GetString("Schema_Description", resourceCulture);
             }
         }
-
+        
         internal static string Schema_Directives {
             get {
                 return ResourceManager.GetString("Schema_Directives", resourceCulture);
             }
         }
-
+        
         internal static string Schema_MutationType {
             get {
                 return ResourceManager.GetString("Schema_MutationType", resourceCulture);
             }
         }
-
+        
         internal static string Schema_QueryType {
             get {
                 return ResourceManager.GetString("Schema_QueryType", resourceCulture);
             }
         }
-
+        
         internal static string Schema_SubscriptionType {
             get {
                 return ResourceManager.GetString("Schema_SubscriptionType", resourceCulture);
             }
         }
-
+        
         internal static string Schema_Types {
             get {
                 return ResourceManager.GetString("Schema_Types", resourceCulture);
             }
         }
-
+        
         internal static string ShortType_Description {
             get {
                 return ResourceManager.GetString("ShortType_Description", resourceCulture);
             }
         }
-
+        
         internal static string StringType_Description {
             get {
                 return ResourceManager.GetString("StringType_Description", resourceCulture);
             }
         }
-
+        
         internal static string String_Argument_NullOrEmpty {
             get {
                 return ResourceManager.GetString("String_Argument_NullOrEmpty", resourceCulture);
             }
         }
-
+        
         internal static string TypeConfiguration_ConfigureIsNull {
             get {
                 return ResourceManager.GetString("TypeConfiguration_ConfigureIsNull", resourceCulture);
             }
         }
-
+        
         internal static string TypeConfiguration_DefinitionIsNull {
             get {
                 return ResourceManager.GetString("TypeConfiguration_DefinitionIsNull", resourceCulture);
             }
         }
-
+        
         internal static string TypeDependency_MustBeSchemaType {
             get {
                 return ResourceManager.GetString("TypeDependency_MustBeSchemaType", resourceCulture);
             }
         }
-
+        
         internal static string TypeExtensions_InvalidStructure {
             get {
                 return ResourceManager.GetString("TypeExtensions_InvalidStructure", resourceCulture);
             }
         }
-
+        
         internal static string TypeExtensions_KindIsNotSupported {
             get {
                 return ResourceManager.GetString("TypeExtensions_KindIsNotSupported", resourceCulture);
             }
         }
-
+        
         internal static string TypeExtensions_NoListType {
             get {
                 return ResourceManager.GetString("TypeExtensions_NoListType", resourceCulture);
             }
         }
-
+        
         internal static string TypeExtensions_TypeIsNotOfT {
             get {
                 return ResourceManager.GetString("TypeExtensions_TypeIsNotOfT", resourceCulture);
             }
         }
-
+        
         internal static string TypeField_Description {
             get {
                 return ResourceManager.GetString("TypeField_Description", resourceCulture);
             }
         }
-
+        
         internal static string TypeInitializer_CannotResolveDependency {
             get {
                 return ResourceManager.GetString("TypeInitializer_CannotResolveDependency", resourceCulture);
             }
         }
-
+        
         internal static string TypeInitializer_CompleteName_Duplicate {
             get {
                 return ResourceManager.GetString("TypeInitializer_CompleteName_Duplicate", resourceCulture);
             }
         }
-
+        
         internal static string TypeInitializer_Merge_KindDoesNotMatch {
             get {
                 return ResourceManager.GetString("TypeInitializer_Merge_KindDoesNotMatch", resourceCulture);
             }
         }
-
+        
         internal static string TypeKind_Description {
             get {
                 return ResourceManager.GetString("TypeKind_Description", resourceCulture);
             }
         }
-
+        
         internal static string TypeKind_Enum {
             get {
                 return ResourceManager.GetString("TypeKind_Enum", resourceCulture);
             }
         }
-
+        
         internal static string TypeKind_InputObject {
             get {
                 return ResourceManager.GetString("TypeKind_InputObject", resourceCulture);
             }
         }
-
+        
         internal static string TypeKind_Interface {
             get {
                 return ResourceManager.GetString("TypeKind_Interface", resourceCulture);
             }
         }
-
+        
         internal static string TypeKind_List {
             get {
                 return ResourceManager.GetString("TypeKind_List", resourceCulture);
             }
         }
-
+        
         internal static string TypeKind_NonNull {
             get {
                 return ResourceManager.GetString("TypeKind_NonNull", resourceCulture);
             }
         }
-
+        
         internal static string TypeKind_Object {
             get {
                 return ResourceManager.GetString("TypeKind_Object", resourceCulture);
             }
         }
-
+        
         internal static string TypeKind_Scalar {
             get {
                 return ResourceManager.GetString("TypeKind_Scalar", resourceCulture);
             }
         }
-
+        
         internal static string TypeKind_Union {
             get {
                 return ResourceManager.GetString("TypeKind_Union", resourceCulture);
             }
         }
-
+        
         internal static string TypeNameField_Description {
             get {
                 return ResourceManager.GetString("TypeNameField_Description", resourceCulture);
             }
         }
-
+        
         internal static string TypeNameHelper_InvalidTypeStructure {
             get {
                 return ResourceManager.GetString("TypeNameHelper_InvalidTypeStructure", resourceCulture);
             }
         }
-
+        
         internal static string TypeNameHelper_OnlyTsosAreAllowed {
             get {
                 return ResourceManager.GetString("TypeNameHelper_OnlyTsosAreAllowed", resourceCulture);
             }
         }
-
+        
         internal static string TypeResourceHelper_TypeNameEmptyOrNull {
             get {
                 return ResourceManager.GetString("TypeResourceHelper_TypeNameEmptyOrNull", resourceCulture);
             }
         }
-
+        
         internal static string Type_Description {
             get {
                 return ResourceManager.GetString("Type_Description", resourceCulture);
             }
         }
-
+        
         internal static string UnionTypeExtension_CannotMerge {
             get {
                 return ResourceManager.GetString("UnionTypeExtension_CannotMerge", resourceCulture);
             }
         }
-
+        
         internal static string VariableValueBuilder_InputType {
             get {
                 return ResourceManager.GetString("VariableValueBuilder_InputType", resourceCulture);
             }
         }
-
+        
         internal static string VariableValueBuilder_InvalidValue {
             get {
                 return ResourceManager.GetString("VariableValueBuilder_InvalidValue", resourceCulture);
             }
         }
-
+        
         internal static string VariableValueBuilder_NodeKind {
             get {
                 return ResourceManager.GetString("VariableValueBuilder_NodeKind", resourceCulture);
             }
         }
-
+        
         internal static string VariableValueBuilder_NonNull {
             get {
                 return ResourceManager.GetString("VariableValueBuilder_NonNull", resourceCulture);
             }
         }
-
+        
         internal static string VariableValueBuilder_NonNull_In_Graph {
             get {
                 return ResourceManager.GetString("VariableValueBuilder_NonNull_In_Graph", resourceCulture);
             }
         }
-
+        
         internal static string VariableValueBuilder_VarNameEmpty {
             get {
                 return ResourceManager.GetString("VariableValueBuilder_VarNameEmpty", resourceCulture);
             }
         }
-
+        
         internal static string Argument_TypeIsNull {
             get {
                 return ResourceManager.GetString("Argument_TypeIsNull", resourceCulture);
             }
         }
-
+        
         internal static string NonNullType_NotAnInputType {
             get {
                 return ResourceManager.GetString("NonNullType_NotAnInputType", resourceCulture);
             }
         }
-
+        
         internal static string NonNullType_TypeIsNunNullType {
             get {
                 return ResourceManager.GetString("NonNullType_TypeIsNunNullType", resourceCulture);
             }
         }
-
+        
         internal static string NonNullType_ValueIsNull {
             get {
                 return ResourceManager.GetString("NonNullType_ValueIsNull", resourceCulture);
             }
         }
-
+        
         internal static string ObjectTypeExtension_CannotMerge {
             get {
                 return ResourceManager.GetString("ObjectTypeExtension_CannotMerge", resourceCulture);
             }
         }
-
+        
         internal static string TypeSystemObjectBase_DefinitionIsNull {
             get {
                 return ResourceManager.GetString("TypeSystemObjectBase_DefinitionIsNull", resourceCulture);
             }
         }
-
+        
         internal static string TypeSystemObjectBase_NameIsNull {
             get {
                 return ResourceManager.GetString("TypeSystemObjectBase_NameIsNull", resourceCulture);
             }
         }
-
+        
         internal static string TypeSystemObject_DescriptionImmutable {
             get {
                 return ResourceManager.GetString("TypeSystemObject_DescriptionImmutable", resourceCulture);
             }
         }
-
+        
         internal static string TypeSystemObject_NameImmutable {
             get {
                 return ResourceManager.GetString("TypeSystemObject_NameImmutable", resourceCulture);
             }
         }
-
+        
         internal static string UnionType_MustHaveTypes {
             get {
                 return ResourceManager.GetString("UnionType_MustHaveTypes", resourceCulture);
             }
         }
-
+        
         internal static string UnionType_UnableToResolveType {
             get {
                 return ResourceManager.GetString("UnionType_UnableToResolveType", resourceCulture);
             }
         }
-
+        
         internal static string SchemaBuilder_MustBeSchemaType {
             get {
                 return ResourceManager.GetString("SchemaBuilder_MustBeSchemaType", resourceCulture);
             }
         }
-
+        
         internal static string TypeRegistrar_TypesInconsistent {
             get {
                 return ResourceManager.GetString("TypeRegistrar_TypesInconsistent", resourceCulture);
             }
         }
-
+        
         internal static string TypeConvertion_ConvertNotSupported {
             get {
                 return ResourceManager.GetString("TypeConvertion_ConvertNotSupported", resourceCulture);
             }
         }
-
+        
         internal static string SchemaBuilder_Interceptor_NotSuppported {
             get {
                 return ResourceManager.GetString("SchemaBuilder_Interceptor_NotSuppported", resourceCulture);
             }
         }
-
+        
         internal static string IdSerializer_UnableToEncode {
             get {
                 return ResourceManager.GetString("IdSerializer_UnableToEncode", resourceCulture);
             }
         }
-
+        
         internal static string IdSerializer_UnableToDecode {
             get {
                 return ResourceManager.GetString("IdSerializer_UnableToDecode", resourceCulture);
             }
         }
-
+        
         internal static string SchemaBuilder_Convention_NotSuppported {
             get {
                 return ResourceManager.GetString("SchemaBuilder_Convention_NotSuppported", resourceCulture);
             }
         }
-
+        
         internal static string TimeSpanType_Description {
             get {
                 return ResourceManager.GetString("TimeSpanType_Description", resourceCulture);
             }
         }
-
+        
         internal static string DefaultDataLoaderRegistry_GetOrRegister {
             get {
                 return ResourceManager.GetString("DefaultDataLoaderRegistry_GetOrRegister", resourceCulture);
             }
         }
-
+        
         internal static string DataLoaderResolverContextExtensions_CreateDataLoader_AbstractType {
             get {
                 return ResourceManager.GetString("DataLoaderResolverContextExtensions_CreateDataLoader_AbstractType", resourceCulture);
             }
         }
-
+        
         internal static string DataLoaderResolverContextExtensions_CreateDataLoader_UnableToCreate {
             get {
                 return ResourceManager.GetString("DataLoaderResolverContextExtensions_CreateDataLoader_UnableToCreate", resourceCulture);
             }
         }
-
+        
         internal static string NonNamedType_IsInstanceOfType_NotAnInputType {
             get {
                 return ResourceManager.GetString("NonNamedType_IsInstanceOfType_NotAnInputType", resourceCulture);
             }
         }
-
+        
         internal static string RegisteredType_CompletionContext_Not_Initialized {
             get {
                 return ResourceManager.GetString("RegisteredType_CompletionContext_Not_Initialized", resourceCulture);
             }
         }
-
+        
         internal static string RegisteredType_CompletionContext_Already_Set {
             get {
                 return ResourceManager.GetString("RegisteredType_CompletionContext_Already_Set", resourceCulture);
             }
         }
-
+        
         internal static string DeferDirectiveType_Description {
             get {
                 return ResourceManager.GetString("DeferDirectiveType_Description", resourceCulture);
             }
         }
-
+        
         internal static string DeferDirectiveType_Label_Description {
             get {
                 return ResourceManager.GetString("DeferDirectiveType_Label_Description", resourceCulture);
             }
         }
-
+        
         internal static string DeferDirectiveType_If_Description {
             get {
                 return ResourceManager.GetString("DeferDirectiveType_If_Description", resourceCulture);
             }
         }
-
+        
         internal static string StreamDirectiveType_Description {
             get {
                 return ResourceManager.GetString("StreamDirectiveType_Description", resourceCulture);
             }
         }
-
+        
         internal static string StreamDirectiveType_Label_Description {
             get {
                 return ResourceManager.GetString("StreamDirectiveType_Label_Description", resourceCulture);
             }
         }
-
+        
         internal static string StreamDirectiveType_InitialCount_Description {
             get {
                 return ResourceManager.GetString("StreamDirectiveType_InitialCount_Description", resourceCulture);
             }
         }
-
+        
         internal static string StreamDirectiveType_If_Description {
             get {
                 return ResourceManager.GetString("StreamDirectiveType_If_Description", resourceCulture);
             }
         }
-
+        
         internal static string SchemaBuilder_AddRootType_TypeAlreadyRegistered {
             get {
                 return ResourceManager.GetString("SchemaBuilder_AddRootType_TypeAlreadyRegistered", resourceCulture);
             }
         }
-
+        
         internal static string NodeDescriptor_IdField_MustBePropertyOrMethod {
             get {
                 return ResourceManager.GetString("NodeDescriptor_IdField_MustBePropertyOrMethod", resourceCulture);
             }
         }
-
+        
         internal static string DeprecatedDirectiveType_TypeDescription {
             get {
                 return ResourceManager.GetString("DeprecatedDirectiveType_TypeDescription", resourceCulture);
             }
         }
-
+        
         internal static string DeprecatedDirectiveType_ReasonDescription {
             get {
                 return ResourceManager.GetString("DeprecatedDirectiveType_ReasonDescription", resourceCulture);
             }
         }
-
+        
         internal static string IncludeDirectiveType_TypeDescription {
             get {
                 return ResourceManager.GetString("IncludeDirectiveType_TypeDescription", resourceCulture);
             }
         }
-
+        
         internal static string IncludeDirectiveType_IfDescription {
             get {
                 return ResourceManager.GetString("IncludeDirectiveType_IfDescription", resourceCulture);
             }
         }
-
+        
         internal static string SkipDirectiveType_TypeDescription {
             get {
                 return ResourceManager.GetString("SkipDirectiveType_TypeDescription", resourceCulture);
             }
         }
-
+        
         internal static string SkipDirectiveType_IfDescription {
             get {
                 return ResourceManager.GetString("SkipDirectiveType_IfDescription", resourceCulture);
             }
         }
-
+        
         internal static string SpecifiedByDirectiveType_TypeDescription {
             get {
                 return ResourceManager.GetString("SpecifiedByDirectiveType_TypeDescription", resourceCulture);
             }
         }
-
+        
         internal static string SpecifiedByDirectiveType_UrlDescription {
             get {
                 return ResourceManager.GetString("SpecifiedByDirectiveType_UrlDescription", resourceCulture);
             }
         }
-
+        
         internal static string NodeType_TypeDescription {
             get {
                 return ResourceManager.GetString("NodeType_TypeDescription", resourceCulture);
             }
         }
-
+        
         internal static string AnyType_CycleInObjectGraph {
             get {
                 return ResourceManager.GetString("AnyType_CycleInObjectGraph", resourceCulture);
             }
         }
-
+        
         internal static string UuidType_FormatUnknown {
             get {
                 return ResourceManager.GetString("UuidType_FormatUnknown", resourceCulture);
             }
         }
-
+        
         internal static string Directive_GetArgument_ArgumentNameIsInvalid {
             get {
                 return ResourceManager.GetString("Directive_GetArgument_ArgumentNameIsInvalid", resourceCulture);
             }
         }
-
+        
         internal static string ___AppliedDirective_Description {
             get {
                 return ResourceManager.GetString("__AppliedDirective_Description", resourceCulture);
             }
         }
-
+        
         internal static string ___DirectiveArgument_Description {
             get {
                 return ResourceManager.GetString("__DirectiveArgument_Description", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_UsePagingAttribute_NodeTypeUnknown {
             get {
                 return ResourceManager.GetString("ThrowHelper_UsePagingAttribute_NodeTypeUnknown", resourceCulture);
             }
         }
-
+        
         internal static string Schema_GetDirectiveType_DoesNotExist {
             get {
                 return ResourceManager.GetString("Schema_GetDirectiveType_DoesNotExist", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_ObjectField_HasNoResolver {
             get {
                 return ResourceManager.GetString("ErrorHelper_ObjectField_HasNoResolver", resourceCulture);
             }
         }
-
+        
         internal static string ExtendedTypeReferenceHandler_NonGenericExecutableNotAllowed {
             get {
                 return ResourceManager.GetString("ExtendedTypeReferenceHandler_NonGenericExecutableNotAllowed", resourceCulture);
             }
         }
-
+        
         internal static string BindingCompiler_AddBinding_BindingCannotBeHandled {
             get {
                 return ResourceManager.GetString("BindingCompiler_AddBinding_BindingCannotBeHandled", resourceCulture);
             }
         }
-
+        
         internal static string Type_SpecifiedByUrl_Description {
             get {
                 return ResourceManager.GetString("Type_SpecifiedByUrl_Description", resourceCulture);
             }
         }
-
+        
         internal static string SchemaBuilderExtensions_AddObjectType_TIsSchemaType {
             get {
                 return ResourceManager.GetString("SchemaBuilderExtensions_AddObjectType_TIsSchemaType", resourceCulture);
             }
         }
-
+        
         internal static string SchemaBuilderExtensions_AddUnionType_TIsSchemaType {
             get {
                 return ResourceManager.GetString("SchemaBuilderExtensions_AddUnionType_TIsSchemaType", resourceCulture);
             }
         }
-
+        
         internal static string SchemaBuilderExtensions_AddEnumType_TIsSchemaType {
             get {
                 return ResourceManager.GetString("SchemaBuilderExtensions_AddEnumType_TIsSchemaType", resourceCulture);
             }
         }
-
+        
         internal static string SchemaBuilderExtensions_AddInterfaceType_TIsSchemaType {
             get {
                 return ResourceManager.GetString("SchemaBuilderExtensions_AddInterfaceType_TIsSchemaType", resourceCulture);
             }
         }
-
+        
         internal static string SchemaBuilderExtensions_AddInputObjectType_TIsSchemaType {
             get {
                 return ResourceManager.GetString("SchemaBuilderExtensions_AddInputObjectType_TIsSchemaType", resourceCulture);
             }
         }
-
+        
         internal static string CostDirective_ComplexityCannotBeBelowOne {
             get {
                 return ResourceManager.GetString("CostDirective_ComplexityCannotBeBelowOne", resourceCulture);
             }
         }
-
+        
         internal static string CostDirective_DefaultMultiplierCannotBeBelowTwo {
             get {
                 return ResourceManager.GetString("CostDirective_DefaultMultiplierCannotBeBelowTwo", resourceCulture);
             }
         }
-
+        
         internal static string EventMessageParameterExpressionBuilder_MessageNotFound {
             get {
                 return ResourceManager.GetString("EventMessageParameterExpressionBuilder_MessageNotFound", resourceCulture);
             }
         }
-
-        internal static string DefaultResolverCompilerService_CreateResolver_ArgumentValudationError {
+        
+        internal static string DefaultResolverCompilerService_CreateResolver_ArgumentValidationError {
             get {
-                return ResourceManager.GetString("DefaultResolverCompilerService_CreateResolver_ArgumentValudationError", resourceCulture);
+                return ResourceManager.GetString("DefaultResolverCompilerService_CreateResolver_ArgumentValidationError", resourceCulture);
             }
         }
-
+        
         internal static string DefaultResolverCompilerService_CompileSubscribe_OnlyMethodsAllowed {
             get {
                 return ResourceManager.GetString("DefaultResolverCompilerService_CompileSubscribe_OnlyMethodsAllowed", resourceCulture);
             }
         }
-
+        
         internal static string SchemaBuilderExtensions_AddResolverConfig_ContextInvalid {
             get {
                 return ResourceManager.GetString("SchemaBuilderExtensions_AddResolverConfig_ContextInvalid", resourceCulture);
             }
         }
-
+        
         internal static string SchemaBuilderExtensions_AddResolver_EmptyCooridnates {
             get {
                 return ResourceManager.GetString("SchemaBuilderExtensions_AddResolver_EmptyCooridnates", resourceCulture);
             }
         }
-
+        
         internal static string ExpressionHelper_GetGlobalStateWithDefault_NoDefaults {
             get {
                 return ResourceManager.GetString("ExpressionHelper_GetGlobalStateWithDefault_NoDefaults", resourceCulture);
             }
         }
-
+        
         internal static string ExpressionHelper_ResolveScopedContextData_KeyDoesNotExist {
             get {
                 return ResourceManager.GetString("ExpressionHelper_ResolveScopedContextData_KeyDoesNotExist", resourceCulture);
             }
         }
-
+        
         internal static string ExpressionHelper_GetScopedStateWithDefault_NoDefaultValue {
             get {
                 return ResourceManager.GetString("ExpressionHelper_GetScopedStateWithDefault_NoDefaultValue", resourceCulture);
             }
         }
-
+        
         internal static string ClaimsPrincipalParameterExpressionBuilder_NoClaimsFound {
             get {
                 return ResourceManager.GetString("ClaimsPrincipalParameterExpressionBuilder_NoClaimsFound", resourceCulture);
             }
         }
-
+        
         internal static string DirectiveLocation_VariableDefinition {
             get {
                 return ResourceManager.GetString("DirectiveLocation_VariableDefinition", resourceCulture);
             }
         }
-
+        
         internal static string SchemaBuilderExtensions_AddResolver_TypeConditionNotMet {
             get {
                 return ResourceManager.GetString("SchemaBuilderExtensions_AddResolver_TypeConditionNotMet", resourceCulture);
             }
         }
-
+        
         internal static string SchemaBuilderExtensions_AddRootResolver_NeedsToBeClassOrInterface {
             get {
                 return ResourceManager.GetString("SchemaBuilderExtensions_AddRootResolver_NeedsToBeClassOrInterface", resourceCulture);
             }
         }
-
+        
         internal static string Relay_NodeField_Description {
             get {
                 return ResourceManager.GetString("Relay_NodeField_Description", resourceCulture);
             }
         }
-
+        
         internal static string Relay_NodeField_Id_Description {
             get {
                 return ResourceManager.GetString("Relay_NodeField_Id_Description", resourceCulture);
             }
         }
-
+        
         internal static string Relay_NodesField_Description {
             get {
                 return ResourceManager.GetString("Relay_NodesField_Description", resourceCulture);
             }
         }
-
+        
         internal static string Relay_NodesField_Ids_Description {
             get {
                 return ResourceManager.GetString("Relay_NodesField_Ids_Description", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_MiddlewareOrderInvalid {
             get {
                 return ResourceManager.GetString("ErrorHelper_MiddlewareOrderInvalid", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_NoSchemaTypesAllowedAsRuntimeType {
             get {
                 return ResourceManager.GetString("ErrorHelper_NoSchemaTypesAllowedAsRuntimeType", resourceCulture);
             }
         }
-
+        
         internal static string FieldInitHelper_CompleteFields_MaxFieldCountToSmall {
             get {
                 return ResourceManager.GetString("FieldInitHelper_CompleteFields_MaxFieldCountToSmall", resourceCulture);
             }
         }
-
+        
         internal static string RegisteredType_Completion_NotYetReady {
             get {
                 return ResourceManager.GetString("RegisteredType_Completion_NotYetReady", resourceCulture);
             }
         }
-
+        
         internal static string EdgeType_IsInstanceOfType_NonObject {
             get {
                 return ResourceManager.GetString("EdgeType_IsInstanceOfType_NonObject", resourceCulture);
             }
         }
-
+        
         internal static string EdgeType_Description {
             get {
                 return ResourceManager.GetString("EdgeType_Description", resourceCulture);
             }
         }
-
+        
         internal static string EdgeType_Cursor_Description {
             get {
                 return ResourceManager.GetString("EdgeType_Cursor_Description", resourceCulture);
             }
         }
-
+        
         internal static string EdgeType_Node_Description {
             get {
                 return ResourceManager.GetString("EdgeType_Node_Description", resourceCulture);
             }
         }
-
+        
         internal static string ConnectionType_Description {
             get {
                 return ResourceManager.GetString("ConnectionType_Description", resourceCulture);
             }
         }
-
+        
         internal static string ConnectionType_PageInfo_Description {
             get {
                 return ResourceManager.GetString("ConnectionType_PageInfo_Description", resourceCulture);
             }
         }
-
+        
         internal static string ConnectionType_Edges_Description {
             get {
                 return ResourceManager.GetString("ConnectionType_Edges_Description", resourceCulture);
             }
         }
-
+        
         internal static string ConnectionType_TotalCount_Description {
             get {
                 return ResourceManager.GetString("ConnectionType_TotalCount_Description", resourceCulture);
             }
         }
-
+        
         internal static string CollectionSegmentType_PageInfo_Description {
             get {
                 return ResourceManager.GetString("CollectionSegmentType_PageInfo_Description", resourceCulture);
             }
         }
-
+        
         internal static string CollectionSegmentType_Description {
             get {
                 return ResourceManager.GetString("CollectionSegmentType_Description", resourceCulture);
             }
         }
-
+        
         internal static string CollectionSegmentType_Items_Description {
             get {
                 return ResourceManager.GetString("CollectionSegmentType_Items_Description", resourceCulture);
             }
         }
-
+        
         internal static string ConnectionType_Nodes_Description {
             get {
                 return ResourceManager.GetString("ConnectionType_Nodes_Description", resourceCulture);
             }
         }
-
+        
         internal static string ServiceHelper_UseResolverServiceInternal_Order {
             get {
                 return ResourceManager.GetString("ServiceHelper_UseResolverServiceInternal_Order", resourceCulture);
             }
         }
-
+        
         internal static string DefaultNamingConventions_FormatFieldName_EmptyOrNull {
             get {
                 return ResourceManager.GetString("DefaultNamingConventions_FormatFieldName_EmptyOrNull", resourceCulture);
             }
         }
-
+        
         internal static string OneOfDirectiveType_Description {
             get {
                 return ResourceManager.GetString("OneOfDirectiveType_Description", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_OneOfNoFieldSet {
             get {
                 return ResourceManager.GetString("ThrowHelper_OneOfNoFieldSet", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_OneOfMoreThanOneFieldSet {
             get {
                 return ResourceManager.GetString("ThrowHelper_OneOfMoreThanOneFieldSet", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_OneOfFieldIsNull {
             get {
                 return ResourceManager.GetString("ThrowHelper_OneOfFieldIsNull", resourceCulture);
             }
         }
-
+        
         internal static string ReflectionUtils_ExtractMethod_MethodExpected {
             get {
                 return ResourceManager.GetString("ReflectionUtils_ExtractMethod_MethodExpected", resourceCulture);
             }
         }
-
+        
         internal static string ResolverContextExtensions_ScopedContextData_KeyNotFound {
             get {
                 return ResourceManager.GetString("ResolverContextExtensions_ScopedContextData_KeyNotFound", resourceCulture);
             }
         }
-
+        
         internal static string ResolverContextExtensions_LocalContextData_KeyNotFound {
             get {
                 return ResourceManager.GetString("ResolverContextExtensions_LocalContextData_KeyNotFound", resourceCulture);
             }
         }
-
+        
         internal static string ResolverContextExtensions_ContextData_KeyNotFound {
             get {
                 return ResourceManager.GetString("ResolverContextExtensions_ContextData_KeyNotFound", resourceCulture);
             }
         }
-
+        
         internal static string SchemaTypes_GetType_DoesNotExist {
             get {
                 return ResourceManager.GetString("SchemaTypes_GetType_DoesNotExist", resourceCulture);
             }
         }
-
+        
         internal static string SchemaTypes_DefinitionInvalid {
             get {
                 return ResourceManager.GetString("SchemaTypes_DefinitionInvalid", resourceCulture);
             }
         }
-
+        
         internal static string InputObjectTypeDescriptor_OnlyProperties {
             get {
                 return ResourceManager.GetString("InputObjectTypeDescriptor_OnlyProperties", resourceCulture);
             }
         }
-
+        
         internal static string InterfaceTypeDescriptor_MustBePropertyOrMethod {
             get {
                 return ResourceManager.GetString("InterfaceTypeDescriptor_MustBePropertyOrMethod", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_FieldBase_Sealed {
             get {
                 return ResourceManager.GetString("ThrowHelper_FieldBase_Sealed", resourceCulture);
             }
         }
-
-
-        internal static string TypeInitializer_CannotFindType
-        {
-            get
-            {
+        
+        internal static string TypeInitializer_CannotFindType {
+            get {
                 return ResourceManager.GetString("TypeInitializer_CannotFindType", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_RelayIdFieldHelpers_NoFieldType {
             get {
                 return ResourceManager.GetString("ThrowHelper_RelayIdFieldHelpers_NoFieldType", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_NodeResolver_ObjNoDefinition {
             get {
                 return ResourceManager.GetString("ThrowHelper_NodeResolver_ObjNoDefinition", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_NodeResolver_ArgumentTypeMissing {
             get {
                 return ResourceManager.GetString("ThrowHelper_NodeResolver_ArgumentTypeMissing", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_Schema_GetMember_TypeNotFound {
             get {
                 return ResourceManager.GetString("ThrowHelper_Schema_GetMember_TypeNotFound", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_Schema_GetMember_FieldNotFound {
             get {
                 return ResourceManager.GetString("ThrowHelper_Schema_GetMember_FieldNotFound", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_Schema_GetMember_FieldArgNotFound {
             get {
                 return ResourceManager.GetString("ThrowHelper_Schema_GetMember_FieldArgNotFound", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_Schema_GetMember_InvalidCoordinate {
             get {
                 return ResourceManager.GetString("ThrowHelper_Schema_GetMember_InvalidCoordinate", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_Schema_GetMember_InputFieldNotFound {
             get {
                 return ResourceManager.GetString("ThrowHelper_Schema_GetMember_InputFieldNotFound", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_Schema_GetMember_EnumValueNotFound {
             get {
                 return ResourceManager.GetString("ThrowHelper_Schema_GetMember_EnumValueNotFound", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_Schema_GetMember_DirectiveNotFound {
             get {
                 return ResourceManager.GetString("ThrowHelper_Schema_GetMember_DirectiveNotFound", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_Schema_GetMember_DirectiveArgumentNotFound {
             get {
                 return ResourceManager.GetString("ThrowHelper_Schema_GetMember_DirectiveArgumentNotFound", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_FormatResultLeaf_InvalidSyntaxKind {
             get {
                 return ResourceManager.GetString("ThrowHelper_FormatResultLeaf_InvalidSyntaxKind", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_FormatResultList_InvalidObjectKind {
             get {
                 return ResourceManager.GetString("ThrowHelper_FormatResultList_InvalidObjectKind", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_FormatResultObject_InvalidObjectKind {
             get {
                 return ResourceManager.GetString("ThrowHelper_FormatResultObject_InvalidObjectKind", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_FormatValueList_InvalidObjectKind {
             get {
                 return ResourceManager.GetString("ThrowHelper_FormatValueList_InvalidObjectKind", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_ParseList_InvalidObjectKind {
             get {
                 return ResourceManager.GetString("ThrowHelper_ParseList_InvalidObjectKind", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_ParseNestedList_InvalidSyntaxKind {
             get {
                 return ResourceManager.GetString("ThrowHelper_ParseNestedList_InvalidSyntaxKind", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_ParseInputObject_InvalidObjectKind {
             get {
                 return ResourceManager.GetString("ThrowHelper_ParseInputObject_InvalidObjectKind", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_ParseInputObject_InvalidSyntaxKind {
             get {
                 return ResourceManager.GetString("ThrowHelper_ParseInputObject_InvalidSyntaxKind", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_NonNullInputViolation {
             get {
                 return ResourceManager.GetString("ThrowHelper_NonNullInputViolation", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_InvalidInputFieldNames {
             get {
                 return ResourceManager.GetString("ThrowHelper_InvalidInputFieldNames", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_RequiredInputFieldIsMissing {
             get {
                 return ResourceManager.GetString("ThrowHelper_RequiredInputFieldIsMissing", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_DataLoader_InvalidType {
             get {
                 return ResourceManager.GetString("ThrowHelper_DataLoader_InvalidType", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_Convention_ConventionCouldNotBeCreated {
             get {
                 return ResourceManager.GetString("ThrowHelper_Convention_ConventionCouldNotBeCreated", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_Convention_TwoConventionsRegisteredForScope {
             get {
                 return ResourceManager.GetString("ThrowHelper_Convention_TwoConventionsRegisteredForScope", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_NodeAttribute_IdFieldNotFound {
             get {
                 return ResourceManager.GetString("ThrowHelper_NodeAttribute_IdFieldNotFound", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_NodeAttribute_NodeResolverNotFound {
             get {
                 return ResourceManager.GetString("ThrowHelper_NodeAttribute_NodeResolverNotFound", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_TypeCompletionContext_UnableToResolveType {
             get {
                 return ResourceManager.GetString("ThrowHelper_TypeCompletionContext_UnableToResolveType", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_TypeRegistrar_CreateInstanceFailed {
             get {
                 return ResourceManager.GetString("ThrowHelper_TypeRegistrar_CreateInstanceFailed", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_Convention_UnableToCreateConvention {
             get {
                 return ResourceManager.GetString("ThrowHelper_Convention_UnableToCreateConvention", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_SubscribeAttribute_SubscribeResolverNotFound {
             get {
                 return ResourceManager.GetString("ThrowHelper_SubscribeAttribute_SubscribeResolverNotFound", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_SubscribeAttribute_TopicOnParameterAndMethod {
             get {
                 return ResourceManager.GetString("ThrowHelper_SubscribeAttribute_TopicOnParameterAndMethod", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_SubscribeAttribute_TopicTypeUnspecified {
             get {
                 return ResourceManager.GetString("ThrowHelper_SubscribeAttribute_TopicTypeUnspecified", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_SubscribeAttribute_MessageTypeUnspecified {
             get {
                 return ResourceManager.GetString("ThrowHelper_SubscribeAttribute_MessageTypeUnspecified", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_EventMessage_NotFound {
             get {
                 return ResourceManager.GetString("ThrowHelper_EventMessage_NotFound", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_EventMessage_InvalidCast {
             get {
                 return ResourceManager.GetString("ThrowHelper_EventMessage_InvalidCast", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_NeedsOneAtLeastField {
             get {
                 return ResourceManager.GetString("ErrorHelper_NeedsOneAtLeastField", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_TwoUnderscoresNotAllowedField {
             get {
                 return ResourceManager.GetString("ErrorHelper_TwoUnderscoresNotAllowedField", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_TwoUnderscoresNotAllowedOnArgument {
             get {
                 return ResourceManager.GetString("ErrorHelper_TwoUnderscoresNotAllowedOnArgument", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_TwoUnderscoresNotAllowedOnDirectiveName {
             get {
                 return ResourceManager.GetString("ErrorHelper_TwoUnderscoresNotAllowedOnDirectiveName", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_NotTransitivelyImplemented {
             get {
                 return ResourceManager.GetString("ErrorHelper_NotTransitivelyImplemented", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_InvalidFieldType {
             get {
                 return ResourceManager.GetString("ErrorHelper_InvalidFieldType", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_FieldNotImplemented {
             get {
                 return ResourceManager.GetString("ErrorHelper_FieldNotImplemented", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_InvalidArgumentType {
             get {
                 return ResourceManager.GetString("ErrorHelper_InvalidArgumentType", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_AdditionalArgumentNotNullable {
             get {
                 return ResourceManager.GetString("ErrorHelper_AdditionalArgumentNotNullable", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_ArgumentNotImplemented {
             get {
                 return ResourceManager.GetString("ErrorHelper_ArgumentNotImplemented", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_OneofInputObjectMustHaveNullableFieldsWithoutDefaults {
             get {
                 return ResourceManager.GetString("ErrorHelper_OneofInputObjectMustHaveNullableFieldsWithoutDefaults", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_RequiredArgumentCannotBeDeprecated {
             get {
                 return ResourceManager.GetString("ErrorHelper_RequiredArgumentCannotBeDeprecated", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_RequiredFieldCannotBeDeprecated {
             get {
                 return ResourceManager.GetString("ErrorHelper_RequiredFieldCannotBeDeprecated", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_InterfaceHasNoImplementation {
             get {
                 return ResourceManager.GetString("ErrorHelper_InterfaceHasNoImplementation", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_CompleteInterfacesHelper_UnableToResolveInterface {
             get {
                 return ResourceManager.GetString("ErrorHelper_CompleteInterfacesHelper_UnableToResolveInterface", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong {
             get {
                 return ResourceManager.GetString("ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_DirectiveCollection_ArgumentDoesNotExist {
             get {
                 return ResourceManager.GetString("ErrorHelper_DirectiveCollection_ArgumentDoesNotExist", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_DirectiveCollection_ArgumentNonNullViolation {
             get {
                 return ResourceManager.GetString("ErrorHelper_DirectiveCollection_ArgumentNonNullViolation", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_ObjectType_UnableToInferOrResolveType {
             get {
                 return ResourceManager.GetString("ErrorHelper_ObjectType_UnableToInferOrResolveType", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_Relay_NoNodeResolver {
             get {
                 return ResourceManager.GetString("ErrorHelper_Relay_NoNodeResolver", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_NodeResolver_MustHaveExactlyOneIdArg {
             get {
                 return ResourceManager.GetString("ErrorHelper_NodeResolver_MustHaveExactlyOneIdArg", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_NodeResolver_MustReturnObject {
             get {
                 return ResourceManager.GetString("ErrorHelper_NodeResolver_MustReturnObject", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_NodeResolver_NodeTypeHasNoId {
             get {
                 return ResourceManager.GetString("ErrorHelper_NodeResolver_NodeTypeHasNoId", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_InvalidInputFieldNames_Single {
             get {
                 return ResourceManager.GetString("ThrowHelper_InvalidInputFieldNames_Single", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_MutationDuplicateErrorName {
+            get {
+                return ResourceManager.GetString("ThrowHelper_MutationDuplicateErrorName", resourceCulture);
             }
         }
     }

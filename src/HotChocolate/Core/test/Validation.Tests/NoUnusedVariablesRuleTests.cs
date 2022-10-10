@@ -1,30 +1,30 @@
 using Xunit;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Validation
-{
-    public class NoUnusedVariablesRuleTests
-        : DocumentValidatorVisitorTestBase
-    {
-        public NoUnusedVariablesRuleTests()
-            : base(services => services.AddVariableRules())
-        {
-        }
+namespace HotChocolate.Validation;
 
-        [Fact]
-        public void UsesAllVariables()
-        {
-            ExpectValid(@"
+public class NoUnusedVariablesRuleTests
+    : DocumentValidatorVisitorTestBase
+{
+    public NoUnusedVariablesRuleTests()
+        : base(services => services.AddVariableRules())
+    {
+    }
+
+    [Fact]
+    public void UsesAllVariables()
+    {
+        ExpectValid(@"
                 query ($a: String, $b: String, $c: String) {
                     field(a: $a, b: $b, c: $c)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void UsesAllVariablesDeeply()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void UsesAllVariablesDeeply()
+    {
+        ExpectValid(@"
                 query Foo($a: String, $b: String, $c: String) {
                     field(a: $a) {
                         field(b: $b) {
@@ -33,12 +33,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void UsesAllVariablesDeeplyInInlineFragments()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void UsesAllVariablesDeeplyInInlineFragments()
+    {
+        ExpectValid(@"
                 query Foo($a: String, $b: String, $c: String) {
                         ... on Query {
                             field(a: $a) {
@@ -51,12 +51,12 @@ namespace HotChocolate.Validation
                         }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void UsesAllVariablesInFragments()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void UsesAllVariablesInFragments()
+    {
+        ExpectValid(@"
                 query Foo($a: String, $b: String, $c: String) {
                     ...FragA
                 }
@@ -74,12 +74,12 @@ namespace HotChocolate.Validation
                     field(c: $c)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void VariableUsedByFragmentInMultipleOperations()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void VariableUsedByFragmentInMultipleOperations()
+    {
+        ExpectValid(@"
                 query Foo($a: String) {
                 ...FragA
                 }
@@ -93,12 +93,12 @@ namespace HotChocolate.Validation
                   field(b: $b)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void VariableUsedByRecursiveFragment()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void VariableUsedByRecursiveFragment()
+    {
+        ExpectValid(@"
                 query Foo($a: String) {
                     ...FragA
                 }
@@ -108,22 +108,22 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void MultipleVariablesNotUsed()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void MultipleVariablesNotUsed()
+    {
+        ExpectErrors(@"
                 query Foo($a: String, $b: String, $c: String) {
                     field(b: $b)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void VariableNotUsedInFragments()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void VariableNotUsedInFragments()
+    {
+        ExpectErrors(@"
                 query Foo($a: String, $b: String, $c: String) {
                     ...FragA
                 }
@@ -141,12 +141,12 @@ namespace HotChocolate.Validation
                     field
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void MultipleVariablesNotUsedInFragments()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void MultipleVariablesNotUsedInFragments()
+    {
+        ExpectErrors(@"
                 query Foo($a: String, $b: String, $c: String) {
                     ...FragA
                 }
@@ -164,12 +164,12 @@ namespace HotChocolate.Validation
                     field
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void VariableNotUsedByUnreferencedFragment()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void VariableNotUsedByUnreferencedFragment()
+    {
+        ExpectErrors(@"
                 query Foo($b: String) {
                     ...FragA
                 }
@@ -180,12 +180,12 @@ namespace HotChocolate.Validation
                     field(b: $b)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void VariableNotUsedByFragmentUsedByOtherOperation()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void VariableNotUsedByFragmentUsedByOtherOperation()
+    {
+        ExpectErrors(@"
                 query Foo($b: String) {
                     ...FragA
                 }
@@ -199,8 +199,7 @@ namespace HotChocolate.Validation
                     field(b: $b)
                 }
             ");
-        }
-
-
     }
+
+
 }

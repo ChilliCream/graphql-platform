@@ -33,6 +33,7 @@ internal sealed class TypeInitializer
     private readonly List<RegisteredType> _temp = new();
     private readonly List<ITypeReference> _typeRefs = new();
     private readonly HashSet<ITypeReference> _typeRefSet = new();
+    private readonly List<RegisteredRootType> _rootTypes = new();
 
     public TypeInitializer(
         IDescriptorContext descriptorContext,
@@ -84,8 +85,10 @@ internal sealed class TypeInitializer
         // with all types (implicit and explicit) known we complete the type names.
         CompleteNames();
 
-        // with the type names all known we can now build pairs to bring together types and
-        // their type extensions.
+        // with the type names all known we will announce the root type objects.
+        ResolveRootTyped();
+
+        // we can now build pairs to bring together types and their type extensions.
         MergeTypeExtensions();
 
         // last we complete the types. Completing types means that we will assign all
@@ -187,11 +190,9 @@ internal sealed class TypeInitializer
 
     private void CompleteNames()
     {
-        var rootTypes = new List<RegisteredRootType>();
-
         _interceptor.OnBeforeCompleteTypeNames();
 
-        if (ProcessTypes(TypeDependencyKind.Named, type => CompleteTypeName(type, rootTypes)) &&
+        if (ProcessTypes(TypeDependencyKind.Named, type => CompleteTypeName(type)) &&
             _interceptor.TriggerAggregations)
         {
             _interceptor.OnTypesCompletedName(_typeRegistry.Types);
@@ -200,14 +201,6 @@ internal sealed class TypeInitializer
         EnsureNoErrors();
 
         _interceptor.OnAfterCompleteTypeNames();
-
-        foreach (var type in rootTypes)
-        {
-            _interceptor.OnAfterResolveRootType(
-                type.Context,
-                ((ObjectType)type.Type.Type).Definition!,
-                type.Kind);
-        }
     }
 
     internal RegisteredType InitializeType(
@@ -231,11 +224,6 @@ internal sealed class TypeInitializer
     }
 
     internal bool CompleteTypeName(RegisteredType registeredType)
-        => CompleteTypeName(registeredType, new List<RegisteredRootType>());
-
-    private bool CompleteTypeName(
-        RegisteredType registeredType,
-        List<RegisteredRootType> rootTypes)
     {
         registeredType.PrepareForCompletion(
             _typeReferenceResolver,
@@ -256,7 +244,7 @@ internal sealed class TypeInitializer
 
         if (kind is not RootTypeKind.None)
         {
-            rootTypes.Add(
+            _rootTypes.Add(
                 new RegisteredRootType(
                     registeredType,
                     registeredType,
@@ -264,6 +252,17 @@ internal sealed class TypeInitializer
         }
 
         return true;
+    }
+
+    private void ResolveRootTyped()
+    {
+        foreach (var type in _rootTypes)
+        {
+            _interceptor.OnAfterResolveRootType(
+                type.Context,
+                ((ObjectType)type.Type.Type).Definition!,
+                type.Kind);
+        }
     }
 
     private void MergeTypeExtensions()

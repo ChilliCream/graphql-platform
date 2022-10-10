@@ -78,7 +78,7 @@ internal sealed partial class RegisteredType : ITypeDiscoveryContext
                     return true;
                 }
 
-                return SchemaTypeResolver.TryInferSchemaTypeKind(r, out kind);
+                return DescriptorContext.TryInferSchemaTypeKind(r, out kind);
 
             case SchemaTypeReference r:
                 kind = GetTypeKindFromSchemaType(TypeInspector.GetType(r.Type.GetType()));

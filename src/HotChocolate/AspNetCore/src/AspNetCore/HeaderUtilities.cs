@@ -42,6 +42,8 @@ internal static class HeaderUtilities
                 return new AcceptHeaderResult(Array.Empty<AcceptMediaType>());
             }
 
+            string[] innerArray;
+
             if (count == 1)
             {
                 var headerValue = value[0]!;
@@ -51,10 +53,19 @@ internal static class HeaderUtilities
                     return new AcceptHeaderResult(new[] { parsedValue });
                 }
 
+                // note: this is a workaround for now. we need to parse this properly.
+                if (headerValue.IndexOf(',', StringComparison.Ordinal) != -1)
+                {
+                    innerArray = headerValue.Split(',');
+                    goto MULTI_VALUES;
+                }
+
                 return new AcceptHeaderResult(headerValue);
             }
 
-            string[] innerArray = value!;
+            innerArray = value!;
+
+MULTI_VALUES:
             ref var searchSpace = ref MemoryMarshal.GetReference(innerArray.AsSpan());
             var parsedValues = new AcceptMediaType[innerArray.Length];
             var p = 0;

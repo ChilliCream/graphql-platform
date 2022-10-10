@@ -53,6 +53,7 @@ internal sealed partial class ResultBuilder
                             return true;
                         }
 
+                        _removedResults.Add(obj.PatchId);
                         path = path.Parent;
                         parent = obj.Parent;
                         break;
@@ -64,6 +65,7 @@ internal sealed partial class ResultBuilder
                             return true;
                         }
 
+                        _removedResults.Add(list.PatchId);
                         path = path.Parent;
                         parent = parent.Parent;
                         break;

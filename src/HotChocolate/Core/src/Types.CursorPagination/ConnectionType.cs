@@ -58,14 +58,14 @@ internal class ConnectionType
                         TypeContext.Output);
                 },
                 Definition,
-                ApplyConfigurationOn.Naming,
+                ApplyConfigurationOn.BeforeNaming,
                 nodeType,
                 TypeDependencyKind.Named));
         Definition.Configurations.Add(
             new CompleteConfiguration(
                 (c, _) => EdgeType = c.GetType<IEdgeType>(TypeReference.Create(edgeTypeName)),
                 Definition,
-                ApplyConfigurationOn.Completion));
+                ApplyConfigurationOn.BeforeCompletion));
     }
 
     internal ConnectionType(ITypeReference nodeType, bool withTotalCount)
@@ -110,7 +110,7 @@ internal class ConnectionType
                         TypeContext.Output);
                 },
                 Definition,
-                ApplyConfigurationOn.Naming,
+                ApplyConfigurationOn.BeforeNaming,
                 nodeType,
                 TypeDependencyKind.Named));
         Definition.Configurations.Add(
@@ -120,7 +120,7 @@ internal class ConnectionType
                     EdgeType = c.GetType<IEdgeType>(edgeType);
                 },
                 Definition,
-                ApplyConfigurationOn.Completion));
+                ApplyConfigurationOn.BeforeCompletion));
     }
 
     /// <summary>

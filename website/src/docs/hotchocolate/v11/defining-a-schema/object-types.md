@@ -83,7 +83,7 @@ public class Startup
 }
 ```
 
-In the above example every `Author` CLR type we return from our resovlers would be assumed to be an `AuthorType`.
+In the above example every `Author` CLR type we return from our resolvers would be assumed to be an `AuthorType`.
 
 We can also create schema object types without a backing POCO.
 

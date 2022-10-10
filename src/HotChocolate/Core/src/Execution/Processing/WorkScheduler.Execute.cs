@@ -189,7 +189,7 @@ RESTART:
                     }
                     else
                     {
-                        if (!_hasBatches && !hasWork)
+                        if (!hasWork)
                         {
                             _isCompleted = true;
                         }

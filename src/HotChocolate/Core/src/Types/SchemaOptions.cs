@@ -11,7 +11,7 @@ namespace HotChocolate;
 /// <summary>
 /// Represents mutable schema options.
 /// </summary>
-public class SchemaOptions : ISchemaOptions
+public class SchemaOptions : IReadOnlySchemaOptions
 {
     /// <summary>
     /// Gets or sets the name of the query type.
@@ -42,7 +42,7 @@ public class SchemaOptions : ISchemaOptions
     /// A delegate which defines the name of the XML documentation file to be read.
     /// Only used if <seealso cref="UseXmlDocumentation"/> is true.
     /// </summary>
-    public Func<Assembly, string>? ResolveXmlDocumentationFileName { get; set; } = null;
+    public Func<Assembly, string>? ResolveXmlDocumentationFileName { get; set; }
 
     /// <summary>
     /// Defines if fields shall be sorted by name.
@@ -66,6 +66,13 @@ public class SchemaOptions : ISchemaOptions
     /// </summary>
     public BindingBehavior DefaultBindingBehavior { get; set; } =
         BindingBehavior.Implicit;
+
+    /// <summary>
+    /// Defines which members shall be by default inferred as GraphQL fields.
+    /// This default applies to <see cref="ObjectType"/> and <see cref="ObjectTypeExtension"/>.
+    /// </summary>
+    public FieldBindingFlags DefaultFieldBindingFlags { get; set; } =
+        FieldBindingFlags.Instance;
 
     /// <summary>
     /// Defines on which fields a middleware pipeline can be applied on.
@@ -111,7 +118,9 @@ public class SchemaOptions : ISchemaOptions
     /// </summary>
     public IsOfTypeFallback? DefaultIsOfTypeCheck { get; set; }
 
-    /// <inheritdoc cref="ISchemaOptions.EnableOneOf" />
+    /// <summary>
+    /// Defines if the OneOf spec RFC is enabled. This feature is experimental.
+    /// </summary>
     public bool EnableOneOf { get; set; }
 
     /// <summary>

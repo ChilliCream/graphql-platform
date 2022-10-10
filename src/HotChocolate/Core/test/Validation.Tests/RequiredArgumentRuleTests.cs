@@ -1,20 +1,20 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HotChocolate.Validation
-{
-    public class RequiredArgumentRuleTests
-        : DocumentValidatorVisitorTestBase
-    {
-        public RequiredArgumentRuleTests()
-            : base(builder => builder.AddArgumentRules())
-        {
-        }
+namespace HotChocolate.Validation;
 
-        [Fact]
-        public void BooleanArgFieldAndNonNullBooleanArgField()
-        {
-            ExpectValid(@"
+public class RequiredArgumentRuleTests
+    : DocumentValidatorVisitorTestBase
+{
+    public RequiredArgumentRuleTests()
+        : base(builder => builder.AddArgumentRules())
+    {
+    }
+
+    [Fact]
+    public void BooleanArgFieldAndNonNullBooleanArgField()
+    {
+        ExpectValid(@"
                 query {
                     arguments {
                         ... goodBooleanArg
@@ -30,12 +30,12 @@ namespace HotChocolate.Validation
                     nonNullBooleanArgField(nonNullBooleanArg: true)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void GoodBooleanArgDefault()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void GoodBooleanArgDefault()
+    {
+        ExpectValid(@"
                 query {
                     arguments {
                         ... goodBooleanArgDefault
@@ -46,12 +46,12 @@ namespace HotChocolate.Validation
                     booleanArgField
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void GoodBooleanArgDefault2()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void GoodBooleanArgDefault2()
+    {
+        ExpectValid(@"
                 query {
                     arguments {
                         ... goodBooleanArgDefault
@@ -62,13 +62,13 @@ namespace HotChocolate.Validation
                     optionalNonNullBooleanArgField2
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void MissingRequiredArg()
-        {
-            // arrange
-            ExpectErrors(@"
+    [Fact]
+    public void MissingRequiredArg()
+    {
+        // arrange
+        ExpectErrors(@"
                 query {
                     arguments {
                         ... missingRequiredArg
@@ -81,12 +81,12 @@ namespace HotChocolate.Validation
             ",
             t => Assert.Equal(
                 $"The argument `nonNullBooleanArg` is required.", t.Message));
-        }
+    }
 
-        [Fact]
-        public void MissingRequiredArgNonNullBooleanArg()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void MissingRequiredArgNonNullBooleanArg()
+    {
+        ExpectErrors(@"
                 query {
                     arguments {
                         ... missingRequiredArg
@@ -99,12 +99,12 @@ namespace HotChocolate.Validation
             ",
             t => Assert.Equal(
                 $"The argument `nonNullBooleanArg` is required.", t.Message));
-        }
+    }
 
-        [Fact]
-        public void MissingRequiredDirectiveArg()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void MissingRequiredDirectiveArg()
+    {
+        ExpectErrors(@"
                 query {
                     arguments {
                         ... missingRequiredArg
@@ -117,251 +117,251 @@ namespace HotChocolate.Validation
             ",
             t => Assert.Equal(
                 $"The argument `if` is required.", t.Message));
-        }
-        [Fact]
-        public void BadMultipleNullValueType()
-        {
-            ExpectErrors(@"
+    }
+    [Fact]
+    public void BadMultipleNullValueType()
+    {
+        ExpectErrors(@"
                  {
                      arguments {
                          multipleReqs(x: 1, y: null)
                      }
                  }
              ");
-        }
+    }
 
-        [Fact]
-        public void BadNullIntoNonNullBool()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void BadNullIntoNonNullBool()
+    {
+        ExpectErrors(@"
                 {
                     arguments {
                         nonNullBooleanArgField(nonNullBooleanArg: null)
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void BadNullIntoNonNullFloat()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void BadNullIntoNonNullFloat()
+    {
+        ExpectErrors(@"
                 {
                     arguments {
                         nonNullFloatArgField(floatArg: null)
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void BadNullIntoNonNullId()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void BadNullIntoNonNullId()
+    {
+        ExpectErrors(@"
                 {
                     arguments {
                         nonNullIdArgField(idArg: null)
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void BadNullIntoNonNullInt()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void BadNullIntoNonNullInt()
+    {
+        ExpectErrors(@"
                 {
                     arguments {
                         nonNullIntArgField(intArg: null)
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void BadNullIntoNonNullString()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void BadNullIntoNonNullString()
+    {
+        ExpectErrors(@"
                 {
                     arguments {
                         nonNullStringArgField(stringArg: null)
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void ArgOnOptionalArg()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void ArgOnOptionalArg()
+    {
+        ExpectValid(@"
               {
                 dog {
                         isHouseTrained(atOtherHomes: true)
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void ArgOnNoArgOnOptionalArg()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void ArgOnNoArgOnOptionalArg()
+    {
+        ExpectValid(@"
                 {
                     dog {
                         isHouseTrained
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void NoArgOnNonNullFieldWithDefault()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void NoArgOnNonNullFieldWithDefault()
+    {
+        ExpectValid(@"
               {
                 arguments {
                         optionalNonNullBooleanArgField(y:1)
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void MultipleArgs()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void MultipleArgs()
+    {
+        ExpectValid(@"
                 {
                     arguments {
                         multipleReqs(x: 1, y: 2)
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void MultipleArgsReverseOrder()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void MultipleArgsReverseOrder()
+    {
+        ExpectValid(@"
                 {
                     arguments {
                         multipleReqs(x: 2, y: 1)
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void NoArgsOnMultipleOptional()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void NoArgsOnMultipleOptional()
+    {
+        ExpectValid(@"
                 {
                     arguments {
                         multipleOpts
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void OneArgOnMultipleOptional()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void OneArgOnMultipleOptional()
+    {
+        ExpectValid(@"
                 {
                     arguments {
                         multipleOpts(opt1: 1)
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void SecondArgOnMultipleOptional()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void SecondArgOnMultipleOptional()
+    {
+        ExpectValid(@"
                 {
                     arguments {
                         multipleOpts(opt2: 2)
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void MultipleRequiredArgsOnMixedList()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void MultipleRequiredArgsOnMixedList()
+    {
+        ExpectValid(@"
                 {
                     arguments {
                         multipleOptsAndReqs(req1: 3, req2: 4)
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void MultipleRequiredAndOneOptionalArgOnMixedList()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void MultipleRequiredAndOneOptionalArgOnMixedList()
+    {
+        ExpectValid(@"
                 {
                     arguments {
                         multipleOptsAndReqs(req1: 3, req2: 4, opt1: 5)
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void AllRequiredAndOptionalArgsOnMixedList()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void AllRequiredAndOptionalArgsOnMixedList()
+    {
+        ExpectValid(@"
                 {
                     arguments {
                         multipleOptsAndReqs(req1: 3, req2: 4, opt1: 5, opt2: 6)
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void MissingOneNonNullableArgument()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void MissingOneNonNullableArgument()
+    {
+        ExpectErrors(@"
                 {
                     arguments {
                         multipleReqs(req2: 2)
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void MissingMultipleNonNullableArguments()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void MissingMultipleNonNullableArguments()
+    {
+        ExpectErrors(@"
                 {
                     arguments {
                         multipleReqs
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void IncorrectValueAndMissingArgument()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void IncorrectValueAndMissingArgument()
+    {
+        ExpectErrors(@"
                 {
                     arguments {
                         multipleReqs(req1: ""one"")
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void WithDirectivesOfValidTypes()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void WithDirectivesOfValidTypes()
+    {
+        ExpectValid(@"
                 {
                     dog @include(if: true) {
                         name
@@ -371,18 +371,17 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void WithDirectiveWithMissingTypes()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void WithDirectiveWithMissingTypes()
+    {
+        ExpectErrors(@"
                {
                     dog @include {
                         name @skip
                     }
                 }
             ");
-        }
     }
 }

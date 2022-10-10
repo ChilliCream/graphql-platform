@@ -184,7 +184,7 @@ public static class SortObjectFieldDescriptorExtensions
                             def.Type = TypeReference.Parse($"[{namedType.Name}!]");
                         },
                         argumentDefinition,
-                        ApplyConfigurationOn.Naming,
+                        ApplyConfigurationOn.BeforeNaming,
                         argumentTypeReference,
                         TypeDependencyKind.Named));
 
@@ -200,7 +200,7 @@ public static class SortObjectFieldDescriptorExtensions
                                     placeholder,
                                     scope),
                             definition,
-                            ApplyConfigurationOn.Completion,
+                            ApplyConfigurationOn.BeforeCompletion,
                             argumentTypeReference,
                             TypeDependencyKind.Completed));
 
@@ -210,7 +210,7 @@ public static class SortObjectFieldDescriptorExtensions
                                 argDef.Name =
                                     context.GetSortConvention(scope).GetArgumentName(),
                             argumentDefinition,
-                            ApplyConfigurationOn.Naming));
+                            ApplyConfigurationOn.BeforeNaming));
                 });
 
         return descriptor;

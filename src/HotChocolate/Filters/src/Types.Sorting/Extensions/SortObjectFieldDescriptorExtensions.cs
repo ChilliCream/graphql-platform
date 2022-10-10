@@ -104,7 +104,8 @@ public static class SortObjectFieldDescriptorExtensions
                             d.Name = convention.ArgumentName;
                         },
                         argumentDefinition,
-                        ApplyConfigurationOn.Completion));
+                        ApplyConfigurationOn.
+                        BeforeCompletion));
 
                 definition.Arguments.Add(argumentDefinition);
                 definition.Configurations.Add(
@@ -116,7 +117,7 @@ public static class SortObjectFieldDescriptorExtensions
                                 argumentTypeReference,
                                 placeholder),
                         definition,
-                        ApplyConfigurationOn.Completion,
+                        ApplyConfigurationOn.BeforeCompletion,
                         argumentTypeReference,
                         TypeDependencyKind.Completed));
             });

@@ -496,7 +496,7 @@ public class IdAttributeTests
 
         private sealed class InterceptingFormatter : IInputValueFormatter
         {
-            public object? OnAfterDeserialize(object? runtimeValue) =>
+            public object? Format(object? runtimeValue) =>
                 runtimeValue is IEnumerable<string> list
                     ? list
                         .Select(x => new IdValue("x", "y", int.Parse(x)))

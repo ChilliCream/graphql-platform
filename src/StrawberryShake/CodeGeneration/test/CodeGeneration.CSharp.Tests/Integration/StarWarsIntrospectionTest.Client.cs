@@ -225,7 +225,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 return false;
             }
 
-            return (QueryType.Equals(other.QueryType)) && ((MutationType is null && other.MutationType is null) || MutationType != null && MutationType.Equals(other.MutationType)) && ((SubscriptionType is null && other.SubscriptionType is null) || SubscriptionType != null && SubscriptionType.Equals(other.SubscriptionType)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Types, other.Types) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Directives, other.Directives);
+            return (QueryType.Equals(other.QueryType)) && ((MutationType is null && other.MutationType is null) || MutationType != null && MutationType.Equals(other.MutationType)) && ((SubscriptionType is null && other.SubscriptionType is null) || SubscriptionType != null && SubscriptionType.Equals(other.SubscriptionType)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Types, other.Types) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Directives, other.Directives);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -546,7 +546,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 return false;
             }
 
-            return (Kind.Equals(other.Kind)) && ((Name is null && other.Name is null) || Name != null && Name.Equals(other.Name)) && ((Description is null && other.Description is null) || Description != null && Description.Equals(other.Description)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Fields, other.Fields) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(InputFields, other.InputFields) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Interfaces, other.Interfaces) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(EnumValues, other.EnumValues) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(PossibleTypes, other.PossibleTypes);
+            return (Kind.Equals(other.Kind)) && ((Name is null && other.Name is null) || Name != null && Name.Equals(other.Name)) && ((Description is null && other.Description is null) || Description != null && Description.Equals(other.Description)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Fields, other.Fields) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(InputFields, other.InputFields) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Interfaces, other.Interfaces) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(EnumValues, other.EnumValues) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(PossibleTypes, other.PossibleTypes);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -678,7 +678,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 return false;
             }
 
-            return (Name.Equals(other.Name)) && ((Description is null && other.Description is null) || Description != null && Description.Equals(other.Description)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Args, other.Args) && OnOperation == other.OnOperation && OnFragment == other.OnFragment && OnField == other.OnField;
+            return (Name.Equals(other.Name)) && ((Description is null && other.Description is null) || Description != null && Description.Equals(other.Description)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Args, other.Args) && OnOperation == other.OnOperation && OnFragment == other.OnFragment && OnField == other.OnField;
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -771,7 +771,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 return false;
             }
 
-            return (Name.Equals(other.Name)) && ((Description is null && other.Description is null) || Description != null && Description.Equals(other.Description)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Args, other.Args) && Type.Equals(other.Type) && IsDeprecated == other.IsDeprecated && ((DeprecationReason is null && other.DeprecationReason is null) || DeprecationReason != null && DeprecationReason.Equals(other.DeprecationReason));
+            return (Name.Equals(other.Name)) && ((Description is null && other.Description is null) || Description != null && Description.Equals(other.Description)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Args, other.Args) && Type.Equals(other.Type) && IsDeprecated == other.IsDeprecated && ((DeprecationReason is null && other.DeprecationReason is null) || DeprecationReason != null && DeprecationReason.Equals(other.DeprecationReason));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
