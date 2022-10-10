@@ -9,47 +9,47 @@ public class QueryableFilterVisitorListTests : IClassFixture<SchemaCache>
     {
         new()
         {
-            FooNested = new[]
+            FooNested = new List<FooNested>()
             {
-                new FooNested { Bar = "a" },
-                new FooNested { Bar = "a" },
-                new FooNested { Bar = "a" }
+                new() { Bar = "a" },
+                new() { Bar = "a" },
+                new() { Bar = "a" }
             }
         },
         new()
         {
-            FooNested = new[]
+            FooNested = new List<FooNested>()
             {
-                new FooNested { Bar = "c" },
-                new FooNested { Bar = "a" },
-                new FooNested { Bar = "a" }
+                new() { Bar = "c" },
+                new() { Bar = "a" },
+                new() { Bar = "a" }
             }
         },
         new()
         {
-            FooNested = new[]
+            FooNested = new List<FooNested>()
             {
-                new FooNested { Bar = "a" },
-                new FooNested { Bar = "d" },
-                new FooNested { Bar = "b" }
+                new() { Bar = "a" },
+                new() { Bar = "d" },
+                new() { Bar = "b" }
             }
         },
         new()
         {
-            FooNested = new[]
+            FooNested = new List<FooNested>()
             {
-                new FooNested { Bar = "c" },
-                new FooNested { Bar = "d" },
-                new FooNested { Bar = "b" }
+                new() { Bar = "c" },
+                new() { Bar = "d" },
+                new() { Bar = "b" }
             }
         },
         new()
         {
-            FooNested = new[]
+            FooNested = new List<FooNested>()
             {
-                new FooNested { Bar = null },
-                new FooNested { Bar = "d" },
-                new FooNested { Bar = "b" }
+                new() { Bar = null! },
+                new() { Bar = "d" },
+                new() { Bar = "b" }
             }
         }
     };
@@ -271,14 +271,14 @@ public class QueryableFilterVisitorListTests : IClassFixture<SchemaCache>
 
     public class Foo
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
 
-        public IEnumerable<FooNested?>? FooNested { get; set; }
+        public List<FooNested> FooNested { get; set; } = new();
     }
 
     public class FooSimple
     {
-        public IEnumerable<string?>? Bar { get; set; }
+        public List<string> Bar { get; set; } = new();
     }
 
     public class FooNested
