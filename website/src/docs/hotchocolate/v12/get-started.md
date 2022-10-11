@@ -2,8 +2,8 @@
 title: "Get started with Hot Chocolate"
 ---
 
-import { ApiChoiceTabs } from "../../components/mdx/api-choice-tabs"
-import { InputChoiceTabs } from "../../components/mdx/input-choice-tabs"
+import { ApiChoiceTabs } from "../../../components/mdx/api-choice-tabs"
+import { InputChoiceTabs } from "../../../components/mdx/input-choice-tabs"
 
 In this tutorial, we will walk you through the basics of creating a GraphQL server with Hot Chocolate.
 
@@ -227,15 +227,15 @@ The Project can be started by either pressing `Ctrl + F5` or clicking the green 
 
 If you have setup everything correctly, you should be able to open <a href="http://localhost:5000/graphql" target="_blank" rel="noopener noreferrer">http://localhost:5000/graphql</a> (the port might be different for you) in your browser and be greeted by our GraphQL IDE [Banana Cake Pop](/docs/bananacakepop).
 
-![GraphQL IDE](../../images/get-started-bcp.png)
+![GraphQL IDE](../../../images/get-started-bcp.png)
 
 Next click on "Create document". You will be presented with a settings dialog for this new tab, pictured below. Make sure the "Schema Endpoint" input field has the correct URL under which your GraphQL endpoint is available. If it is correct you can just go ahead and click the "Apply" button in the bottom right.
 
-![GraphQL IDE: Setup](../../images/get-started-bcp-setup.png)
+![GraphQL IDE: Setup](../../../images/get-started-bcp-setup.png)
 
 Now you should be seeing an editor like the one pictured below. If your GraphQL server has been correctly setup you should be seeing a green "online" in the top right corner of the editor.
 
-![GraphQL IDE: Editor](../../images/get-started-bcp-editor.png)
+![GraphQL IDE: Editor](../../../images/get-started-bcp-editor.png)
 
 The view is split into four panes. The top left pane is where you enter the queries you wish to send to the GraphQL server - the result will be displayed in the top right pane. Variables and headers can be modified in the bottom left pane and recent queries can be viewed in the bottom right pane.
 
@@ -254,11 +254,11 @@ Okay, so let's send a query to your GraphQL server. Paste the below query into t
 
 To execute the query, simply press the "Run" button. The result should be displayed as JSON in the top right pane as shown below:
 
-![GraphQL IDE: Executing a query](../../images/get-started-bcp-query.png)
+![GraphQL IDE: Executing a query](../../../images/get-started-bcp-query.png)
 
 You can also view and browse the schema from within Banana Cake Pop. Click on the "Schema Reference" tab next to "Operations" in order to browse the schema. There's also a "Schema Definition" tab, pictured below, which shows the schema using the raw SDL (Schema Definition Language).
 
-![GraphQL IDE: Schema](../../images/get-started-bcp-schema.png)
+![GraphQL IDE: Schema](../../../images/get-started-bcp-schema.png)
 
 Congratulations, you've built your first Hot Chocolate GraphQL server and sent a query using the Banana Cake Pop GraphQL IDE 🎉🚀
 
