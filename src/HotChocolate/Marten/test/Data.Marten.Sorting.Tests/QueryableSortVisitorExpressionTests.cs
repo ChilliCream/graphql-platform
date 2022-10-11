@@ -9,10 +9,10 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
 {
     private static readonly Foo[] _fooEntities =
     {
-        new Foo { Name = "Sam", LastName = "Sampleman", Bars = Array.Empty<Bar>() },
+        new Foo { Name = "Sam", LastName = "Sampleman", Bars = new List<Bar>() },
         new Foo
         {
-            Name = "Foo", LastName = "Galoo", Bars = new Bar[] { new Bar { Value = "A" } }
+            Name = "Foo", LastName = "Galoo", Bars = new List<Bar>() { new() { Value = "A" } }
         }
     };
 
@@ -115,7 +115,7 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
 
         public string? LastName { get; set; }
 
-        public ICollection<Bar>? Bars { get; set; }
+        public List<Bar>? Bars { get; set; } = new List<Bar>();
     }
 
     public class Bar

@@ -18,12 +18,7 @@ ASC Result:
 
 ASC SQL:
 ---------------
-SELECT "d"."Id", "d"."LastName", "d"."Name"
-FROM "Data" AS "d"
-ORDER BY (
-    SELECT COUNT(*)
-    FROM "Bar" AS "b"
-    WHERE "d"."Id" = "b"."FooId")
+select d.id, d.data from public.mt_doc_queryablesortvisitorexpressiontests_foo as d order by jsonb_array_length(CAST(d.data ->> 'Bars' as jsonb))
 ---------------
 
 DESC Result:
@@ -46,10 +41,5 @@ DESC Result:
 
 DESC SQL:
 ---------------
-SELECT "d"."Id", "d"."LastName", "d"."Name"
-FROM "Data" AS "d"
-ORDER BY (
-    SELECT COUNT(*)
-    FROM "Bar" AS "b"
-    WHERE "d"."Id" = "b"."FooId") DESC
+select d.id, d.data from public.mt_doc_queryablesortvisitorexpressiontests_foo as d order by jsonb_array_length(CAST(d.data ->> 'Bars' as jsonb)) desc
 ---------------
