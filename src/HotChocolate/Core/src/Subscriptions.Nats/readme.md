@@ -52,6 +52,16 @@ await app.RunAsync();
 > **NOTE**:
 > _You need to target net6.0 or higher to use this provider, as the NATS client dependency is not available for net5.0 or lower._ 
 
+## Multiple Environment Support
+
+If you wish to share a NATS instance/cluster with multiple, distinct GraphQL servers, you must provide a unique subject prefix for this instance, e.g. and environment string like "dev01". All servers with the same prefix will be part of the same publish/subscribe group, and will receive all messages. The prefix will be prepended to all NATS subjects with the "." subject token separator, and as such can be monitored with the NATS CLI using the &gt; operator: 
+
+```bash
+./nats -s localhost:4222 subscribe "dev01.&gt;"
+```
+
+If you do not provide a prefix, the server will use the default prefix of "graphql". Only a-z, A-Z and 0-9 characters are permitted. The prefix is case sensitive.
+
 ## Technical Information about NATS
 
 NATS has a nice command line interface which you can use to monitor the cluster. You can also use the NATS dashboard to monitor the cluster.
