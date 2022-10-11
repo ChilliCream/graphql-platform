@@ -54,7 +54,7 @@ await app.RunAsync();
 
 ## Multiple Environment Support
 
-If you wish to share a NATS instance/cluster with multiple, distinct GraphQL servers, you must provide a unique subject prefix for this instance, e.g. an environment string like "dev01". All servers with the same prefix will be part of the same publish/subscribe group, and will receive all messages. The prefix will be prepended to all NATS subjects with the "." subject token separator, and as such can be monitored with the NATS CLI using the &gt; operator: 
+If you wish to share a NATS instance/cluster with multiple, distinct GraphQL servers, you must provide a unique subject prefix for this instance, e.g. an environment string like "dev01". This prefix is passed in the initial setup, like so: `AddNatsSubscription(prefix: "dev01")`. All servers with the same prefix will be part of the same publish/subscribe group, and will receive all messages. The prefix will be prepended to all NATS subjects with the "." subject token separator, and as such can be monitored with the NATS CLI using the &gt; operator: 
 
 ```bash
 ./nats -s localhost:4222 subscribe "dev01.&gt;"
