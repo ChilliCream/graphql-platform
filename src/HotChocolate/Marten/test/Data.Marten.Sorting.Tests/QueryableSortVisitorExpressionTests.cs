@@ -115,7 +115,7 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
 
         public string? LastName { get; set; }
 
-        public List<Bar>? Bars { get; set; } = new List<Bar>();
+        public List<Bar>? Bars { get; set; }
     }
 
     public class Bar
