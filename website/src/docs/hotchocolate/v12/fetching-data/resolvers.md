@@ -2,7 +2,7 @@
 title: "Resolvers"
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
 
 When it comes to fetching data in a GraphQL server, it will always come down to a resolver.
 
@@ -41,7 +41,7 @@ graph LR
 
 This tree will be traversed by the execution engine, starting with one or more root resolvers. In the above example the `me` field represents the only root resolver.
 
-Field resolvers that are subselections of a field, can only be executed after a value has been resolved for their _parent_ field. In the case of the above example this means that the `name` and `company` resolvers can only run, after the `me` resolver has finished. Resolvers of field subselections can and will be executed in parallel.
+Field resolvers that are sub-selections of a field, can only be executed after a value has been resolved for their _parent_ field. In the case of the above example this means that the `name` and `company` resolvers can only run, after the `me` resolver has finished. Resolvers of field sub-selections can and will be executed in parallel.
 
 **Because of this it is important that resolvers, with the exception of top level mutation field resolvers, do not contain side-effects, since their execution order may vary.**
 
@@ -213,6 +213,7 @@ Thus far we have looked at two ways to specify resolvers in Code-first:
 
 - Add new methods to the CLR type, e.g. the `T` type of `ObjectType<T>`
 - Add new fields to the schema type in the form of delegates
+
   ```csharp
   descriptor.Field("foo").Resolve(context => )
   ```

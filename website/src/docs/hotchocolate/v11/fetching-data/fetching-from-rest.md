@@ -235,7 +235,7 @@ public class Startup
 </Schema>
 </ExampleTabs>
 
-You can now head over to your Banana Cake Pop on your GraphQL Server (/graphql) and query todos:
+You can now head over to your Banana Cake Pop on your GraphQL Server (/graphql) and query `todos`:
 
 ```graphql
 {

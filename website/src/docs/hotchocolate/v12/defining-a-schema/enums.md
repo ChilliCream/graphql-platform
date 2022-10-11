@@ -2,7 +2,7 @@
 title: "Enums"
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
 
 An Enum is a special kind of [scalar](/docs/hotchocolate/v12/defining-a-schema/scalars) that is restricted to a particular set of allowed values. It can be used as both an input and an output type.
 
@@ -153,7 +153,7 @@ public class Startup
 }
 ```
 
-With this configuration each `UserRole` CLR type we return from our resovlers would be assumed to be a `UserRoleType`.
+With this configuration each `UserRole` CLR type we return from our resolvers would be assumed to be a `UserRoleType`.
 
 </Code>
 <Schema>

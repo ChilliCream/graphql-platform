@@ -58,7 +58,7 @@ During schema creation, the schema builder asks the convention how the schema sh
 The convention defines the names and descriptions of types and fields and also what the type should be used for properties
 The convention also defines what provider should be used to translate a GraphQL query to a database query.
 The provider is the only thing that is used after the schema is built.
-Every field or operation in a filter type has a handler annotated.  
+Every field or operation in a filter type has a handler annotated.
 During schema initialization, these handlers are bound, to the GraphQL fields. The provider can specify which handler should be bound to which field.
 During execution, the provider visits the incoming value node and executes the handler on the fields.
 This loose coupling allows defining the provider independently of the convention.
@@ -253,7 +253,7 @@ You can override `TryHandleOperation` to handle operations.
 
 ## The Context
 
-As the visitor and the field handlers are singletons, a context object is passed along with the traversation of input objects.
+As the visitor and the field handlers are singletons, a context object is passed along with the traversion of input objects.
 Field handlers can push data on this context, to make it available for other handlers further down in the tree.
 
 The context contains `Types`, `Operations`, `Errors` and `Scopes`. It is very provider-specific what data you need to store in the context.

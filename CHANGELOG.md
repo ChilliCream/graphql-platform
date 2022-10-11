@@ -25,7 +25,7 @@ Return argument value as field definition runtimeType if requested as object typ
 
 - Custom type inspectors can now again add custom ignores. #3399
 - Fixed issue where descriptor attributes on resolvers were ignored. (#3892)
-- Fixed that the socket interceptor `OnCloseAsync` method was not invoked. (#3951) 
+- Fixed that the socket interceptor `OnCloseAsync` method was not invoked. (#3951)
 - Fixed MongoDB `totalCount` handling (#3880).
 - Fixed handling of enums that contain underscore. (#4056)
 - Fixed ignoring fields with `ObjectTypeExtensions.Ignore`. (#4034)
@@ -55,7 +55,7 @@ Return argument value as field definition runtimeType if requested as object typ
 - Introduced nodes field. (#4000)
 - Introduced field middleware order validation for HotChocolate.Data and paging middleware (#4012).
 - Introduced `AggregateError` to allow rewriting a single error into multiple errors. (#4014)
-- Enhanced error handling for variables to better pinpoint the actual error. (#4037) 
+- Enhanced error handling for variables to better pinpoint the actual error. (#4037)
 - Added `RequestContext` pooling. (#4141)
 - Reworked schema-first APIs to align with code-first APIs.
 - Added support for `HotChocolate.Data` and paging attributes to schema-first.
@@ -77,14 +77,14 @@ Return argument value as field definition runtimeType if requested as object typ
 - Added the ability to control the XML documentation file name when inferring documentation from the runtime types. (#4149)
 - Added a unified cache to DataLoader.
 
-####  Changed
+#### Changed
 
 - Reworked scalar defaults for URL and UUID. (#3822)
 - Reworked dependency injection of Hot Chocolate extensions to automatically inject application dependencies. (#3833)
 - Deprecated `Schema.Create`. (#3885)
 - Deprecated ObjectFieldDescriptor.Resolver() overloads.
-- Split the` EnableRelaySupport` configuration method into two separate APIs that allow to opt-into specific relay schema features. (#3972)
-- Moved DataLoader code out of `HotChocolate.Types` into `GreenDonut`. (#4015) 
+- Split the`EnableRelaySupport` configuration method into two separate APIs that allow to opt-into specific relay schema features. (#3972)
+- Moved DataLoader code out of `HotChocolate.Types` into `GreenDonut`. (#4015)
 - Optimized subscription message receive handler. (#4143)
 - Improved execution of batches during processing.
 - Improved async work processing (#4006)
@@ -111,30 +111,30 @@ Return argument value as field definition runtimeType if requested as object typ
 ### Added
 
 - Additional HotChocolate scalars  (HotChocolate.Types.Scalars)
-    - PhoneNumber (#2995)
-    - EmailAddress (#2989)
-    - NegativeFloat (#2996)
-    - NonPositiveFloat (#3024)
-    - NonNegativeFloat (#3015)
-    - NonPositiveInt (#3026) 
-    - PositiveInt (#2929)
-    - NonNegativeInt (#3020) 
-    - NegativeInt (#2940)
-    - NonNegativeInt (#3020)
-    - NonEmptyString (#2940)
-    - Rgb (#3213)
-    - Port (#3211)
-    - Ipv6 (#3206)
-    - ISBN (#3201)
-    - Regex (#3184, #3130)
-    - MacAddress (#3183)
-    - Hsla (#3141)
-    - Ipv4 (#3097)
-    - Hsl (#3082)
-    - HexColor (#3077)
-    - UnsignedInt (#3052)
-    - PostalCode (#3046)
-    - UtcOffset (#3362)
+  - PhoneNumber (#2995)
+  - EmailAddress (#2989)
+  - NegativeFloat (#2996)
+  - NonPositiveFloat (#3024)
+  - NonNegativeFloat (#3015)
+  - NonPositiveInt (#3026)
+  - PositiveInt (#2929)
+  - NonNegativeInt (#3020)
+  - NegativeInt (#2940)
+  - NonNegativeInt (#3020)
+  - NonEmptyString (#2940)
+  - Rgb (#3213)
+  - Port (#3211)
+  - Ipv6 (#3206)
+  - ISBN (#3201)
+  - Regex (#3184, #3130)
+  - MacAddress (#3183)
+  - Hsla (#3141)
+  - Ipv4 (#3097)
+  - Hsl (#3082)
+  - HexColor (#3077)
+  - UnsignedInt (#3052)
+  - PostalCode (#3046)
+  - UtcOffset (#3362)
 
 - Added support for GraphQL multipart request specification to Hot Chocolate (#2936).
 - Added Strawberry Shake GraphQL client.
@@ -195,7 +195,7 @@ Return argument value as field definition runtimeType if requested as object typ
 ### Fixed
 
 - Fixed selection optimizer were not resolved correctly. (#2889)
-- Fixed projection of edge type (#2888) 
+- Fixed projection of edge type (#2888)
 
 ## [11.0.8]
 
@@ -217,7 +217,6 @@ Return argument value as field definition runtimeType if requested as object typ
 - Fixed projections with multiple interceptors. (#2836)
 - Fixed string literals in places of enum values have to raise a query errors. (#2846)
 - Fixed issues with Apollo active persisted queries flow. (#2864)
-    
 
 ## [11.0.7]
 
@@ -388,8 +387,8 @@ Return argument value as field definition runtimeType if requested as object typ
 - Unsealed AuthorizeAttribute. [#1993](https://github.com/ChilliCream/hotchocolate/pull/1993)
 - Expose character-set in content-type.
 - Use invariant culture when parsing numbers in AnyType [#2134](https://github.com/ChilliCream/hotchocolate/pull/2134)
-- Changed behavior of `SubscribeAttribute` to align better with the behaviour of version 11.
-- Changed ID serializer to align better with the behaviour of version 11.
+- Changed behavior of `SubscribeAttribute` to align better with the behavior of version 11.
+- Changed ID serializer to align better with the behavior of version 11.
 
 ### Fixed
 
@@ -447,7 +446,6 @@ Return argument value as field definition runtimeType if requested as object typ
 ### Fixed
 
 - Fixed default hash provider dependency injection configuration [#1363](https://github.com/ChilliCream/hotchocolate/pull/1363)
-
 
 ## [10.3.3]
 
@@ -738,8 +736,8 @@ Return argument value as field definition runtimeType if requested as object typ
 ### Fixed
 
 - Introspection default values are now serialized correctly.
-- Added missing validation rule: https://facebook.github.io/graphql/June2018/#sec-All-Variable-Uses-Defined
-- The non-null value violation is now propagated correctly. https://facebook.github.io/graphql/June2018/#sec-Errors
+- Added missing validation rule: <https://facebook.github.io/graphql/June2018/#sec-All-Variable-Uses-Defined>
+- The non-null value violation is now propagated correctly. <https://facebook.github.io/graphql/June2018/#sec-Errors>
 
 ## [0.7.0] - 2019-02-03
 

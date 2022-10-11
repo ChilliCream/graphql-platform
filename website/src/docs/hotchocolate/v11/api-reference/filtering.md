@@ -587,7 +587,7 @@ public class UserFilterType : FilterInputType<User>
 
 In this example, we look at the filter configuration of a list filter.
 
-Hot Chocolate can also generate filters for IEnumerables. Like object filter, Hot Chocolate generates filters for the whole object tree. List filter addresses scalars and object values differently.
+Hot Chocolate can also generate filters for `IEnumerable`s. Like object filter, Hot Chocolate generates filters for the whole object tree. List filter addresses scalars and object values differently.
 In the case the field is a scalar value, Hot Chocolate creates and object type to address the different operations of this scalar. e.g. If you specify filters for a list of strings, Hot Chocolate creates an object type that contains all operations of the string filter.
 In case the list holds a complex object, it generates an object filter for this object instead.
 
@@ -879,7 +879,7 @@ Hot Chocolate provides different APIs to customize filtering. You can write cust
 | _You do not want all the generated filters and only allow a specific set of filters in a specific case?_                                | Custom&nbsp;FilterInputType     |
 | _You want to change the name of a field or a whole type?_                                                                               | Custom&nbsp;FilterInputType     |
 | _You want to change the name of the `where` argument?_                                                                                  | Filter Conventions ArgumentName |
-| _You want to configure how *Hot Chocolate* generates the name and the description of filters in globally? e.g. `PascalCaseFilterType`?_ | Filter&nbsp;Conventions         |
+| _You want to configure how_Hot Chocolate_generates the name and the description of filters in globally? e.g. `PascalCaseFilterType`?_ | Filter&nbsp;Conventions         |
 | _You want to configure what the different types of filters are allowed globally?_                                                       | Filter&nbsp;Conventions         |
 | _Your database provider does not support certain operations of `IQueryable`_                                                            | Filter&nbsp;Conventions         |
 | _You want to change the naming of a specific lar filter type? e.g._ `foo_contains` _should be_ `foo_like`                               | Filter&nbsp;Conventions         |
@@ -996,7 +996,7 @@ input UserFilter {
 | `csharp±Object<TObject>( Expression<Func<T, TObject>> property)`                 | Defines a object filter for the selected property.                                                                                              |
 | `csharp±List( Expression<Func<T, IEnumerable<string>>> property)`                | Defines an array string filter for the selected property.                                                                                       |
 | `csharp±List( Expression<Func<T, IEnumerable<bool>>> property)`                  | Defines an array bool filter for the selected property.                                                                                         |
-| `csharp±List( Expression<Func<T, IEnumerable<IComparable>>> property)`           | Defines an array comarable filter for the selected property.                                                                                    |
+| `csharp±List( Expression<Func<T, IEnumerable<IComparable>>> property)`           | Defines an array comparable filter for the selected property.                                                                                    |
 | `csharp±Filter<TObject>( Expression<Func<T, IEnumerable<TObject>>> property)`    | Defines an array object filter for the selected property.                                                                                       |
 | `csharp±Directive<TDirective>(TDirective directiveInstance)`                     | Add directive `directiveInstance` to the type                                                                                                   |
 | `csharp±Directive<TDirective>(TDirective directiveInstance)`                     | Add directive of type `TDirective` to the type                                                                                                  |
@@ -1097,7 +1097,7 @@ input ISingleFilterOfInt16Filter {
 
 You can change the way Hot Chocolate names the types by supplying a delegate.
 
-This delgate must be of the following type:
+This delegate must be of the following type:
 
 ```csharp
 public delegate NameString GetFilterTypeName(
@@ -1374,7 +1374,7 @@ input UserFilter {
 
 ##### Hide Operations
 
-Hot Chocolate comes preconfigured with a set of operations. If you like to hide operations globally, you can use `Ignore` for it.
+Hot Chocolate comes pre-configured with a set of operations. If you like to hide operations globally, you can use `Ignore` for it.
 If your database provider does not support certain `IQueryable` methods you can just ignore the operation. Ignored operations do not generate filter input types.
 
 There are multiple ways to ignore an operation:
@@ -1857,7 +1857,7 @@ public class DistanceFilterType
 
 **Convention & Implicit Factory & Type Descriptor**
 
-The configuration of the convention, the implicit type factory and the descirptors are very similar to the the two examples before. To not bloat the documentation with duplication we just refere to these two examples and to the reference implementation here //TODO LINK
+The configuration of the convention, the implicit type factory and the descriptors are very similar to the the two examples before. To not bloat the documentation with duplication we just refer to these two examples and to the reference implementation here //TODO LINK
 
 ---
 
@@ -1873,7 +1873,7 @@ Filter conventions make it easier to change how an expression should be generate
 
 ##### Describe the Expression Visitor
 
-The expression visitor descriptor is accessible through the filter convention. By calling `UseExpressionVisitor` on the convention descriptor you gain access. The expression visitor has the default set of expressions preconfigured.
+The expression visitor descriptor is accessible through the filter convention. By calling `UseExpressionVisitor` on the convention descriptor you gain access. The expression visitor has the default set of expressions pre-configured.
 
 ```csharp
 public class CustomConvention : FilterConvention

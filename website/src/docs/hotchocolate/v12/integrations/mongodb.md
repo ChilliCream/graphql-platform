@@ -188,7 +188,7 @@ services
 
 ## Cursor Pagination
 
-To use cursor based pagination annoate you resolver with `[UsePaging]` or `.UsePaging()`
+To use cursor based pagination annotate you resolver with `[UsePaging]` or `.UsePaging()`
 
 ```csharp
 [UsePaging]
@@ -221,7 +221,7 @@ query GetPersons {
 
 ## Offset Pagination
 
-To use offset based pagination annoate you resolver with `[UseOffsetPaging]` or `.UseOffsetPaging()`
+To use offset based pagination annotate you resolver with `[UseOffsetPaging]` or `.UseOffsetPaging()`
 
 ```csharp
 [UseOffsetPaging]

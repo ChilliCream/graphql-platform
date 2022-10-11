@@ -17,17 +17,36 @@ exports.onPreBuild = async ({
 
   activity.start();
 
-  const files = getNodesByType("Mdx").map((node) => getNode(node.parent));
+  const mdxFiles = getNodesByType("Mdx").map((node) => getNode(node.parent));
 
-  if (files.some((file) => !file)) {
+  if (mdxFiles.some((file) => !file)) {
     activity.panicOnBuild("MDX nodes without a parent encountered");
   }
 
-  const documents = await getDocumentsCache(files, cache, getCache);
+  const documents = await getDocumentsCache(mdxFiles, cache, getCache);
 
   if (!documents) {
     activity.panicOnBuild("Document cache failed to load");
   }
+
+  // Unversioned pages are currently created in a special way and only to be
+  // backwards compatible. All but the root links should be versioned anyways
+  // so the link validation will not throw errors.
+  // We hardcode the root documents here to satisfy the link validation,
+  // if pages refer to the unversioned root page of a product.
+  const hardcodedPages = [
+    "/docs/hotchocolate",
+    "/docs/strawberryshake",
+    "/docs/bananacakepop",
+  ];
+
+  hardcodedPages.forEach((hardcodedPage) => {
+    documents[hardcodedPage] = {
+      slug: hardcodedPage,
+      links: [],
+      headingAnchors: [],
+    };
+  });
 
   let totalBrokenLinks = 0;
 

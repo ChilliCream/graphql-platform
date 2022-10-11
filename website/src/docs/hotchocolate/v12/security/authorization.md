@@ -2,7 +2,7 @@
 title: Authorization
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
 
 Authorization allows us to determine a user's permissions within our system. We can for example limit access to resources or only allow certain users to execute specific mutations.
 
@@ -315,9 +315,9 @@ public class UserType : ObjectType<User>
 
 ```sdl
 type User
-	@authorize(policy: "AtLeast21")
-	@authorize(policy: "HasCountry") {
-	name: String!
+ @authorize(policy: "AtLeast21")
+ @authorize(policy: "HasCountry") {
+ name: String!
 }
 ```
 
@@ -366,7 +366,7 @@ public class Startup
 }
 ```
 
-This method also accepts [roles](#roles) and [policies](#policies) as arguments, similiar to the `Authorize` attribute / methods.
+This method also accepts [roles](#roles) and [policies](#policies) as arguments, similar to the `Authorize` attribute / methods.
 
 > ⚠️ Note: Unlike the `@authorize directive` this will return status code 401 and prevent unauthorized access to all middleware included in `MapGraphQL`. This includes our GraphQL IDE Banana Cake Pop. If we do not want to block unauthorized access to Banana Cake Pop, we can split up the `MapGraphQL` middleware and for example only apply the `RequireAuthorization` to the `MapGraphQLHttp` middleware.
 

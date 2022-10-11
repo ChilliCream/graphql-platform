@@ -2,7 +2,7 @@
 title: Files
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs";
+import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs";
 
 Handling files is traditionally not a concern of a GraphQL server, which is also why the [GraphQL over HTTP](https://github.com/graphql/graphql-over-http/blob/main/spec/GraphQLOverHTTP.md) specification doesn't mention it.
 

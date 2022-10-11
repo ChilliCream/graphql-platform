@@ -2,7 +2,7 @@
 title: "Relay"
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
 
 > Note: Even though they originated in Relay, the design principles described in this document are not exclusive to Relay. They lead to an overall better schema design, which is why we recommend them to **all** users of Hot Chocolate.
 
@@ -196,7 +196,7 @@ The `Serialize()` method takes the schema name as a first argument, followed by 
 
 Global Object Identification, as the name suggests, is about being able to uniquely identify an object within our schema. Moreover, it allows consumers of our schema to refetch an object in a standardized way. This capability allows client applications, such as [Relay](https://relay.dev), to automatically refetch types.
 
-To identify types that can be refetched, a new `Node` interface type is introduced.
+To identify types that can be re-fetched, a new `Node` interface type is introduced.
 
 ```sdl
 interface Node {
@@ -204,7 +204,7 @@ interface Node {
 }
 ```
 
-Implementing this type signals to client applications, that the implementing type can be refetched. Implementing it also enforces the existence of an `id` field, a unique identifier, needed for the refetch operation.
+Implementing this type signals to client applications, that the implementing type can be re-fetched. Implementing it also enforces the existence of an `id` field, a unique identifier, needed for the refetch operation.
 
 To refetch the types implementing the `Node` interface, a new `node` field is added to the query.
 
@@ -253,16 +253,16 @@ Next we need to extend our object types with the `Global Object Identification` 
 <ExampleTabs>
 <Annotation>
 
-To declare an object type as a refetchable, we need to annotate it using the `[Node]` attribute. This in turn causes the type to implement the `Node` interface and if present automatically turns the `id` field into a [global identifier](#global-identifiers).
+To declare an object type as a re-fetchable, we need to annotate it using the `[Node]` attribute. This in turn causes the type to implement the `Node` interface and if present automatically turns the `id` field into a [global identifier](#global-identifiers).
 
-There also needs to be a method, a _node resolver_, responsible for the acutal refetching of the object. Assuming our class is called `Product`, Hot Chocolate looks for a static method, with one of the following names:
+There also needs to be a method, a _node resolver_, responsible for the actual refetching of the object. Assuming our class is called `Product`, Hot Chocolate looks for a static method, with one of the following names:
 
 - `Get`
 - `GetAsync`
 - `GetProduct`
 - `GetProductAsync`
 
-The method is expected to have a return type of either `Product` or `Task<Product>`. Furthermore the first argument of this method is expected to be of the same type as the `Id` property. At runtime Hot Chocolate will invoke this method with the `id` of the object that should be refetched. Special types, such as services, can be injected as arguments as well.
+The method is expected to have a return type of either `Product` or `Task<Product>`. Furthermore the first argument of this method is expected to be of the same type as the `Id` property. At runtime Hot Chocolate will invoke this method with the `id` of the object that should be re-fetched. Special types, such as services, can be injected as arguments as well.
 
 ```csharp
 [Node]
@@ -351,7 +351,7 @@ In the Code-first approach, we have multiple APIs on the `IObjectTypeDescriptor`
 
 - `ImplementsNode`: Implements the `Node` interface.
 - `IdField`: Selects the property that represents the unique identifier of the object.
-- `ResolveNode` / `ResolveNodeWith`: Method that refetches the object by its Id, also called the _node resolver_. If these methods are chained after `IdField`, they automatically infer the correct type of the `id` argument.
+- `ResolveNode` / `ResolveNodeWith`: Method that re-fetches the object by its Id, also called the _node resolver_. If these methods are chained after `IdField`, they automatically infer the correct type of the `id` argument.
 
 ```csharp
 public class Product

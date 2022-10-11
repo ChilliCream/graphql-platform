@@ -2,7 +2,7 @@
 title: "Scalars"
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
 
 Scalar types are the primitives of our schema and can hold a specific type of data. They are leaf types, meaning we cannot use e.g. `{ fieldname }` to further drill down into the type. The main purpose of a scalar is to define how a value is serialized and deserialized.
 
@@ -176,7 +176,7 @@ Notice how our code uses `int` for the `Id`, but in a request / response it woul
 
 # GraphQL Community Scalars
 
-The website https://www.graphql-scalars.com/ hosts specifications for GraphQL scalars defined by the community. The community scalars use the `@specifiedBy` directive to point to the spec that is implemented.
+The website <https://www.graphql-scalars.com/> hosts specifications for GraphQL scalars defined by the community. The community scalars use the `@specifiedBy` directive to point to the spec that is implemented.
 
 ```sdl
 scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
@@ -227,7 +227,7 @@ The `Uuid` scalar supports the following serialization formats.
 
 The `UuidType` will always return the value in the specified format. In case it is used as an input type, it will first try to parse the result in the specified format. If the parsing does not succeed, it will try to parse the value in other formats.
 
-To change the default format we have to register the `UuidType` with the specfier on the schema:
+To change the default format we have to register the `UuidType` with the specifier on the schema:
 
 ```csharp
 services
@@ -299,7 +299,7 @@ Lists can be accessed generically by getting them as `IReadOnlyList<object>` or 
 
 # Additional Scalars
 
-We also offer a separate package with scalars for more specific usecases.
+We also offer a separate package with scalars for more specific use cases.
 
 To use these scalars we have to add the `HotChocolate.Types.Scalars` package.
 
@@ -469,7 +469,7 @@ public class Startup
 
 Some scalars like `TimeSpan` or `Uuid` have options like their serialization format.
 
-We can specify these options by registering the scalar explictly.
+We can specify these options by registering the scalar explicitly.
 
 ```csharp
 services

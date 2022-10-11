@@ -2,7 +2,7 @@
 title: "Subscriptions"
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../components/mdx/example-tabs"
+import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
 
 The subscription type in GraphQL is used to add real-time capabilities to our applications. Clients can subscribe to events and receive the event data in real-time, as soon as the server publishes it.
 
@@ -277,7 +277,7 @@ public async Book PublishBook(Book book, [Service] ITopicEventSender sender)
 }
 ```
 
-If we do not want to mix the subscription logic with our resolver, we can also use the `With` argument on the `Subscribe` attribute to specify a seperate method that handles the event subscription.
+If we do not want to mix the subscription logic with our resolver, we can also use the `With` argument on the `Subscribe` attribute to specify a separate method that handles the event subscription.
 
 ```csharp
 public class Subscription
