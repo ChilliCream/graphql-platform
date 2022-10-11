@@ -30,7 +30,7 @@ public class NatsIntegrationTests
                 Url = _natsResource.NatsConnectionString
             })
             .AddLogging()
-            .AddNatsSubscriptions()
+            .AddNatsSubscriptions(prefix: "test")
             .AddGraphQL()
             .AddQueryType(d => d
                 .Name("foo")
@@ -63,6 +63,29 @@ public class NatsIntegrationTests
         }
 
         await result.DisposeAsync();
+    }
+
+    [Fact]
+    public void SubscribeWithInvalidPrefixShouldThrow()
+    {
+        Assert.Throws<ArgumentException>(() =>
+        {
+            new ServiceCollection()
+                .AddNats(poolSize: 1, options => options with
+                {
+                    Url = _natsResource.NatsConnectionString
+                })
+                .AddLogging()
+                .AddNatsSubscriptions(prefix: "test.")
+                .AddGraphQL()
+                .AddQueryType(d => d
+                    .Name("foo")
+                    .Field("a")
+                    .Resolve("b"))
+                .AddSubscriptionType<Subscription>()
+                .Services
+                .BuildServiceProvider();
+        });
     }
 
     public class Subscription
