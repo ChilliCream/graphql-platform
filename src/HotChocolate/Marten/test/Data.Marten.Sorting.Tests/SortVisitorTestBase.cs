@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
@@ -48,12 +45,10 @@ public class SortVisitorTestBase : IAsyncLifetime
         var dbName = $"DB_{Guid.NewGuid():N}";
         Resource.CreateDatabaseAsync(dbName).GetAwaiter().GetResult();
         var store = DocumentStore.For(Resource.GetConnectionString(dbName));
-        convention ??= new SortConvention(x => x.AddDefaults().BindRuntimeType<TEntity, T>());
 
         var resolver = BuildResolver(store, entities);
 
         var builder = SchemaBuilder.New()
-            .AddConvention<ISortConvention>(convention)
             .AddMartenSorting()
             .AddQueryType(
                 c =>

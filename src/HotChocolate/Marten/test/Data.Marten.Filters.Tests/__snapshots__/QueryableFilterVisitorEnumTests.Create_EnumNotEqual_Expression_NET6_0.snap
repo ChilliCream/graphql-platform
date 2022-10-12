@@ -1,10 +1,13 @@
-BarAndFoo Result:
+BAR Result:
 ---------------
 {
   "data": {
     "root": [
       {
         "barEnum": "BAZ"
+      },
+      {
+        "barEnum": "FOO"
       },
       {
         "barEnum": "QUX"
@@ -14,9 +17,9 @@ BarAndFoo Result:
 }
 ---------------
 
-BarAndFoo SQL:
+BAR SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorenumtests_foo as d where NOT(CAST(d.data ->> 'BarEnum' as integer) = ANY(:p0))
+select d.id, d.data from public.mt_doc_queryablefiltervisitorenumtests_foo as d where CAST(d.data ->> 'BarEnum' as integer) != :p0
 ---------------
 
 FOO Result:
@@ -40,15 +43,15 @@ FOO Result:
 
 FOO SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorenumtests_foo as d where NOT(CAST(d.data ->> 'BarEnum' as integer) = ANY(:p0))
+select d.id, d.data from public.mt_doc_queryablefiltervisitorenumtests_foo as d where CAST(d.data ->> 'BarEnum' as integer) != :p0
 ---------------
 
-nullAndFoo Result:
+null
 ---------------
 {
   "errors": [
     {
-      "message": "The specified value type of field \u0060nin\u0060 does not match the field type.",
+      "message": "The provided value for filter \u0060neq\u0060 of type FooEnumOperationFilterInput is invalid. Null values are not supported.",
       "locations": [
         {
           "line": 1,
@@ -59,12 +62,14 @@ nullAndFoo Result:
         "root"
       ],
       "extensions": {
-        "fieldName": "nin",
-        "fieldType": "[FooEnum!]",
-        "locationType": "[FooEnum!]",
-        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+        "code": "HC0026",
+        "expectedType": "FooEnum!",
+        "filterType": "FooEnumOperationFilterInput"
       }
     }
-  ]
+  ],
+  "data": {
+    "root": []
+  }
 }
 ---------------

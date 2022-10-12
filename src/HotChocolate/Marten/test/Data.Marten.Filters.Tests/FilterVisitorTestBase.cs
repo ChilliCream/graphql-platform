@@ -30,13 +30,11 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
         var dbName = $"DB_{Guid.NewGuid():N}";
         Resource.CreateDatabaseAsync(dbName).GetAwaiter().GetResult();
         var store = DocumentStore.For(Resource.GetConnectionString(dbName));
-        convention ??= new FilterConvention(x => x.AddDefaults().BindRuntimeType<TEntity, T>());
 
         var resolver =
             BuildResolver(store, entities);
 
         var builder = SchemaBuilder.New()
-            .AddConvention<IFilterConvention>(convention)
             .AddMartenFiltering()
             .AddQueryType(
                 c =>
