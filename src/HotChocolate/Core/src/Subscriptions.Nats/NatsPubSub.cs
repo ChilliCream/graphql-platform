@@ -1,19 +1,46 @@
 using System.Collections.Concurrent;
+using System.Data.HashFunction.SpookyHash;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 using AlterNats;
 using HotChocolate.Execution;
+using MessagePack;
 
 namespace HotChocolate.Subscriptions.Nats;
+
+public class NatsMessageEnvelope<TBody>
+{
+    public NatsMessageEnvelope(TBody? body, NatsMessageType messageType = NatsMessageType.Message)
+    {
+        if (messageType == NatsMessageType.Message && body == null)
+        {
+            throw new ArgumentNullException(nameof(body));
+        }
+        MessageType = messageType;
+        Body = body;
+    }
+
+    public NatsMessageType MessageType { get; }
+    public TBody? Body { get; }
+
+    public static NatsMessageEnvelope<TBody> Completed { get; } = new(default, NatsMessageType.Completed);
+}
+
+public enum NatsMessageType
+{
+    Message,
+    Completed
+}
 
 // ReSharper disable once ClassNeverInstantiated.Global
 public class NatsPubSub : ITopicEventReceiver, ITopicEventSender
 {
-    internal const string Completed = "{completed}";
     private readonly NatsConnection _connection;
     private readonly string _prefix;
-    private readonly ConcurrentDictionary<string, string> _subjects = new();
+    private readonly ConcurrentDictionary<object, string> _subjects = new();
+    // http://burtleburtle.net/bob/hash/spooky.html
+    private readonly ISpookyHash _hasher = SpookyHashV2Factory.Instance.Create();
 
     public NatsPubSub(NatsConnection connection, string prefix)
     {
@@ -22,6 +49,7 @@ public class NatsPubSub : ITopicEventReceiver, ITopicEventSender
 
         _connection = connection;
         _prefix = prefix;
+
     }
 
     /// <inheritdoc />
@@ -33,15 +61,16 @@ public class NatsPubSub : ITopicEventReceiver, ITopicEventSender
         string subject = GetSubject(topic);
 
         var channel = Channel.CreateUnbounded<TMessage>();
-        var subscription = await _connection.SubscribeAsync(subject, async (TMessage message) =>
+        var subscription = await _connection.SubscribeAsync(subject, async (NatsMessageEnvelope<TMessage> message) =>
         {
-            if (message!.ToString() == Completed)
+            // fixme
+            if (message.MessageType == NatsMessageType.Completed)
             {
                 channel.Writer.Complete();
             }
             else
             {
-                await channel.Writer.WriteAsync((TMessage)message, cancellationToken).ConfigureAwait(false);
+                await channel.Writer.WriteAsync(message.Body!, cancellationToken).ConfigureAwait(false);
             }
         }).ConfigureAwait(false);
 
@@ -55,7 +84,7 @@ public class NatsPubSub : ITopicEventReceiver, ITopicEventSender
         Debug.Assert(topic != null);
         string subject = GetSubject(topic);
 
-        await _connection.PublishAsync(subject, message).ConfigureAwait(false);
+        await _connection.PublishAsync(subject, new NatsMessageEnvelope<TMessage>(message)).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
@@ -64,12 +93,22 @@ public class NatsPubSub : ITopicEventReceiver, ITopicEventSender
         Debug.Assert(topic != null);
         string subject = GetSubject(topic);
 
-        await _connection.PublishAsync(subject, Completed).ConfigureAwait(false);
+        await _connection.PublishAsync(subject, NatsMessageEnvelope<object>.Completed).ConfigureAwait(false);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private string GetSubject<TTopic>(TTopic topic) where TTopic : notnull
     {
-        return _subjects.GetOrAdd(topic.ToString()!, static (t,p) => string.Concat(p, ".", t), _prefix);
+        return _subjects.GetOrAdd(topic, static (topic, tuple) =>
+        {
+            var (prefix, hasher) = tuple;
+
+            var subject = Convert.ToHexString(
+                hasher.ComputeHash(
+                    MessagePackSerializer.Serialize(topic)).Hash);
+
+            return string.Concat(prefix, ".", subject);
+
+        }, (_prefix, _hasher));
     }
 }
