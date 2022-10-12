@@ -15,7 +15,6 @@
     <ItemGroup>
       <PackageReference Include="AlterNats.Hosting" Version="1.0.5" />
       <PackageReference Include="AlterNats.MessagePack" Version="1.0.5" />
-      <PackageReference Include="System.Data.HashFunction.Jenkins" Version="2.0.0" />
       <PackageReference Include="System.Data.HashFunction.SpookyHash" Version="2.0.0" />
       <PackageReference Include="System.Linq.Async" Version="6.0.1" />
     </ItemGroup>
