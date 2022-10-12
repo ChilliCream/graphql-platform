@@ -20,4 +20,19 @@
       <PackageReference Include="System.Linq.Async" Version="6.0.1" />
     </ItemGroup>
 
+    <ItemGroup>
+      <EmbeddedResource Update="NatsResources.resx">
+        <Generator>ResXFileCodeGenerator</Generator>
+        <LastGenOutput>NatsResources.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="NatsResources.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>NatsResources.resx</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
 </Project>

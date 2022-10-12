@@ -1,15 +1,28 @@
-﻿using System.Diagnostics;
-using System.Threading.Channels;
-using AlterNats;
+﻿using System.Threading.Channels;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Subscriptions.Nats;
 
-public class NatsEventStream<TMessage> : ISourceStream<TMessage>
+/// <summary>
+/// Represents the NATS event stream.
+/// </summary>
+/// <typeparam name="TMessage">
+/// The message type.
+/// </typeparam>
+public sealed class NatsEventStream<TMessage> : ISourceStream<TMessage>
 {
     private readonly Channel<TMessage> _channel;
     private readonly IDisposable _subscription;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="TMessage"/>.
+    /// </summary>
+    /// <param name="channel">
+    /// The internal message channel.
+    /// </param>
+    /// <param name="subscription">
+    /// The subscription.
+    /// </param>
     public NatsEventStream(Channel<TMessage> channel, IDisposable subscription)
     {
         _channel = channel;
@@ -17,12 +30,12 @@ public class NatsEventStream<TMessage> : ISourceStream<TMessage>
     }
 
     /// <inheritdoc />
-    IAsyncEnumerable<TMessage> ISourceStream<TMessage>.ReadEventsAsync() =>
-        new NatsAsyncEnumerable(_channel.Reader);
-    
+    IAsyncEnumerable<TMessage> ISourceStream<TMessage>.ReadEventsAsync()
+        => new NatsAsyncEnumerable(_channel.Reader);
+
     /// <inheritdoc />
-    IAsyncEnumerable<object> ISourceStream.ReadEventsAsync() =>
-        (IAsyncEnumerable<object>)new NatsAsyncEnumerable(_channel.Reader);
+    IAsyncEnumerable<object> ISourceStream.ReadEventsAsync()
+        => (IAsyncEnumerable<object>)new NatsAsyncEnumerable(_channel.Reader);
 
     /// <inheritdoc />
     public ValueTask DisposeAsync()
@@ -40,11 +53,12 @@ public class NatsEventStream<TMessage> : ISourceStream<TMessage>
             _reader = reader;
         }
 
-        public async IAsyncEnumerator<TMessage> GetAsyncEnumerator(CancellationToken cancellationToken = new())
+        public async IAsyncEnumerator<TMessage> GetAsyncEnumerator(
+            CancellationToken cancellationToken)
         {
             while (await _reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
             {
-                while (_reader.TryRead(out TMessage? message))
+                while (_reader.TryRead(out var message))
                 {
                     yield return message!;
                 }

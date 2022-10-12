@@ -3,38 +3,16 @@ using System.Data.HashFunction.SpookyHash;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
-using AlterNats;
 using HotChocolate.Execution;
+using AlterNats;
 using MessagePack;
 
 namespace HotChocolate.Subscriptions.Nats;
 
-public class NatsMessageEnvelope<TBody>
-{
-    public NatsMessageEnvelope(TBody? body, NatsMessageType messageType = NatsMessageType.Message)
-    {
-        if (messageType == NatsMessageType.Message && body == null)
-        {
-            throw new ArgumentNullException(nameof(body));
-        }
-        MessageType = messageType;
-        Body = body;
-    }
-
-    public NatsMessageType MessageType { get; }
-    public TBody? Body { get; }
-
-    public static NatsMessageEnvelope<TBody> Completed { get; } = new(default, NatsMessageType.Completed);
-}
-
-public enum NatsMessageType
-{
-    Message,
-    Completed
-}
-
-// ReSharper disable once ClassNeverInstantiated.Global
-public class NatsPubSub : ITopicEventReceiver, ITopicEventSender
+/// <summary>
+/// Represents the NATS Pub/Sub connection.
+/// </summary>
+public sealed class NatsPubSub : ITopicEventReceiver, ITopicEventSender
 {
     private readonly NatsConnection _connection;
     private readonly string _prefix;
@@ -42,14 +20,29 @@ public class NatsPubSub : ITopicEventReceiver, ITopicEventSender
     // http://burtleburtle.net/bob/hash/spooky.html
     private readonly ISpookyHash _hasher = SpookyHashV2Factory.Instance.Create();
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="NatsPubSub"/>.
+    /// </summary>
+    /// <param name="connection">
+    /// The underlying NATS connection.
+    /// </param>
+    /// <param name="prefix">
+    /// The NATS prefix.
+    /// </param>
+    /// <exception cref="ArgumentException">
+    /// The prefix cannot be null or empty.
+    /// </exception>
     public NatsPubSub(NatsConnection connection, string prefix)
     {
         if (string.IsNullOrWhiteSpace(prefix))
-            throw new ArgumentException(@"Value cannot be null or whitespace.", nameof(prefix));
+        {
+            throw new ArgumentException(
+                NatsResources.NatsPubSub_NatsPubSub_PrefixCannotBeNull,
+                nameof(prefix));
+        }
 
         _connection = connection;
         _prefix = prefix;
-
     }
 
     /// <inheritdoc />
@@ -58,10 +51,12 @@ public class NatsPubSub : ITopicEventReceiver, ITopicEventSender
         where TTopic : notnull
     {
         Debug.Assert(topic != null);
-        string subject = GetSubject(topic);
+        var subject = GetSubject(topic);
 
         var channel = Channel.CreateUnbounded<TMessage>();
-        var subscription = await _connection.SubscribeAsync(subject, async (NatsMessageEnvelope<TMessage> message) =>
+        var subscription = await _connection.SubscribeAsync(
+            subject,
+            async (NatsMessageEnvelope<TMessage> message) =>
         {
             // fixme
             if (message.MessageType == NatsMessageType.Completed)
@@ -82,7 +77,7 @@ public class NatsPubSub : ITopicEventReceiver, ITopicEventSender
         CancellationToken cancellationToken = default) where TTopic : notnull
     {
         Debug.Assert(topic != null);
-        string subject = GetSubject(topic);
+        var subject = GetSubject(topic);
 
         await _connection.PublishAsync(subject, new NatsMessageEnvelope<TMessage>(message)).ConfigureAwait(false);
     }
@@ -91,15 +86,14 @@ public class NatsPubSub : ITopicEventReceiver, ITopicEventSender
     public async ValueTask CompleteAsync<TTopic>(TTopic topic) where TTopic : notnull
     {
         Debug.Assert(topic != null);
-        string subject = GetSubject(topic);
+        var subject = GetSubject(topic);
 
         await _connection.PublishAsync(subject, NatsMessageEnvelope<object>.Completed).ConfigureAwait(false);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private string GetSubject<TTopic>(TTopic topic) where TTopic : notnull
-    {
-        return _subjects.GetOrAdd(topic, static (topic, tuple) =>
+        => _subjects.GetOrAdd(topic, static (topic, tuple) =>
         {
             var (prefix, hasher) = tuple;
 
@@ -110,5 +104,4 @@ public class NatsPubSub : ITopicEventReceiver, ITopicEventSender
             return string.Concat(prefix, ".", subject);
 
         }, (_prefix, _hasher));
-    }
 }
