@@ -24,35 +24,6 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
     }
 
     [Fact]
-    public async Task Create_StringConcatExpression()
-    {
-        // arrange
-        var tester = _cache.CreateSchema<Foo, FooSortInputType>(_fooEntities);
-
-        // act
-        var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { displayName: DESC}){ name lastName}}")
-                .Create());
-
-        var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { displayName: ASC}){ name lastName}}")
-                .Create());
-
-        // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(),
-                    res1,
-                    "DESC"),
-                res2,
-                "ASC")
-            .MatchAsync();
-    }
-
-    [Fact]
     public async Task Expression_WithMoreThanOneParameter_ThrowsException()
     {
         // arrange
@@ -129,7 +100,6 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
     {
         protected override void Configure(ISortInputTypeDescriptor<Foo> descriptor)
         {
-            descriptor.Field(x => x.Name + " " + x.LastName).Name("displayName");
             descriptor.Field(x => x.Bars!.Count).Name("barLength");
         }
     }
