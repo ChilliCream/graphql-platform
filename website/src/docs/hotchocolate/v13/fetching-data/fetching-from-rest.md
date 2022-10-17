@@ -2,8 +2,6 @@
 title: "Fetching from REST"
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 In this section, we will cover how you can easily integrate a REST API into your GraphQL API.
 
 If you want to have an outlook into the upcoming native REST integration with Hot Chocolate 13 you can head over to YouTube and have a look.

@@ -2,8 +2,6 @@
 title: Projections
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 Every GraphQL request specifies exactly what data should be returned. Over or under fetching can be reduced
 or even eliminated. Hot Chocolate projections leverage this concept and directly projects incoming queries
 to the database.

@@ -2,8 +2,6 @@
 title: "Extending Types"
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 Type extensions allow us to add, remove or replace fields on existing types, without necessarily needing access to these types.
 
 Because of these capabilities, they also allow for better organization of our types. We could for example have classes that encapsulate part of our domain and extend our `Query` type with these functionalities.

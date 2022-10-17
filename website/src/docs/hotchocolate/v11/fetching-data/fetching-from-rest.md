@@ -2,8 +2,6 @@
 title: "Fetching from REST"
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 In this section, we will cover how you can easily integrate a REST API into your GraphQL API.
 
 GraphQL has a strongly-typed type system and therefore also has to know the dotnet runtime types of the data it returns in advance.

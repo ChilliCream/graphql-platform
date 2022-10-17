@@ -2,8 +2,6 @@
 title: "Relay"
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 > Note: Even though they originated in Relay, the design principles described in this document are not exclusive to Relay. They lead to an overall better schema design, which is why we recommend them to **all** users of Hot Chocolate.
 
 [Relay](https://relay.dev) is a JavaScript framework for building data-driven React applications with GraphQL, which is developed and used by _Facebook_.

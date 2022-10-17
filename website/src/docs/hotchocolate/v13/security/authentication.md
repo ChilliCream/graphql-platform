@@ -2,8 +2,6 @@
 title: Authentication
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 Authentication allows us to determine a user's identity. This is of course a prerequisite for authorization, but it also allows us to access the authenticated user in our resolvers. This is useful, if we for example want to build a `me` field that fetches details about the authenticated user.
 
 Hot Chocolate fully embraces the authentication capabilities of ASP.NET Core, making it easy to reuse existing authentication configuration and integrating a variety of authentication providers.

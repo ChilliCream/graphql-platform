@@ -2,8 +2,6 @@
 title: Sorting
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 # What is sorting
 
 Ordering results of a query dynamically is a common case. With Hot Chocolate sorting, you can expose a sorting argument that abstracts the complexity of ordering logic.
