@@ -31,7 +31,8 @@
     "struct",
     "Swashbuckle",
     "traversion",
-    "Websockets"
+    "Websockets",
+    "Newtonsoft"
   ],
   "ignoreWords": [
     "Specwise",
@@ -56,7 +57,7 @@
     "relayjs",
     "Rgba",
     "Postgraphile",
-    "Normen",
+    "Normen"
   ],
   "ignoreRegExpList": [
     "\\((.*)\\)", // Markdown links
