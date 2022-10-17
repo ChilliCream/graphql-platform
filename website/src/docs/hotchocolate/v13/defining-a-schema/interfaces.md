@@ -270,7 +270,7 @@ services
     });
 ```
 
-> ⚠️ Note: This changes the binding behavior for all types, not only interface types.
+> Warning: This changes the binding behavior for all types, not only interface types.
 
 We can also override it on a per type basis:
 

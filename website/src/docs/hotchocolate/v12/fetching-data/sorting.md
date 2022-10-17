@@ -54,13 +54,9 @@ enum SortEnumType {
 
 # Getting started
 
-Sorting is part of the `HotChocolate.Data` package. You can add the dependency with the `dotnet` cli
+Sorting is part of the `HotChocolate.Data` package.
 
-```bash
-dotnet add package HotChocolate.Data
-```
-
-> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+<PackageInstallation packageName="HotChocolate.Data" />
 
 To use sorting you need to register it on the schema:
 

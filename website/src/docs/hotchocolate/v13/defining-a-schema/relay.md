@@ -240,7 +240,7 @@ public class Startup
 
 This registers the `Node` interface type and adds the `node(id: ID!): Node` and the `nodes(ids: [ID!]!): [Node]!` field to our query type. At least one type in our schema needs to implement the `Node` interface or an exception is raised.
 
-> ⚠️ Note: Using `AddGlobalObjectIdentification()` in two upstream stitched services does currently not work out of the box.
+> Warning: Using `AddGlobalObjectIdentification()` in two upstream stitched services does currently not work out of the box.
 
 Next we need to extend our object types with the `Global Object Identification` functionality. Therefore 3 criteria need to be fulfilled:
 
@@ -375,7 +375,7 @@ public class ProductType : ObjectType<Product>
 }
 ```
 
-> ⚠️ Note: When using middleware such as `UseDbContext` it needs to be chained after the `ResolveNode` call. The order of middleware still matters.
+> Warning: When using middleware such as `UseDbContext` it needs to be chained after the `ResolveNode` call. The order of middleware still matters.
 
 If the `Id` property of our class is not called `id`, we can either [rename it](/docs/hotchocolate/v13/defining-a-schema/object-types#naming) or specify it through the `IdField` method on the `IObjectTypeDescriptor`. Hot Chocolate will then automatically rename this property to `id` in the schema to properly implement the contract of the `Node` interface.
 
@@ -543,4 +543,4 @@ services
 
 This would add a field of type `Query` with the name of `rootQuery` to each top-level mutation field type, whose name ends in `Result`.
 
-> ⚠️ Note: This feature currently doesn't work on a stitching gateway, however this will be addressed in a future release focused on stitching. It's tracked as [#3158](https://github.com/ChilliCream/hotchocolate/issues/3158).
+> Warning: This feature currently doesn't work on a stitching gateway, however this will be addressed in a future release focused on stitching. It's tracked as [#3158](https://github.com/ChilliCream/hotchocolate/issues/3158).

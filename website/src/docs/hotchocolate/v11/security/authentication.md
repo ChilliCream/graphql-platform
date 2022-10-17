@@ -16,9 +16,7 @@ Setting up authentication is largely the same as in any other ASP.NET Core appli
 
 1. Install the `Microsoft.AspNetCore.Authentication.JwtBearer` package
 
-```bash
-dotnet add package Microsoft.AspNetCore.Authentication.JwtBearer
-```
+<PackageInstallation packageName="Microsoft.AspNetCore.Authentication.JwtBearer" external />
 
 2. Register the JWT authentication scheme
 
@@ -47,7 +45,7 @@ public class Startup
 }
 ```
 
-> ⚠️ Note: This is an example configuration that's not intended for use in a real world application.
+> Warning: This is an example configuration that's not intended for use in a real world application.
 
 3. Register the ASP.NET Core authentication middleware with the request pipeline by calling `UseAuthentication`
 
@@ -74,9 +72,7 @@ In order to make the authentication result available to our resolvers, we need t
 
 1. Install the `HotChocolate.AspNetCore.Authorization` package
 
-```bash
-dotnet add package HotChocolate.AspNetCore.Authorization
-```
+<PackageInstallation packageName="HotChocolate.AspNetCore.Authorization" />
 
 2. Call `AddAuthorization()` on the `IRequestExecutorBuilder`
 

@@ -124,7 +124,7 @@ public class Startup
 </Schema>
 </ExampleTabs>
 
-> ⚠️ Note: Only **one** subscription type can be registered using `AddSubscriptionType()`. If we want to split up our subscription type into multiple classes, we can do so using type extensions.
+> Warning: Only **one** subscription type can be registered using `AddSubscriptionType()`. If we want to split up our subscription type into multiple classes, we can do so using type extensions.
 >
 > [Learn more about extending types](/docs/hotchocolate/v12/defining-a-schema/extending-types)
 
@@ -171,11 +171,7 @@ The Redis subscription provider enables us to run multiple instances of our Hot 
 
 In order to use the Redis provider we have to add the `HotChocolate.Subscriptions.Redis` package.
 
-```bash
-dotnet add package HotChocolate.Subscriptions.Redis
-```
-
-> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+<PackageInstallation packageName="HotChocolate.Subscriptions.Redis" />
 
 After we have added the package we can setup the Redis subscription provider.
 

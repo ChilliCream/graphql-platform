@@ -301,11 +301,7 @@ We also offer a separate package with scalars for more specific use cases.
 
 To use these scalars we have to add the `HotChocolate.Types.Scalars` package.
 
-```bash
-dotnet add package HotChocolate.Types.Scalars
-```
-
-> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+<PackageInstallation packageName="HotChocolate.Types.Scalars" />
 
 **Available Scalars:**
 
@@ -363,11 +359,7 @@ We also offer a package specifically for [NodaTime](https://github.com/nodatime/
 
 It can be installed like the following.
 
-```bash
-dotnet add package HotChocolate.Types.NodaTime
-```
-
-> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+<PackageInstallation packageName="HotChocolate.Types.NodaTime" />
 
 **Available Scalars:**
 

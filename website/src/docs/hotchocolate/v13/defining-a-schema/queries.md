@@ -138,7 +138,7 @@ public class Startup
 </Schema>
 </ExampleTabs>
 
-> ⚠️ Note: Only **one** query type can be registered using `AddQueryType()`. If we want to split up our query type into multiple classes, we can do so using type extensions.
+> Warning: Only **one** query type can be registered using `AddQueryType()`. If we want to split up our query type into multiple classes, we can do so using type extensions.
 >
 > [Learn more about extending types](/docs/hotchocolate/v13/defining-a-schema/extending-types)
 

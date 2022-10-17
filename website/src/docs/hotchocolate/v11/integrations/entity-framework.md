@@ -12,11 +12,9 @@ The package was build on the foundation of EntityFramework Core v5.0.0.
 
 # Getting Started
 
-You first need to add the package reference to your project. You can do this with the `dotnet` cli:
+You first need to add the package reference to your project.
 
-```bash
-dotnet add package HotChocolate.Data.EntityFramework
-```
+<PackageInstallation packageName="HotChocolate.Data.EntityFramework" />
 
 The execution engine needs more than one database context. You should register the database context
 in a pool rather than transient. During execution database contexts are taken from this pool and returned

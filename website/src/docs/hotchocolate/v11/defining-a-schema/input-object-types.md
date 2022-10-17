@@ -159,7 +159,7 @@ public class Startup
 }
 ```
 
-> ⚠️ Note: Object types nested inside of an input object type need to also be declared as input object types.
+> Warning: Object types nested inside of an input object type need to also be declared as input object types.
 
 </Schema>
 </ExampleTabs>

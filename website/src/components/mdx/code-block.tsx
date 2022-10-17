@@ -7,16 +7,19 @@ import { Copy } from "./copy";
 
 export interface CodeBlockProps {
   readonly children: any;
+  readonly language?: Language;
 }
 
-export const CodeBlock: FC<CodeBlockProps> = ({ children }) => {
-  const language = children.props.className.replace(
-    /language-/,
-    ""
-  ) as Language;
-  const meta = children.props.metastring;
+export const CodeBlock: FC<CodeBlockProps> = ({
+  children,
+  language: fallbackLanguage,
+}) => {
+  const language =
+    (children.props?.className?.replace(/language-/, "") as Language) ||
+    fallbackLanguage;
+  const meta = children.props?.metastring;
   const shouldHighlightLine = calculateLinesToHighlight(meta);
-  const code = children.props.children;
+  const code = children.props?.children || children;
 
   return (
     <Container className={`gatsby-highlight code-${language}`}>

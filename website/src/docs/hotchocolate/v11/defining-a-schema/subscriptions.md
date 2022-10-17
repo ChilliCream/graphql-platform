@@ -163,9 +163,7 @@ The Redis subscription provider enables us to run multiple instances of our Hot 
 
 In order to use the Redis provider we have to add the `HotChocolate.Subscriptions.Redis` package.
 
-```bash
-dotnet add package HotChocolate.Subscriptions.Redis
-```
+<PackageInstallation packageName="HotChocolate.Subscriptions.Redis" />
 
 After we have added the package we can setup the Redis subscription provider.
 

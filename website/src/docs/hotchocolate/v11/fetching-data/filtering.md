@@ -40,11 +40,9 @@ input StringOperationFilterInput {
 
 # Getting started
 
-Filtering is part of the `HotChocolate.Data` package. You can add the dependency with the `dotnet` cli
+Filtering is part of the `HotChocolate.Data` package.
 
-```bash
-dotnet add package HotChocolate.Data
-```
+<PackageInstallation packageName="HotChocolate.Data" />
 
 To use filtering you need to register it on the schema:
 

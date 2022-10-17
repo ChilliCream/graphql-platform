@@ -30,13 +30,9 @@ LEFT JOIN "Address" AS "a" ON "u"."AddressId" = "a"."Id"
 
 # Getting Started
 
-Filtering is part of the `HotChocolate.Data` package. You can add the dependency with the `dotnet` cli
+Filtering is part of the `HotChocolate.Data` package.
 
-```bash
-dotnet add package HotChocolate.Data
-```
-
-> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+<PackageInstallation packageName="HotChocolate.Data" />
 
 To use projections with your GraphQL endpoint you have to register projections on the schema:
 

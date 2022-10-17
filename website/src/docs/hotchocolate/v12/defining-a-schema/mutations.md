@@ -135,7 +135,7 @@ public class Startup
 </Schema>
 </ExampleTabs>
 
-> ⚠️ Note: Only **one** mutation type can be registered using `AddMutationType()`. If we want to split up our mutation type into multiple classes, we can do so using type extensions.
+> Warning: Only **one** mutation type can be registered using `AddMutationType()`. If we want to split up our mutation type into multiple classes, we can do so using type extensions.
 >
 > [Learn more about extending types](/docs/hotchocolate/v12/defining-a-schema/extending-types)
 

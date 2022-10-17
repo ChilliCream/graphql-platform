@@ -144,7 +144,7 @@ services
     });
 ```
 
-> ⚠️ Note: This changes the binding behavior for all types, not only object types.
+> Warning: This changes the binding behavior for all types, not only object types.
 
 We can also override it on a per type basis:
 

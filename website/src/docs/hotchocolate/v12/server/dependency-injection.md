@@ -103,7 +103,7 @@ public class Query
 }
 ```
 
-> ⚠️ Note: You still have to register the service with a lifetime in the actual dependency injection container, for example by calling `services.AddTransient<T>`. `RegisterService<T>` on its own is not enough.
+> Warning: You still have to register the service with a lifetime in the actual dependency injection container, for example by calling `services.AddTransient<T>`. `RegisterService<T>` on its own is not enough.
 
 You can also specify a [ServiceKind](#servicekind) as argument to the `RegisterService<T>` method.
 
@@ -189,7 +189,7 @@ The services are injected according to their [service lifetime](https://docs.mic
 
 Per default (most) resolvers are executed in parallel. Your service might not support being accessed concurrently. If this is the case, you can inject the service using the `ServiceKind.Synchronized`. This will cause the resolver to run serially, which means that no other resolver will be executed, while this resolver is still running.
 
-> ⚠️ Note: This synchronization only applies within the same request. If your service is a Singleton the `ServiceKind.Synchronized` does not prevent the resolver from running concurrently in two separate requests.
+> Warning: This synchronization only applies within the same request. If your service is a Singleton the `ServiceKind.Synchronized` does not prevent the resolver from running concurrently in two separate requests.
 
 ## ServiceKind.Resolver
 

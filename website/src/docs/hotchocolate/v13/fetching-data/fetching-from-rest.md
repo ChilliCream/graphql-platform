@@ -69,9 +69,7 @@ In this file, you will find the client for your REST API.
 The generated needs `Newtonsoft.Json`.
 Make sure to also add this package by executing:
 
-```bash
-dotnet add package Newtonsoft.Json
-```
+<PackageInstallation packageName="Newtonsoft.Json" external />
 
 # Exposing the API
 
