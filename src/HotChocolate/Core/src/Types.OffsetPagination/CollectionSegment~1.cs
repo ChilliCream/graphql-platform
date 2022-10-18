@@ -14,8 +14,8 @@ public class CollectionSegment<T> : CollectionSegment
     /// <summary>
     /// Initializes <see cref="CollectionSegment" />.
     /// </summary>
-    /// <param name="items">
-    /// The items that belong to this page.
+    /// <param name="getItems">
+    /// A delegate to request the items that belong to this page.
     /// </param>
     /// <param name="info">
     /// Additional information about this page.
@@ -24,12 +24,12 @@ public class CollectionSegment<T> : CollectionSegment
     /// A delegate to request the the total count.
     /// </param>
     public CollectionSegment(
-        IReadOnlyCollection<T> items,
+        Func<CancellationToken, ValueTask<IReadOnlyCollection<T>>> getItems,
         CollectionSegmentInfo info,
         Func<CancellationToken, ValueTask<int>> getTotalCount)
-        : base(new CollectionWrapper(items), info, getTotalCount)
+        : base(getItems != null ? async t => new CollectionWrapper(await getItems(t))
+            : throw new ArgumentNullException(nameof(getItems)), info, getTotalCount)
     {
-        Items = items;
     }
 
     /// <summary>
@@ -50,13 +50,8 @@ public class CollectionSegment<T> : CollectionSegment
         int totalCount = 0)
         : base(new CollectionWrapper(items), info, totalCount)
     {
-        Items = items;
-    }
 
-    /// <summary>
-    /// The items that belong to this page.
-    /// </summary>
-    public new IReadOnlyCollection<T> Items { get; }
+    }
 
     /// <summary>
     /// This wrapper is used to be able to pass along the items collection to the base class

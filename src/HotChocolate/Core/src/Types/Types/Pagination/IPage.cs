@@ -12,9 +12,12 @@ namespace HotChocolate.Types.Pagination;
 public interface IPage
 {
     /// <summary>
-    /// Gets the items of this page.
+    /// Requests the items of this page.
     /// </summary>
-    IReadOnlyCollection<object> Items { get; }
+    /// <param name="cancellationToken">
+    /// The <see cref="CancellationToken" />
+    /// </param>
+    ValueTask<IReadOnlyCollection<object>> GetItemsAsync(CancellationToken cancellationToken);
 
     /// <summary>
     /// Gets basic information about this page in the overall data set.

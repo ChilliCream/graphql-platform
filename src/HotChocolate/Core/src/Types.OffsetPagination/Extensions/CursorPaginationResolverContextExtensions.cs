@@ -34,4 +34,25 @@ internal static class CursorPaginationResolverContextExtensions
 
         return false;
     }
+
+    public static bool IsItemsFieldSelected(this IResolverContext context)
+    {
+        // Items is one of the heaviest operations. It is only necessary to load items when it is contained in the selection set.
+        if (context.Selection.Type is ObjectType objectType &&
+            context.Selection.SyntaxNode.SelectionSet is { } selectionSet)
+        {
+            IReadOnlyList<IFieldSelection> selections =
+                context.GetSelections(objectType, selectionSet, true);
+
+            for (var i = 0; i < selections.Count; i++)
+            {
+                if (selections[i].Field.Name.Value is OffsetPagingFieldNames.Items)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
 }

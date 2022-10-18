@@ -15,16 +15,18 @@ public static class OffsetPagingQueryableExtensions
     /// Applies the offset pagination algorithm to the <paramref name="query"/>.
     /// </summary>
     /// <param name="query">
-    /// The query on which the the offset pagination algorithm shall be applied to.
+    ///     The query on which the the offset pagination algorithm shall be applied to.
     /// </param>
+    /// <param name="totalCountInSelection"></param>
+    /// <param name="itemsInSelection"></param>
     /// <param name="skip">
-    /// Bypasses a _n_ elements from the list..
+    ///     Bypasses a _n_ elements from the list..
     /// </param>
     /// <param name="take">
-    /// Returns the last _n_ elements from the list.
+    ///     Returns the last _n_ elements from the list.
     /// </param>
     /// <param name="cancellationToken">
-    /// The cancellation token.
+    ///     The cancellation token.
     /// </param>
     /// <typeparam name="TEntity">
     /// The entity type.
@@ -33,27 +35,30 @@ public static class OffsetPagingQueryableExtensions
     /// Returns a collection segment instance that represents the result of applying the
     /// offset paging algorithm to the provided <paramref name="query"/>.
     /// </returns>
-    public static ValueTask<CollectionSegment<TEntity>> ApplyOffsetPaginationAsync<TEntity>(
-        this IQueryable<TEntity> query,
+    public static ValueTask<CollectionSegment<TEntity>> ApplyOffsetPaginationAsync<TEntity>(this IQueryable<TEntity> query,
+        bool totalCountInSelection,
+        bool itemsInSelection,
         int? skip = null,
         int? take = null,
         CancellationToken cancellationToken = default)
         => ApplyOffsetPaginationAsync(
             query,
-            new OffsetPagingArguments(skip, take),
+            new OffsetPagingArguments(skip, take), totalCountInSelection, itemsInSelection,
             cancellationToken);
 
     /// <summary>
     /// Applies the offset pagination algorithm to the <paramref name="query"/>.
     /// </summary>
     /// <param name="query">
-    /// The query on which the the offset pagination algorithm shall be applied to.
+    ///     The query on which the the offset pagination algorithm shall be applied to.
     /// </param>
     /// <param name="arguments">
-    /// The offset paging arguments.
+    ///     The offset paging arguments.
     /// </param>
+    /// <param name="totalCountInSelection"></param>
+    /// <param name="itemsInSelection"></param>
     /// <param name="cancellationToken">
-    /// The cancellation token.
+    ///     The cancellation token.
     /// </param>
     /// <typeparam name="TEntity">
     /// The entity type.
@@ -62,32 +67,35 @@ public static class OffsetPagingQueryableExtensions
     /// Returns a collection segment instance that represents the result of applying the
     /// offset paging algorithm to the provided <paramref name="query"/>.
     /// </returns>
-    public static ValueTask<CollectionSegment<TEntity>> ApplyOffsetPaginationAsync<TEntity>(
-        this IQueryable<TEntity> query,
+    public static ValueTask<CollectionSegment<TEntity>> ApplyOffsetPaginationAsync<TEntity>(this IQueryable<TEntity> query,
         OffsetPagingArguments arguments,
+        bool totalCountInSelection,
+        bool itemsInSelection,
         CancellationToken cancellationToken = default)
         => QueryableOffsetPagination<TEntity>.Instance.ApplyPaginationAsync(
             query,
             arguments,
-            cancellationToken);
+            cancellationToken, totalCountInSelection, itemsInSelection);
 
     /// <summary>
     /// Applies the offset pagination algorithm to the <paramref name="query"/>.
     /// </summary>
     /// <param name="query">
-    /// The query on which the the offset pagination algorithm shall be applied to.
+    ///     The query on which the the offset pagination algorithm shall be applied to.
     /// </param>
     /// <param name="context">
-    /// The field resolver context.
+    ///     The field resolver context.
     /// </param>
+    /// <param name="totalCountInSelection">Specify whether the field 'totalCount' is presented in the selection set</param>
+    /// <param name="itemsInSelection">Specify whether the field 'items' is presented in the selection set</param>
     /// <param name="defaultPageSize">
-    /// The default page size if no boundaries are set.
+    ///     The default page size if no boundaries are set.
     /// </param>
     /// <param name="totalCount">
-    /// The total count if already known.
+    ///     The total count if already known.
     /// </param>
     /// <param name="cancellationToken">
-    /// The cancellation token.
+    ///     The cancellation token.
     /// </param>
     /// <typeparam name="TEntity">
     /// The entity type.
@@ -96,9 +104,10 @@ public static class OffsetPagingQueryableExtensions
     /// Returns a collection segment instance that represents the result of applying the
     /// offset paging algorithm to the provided <paramref name="query"/>.
     /// </returns>
-    public static ValueTask<CollectionSegment<TEntity>> ApplyOffsetPaginationAsync<TEntity>(
-        this IQueryable<TEntity> query,
+    public static ValueTask<CollectionSegment<TEntity>> ApplyOffsetPaginationAsync<TEntity>(this IQueryable<TEntity> query,
         IResolverContext context,
+        bool totalCountInSelection,
+        bool itemsInSelection,
         int? defaultPageSize = null,
         int? totalCount = null,
         CancellationToken cancellationToken = default)
@@ -128,6 +137,8 @@ public static class OffsetPagingQueryableExtensions
             query,
             arguments,
             totalCount,
+            totalCountInSelection,
+            itemsInSelection,
             cancellationToken);
     }
 }

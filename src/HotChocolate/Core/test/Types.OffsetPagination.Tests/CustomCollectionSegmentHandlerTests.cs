@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
@@ -46,9 +47,9 @@ namespace HotChocolate.Types.Pagination
             public CollectionSegment<string> GetItems(int skip, int take)
             {
                 return new CollectionSegment<string>(
-                    new[] { "hello", "abc" },
+                    _ => new ValueTask<IReadOnlyCollection<string>>(new[] { "hello", "abc" }),
                     new CollectionSegmentInfo(false, false),
-                    ct => throw new NotImplementedException());
+                    _ => throw new NotImplementedException());
             }
         }
     }

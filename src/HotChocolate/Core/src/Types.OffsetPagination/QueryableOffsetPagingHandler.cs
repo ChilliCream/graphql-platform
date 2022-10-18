@@ -50,24 +50,42 @@ public class QueryableOffsetPagingHandler<TEntity>
 
         // TotalCount is one of the heaviest operations. It is only necessary to load totalCount
         // when it is enabled (IncludeTotalCount) and when it is contained in the selection set.
-        if (IncludeTotalCount &&
-            context.Selection.Type is ObjectType objectType &&
+
+        var totalCountInSelection = false;
+        var itemsInSelection = false;
+
+        if (context.Selection.Type is ObjectType objectType &&
             context.Selection.SyntaxNode.SelectionSet is { } selectionSet)
         {
             IReadOnlyList<IFieldSelection> selections =
                 context.GetSelections(objectType, selectionSet, true);
 
+            if (IncludeTotalCount)
+            {
+                for (var i = 0; i < selections.Count; i++)
+                {
+                    if (selections[i].Field.Name.Value == "totalCount")
+                    {
+                        totalCountInSelection = true;
+                        totalCount = source.Count();
+                        break;
+                    }
+                }
+            }
+
             for (var i = 0; i < selections.Count; i++)
             {
-                if (selections[i].Field.Name.Value is "totalCount")
+                if (selections[i].Field.Name.Value == "items")
                 {
-                    totalCount = source.Count();
+                    itemsInSelection = true;
+                    break;
                 }
             }
         }
 
+
         return await _pagination
-            .ApplyPaginationAsync(source, arguments, totalCount, cancellationToken)
+            .ApplyPaginationAsync(source, arguments, totalCount, totalCountInSelection, itemsInSelection, cancellationToken)
             .ConfigureAwait(false);
     }
 }

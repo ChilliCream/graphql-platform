@@ -48,7 +48,7 @@ public class CollectionSegmentType<T>
             .BindFieldsExplicitly();
 
         descriptor
-            .Field(i => i.Items)
+            .Field(s => s.GetItemsAsync(default))
             .Name("items")
             .Type<ListType<T>>();
 

@@ -15,8 +15,8 @@ public class CollectionSegment : IPage
     /// <summary>
     /// Initializes <see cref="CollectionSegment" />.
     /// </summary>
-    /// <param name="items">
-    /// The items that belong to this page.
+    /// <param name="getItems">
+    /// A delegate to request the items that belong to this page.
     /// </param>
     /// <param name="info">
     /// Additional information about this page.
@@ -25,12 +25,12 @@ public class CollectionSegment : IPage
     /// A delegate to request the the total count.
     /// </param>
     public CollectionSegment(
-        IReadOnlyCollection<object> items,
+        Func<CancellationToken, ValueTask<IReadOnlyCollection<object>>> getItems,
         CollectionSegmentInfo info,
         Func<CancellationToken, ValueTask<int>> getTotalCount)
     {
-        Items = items ??
-            throw new ArgumentNullException(nameof(items));
+        _getItems = getItems ??
+            throw new ArgumentNullException(nameof(getItems));
         Info = info ??
             throw new ArgumentNullException(nameof(info));
         _getTotalCount = getTotalCount ??
@@ -55,16 +55,24 @@ public class CollectionSegment : IPage
         int totalCount = 0)
     {
         _getTotalCount = _ => new(totalCount);
-        Items = items ??
-            throw new ArgumentNullException(nameof(items));
+        _getItems = _ => new(items);
         Info = info ??
             throw new ArgumentNullException(nameof(info));
     }
 
+
+    private readonly Func<CancellationToken, ValueTask<IReadOnlyCollection<object>>> _getItems;
+
     /// <summary>
-    /// The items that belong to this page.
+    /// Requests the items that belong to this page.
     /// </summary>
-    public IReadOnlyCollection<object> Items { get; }
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>
+    /// the items that belong to this page.
+    /// </returns>
+    public ValueTask<IReadOnlyCollection<object>> GetItemsAsync(CancellationToken cancellationToken) => _getItems(cancellationToken);
 
     /// <summary>
     /// Gets more information about this page.

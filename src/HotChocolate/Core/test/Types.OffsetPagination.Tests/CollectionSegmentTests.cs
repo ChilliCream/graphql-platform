@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -8,21 +9,25 @@ namespace HotChocolate.Types.Pagination
     public class CollectionSegmentTests
     {
         [Fact]
-        public void CreateCollectionSegment_PageInfoAndItems_PassedCorrectly()
+        public async Task CreateCollectionSegment_PageInfoAndItems_PassedCorrectly()
         {
             // arrange
             var pageInfo = new CollectionSegmentInfo(true, true);
-            var items = new List<string>();
+
+            var underlyingCollection = new List<string>();
+
+            var getItems = (CancellationToken _) => new ValueTask<IReadOnlyCollection<object>>(underlyingCollection);
 
             // act
             var collection = new CollectionSegment(
-                items,
+                getItems,
                 pageInfo,
                 ct => throw new NotSupportedException());
 
+            
             // assert
             Assert.Equal(pageInfo, collection.Info);
-            Assert.Equal(items, collection.Items);
+            Assert.Equal(underlyingCollection, await collection.GetItemsAsync(CancellationToken.None));
         }
 
         [Fact]
@@ -33,7 +38,7 @@ namespace HotChocolate.Types.Pagination
 
             // act
             Action a = () => new CollectionSegment<string>(
-                items, null, ct => throw new NotSupportedException());
+                _ => new ValueTask<IReadOnlyCollection<string>>(items), null, ct => throw new NotSupportedException());
 
             // assert
             Assert.Throws<ArgumentNullException>(a);
@@ -63,7 +68,7 @@ namespace HotChocolate.Types.Pagination
             var items = new List<string>();
 
             // act
-            var collection = new CollectionSegment(items, pageInfo, _ => new ValueTask<int>(2));
+            var collection = new CollectionSegment(_ => new ValueTask<IReadOnlyCollection<object>>(items), pageInfo, _ => new ValueTask<int>(2));
 
             // assert
             Assert.Equal(2, await collection.GetTotalCountAsync(default));

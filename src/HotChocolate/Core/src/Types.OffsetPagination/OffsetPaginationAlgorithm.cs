@@ -24,12 +24,13 @@ public abstract class OffsetPaginationAlgorithm<TQuery, TEntity>
     /// <param name="query">The query builder.</param>
     /// <param name="arguments">The paging arguments.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="totalCountInSelection"></param>
+    /// <param name="itemsInSelection"></param>
     /// <returns></returns>
-    public ValueTask<CollectionSegment<TEntity>> ApplyPaginationAsync(
-        TQuery query,
+    public ValueTask<CollectionSegment<TEntity>> ApplyPaginationAsync(TQuery query,
         OffsetPagingArguments arguments,
-        CancellationToken cancellationToken) =>
-        ApplyPaginationAsync(query, arguments, null, cancellationToken);
+        CancellationToken cancellationToken, bool totalCountInSelection, bool itemsInSelection) =>
+        ApplyPaginationAsync(query, arguments, null, totalCountInSelection, itemsInSelection, cancellationToken);
 
     /// <summary>
     /// Applies the pagination algorithm to the provided data.
@@ -38,40 +39,62 @@ public abstract class OffsetPaginationAlgorithm<TQuery, TEntity>
     /// <param name="arguments">The paging arguments.</param>
     /// <param name="totalCount">Specify the total amount of elements</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns></returns>
+    /// <param name="totalCountInSelection">Specify whether the field 'totalCount' is presented in the selection set</param>
+    /// <param name="itemsInSelection">Specify whether the field 'items' is presented in the selection set</param>
     public async ValueTask<CollectionSegment<TEntity>> ApplyPaginationAsync(
         TQuery query,
         OffsetPagingArguments arguments,
         int? totalCount,
+        bool totalCountInSelection,
+        bool itemsInSelection,
         CancellationToken cancellationToken)
     {
+        if (!totalCountInSelection && !itemsInSelection)
+            throw new InvalidOperationException($"{nameof(totalCountInSelection)} and {nameof(itemsInSelection)} cannot be both false");
+
         Func<CancellationToken, ValueTask<int>> getTotalCount = totalCount is null
             ? async ct => await CountAsync(query, ct)
             : _ => new ValueTask<int>(totalCount.Value);
 
+        var hasPreviousPage = (arguments.Skip ?? 0) > 0;
+
+        bool hasNextPage;
+        Func<CancellationToken, ValueTask<IReadOnlyCollection<TEntity>>> getItems;
+
         TQuery sliced = query;
 
-        if (arguments.Skip is { } skip)
+        if (itemsInSelection)
         {
-            sliced = ApplySkip(sliced, skip);
-        }
+            if (arguments.Skip is { } skip)
+            {
+                sliced = ApplySkip(sliced, skip);
+            }
 
-        if (arguments.Take is { } take)
+            if (arguments.Take is { } take)
+            {
+                sliced = ApplyTake(sliced, take + 1);
+            }
+
+            IReadOnlyList<TEntity> items =
+                await ExecuteAsync(sliced, cancellationToken).ConfigureAwait(false);
+
+            hasNextPage = items.Count == arguments.Take + 1;
+
+            items = new SkipLastCollection<TEntity>(items, skipLast: hasNextPage);
+
+            getItems = _ => new ValueTask<IReadOnlyCollection<TEntity>>(items);
+        }
+        else
         {
-            sliced = ApplyTake(sliced, take + 1);
+            hasNextPage = arguments.Take != null &&
+                          totalCount.Value - arguments.Skip.GetValueOrDefault(0) > arguments.Take;
+
+            getItems = _ => throw new InvalidOperationException("The 'items' field is not in the selection set");
         }
-
-        IReadOnlyList<TEntity> items =
-            await ExecuteAsync(sliced, cancellationToken).ConfigureAwait(false);
-
-        bool hasNextPage = items.Count == arguments.Take + 1;
-        bool hasPreviousPage = (arguments.Skip ?? 0) > 0;
 
         CollectionSegmentInfo pageInfo = new(hasNextPage, hasPreviousPage);
 
-        items = new SkipLastCollection<TEntity>(items, skipLast: hasNextPage);
-
-        return new CollectionSegment<TEntity>( items, pageInfo, getTotalCount);
+        return new CollectionSegment<TEntity>(getItems, pageInfo, getTotalCount);
     }
 
     /// <summary>

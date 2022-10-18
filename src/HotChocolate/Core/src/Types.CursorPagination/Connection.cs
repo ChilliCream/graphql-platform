@@ -65,11 +65,12 @@ public class Connection : IPage
     /// The edges that belong to this connection.
     /// </summary>
     public IReadOnlyCollection<IEdge> Edges { get; }
+    
 
     /// <summary>
-    /// The items that belong to this connection.
+    /// Requests the items that belong to this connection.
     /// </summary>
-    IReadOnlyCollection<object> IPage.Items => Edges;
+    public ValueTask<IReadOnlyCollection<object>> GetItemsAsync(CancellationToken _) => new(Edges);
 
     /// <summary>
     /// Information about pagination in a connection.

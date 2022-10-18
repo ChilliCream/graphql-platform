@@ -724,7 +724,7 @@ namespace HotChocolate.Types.Pagination
                 CancellationToken cancellationToken)
                 => await new[] { "a", "b", "c", "d" }
                     .AsQueryable()
-                    .ApplyOffsetPaginationAsync(skip, take, cancellationToken);
+                    .ApplyOffsetPaginationAsync(true, true, skip: skip, take: take, cancellationToken: cancellationToken);
         }
 
         public class QueryAttr
