@@ -1,6 +1,9 @@
-﻿namespace HotChocolate.Subscriptions.Nats;
+﻿using MessagePack;
 
-public class NatsMessageEnvelope<TBody>
+namespace HotChocolate.Subscriptions.Nats;
+
+[MessagePackObject(true)]
+public sealed class NatsMessageEnvelope<TBody>
 {
     public NatsMessageEnvelope(TBody? body, NatsMessageType messageType = NatsMessageType.Message)
     {

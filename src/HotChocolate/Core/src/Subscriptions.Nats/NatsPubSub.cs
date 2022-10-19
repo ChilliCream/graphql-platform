@@ -97,6 +97,9 @@ public sealed class NatsPubSub : ITopicEventReceiver, ITopicEventSender
         {
             var (prefix, hasher) = tuple;
 
+            // We always serialize, even if TTopic is a string, because the string
+            // may contain characters that are not allowed in a NATS subject.
+            // NOTE: this can fail if the topic is not serializable.
             var subject = Convert.ToHexString(
                 hasher.ComputeHash(
                     MessagePackSerializer.Serialize(topic)).Hash);
