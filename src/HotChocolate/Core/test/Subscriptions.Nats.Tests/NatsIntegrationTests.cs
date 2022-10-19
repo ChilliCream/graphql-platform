@@ -1,18 +1,13 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AlterNats;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 using MessagePack;
 using Squadron;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace HotChocolate.Subscriptions.Nats;
 
@@ -20,12 +15,10 @@ public class NatsIntegrationTests
     : IClassFixture<NatsResource>
 {
     private readonly NatsResource _natsResource;
-    private readonly ITestOutputHelper _helper;
 
-    public NatsIntegrationTests(NatsResource natsResource, ITestOutputHelper helper)
+    public NatsIntegrationTests(NatsResource natsResource)
     {
         _natsResource = natsResource;
-        _helper = helper;
     }
 
     [Fact]
@@ -73,11 +66,6 @@ public class NatsIntegrationTests
         }
 
         await result.DisposeAsync();
-    }
-
-    public class Topic1
-    {
-        public string Field1 { get; set; } = "foo";
     }
 
     [Fact]
