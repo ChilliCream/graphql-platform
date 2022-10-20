@@ -31,7 +31,7 @@ public class SyntaxException : Exception
 
     public string SourceText { get; }
 
-    public int SourceTextOffset { get; set; }
+    public int SourceTextOffset { get; }
 
     private static int CalculateSourceTextOffset(Utf8GraphQLReader reader)
     {
