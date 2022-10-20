@@ -57,11 +57,7 @@ Hot Chocolate supports two query storages for regular persisted queries.
 
 To load persisted queries from the filesystem, we have to add the following package.
 
-```bash
-dotnet add package HotChocolate.PersistedQueries.FileSystem
-```
-
-> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+<PackageInstallation packageName="HotChocolate.PersistedQueries.FileSystem" />
 
 After this we need to specify where the persisted queries are located. The argument of `AddReadOnlyFileSystemQueryStorage()` specifies the directory in which the persisted queries are stored.
 
@@ -82,17 +78,13 @@ Example: `0c95d31ca29272475bf837f944f4e513.graphql`
 
 This file is expected to contain the query the hash was generated from.
 
-> ⚠️ Note: Do not forget to ensure that the server has access to the directory.
+> Warning: Do not forget to ensure that the server has access to the directory.
 
 ### Redis
 
 To load persisted queries from Redis, we have to add the following package.
 
-```bash
-dotnet add package HotChocolate.PersistedQueries.Redis
-```
-
-> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+<PackageInstallation packageName="HotChocolate.PersistedQueries.Redis" />
 
 After this we need to specify where the persisted queries are located. Using `AddReadOnlyRedisQueryStorage()` we can point to a specific Redis database in which the persisted queries are stored.
 

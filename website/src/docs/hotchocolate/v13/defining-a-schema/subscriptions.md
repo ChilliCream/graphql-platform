@@ -2,8 +2,6 @@
 title: "Subscriptions"
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 The subscription type in GraphQL is used to add real-time capabilities to our applications. Clients can subscribe to events and receive the event data in real-time, as soon as the server publishes it.
 
 ```sdl
@@ -126,7 +124,7 @@ public class Startup
 </Schema>
 </ExampleTabs>
 
-> ⚠️ Note: Only **one** subscription type can be registered using `AddSubscriptionType()`. If we want to split up our subscription type into multiple classes, we can do so using type extensions.
+> Warning: Only **one** subscription type can be registered using `AddSubscriptionType()`. If we want to split up our subscription type into multiple classes, we can do so using type extensions.
 >
 > [Learn more about extending types](/docs/hotchocolate/v13/defining-a-schema/extending-types)
 
@@ -173,11 +171,7 @@ The Redis subscription provider enables us to run multiple instances of our Hot 
 
 In order to use the Redis provider we have to add the `HotChocolate.Subscriptions.Redis` package.
 
-```bash
-dotnet add package HotChocolate.Subscriptions.Redis
-```
-
-> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+<PackageInstallation packageName="HotChocolate.Subscriptions.Redis" />
 
 After we have added the package we can setup the Redis subscription provider.
 

@@ -2,8 +2,6 @@
 title: Documentation
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 Documentation allows us to enrich our schema with additional information that is useful for a consumer of our API.
 
 In GraphQL we can do this by providing descriptions to our types, fields, etc.

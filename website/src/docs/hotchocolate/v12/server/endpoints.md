@@ -199,7 +199,7 @@ endpoints.MapBananaCakePop("/ui").WithOptions(new GraphQLToolOptions
 
 If set to `true` the current Web Browser URL is treated as the GraphQL endpoint when creating new documents within Banana Cake Pop.
 
-> ⚠️ Note: [GraphQLEndpoint](#graphqlendpoint) takes precedence over this setting.
+> Warning: [GraphQLEndpoint](#graphqlendpoint) takes precedence over this setting.
 
 ### Document
 

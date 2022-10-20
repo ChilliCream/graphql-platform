@@ -40,9 +40,7 @@ dotnet new graphql
 
 3. Add the in-memory query storage to your project.
 
-```bash
-dotnet add package HotChocolate.PersistedQueries.InMemory
-```
+<PackageInstallation packageName="HotChocolate.PersistedQueries.InMemory" />
 
 ## Step 2: Configure automatic persisted queries
 
@@ -227,9 +225,7 @@ docker run --name redis-stitching -p 7000:6379 -d redis
 
 2. Add the Redis persisted query storage package to your server.
 
-```bash
-dotnet add package HotChocolate.PersistedQueries.Redis
-```
+<PackageInstallation packageName="HotChocolate.PersistedQueries.Redis" />
 
 3. Next, we need to configure the server to use Redis as query storage.
 

@@ -11,11 +11,7 @@ You can find a example project in [Hot Chocolate Examples](https://github.com/Ch
 
 To use the MongoDB integration, you need to install the package `HotChocolate.Data.MongoDb`.
 
-```bash
-dotnet add package HotChocolate.Data.MongoDb
-```
-
-> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+<PackageInstallation packageName="HotChocolate.Data.MongoDb" />
 
 # MongoExecutable
 

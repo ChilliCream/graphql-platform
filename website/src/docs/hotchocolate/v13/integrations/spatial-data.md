@@ -20,13 +20,9 @@ can return NetTopologySuite shapes and they will be transformed into GeoJSON.
 
 # Getting Started
 
-You first need to add the `HotChocolate.Spatial` package reference to your project. You can do this with the `dotnet` cli:
+You first need to add the `HotChocolate.Spatial` package reference to your project.
 
-```bash
-dotnet add package HotChocolate.Spatial
-```
-
-> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+<PackageInstallation packageName="HotChocolate.Spatial" />
 
 To make the schema recognize the spatial types you need to register them on the schema builder.
 
@@ -38,9 +34,7 @@ services
 
 If you are using our data extensions to project data from a database you also need to add the package `HotChocolate.Data.Spatial` to your project.
 
-```bash
-dotnet add package HotChocolate.Data.Spatial
-```
+<PackageInstallation packageName="HotChocolate.Data.Spatial" />
 
 In order to use the data extensions in your resolvers you need to register them with the GraphQL configuration builder.
 

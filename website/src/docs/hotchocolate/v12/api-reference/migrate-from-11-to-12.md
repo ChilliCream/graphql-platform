@@ -234,7 +234,7 @@ sevices
 
 If you just want to enable the feature without further configuration, you can omit the `options =>` action.
 
-> ⚠️ Note: Since `EnableRelaySupport()` previously always implied the usage of Global Object Identification, you might have to enable Global Object Identification separately as well.
+> Warning: Since `EnableRelaySupport()` previously always implied the usage of Global Object Identification, you might have to enable Global Object Identification separately as well.
 
 [Learn more about Query field in Mutation payloads](/docs/hotchocolate/v12/defining-a-schema/relay#query-field-in-mutation-payloads)
 
@@ -294,7 +294,7 @@ services
     .AddGraphQLServer()
     .AddConvention<INamingConventions>(sp => new CustomNamingConventions()) // or
     .AddConvention<INamingConventions, CustomNamingConventions>();
-```  
+```
 
 **v12**
 
@@ -305,7 +305,7 @@ public class CustomNamingConventions : DefaultNamingConventions
         : base(documentationProvider) { }
 }
 
-IReadOnlySchemaOptions capturedSchemaOptions;  
+IReadOnlySchemaOptions capturedSchemaOptions;
 services
     .AddGraphQLServer()
     .ModifyOptions(opt => capturedSchemaOptions = opt)
@@ -313,11 +313,11 @@ services
         new XmlDocumentationProvider(
             new XmlDocumentationFileResolver(
                 capturedSchemaOptions.ResolveXmlDocumentationFileName),
-            sp.GetApplicationService<ObjectPool<StringBuilder>>() 
+            sp.GetApplicationService<ObjectPool<StringBuilder>>()
                 ?? new NoOpStringBuilderPool())));
-```  
+```
 
 # Miscellaneous
 
-* `IObjectField`
-  * If you were using `IObjectField.Member`, you'll likely want to move to `IObjectField.ResolverMember` (as `.Member` can be `null` in some cases now where it previously wasn't; and `.ResolverMember` will fall back to `.Member`).
+- `IObjectField`
+  - If you were using `IObjectField.Member`, you'll likely want to move to `IObjectField.ResolverMember` (as `.Member` can be `null` in some cases now where it previously wasn't; and `.ResolverMember` will fall back to `.Member`).

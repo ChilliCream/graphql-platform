@@ -6,7 +6,7 @@ A Subscription type cannot be stitched from downstream services so it must be de
 
 > [Learn more about defining a Subscription type](/docs/hotchocolate/v12/defining-a-schema/subscriptions)
 
-> ⚠️ Note: Subscription stitching is coming in v13
+> Warning: Subscription stitching is coming in v13
 
 After adding a Subscription type to the gateway service, you may encounter an error when building the gateway schema.
 
