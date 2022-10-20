@@ -207,7 +207,7 @@ public static class JsonSerializationHelper
 
         foreach (var item in element.EnumerateArray())
         {
-            list.Add(ReadValue(element));
+            list.Add(ReadValue(item));
         }
 
         return list;
