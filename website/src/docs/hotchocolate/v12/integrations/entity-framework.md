@@ -2,8 +2,6 @@
 title: Entity Framework Core
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 [Entity Framework Core](https://docs.microsoft.com/ef/core/) is a powerful object-relational mapping framework that has become a staple when working with SQL-based Databases in .NET Core applications.
 
 When working with Entity Framework Core's [DbContext](https://docs.microsoft.com/dotnet/api/system.data.entity.dbcontext), it is most commonly registered as a scoped service.
@@ -56,11 +54,7 @@ Since this is a lot of code to write, just to inject a `DbContext`, you can use 
 
 In order to simplify the injection of a `DbContext` we have introduced a method called `RegisterDbContext<T>`, similar to the [`RegisterService<T>`](/docs/hotchocolate/v12/server/dependency-injection#registerservice) method for regular services. This method is part of the `HotChocolate.Data.EntityFramework` package, which you'll have to install.
 
-```bash
-dotnet add package HotChocolate.Data.EntityFramework
-```
-
-> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+<PackageInstallation packageName="HotChocolate.Data.EntityFramework" />
 
 Once installed you can simply call the `RegisterDbContext<T>` method on the `IRequestExecutorBuilder`. The Hot Chocolate Resolver Compiler will then take care of correctly injecting your scoped `DbContext` instance into your resolvers and also ensuring that the resolvers using it are never run in parallel.
 
@@ -82,7 +76,7 @@ public class Query
 }
 ```
 
-> ⚠️ Note: You still have to register your `DbContext` in the actual dependency injection container, by calling `services.AddDbContext<T>`. `RegisterDbContext<T>` on its own is not enough.
+> Warning: You still have to register your `DbContext` in the actual dependency injection container, by calling `services.AddDbContext<T>`. `RegisterDbContext<T>` on its own is not enough.
 
 You can also specify a [DbContextKind](#dbcontextkind) as argument to the `RegisterDbContext<T>` method, to change how the `DbContext` should be injected.
 
@@ -170,7 +164,7 @@ public class FooByIdDataLoader : BatchDataLoader<string, Foo>
 }
 ```
 
-> ⚠️ Note: It is important that you dispose the `DbContext` to return it to the pool. In the above example we are using `await using` to dispose the `DbContext` after it is no longer required.
+> Warning: It is important that you dispose the `DbContext` to return it to the pool. In the above example we are using `await using` to dispose the `DbContext` after it is no longer required.
 
 ## Services
 
@@ -214,4 +208,4 @@ public class FooService : IAsyncDisposable
 }
 ```
 
-> ⚠️ Note: It is important that you dispose the `DbContext` to return it to the pool, once your transient service is being disposed. In the above example we are implementing `IAsyncDisposable` and disposing the created `DbContext` in the `DisposeAsync` method. This method will be invoked by the dependency injection system.
+> Warning: It is important that you dispose the `DbContext` to return it to the pool, once your transient service is being disposed. In the above example we are implementing `IAsyncDisposable` and disposing the created `DbContext` in the `DisposeAsync` method. This method will be invoked by the dependency injection system.

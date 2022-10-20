@@ -2,8 +2,6 @@
 title: "Enums"
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 An Enum is a special kind of [scalar](/docs/hotchocolate/v13/defining-a-schema/scalars) that is restricted to a particular set of allowed values. It can be used as both an input and an output type.
 
 ```sdl
@@ -240,7 +238,7 @@ services
     });
 ```
 
-> ⚠️ Note: This changes the binding behavior for all types, not only enum types.
+> Warning: This changes the binding behavior for all types, not only enum types.
 
 We can also override it on a per type basis:
 

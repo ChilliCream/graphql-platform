@@ -2,8 +2,6 @@
 title: "Object Types"
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 The most important type in a GraphQL schema is the object type. It contains fields that can return simple scalars like `String`, `Int`, or again object types.
 
 ```sdl
@@ -146,7 +144,7 @@ services
     });
 ```
 
-> ⚠️ Note: This changes the binding behavior for all types, not only object types.
+> Warning: This changes the binding behavior for all types, not only object types.
 
 We can also override it on a per type basis:
 

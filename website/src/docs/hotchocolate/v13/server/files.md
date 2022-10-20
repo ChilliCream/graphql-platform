@@ -2,8 +2,6 @@
 title: Files
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs";
-
 Handling files is traditionally not a concern of a GraphQL server, which is also why the [GraphQL over HTTP](https://github.com/graphql/graphql-over-http/blob/main/spec/GraphQLOverHTTP.md) specification doesn't mention it.
 
 That being said, we recognize that at some point in the development of a new application you'll likely have to deal with files in some way or another. Which is why we want to give you some guidance on this topic.
@@ -29,7 +27,7 @@ Hot Chocolate implements the [GraphQL multipart request specification](https://g
 src="https://www.youtube.com/embed/XeF3IuGDq4A"frameborder="0"
 allowfullscreen></iframe>
 
-> ⚠️ Note: Files can not yet be uploaded through a gateway to stitched services using the `Upload` scalar.
+> Warning: Files can not yet be uploaded through a gateway to stitched services using the `Upload` scalar.
 
 ### Usage
 
@@ -181,7 +179,7 @@ Both Relay and Apollo support this specification through community packages:
 - [react-relay-network-modern](https://github.com/relay-tools/react-relay-network-modern) using the `uploadMiddleware`
 - [apollo-upload-client](https://github.com/jaydenseric/apollo-upload-client)
 
-> ⚠️ Note: [Strawberry Shake](/docs/strawberryshake) does not yet support the `Upload` scalar.
+> Warning: [Strawberry Shake](/docs/strawberryshake) does not yet support the `Upload` scalar.
 
 ### Options
 

@@ -2,8 +2,6 @@
 title: "Queries"
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 The query type in GraphQL represents a read-only view of all of our entities and ways to retrieve them. A query type is required for every GraphQL server.
 
 ```sdl
@@ -140,7 +138,7 @@ public class Startup
 </Schema>
 </ExampleTabs>
 
-> ⚠️ Note: Only **one** query type can be registered using `AddQueryType()`. If we want to split up our query type into multiple classes, we can do so using type extensions.
+> Warning: Only **one** query type can be registered using `AddQueryType()`. If we want to split up our query type into multiple classes, we can do so using type extensions.
 >
 > [Learn more about extending types](/docs/hotchocolate/v12/defining-a-schema/extending-types)
 
