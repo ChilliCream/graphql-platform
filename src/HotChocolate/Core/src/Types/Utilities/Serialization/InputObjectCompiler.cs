@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Types;
+using HotChocolate.Types.Helpers;
 using static HotChocolate.Utilities.Serialization.InputObjectConstructorResolver;
 
 #nullable enable
@@ -22,8 +23,10 @@ internal static class InputObjectCompiler
         InputObjectType inputType,
         ConstructorInfo? constructor = null)
     {
-        var fields = CreateFieldMap(inputType);
-        constructor ??= GetCompatibleConstructor(inputType.RuntimeType, fields);
+        var fields = TypeMemHelper.RentInputFieldMap();
+        BuildFieldMap(inputType, fields);
+
+        constructor ??= GetCompatibleConstructor(inputType.RuntimeType, inputType, fields);
 
         var instance = constructor is null
             ? Expression.New(inputType.RuntimeType)
@@ -48,8 +51,6 @@ internal static class InputObjectCompiler
 
     public static Action<object, object?[]> CompileGetFieldValues(InputObjectType inputType)
     {
-        var fields = CreateFieldMap(inputType);
-
         Expression instance = _obj;
 
         if (inputType.RuntimeType != typeof(object))
@@ -58,7 +59,14 @@ internal static class InputObjectCompiler
         }
 
         var expressions = new List<Expression>();
-        CompileGetProperties(instance, fields.Values, _fieldValues, expressions);
+
+        foreach (var field in inputType.Fields.AsSpan())
+        {
+            var getter = field.Property!.GetGetMethod(true)!;
+            Expression fieldValue = Expression.Call(instance, getter);
+            expressions.Add(SetFieldValue(field, _fieldValues, fieldValue));
+        }
+
         Expression body = Expression.Block(expressions);
 
         return Expression.Lambda<Action<object, object?[]>>(body, _obj, _fieldValues).Compile();
@@ -135,20 +143,6 @@ internal static class InputObjectCompiler
         }
     }
 
-    private static void CompileGetProperties(
-        Expression instance,
-        IEnumerable<InputField> fields,
-        Expression fieldValues,
-        List<Expression> currentBlock)
-    {
-        foreach (var field in fields)
-        {
-            var getter = field.Property!.GetGetMethod(true)!;
-            Expression fieldValue = Expression.Call(instance, getter);
-            currentBlock.Add(SetFieldValue(field, fieldValues, fieldValue));
-        }
-    }
-
     private static Expression GetFieldValue(InputField field, Expression fieldValues)
         => Expression.ArrayIndex(fieldValues, Expression.Constant(field.Index));
 
@@ -163,8 +157,13 @@ internal static class InputObjectCompiler
         return Expression.Assign(element, casted);
     }
 
-    private static Dictionary<string, InputField> CreateFieldMap(InputObjectType type)
-        => type.Fields.ToDictionary(t => t.Property!.Name, StringComparer.Ordinal);
+    private static void BuildFieldMap(InputObjectType type, Dictionary<string, InputField> fields)
+    {
+        foreach (var field in type.Fields.AsSpan())
+        {
+            fields.Add(field.Property!.Name, field);
+        }
+    }
 
     private static Expression CreateOptional(Expression fieldValue, Type runtimeType)
     {
