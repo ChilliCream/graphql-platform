@@ -91,14 +91,17 @@ internal static class InputObjectConstructorResolver
         IReadOnlyDictionary<string, InputField> fields,
         ISet<string> required)
     {
-        var parameters = constructor.GetParameters();
+        var count = required.Count;
 
-        foreach (var parameter in parameters)
+        foreach (var parameter in constructor.GetParameters())
         {
             if (fields.TryGetParameter(parameter, out var field) &&
                 parameter.ParameterType == field.Property!.PropertyType)
             {
-                required.Remove(field.Name);
+                if (required.Contains(field.Name))
+                {
+                    count--;
+                }
             }
             else
             {
@@ -106,7 +109,7 @@ internal static class InputObjectConstructorResolver
             }
         }
 
-        return required.Count == 0;
+        return count == 0;
     }
 
     private static void CollectReadOnlyProperties(

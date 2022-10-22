@@ -1,5 +1,6 @@
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
@@ -21,7 +22,7 @@ internal static class TypeMemHelper
 
     public static Dictionary<string, ObjectFieldDefinition> RentObjectFieldDefinitionMap()
         => Interlocked.Exchange(ref _objectFieldDefinitionMap, null) ??
-            new Dictionary<string, ObjectFieldDefinition>();
+            new Dictionary<string, ObjectFieldDefinition>(StringComparer.Ordinal);
 
     public static void Return(Dictionary<string, ObjectFieldDefinition> map)
     {
@@ -31,7 +32,7 @@ internal static class TypeMemHelper
 
     public static Dictionary<string, InputFieldDefinition> RentInputFieldDefinitionMap()
         => Interlocked.Exchange(ref _inputFieldDefinitionMap, null) ??
-            new Dictionary<string, InputFieldDefinition>();
+            new Dictionary<string, InputFieldDefinition>(StringComparer.Ordinal);
 
     public static void Return(Dictionary<string, InputFieldDefinition> map)
     {
@@ -41,7 +42,7 @@ internal static class TypeMemHelper
 
     public static Dictionary<string, InputField> RentInputFieldMap()
         => Interlocked.Exchange(ref _inputFieldMap, null) ??
-            new Dictionary<string, InputField>();
+            new Dictionary<string, InputField>(StringComparer.Ordinal);
 
     public static void Return(Dictionary<string, InputField> map)
     {
@@ -50,7 +51,8 @@ internal static class TypeMemHelper
     }
 
     public static HashSet<MemberInfo> RentMemberSet()
-        => Interlocked.Exchange(ref _memberSet, null) ?? new HashSet<MemberInfo>();
+        => Interlocked.Exchange(ref _memberSet, null) ??
+            new HashSet<MemberInfo>();
 
     public static void Return(HashSet<MemberInfo> set)
     {
@@ -59,7 +61,8 @@ internal static class TypeMemHelper
     }
 
     public static HashSet<string> RentNameSet()
-        => Interlocked.Exchange(ref _nameSet, null) ?? new HashSet<string>();
+        => Interlocked.Exchange(ref _nameSet, null) ??
+            new HashSet<string>(StringComparer.Ordinal);
 
     public static void Return(HashSet<string> set)
     {
