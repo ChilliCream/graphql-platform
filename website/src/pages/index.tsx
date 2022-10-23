@@ -7,10 +7,6 @@ import { BananaCakePop } from "../components/images/banana-cake-pop";
 import { BlogPostBananaCakePopCloud } from "../components/images/blog-post-banana-cake-pop-cloud";
 import { BlogPostEFMeetsGraphQL } from "../components/images/blog-post-ef-meets-graphql";
 import { BlogPostHotChocolate12 } from "../components/images/blog-post-hot-chocolate-12";
-import {
-  CompaniesSection,
-  MostRecentBlogPostsSection,
-} from "../components/landing-page";
 import { Layout } from "../components/layout";
 import { Link } from "../components/misc/link";
 import {
@@ -24,6 +20,10 @@ import {
 } from "../components/misc/marketing-elements";
 import { Hero, Intro } from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
+import {
+  CompaniesSection,
+  MostRecentBlogPostsSection,
+} from "../components/widgets";
 // Images
 import ContactUsSvg from "../images/contact-us.svg";
 import DashboardSvg from "../images/dashboard.svg";
