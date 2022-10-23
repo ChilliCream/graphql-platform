@@ -27,7 +27,7 @@ select ctid, unnest(CAST(ARRAY(SELECT jsonb_array_elements(CAST(d.data -> 'Foo' 
   , mt_temp_id_list2CTE as (
 select ctid, data from mt_temp_id_list1CTE as d where d.data -> 'Foo' ->> 'BarString' = :p0
 )
- select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where d.ctid in (select ctid from mt_temp_id_list2CTE)
+ select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where ctid in (select ctid from mt_temp_id_list2CTE)
 ---------------
 
 b Result:
@@ -59,7 +59,7 @@ select ctid, unnest(CAST(ARRAY(SELECT jsonb_array_elements(CAST(d.data -> 'Foo' 
   , mt_temp_id_list2CTE as (
 select ctid, data from mt_temp_id_list1CTE as d where d.data -> 'Foo' ->> 'BarString' = :p0
 )
- select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where d.ctid in (select ctid from mt_temp_id_list2CTE)
+ select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where ctid in (select ctid from mt_temp_id_list2CTE)
 ---------------
 
 null
