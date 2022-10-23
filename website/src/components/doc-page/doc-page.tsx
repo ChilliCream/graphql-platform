@@ -315,6 +315,7 @@ const ResponsiveMenu = styled.div`
 
   &.scrolled {
     top: 60px;
+    border-radius: 0;
   }
 
   ${IsPhablet(css`
