@@ -541,6 +541,11 @@ const DownloadMatrix = styled.div`
 
       ${DownloadSvg} {
         fill: ${THEME_COLORS.primaryButton};
+        transition: fill 0.2s ease-in-out;
+
+        &:hover {
+          fill: ${THEME_COLORS.primaryButtonHover};
+        }
       }
     }
 
@@ -550,6 +555,11 @@ const DownloadMatrix = styled.div`
 
       ${DownloadSvg} {
         fill: ${THEME_COLORS.primary};
+        transition: fill 0.2s ease-in-out;
+
+        &:hover {
+          fill: ${THEME_COLORS.secondary};
+        }
       }
     }
   }
