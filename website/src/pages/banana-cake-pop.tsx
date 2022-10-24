@@ -12,11 +12,11 @@ import { parse } from "yaml";
 import { BananaCakePop } from "../components/images/banana-cake-pop";
 import { Layout } from "../components/layout";
 import { Link } from "../components/misc/link";
-import { Hero, Intro, Title } from "../components/misc/page-elements";
+import { Intro } from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
 import {
   CompaniesSection,
-  MostRecentBlogPostsSection,
+  MostRecentBcpBlogPostsSection,
 } from "../components/widgets";
 import ArrowDownIconSvg from "../images/arrow-down.svg";
 import CircleDownIconSvg from "../images/circle-down.svg";
@@ -46,18 +46,21 @@ const BananaCakePopPage: FC = () => {
     <Layout>
       <SEO title={TITLE} />
       <Intro>
-        <Hero>{TITLE}</Hero>
         <Product>
-          <DownloadArea>
-            <Title>Create, Explore, Test.</Title>
-            <DownloadHero appInfos={appInfos} />
-          </DownloadArea>
+          <ProductDetails>
+            <ProductDetailsHeader>
+              <ProductName>Banana Cake Pop</ProductName>
+              <ProductDescription>\\ GraphQL IDE for Devs</ProductDescription>
+            </ProductDetailsHeader>
+            <ProductDownload appInfos={appInfos} />
+            <ProductDetailsFooter></ProductDetailsFooter>
+          </ProductDetails>
           <ProductImage>
             <BananaCakePop />
           </ProductImage>
         </Product>
       </Intro>
-      <MostRecentBlogPostsSection />
+      <MostRecentBcpBlogPostsSection />
       <CompaniesSection />
     </Layout>
   );
@@ -69,38 +72,73 @@ interface DownloadHeroProps {
   readonly appInfos?: AppInfos;
 }
 
-const DownloadHero: FC<DownloadHeroProps> = ({ appInfos }) => {
+const ProductDownload: FC<DownloadHeroProps> = ({ appInfos }) => {
   if (!appInfos) {
     return null;
   }
 
-  const { activeStable: active } = appInfos;
+  const { activeStable: active, stable, insider } = appInfos;
 
   switch (active?.os) {
     case "linux":
-      return <DownloadButton appInfoFile={active.appImage} os={active.os} />;
+      return (
+        <DownloadButton
+          url={DOWNLOAD_STABLE_BASE_URL + active.appImage.filename}
+          text={"Download " + active.appImage.text}
+          filename={active.appImage.filename}
+          stable={stable}
+          insider={insider}
+        />
+      );
 
     case "mac":
       return (
-        <DownloadButton appInfoFile={active.appleSilicon} os={active.os} />
+        <DownloadButton
+          url={DOWNLOAD_STABLE_BASE_URL + active.universal.filename}
+          text={"Download " + active.universal.text}
+          filename={active.universal.filename}
+          stable={stable}
+          insider={insider}
+        />
       );
 
     case "windows":
-      return <DownloadButton appInfoFile={active.executable} os={active.os} />;
+      return (
+        <DownloadButton
+          url={DOWNLOAD_STABLE_BASE_URL + active.executable.filename}
+          text={"Download " + active.executable.text}
+          filename={active.executable.filename}
+          stable={stable}
+          insider={insider}
+        />
+      );
 
     default:
-      // TODO: scroll to download section
-      return null;
+      return (
+        <DownloadButton
+          url={WEB_STABLE_URL}
+          text="Open Web Version"
+          stable={stable}
+          insider={insider}
+        />
+      );
   }
 };
 
 interface DownloadButtonProps {
-  readonly appInfoFile: AppInfoFile;
-  readonly os: OS;
+  readonly url: string;
+  readonly text: string;
+  readonly filename?: string;
+  readonly stable: AppInfoVariant;
+  readonly insider: AppInfoVariant;
 }
 
 const DownloadButton: FC<DownloadButtonProps> = ({
-  appInfoFile: { filename, text },
+  url,
+  text,
+  filename,
+  stable,
+  insider,
 }) => {
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -123,11 +161,9 @@ const DownloadButton: FC<DownloadButtonProps> = ({
 
   return (
     <DownloadButtonContainer>
-      <DownloadLink
-        href={DOWNLOAD_STABLE_BASE_URL + filename}
-        download={filename}
-      >
-        Download {text}
+      <DownloadLink href={url} download={filename}>
+        {text}
+        <span>Stable Build</span>
       </DownloadLink>
       <DropDown onClick={toggleMenu}>
         <ArrowDownIconSvg />
@@ -158,10 +194,16 @@ const DownloadButton: FC<DownloadButtonProps> = ({
               </td>
               <td className="type">Universal</td>
               <td className="stable">
-                <DownloadSvg />
+                <DownloadVariantLink
+                  filename={stable.macOS.universal.filename}
+                  baseUrl={DOWNLOAD_STABLE_BASE_URL}
+                />
               </td>
               <td className="insider">
-                <DownloadSvg />
+                <DownloadVariantLink
+                  filename={stable.macOS.universal.filename}
+                  baseUrl={DOWNLOAD_INSIDER_BASE_URL}
+                />
               </td>
             </tr>
             <tr>
@@ -170,10 +212,16 @@ const DownloadButton: FC<DownloadButtonProps> = ({
               </td>
               <td className="type">Silicon</td>
               <td className="stable">
-                <DownloadSvg />
+                <DownloadVariantLink
+                  filename={stable.macOS.silicon.filename}
+                  baseUrl={DOWNLOAD_STABLE_BASE_URL}
+                />
               </td>
               <td className="insider">
-                <DownloadSvg />
+                <DownloadVariantLink
+                  filename={stable.macOS.silicon.filename}
+                  baseUrl={DOWNLOAD_INSIDER_BASE_URL}
+                />
               </td>
             </tr>
             <tr>
@@ -182,10 +230,16 @@ const DownloadButton: FC<DownloadButtonProps> = ({
               </td>
               <td className="type">Intel</td>
               <td className="stable">
-                <DownloadSvg />
+                <DownloadVariantLink
+                  filename={stable.macOS.intel.filename}
+                  baseUrl={DOWNLOAD_STABLE_BASE_URL}
+                />
               </td>
               <td className="insider">
-                <DownloadSvg />
+                <DownloadVariantLink
+                  filename={stable.macOS.intel.filename}
+                  baseUrl={DOWNLOAD_INSIDER_BASE_URL}
+                />
               </td>
             </tr>
           </tbody>
@@ -197,10 +251,16 @@ const DownloadButton: FC<DownloadButtonProps> = ({
               </td>
               <td className="type">User Installer</td>
               <td className="stable">
-                <DownloadSvg />
+                <DownloadVariantLink
+                  filename={stable.windows.executable.filename}
+                  baseUrl={DOWNLOAD_STABLE_BASE_URL}
+                />
               </td>
               <td className="insider">
-                <DownloadSvg />
+                <DownloadVariantLink
+                  filename={stable.windows.executable.filename}
+                  baseUrl={DOWNLOAD_INSIDER_BASE_URL}
+                />
               </td>
             </tr>
           </tbody>
@@ -212,10 +272,16 @@ const DownloadButton: FC<DownloadButtonProps> = ({
               </td>
               <td className="type">AppImage</td>
               <td className="stable">
-                <DownloadSvg />
+                <DownloadVariantLink
+                  filename={stable.linux.appImage.filename}
+                  baseUrl={DOWNLOAD_STABLE_BASE_URL}
+                />
               </td>
               <td className="insider">
-                <DownloadSvg />
+                <DownloadVariantLink
+                  filename={stable.linux.appImage.filename}
+                  baseUrl={DOWNLOAD_INSIDER_BASE_URL}
+                />
               </td>
             </tr>
           </tbody>
@@ -223,14 +289,24 @@ const DownloadButton: FC<DownloadButtonProps> = ({
           <tfoot>
             <tr>
               <td colSpan={4}>
-                <a href="#alt-downloads">Other downloads</a> or{" "}
-                <Link to={WEB_STABLE_URL}>open on web</Link>
+                <Link to={WEB_STABLE_URL}>Open Web Version</Link>
               </td>
             </tr>
           </tfoot>
         </table>
       </DownloadMatrix>
     </DownloadButtonContainer>
+  );
+};
+
+const DownloadVariantLink: FC<{
+  readonly filename: string;
+  readonly baseUrl: string;
+}> = ({ filename, baseUrl }) => {
+  return (
+    <Link to={baseUrl + filename} download={filename} rel="noopener noreferrer">
+      <DownloadSvg />
+    </Link>
   );
 };
 
@@ -266,19 +342,48 @@ const Product = styled.div`
   `)}
 `;
 
-const DownloadArea = styled.div`
+const ProductDetails = styled.div`
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin: 20px 30px;
+  margin: 20px 30px 100px;
   overflow: visible;
 
   ${IsPhablet(css`
     flex-basis: auto;
     margin: 20px 40px;
   `)}
+`;
+
+const ProductDetailsHeader = styled.div`
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  margin-bottom: 20px;
+`;
+
+export const ProductName = styled.h1`
+  flex: 0 0 auto;
+  margin-bottom: 0;
+  font-weight: normal;
+  font-size: 2.222em;
+  color: ${THEME_COLORS.textContrast};
+`;
+
+export const ProductDescription = styled.h2`
+  flex: 0 0 auto;
+  margin-bottom: 0;
+  font-weight: normal;
+  font-size: 1.625em;
+  color: ${THEME_COLORS.quaternary};
+`;
+
+const ProductDetailsFooter = styled.div`
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
 `;
 
 const ProductImage = styled.div`
@@ -309,17 +414,25 @@ const DownloadLink = styled(OutboundLink).attrs({
 })`
   display: flex;
   flex: 0 0 auto;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
   border-radius: var(--border-radius) 0 0 var(--border-radius);
-  height: 50px;
+  height: 60px;
   padding: 0 15px;
   color: ${THEME_COLORS.primaryButtonText};
   background-color: ${THEME_COLORS.primaryButton};
   font-family: ${FONT_FAMILY_HEADING};
-  font-size: 0.833em;
+  font-size: 1em;
+  font-weight: 500;
   text-decoration: none;
-  text-transform: uppercase;
   transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+
+  & > span {
+    margin-top: 0.25em;
+    font-size: 0.833em;
+    opacity: 0.75;
+  }
 
   :hover {
     color: ${THEME_COLORS.primaryButtonHoverText};
@@ -333,7 +446,7 @@ const DropDown = styled.div`
   align-items: center;
   margin-left: 2px;
   border-radius: 0 var(--border-radius) var(--border-radius) 0;
-  height: 50px;
+  height: 60px;
   padding: 0 15px;
   background-color: ${THEME_COLORS.primaryButton};
   cursor: pointer;
@@ -355,9 +468,15 @@ const DropDown = styled.div`
   }
 `;
 
+const DownloadSvg = styled(CircleDownIconSvg)`
+  width: 16px;
+  height: 16px;
+  transition: fill 0.2s ease-in-out;
+`;
+
 const DownloadMatrix = styled.div`
   position: absolute;
-  top: 52px;
+  top: 62px;
   left: 0;
   z-index: 2;
   display: none;
@@ -378,6 +497,7 @@ const DownloadMatrix = styled.div`
     margin: 0;
     border-collapse: collapse;
     width: 100%;
+    color: ${THEME_COLORS.primary};
 
     > thead > tr > th,
     > tbody > tr > td,
@@ -388,7 +508,7 @@ const DownloadMatrix = styled.div`
     }
 
     > tbody > tr:first-of-type > td {
-      border-top: 1px solid #aaa;
+      border-top: 1px solid ${THEME_COLORS.quaternary};
     }
 
     > tbody > tr {
@@ -396,7 +516,7 @@ const DownloadMatrix = styled.div`
     }
 
     > tfoot > tr > td {
-      border-top: 1px solid #aaa;
+      border-top: 1px solid ${THEME_COLORS.quaternary};
       text-align: center;
     }
 
@@ -418,23 +538,20 @@ const DownloadMatrix = styled.div`
 
     td.stable {
       text-align: center;
+
+      ${DownloadSvg} {
+        fill: ${THEME_COLORS.primaryButton};
+      }
     }
 
     td.insider {
       text-align: center;
-      background-color: #aaa;
+      background-color: ${THEME_COLORS.quaternary};
+
+      ${DownloadSvg} {
+        fill: ${THEME_COLORS.primary};
+      }
     }
-  }
-`;
-
-const DownloadSvg = styled(CircleDownIconSvg)`
-  width: 16px;
-  height: 16px;
-  fill: ${THEME_COLORS.primaryButton};
-  transition: fill 0.2s ease-in-out;
-
-  :hover {
-    fill: ${THEME_COLORS.primaryButtonHover};
   }
 `;
 
@@ -490,8 +607,9 @@ interface LatestLinuxAppInfo extends LatestAppInfoBase {
 
 interface LatestMacOSAppInfo extends LatestAppInfoBase {
   readonly os: "mac";
-  readonly appleSilicon: AppInfoFile;
   readonly intel: AppInfoFile;
+  readonly silicon: AppInfoFile;
+  readonly universal: AppInfoFile;
 }
 
 interface LatestWindowsAppInfo extends LatestAppInfoBase {
@@ -543,13 +661,17 @@ async function fetchMacOSAppInfo(
   return {
     os: "mac",
     version,
-    appleSilicon: {
-      filename: files[2].url,
-      text: "Mac Universal",
-    },
     intel: {
+      filename: files[4].url,
+      text: "Mac Intel",
+    },
+    silicon: {
       filename: files[3].url,
-      text: "Intel",
+      text: "Mac Silicon",
+    },
+    universal: {
+      filename: files[5].url,
+      text: "Mac Universal",
     },
   };
 }
