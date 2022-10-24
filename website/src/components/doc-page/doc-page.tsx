@@ -383,7 +383,7 @@ const DocumentationVersionWarning = styled.div`
 
   > a {
     color: white !important;
-    font-weight: bold;
+    font-weight: 600;
     text-decoration: underline;
   }
 

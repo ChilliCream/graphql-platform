@@ -81,7 +81,7 @@ export const GlobalStyle = createGlobalStyle`
   h6 {
     margin-bottom: 10px;
     font-family: ${FONT_FAMILY_HEADING};
-    font-weight: bold;
+    font-weight: 500;
     line-height: 1.250em;
     text-rendering: optimizeLegibility;
     color: ${THEME_COLORS.heading};
@@ -128,7 +128,7 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   strong {
-    font-weight: bold;
+    font-weight: 600;
   }
 
   blockquote {
@@ -203,7 +203,7 @@ export const GlobalStyle = createGlobalStyle`
   th {
     border-top: 1px solid #aaa;
     border-bottom: 2px solid #aaa;
-    font-weight: bold;
+    font-weight: 600;
   }
 
   th:first-child,
