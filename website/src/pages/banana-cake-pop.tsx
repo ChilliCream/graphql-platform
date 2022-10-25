@@ -194,13 +194,13 @@ const DownloadButton: FC<DownloadButtonProps> = ({
               </td>
               <td className="type">Universal</td>
               <td className="stable">
-                <DownloadVariantLink
+                <DownloadAppLink
                   filename={stable.macOS.universal.filename}
                   baseUrl={DOWNLOAD_STABLE_BASE_URL}
                 />
               </td>
               <td className="insider">
-                <DownloadVariantLink
+                <DownloadAppLink
                   filename={stable.macOS.universal.filename}
                   baseUrl={DOWNLOAD_INSIDER_BASE_URL}
                 />
@@ -212,13 +212,13 @@ const DownloadButton: FC<DownloadButtonProps> = ({
               </td>
               <td className="type">Silicon</td>
               <td className="stable">
-                <DownloadVariantLink
+                <DownloadAppLink
                   filename={stable.macOS.silicon.filename}
                   baseUrl={DOWNLOAD_STABLE_BASE_URL}
                 />
               </td>
               <td className="insider">
-                <DownloadVariantLink
+                <DownloadAppLink
                   filename={stable.macOS.silicon.filename}
                   baseUrl={DOWNLOAD_INSIDER_BASE_URL}
                 />
@@ -230,13 +230,13 @@ const DownloadButton: FC<DownloadButtonProps> = ({
               </td>
               <td className="type">Intel</td>
               <td className="stable">
-                <DownloadVariantLink
+                <DownloadAppLink
                   filename={stable.macOS.intel.filename}
                   baseUrl={DOWNLOAD_STABLE_BASE_URL}
                 />
               </td>
               <td className="insider">
-                <DownloadVariantLink
+                <DownloadAppLink
                   filename={stable.macOS.intel.filename}
                   baseUrl={DOWNLOAD_INSIDER_BASE_URL}
                 />
@@ -251,13 +251,13 @@ const DownloadButton: FC<DownloadButtonProps> = ({
               </td>
               <td className="type">User Installer</td>
               <td className="stable">
-                <DownloadVariantLink
+                <DownloadAppLink
                   filename={stable.windows.executable.filename}
                   baseUrl={DOWNLOAD_STABLE_BASE_URL}
                 />
               </td>
               <td className="insider">
-                <DownloadVariantLink
+                <DownloadAppLink
                   filename={stable.windows.executable.filename}
                   baseUrl={DOWNLOAD_INSIDER_BASE_URL}
                 />
@@ -272,13 +272,13 @@ const DownloadButton: FC<DownloadButtonProps> = ({
               </td>
               <td className="type">AppImage</td>
               <td className="stable">
-                <DownloadVariantLink
+                <DownloadAppLink
                   filename={stable.linux.appImage.filename}
                   baseUrl={DOWNLOAD_STABLE_BASE_URL}
                 />
               </td>
               <td className="insider">
-                <DownloadVariantLink
+                <DownloadAppLink
                   filename={stable.linux.appImage.filename}
                   baseUrl={DOWNLOAD_INSIDER_BASE_URL}
                 />
@@ -299,16 +299,22 @@ const DownloadButton: FC<DownloadButtonProps> = ({
   );
 };
 
-const DownloadVariantLink: FC<{
+const DownloadAppLink: FC<{
   readonly filename: string;
   readonly baseUrl: string;
 }> = ({ filename, baseUrl }) => {
   return (
-    <Link to={baseUrl + filename} download={filename} rel="noopener noreferrer">
+    <DownloadVariantLink to={baseUrl + filename} download={filename}>
       <DownloadSvg />
-    </Link>
+    </DownloadVariantLink>
   );
 };
+
+const DownloadVariantLink = styled(Link).attrs({
+  rel: "noopener noreferrer",
+})`
+  vertical-align: middle;
+`;
 
 const Product = styled.div`
   display: flex;
