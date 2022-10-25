@@ -77,6 +77,18 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
     redirectInBrowser: true,
     isPermanent: true,
   });
+  createRedirect({
+    fromPath: "/banana-cake-pop",
+    toPath: "/bananacakepop",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+  createRedirect({
+    fromPath: "/banana-cake-pop/",
+    toPath: "/bananacakepop",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
 
   // images
   createRedirect({
