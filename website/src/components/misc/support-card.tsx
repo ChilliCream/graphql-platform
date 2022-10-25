@@ -46,7 +46,6 @@ const ContactUs = styled.a`
   padding: 0.5rem 0;
   font-size: 0.875rem;
   line-height: 1.25rem;
-
   font-weight: 600;
   border: 1px solid transparent;
   border-radius: 0.375rem;

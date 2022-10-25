@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Threading;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
@@ -18,11 +15,9 @@ namespace HotChocolate.Types.Descriptors;
 
 public class ObjectTypeDescriptor
     : DescriptorBase<ObjectTypeDefinition>
-        , IObjectTypeDescriptor
+    , IObjectTypeDescriptor
 {
     private readonly List<ObjectFieldDescriptor> _fields = new();
-    private static Dictionary<string, ObjectFieldDefinition>? _definitionMap = null;
-    private static HashSet<MemberInfo>? _memberSet = null;
 
     protected ObjectTypeDescriptor(IDescriptorContext context, Type clrType)
         : base(context)
@@ -52,7 +47,7 @@ public class ObjectTypeDescriptor
 
         foreach (var field in definition.Fields)
         {
-            Fields.Add(ObjectFieldDescriptor.From(Context, field));
+            _fields.Add(ObjectFieldDescriptor.From(Context, field));
         }
     }
 
@@ -84,10 +79,8 @@ public class ObjectTypeDescriptor
             }
         }
 
-        var fields = Interlocked.Exchange(ref _definitionMap, null) ??
-            new Dictionary<string, ObjectFieldDefinition>();
-        var handledMembers =
-            Interlocked.Exchange(ref _memberSet, null) ?? new HashSet<MemberInfo>();
+        var fields = TypeMemHelper.RentObjectFieldDefinitionMap();
+        var handledMembers = TypeMemHelper.RentMemberSet();
 
         foreach (var fieldDescriptor in _fields)
         {
@@ -116,29 +109,21 @@ public class ObjectTypeDescriptor
         Definition.Fields.Clear();
         Definition.Fields.AddRange(fields.Values);
 
-        fields.Clear();
-        handledMembers.Clear();
-
-        Interlocked.CompareExchange(ref _definitionMap, fields, null);
-        Interlocked.CompareExchange(ref _memberSet, handledMembers, null);
+        TypeMemHelper.Return(fields);
+        TypeMemHelper.Return(handledMembers);
 
         base.OnCreateDefinition(definition);
     }
 
     internal void InferFieldsFromFieldBindingType()
     {
-        var fields = Interlocked.Exchange(ref _definitionMap, null) ??
-            new Dictionary<string, ObjectFieldDefinition>();
-        var handledMembers =
-            Interlocked.Exchange(ref _memberSet, null) ?? new HashSet<MemberInfo>();
+        var fields = TypeMemHelper.RentObjectFieldDefinitionMap();
+        var handledMembers = TypeMemHelper.RentMemberSet();
 
         InferFieldsFromFieldBindingType(fields, handledMembers);
 
-        fields.Clear();
-        handledMembers.Clear();
-
-        Interlocked.CompareExchange(ref _definitionMap, fields, null);
-        Interlocked.CompareExchange(ref _memberSet, handledMembers, null);
+        TypeMemHelper.Return(fields);
+        TypeMemHelper.Return(handledMembers);
     }
 
     protected void InferFieldsFromFieldBindingType(
@@ -176,7 +161,7 @@ public class ObjectTypeDescriptor
                         descriptor.Ignore();
                     }
 
-                    Fields.Add(descriptor);
+                    _fields.Add(descriptor);
                     handledMembers.Add(member);
 
                     // the create definition call will trigger the OnCompleteField call
@@ -305,7 +290,7 @@ public class ObjectTypeDescriptor
 
     public IObjectFieldDescriptor Field(string name)
     {
-        var fieldDescriptor = Fields.FirstOrDefault(t => t.Definition.Name.EqualsOrdinal(name));
+        var fieldDescriptor = _fields.Find(t => t.Definition.Name.EqualsOrdinal(name));
 
         if (fieldDescriptor is not null)
         {
@@ -313,7 +298,7 @@ public class ObjectTypeDescriptor
         }
 
         fieldDescriptor = ObjectFieldDescriptor.New(Context, name);
-        Fields.Add(fieldDescriptor);
+        _fields.Add(fieldDescriptor);
         return fieldDescriptor;
     }
 
@@ -331,8 +316,7 @@ public class ObjectTypeDescriptor
 
         if (propertyOrMethod is PropertyInfo || propertyOrMethod is MethodInfo)
         {
-            var fieldDescriptor = Fields.FirstOrDefault(
-                t => t.Definition.Member == propertyOrMethod);
+            var fieldDescriptor = _fields.Find(t => t.Definition.Member == propertyOrMethod);
 
             if (fieldDescriptor is not null)
             {
@@ -344,7 +328,7 @@ public class ObjectTypeDescriptor
                 propertyOrMethod,
                 Definition.RuntimeType,
                 propertyOrMethod.ReflectedType ?? Definition.RuntimeType);
-            Fields.Add(fieldDescriptor);
+            _fields.Add(fieldDescriptor);
             return fieldDescriptor;
         }
 
@@ -365,8 +349,7 @@ public class ObjectTypeDescriptor
 
         if (member is PropertyInfo or MethodInfo)
         {
-            var fieldDescriptor = Fields.FirstOrDefault(
-                t => t.Definition.Member == member);
+            var fieldDescriptor = _fields.Find(t => t.Definition.Member == member);
 
             if (fieldDescriptor is not null)
             {
@@ -378,7 +361,7 @@ public class ObjectTypeDescriptor
                 member,
                 Definition.RuntimeType,
                 typeof(TResolver));
-            Fields.Add(fieldDescriptor);
+            _fields.Add(fieldDescriptor);
             return fieldDescriptor;
         }
 
@@ -389,7 +372,7 @@ public class ObjectTypeDescriptor
                 propertyOrMethod,
                 Definition.RuntimeType,
                 typeof(TResolver));
-            Fields.Add(fieldDescriptor);
+            _fields.Add(fieldDescriptor);
             return fieldDescriptor;
         }
 

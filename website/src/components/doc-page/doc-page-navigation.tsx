@@ -563,7 +563,7 @@ const NavigationItem = styled.li<{ active: boolean }>`
     active &&
     css`
       > ${NavigationLink}, > ${NavigationGroup} > ${NavigationGroupToggle} {
-        font-weight: bold;
+        font-weight: 600;
       }
     `}
 `;

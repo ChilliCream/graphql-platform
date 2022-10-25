@@ -37,8 +37,7 @@ const Heading = styled.div`
 
   > span {
     margin-bottom: 3px;
-
-    font-weight: bold;
+    font-weight: 600;
     line-height: normal;
   }
 
@@ -64,7 +63,7 @@ const Container = styled.div`
 
   a {
     color: white !important;
-    font-weight: bold;
+    font-weight: 600;
     text-decoration: underline;
   }
 

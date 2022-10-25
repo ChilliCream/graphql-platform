@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +15,8 @@ public class InputObjectTypeDescriptor
     : DescriptorBase<InputObjectTypeDefinition>
     , IInputObjectTypeDescriptor
 {
+    private readonly List<InputFieldDescriptor> _fields = new();
+
     protected InputObjectTypeDescriptor(IDescriptorContext context, Type runtimeType)
         : base(context)
     {
@@ -43,14 +47,14 @@ public class InputObjectTypeDescriptor
 
         foreach (var field in definition.Fields)
         {
-            Fields.Add(InputFieldDescriptor.From(Context, field));
+            _fields.Add(InputFieldDescriptor.From(Context, field));
         }
     }
 
     protected internal override InputObjectTypeDefinition Definition { get; protected set; } =
         new();
 
-    protected List<InputFieldDescriptor> Fields { get; } = new();
+    protected ICollection<InputFieldDescriptor> Fields => _fields;
 
     protected override void OnCreateDefinition(
         InputObjectTypeDefinition definition)
@@ -64,27 +68,76 @@ public class InputObjectTypeDescriptor
             Definition.AttributesAreApplied = true;
         }
 
-        var fields = new Dictionary<string, InputFieldDefinition>();
-        var handledProperties = new HashSet<PropertyInfo>();
+        var fields = TypeMemHelper.RentInputFieldDefinitionMap();
+        var handledMembers = TypeMemHelper.RentMemberSet();
 
-        FieldDescriptorUtilities.AddExplicitFields(
-            Fields.Select(t => t.CreateDefinition()),
-            f => f.Property,
-            fields,
-            handledProperties);
+        foreach (var fieldDescriptor in _fields)
+        {
+            var fieldDefinition = fieldDescriptor.CreateDefinition();
 
-        OnCompleteFields(fields, handledProperties);
+            if (!fieldDefinition.Ignore && !string.IsNullOrEmpty(fieldDefinition.Name))
+            {
+                fields[fieldDefinition.Name] = fieldDefinition;
+            }
 
+            if (fieldDefinition.Property is { } prop)
+            {
+                handledMembers.Add(prop);
+            }
+        }
+
+        OnCompleteFields(fields, handledMembers);
+
+        Definition.Fields.Clear();
         Definition.Fields.AddRange(fields.Values);
+
+        TypeMemHelper.Return(fields);
+        TypeMemHelper.Return(handledMembers);
 
         base.OnCreateDefinition(definition);
     }
 
+    protected void InferFieldsFromFieldBindingType(
+        IDictionary<string, InputFieldDefinition> fields,
+        ISet<MemberInfo> handledMembers)
+    {
+        if (Definition.Fields.IsImplicitBinding())
+        {
+            var inspector = Context.TypeInspector;
+            var naming = Context.Naming;
+            var type = Definition.RuntimeType;
+            var members = inspector.GetMembers(type);
+
+            foreach (var member in members)
+            {
+                if (member.MemberType is MemberTypes.Property)
+                {
+                    var name = naming.GetMemberName(member, MemberKind.InputObjectField);
+
+                    if (handledMembers.Add(member) &&
+                        !fields.ContainsKey(name))
+                    {
+                        var descriptor = InputFieldDescriptor.New(
+                            Context,
+                            (PropertyInfo)member);
+
+                        _fields.Add(descriptor);
+                        handledMembers.Add(member);
+
+                        // the create definition call will trigger the OnCompleteField call
+                        // on the field description and trigger the initialization of the
+                        // fields arguments.
+                        fields[name] = descriptor.CreateDefinition();
+                    }
+                }
+            }
+        }
+    }
+
     protected virtual void OnCompleteFields(
         IDictionary<string, InputFieldDefinition> fields,
-        ISet<PropertyInfo> handledProperties)
-    {
-    }
+        ISet<MemberInfo> handledProperties)
+    { }
 
     public IInputObjectTypeDescriptor SyntaxNode(
         InputObjectTypeDefinitionNode inputObjectTypeDefinition)
@@ -107,7 +160,7 @@ public class InputObjectTypeDescriptor
 
     public IInputFieldDescriptor Field(string name)
     {
-        var fieldDescriptor = Fields.FirstOrDefault(t => t.Definition.Name.EqualsOrdinal(name));
+        var fieldDescriptor = _fields.Find(t => t.Definition.Name.EqualsOrdinal(name));
 
         if (fieldDescriptor is not null)
         {
@@ -115,7 +168,7 @@ public class InputObjectTypeDescriptor
         }
 
         fieldDescriptor = new InputFieldDescriptor(Context, name);
-        Fields.Add(fieldDescriptor);
+        _fields.Add(fieldDescriptor);
         return fieldDescriptor;
     }
 

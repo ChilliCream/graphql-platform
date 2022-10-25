@@ -25,7 +25,6 @@ export const Title = styled.h3`
   font-size: 1em;
   text-align: center;
   color: ${THEME_COLORS.quaternary};
-  text-transform: uppercase;
 `;
 
 export const Hero = styled.h1`

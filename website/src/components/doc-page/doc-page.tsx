@@ -315,6 +315,7 @@ const ResponsiveMenu = styled.div`
 
   &.scrolled {
     top: 60px;
+    border-radius: 0;
   }
 
   ${IsPhablet(css`
@@ -382,7 +383,7 @@ const DocumentationVersionWarning = styled.div`
 
   > a {
     color: white !important;
-    font-weight: bold;
+    font-weight: 600;
     text-decoration: underline;
   }
 
