@@ -14,6 +14,7 @@ import { Layout } from "../components/layout";
 import { Link } from "../components/misc/link";
 import { Intro } from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
+import { Spinner } from "../components/misc/spinner";
 import {
   CompaniesSection,
   MostRecentBcpBlogPostsSection,
@@ -75,7 +76,11 @@ interface DownloadHeroProps {
 
 const ProductDownload: FC<DownloadHeroProps> = ({ appInfos }) => {
   if (!appInfos) {
-    return null;
+    return (
+      <DownloadLinkPlaceholder>
+        <Spinner colorSelector={({ primaryButtonText }) => primaryButtonText} />
+      </DownloadLinkPlaceholder>
+    );
   }
 
   const { activeStable: active, stable, insider } = appInfos;
@@ -202,7 +207,7 @@ const DownloadButton: FC<DownloadButtonProps> = ({
               </td>
               <td className="insider">
                 <DownloadAppLink
-                  filename={stable.macOS.universal.filename}
+                  filename={insider.macOS.universal.filename}
                   baseUrl={DOWNLOAD_INSIDER_BASE_URL}
                 />
               </td>
@@ -220,7 +225,7 @@ const DownloadButton: FC<DownloadButtonProps> = ({
               </td>
               <td className="insider">
                 <DownloadAppLink
-                  filename={stable.macOS.silicon.filename}
+                  filename={insider.macOS.silicon.filename}
                   baseUrl={DOWNLOAD_INSIDER_BASE_URL}
                 />
               </td>
@@ -238,7 +243,7 @@ const DownloadButton: FC<DownloadButtonProps> = ({
               </td>
               <td className="insider">
                 <DownloadAppLink
-                  filename={stable.macOS.intel.filename}
+                  filename={insider.macOS.intel.filename}
                   baseUrl={DOWNLOAD_INSIDER_BASE_URL}
                 />
               </td>
@@ -259,7 +264,7 @@ const DownloadButton: FC<DownloadButtonProps> = ({
               </td>
               <td className="insider">
                 <DownloadAppLink
-                  filename={stable.windows.executable.filename}
+                  filename={insider.windows.executable.filename}
                   baseUrl={DOWNLOAD_INSIDER_BASE_URL}
                 />
               </td>
@@ -280,7 +285,7 @@ const DownloadButton: FC<DownloadButtonProps> = ({
               </td>
               <td className="insider">
                 <DownloadAppLink
-                  filename={stable.linux.appImage.filename}
+                  filename={insider.linux.appImage.filename}
                   baseUrl={DOWNLOAD_INSIDER_BASE_URL}
                 />
               </td>
@@ -434,6 +439,7 @@ const DownloadLink = styled(OutboundLink).attrs({
   justify-content: center;
   border-radius: var(--border-radius) 0 0 var(--border-radius);
   height: 60px;
+  min-width: 150px;
   padding: 0 15px;
   color: ${THEME_COLORS.primaryButtonText};
   background-color: ${THEME_COLORS.primaryButton};
@@ -453,6 +459,25 @@ const DownloadLink = styled(OutboundLink).attrs({
     color: ${THEME_COLORS.primaryButtonHoverText};
     background-color: ${THEME_COLORS.primaryButtonHover};
   }
+`;
+
+const DownloadLinkPlaceholder = styled.div`
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--border-radius);
+  height: 60px;
+  min-width: 180px;
+  padding: 0 15px;
+  color: ${THEME_COLORS.primaryButtonText};
+  background-color: ${THEME_COLORS.primaryButton};
+  font-family: ${FONT_FAMILY_HEADING};
+  font-size: 1em;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
 `;
 
 const DropDown = styled.div`

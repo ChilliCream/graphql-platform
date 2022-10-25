@@ -1,4 +1,4 @@
-import { css, SimpleInterpolation } from "styled-components";
+import { css, keyframes, SimpleInterpolation } from "styled-components";
 
 export function IsMobile(innerStyle: SimpleInterpolation) {
   return css`
@@ -48,6 +48,15 @@ export function IsDesktop(innerStyle: SimpleInterpolation) {
   `;
 }
 
+export const FULL_ROTATION = keyframes`
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+`;
+
 export const DocPageDesktopGridColumns = css`
   grid-template-columns: 1fr 250px 820px 250px 1fr;
 `;
@@ -76,6 +85,7 @@ export interface ThemeColors {
   readonly boxHighlight: string;
   readonly boxBorder: string;
   readonly warning: string;
+  readonly spinner: string;
 }
 
 export const THEME_COLORS: ThemeColors = {
@@ -98,6 +108,7 @@ export const THEME_COLORS: ThemeColors = {
   boxHighlight: "var(--cc-box-highlight-color)",
   boxBorder: "var(--cc-box-border-color)",
   warning: "var(--cc-warning-color)",
+  spinner: "var(--cc-spinner-color)",
 };
 
 export const DEFAULT_THEME_COLORS = css`
@@ -120,6 +131,7 @@ export const DEFAULT_THEME_COLORS = css`
   --cc-box-highlight-color: #e8ecf5;
   --cc-box-border-color: #bfcef1;
   --cc-warning-color: #ffba00;
+  --cc-spinner-color: #3b4f74;
 `;
 
 export const FONT_FAMILY =
