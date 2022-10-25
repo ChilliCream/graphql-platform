@@ -16,6 +16,14 @@ export function IsPhablet(innerStyle: SimpleInterpolation) {
   `;
 }
 
+export function IsSmallTablet(innerStyle: SimpleInterpolation) {
+  return css`
+    @media only screen and (max-width: 992px) {
+      ${innerStyle}
+    }
+  `;
+}
+
 export function IsTablet(innerStyle: SimpleInterpolation) {
   return css`
     @media only screen and (max-width: 1110px) {

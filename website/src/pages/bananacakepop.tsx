@@ -23,8 +23,9 @@ import CircleDownIconSvg from "../images/circle-down.svg";
 import {
   FONT_FAMILY_HEADING,
   IsDesktop,
-  IsPhablet,
+  IsMobile,
   IsSmallDesktop,
+  IsSmallTablet,
   IsTablet,
   THEME_COLORS,
 } from "../shared-style";
@@ -341,7 +342,7 @@ const Product = styled.div`
     width: 100%;
   `)}
 
-  ${IsPhablet(css`
+  ${IsSmallTablet(css`
     flex-direction: column;
     align-items: center;
     width: initial;
@@ -357,7 +358,7 @@ const ProductDetails = styled.div`
   margin: 20px 30px 100px;
   overflow: visible;
 
-  ${IsPhablet(css`
+  ${IsSmallTablet(css`
     flex-basis: auto;
     margin: 20px 40px;
   `)}
@@ -376,6 +377,10 @@ export const ProductName = styled.h1`
   font-weight: normal;
   font-size: 2.222em;
   color: ${THEME_COLORS.textContrast};
+
+  ${IsMobile(css`
+    font-size: 1.625em;
+  `)}
 `;
 
 export const ProductDescription = styled.h2`
@@ -384,6 +389,10 @@ export const ProductDescription = styled.h2`
   font-weight: normal;
   font-size: 1.625em;
   color: ${THEME_COLORS.quaternary};
+
+  ${IsMobile(css`
+    font-size: 1.125em;
+  `)}
 `;
 
 const ProductDetailsFooter = styled.div`
@@ -399,7 +408,7 @@ const ProductImage = styled.div`
   justify-content: center;
   margin: 20px 30px;
 
-  ${IsPhablet(css`
+  ${IsSmallTablet(css`
     flex-basis: auto;
     margin: 20px 40px;
   `)}
@@ -494,6 +503,10 @@ const DownloadMatrix = styled.div`
   background-color: ${THEME_COLORS.background};
   box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
   user-select: none;
+
+  ${IsSmallTablet(css`
+    left: initial;
+  `)}
 
   &.show {
     display: flex;
