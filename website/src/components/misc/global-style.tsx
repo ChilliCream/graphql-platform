@@ -133,7 +133,7 @@ export const GlobalStyle = createGlobalStyle`
 
   blockquote {
     margin-bottom: 20px;
-    background-color: #e8ecf5;
+    background-color: ${THEME_COLORS.backgroundAlt};
 
     > p:last-child {
       margin-bottom: 0;
@@ -187,7 +187,7 @@ export const GlobalStyle = createGlobalStyle`
     }
 
     > tr:hover {
-      background-color: #e8ecf5;
+      background-color: ${THEME_COLORS.backgroundAlt};
     }
   }
 

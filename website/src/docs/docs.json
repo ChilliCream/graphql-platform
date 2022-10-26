@@ -1,5 +1,47 @@
 [
   {
+    "path": "bananacakepop",
+    "title": "Banana Cake Pop",
+    "description": "Use this GUI to get deep insights from any GraphQL API.",
+    "latestStableVersion": "v2",
+    "versions": [
+      {
+        "path": "v2",
+        "title": "v2",
+        "items": [
+          {
+            "path": "index",
+            "title": "Introduction"
+          },
+          {
+            "path": "install",
+            "title": "Installation"
+          },
+          {
+            "path": "getting-started",
+            "title": "Getting Started"
+          },
+          {
+            "path": "schema-reference",
+            "title": "Schema Reference"
+          },
+          {
+            "path": "schema-definition",
+            "title": "Schema Definition"
+          },
+          {
+            "path": "actions",
+            "title": "Actions",
+            "items": [
+              { "path": "schema-refresh", "title": "Schema Refresh" },
+              { "path": "key-bindings", "title": "Key Bindings" }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "path": "hotchocolate",
     "title": "Hot Chocolate",
     "description": "Build your own thin GraphQL API layer on top of any resource.",
@@ -1137,48 +1179,6 @@
                 "path": "other-examples",
                 "title": "Other Examples"
               }
-            ]
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "path": "bananacakepop",
-    "title": "Banana Cake Pop",
-    "description": "Use this GUI to get deep insights from any GraphQL API.",
-    "latestStableVersion": "v2",
-    "versions": [
-      {
-        "path": "v2",
-        "title": "v2",
-        "items": [
-          {
-            "path": "index",
-            "title": "Introduction"
-          },
-          {
-            "path": "install",
-            "title": "Installation"
-          },
-          {
-            "path": "getting-started",
-            "title": "Getting Started"
-          },
-          {
-            "path": "schema-reference",
-            "title": "Schema Reference"
-          },
-          {
-            "path": "schema-definition",
-            "title": "Schema Definition"
-          },
-          {
-            "path": "actions",
-            "title": "Actions",
-            "items": [
-              { "path": "schema-refresh", "title": "Schema Refresh" },
-              { "path": "key-bindings", "title": "Key Bindings" }
             ]
           }
         ]

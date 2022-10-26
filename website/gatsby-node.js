@@ -77,15 +77,45 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
     redirectInBrowser: true,
     isPermanent: true,
   });
+
+  // Banana Cake Pop
   createRedirect({
     fromPath: "/banana-cake-pop",
-    toPath: "/bananacakepop",
+    toPath: "/products/bananacakepop",
     redirectInBrowser: true,
     isPermanent: true,
   });
   createRedirect({
     fromPath: "/banana-cake-pop/",
-    toPath: "/bananacakepop",
+    toPath: "/products/bananacakepop",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+
+  // Products
+  createRedirect({
+    fromPath: "/products",
+    toPath: "/",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+  createRedirect({
+    fromPath: "/products/",
+    toPath: "/",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+
+  // company
+  createRedirect({
+    fromPath: "/company",
+    toPath: "/",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+  createRedirect({
+    fromPath: "/company/",
+    toPath: "/",
     redirectInBrowser: true,
     isPermanent: true,
   });

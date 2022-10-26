@@ -6,33 +6,13 @@ module.exports = {
     company: "ChilliCream",
     siteUrl: `https://chillicream.com`,
     repositoryUrl: `https://github.com/ChilliCream/hotchocolate`,
-    topnav: [
-      {
-        name: `Platform`,
-        link: `/platform`,
-      },
-      {
-        name: `Docs`,
-        link: `/docs/hotchocolate/`,
-      },
-      {
-        name: `Support`,
-        link: `/support`,
-      },
-      {
-        name: `Blog`,
-        link: `/blog`,
-      },
-      {
-        name: `Shop`,
-        link: `https://store.chillicream.com`,
-      },
-    ],
     tools: {
       bcp: `https://eat.bananacakepop.com`,
       github: `https://github.com/ChilliCream/hotchocolate`,
+      shop: `https://store.chillicream.com`,
       slack: `http://slack.chillicream.com/`,
       twitter: `https://twitter.com/Chilli_Cream`,
+      youtube: `https://www.youtube.com/c/ChilliCream`,
     },
   },
   plugins: [

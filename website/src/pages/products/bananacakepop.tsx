@@ -9,18 +9,18 @@ import React, {
 } from "react";
 import styled, { css } from "styled-components";
 import { parse } from "yaml";
-import { BananaCakePop } from "../components/images/banana-cake-pop";
-import { Layout } from "../components/layout";
-import { Link } from "../components/misc/link";
-import { Intro } from "../components/misc/page-elements";
-import { SEO } from "../components/misc/seo";
-import { Spinner } from "../components/misc/spinner";
+import { BananaCakePop } from "../../components/images/banana-cake-pop";
+import { Layout } from "../../components/layout";
+import { Link } from "../../components/misc/link";
+import { Intro } from "../../components/misc/page-elements";
+import { SEO } from "../../components/misc/seo";
+import { Spinner } from "../../components/misc/spinner";
 import {
   CompaniesSection,
   MostRecentBcpBlogPostsSection,
-} from "../components/widgets";
-import ArrowDownIconSvg from "../images/arrow-down.svg";
-import CircleDownIconSvg from "../images/circle-down.svg";
+} from "../../components/widgets";
+import ArrowDownIconSvg from "../../images/arrow-down.svg";
+import CircleDownIconSvg from "../../images/circle-down.svg";
 import {
   FONT_FAMILY_HEADING,
   IsDesktop,
@@ -29,7 +29,7 @@ import {
   IsSmallTablet,
   IsTablet,
   THEME_COLORS,
-} from "../shared-style";
+} from "../../shared-style";
 
 const DOWNLOAD_STABLE_BASE_URL =
   "https://download.chillicream.com/bananacakepop/";
@@ -58,7 +58,7 @@ const BananaCakePopPage: FC = () => {
             <ProductDetailsFooter></ProductDetailsFooter>
           </ProductDetails>
           <ProductImage>
-            <BananaCakePop />
+            <BananaCakePop shadow />
           </ProductImage>
         </Product>
       </Intro>
@@ -310,16 +310,20 @@ const DownloadAppLink: FC<{
   readonly baseUrl: string;
 }> = ({ filename, baseUrl }) => {
   return (
-    <DownloadVariantLink to={baseUrl + filename} download={filename}>
+    <DownloadEditionLink to={baseUrl + filename} download={filename}>
       <DownloadSvg />
-    </DownloadVariantLink>
+    </DownloadEditionLink>
   );
 };
 
-const DownloadVariantLink = styled(Link).attrs({
+const DownloadEditionLink = styled(Link).attrs({
   rel: "noopener noreferrer",
 })`
-  vertical-align: middle;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
 `;
 
 const Product = styled.div`
@@ -411,11 +415,9 @@ const ProductImage = styled.div`
   flex: 1 1 auto;
   align-items: center;
   justify-content: center;
-  margin: 20px 30px;
 
   ${IsSmallTablet(css`
-    flex-basis: auto;
-    margin: 20px 40px;
+    margin: 0 10px;
   `)}
 `;
 
@@ -511,6 +513,7 @@ const DropDown = styled.div`
 const DownloadSvg = styled(CircleDownIconSvg)`
   width: 16px;
   height: 16px;
+  padding: 2px;
   transition: fill 0.2s ease-in-out;
 `;
 

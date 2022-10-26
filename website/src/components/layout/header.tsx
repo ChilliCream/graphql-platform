@@ -1,7 +1,21 @@
 import { graphql, useStaticQuery } from "gatsby";
-import React, { FC, useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  FC,
+  ReactElement,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import styled, { createGlobalStyle } from "styled-components";
-import { GetHeaderDataQuery } from "../../../graphql-types";
+import {
+  DocsJson,
+  DocsJsonVersions,
+  GetHeaderDataQuery,
+  Maybe,
+  SiteSiteMetadataTools,
+} from "../../../graphql-types";
 import BarsIconSvg from "../../images/bars.svg";
 import LogoTextSvg from "../../images/chillicream-text.svg";
 import LogoIconSvg from "../../images/chillicream-winking.svg";
@@ -10,6 +24,7 @@ import SearchIconSvg from "../../images/search.svg";
 import SlackIconSvg from "../../images/slack.svg";
 import TimesIconSvg from "../../images/times.svg";
 import TwitterIconSvg from "../../images/twitter.svg";
+import YouTubeIconSvg from "../../images/youtube.svg";
 import { FONT_FAMILY_HEADING, THEME_COLORS } from "../../shared-style";
 import { useObservable } from "../../state";
 import { IconContainer } from "../misc/icon-container";
@@ -25,21 +40,32 @@ export const Header: FC = () => {
       site {
         siteMetadata {
           siteUrl
-          topnav {
-            name
-            link
-          }
           tools {
             bcp
             github
+            shop
             slack
             twitter
+            youtube
+          }
+        }
+      }
+      docNav: file(
+        sourceInstanceName: { eq: "docs" }
+        relativePath: { eq: "docs.json" }
+      ) {
+        products: childrenDocsJson {
+          path
+          title
+          versions {
+            path
           }
         }
       }
     }
   `);
-  const { siteUrl, topnav, tools } = data.site!.siteMetadata!;
+  const { siteUrl, tools } = data.site!.siteMetadata!;
+  const products = data.docNav!.products!;
   const showShadow$ = useObservable((state) => {
     return state.common.yScrollPosition > 0;
   });
@@ -94,42 +120,20 @@ export const Header: FC = () => {
             </HamburgerCloseButton>
           </NavigationHeader>
           <Nav>
-            {topnav!.map((item, index) => (
-              <NavItem key={`topnav-item-${index}`}>
-                <NavLink
-                  to={item!.link!}
-                  activeClassName="active"
-                  partiallyActive
-                >
-                  {item!.name}
-                </NavLink>
-              </NavItem>
-            ))}
+            <ProductNavItem />
+            <SupportNavItem />
+            <DeveloperNavItem products={products} tools={tools!} />
+            <CompanyNavItem tools={tools!} />
           </Nav>
         </Navigation>
         <Group>
           <Tools>
-            <LaunchLink to={tools!.bcp!}>Launch</LaunchLink>
             <ToolButton onClick={handleSearchOpen}>
               <IconContainer size={20}>
                 <SearchIconSvg />
               </IconContainer>
             </ToolButton>
-            <ToolLink to={tools!.slack!}>
-              <IconContainer>
-                <SlackIcon />
-              </IconContainer>
-            </ToolLink>
-            <ToolLink to={tools!.twitter!}>
-              <IconContainer>
-                <TwitterIcon />
-              </IconContainer>
-            </ToolLink>
-            <ToolLink to={tools!.github!}>
-              <IconContainer>
-                <GithubIcon />
-              </IconContainer>
-            </ToolLink>
+            <LaunchLink to={tools!.bcp!}>Open Banana Cake Pop</LaunchLink>
           </Tools>
         </Group>
         <HamburgerOpenButton onClick={handleTopNavOpen}>
@@ -308,20 +312,193 @@ const Nav = styled.ol`
     flex-direction: row;
     margin: 0;
     height: 60px;
-    overflow-y: hidden;
   }
 `;
 
-const NavItem = styled.li`
-  flex: 0 0 auto;
-  margin: 0 2px;
-  padding: 0;
-  height: 50px;
+const ProductNavItem: FC = () => {
+  const [subNav, showSubNav, hideSubNav] = useSubNav((hideSubNav) => (
+    <>
+      <Products>
+        <ProductLink
+          to="/products/bananacakepop"
+          onClick={() => {
+            hideSubNav();
+          }}
+        >
+          Banana Cake Pop
+        </ProductLink>
+        <ProductLink to="/docs/hotchocolate" onClick={hideSubNav}>
+          Hot Chocolate
+        </ProductLink>
+        <ProductLink to="/docs/strawberryshake" onClick={hideSubNav}>
+          Strawberry Shake
+        </ProductLink>
+      </Products>
+      <AdditionalInfo></AdditionalInfo>
+    </>
+  ));
 
-  @media only screen and (min-width: 992px) {
-    height: initial;
-  }
-`;
+  return (
+    <NavItemContainer onMouseOver={showSubNav} onMouseOut={hideSubNav}>
+      <NavLink
+        to="/products"
+        activeClassName="active"
+        partiallyActive
+        onClick={(event) => {
+          showSubNav();
+          event.preventDefault();
+        }}
+      >
+        Products
+      </NavLink>
+      {subNav}
+    </NavItemContainer>
+  );
+};
+
+const SupportNavItem: FC = () => {
+  return (
+    <NavItemContainer>
+      <NavLink to="/support" activeClassName="active" partiallyActive>
+        Support
+      </NavLink>
+    </NavItemContainer>
+  );
+};
+
+interface DeveloperNavItemProps {
+  readonly products: Maybe<
+    Pick<DocsJson, "path" | "title"> & {
+      versions?: Maybe<Maybe<Pick<DocsJsonVersions, "path">>[]>;
+    }
+  >[];
+  readonly tools: Pick<
+    SiteSiteMetadataTools,
+    "bcp" | "github" | "shop" | "slack" | "twitter" | "youtube"
+  >;
+}
+
+const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
+  const [subNav, showSubNav, hideSubNav] = useSubNav((hideSubNav) => (
+    <>
+      <Products>
+        {products.map((product, index) => (
+          <ProductLink
+            key={`products-item-${index}`}
+            to={`/docs/${product!.path!}/`}
+            onClick={hideSubNav}
+          >
+            {product!.title}
+          </ProductLink>
+        ))}
+        <ProductLink to="/blog" onClick={hideSubNav}>
+          Blog
+        </ProductLink>
+        <ToolLink to={tools.slack!} onClick={hideSubNav}>
+          <IconContainer>
+            <SlackIcon />
+          </IconContainer>
+        </ToolLink>
+        <ToolLink to={tools.twitter!} onClick={hideSubNav}>
+          <IconContainer>
+            <TwitterIcon />
+          </IconContainer>
+        </ToolLink>
+        <ToolLink to={tools.youtube!} onClick={hideSubNav}>
+          <IconContainer>
+            <YouTubeIcon />
+          </IconContainer>
+        </ToolLink>
+        <ToolLink to={tools.github!} onClick={hideSubNav}>
+          <IconContainer>
+            <GithubIcon />
+          </IconContainer>
+        </ToolLink>
+      </Products>
+      <AdditionalInfo></AdditionalInfo>
+    </>
+  ));
+
+  return (
+    <NavItemContainer onMouseOver={showSubNav} onMouseOut={hideSubNav}>
+      <NavLink
+        to="/docs"
+        activeClassName="active"
+        partiallyActive
+        onClick={(event) => {
+          showSubNav();
+          event.preventDefault();
+        }}
+      >
+        Developers
+      </NavLink>
+      {subNav}
+    </NavItemContainer>
+  );
+};
+
+interface CompanyNavItemProps {
+  readonly tools: Pick<
+    SiteSiteMetadataTools,
+    "bcp" | "github" | "shop" | "slack" | "twitter" | "youtube"
+  >;
+}
+
+const CompanyNavItem: FC<CompanyNavItemProps> = ({ tools }) => {
+  const [subNav, showSubNav, hideSubNav] = useSubNav((hideSubNav) => (
+    <>
+      <Products>
+        <ProductLink to={tools.shop!} onClick={hideSubNav}>
+          Shop
+        </ProductLink>
+      </Products>
+      <AdditionalInfo></AdditionalInfo>
+    </>
+  ));
+
+  return (
+    <NavItemContainer onMouseOver={showSubNav} onMouseOut={hideSubNav}>
+      <NavLink
+        to="/company"
+        activeClassName="active"
+        partiallyActive
+        onClick={(event) => {
+          showSubNav();
+          event.preventDefault();
+        }}
+      >
+        Company
+      </NavLink>
+      {subNav}
+    </NavItemContainer>
+  );
+};
+
+function useSubNav(
+  children: (hideSubNav: () => void) => ReactNode
+): [ReactElement, () => void, () => void] {
+  const ref = useRef<HTMLDivElement>(null);
+
+  const hideSubNav = useCallback(() => {
+    if (ref.current) {
+      ref.current.classList.remove("show");
+    }
+  }, []);
+
+  const showSubNav = useCallback(() => {
+    if (ref.current) {
+      ref.current.classList.add("show");
+    }
+  }, []);
+
+  const subNavContainer = (
+    <SubNavContainer ref={ref}>
+      <SubNav>{children(hideSubNav)}</SubNav>
+    </SubNavContainer>
+  );
+
+  return [subNavContainer, showSubNav, hideSubNav];
+}
 
 const NavLink = styled(Link)`
   flex: 0 0 auto;
@@ -334,13 +511,85 @@ const NavLink = styled(Link)`
   text-decoration: none;
   transition: background-color 0.2s ease-in-out;
 
-  &.active,
-  &.active:hover {
+  &.active {
     background-color: ${THEME_COLORS.tertiary};
   }
 
+  &.active:hover,
   &:hover {
     background-color: ${THEME_COLORS.secondary};
+  }
+`;
+
+const SubNavContainer = styled.div`
+  position: fixed;
+  z-index: 1;
+  top: 50px;
+  right: calc(50% - 350px);
+  left: calc(50% - 350px);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  overflow: visible;
+
+  &.show {
+    display: flex;
+  }
+`;
+
+const NavItemContainer = styled.li`
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
+  height: 50px;
+
+  @media only screen and (min-width: 992px) {
+    height: initial;
+
+    &:hover ${NavLink} {
+      background-color: ${THEME_COLORS.secondary};
+    }
+  }
+`;
+
+const SubNav = styled.div`
+  display: flex;
+  flex-direction: row;
+  margin-top: 2px;
+  border-radius: var(--border-radius);
+  width: 700px;
+  background-color: ${THEME_COLORS.background};
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+`;
+
+const AdditionalInfo = styled.div`
+  display: flex;
+  flex: 1 1 40%;
+  flex-direction: column;
+  border-radius: 0 var(--border-radius) var(--border-radius) 0;
+  padding: 10px 15px;
+  background-color: ${THEME_COLORS.backgroundAlt};
+`;
+
+const Products = styled.div`
+  display: flex;
+  flex: 1 1 60%;
+  flex-direction: column;
+  padding: 20px 0;
+`;
+
+const ProductLink = styled(Link)`
+  display: flex;
+  margin: 10px 30px;
+  border-radius: var(--border-radius);
+  border: 1px solid ${THEME_COLORS.boxBorder};
+  width: auto;
+  min-height: 60px;
+  padding: 10px 15px;
+  background-color: ${THEME_COLORS.background};
+
+  &:hover {
+    background-color: ${THEME_COLORS.boxHighlight};
   }
 `;
 
@@ -429,5 +678,9 @@ const SlackIcon = styled(SlackIconSvg)`
 `;
 
 const TwitterIcon = styled(TwitterIconSvg)`
+  height: 22px;
+`;
+
+const YouTubeIcon = styled(YouTubeIconSvg)`
   height: 22px;
 `;

@@ -62,10 +62,10 @@ const IndexPage: FC = () => {
             </Link>
           </Slide>
           <Slide>
-            <Link to="https://bananacakepop.com">
+            <Link to="/products/bananacakepop">
               <BananaCakePop shadow />
               <SlideContent>
-                <SlideTitle>Try Banana Cake Pop</SlideTitle>
+                <SlideTitle>Banana Cake Pop</SlideTitle>
                 <SlideDescription>
                   Our GraphQL IDE to explore schemas, execute operations and get
                   deep performance insights.
