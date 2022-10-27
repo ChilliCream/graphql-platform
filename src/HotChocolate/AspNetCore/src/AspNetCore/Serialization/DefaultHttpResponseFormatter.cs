@@ -126,8 +126,10 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             var responseStream = (IResponseStream)result;
             var statusCode = (int)GetStatusCode(responseStream, format, proposedStatusCode);
 
+            response.Headers.Add(HttpHeaderKeys.CacheControl, HttpHeaderValues.NoCache);
             response.ContentType = format.ContentType;
             response.StatusCode = statusCode;
+            await response.Body.FlushAsync(cancellationToken);
 
             await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
         }
