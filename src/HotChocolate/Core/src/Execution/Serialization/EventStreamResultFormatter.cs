@@ -15,13 +15,13 @@ namespace HotChocolate.Execution.Serialization;
 /// </summary>
 public sealed class EventStreamResultFormatter : IExecutionResultFormatter
 {
-    private static readonly byte[] EventField
-        = { (byte)'e', (byte)'v', (byte)'e', (byte)'n', (byte)'t', (byte)':' };
-    private static readonly byte[] DataField
+    private static readonly byte[] _eventField
+        = { (byte)'e', (byte)'v', (byte)'e', (byte)'n', (byte)'t', (byte)':', (byte)' ' };
+    private static readonly byte[] _dataField
         = { (byte)'d', (byte)'a', (byte)'t', (byte)'a', (byte)':', (byte)' ' };
-    private static readonly byte[] NextEvent
+    private static readonly byte[] _nextEvent
         = { (byte)'n', (byte)'e', (byte)'x', (byte)'t' };
-    private static readonly byte[] CompleteEvent
+    private static readonly byte[] _completeEvent
         =
         {
             (byte)'c', (byte)'o', (byte)'m', (byte)'p',
@@ -116,12 +116,12 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
     private async ValueTask WriteNextMessageAsync(IQueryResult result, Stream outputStream)
     {
 #if NETCOREAPP3_1_OR_GREATER
-        await outputStream.WriteAsync(EventField).ConfigureAwait(false);
-        await outputStream.WriteAsync(NextEvent).ConfigureAwait(false);
+        await outputStream.WriteAsync(_eventField).ConfigureAwait(false);
+        await outputStream.WriteAsync(_nextEvent).ConfigureAwait(false);
         await outputStream.WriteAsync(_newLine).ConfigureAwait(false);
 #else
-        await outputStream.WriteAsync(EventField, 0, EventField.Length).ConfigureAwait(false);
-        await outputStream.WriteAsync(NextEvent, 0, NextEvent.Length).ConfigureAwait(false);
+        await outputStream.WriteAsync(_eventField, 0, _eventField.Length).ConfigureAwait(false);
+        await outputStream.WriteAsync(_nextEvent, 0, _nextEvent.Length).ConfigureAwait(false);
         await outputStream.WriteAsync(_newLine, 0, _newLine.Length).ConfigureAwait(false);
 #endif
 
@@ -141,11 +141,11 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
             }
 
 #if NETCOREAPP3_1_OR_GREATER
-            await outputStream.WriteAsync(DataField).ConfigureAwait(false);
+            await outputStream.WriteAsync(_dataField).ConfigureAwait(false);
             await outputStream.WriteAsync(buffer).ConfigureAwait(false);
             await outputStream.WriteAsync(_newLine).ConfigureAwait(false);
 #else
-            await outputStream.WriteAsync(DataField, 0, DataField.Length).ConfigureAwait(false);
+            await outputStream.WriteAsync(_dataField, 0, _dataField.Length).ConfigureAwait(false);
             await outputStream.WriteAsync(bufferWriter.GetInternalBuffer(), read, buffer.Length)
                 .ConfigureAwait(false);
             await outputStream.WriteAsync(_newLine, 0, _newLine.Length).ConfigureAwait(false);
@@ -158,12 +158,12 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
     private static async ValueTask WriteCompleteMessage(Stream outputStream)
     {
 #if NETCOREAPP3_1_OR_GREATER
-        await outputStream.WriteAsync(EventField).ConfigureAwait(false);
-        await outputStream.WriteAsync(CompleteEvent).ConfigureAwait(false);
+        await outputStream.WriteAsync(_eventField).ConfigureAwait(false);
+        await outputStream.WriteAsync(_completeEvent).ConfigureAwait(false);
         await outputStream.WriteAsync(_newLine).ConfigureAwait(false);
 #else
-        await outputStream.WriteAsync(EventField, 0, EventField.Length).ConfigureAwait(false);
-        await outputStream.WriteAsync(CompleteEvent, 0, CompleteEvent.Length).ConfigureAwait(false);
+        await outputStream.WriteAsync(_eventField, 0, _eventField.Length).ConfigureAwait(false);
+        await outputStream.WriteAsync(_completeEvent, 0, _completeEvent.Length).ConfigureAwait(false);
         await outputStream.WriteAsync(_newLine, 0, _newLine.Length).ConfigureAwait(false);
 #endif
     }

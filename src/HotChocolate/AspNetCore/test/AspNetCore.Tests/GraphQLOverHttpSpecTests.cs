@@ -907,14 +907,14 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 -------------------------->
                 Status Code: OK
                 -------------------------->
-                event:next
+                event: next
                 data: {""data"":{},""hasNext"":true}
 
-                event:next
+                event: next
                 data: {""incremental"":[{""data"":{""__typename"":""Query""}," +
                 @"""path"":[]}],""hasNext"":false}
 
-                event:complete
+                event: complete
 
                 ");
     }
