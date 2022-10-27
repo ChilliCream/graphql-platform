@@ -2,8 +2,6 @@
 title: Entity Framework
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 The execution engine of Hot Chocolate executes resolvers in parallel. This can lead to exceptions because
 the database context of Entity Framework cannot handle more than one request in parallel.
 So if you are seeing exceptions like `A second operation started on this context before a previous operation completed.`
@@ -14,11 +12,9 @@ The package was build on the foundation of EntityFramework Core v5.0.0.
 
 # Getting Started
 
-You first need to add the package reference to your project. You can do this with the `dotnet` cli:
+You first need to add the package reference to your project.
 
-```bash
-dotnet add package HotChocolate.Data.EntityFramework
-```
+<PackageInstallation packageName="HotChocolate.Data.EntityFramework" />
 
 The execution engine needs more than one database context. You should register the database context
 in a pool rather than transient. During execution database contexts are taken from this pool and returned

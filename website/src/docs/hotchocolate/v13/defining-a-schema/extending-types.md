@@ -2,8 +2,6 @@
 title: "Extending Types"
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 Type extensions allow us to add, remove or replace fields on existing types, without necessarily needing access to these types.
 
 Because of these capabilities, they also allow for better organization of our types. We could for example have classes that encapsulate part of our domain and extend our `Query` type with these functionalities.
@@ -14,7 +12,7 @@ Type extensions are especially useful if we want to modify third-party types, su
 src="https://www.youtube.com/embed/EHTr4Fq6GlA"frameborder="0"
 allowfullscreen></iframe>
 
-> ⚠️ Note: Type extensions do not produce the [extend type syntax that GraphQL offers](http://spec.graphql.org/draft/#sec-Object-Extensions), since it would unnecessarily complicate the resulting schema. Instead, Hot Chocolate's type extensions are directly merged with the original type definition to create a single type at runtime.
+> Warning: Type extensions do not produce the [extend type syntax that GraphQL offers](http://spec.graphql.org/draft/#sec-Object-Extensions), since it would unnecessarily complicate the resulting schema. Instead, Hot Chocolate's type extensions are directly merged with the original type definition to create a single type at runtime.
 
 # Object Types
 

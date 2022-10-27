@@ -146,15 +146,11 @@ With this we have now a functioning GraphQL server with a simple hello world exa
 
 In order to make this server a stitching server we now have to add the Hot Chocolate stitching engine.
 
-```bash
-dotnet add package HotChocolate.Stitching
-```
+<PackageInstallation packageName="HotChocolate.Stitching" />
 
 and Subscription package if using AspNetCore
 
-```bash
-dotnet add package HotChocolate.AspNetCore.Subscriptions
-```
+<PackageInstallation packageName="HotChocolate.AspNetCore.Subscriptions" />
 
 Now that our GraphQL server is ready we can start to configure the endpoints of our remote schemas.
 

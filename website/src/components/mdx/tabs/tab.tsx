@@ -39,7 +39,7 @@ const TabButton = styled.button`
 
   &.active {
     color: ${THEME_COLORS.heading};
-    font-weight: 700;
+    font-weight: 600;
   }
 
   @media only screen and (min-width: 860px) {

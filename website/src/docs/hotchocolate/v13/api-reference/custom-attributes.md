@@ -52,7 +52,7 @@ public class Query
 }
 ```
 
-> ⚠️ **Note**: Be sure to install the `HotChocolate.Types.Filters` NuGet package.
+> Warning: Be sure to install the `HotChocolate.Types.Filters` NuGet package.
 
 ## UseSortingAttribute
 
@@ -69,7 +69,7 @@ public class Query
 }
 ```
 
-> ⚠️ **Note**: Be sure to install the `HotChocolate.Types.Sorting` NuGet package.
+> Warning: Be sure to install the `HotChocolate.Types.Sorting` NuGet package.
 
 ## AuthorizeAttribute
 

@@ -2,8 +2,6 @@
 title: "Lists"
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 GraphQL allows us to return lists of elements from our fields.
 
 ```sdl

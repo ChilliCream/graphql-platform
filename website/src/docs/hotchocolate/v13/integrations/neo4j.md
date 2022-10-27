@@ -11,11 +11,7 @@ You can find a example project in [HotChocolate Examples](https://github.com/Chi
 
 To use the Neo4J integration, you need to install the package `HotChocolate.Data.Neo4J`.
 
-```bash
-dotnet add package HotChocolate.Data.Neo4J
-```
-
-> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+<PackageInstallation packageName="HotChocolate.Data.Neo4J" />
 
 # Neo4JExecutable
 

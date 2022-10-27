@@ -46,7 +46,7 @@ public class MyExecutionEventListener : ExecutionDiagnosticEventListener
 }
 ```
 
-> ⚠️ Note: Diagnostic event handlers are executed synchronously as part of the GraphQL request. Long-running operations inside a diagnostic event handler will negatively impact the query performance. Expensive operations should only be enqueued from within the handler and processed by a background service.
+> Warning: Diagnostic event handlers are executed synchronously as part of the GraphQL request. Long-running operations inside a diagnostic event handler will negatively impact the query performance. Expensive operations should only be enqueued from within the handler and processed by a background service.
 
 ## Scopes
 
@@ -156,7 +156,7 @@ The following methods can be overridden.
 | ParseDocument                       | Scope that encloses the parsing of a document.                                                                                                 |
 | SyntaxError                         | Called if a document could not be parsed due to a syntax error.                                                                                |
 | ValidateDocument                    | Scope that encloses the validation of a document.                                                                                              |
-| ValidationErrors                    | Called if errors occurred during the validation of the document.                                                                                |
+| ValidationErrors                    | Called if errors occurred during the validation of the document.                                                                               |
 | AnalyzeOperationComplexity          | Called when starting to analyze the operation complexity.                                                                                      |
 | OperationComplexityAnalyzerCompiled | Called within AnalyzeOperationComplexity scope and reports that an analyzer was compiled.                                                      |
 | OperationComplexityResult           | Called within AnalyzeOperationComplexity scope and reports the outcome of the analyzer.                                                        |
@@ -234,13 +234,9 @@ allowfullscreen></iframe>
 
 ## Setup
 
-To get started, add the HotChocolate.Diagnostics package to your project.
+To get started, add the `HotChocolate.Diagnostics` package to your project.
 
-```bash
-dotnet add package HotChocolate.Diagnostics
-```
-
-> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+<PackageInstallation packageName="HotChocolate.Diagnostics" />
 
 Next, head over to your `Program.cs` and add `AddInstrumentation` to your GraphQL configuration.
 
