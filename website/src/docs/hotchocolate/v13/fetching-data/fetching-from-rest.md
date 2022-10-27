@@ -2,8 +2,6 @@
 title: "Fetching from REST"
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 In this section, we will cover how you can easily integrate a REST API into your GraphQL API.
 
 If you want to have an outlook into the upcoming native REST integration with Hot Chocolate 13 you can head over to YouTube and have a look.
@@ -71,9 +69,7 @@ In this file, you will find the client for your REST API.
 The generated needs `Newtonsoft.Json`.
 Make sure to also add this package by executing:
 
-```bash
-dotnet add package Newtonsoft.Json
-```
+<PackageInstallation packageName="Newtonsoft.Json" external />
 
 # Exposing the API
 

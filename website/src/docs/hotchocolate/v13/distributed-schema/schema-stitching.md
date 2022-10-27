@@ -8,11 +8,7 @@ Hot Chocolate uses the schema name as an identifier for schemas. This schema nam
 
 You will need to add a package reference to `HotChocolate.Stitching` to your gateway:
 
-```bash
-dotnet add package HotChocolate.Stitching
-```
-
-> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+<PackageInstallation packageName="HotChocolate.Stitching" />
 
 ```csharp
 public static class WellKnownSchemaNames

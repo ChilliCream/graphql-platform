@@ -56,6 +56,8 @@ public class FieldCollection<T> : IFieldCollection<T> where T : class, IField
         return false;
     }
 
+    internal ReadOnlySpan<T> AsSpan() => _fields;
+
     public IEnumerator<T> GetEnumerator()
         => _fields.Length == 0
             ? EmptyFieldEnumerator.Instance

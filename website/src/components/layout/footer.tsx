@@ -259,7 +259,7 @@ const Location = styled.div`
 const Title = styled.h3`
   margin: 15px 0 9px;
   font-size: 1em;
-  font-weight: bold;
+  font-weight: 600;
   color: ${THEME_COLORS.footerText};
 `;
 

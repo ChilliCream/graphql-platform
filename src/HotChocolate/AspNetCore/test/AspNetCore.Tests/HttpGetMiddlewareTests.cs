@@ -132,7 +132,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                         query ($d: Float) {
                              double_arg(d: $d)
                         }",
-                Variables = new Dictionary<string, object> { { "d", 1.539 } }
+                Variables = new Dictionary<string, object?> { { "d", 1.539 } }
             },
             "/arguments");
 
@@ -154,7 +154,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                         query ($d: Float) {
                              double_arg(d: $d)
                         }",
-                Variables = new Dictionary<string, object> { { "d", double.MaxValue } }
+                Variables = new Dictionary<string, object?> { { "d", double.MaxValue } }
             },
             "/arguments");
 
@@ -180,7 +180,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                         query ($d: Float) {
                              double_arg(d: $d)
                         }",
-                Variables = new Dictionary<string, object> { { "d", double.MinValue } }
+                Variables = new Dictionary<string, object?> { { "d", double.MinValue } }
             },
             "/arguments");
 
@@ -206,7 +206,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                         query ($d: Decimal) {
                              decimal_arg(d: $d)
                         }",
-                Variables = new Dictionary<string, object> { { "d", decimal.MaxValue } }
+                Variables = new Dictionary<string, object?> { { "d", decimal.MaxValue } }
             },
             "/arguments");
 
@@ -232,7 +232,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                         query ($d: Decimal) {
                              decimal_arg(d: $d)
                         }",
-                Variables = new Dictionary<string, object> { { "d", decimal.MinValue } }
+                Variables = new Dictionary<string, object?> { { "d", decimal.MinValue } }
             },
             "/arguments");
 
@@ -260,7 +260,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                             name
                         }
                     }",
-                Variables = new Dictionary<string, object>
+                Variables = new Dictionary<string, object?>
                 {
                         { "episode", "NEW_HOPE" }
                 }
@@ -286,7 +286,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                             name
                         }
                     }",
-                Variables = new Dictionary<string, object>
+                Variables = new Dictionary<string, object?>
                 {
                         { "id", "1000" }
                 }
@@ -320,12 +320,12 @@ public class HttpGetMiddlewareTests : ServerTestBase
                             commentary
                         }
                     }",
-                Variables = new Dictionary<string, object>
+                Variables = new Dictionary<string, object?>
                 {
                         { "ep", "EMPIRE" },
                         {
                             "review",
-                            new Dictionary<string, object>
+                            new Dictionary<string, object?>
                             {
                                 { "stars", 5 },
                                 { "commentary", "This is a great movie!" },
@@ -362,16 +362,16 @@ public class HttpGetMiddlewareTests : ServerTestBase
                             commentary
                         }
                     }",
-                Variables = new Dictionary<string, object>
+                Variables = new Dictionary<string, object?>
                 {
+                    {
+                        "review",
+                        new Dictionary<string, object?>
                         {
-                            "review",
-                            new Dictionary<string, object>
-                            {
-                                { "stars", 5 },
-                                { "commentary", "This is a great movie!" },
-                            }
+                            { "stars", 5 },
+                            { "commentary", "This is a great movie!" },
                         }
+                    }
                 }
             });
 
@@ -407,7 +407,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                             commentary
                         }
                     }",
-                Variables = new Dictionary<string, object>
+                Variables = new Dictionary<string, object?>
                 {
                         { "ep", "EMPIRE" },
                         { "stars", 5 },
@@ -443,7 +443,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                             commentary
                         }
                     }",
-                Variables = new Dictionary<string, object>
+                Variables = new Dictionary<string, object?>
                 {
                         { "ep", "EMPIRE" },
                         { "stars", 5 },
@@ -502,7 +502,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                             name
                         }
                     }",
-                Variables = new Dictionary<string, object> { { "episode", "NEW_HOPE" } }
+                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
             });
 
         // assert
@@ -550,17 +550,17 @@ public class HttpGetMiddlewareTests : ServerTestBase
                                 commentary
                             }
                         }",
-                Variables = new Dictionary<string, object>
+                Variables = new Dictionary<string, object?>
                 {
-                        { "ep", "EMPIRE" },
+                    { "ep", "EMPIRE" },
+                    {
+                        "review",
+                        new Dictionary<string, object?>
                         {
-                            "review",
-                            new Dictionary<string, object>
-                            {
-                                { "stars", 5 },
-                                { "commentary", "This is a great movie!" },
-                            }
+                            { "stars", 5 },
+                            { "commentary", "This is a great movie!" },
                         }
+                    }
                 }
             });
 
@@ -592,17 +592,17 @@ public class HttpGetMiddlewareTests : ServerTestBase
                                 commentary
                             }
                         }",
-                Variables = new Dictionary<string, object>
+                Variables = new Dictionary<string, object?>
                 {
-                        { "ep", "EMPIRE" },
+                    { "ep", "EMPIRE" },
+                    {
+                        "review",
+                        new Dictionary<string, object?>
                         {
-                            "review",
-                            new Dictionary<string, object>
-                            {
-                                { "stars", 5 },
-                                { "commentary", "This is a great movie!" },
-                            }
+                            { "stars", 5 },
+                            { "commentary", "This is a great movie!" },
                         }
+                    }
                 }
             });
 
@@ -746,7 +746,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
         result.MatchSnapshot();
     }
 
-    public class ErrorRequestInterceptor : DefaultHttpRequestInterceptor
+    private class ErrorRequestInterceptor : DefaultHttpRequestInterceptor
     {
         public override ValueTask OnCreateAsync(
             HttpContext context,

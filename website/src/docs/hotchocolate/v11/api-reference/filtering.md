@@ -152,7 +152,7 @@ public class QueryType
 }
 ```
 
-> ⚠️ **Note**: Be sure to install the `HotChocolate.Types.Sorting` NuGet package.
+> Warning: Be sure to install the `HotChocolate.Types.Sorting` NuGet package.
 
 If you want to combine for instance paging, filtering, and sorting make sure that the order is like follows:
 
@@ -874,18 +874,18 @@ Hot Chocolate provides different APIs to customize filtering. You can write cust
 
 **As this can be a bit overwhelming the following questionnaire might help:**
 
-|                                                                                                                                         |                                 |
-| --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
-| _You do not want all the generated filters and only allow a specific set of filters in a specific case?_                                | Custom&nbsp;FilterInputType     |
-| _You want to change the name of a field or a whole type?_                                                                               | Custom&nbsp;FilterInputType     |
-| _You want to change the name of the `where` argument?_                                                                                  | Filter Conventions ArgumentName |
+|                                                                                                                                       |                                 |
+| ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| _You do not want all the generated filters and only allow a specific set of filters in a specific case?_                              | Custom&nbsp;FilterInputType     |
+| _You want to change the name of a field or a whole type?_                                                                             | Custom&nbsp;FilterInputType     |
+| _You want to change the name of the `where` argument?_                                                                                | Filter Conventions ArgumentName |
 | _You want to configure how_Hot Chocolate_generates the name and the description of filters in globally? e.g. `PascalCaseFilterType`?_ | Filter&nbsp;Conventions         |
-| _You want to configure what the different types of filters are allowed globally?_                                                       | Filter&nbsp;Conventions         |
-| _Your database provider does not support certain operations of `IQueryable`_                                                            | Filter&nbsp;Conventions         |
-| _You want to change the naming of a specific lar filter type? e.g._ `foo_contains` _should be_ `foo_like`                               | Filter&nbsp;Conventions         |
-| _You want to customize the expression a filter is generating: e.g._ `_equals` _should not be case sensitive?_                           | Expression&nbsp;Visitor&nbsp;   |
-| _You want to create your own filter types with custom parameters and custom expressions? e.g. GeoJson?_                                 | Filter&nbsp;Conventions         |
-| _You have a database client that does not support `IQueryable` and wants to generate filters for it?_                                   | Custom&nbsp;Visitor             |
+| _You want to configure what the different types of filters are allowed globally?_                                                     | Filter&nbsp;Conventions         |
+| _Your database provider does not support certain operations of `IQueryable`_                                                          | Filter&nbsp;Conventions         |
+| _You want to change the naming of a specific lar filter type? e.g._ `foo_contains` _should be_ `foo_like`                             | Filter&nbsp;Conventions         |
+| _You want to customize the expression a filter is generating: e.g._ `_equals` _should not be case sensitive?_                         | Expression&nbsp;Visitor&nbsp;   |
+| _You want to create your own filter types with custom parameters and custom expressions? e.g. GeoJson?_                               | Filter&nbsp;Conventions         |
+| _You have a database client that does not support `IQueryable` and wants to generate filters for it?_                                 | Custom&nbsp;Visitor             |
 
 # Custom&nbsp;FilterInputType
 
@@ -996,7 +996,7 @@ input UserFilter {
 | `csharp±Object<TObject>( Expression<Func<T, TObject>> property)`                 | Defines a object filter for the selected property.                                                                                              |
 | `csharp±List( Expression<Func<T, IEnumerable<string>>> property)`                | Defines an array string filter for the selected property.                                                                                       |
 | `csharp±List( Expression<Func<T, IEnumerable<bool>>> property)`                  | Defines an array bool filter for the selected property.                                                                                         |
-| `csharp±List( Expression<Func<T, IEnumerable<IComparable>>> property)`           | Defines an array comparable filter for the selected property.                                                                                    |
+| `csharp±List( Expression<Func<T, IEnumerable<IComparable>>> property)`           | Defines an array comparable filter for the selected property.                                                                                   |
 | `csharp±Filter<TObject>( Expression<Func<T, IEnumerable<TObject>>> property)`    | Defines an array object filter for the selected property.                                                                                       |
 | `csharp±Directive<TDirective>(TDirective directiveInstance)`                     | Add directive `directiveInstance` to the type                                                                                                   |
 | `csharp±Directive<TDirective>(TDirective directiveInstance)`                     | Add directive of type `TDirective` to the type                                                                                                  |
