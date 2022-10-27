@@ -329,9 +329,9 @@ const NavLink = styled(Link)`
   padding: 10px 15px;
   font-family: ${FONT_FAMILY_HEADING};
   font-size: 0.833em;
+  font-weight: 500;
   color: ${THEME_COLORS.textContrast};
   text-decoration: none;
-  text-transform: uppercase;
   transition: background-color 0.2s ease-in-out;
 
   &.active,
@@ -378,7 +378,7 @@ const LaunchLink = styled(Link)`
   font-family: ${FONT_FAMILY_HEADING};
   font-size: 0.833em;
   text-decoration: none;
-  text-transform: uppercase;
+  font-weight: 500;
   transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
 
   :hover {
