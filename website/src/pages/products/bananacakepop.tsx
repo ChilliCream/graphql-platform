@@ -9,25 +9,27 @@ import React, {
 } from "react";
 import styled, { css } from "styled-components";
 import { parse } from "yaml";
-import { BananaCakePop } from "../components/images/banana-cake-pop";
-import { Layout } from "../components/layout";
-import { Link } from "../components/misc/link";
-import { Intro } from "../components/misc/page-elements";
-import { SEO } from "../components/misc/seo";
+import { BananaCakePop } from "../../components/images/banana-cake-pop";
+import { Layout } from "../../components/layout";
+import { Link } from "../../components/misc/link";
+import { Intro } from "../../components/misc/page-elements";
+import { SEO } from "../../components/misc/seo";
+import { Spinner } from "../../components/misc/spinner";
 import {
   CompaniesSection,
   MostRecentBcpBlogPostsSection,
-} from "../components/widgets";
-import ArrowDownIconSvg from "../images/arrow-down.svg";
-import CircleDownIconSvg from "../images/circle-down.svg";
+} from "../../components/widgets";
+import ArrowDownIconSvg from "../../images/arrow-down.svg";
+import CircleDownIconSvg from "../../images/circle-down.svg";
 import {
   FONT_FAMILY_HEADING,
   IsDesktop,
-  IsPhablet,
+  IsMobile,
   IsSmallDesktop,
+  IsSmallTablet,
   IsTablet,
   THEME_COLORS,
-} from "../shared-style";
+} from "../../shared-style";
 
 const DOWNLOAD_STABLE_BASE_URL =
   "https://download.chillicream.com/bananacakepop/";
@@ -56,7 +58,7 @@ const BananaCakePopPage: FC = () => {
             <ProductDetailsFooter></ProductDetailsFooter>
           </ProductDetails>
           <ProductImage>
-            <BananaCakePop />
+            <BananaCakePop shadow />
           </ProductImage>
         </Product>
       </Intro>
@@ -74,7 +76,11 @@ interface DownloadHeroProps {
 
 const ProductDownload: FC<DownloadHeroProps> = ({ appInfos }) => {
   if (!appInfos) {
-    return null;
+    return (
+      <DownloadLinkPlaceholder>
+        <Spinner colorSelector={({ primaryButtonText }) => primaryButtonText} />
+      </DownloadLinkPlaceholder>
+    );
   }
 
   const { activeStable: active, stable, insider } = appInfos;
@@ -201,7 +207,7 @@ const DownloadButton: FC<DownloadButtonProps> = ({
               </td>
               <td className="insider">
                 <DownloadAppLink
-                  filename={stable.macOS.universal.filename}
+                  filename={insider.macOS.universal.filename}
                   baseUrl={DOWNLOAD_INSIDER_BASE_URL}
                 />
               </td>
@@ -219,7 +225,7 @@ const DownloadButton: FC<DownloadButtonProps> = ({
               </td>
               <td className="insider">
                 <DownloadAppLink
-                  filename={stable.macOS.silicon.filename}
+                  filename={insider.macOS.silicon.filename}
                   baseUrl={DOWNLOAD_INSIDER_BASE_URL}
                 />
               </td>
@@ -237,7 +243,7 @@ const DownloadButton: FC<DownloadButtonProps> = ({
               </td>
               <td className="insider">
                 <DownloadAppLink
-                  filename={stable.macOS.intel.filename}
+                  filename={insider.macOS.intel.filename}
                   baseUrl={DOWNLOAD_INSIDER_BASE_URL}
                 />
               </td>
@@ -258,7 +264,7 @@ const DownloadButton: FC<DownloadButtonProps> = ({
               </td>
               <td className="insider">
                 <DownloadAppLink
-                  filename={stable.windows.executable.filename}
+                  filename={insider.windows.executable.filename}
                   baseUrl={DOWNLOAD_INSIDER_BASE_URL}
                 />
               </td>
@@ -279,7 +285,7 @@ const DownloadButton: FC<DownloadButtonProps> = ({
               </td>
               <td className="insider">
                 <DownloadAppLink
-                  filename={stable.linux.appImage.filename}
+                  filename={insider.linux.appImage.filename}
                   baseUrl={DOWNLOAD_INSIDER_BASE_URL}
                 />
               </td>
@@ -304,16 +310,20 @@ const DownloadAppLink: FC<{
   readonly baseUrl: string;
 }> = ({ filename, baseUrl }) => {
   return (
-    <DownloadVariantLink to={baseUrl + filename} download={filename}>
+    <DownloadEditionLink to={baseUrl + filename} download={filename}>
       <DownloadSvg />
-    </DownloadVariantLink>
+    </DownloadEditionLink>
   );
 };
 
-const DownloadVariantLink = styled(Link).attrs({
+const DownloadEditionLink = styled(Link).attrs({
   rel: "noopener noreferrer",
 })`
-  vertical-align: middle;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
 `;
 
 const Product = styled.div`
@@ -341,7 +351,7 @@ const Product = styled.div`
     width: 100%;
   `)}
 
-  ${IsPhablet(css`
+  ${IsSmallTablet(css`
     flex-direction: column;
     align-items: center;
     width: initial;
@@ -357,7 +367,7 @@ const ProductDetails = styled.div`
   margin: 20px 30px 100px;
   overflow: visible;
 
-  ${IsPhablet(css`
+  ${IsSmallTablet(css`
     flex-basis: auto;
     margin: 20px 40px;
   `)}
@@ -376,6 +386,10 @@ export const ProductName = styled.h1`
   font-weight: normal;
   font-size: 2.222em;
   color: ${THEME_COLORS.textContrast};
+
+  ${IsMobile(css`
+    font-size: 1.625em;
+  `)}
 `;
 
 export const ProductDescription = styled.h2`
@@ -384,6 +398,10 @@ export const ProductDescription = styled.h2`
   font-weight: normal;
   font-size: 1.625em;
   color: ${THEME_COLORS.quaternary};
+
+  ${IsMobile(css`
+    font-size: 1.125em;
+  `)}
 `;
 
 const ProductDetailsFooter = styled.div`
@@ -397,11 +415,9 @@ const ProductImage = styled.div`
   flex: 1 1 auto;
   align-items: center;
   justify-content: center;
-  margin: 20px 30px;
 
-  ${IsPhablet(css`
-    flex-basis: auto;
-    margin: 20px 40px;
+  ${IsSmallTablet(css`
+    margin: 0 10px;
   `)}
 `;
 
@@ -425,6 +441,7 @@ const DownloadLink = styled(OutboundLink).attrs({
   justify-content: center;
   border-radius: var(--border-radius) 0 0 var(--border-radius);
   height: 60px;
+  min-width: 150px;
   padding: 0 15px;
   color: ${THEME_COLORS.primaryButtonText};
   background-color: ${THEME_COLORS.primaryButton};
@@ -444,6 +461,25 @@ const DownloadLink = styled(OutboundLink).attrs({
     color: ${THEME_COLORS.primaryButtonHoverText};
     background-color: ${THEME_COLORS.primaryButtonHover};
   }
+`;
+
+const DownloadLinkPlaceholder = styled.div`
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--border-radius);
+  height: 60px;
+  min-width: 180px;
+  padding: 0 15px;
+  color: ${THEME_COLORS.primaryButtonText};
+  background-color: ${THEME_COLORS.primaryButton};
+  font-family: ${FONT_FAMILY_HEADING};
+  font-size: 1em;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
 `;
 
 const DropDown = styled.div`
@@ -477,6 +513,7 @@ const DropDown = styled.div`
 const DownloadSvg = styled(CircleDownIconSvg)`
   width: 16px;
   height: 16px;
+  padding: 2px;
   transition: fill 0.2s ease-in-out;
 `;
 
@@ -494,6 +531,10 @@ const DownloadMatrix = styled.div`
   background-color: ${THEME_COLORS.background};
   box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
   user-select: none;
+
+  ${IsSmallTablet(css`
+    left: initial;
+  `)}
 
   &.show {
     display: flex;

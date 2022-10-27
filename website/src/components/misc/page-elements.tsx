@@ -11,7 +11,7 @@ export const Intro = styled.header`
   background-color: ${THEME_COLORS.primary};
   background: linear-gradient(
     180deg,
-    ${THEME_COLORS.primary} 70%,
+    ${THEME_COLORS.primary} 0%,
     #3d5f9f 100%
   ); //before: ff892a
 
