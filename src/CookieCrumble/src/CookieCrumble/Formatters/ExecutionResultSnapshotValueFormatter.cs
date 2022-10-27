@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using HotChocolate;
@@ -133,17 +134,34 @@ internal class JsonResultPatcher
             }
             else if (element.TryGetProperty(_items, out var items))
             {
-
+                PatchIncrementalItems(element, JsonArray.Create(items)!);
             }
         }
     }
 
-    public void PatchIncrementalData(JsonElement incremental, JsonObject data)
+    private void PatchIncrementalData(JsonElement incremental, JsonObject data)
     {
         if (incremental.TryGetProperty(_path, out var pathProp))
         {
             var (current, last) = SelectNodeToPatch(_json![_data]!, pathProp);
             ApplyPatch(current, last, data);
+        }
+    }
+
+    private void PatchIncrementalItems(JsonElement incremental, JsonArray items)
+    {
+        if (incremental.TryGetProperty(_path, out var pathProp))
+        {
+            var (current, last) = SelectNodeToPatch(_json![_data]!, pathProp);
+            var i = last.GetInt32();
+            var target = current.AsArray();
+
+            while (items.Count > 0)
+            {
+                var item = items[0];
+                items.RemoveAt(0);
+                target.Insert(i++, item);
+            }
         }
     }
 
