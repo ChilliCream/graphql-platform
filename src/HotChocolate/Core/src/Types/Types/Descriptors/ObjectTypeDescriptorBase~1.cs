@@ -144,15 +144,11 @@ public abstract class ObjectTypeDescriptorBase<T>
 
     public IObjectFieldDescriptor Field(
         Expression<Func<T, object>> propertyOrMethod)
-    {
-        return base.Field(propertyOrMethod);
-    }
+        => base.Field(propertyOrMethod);
 
     public IObjectFieldDescriptor Field<TValue>(
         Expression<Func<T, TValue>> propertyOrMethod)
-    {
-        return base.Field(propertyOrMethod);
-    }
+        => base.Field(propertyOrMethod);
 
     public new IObjectTypeDescriptor<T> Directive<TDirective>(
         TDirective directiveInstance)
@@ -177,4 +173,3 @@ public abstract class ObjectTypeDescriptorBase<T>
         return this;
     }
 }
-

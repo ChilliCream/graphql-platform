@@ -33,14 +33,14 @@ public class InputObjectTypeDescriptor<T>
 
     protected override void OnCompleteFields(
         IDictionary<string, InputFieldDefinition> fields,
-        ISet<PropertyInfo> handledProperties)
+        ISet<MemberInfo> handledProperties)
     {
         if (Definition.Fields.IsImplicitBinding())
         {
             FieldDescriptorUtilities.AddImplicitFields(
                 this,
                 p => InputFieldDescriptor
-                    .New(Context, p)
+                    .New(Context, (PropertyInfo)p)
                     .CreateDefinition(),
                 fields,
                 handledProperties);

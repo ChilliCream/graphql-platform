@@ -7,16 +7,19 @@ import { Copy } from "./copy";
 
 export interface CodeBlockProps {
   readonly children: any;
+  readonly language?: Language;
 }
 
-export const CodeBlock: FC<CodeBlockProps> = ({ children }) => {
-  const language = children.props.className.replace(
-    /language-/,
-    ""
-  ) as Language;
-  const meta = children.props.metastring;
+export const CodeBlock: FC<CodeBlockProps> = ({
+  children,
+  language: fallbackLanguage,
+}) => {
+  const language =
+    (children.props?.className?.replace(/language-/, "") as Language) ||
+    fallbackLanguage;
+  const meta = children.props?.metastring;
   const shouldHighlightLine = calculateLinesToHighlight(meta);
-  const code = children.props.children;
+  const code = children.props?.children || children;
 
   return (
     <Container className={`gatsby-highlight code-${language}`}>
@@ -124,7 +127,7 @@ const IndicatorContent = styled.div`
   border-radius: 0px 0px var(--border-radius) var(--border-radius);
   padding: 2px 8px;
   font-size: 0.8em;
-  font-weight: bold;
+  font-weight: 600;
   letter-spacing: 0.075em;
   line-height: 1em;
   text-transform: uppercase;

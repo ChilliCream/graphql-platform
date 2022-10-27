@@ -142,7 +142,7 @@ const TocListItem = styled.li<TocListItemProps>`
     active &&
     css`
       > ${TocLink} {
-        font-weight: bold;
+        font-weight: 600;
       }
     `}
 `;

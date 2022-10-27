@@ -2,8 +2,6 @@
 title: Global State
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 Global State allows us to define properties on a per-request basis to be made available to all resolvers and middleware.
 
 # Initializing Global State
@@ -98,7 +96,7 @@ public class QueryType : ObjectType
 }
 ```
 
-> ⚠️ Note: If no value exists for the specified `key` a default value is returned an no exception is thrown.
+> Warning: If no value exists for the specified `key` a default value is returned an no exception is thrown.
 
 We can also access the Global State through the `ContextData` dictionary on the `IResolverContext`.
 

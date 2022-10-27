@@ -2,8 +2,6 @@
 title: Authorization
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 Authorization allows us to determine a user's permissions within our system. We can for example limit access to resources or only allow certain users to execute specific mutations.
 
 Authentication is a prerequisite of Authorization, as we first need to validate a user's "authenticity" before we can evaluate his authorization claims.
@@ -16,11 +14,7 @@ After we have successfully setup authentication, there are only a few things lef
 
 1. Install the `HotChocolate.AspNetCore.Authorization` package
 
-```bash
-dotnet add package HotChocolate.AspNetCore.Authorization
-```
-
-> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+<PackageInstallation packageName="HotChocolate.AspNetCore.Authorization" />
 
 2. Register the necessary ASP.NET Core services
 
@@ -41,7 +35,7 @@ public class Startup
 }
 ```
 
-> ⚠️ Note: We need to call `AddAuthorization()` on the `IServiceCollection`, to register the services needed by ASP.NET Core, and on the `IRequestExecutorBuilder` to register the `@authorize` directive and middleware.
+> Warning: We need to call `AddAuthorization()` on the `IServiceCollection`, to register the services needed by ASP.NET Core, and on the `IRequestExecutorBuilder` to register the `@authorize` directive and middleware.
 
 3. Register the ASP.NET Core authorization middleware with the request pipeline by calling `UseAuthorization`
 
@@ -83,7 +77,7 @@ public class User
 }
 ```
 
-> ⚠️ Note: We need to use the `HotChocolate.AspNetCore.Authorization.AuthorizeAttribute` instead of the `Microsoft.AspNetCore.AuthorizationAttribute`.
+> Warning: We need to use the `HotChocolate.AspNetCore.Authorization.AuthorizeAttribute` instead of the `Microsoft.AspNetCore.AuthorizationAttribute`.
 
 </Annotation>
 <Code>
@@ -117,7 +111,7 @@ Specified on a type the `@authorize` directive will be applied to each field of 
 
 If we do not specify any arguments to the `@authorize` directive, it will only enforce that the requestor is authenticated, nothing more. If he is not and tries to access an authorized field, a GraphQL error will be raised and the field result set to `null`.
 
-> ⚠️ Note: Using the @authorize directive, all unauthorized requests by default will return status code 200 and a payload like this:
+> Warning: Using the @authorize directive, all unauthorized requests by default will return status code 200 and a payload like this:
 
 ```json
 {
@@ -196,7 +190,7 @@ type User @authorize(roles: [ "Guest", "Administrator" ]) {
 </Schema>
 </ExampleTabs>
 
-> ⚠️ Note: If multiple roles are specified, a user only has to match one of the specified roles, in order to be able to execute the resolver.
+> Warning: If multiple roles are specified, a user only has to match one of the specified roles, in order to be able to execute the resolver.
 
 [Learn more about role-based authorization in ASP.NET Core](https://docs.microsoft.com/aspnet/core/security/authorization/roles)
 
@@ -368,7 +362,7 @@ public class Startup
 
 This method also accepts [roles](#roles) and [policies](#policies) as arguments, similar to the `Authorize` attribute / methods.
 
-> ⚠️ Note: Unlike the `@authorize directive` this will return status code 401 and prevent unauthorized access to all middleware included in `MapGraphQL`. This includes our GraphQL IDE Banana Cake Pop. If we do not want to block unauthorized access to Banana Cake Pop, we can split up the `MapGraphQL` middleware and for example only apply the `RequireAuthorization` to the `MapGraphQLHttp` middleware.
+> Warning: Unlike the `@authorize directive` this will return status code 401 and prevent unauthorized access to all middleware included in `MapGraphQL`. This includes our GraphQL IDE Banana Cake Pop. If we do not want to block unauthorized access to Banana Cake Pop, we can split up the `MapGraphQL` middleware and for example only apply the `RequireAuthorization` to the `MapGraphQLHttp` middleware.
 
 [Learn more about available middleware](/docs/hotchocolate/v12/server/endpoints)
 

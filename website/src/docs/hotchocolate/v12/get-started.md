@@ -42,24 +42,7 @@ Create a new project from within Visual Studio using the "ASP.NET Core Empty" te
 
 This package includes everything that's needed to get your GraphQL server up and running.
 
-<InputChoiceTabs>
-<InputChoiceTabs.CLI>
-
-```bash
-dotnet add package HotChocolate.AspNetCore
-```
-
-</InputChoiceTabs.CLI>
-<InputChoiceTabs.VisualStudio>
-
-You can add the `HotChocolate.AspNetCore` package using the NuGet Package Manager within Visual Studio.
-
-[Learn how you can use the NuGet Package Manager to install a package](https://docs.microsoft.com/nuget/quickstart/install-and-use-a-package-in-visual-studio#nuget-package-manager)
-
-</InputChoiceTabs.VisualStudio>
-</InputChoiceTabs>
-
-> ⚠️ Note: Additional `HotChocolate.*` packages need to have the same version.
+<PackageInstallation packageName="HotChocolate.AspNetCore" />
 
 ## 3. Define the types
 

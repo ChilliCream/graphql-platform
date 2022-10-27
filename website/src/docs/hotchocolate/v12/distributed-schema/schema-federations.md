@@ -14,11 +14,7 @@ With a cache, the gateway schema is also more stable and faster in bootstrapping
 
 You will need to add a package reference to `HotChocolate.Stitching.Redis` to all your services:
 
-```bash
-dotnet add package HotChocolate.Stitching.Redis
-```
-
-> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+<PackageInstallation packageName="HotChocolate.Stitching.Redis" />
 
 ## Configuration of a domain service
 
@@ -101,11 +97,7 @@ Your schema will expose an additional field. This field is used by the Gateway t
 
 You will need to add a package reference to `HotChocolate.Stitching` to all your services:
 
-```cli
-dotnet add package HotChocolate.Stitching
-```
-
-> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+<PackageInstallation packageName="HotChocolate.Stitching" />
 
 ## Configuration of a domain service
 

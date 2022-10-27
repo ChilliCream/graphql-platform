@@ -2,8 +2,6 @@
 title: Sorting
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 # What is sorting
 
 Ordering results of a query dynamically is a common case. With Hot Chocolate sorting, you can expose a sorting argument that abstracts the complexity of ordering logic.
@@ -56,13 +54,9 @@ enum SortEnumType {
 
 # Getting started
 
-Sorting is part of the `HotChocolate.Data` package. You can add the dependency with the `dotnet` cli
+Sorting is part of the `HotChocolate.Data` package.
 
-```bash
-dotnet add package HotChocolate.Data
-```
-
-> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+<PackageInstallation packageName="HotChocolate.Data" />
 
 To use sorting you need to register it on the schema:
 

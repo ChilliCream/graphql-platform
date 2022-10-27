@@ -2,8 +2,6 @@
 title: "Scalars"
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 Scalar types are the primitives of our schema and can hold a specific type of data. They are leaf types, meaning we cannot use e.g. `{ fieldname }` to further drill down into the type. The main purpose of a scalar is to define how a value is serialized and deserialized.
 
 Besides basic scalars like `String` and `Int`, we can also create custom scalars like `CreditCardNumber` or `SocialSecurityNumber`. These custom scalars can greatly enhance the expressiveness of our schema and help new developers to get a grasp of our API.
@@ -282,9 +280,7 @@ We also offer a separate package with scalars for more specific use cases.
 
 To use these scalars we have to add the `HotChocolate.Types.Scalars` package.
 
-```bash
-dotnet add package HotChocolate.Types.Scalars
-```
+<PackageInstallation packageName="HotChocolate.Types.Scalars" />
 
 **Available Scalars:**
 
@@ -340,9 +336,7 @@ We also offer a package specifically for [NodaTime](https://github.com/nodatime/
 
 It can be installed like the following.
 
-```bash
-dotnet add package HotChocolate.Types.NodaTime
-```
+<PackageInstallation packageName="HotChocolate.Types.NodaTime" />
 
 **Available Scalars:**
 
