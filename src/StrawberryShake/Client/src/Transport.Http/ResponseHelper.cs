@@ -15,7 +15,7 @@ internal static class ResponseHelper
     {
         try
         {
-            JsonDocument document =
+            var document =
                 await JsonDocument.ParseAsync(
                         stream,
                         new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip },
@@ -27,7 +27,7 @@ internal static class ResponseHelper
                 var hasNext = false;
                 var isPatch = document.RootElement.TryGetProperty(ResultFields.Path, out _);
 
-                if (document.RootElement.TryGetProperty(HasNext, out JsonElement hasNextProp) &&
+                if (document.RootElement.TryGetProperty(HasNext, out var hasNextProp) &&
                    hasNextProp.GetBoolean())
                 {
                     hasNext = true;
