@@ -181,6 +181,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
             .Add(response)
             .MatchInline(
                 @"Headers:
+                Cache-Control: no-cache
                 Content-Type: multipart/mixed; boundary=""-""
                 -------------------------->
                 Status Code: OK
@@ -796,6 +797,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
             .Add(response)
             .MatchInline(
                 @"Headers:
+                Cache-Control: no-cache
                 Content-Type: multipart/mixed; boundary=""-""
                 -------------------------->
                 Status Code: OK
@@ -900,6 +902,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
             .Add(response)
             .MatchInline(
                 @"Headers:
+                Cache-Control: no-cache
                 Content-Type: text/event-stream; charset=utf-8
                 -------------------------->
                 Status Code: OK

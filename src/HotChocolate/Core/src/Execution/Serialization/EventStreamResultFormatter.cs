@@ -146,7 +146,8 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
             await outputStream.WriteAsync(_newLine).ConfigureAwait(false);
 #else
             await outputStream.WriteAsync(DataField, 0, DataField.Length).ConfigureAwait(false);
-            await outputStream.WriteAsync(bufferWriter.GetInternalBuffer(), read, buffer.Length).ConfigureAwait(false);
+            await outputStream.WriteAsync(bufferWriter.GetInternalBuffer(), read, buffer.Length)
+                .ConfigureAwait(false);
             await outputStream.WriteAsync(_newLine, 0, _newLine.Length).ConfigureAwait(false);
 #endif
 
