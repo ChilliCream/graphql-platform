@@ -25,7 +25,7 @@ export const Section = styled.section`
   overflow: hidden;
 
   &:nth-child(odd) {
-    background-color: #e8ecf5;
+    background-color: ${THEME_COLORS.backgroundAlt};
   }
 
   @media only screen and (min-width: 992px) {
