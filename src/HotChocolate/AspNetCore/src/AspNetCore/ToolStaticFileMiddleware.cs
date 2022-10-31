@@ -12,7 +12,7 @@ namespace HotChocolate.AspNetCore;
 /// <summary>
 /// Enables serving static files for a given request path
 /// </summary>
-public class ToolStaticFileMiddleware
+public sealed class ToolStaticFileMiddleware
 {
     private readonly IContentTypeProvider _contentTypeProvider;
     private readonly IFileProvider _fileProvider;
@@ -105,7 +105,7 @@ public class ToolStaticFileMiddleware
         return false;
     }
 
-    private async Task SendAsync(HttpContext context, StaticFileInfo fileInfo)
+    private static async Task SendAsync(HttpContext context, StaticFileInfo fileInfo)
     {
         SetCompressionMode(context);
         context.Response.StatusCode = 200;
@@ -131,7 +131,7 @@ public class ToolStaticFileMiddleware
         }
     }
 
-    private void SetCompressionMode(HttpContext context)
+    private static void SetCompressionMode(HttpContext context)
     {
         if (context.Features.Get<IHttpsCompressionFeature>() is { } c)
         {

@@ -88,7 +88,7 @@ public static class EndpointRouteBuilderExtensions
             .UseMiddleware<ToolDefaultFileMiddleware>(fileProvider, path)
             .UseMiddleware<ToolOptionsFileMiddleware>(path)
             .UseMiddleware<ToolStaticFileMiddleware>(fileProvider, path)
-            .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault)
+            .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault, path)
             .Use(_ => context =>
             {
                 context.Response.StatusCode = 404;
