@@ -1,4 +1,5 @@
 using System.Net;
+using System.Security.Cryptography;
 using System.Text;
 using CookieCrumble;
 using Microsoft.AspNetCore.Builder;
@@ -28,6 +29,60 @@ public class PersistedQueryTests : ServerTestBase
 
         var server = CreateStarWarsServer(
             configureServices: s => s
+                .AddGraphQL("StarWars")
+                .ConfigureSchemaServices(c => c.AddSingleton<IReadStoredQueries>(storage))
+                .UsePersistedQueryPipeline());
+
+        var query = "{ __typename }";
+        var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
+        storage.AddQuery(key, query);
+
+        // act
+        var result = await server.PostAsync(
+            CreateApolloStyleRequest(hashProvider.Name, key),
+            path: "/starwars");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task ApolloStyle_MD5Hash_NotFound()
+    {
+        // arrange
+        var storage = new QueryStorage();
+        var hashProvider = new MD5DocumentHashProvider(HashFormat.Hex);
+
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQL("StarWars")
+                .ConfigureSchemaServices(c => c.AddSingleton<IReadStoredQueries>(storage))
+                .UsePersistedQueryPipeline());
+
+        var query = "{ __typename }";
+        var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
+        // we are not adding the query to the store so the server request should fail
+        // storage.AddQuery(key, query);
+
+        // act
+        var result = await server.PostAsync(
+            CreateApolloStyleRequest(hashProvider.Name, key),
+            path: "/starwars");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task ApolloStyle_Sha256Hash_Success()
+    {
+        // arrange
+        var storage = new QueryStorage();
+        var hashProvider = new Sha256DocumentHashProvider(HashFormat.Hex);
+
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddSha256DocumentHashProvider(HashFormat.Hex)
                 .AddGraphQL("StarWars")
                 .ConfigureSchemaServices(c => c.AddSingleton<IReadStoredQueries>(storage))
                 .UsePersistedQueryPipeline());

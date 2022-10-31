@@ -1,0 +1,14 @@
+{
+  "ContentType": "application/json; charset=utf-8",
+  "StatusCode": "OK",
+  "Data": null,
+  "Errors": [
+    {
+      "message": "The query request contains no document.",
+      "extensions": {
+        "code": "HC0015"
+      }
+    }
+  ],
+  "Extensions": null
+}

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace HotChocolate;
 
@@ -54,6 +55,12 @@ public static class ErrorCodes
         /// A persisted query was not found when using the active persisted query pipeline.
         /// </summary>
         public const string PersistedQueryNotFound = "HC0020";
+
+        /// <summary>
+        /// Only persisted queries are allowed.
+        /// </summary>
+        public const string OnlyPersistedQueriesAllowed = "HC0067";
+
         public const string TaskProcessingError = "HC0008";
         public const string SyntaxError = "HC0014";
         public const string CannotCreateRootValue = "HC0019";

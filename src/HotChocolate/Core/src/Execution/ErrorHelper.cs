@@ -219,4 +219,17 @@ internal static class ErrorHelper
             .SetPath(path)
             .AddLocation(selection)
             .Build();
+
+    public static IError PersistedQueryNotFound(string requestedKey)
+        => ErrorBuilder.New()
+            .SetMessage(ErrorHelper_PersistedQueryNotFound)
+            .SetCode(ErrorCodes.Execution.PersistedQueryNotFound)
+            .SetExtension(nameof(requestedKey), requestedKey)
+            .Build();
+
+    public static IError OnlyPersistedQueriesAreAllowed()
+        => ErrorBuilder.New()
+            .SetMessage(ErrorHelper_OnlyPersistedQueriesAreAllowed)
+            .SetCode(ErrorCodes.Execution.OnlyPersistedQueriesAllowed)
+            .Build();
 }
