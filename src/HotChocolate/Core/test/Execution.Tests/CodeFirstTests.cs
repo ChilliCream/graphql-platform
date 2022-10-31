@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Moq;
-using Xunit;
 
 #nullable enable
 
@@ -30,6 +30,82 @@ public class CodeFirstTests
         // assert
         Assert.Null(Assert.IsType<QueryResult>(result).Errors);
         result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task AllowFiveToken_Success()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(new ParserOptions(maxAllowedTokens: 5))
+                .AddGraphQL()
+                .AddQueryType<QueryTypeWithProperty>()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync("{ a: test }");
+
+        // assert
+        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+    }
+
+    [Fact]
+    public async Task AllowFiveToken_Fail()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(new ParserOptions(maxAllowedTokens: 5))
+                .AddGraphQL()
+                .AddQueryType<QueryTypeWithProperty>()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync("{ a: test b: test }");
+
+        // assert
+        Assert.Collection(
+            Assert.IsType<QueryResult>(result).Errors!,
+            e => Assert.Equal("Document contains more than 5 tokens. Parsing aborted.", e.Message));
+    }
+
+    [Fact]
+    public async Task AllowSixNode_Success()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(new ParserOptions(maxAllowedNodes: 6))
+                .AddGraphQL()
+                .AddQueryType<QueryTypeWithProperty>()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync("{ a: test }");
+
+        // assert
+        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+    }
+
+    [Fact]
+    public async Task AllowSixNodes_Fail()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(new ParserOptions(maxAllowedNodes: 6))
+                .AddGraphQL()
+                .AddQueryType<QueryTypeWithProperty>()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync("{ a: test b: test }");
+
+        // assert
+        Assert.Collection(
+            Assert.IsType<QueryResult>(result).Errors!,
+            e => Assert.Equal("Document contains more than 1 nodes. Parsing aborted.", e.Message));
     }
 
     [Fact]

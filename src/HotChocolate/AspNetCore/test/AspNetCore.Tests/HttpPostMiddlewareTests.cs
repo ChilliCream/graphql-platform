@@ -32,6 +32,40 @@ public class HttpPostMiddlewareTests : ServerTestBase
     }
 
     [Fact]
+    public async Task LimitTokenCount_Success()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQL()
+                .ModifyParserOptions(o => o.MaxAllowedNodes = 6));
+
+        // act
+        var result = await server.PostAsync(
+            new ClientQueryRequest { Query = "{ s: __typename }" });
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task LimitTokenCount_Fail()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .ModifyParserOptions(o => o.MaxAllowedNodes = 6));
+
+        // act
+        var result = await server.PostAsync(
+            new ClientQueryRequest { Query = "{ s: __typename t: __typename }" });
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task MapGraphQLHttp_Simple_IsAlive_Test()
     {
         // arrange
@@ -972,16 +1006,16 @@ public class HttpPostMiddlewareTests : ServerTestBase
                 {
                     Query =
                         @"query getHero {
-                                hero(episode: EMPIRE) {
-                                    id @export
-                                }
+                            hero(episode: EMPIRE) {
+                                id @export
                             }
+                        }
 
-                            query getHuman {
-                                human(id: $id) {
-                                    name
-                                }
-                            }"
+                        query getHuman {
+                            human(id: $id) {
+                                name
+                            }
+                        }"
                 },
                 "getHero, getHuman");
 

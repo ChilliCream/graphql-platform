@@ -201,11 +201,7 @@ internal sealed class RequestExecutorResolver
         serviceCollection.AddSingleton(executorOptions);
         serviceCollection.AddSingleton<IRequestExecutorOptionsAccessor>(
             s => s.GetRequiredService<RequestExecutorOptions>());
-        serviceCollection.AddSingleton<IInstrumentationOptionsAccessor>(
-            s => s.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton<IErrorHandlerOptionsAccessor>(
-            s => s.GetRequiredService<RequestExecutorOptions>());
-        serviceCollection.AddSingleton<IDocumentCacheSizeOptionsAccessor>(
             s => s.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton<IRequestTimeoutOptionsAccessor>(
             s => s.GetRequiredService<RequestExecutorOptions>());

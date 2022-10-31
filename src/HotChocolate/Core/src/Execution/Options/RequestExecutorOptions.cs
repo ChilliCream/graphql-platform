@@ -9,10 +9,8 @@ namespace HotChocolate.Execution.Options;
 /// </summary>
 public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
 {
-    private const int _minQueryCacheSize = 10;
     private static readonly TimeSpan _minExecutionTimeout = TimeSpan.FromMilliseconds(100);
     private TimeSpan _executionTimeout;
-    private int _queryCacheSize = 100;
 
     /// <summary>
     /// <para>Initializes a new instance of <see cref="RequestExecutorOptions"/>.</para>
@@ -55,32 +53,4 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
     /// Gets the complexity analyzer settings.
     /// </summary>
     public ComplexityAnalyzerSettings Complexity { get; } = new();
-
-    /// <summary>
-    /// Gets or sets the maximum amount of compiled queries that can be cached. The
-    /// default value is <c>100</c>. The minimum allowed value is
-    /// <c>10</c>.
-    /// </summary>
-    [Obsolete("Use AddDocumentCache or AddOperationCache on the IServiceCollection.", true)]
-    public int QueryCacheSize
-    {
-        get => _queryCacheSize;
-        set
-        {
-            _queryCacheSize = value < _minQueryCacheSize
-                ? _minQueryCacheSize
-                : value;
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether tracing for performance
-    /// measurement of query requests is enabled. The default value is
-    /// <see cref="HotChocolate.Execution.Options.TracingPreference.Never"/>.
-    /// </summary>
-    [Obsolete("Use AddApolloTracing on the IRequestExecutorBuilder.", true)]
-    public TracingPreference TracingPreference { get; set; }
-
-    [Obsolete("Use Complexity", true)]
-    public bool? UseComplexityMultipliers { get; set; }
 }

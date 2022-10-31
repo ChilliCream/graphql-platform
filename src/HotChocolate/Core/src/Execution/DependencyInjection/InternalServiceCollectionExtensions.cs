@@ -225,7 +225,7 @@ internal static class InternalServiceCollectionExtensions
         this IServiceCollection services)
     {
         services.TryAddSingleton<IDocumentHashProvider>(
-            _ => new MD5DocumentHashProvider());
+            _ => new MD5DocumentHashProvider(HashFormat.Base64));
         return services;
     }
 

@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Language.Web</PackageId>
+    <AssemblyName>HotChocolate.Language.Web</AssemblyName>
+    <RootNamespace>HotChocolate.Language</RootNamespace>
+    <Description>This package contains specialized parser utilities for the Hot Chocolate GraphQL server.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Language.Utf8\HotChocolate.Language.Utf8.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Utf8GraphQLRequestParser.Constants.cs">
+      <DependentUpon>Utf8GraphQLRequestParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Utf8GraphQLRequestParser.Json.cs">
+      <DependentUpon>Utf8GraphQLRequestParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Utf8GraphQLRequestParser.Message.cs">
+      <DependentUpon>Utf8GraphQLRequestParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Utf8GraphQLRequestParser.Request.cs">
+      <DependentUpon>Utf8GraphQLRequestParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Utf8GraphQLRequestParser.Response.cs">
+      <DependentUpon>Utf8GraphQLRequestParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Utf8GraphQLRequestParser.Syntax.cs">
+      <DependentUpon>Utf8GraphQLRequestParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Utf8GraphQLRequestParser.Utilities.cs">
+      <DependentUpon>Utf8GraphQLRequestParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Utf8GraphQLRequestParser.Values.cs">
+      <DependentUpon>Utf8GraphQLRequestParser.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+</Project>

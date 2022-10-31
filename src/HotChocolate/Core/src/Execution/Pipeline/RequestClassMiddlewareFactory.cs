@@ -154,13 +154,7 @@ internal static class RequestClassMiddlewareFactory
         IRequestExecutorOptionsAccessor options)
     {
         parameterHandlers.Add(new TypeParameterHandler(
-            typeof(IDocumentCacheSizeOptionsAccessor),
-            Expression.Constant(options)));
-        parameterHandlers.Add(new TypeParameterHandler(
             typeof(IErrorHandlerOptionsAccessor),
-            Expression.Constant(options)));
-        parameterHandlers.Add(new TypeParameterHandler(
-            typeof(IInstrumentationOptionsAccessor),
             Expression.Constant(options)));
         parameterHandlers.Add(new TypeParameterHandler(
             typeof(IRequestExecutorOptionsAccessor),

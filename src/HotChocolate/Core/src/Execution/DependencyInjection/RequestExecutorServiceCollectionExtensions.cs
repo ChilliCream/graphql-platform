@@ -1,10 +1,13 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 using GreenDonut;
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Options;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -70,7 +73,28 @@ public static class RequestExecutorServiceCollectionExtensions
             .TryAddRequestExecutorResolver();
 
         // parser
-        services.TryAddSingleton(ParserOptions.Default);
+        services.TryAddSingleton(
+            sp =>
+            {
+                var modifiers = sp.GetService<IEnumerable<Action<RequestParserOptions>>?>();
+
+                if (modifiers is null)
+                {
+                    return ParserOptions.Default;
+                }
+
+                var options = new RequestParserOptions();
+
+                foreach (var configure in modifiers)
+                {
+                    configure(options);
+                }
+
+                return new ParserOptions(
+                    noLocations: !options.IncludeLocations,
+                    maxAllowedNodes: options.MaxAllowedNodes,
+                    maxAllowedTokens: options.MaxAllowedTokens);
+            });
 
         return services;
     }
