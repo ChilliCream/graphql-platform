@@ -212,6 +212,17 @@ public class ValuesOfCorrectTypeRuleTests
     }
 
     [Fact]
+    public void OverflowInt()
+    {
+        ExpectErrors($@"
+            {{
+              arguments {{
+                intArgField(intArg: {long.MaxValue})
+              }}
+            }}");
+    }
+
+    [Fact]
     public void GoodNullToBooleanNullableValue()
     {
         ExpectValid(@"
