@@ -26,6 +26,12 @@ public static class WellKnownContextData
     public const string DocumentSaved = "HotChocolate.Execution.DocumentSaved";
 
     /// <summary>
+    /// The key that specifies that the current context allows standard queries
+    /// that are not known to the server.
+    /// </summary>
+    public const string NonPersistedQueryAllowed = "HotChocolate.Execution.NonPersistedQueryAllowed";
+
+    /// <summary>
     /// The key for setting a flag that the execution had document validation errors.
     /// </summary>
     public const string ValidationErrors = "HotChocolate.Execution.ValidationErrors";

@@ -31,9 +31,7 @@ public interface IDocumentCache
     /// <c>true</c> if a cached GraphQL syntax tree was found that matches the
     /// <paramref name="documentId"/>, otherwise <c>false</c>.
     /// </returns>
-    bool TryGetDocument(
-        string documentId,
-        [NotNullWhen(true)] out DocumentNode document);
+    bool TryGetDocument(string documentId, [NotNullWhen(true)] out DocumentNode? document);
 
     /// <summary>
     /// Tries to add a parsed GraphQL syntax tree to the cache.
@@ -44,9 +42,7 @@ public interface IDocumentCache
     /// <param name="document">
     /// The GraphQL syntax tree.
     /// </param>
-    void TryAddDocument(
-        string documentId,
-        DocumentNode document);
+    void TryAddDocument(string documentId, DocumentNode document);
 
     /// <summary>
     /// Clears the cache.

@@ -35,8 +35,9 @@ public sealed class HttpGetMiddleware : MiddlewareBase
     public async Task InvokeAsync(HttpContext context)
     {
         if (HttpMethods.IsGet(context.Request.Method) &&
-            context.Request.TryMatchPath(_matchUrl, false, out var subPath) &&
-            !subPath.HasValue &&
+            (!_matchUrl.HasValue ||
+                (context.Request.TryMatchPath(_matchUrl, false, out var subPath) &&
+                !subPath.HasValue)) &&
             (context.GetGraphQLServerOptions()?.EnableGetRequests ?? true))
         {
             if (!IsDefaultSchema)

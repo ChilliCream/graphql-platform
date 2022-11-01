@@ -12,11 +12,11 @@ namespace HotChocolate.Execution.Benchmarks
     public class DefaultExecutionPipelineBenchmark
     {
         private readonly IRequestExecutor _executor;
-        private readonly IReadOnlyQueryRequest _getHeroRequest;
-        private readonly IReadOnlyQueryRequest _getHeroWithFriendsRequest;
-        private readonly IReadOnlyQueryRequest _getTwoHeroesWithFriendsRequest;
-        private readonly IReadOnlyQueryRequest _largeQuery;
-        private readonly IReadOnlyQueryRequest _introspectionRequest;
+        private readonly IQueryRequest _getHeroRequest;
+        private readonly IQueryRequest _getHeroWithFriendsRequest;
+        private readonly IQueryRequest _getTwoHeroesWithFriendsRequest;
+        private readonly IQueryRequest _largeQuery;
+        private readonly IQueryRequest _introspectionRequest;
 
         public DefaultExecutionPipelineBenchmark()
         {
@@ -43,7 +43,7 @@ namespace HotChocolate.Execution.Benchmarks
             SchemaIntrospection().Wait();
         }
 
-        private static IReadOnlyQueryRequest CreateRequest(
+        private static IQueryRequest CreateRequest(
             MD5DocumentHashProvider md5,
             ResourceHelper resources,
             string resourceName)
@@ -126,7 +126,7 @@ namespace HotChocolate.Execution.Benchmarks
 
         private static async Task OneRequest(
             IRequestExecutor executor,
-            IReadOnlyQueryRequest request)
+            IQueryRequest request)
         {
             var result = (await executor.ExecuteAsync(request)).ExpectQueryResult();
 
@@ -144,7 +144,7 @@ namespace HotChocolate.Execution.Benchmarks
 
         private static async Task FiveRequestsInParallel(
             IRequestExecutor executor,
-            IReadOnlyQueryRequest request)
+            IQueryRequest request)
         {
             var task1 = OneRequest(executor, request);
             var task2 = OneRequest(executor, request);

@@ -428,5 +428,17 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("ResultBuilder_DataAndItemsNotAllowed", resourceCulture);
             }
         }
+        
+        internal static string ErrorHelper_PersistedQueryNotFound {
+            get {
+                return ResourceManager.GetString("ErrorHelper_PersistedQueryNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_OnlyPersistedQueriesAreAllowed {
+            get {
+                return ResourceManager.GetString("ErrorHelper_OnlyPersistedQueriesAreAllowed", resourceCulture);
+            }
+        }
     }
 }

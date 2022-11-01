@@ -56,14 +56,13 @@ public static partial class RequestExecutorBuilderExtensions
 
         return Configure(
             builder,
-            options => options.Pipeline.Add((context, next) => middleware(next)));
+            options => options.Pipeline.Add((_, next) => middleware(next)));
     }
 
     /// <summary>
     /// Adds a type that will be used to create a middleware for the execution pipeline.
     /// </summary>
     /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-    /// <param name="middleware">A type that is used to create a middleware for the execution pipeline.</param>
     /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
     public static IRequestExecutorBuilder UseRequest<TMiddleware>(
         this IRequestExecutorBuilder builder)
@@ -100,7 +99,7 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder) =>
         builder.UseRequest<TimeoutMiddleware>();
 
-    public static IRequestExecutorBuilder UseInstrumentations(
+    public static IRequestExecutorBuilder UseInstrumentation(
         this IRequestExecutorBuilder builder) =>
         builder.UseRequest<InstrumentationMiddleware>();
 
@@ -132,6 +131,14 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder) =>
         builder.UseRequest<WritePersistedQueryMiddleware>();
 
+    public static IRequestExecutorBuilder UsePersistedQueryNotFound(
+        this IRequestExecutorBuilder builder) =>
+        builder.UseRequest<PersistedQueryNotFoundMiddleware>();
+
+    public static IRequestExecutorBuilder UseOnlyPersistedQueriesAllowed(
+        this IRequestExecutorBuilder builder) =>
+        builder.UseRequest<OnlyPersistedQueriesAllowedMiddleware>();
+
     public static IRequestExecutorBuilder UseDefaultPipeline(
         this IRequestExecutorBuilder builder)
     {
@@ -154,11 +161,13 @@ public static partial class RequestExecutorBuilderExtensions
         }
 
         return builder
-            .UseInstrumentations()
+            .UseInstrumentation()
             .UseExceptions()
             .UseTimeout()
             .UseDocumentCache()
             .UseReadPersistedQuery()
+            .UsePersistedQueryNotFound()
+            .UseOnlyPersistedQueriesAllowed()
             .UseDocumentParser()
             .UseDocumentValidation()
             .UseOperationCache()
@@ -182,7 +191,7 @@ public static partial class RequestExecutorBuilderExtensions
         }
 
         return builder
-            .UseInstrumentations()
+            .UseInstrumentation()
             .UseExceptions()
             .UseTimeout()
             .UseDocumentCache()
