@@ -27,7 +27,14 @@ public abstract class IntegerTypeBase<TRuntimeType>
 
     protected override bool IsInstanceOfType(IntValueNode valueSyntax)
     {
-        return IsInstanceOfType(ParseLiteral(valueSyntax));
+        try
+        {
+            return IsInstanceOfType(ParseLiteral(valueSyntax));
+        }
+        catch (InvalidFormatException)
+        {
+            return false;
+        }
     }
 
     protected override bool IsInstanceOfType(TRuntimeType runtimeValue)

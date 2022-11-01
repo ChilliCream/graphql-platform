@@ -50,9 +50,9 @@ public class IntType : IntegerTypeBase<int>
         Description = description;
     }
 
-    protected override int ParseLiteral(IntValueNode valueSyntax) =>
-        valueSyntax.ToInt32();
+    protected override int ParseLiteral(IntValueNode valueSyntax)
+        => valueSyntax.ToInt32();
 
-    protected override IntValueNode ParseValue(int runtimeValue) =>
-        new(runtimeValue);
+    protected override IntValueNode ParseValue(int runtimeValue)
+        => new(runtimeValue);
 }

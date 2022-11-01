@@ -211,10 +211,21 @@ namespace HotChocolate.Validation
             ");
         }
 
-        [Fact]
-        public void GoodNullToBooleanNullableValue()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void OverflowInt()
+    {
+        ExpectErrors($@"
+            {{
+              arguments {{
+                intArgField(intArg: {long.MaxValue})
+              }}
+            }}");
+    }
+
+    [Fact]
+    public void GoodNullToBooleanNullableValue()
+    {
+        ExpectValid(@"
                 {
                   arguments {
                     booleanArgField(booleanArg: true)
