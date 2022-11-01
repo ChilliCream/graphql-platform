@@ -11,6 +11,7 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
 {
     private static readonly TimeSpan _minExecutionTimeout = TimeSpan.FromMilliseconds(100);
     private TimeSpan _executionTimeout;
+    private IError _onlyPersistedQueriesAreAllowedError = ErrorHelper.OnlyPersistedQueriesAreAllowed();
 
     /// <summary>
     /// <para>Initializes a new instance of <see cref="RequestExecutorOptions"/>.</para>
@@ -53,4 +54,27 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
     /// Gets the complexity analyzer settings.
     /// </summary>
     public ComplexityAnalyzerSettings Complexity { get; } = new();
+
+    /// <summary>
+    /// Specifies if only persisted queries are allowed when using
+    /// the persisted query pipeline.
+    ///
+    /// The default is <c>false</c>.
+    /// </summary>
+    public bool OnlyAllowPersistedQueries { get; set; } = false;
+
+    /// <summary>
+    /// The error that will be thrown when only persisted
+    /// queries are allowed and a normal query is issued.
+    /// </summary>
+    public IError OnlyPersistedQueriesAreAllowedError
+    {
+        get => _onlyPersistedQueriesAreAllowedError;
+        set
+        {
+            _onlyPersistedQueriesAreAllowedError = value
+                ?? throw new ArgumentNullException(
+                    nameof(OnlyPersistedQueriesAreAllowedError));
+        }
+    }
 }

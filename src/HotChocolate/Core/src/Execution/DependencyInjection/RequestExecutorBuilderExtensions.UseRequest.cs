@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Net;
-using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Pipeline;
@@ -101,7 +99,7 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder) =>
         builder.UseRequest<TimeoutMiddleware>();
 
-    public static IRequestExecutorBuilder UseInstrumentations(
+    public static IRequestExecutorBuilder UseInstrumentation(
         this IRequestExecutorBuilder builder) =>
         builder.UseRequest<InstrumentationMiddleware>();
 
@@ -137,6 +135,10 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder) =>
         builder.UseRequest<PersistedQueryNotFoundMiddleware>();
 
+    public static IRequestExecutorBuilder UseOnlyPersistedQueriesAllowed(
+        this IRequestExecutorBuilder builder) =>
+        builder.UseRequest<OnlyPersistedQueriesAllowedMiddleware>();
+
     public static IRequestExecutorBuilder UseDefaultPipeline(
         this IRequestExecutorBuilder builder)
     {
@@ -159,12 +161,13 @@ public static partial class RequestExecutorBuilderExtensions
         }
 
         return builder
-            .UseInstrumentations()
+            .UseInstrumentation()
             .UseExceptions()
             .UseTimeout()
             .UseDocumentCache()
             .UseReadPersistedQuery()
             .UsePersistedQueryNotFound()
+            .UseOnlyPersistedQueriesAllowed()
             .UseDocumentParser()
             .UseDocumentValidation()
             .UseOperationCache()
@@ -188,7 +191,7 @@ public static partial class RequestExecutorBuilderExtensions
         }
 
         return builder
-            .UseInstrumentations()
+            .UseInstrumentation()
             .UseExceptions()
             .UseTimeout()
             .UseDocumentCache()

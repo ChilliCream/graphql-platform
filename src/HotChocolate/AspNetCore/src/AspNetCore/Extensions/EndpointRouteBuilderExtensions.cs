@@ -167,7 +167,7 @@ public static class EndpointRouteBuilderExtensions
             .UseCancellation()
             .UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault)
             .UseMiddleware<HttpMultipartMiddleware>(schemaNameOrDefault)
-            .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault)
+            .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault, default(PathString))
             .Use(_ => context =>
             {
                 context.Response.StatusCode = 404;

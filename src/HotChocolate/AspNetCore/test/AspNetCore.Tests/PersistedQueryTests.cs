@@ -1,15 +1,10 @@
-using System.Net;
-using System.Security.Cryptography;
 using System.Text;
 using CookieCrumble;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using Newtonsoft.Json;
+using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore;
 
@@ -74,6 +69,33 @@ public class PersistedQueryTests : ServerTestBase
     }
 
     [Fact]
+    public async Task ApolloStyle_Sha1Hash_Success()
+    {
+        // arrange
+        var storage = new QueryStorage();
+        var hashProvider = new Sha1DocumentHashProvider(HashFormat.Hex);
+
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddSha1DocumentHashProvider(HashFormat.Hex)
+                .AddGraphQL("StarWars")
+                .ConfigureSchemaServices(c => c.AddSingleton<IReadStoredQueries>(storage))
+                .UsePersistedQueryPipeline());
+
+        var query = "{ __typename }";
+        var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
+        storage.AddQuery(key, query);
+
+        // act
+        var result = await server.PostAsync(
+            CreateApolloStyleRequest(hashProvider.Name, key),
+            path: "/starwars");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task ApolloStyle_Sha256Hash_Success()
     {
         // arrange
@@ -100,6 +122,112 @@ public class PersistedQueryTests : ServerTestBase
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Standard_Query_By_Default_Works()
+    {
+        // arrange
+        var storage = new QueryStorage();
+
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQL("StarWars")
+                .ConfigureSchemaServices(c => c.AddSingleton<IReadStoredQueries>(storage))
+                .UsePersistedQueryPipeline());
+
+        var query = "{ __typename }";
+
+        // act
+        var result = await server.PostAsync(
+            new ClientQueryRequest { Query = query },
+            path: "/starwars");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Standard_Query_Not_Allowed()
+    {
+        // arrange
+        var storage = new QueryStorage();
+
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQL("StarWars")
+                .ModifyRequestOptions(o => o.OnlyAllowPersistedQueries = true)
+                .ConfigureSchemaServices(c => c.AddSingleton<IReadStoredQueries>(storage))
+                .UsePersistedQueryPipeline());
+
+        var query = "{ __typename }";
+
+        // act
+        var result = await server.PostAsync(
+            new ClientQueryRequest { Query = query },
+            path: "/starwars");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Standard_Query_Not_Allowed_Custom_Error()
+    {
+        // arrange
+        var storage = new QueryStorage();
+
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQL("StarWars")
+                .ModifyRequestOptions(o =>
+                {
+                    o.OnlyAllowPersistedQueries = true;
+                    o.OnlyPersistedQueriesAreAllowedError =
+                        ErrorBuilder.New()
+                            .SetMessage("Not allowed!")
+                            .Build();
+                })
+                .ConfigureSchemaServices(c => c.AddSingleton<IReadStoredQueries>(storage))
+                .UsePersistedQueryPipeline());
+
+        var query = "{ __typename }";
+
+        // act
+        var result = await server.PostAsync(
+            new ClientQueryRequest { Query = query },
+            path: "/starwars");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Standard_Query_Not_Allowed_Override_Per_Request()
+    {
+        // arrange
+        var storage = new QueryStorage();
+
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQL("StarWars")
+                .ModifyRequestOptions(o =>
+                {
+                    o.OnlyAllowPersistedQueries = true;
+                })
+                .ConfigureSchemaServices(c => c.AddSingleton<IReadStoredQueries>(storage))
+                .UsePersistedQueryPipeline()
+                .AddHttpRequestInterceptor<AllowPersistedQueryInterceptor>());
+
+        var query = "{ __typename }";
+
+        // act
+        var result = await server.PostAsync(
+            new ClientQueryRequest { Query = query },
+            path: "/starwars");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
     private ClientQueryRequest CreateApolloStyleRequest(string hashName, string key)
         =>  new()
         {
@@ -112,7 +240,6 @@ public class PersistedQueryTests : ServerTestBase
                 }
             }
         };
-
 
     private sealed class QueryStorage : IReadStoredQueries
     {
@@ -130,6 +257,19 @@ public class PersistedQueryTests : ServerTestBase
         {
             var doc = new QueryDocument(Utf8GraphQLParser.Parse(query));
             _cache.Add(key, Task.FromResult<QueryDocument?>(doc));
+        }
+    }
+
+    private sealed class AllowPersistedQueryInterceptor : DefaultHttpRequestInterceptor
+    {
+        public override ValueTask OnCreateAsync(
+            HttpContext context,
+            IRequestExecutor requestExecutor,
+            IQueryRequestBuilder requestBuilder,
+            CancellationToken cancellationToken)
+        {
+            requestBuilder.AllowNonPersistedQuery();
+            return base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
         }
     }
 }

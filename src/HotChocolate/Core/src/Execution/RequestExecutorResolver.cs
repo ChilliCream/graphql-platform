@@ -205,6 +205,8 @@ internal sealed class RequestExecutorResolver
             s => s.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton<IRequestTimeoutOptionsAccessor>(
             s => s.GetRequiredService<RequestExecutorOptions>());
+        serviceCollection.AddSingleton<IPersistedQueryOptionsAccessor>(
+            s => s.GetRequiredService<RequestExecutorOptions>());
 
         serviceCollection.AddSingleton<IErrorHandler, DefaultErrorHandler>();
 

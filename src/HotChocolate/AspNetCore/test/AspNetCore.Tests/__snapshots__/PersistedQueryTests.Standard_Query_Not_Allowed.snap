@@ -4,10 +4,9 @@
   "Data": null,
   "Errors": [
     {
-      "message": "The specified persisted query key is invalid.",
+      "message": "Only persisted queries are allowed.",
       "extensions": {
-        "code": "HC0020",
-        "requestedKey": "ef5c9e7b1e24de261642083d4e294322"
+        "code": "HC0067"
       }
     }
   ],

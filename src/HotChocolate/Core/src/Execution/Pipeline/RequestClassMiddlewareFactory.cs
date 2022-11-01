@@ -162,6 +162,9 @@ internal static class RequestClassMiddlewareFactory
         parameterHandlers.Add(new TypeParameterHandler(
             typeof(IComplexityAnalyzerOptionsAccessor),
             Expression.Constant(options)));
+        parameterHandlers.Add(new TypeParameterHandler(
+            typeof(IPersistedQueryOptionsAccessor),
+            Expression.Constant(options)));
     }
 
     private sealed class SchemaNameParameterHandler : IParameterHandler
