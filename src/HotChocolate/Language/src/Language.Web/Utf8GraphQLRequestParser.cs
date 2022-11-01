@@ -1,5 +1,5 @@
 using System.Buffers;
-using static HotChocolate.Language.Properties.LangUtf8Resources;
+using static HotChocolate.Language.Properties.LangWebResources;
 
 namespace HotChocolate.Language;
 

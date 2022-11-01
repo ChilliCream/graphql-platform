@@ -42,6 +42,18 @@
     <Compile Update="Utf8GraphQLRequestParser.Values.cs">
       <DependentUpon>Utf8GraphQLRequestParser.cs</DependentUpon>
     </Compile>
+    <Compile Update="Properties\LangWebResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LangWebResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\LangWebResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>LangWebResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

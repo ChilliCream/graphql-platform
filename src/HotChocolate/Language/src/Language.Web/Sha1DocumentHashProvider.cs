@@ -2,6 +2,7 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Threading;
+using static HotChocolate.Language.Properties.LangWebResources;
 
 namespace HotChocolate.Language;
 
@@ -39,7 +40,7 @@ public sealed class Sha1DocumentHashProvider : DocumentHashProviderBase
         {
             HashFormat.Base64 => Convert.ToBase64String(hashSpan),
             HashFormat.Hex => ToHexString(hashSpan),
-            _ => throw new NotSupportedException("The specified hash format is not supported.")
+            _ => throw new NotSupportedException(ComputeHash_FormatNotSupported)
         };
     }
 #else

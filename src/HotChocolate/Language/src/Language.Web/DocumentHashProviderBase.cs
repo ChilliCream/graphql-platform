@@ -1,7 +1,10 @@
-using System;
-using System.Buffers;
+#if NETCOREAPP3_1_OR_GREATER
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+#else
+using System.Buffers;
+using static HotChocolate.Language.Properties.LangWebResources;
+#endif
 
 namespace HotChocolate.Language;
 
@@ -37,8 +40,7 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
                         .ToLowerInvariant()
                         .Replace("-", string.Empty);
                 default:
-                    throw new NotSupportedException(
-                        "The specified hash format is not supported.");
+                    throw new NotSupportedException(ComputeHash_FormatNotSupported);
             }
         }
         finally
