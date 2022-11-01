@@ -1,9 +1,7 @@
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
@@ -20,12 +18,8 @@ public sealed class ToolStaticFileMiddleware
     private readonly RequestDelegate _next;
 
     /// <summary>
-    /// Creates a new instance of the StaticFileMiddleware.
+    /// Creates a new instance of the ToolStaticFileMiddleware.
     /// </summary>
-    /// <param name="next">The next middleware in the pipeline.</param>
-    /// <param name="hostingEnv">The <see cref="IWebHostEnvironment"/> used by this middleware.</param>
-    /// <param name="options">The configuration options.</param>
-    /// <param name="loggerFactory">An <see cref="ILoggerFactory"/> instance used to create loggers.</param>
     public ToolStaticFileMiddleware(
         RequestDelegate next,
         IFileProvider fileProvider,
@@ -50,8 +44,6 @@ public sealed class ToolStaticFileMiddleware
     /// <summary>
     /// Processes a request to determine if it matches a known file, and if so, serves it.
     /// </summary>
-    /// <param name="context"></param>
-    /// <returns></returns>
     public Task Invoke(HttpContext context)
     {
         if (context.Request.IsGetOrHeadMethod() &&

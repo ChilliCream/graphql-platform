@@ -105,7 +105,7 @@ public class CodeFirstTests
         // assert
         Assert.Collection(
             Assert.IsType<QueryResult>(result).Errors!,
-            e => Assert.Equal("Document contains more than 1 nodes. Parsing aborted.", e.Message));
+            e => Assert.Equal("Document contains more than 6 nodes. Parsing aborted.", e.Message));
     }
 
     [Fact]
