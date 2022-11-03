@@ -33,7 +33,7 @@ public static class ArgumentCoercionHelper
         IResolverContext resolverContext,
         [NotNullWhen(true)] out IReadOnlyDictionary<string, ArgumentValue>? coercedArgs)
     {
-        if (arguments.IsFinalNoErrors)
+        if (arguments.IsFullyCoercedNoErrors)
         {
             coercedArgs = arguments;
             return true;

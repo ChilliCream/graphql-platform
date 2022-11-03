@@ -33,6 +33,9 @@ internal sealed class DirectiveContext : IDirectiveContext
 
     public Path Path => _middlewareContext.Path;
 
+    IReadOnlyDictionary<string, object?> IPureResolverContext.ScopedContextData
+        => ScopedContextData;
+
     public T Parent<T>() => _middlewareContext.Parent<T>();
 
     public T ArgumentValue<T>(string name) => _middlewareContext.ArgumentValue<T>(name);

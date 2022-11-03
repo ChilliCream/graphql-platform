@@ -243,6 +243,9 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         public Path Path => _context.Path;
 
+        IReadOnlyDictionary<string, object?> IPureResolverContext.ScopedContextData
+            => ScopedContextData;
+
         public string ResponseName => _context.ResponseName;
 
         public bool HasErrors => _context.HasErrors;

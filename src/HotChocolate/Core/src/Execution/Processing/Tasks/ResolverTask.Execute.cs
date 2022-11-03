@@ -78,7 +78,7 @@ internal sealed partial class ResolverTask
 
             // If the arguments are already parsed and processed we can just process.
             // Arguments need no pre-processing if they have no variables.
-            if (Selection.Arguments.IsFinalNoErrors)
+            if (Selection.Arguments.IsFullyCoercedNoErrors)
             {
                 _context.Arguments = Selection.Arguments;
                 await ExecuteResolverPipelineAsync(cancellationToken).ConfigureAwait(false);
