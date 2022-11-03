@@ -60,20 +60,28 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
   createDocPages(createPage, result.data.docs, products);
 
   createRedirect({
-    fromPath: "/blog/2019/03/18/entity-framework",
-    toPath: "/blog/2020/03/18/entity-framework",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
-  createRedirect({
     fromPath: "/docs/",
     toPath: "/docs/hotchocolate/",
     redirectInBrowser: true,
     isPermanent: true,
   });
+
+  const hotchocolate = products.find((p) => p.path === "hotchocolate");
+
+  if (hotchocolate) {
+    createHotChocolateRedirects(hotchocolate, createRedirect);
+  }
+
   createRedirect({
     fromPath: "/docs/marshmallowpie/",
     toPath: "/docs/hotchocolate/",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+
+  createRedirect({
+    fromPath: "/blog/2019/03/18/entity-framework",
+    toPath: "/blog/2020/03/18/entity-framework",
     redirectInBrowser: true,
     isPermanent: true,
   });
@@ -326,6 +334,164 @@ function createDocPages(createPage, data, products) {
         originPath,
       },
     });
+  });
+}
+
+function createHotChocolateRedirects(product, createRedirect) {
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/code-first`,
+    toPath: "/docs/hotchocolate/defining-a-schema",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/schema-first`,
+    toPath: "/docs/hotchocolate/defining-a-schema",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/schema`,
+    toPath: "/docs/hotchocolate/defining-a-schema",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/schema/object-type`,
+    toPath: "/docs/hotchocolate/defining-a-schema/object-types",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/schema/interface-type`,
+    toPath: "/docs/hotchocolate/defining-a-schema/interfaces",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/schema/union-type`,
+    toPath: "/docs/hotchocolate/defining-a-schema/unions",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/schema/input-object-type`,
+    toPath: "/docs/hotchocolate/defining-a-schema/input-object-types",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/schema/enum-type`,
+    toPath: "/docs/hotchocolate/defining-a-schema/enums",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/schema/descriptions`,
+    toPath: "/docs/hotchocolate/defining-a-schema/documentation",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/schema/custom-scalar-types`,
+    toPath: "/docs/hotchocolate/defining-a-schema/scalars",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/schema/directives`,
+    toPath: "/docs/hotchocolate/defining-a-schema/directives",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/schema/relay`,
+    toPath: "/docs/hotchocolate/defining-a-schema/relay",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/schema/resolvers`,
+    toPath: "/docs/hotchocolate/fetching-data/resolvers",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/data-fetching`,
+    toPath: "/docs/hotchocolate/fetching-data/dataloader",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/data-fetching/pagination`,
+    toPath: "/docs/hotchocolate/fetching-data/pagination",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/data-fetching/filters`,
+    toPath: "/docs/hotchocolate/fetching-data/filtering",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/execution-engine/instrumentation`,
+    toPath: "/docs/hotchocolate/server/instrumentation",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/execution-engine/apollo-tracing`,
+    toPath: "/docs/hotchocolate/server/instrumentation#apollo-tracing",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/execution-engine/persisted-queries`,
+    toPath: "/docs/hotchocolate/performance/persisted-queries",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/execution-engine/custom-context-data`,
+    toPath: "/docs/hotchocolate/execution-engine",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/execution-engine/subscriptions`,
+    toPath: "/docs/hotchocolate/defining-a-schema/subscriptions",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/execution-engine/type-conversion`,
+    toPath: "/docs/hotchocolate/defining-a-schema/scalars#custom-converters",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/execution-engine/type-conversion`,
+    toPath: "/docs/hotchocolate/defining-a-schema/scalars#custom-converters",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/security/authorization`,
+    toPath: "/docs/hotchocolate/security/authorization",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/security/security`,
+    toPath: "/docs/hotchocolate/security",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/stitching`,
+    toPath: "/docs/hotchocolate/distributed-schema",
+    redirectInBrowser: true,
   });
 }
 
