@@ -223,7 +223,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
                                     inputObjectType));
                         }
                         else if (value.Value.Kind is SyntaxKind.Variable &&
-                            !IsInstanceOfType(context, new NonNullType(field.Type), value.Value))
+                            !TryIsInstanceOfType(context, new NonNullType(field.Type), value.Value))
                         {
                             context.ReportError(
                                 context.OneOfVariablesMustBeNonNull(
@@ -332,7 +332,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         if (context.Types.TryPeek(out var currentType) &&
             currentType is IInputType locationType)
         {
-            if (valueNode.IsNull() || IsInstanceOfType(context, locationType, valueNode))
+            if (valueNode.IsNull() || TryIsInstanceOfType(context, locationType, valueNode))
             {
                 return Skip;
             }
@@ -348,7 +348,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         return Skip;
     }
 
-    private bool TryCreateValueError(
+    private static bool TryCreateValueError(
         IDocumentValidatorContext context,
         IInputType locationType,
         IValueNode valueNode,
@@ -388,6 +388,23 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         }
         node = null;
         return false;
+    }
+
+    private bool TryIsInstanceOfType(
+        IDocumentValidatorContext context,
+        IInputType inputType,
+        IValueNode value)
+    {
+        try
+        {
+            return IsInstanceOfType(context, inputType, value);
+        }
+        // in the case a scalar IsInstanceOfType check is not done well an throws we will
+        // catch this here and make sure that the validation fails correctly.
+        catch
+        {
+            return false;
+        }
     }
 
     private bool IsInstanceOfType(

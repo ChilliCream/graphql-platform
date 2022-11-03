@@ -7,9 +7,7 @@ namespace HotChocolate.Execution.Processing;
 
 public interface IArgumentMap : IReadOnlyDictionary<string, ArgumentValue>
 {
-    bool IsFinalNoErrors { get; }
-
-    bool IsFinal { get; }
+    bool IsFullyCoercedNoErrors { get; }
 
     bool HasErrors { get; }
 }

@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+<PropertyGroup>
+    <AssemblyName>HotChocolate.Language.Web.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Language</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Language.Web\HotChocolate.Language.Web.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="$(MSBuildProjectDirectory)\__resources__\*.*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="$(MSBuildProjectDirectory)\xunit.runner.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

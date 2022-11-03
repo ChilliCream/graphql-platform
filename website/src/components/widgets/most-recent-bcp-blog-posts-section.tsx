@@ -18,7 +18,10 @@ export const MostRecentBcpBlogPostsSection: FC = () => {
       allMdx(
         limit: 3
         filter: {
-          frontmatter: { path: { glob: "/blog/**/*banana-cake-pop*" } }
+          frontmatter: {
+            tags: { eq: "bananacakepop" }
+            path: { glob: "/blog/**/*" }
+          }
         }
         sort: { fields: [frontmatter___date], order: DESC }
       ) {

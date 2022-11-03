@@ -10,11 +10,13 @@ internal sealed class DocumentParserMiddleware
     private readonly RequestDelegate _next;
     private readonly IExecutionDiagnosticEvents _diagnosticEvents;
     private readonly IDocumentHashProvider _documentHashProvider;
+    private readonly ParserOptions _parserOptions;
 
     public DocumentParserMiddleware(
         RequestDelegate next,
         IExecutionDiagnosticEvents diagnosticEvents,
-        IDocumentHashProvider documentHashProvider)
+        IDocumentHashProvider documentHashProvider,
+        ParserOptions parserOptions)
     {
         _next = next ??
             throw new ArgumentNullException(nameof(next));
@@ -22,6 +24,8 @@ internal sealed class DocumentParserMiddleware
             throw new ArgumentNullException(nameof(diagnosticEvents));
         _documentHashProvider = documentHashProvider ??
             throw new ArgumentNullException(nameof(documentHashProvider));
+        _parserOptions = parserOptions ??
+            throw new ArgumentNullException(nameof(parserOptions));
     }
 
     public async ValueTask InvokeAsync(IRequestContext context)
@@ -51,7 +55,7 @@ internal sealed class DocumentParserMiddleware
                             context.DocumentHash,
                             context.Request.QueryHash,
                             context.Request.Query);
-                        context.Document = Utf8GraphQLParser.Parse(source.AsSpan());
+                        context.Document = Utf8GraphQLParser.Parse(source.AsSpan(), _parserOptions);
                         success = true;
                     }
                     catch (SyntaxException ex)

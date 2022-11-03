@@ -11,6 +11,7 @@ internal static class ContentType
     public const string MultiPartMixed = $"{Types.MultiPart}/{SubTypes.Mixed};{_boundary}";
     public const string GraphQLResponse = $"{Types.Application}/{SubTypes.GraphQLResponse};{_utf8}";
     public const string EventStream = $"{Types.Text}/{SubTypes.EventStream};{_utf8}";
+    public const string Html = $"{Types.Text}/{SubTypes.Html}";
 
     private static readonly char[] _jsonArray =
     {
@@ -44,5 +45,6 @@ internal static class ContentType
         public const string Json = "json";
         public const string Mixed = "mixed";
         public const string EventStream = "event-stream";
+        public const string Html = "html";
     }
 }

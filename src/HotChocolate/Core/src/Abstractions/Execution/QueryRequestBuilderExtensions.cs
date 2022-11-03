@@ -62,6 +62,13 @@ public static class QueryRequestBuilderExtensions
             maximumAllowedComplexity);
 
     /// <summary>
+    /// Marks the current request to allow non-persisted queries.
+    /// </summary>
+    public static IQueryRequestBuilder AllowNonPersistedQuery(
+        this IQueryRequestBuilder builder) =>
+        builder.SetGlobalState(WellKnownContextData.NonPersistedQueryAllowed, true);
+
+    /// <summary>
     /// Registers a cleanup task for execution resources with the <see cref="IQueryResultBuilder"/>.
     /// </summary>
     /// <param name="builder">

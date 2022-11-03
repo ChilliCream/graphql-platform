@@ -37,7 +37,7 @@ internal partial class MiddlewareContext
             _parent = parent;
             _argumentValues = selection.Arguments;
 
-            if (selection.Arguments.IsFinalNoErrors)
+            if (selection.Arguments.IsFullyCoercedNoErrors)
             {
                 return true;
             }
@@ -71,6 +71,9 @@ internal partial class MiddlewareContext
         public ISelection Selection => _selection;
 
         public Path Path => _path;
+
+        public IReadOnlyDictionary<string, object?> ScopedContextData
+            => _parentContext.ScopedContextData;
 
         public IVariableValueCollection Variables => _parentContext.Variables;
 

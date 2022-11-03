@@ -309,4 +309,10 @@
   <data name="ResultBuilder_DataAndItemsNotAllowed" xml:space="preserve">
     <value>Its not allowed to set `items` and `data` at the same time.</value>
   </data>
+  <data name="ErrorHelper_PersistedQueryNotFound" xml:space="preserve">
+    <value>The specified persisted query key is invalid.</value>
+  </data>
+  <data name="ErrorHelper_OnlyPersistedQueriesAreAllowed" xml:space="preserve">
+    <value>Only persisted queries are allowed.</value>
+  </data>
 </root>

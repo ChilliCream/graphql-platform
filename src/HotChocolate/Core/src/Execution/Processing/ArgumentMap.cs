@@ -37,7 +37,7 @@ internal sealed class ArgumentMap : IArgumentMap
 
     public ArgumentValue this[string key] => _arguments[key];
 
-    public bool IsFinalNoErrors => _isFinal && !_hasErrors;
+    public bool IsFullyCoercedNoErrors => _isFinal && !_hasErrors;
 
     public bool IsFinal => _isFinal;
 

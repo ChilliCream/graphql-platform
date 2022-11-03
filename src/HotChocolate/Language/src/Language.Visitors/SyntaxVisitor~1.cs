@@ -64,7 +64,7 @@ public partial class SyntaxVisitor<TContext>
         TNode node,
         TParent parent,
         TContext context)
-        where TNode : notnull, ISyntaxNode
+        where TNode : ISyntaxNode
         where TParent : ISyntaxNode?
     {
         var localContext = OnBeforeEnter(node, parent, context);

@@ -1,17 +1,7 @@
 {
-  "data": {},
-  "hasNext": true
-}
-{
-  "incremental": [
-    {
-      "data": {
-        "person": {
-          "id": "UGVyc29uCmkx"
-        }
-      },
-      "path": []
+  "data": {
+    "person": {
+      "id": "UGVyc29uCmkx"
     }
-  ],
-  "hasNext": false
+  }
 }

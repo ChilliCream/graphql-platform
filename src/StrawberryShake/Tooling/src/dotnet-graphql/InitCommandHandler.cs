@@ -40,14 +40,37 @@ namespace StrawberryShake.Tools
                     .ConfigureAwait(false);
 
             var context = new InitCommandContext(
-                arguments.Name.Value()?.Trim() ?? Path.GetFileName(Environment.CurrentDirectory),
+                arguments.Name.Value()?.Trim() ??
+                Path.GetFileName(Environment.CurrentDirectory),
                 FileSystem.ResolvePath(arguments.Path.Value()?.Trim()),
-                new Uri(arguments.Uri.Value!),
+                arguments.Uri.Value!,
                 accessToken?.Token,
                 accessToken?.Scheme,
                 CustomHeaderHelper.ParseHeadersArgument(arguments.CustomHeaders.Values));
 
-            if(await ExecuteInternalAsync(context, cancellationToken).ConfigureAwait(false))
+            if (arguments.FromFile.HasValue())
+            {
+                using var activity = Output.WriteActivity("Copy schema");
+
+                var schemaFilePath = FileSystem.CombinePath(
+                    context.Path, context.SchemaFileName);
+                var schemaExtensionFilePath = FileSystem.CombinePath(
+                    context.Path, context.SchemaExtensionFileName);
+
+                File.Copy(context.Uri, schemaFilePath);
+
+                await FileSystem.WriteTextAsync(
+                        schemaExtensionFilePath,
+                        SchemaExtensionFileContent)
+                    .ConfigureAwait(false);
+
+                await WriteConfigurationAsync(context, cancellationToken);
+
+                return 0;
+            }
+
+
+            if (await ExecuteInternalAsync(context, cancellationToken).ConfigureAwait(false))
             {
                 return 0;
             }
@@ -74,11 +97,6 @@ namespace StrawberryShake.Tools
             InitCommandContext context,
             CancellationToken cancellationToken)
         {
-            if(context.Uri is null)
-            {
-                return true;
-            }
-
             using var activity = Output.WriteActivity("Download schema");
 
             var schemaFilePath = FileSystem.CombinePath(
@@ -87,7 +105,7 @@ namespace StrawberryShake.Tools
                 context.Path, context.SchemaExtensionFileName);
 
             var client = HttpClientFactory.Create(
-                context.Uri, context.Token, context.Scheme, context.CustomHeaders);
+                new(context.Uri), context.Token, context.Scheme, context.CustomHeaders);
 
             if (await IntrospectionHelper.DownloadSchemaAsync(
                 client, FileSystem, activity, schemaFilePath,
@@ -122,7 +140,7 @@ namespace StrawberryShake.Tools
                     {
                         Name = context.ClientName,
                         Namespace = context.CustomNamespace,
-                        Url = context.Uri!.ToString()
+                        Url = context.Uri
                     }
                 }
             };

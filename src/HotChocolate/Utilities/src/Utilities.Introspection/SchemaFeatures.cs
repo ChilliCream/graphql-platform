@@ -24,17 +24,24 @@ namespace HotChocolate.Utilities.Introspection
             IntrospectionResult result)
         {
             var features = new SchemaFeatures();
-            FullType directive = result.Data.Schema.Types.First(t =>
-                 t.Name.Equals(__Directive, StringComparison.Ordinal));
-            features.HasRepeatableDirectives = directive.Fields.Any(t =>
-                t.Name.Equals(IsRepeatable, StringComparison.Ordinal));
-            features.HasDirectiveLocations = directive.Fields.Any(t =>
-                t.Name.Equals(Locations, StringComparison.Ordinal));
 
-            FullType schema = result.Data.Schema.Types.First(t =>
+            FullType? directive = result.Data.Schema.Types.FirstOrDefault(t =>
+                 t.Name.Equals(__Directive, StringComparison.Ordinal));
+            if (directive is not null)
+            {
+                features.HasRepeatableDirectives = directive.Fields.Any(t =>
+                    t.Name.Equals(IsRepeatable, StringComparison.Ordinal));
+                features.HasDirectiveLocations = directive.Fields.Any(t =>
+                    t.Name.Equals(Locations, StringComparison.Ordinal));
+            }
+
+            FullType? schema = result.Data.Schema.Types.FirstOrDefault(t =>
                  t.Name.Equals(__Schema, StringComparison.Ordinal));
-            features.HasSubscriptionSupport = schema.Fields.Any(t =>
-                t.Name.Equals(SubscriptionType, StringComparison.Ordinal));
+            if (schema is not null)
+            {
+                features.HasSubscriptionSupport = schema.Fields.Any(t =>
+                    t.Name.Equals(SubscriptionType, StringComparison.Ordinal));
+            }
 
             return features;
         }
