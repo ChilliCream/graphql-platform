@@ -95,7 +95,7 @@ export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
         <DocPageNavigation
           data={data}
           selectedPath={slug}
-          selectedProduct={product.name}
+          selectedProduct={product.path}
           selectedVersion={product.version}
         />
         <ArticleWrapper>
@@ -180,7 +180,8 @@ export const DocPageGraphQLFragment = graphql`
 const productAndVersionPattern = /^\/docs\/([\w-]+)(?:\/(v\d+))?/;
 
 interface ProductInformation {
-  readonly name: string;
+  readonly path: string;
+  readonly name: string | null;
   readonly version: string;
   readonly stableVersion: string;
 }
@@ -190,7 +191,7 @@ type Product = Pick<
   "path" | "title" | "description" | "latestStableVersion"
 >;
 
-function useProductInformation(
+export function useProductInformation(
   slug: string,
   products: Maybe<Array<Maybe<Product>>> | undefined
 ): ProductInformation | null {
@@ -204,21 +205,35 @@ function useProductInformation(
     return null;
   }
 
-  const selectedName = result[1] || "";
+  const selectedPath = result[1] || "";
   const selectedVersion = result[2] || "";
   let stableVersion = "";
 
-  const selectedProduct = products?.find((p) => p?.path === selectedName);
+  const selectedProduct = products?.find((p) => p?.path === selectedPath);
 
   if (selectedProduct) {
     stableVersion = selectedProduct.latestStableVersion || "";
   }
 
   return {
-    name: selectedName,
+    path: selectedPath,
+    name: getProductNameFromPath(selectedPath),
     version: selectedVersion,
     stableVersion,
   };
+}
+
+function getProductNameFromPath(path: string): string | null {
+  switch (path) {
+    case "hotchocolate":
+      return "Hot Chocolate";
+    case "strawberryshake":
+      return "Strawberry Shake";
+    case "bananacakepop":
+      return "Banana Cake Pop";
+    default:
+      return null;
+  }
 }
 
 const ResponsiveMenuWrapper = styled.div`
