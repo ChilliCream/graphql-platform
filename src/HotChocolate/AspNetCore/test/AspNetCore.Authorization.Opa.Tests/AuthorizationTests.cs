@@ -1,8 +1,4 @@
-using System;
-using System.IO;
 using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution.Configuration;
 using Microsoft.AspNetCore.Builder;
@@ -11,20 +7,21 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Opa.Native;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.AspNetCore.Authorization;
 
 public class AuthorizationTests : ServerTestBase, IAsyncLifetime
 {
-    private OpaHandle _opaHandle;
+    private OpaHandle? _opaHandle;
+
     public AuthorizationTests(TestServerFactory serverFactory)
         : base(serverFactory)
     {
     }
+
     private static void SetUpHttpContext(HttpContext context)
     {
-        ConnectionInfo connection = context.Connection;
+        var connection = context.Connection;
         connection.LocalIpAddress = IPAddress.Loopback;
         connection.LocalPort = 5555;
         connection.RemoteIpAddress = IPAddress.Loopback;
@@ -33,13 +30,13 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
 
     public async Task InitializeAsync() => _opaHandle = await OpaProcess.StartServerAsync();
 
-    [Theory]
+    [Theory(Skip = "The local server needs to be packaged with squadron")]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
     public async Task Policy_NotFound(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
                 configure(builder);
@@ -49,21 +46,20 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
             SetUpHttpContext);
 
         // act
-        ClientQueryResult result =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
         result.MatchSnapshot();
     }
 
-    [Theory]
+    [Theory(Skip = "The local server needs to be packaged with squadron")]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
     public async Task Policy_NotAuthorized(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
                 configure(builder);
@@ -80,25 +76,26 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
         var hasAgeDefinedPolicy = await File.ReadAllTextAsync("policies/has_age_defined.rego");
         using var client = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:8181") };
 
-        HttpResponseMessage putPolicyResponse = await client.PutAsync("/v1/policies/has_age_defined", new StringContent(hasAgeDefinedPolicy));
+        var putPolicyResponse = await client.PutAsync(
+            "/v1/policies/has_age_defined",
+            new StringContent(hasAgeDefinedPolicy));
         putPolicyResponse.EnsureSuccessStatusCode();
 
         // act
-        ClientQueryResult result =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
         result.MatchSnapshot();
     }
 
-    [Theory]
+    [Theory(Skip = "The local server needs to be packaged with squadron")]
     [ClassData(typeof(AuthorizationTestData))]
     [ClassData(typeof(AuthorizationAttributeTestData))]
     public async Task Policy_Authorized(Action<IRequestExecutorBuilder> configure)
     {
         // arrange
-        TestServer server = CreateTestServer(
+        var server = CreateTestServer(
             builder =>
             {
                 configure(builder);
@@ -116,12 +113,13 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
         var hasAgeDefinedPolicy = await File.ReadAllTextAsync("policies/has_age_defined.rego");
         using var client = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:8181") };
 
-        HttpResponseMessage putPolicyResponse = await client.PutAsync("/v1/policies/has_age_defined", new StringContent(hasAgeDefinedPolicy));
+        var putPolicyResponse = await client.PutAsync(
+            "/v1/policies/has_age_defined",
+            new StringContent(hasAgeDefinedPolicy));
         putPolicyResponse.EnsureSuccessStatusCode();
 
         // act
-        ClientQueryResult result =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -139,7 +137,7 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
                     .AddRouting()
                     .AddGraphQLServer()
                     .AddHttpRequestInterceptor(
-                        (context, requestExecutor, requestBuilder, cancellationToken) =>
+                        (context, _, _, _) =>
                         {
                             configureUser(context);
                             return default;
@@ -152,5 +150,11 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
             });
     }
 
-    public async Task DisposeAsync() => await _opaHandle.DisposeAsync();
+    public async Task DisposeAsync()
+    {
+        if (_opaHandle is not null)
+        {
+            await _opaHandle.DisposeAsync();
+        }
+    }
 }
