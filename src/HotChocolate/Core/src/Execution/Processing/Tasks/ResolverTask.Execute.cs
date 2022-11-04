@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Internal;
+using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing.Tasks;
 
@@ -77,7 +78,7 @@ internal sealed partial class ResolverTask
 
             // If the arguments are already parsed and processed we can just process.
             // Arguments need no pre-processing if they have no variables.
-            if (Selection.Arguments.IsFinalNoErrors)
+            if (Selection.Arguments.IsFullyCoercedNoErrors)
             {
                 _context.Arguments = Selection.Arguments;
                 await ExecuteResolverPipelineAsync(cancellationToken).ConfigureAwait(false);
@@ -226,7 +227,8 @@ internal sealed partial class ResolverTask
                         _context.Parent<object>(),
                         count - 1,
                         enumerator,
-                        _context.ScopedContextData));
+                        _context.ScopedContextData),
+                    _context.ParentResult);
             }
 
             return list;

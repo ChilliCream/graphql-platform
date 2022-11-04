@@ -1,5 +1,6 @@
 using System.Text;
 using StrawberryShake.Tools.Configuration;
+using static System.IO.Path;
 
 namespace StrawberryShake.Tools
 {
@@ -73,7 +74,7 @@ namespace StrawberryShake.Tools
             string clientDirectory,
             CancellationToken cancellationToken)
         {
-            var configFilePath = Path.Combine(clientDirectory, WellKnownFiles.Config);
+            var configFilePath = Combine(clientDirectory, WellKnownFiles.Config);
             var buffer = await FileSystem.ReadAllBytesAsync(configFilePath).ConfigureAwait(false);
             var json = Encoding.UTF8.GetString(buffer);
             var configuration = GraphQLConfig.FromJson(json);
@@ -99,10 +100,10 @@ namespace StrawberryShake.Tools
             if (configuration.Extensions.StrawberryShake.Url is not null)
             {
                 var uri = new Uri(configuration.Extensions.StrawberryShake.Url);
-                var schemaFilePath = Path.Combine(clientDirectory, configuration.Schema);
+                var schemaFilePath = Combine(clientDirectory, configuration.Schema);
                 var tempFile = CreateTempFileName();
 
-                // we first attempt to download the new schema into a temp file. 
+                // we first attempt to download the new schema into a temp file.
                 // if that should fail we still have the original schema file and
                 // the user can still work.
                 if (!await DownloadSchemaAsync(context, uri, tempFile, cancellationToken)
@@ -133,15 +134,14 @@ namespace StrawberryShake.Tools
         private static string CreateTempFileName()
         {
             var pathSegment = Random.Shared.Next(9999).ToString();
-            string tempFile;
 
             for (var i = 0; i < 100; i++)
             {
-                tempFile = Path.Combine(Path.GetTempPath(), pathSegment, Path.GetRandomFileName());
+                var tempFile = Combine(GetTempPath(), pathSegment, GetRandomFileName());
 
                 if (!File.Exists(tempFile))
                 {
-                    var tempDir = Path.GetDirectoryName(tempFile)!;
+                    var tempDir = GetDirectoryName(tempFile)!;
 
                     if (!Directory.Exists(tempDir))
                     {

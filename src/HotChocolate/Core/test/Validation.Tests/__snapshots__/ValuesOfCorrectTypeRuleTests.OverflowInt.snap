@@ -1,0 +1,44 @@
+﻿[
+  {
+    "Message": "The specified argument value does not match the argument type.",
+    "Code": null,
+    "Path": {
+      "Name": "intArgField",
+      "Parent": {
+        "Name": "arguments",
+        "Parent": {
+          "Parent": null,
+          "Depth": -1,
+          "IsRoot": true
+        },
+        "Depth": 0,
+        "IsRoot": false
+      },
+      "Depth": 1,
+      "IsRoot": false
+    },
+    "Locations": [
+      {
+        "Line": 4,
+        "Column": 37
+      }
+    ],
+    "Extensions": {
+      "argument": "intArg",
+      "argumentValue": "9223372036854775807",
+      "locationType": "Int",
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "IntValue",
+      "Location": {
+        "Start": 77,
+        "End": 97,
+        "Line": 4,
+        "Column": 37
+      },
+      "Value": "9223372036854775807"
+    }
+  }
+]

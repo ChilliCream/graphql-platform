@@ -2,8 +2,6 @@
 title: "Arguments"
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 GraphQL allows us to specify arguments on a field and access their values in the field's resolver.
 
 ```sdl

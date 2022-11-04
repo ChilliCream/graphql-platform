@@ -260,5 +260,29 @@ namespace HotChocolate.AspNetCore.Properties {
                 return ResourceManager.GetString("ThrowHelper_Formatter_InvalidAcceptMediaType", resourceCulture);
             }
         }
+        
+        internal static string ErrorHelper_InvalidAcceptMediaType {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InvalidAcceptMediaType", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_TypeNotFound {
+            get {
+                return ResourceManager.GetString("ErrorHelper_TypeNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_InvalidTypeName {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InvalidTypeName", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_TypeNameIsEmpty {
+            get {
+                return ResourceManager.GetString("ErrorHelper_TypeNameIsEmpty", resourceCulture);
+            }
+        }
     }
 }

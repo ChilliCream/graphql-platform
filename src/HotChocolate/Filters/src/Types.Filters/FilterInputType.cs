@@ -78,7 +78,7 @@ public class FilterInputType<T>
         index++;
 
         foreach (var fieldDefinition in
-            definition.Fields.OfType<FilterOperationDefintion>())
+            definition.Fields.OfType<FilterOperationDefinition>())
         {
             fields[index] = new FilterOperationField(fieldDefinition, index);
             index++;

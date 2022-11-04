@@ -17,11 +17,9 @@ namespace HotChocolate.AspNetCore.Serialization;
 /// </summary>
 public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 {
-    private readonly JsonQueryResultFormatter _jsonFormatter;
-    private readonly MultiPartResponseStreamFormatter _multiPartFormatter;
-
-    // TODO : implement this one!
-    private readonly IExecutionResultFormatter _eventStreamFormatter = default!;
+    private readonly JsonResultFormatter _jsonFormatter;
+    private readonly MultiPartResultFormatter _multiPartFormatter;
+    private readonly EventStreamResultFormatter _eventStreamResultFormatter;
 
     /// <summary>
     /// Creates a new instance of <see cref="DefaultHttpResponseFormatter" />.
@@ -40,8 +38,9 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         bool indented = false,
         JavaScriptEncoder? encoder = null)
     {
-        _jsonFormatter = new JsonQueryResultFormatter(indented, encoder);
-        _multiPartFormatter = new MultiPartResponseStreamFormatter(_jsonFormatter);
+        _jsonFormatter = new JsonResultFormatter(indented, encoder);
+        _multiPartFormatter = new MultiPartResultFormatter(_jsonFormatter);
+        _eventStreamResultFormatter = new EventStreamResultFormatter(indented, encoder);
     }
 
     public GraphQLRequestFlags CreateRequestFlags(
@@ -127,8 +126,10 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             var responseStream = (IResponseStream)result;
             var statusCode = (int)GetStatusCode(responseStream, format, proposedStatusCode);
 
+            response.Headers.Add(HttpHeaderKeys.CacheControl, HttpHeaderValues.NoCache);
             response.ContentType = format.ContentType;
             response.StatusCode = statusCode;
+            await response.Body.FlushAsync(cancellationToken);
 
             await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
         }
@@ -276,7 +277,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 formatInfo = new FormatInfo(
                     ContentType.EventStream,
                     ResponseContentType.EventStream,
-                    _eventStreamFormatter);
+                    _eventStreamResultFormatter);
                 return true;
             }
 
@@ -300,7 +301,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             var mediaType = acceptMediaTypes[0];
 
             if (resultKind is ResultKind.Single &&
-                mediaType.Kind is ApplicationGraphQL or AllApplication or All)
+                mediaType.Kind is ApplicationGraphQL or AllApplication)
             {
                 formatInfo = new FormatInfo(
                     ContentType.GraphQLResponse,
@@ -310,7 +311,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             }
 
             if (resultKind is ResultKind.Single &&
-                mediaType.Kind is ApplicationJson)
+                mediaType.Kind is ApplicationJson or All)
             {
                 formatInfo = new FormatInfo(
                     ContentType.Json,
@@ -320,7 +321,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             }
 
             if (resultKind is ResultKind.Stream or ResultKind.Single &&
-                mediaType.Kind is MultiPartMixed or AllMultiPart)
+                mediaType.Kind is MultiPartMixed or AllMultiPart or All)
             {
                 formatInfo = new FormatInfo(
                     ContentType.MultiPartMixed,
@@ -334,7 +335,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 formatInfo = new FormatInfo(
                     ContentType.EventStream,
                     ResponseContentType.EventStream,
-                    _eventStreamFormatter);
+                    _eventStreamResultFormatter);
                 return true;
             }
 
@@ -351,7 +352,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             var mediaType = Unsafe.Add(ref searchSpace, i);
 
             if (resultKind is ResultKind.Single &&
-                mediaType.Kind is ApplicationGraphQL or AllApplication or All)
+                mediaType.Kind is ApplicationGraphQL or AllApplication)
             {
                 formatInfo = new FormatInfo(
                     ContentType.GraphQLResponse,
@@ -361,7 +362,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             }
 
             if (resultKind is ResultKind.Single &&
-                mediaType.Kind is ApplicationJson)
+                mediaType.Kind is ApplicationJson or All)
             {
                 // application/json is a legacy response content-type.
                 // We will create a formatInfo but keep on validating for
@@ -374,7 +375,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             }
 
             if (resultKind is ResultKind.Stream or ResultKind.Single &&
-                mediaType.Kind is MultiPartMixed or AllMultiPart)
+                mediaType.Kind is MultiPartMixed or AllMultiPart or All)
             {
                 // if the result is a stream we consider this a perfect match and
                 // will use this format.
@@ -400,7 +401,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 }
             }
 
-            if (mediaType.Kind is EventStream)
+            if (mediaType.Kind is EventStream or All)
             {
                 // if the result is a subscription we consider this a perfect match and
                 // will use this format.
@@ -409,7 +410,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                     formatInfo = new FormatInfo(
                         ContentType.EventStream,
                         ResponseContentType.EventStream,
-                        _eventStreamFormatter);
+                        _eventStreamResultFormatter);
                     return true;
                 }
 

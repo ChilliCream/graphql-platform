@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
@@ -8,6 +7,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
+using static HotChocolate.Types.FieldBindingFlags;
 
 #nullable enable
 
@@ -17,6 +17,8 @@ public class ObjectTypeDescriptor
     : DescriptorBase<ObjectTypeDefinition>
     , IObjectTypeDescriptor
 {
+    private readonly List<ObjectFieldDescriptor> _fields = new();
+
     protected ObjectTypeDescriptor(IDescriptorContext context, Type clrType)
         : base(context)
     {
@@ -45,14 +47,13 @@ public class ObjectTypeDescriptor
 
         foreach (var field in definition.Fields)
         {
-            Fields.Add(ObjectFieldDescriptor.From(Context, field));
+            _fields.Add(ObjectFieldDescriptor.From(Context, field));
         }
     }
 
     protected internal override ObjectTypeDefinition Definition { get; protected set; } = new();
 
-    protected ICollection<ObjectFieldDescriptor> Fields { get; } =
-        new List<ObjectFieldDescriptor>();
+    protected ICollection<ObjectFieldDescriptor> Fields => _fields;
 
     protected override void OnCreateDefinition(
         ObjectTypeDefinition definition)
@@ -66,42 +67,146 @@ public class ObjectTypeDescriptor
             Definition.AttributesAreApplied = true;
         }
 
-        foreach (var field in Fields)
+        foreach (var field in _fields)
         {
-            if (!field.Definition.Ignore)
+            if (field.Definition.Ignore)
             {
-                continue;
+                // if this definition is used for a type extension we need a
+                // binding to a field which shall be ignored. In case this is a
+                // definition for the type it will be ignored by the type initialization.
+                Definition.FieldIgnores.Add(
+                    new ObjectFieldBinding(field.Definition.Name, ObjectFieldBindingType.Field));
             }
-
-            // if this definition is used for a type extension we need a
-            // binding to a field which shall be ignored. In case this is a
-            // definition for the type it will be ignored by the type initialization.
-            Definition.FieldIgnores.Add(new(field.Definition.Name, ObjectFieldBindingType.Field));
         }
 
-        var fields = new Dictionary<string, ObjectFieldDefinition>();
-        var handledMembers = new HashSet<MemberInfo>();
+        var fields = TypeMemHelper.RentObjectFieldDefinitionMap();
+        var handledMembers = TypeMemHelper.RentMemberSet();
 
-        FieldDescriptorUtilities.AddExplicitFields(
-            Fields.Select(t => t.CreateDefinition()),
-            f => f.Member,
-            fields,
-            handledMembers);
+        foreach (var fieldDescriptor in _fields)
+        {
+            var fieldDefinition = fieldDescriptor.CreateDefinition();
+
+            if (!fieldDefinition.Ignore && !string.IsNullOrEmpty(fieldDefinition.Name))
+            {
+                fields[fieldDefinition.Name] = fieldDefinition;
+            }
+
+            if (fieldDefinition.Member is { } member)
+            {
+                handledMembers.Add(member);
+            }
+        }
 
         OnCompleteFields(fields, handledMembers);
+
+        // if we find fields that match field name that are ignored we will
+        // remove them from the field map.
+        foreach (var ignore in Definition.FieldIgnores)
+        {
+            fields.Remove(ignore.Name);
+        }
 
         Definition.Fields.Clear();
         Definition.Fields.AddRange(fields.Values);
 
+        TypeMemHelper.Return(fields);
+        TypeMemHelper.Return(handledMembers);
+
         base.OnCreateDefinition(definition);
+    }
+
+    internal void InferFieldsFromFieldBindingType()
+    {
+        var fields = TypeMemHelper.RentObjectFieldDefinitionMap();
+        var handledMembers = TypeMemHelper.RentMemberSet();
+
+        InferFieldsFromFieldBindingType(fields, handledMembers);
+
+        TypeMemHelper.Return(fields);
+        TypeMemHelper.Return(handledMembers);
+    }
+
+    protected void InferFieldsFromFieldBindingType(
+        IDictionary<string, ObjectFieldDefinition> fields,
+        ISet<MemberInfo> handledMembers)
+    {
+        HashSet<string>? subscribeResolver = null;
+
+        if (Definition.Fields.IsImplicitBinding() &&
+            Definition.FieldBindingType is not null)
+        {
+            var inspector = Context.TypeInspector;
+            var naming = Context.Naming;
+            var type = Definition.FieldBindingType;
+            var isExtension = Definition.IsExtension;
+            var includeStatic = (Definition.FieldBindingFlags & Static) == Static;
+            var members = inspector.GetMembers(type, isExtension, includeStatic);
+
+            foreach (var member in members)
+            {
+                var name = naming.GetMemberName(member, MemberKind.ObjectField);
+
+                if (handledMembers.Add(member) &&
+                    !fields.ContainsKey(name) &&
+                    IncludeField(ref subscribeResolver, members, member))
+                {
+                    var descriptor = ObjectFieldDescriptor.New(
+                        Context,
+                        member,
+                        Definition.RuntimeType,
+                        type);
+
+                    if (isExtension && inspector.IsMemberIgnored(member))
+                    {
+                        descriptor.Ignore();
+                    }
+
+                    _fields.Add(descriptor);
+                    handledMembers.Add(member);
+
+                    // the create definition call will trigger the OnCompleteField call
+                    // on the field description and trigger the initialization of the
+                    // fields arguments.
+                    fields[name] = descriptor.CreateDefinition();
+                }
+            }
+        }
+
+        static bool IncludeField(
+            ref HashSet<string>? subscribeResolver,
+            ReadOnlySpan<MemberInfo> allMembers,
+            MemberInfo current)
+        {
+            if (subscribeResolver is null)
+            {
+                subscribeResolver = new HashSet<string>();
+
+                foreach (var member in allMembers)
+                {
+                    HandlePossibleSubscribeMember(subscribeResolver, member);
+                }
+            }
+
+            return !subscribeResolver.Contains(current.Name);
+        }
+
+        static void HandlePossibleSubscribeMember(
+            HashSet<string> subscribeResolver,
+            MemberInfo member)
+        {
+            if (member.IsDefined(typeof(SubscribeAttribute)))
+            {
+                if (member.GetCustomAttribute<SubscribeAttribute>() is { With: not null } attr)
+                {
+                    subscribeResolver.Add(attr.With);
+                }
+            }
+        }
     }
 
     protected virtual void OnCompleteFields(
         IDictionary<string, ObjectFieldDefinition> fields,
-        ISet<MemberInfo> handledMembers)
-    {
-
-    }
+        ISet<MemberInfo> handledMembers) { }
 
     public IObjectTypeDescriptor SyntaxNode(
         ObjectTypeDefinitionNode? objectTypeDefinition)
@@ -160,8 +265,9 @@ public class ObjectTypeDescriptor
             throw new ArgumentNullException(nameof(type));
         }
 
-        Definition.Interfaces.Add(new SchemaTypeReference(
-            type));
+        Definition.Interfaces.Add(
+            new SchemaTypeReference(
+                type));
         return this;
     }
 
@@ -178,14 +284,13 @@ public class ObjectTypeDescriptor
 
     public IObjectTypeDescriptor IsOfType(IsOfType? isOfType)
     {
-        Definition.IsOfType = isOfType
-            ?? throw new ArgumentNullException(nameof(isOfType));
+        Definition.IsOfType = isOfType ?? throw new ArgumentNullException(nameof(isOfType));
         return this;
     }
 
     public IObjectFieldDescriptor Field(string name)
     {
-        var fieldDescriptor = Fields.FirstOrDefault(t => t.Definition.Name.EqualsOrdinal(name));
+        var fieldDescriptor = _fields.Find(t => t.Definition.Name.EqualsOrdinal(name));
 
         if (fieldDescriptor is not null)
         {
@@ -193,7 +298,7 @@ public class ObjectTypeDescriptor
         }
 
         fieldDescriptor = ObjectFieldDescriptor.New(Context, name);
-        Fields.Add(fieldDescriptor);
+        _fields.Add(fieldDescriptor);
         return fieldDescriptor;
     }
 
@@ -211,8 +316,7 @@ public class ObjectTypeDescriptor
 
         if (propertyOrMethod is PropertyInfo || propertyOrMethod is MethodInfo)
         {
-            var fieldDescriptor = Fields.FirstOrDefault(
-                t => t.Definition.Member == propertyOrMethod);
+            var fieldDescriptor = _fields.Find(t => t.Definition.Member == propertyOrMethod);
 
             if (fieldDescriptor is not null)
             {
@@ -224,7 +328,7 @@ public class ObjectTypeDescriptor
                 propertyOrMethod,
                 Definition.RuntimeType,
                 propertyOrMethod.ReflectedType ?? Definition.RuntimeType);
-            Fields.Add(fieldDescriptor);
+            _fields.Add(fieldDescriptor);
             return fieldDescriptor;
         }
 
@@ -245,8 +349,7 @@ public class ObjectTypeDescriptor
 
         if (member is PropertyInfo or MethodInfo)
         {
-            var fieldDescriptor = Fields.FirstOrDefault(
-                t => t.Definition.Member == member);
+            var fieldDescriptor = _fields.Find(t => t.Definition.Member == member);
 
             if (fieldDescriptor is not null)
             {
@@ -258,7 +361,7 @@ public class ObjectTypeDescriptor
                 member,
                 Definition.RuntimeType,
                 typeof(TResolver));
-            Fields.Add(fieldDescriptor);
+            _fields.Add(fieldDescriptor);
             return fieldDescriptor;
         }
 
@@ -269,7 +372,7 @@ public class ObjectTypeDescriptor
                 propertyOrMethod,
                 Definition.RuntimeType,
                 typeof(TResolver));
-            Fields.Add(fieldDescriptor);
+            _fields.Add(fieldDescriptor);
             return fieldDescriptor;
         }
 
@@ -330,10 +433,7 @@ public class ObjectTypeDescriptor
     public static ObjectTypeDescriptor FromSchemaType(
         IDescriptorContext context,
         Type schemaType) =>
-        new(context, schemaType)
-        {
-            Definition = { RuntimeType = typeof(object) }
-        };
+        new(context, schemaType) { Definition = { RuntimeType = typeof(object) } };
 
     public static ObjectTypeDescriptor From(
         IDescriptorContext context,

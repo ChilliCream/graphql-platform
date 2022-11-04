@@ -57,6 +57,14 @@ public interface IObjectTypeDescriptor<TRuntimeType>
     IObjectTypeDescriptor<TRuntimeType> BindFields(BindingBehavior behavior);
 
     /// <summary>
+    /// Defines from which runtime member the GraphQL type shall infer its fields.
+    /// </summary>
+    /// <param name="bindingFlags">
+    /// The binding flags.
+    /// </param>
+    IObjectTypeDescriptor<TRuntimeType> BindFields(FieldBindingFlags bindingFlags);
+
+    /// <summary>
     /// Defines that all fields have to be specified explicitly.
     /// </summary>
     IObjectTypeDescriptor<TRuntimeType> BindFieldsExplicitly();

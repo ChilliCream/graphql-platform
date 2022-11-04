@@ -237,14 +237,17 @@ public static class GenerateCommand
 
                 foreach (var doc in result.Documents)
                 {
-                    var fileName = Path.Combine(outputDir, $"{doc.Hash}.graphql");
+                    if (doc.Kind is SourceDocumentKind.GraphQL)
+                    {
+                        var fileName = Path.Combine(outputDir, $"{doc.Hash}.graphql");
 
-                    EnsureWeCanWriteTheFile(fileName);
+                        EnsureWeCanWriteTheFile(fileName);
 
-                    await File.WriteAllTextAsync(
-                        fileName,
-                        doc.SourceText,
-                        cancellationToken);
+                        await File.WriteAllTextAsync(
+                            fileName,
+                            doc.SourceText,
+                            cancellationToken);
+                    }
                 }
             }
         }

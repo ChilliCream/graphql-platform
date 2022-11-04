@@ -55,7 +55,7 @@ public abstract class FilterFieldDescriptorBase
             Definition.AttributesAreApplied = true;
         }
 
-        var fields = new Dictionary<string, FilterOperationDefintion>(StringComparer.Ordinal);
+        var fields = new Dictionary<string, FilterOperationDefinition>(StringComparer.Ordinal);
         var handledOperations = new HashSet<FilterOperationKind>();
 
         AddExplicitFilters(fields, handledOperations);
@@ -67,7 +67,7 @@ public abstract class FilterFieldDescriptorBase
     }
 
     private void AddExplicitFilters(
-        IDictionary<string, FilterOperationDefintion> fields,
+        IDictionary<string, FilterOperationDefinition> fields,
         ISet<FilterOperationKind> handledFilterKinds)
     {
         foreach (var filterDefinition in
@@ -83,7 +83,7 @@ public abstract class FilterFieldDescriptorBase
     }
 
     protected virtual void OnCompleteFilters(
-        IDictionary<string, FilterOperationDefintion> fields,
+        IDictionary<string, FilterOperationDefinition> fields,
         ISet<FilterOperationKind> handledFilterKinds)
     {
         if (Definition.Filters.IsImplicitBinding())
@@ -99,7 +99,7 @@ public abstract class FilterFieldDescriptorBase
     }
 
     protected virtual void AddImplicitOperation(
-        IDictionary<string, FilterOperationDefintion> fields,
+        IDictionary<string, FilterOperationDefinition> fields,
         ISet<FilterOperationKind> handledFilterKinds,
         FilterOperationKind operationKind)
     {
@@ -265,6 +265,6 @@ public abstract class FilterFieldDescriptorBase
         return RewriteTypeToNullableType();
     }
 
-    protected abstract FilterOperationDefintion CreateOperationDefinition(
+    protected abstract FilterOperationDefinition CreateOperationDefinition(
         FilterOperationKind operationKind);
 }

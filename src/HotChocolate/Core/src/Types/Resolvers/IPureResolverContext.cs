@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
@@ -42,6 +43,13 @@ public interface IPureResolverContext : IHasContextData
     /// Gets the current execution path.
     /// </summary>
     Path Path { get; }
+
+    /// <summary>
+    /// The scoped context data dictionary can be used by middlewares and
+    /// resolvers to store and retrieve data during execution scoped to the
+    /// hierarchy.
+    /// </summary>
+    IReadOnlyDictionary<string, object?> ScopedContextData { get; }
 
     /// <summary>
     /// Gets the previous (parent) resolver result.

@@ -1,6 +1,6 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -12,5 +12,8 @@ public interface ISelectionVisitorContext
 
     Stack<INamedType?> ResolvedType { get; }
 
-    IResolverContext Context { get; }
+    [Obsolete("Use ResolverContext")]
+    IResolverContext Context => ResolverContext;
+
+    IResolverContext ResolverContext { get; }
 }

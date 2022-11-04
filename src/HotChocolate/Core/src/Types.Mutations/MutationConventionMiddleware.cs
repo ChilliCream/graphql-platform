@@ -62,16 +62,11 @@ internal sealed class MutationConventionMiddleware
 
         try
         {
-            await _next(context);
-
-            context.Result ??= Null;
+            await _next(context).ConfigureAwait(false);
         }
         finally
         {
             context.ReplaceArguments(preservedArguments);
         }
     }
-
-    internal static object Null { get; } = new();
 }
-

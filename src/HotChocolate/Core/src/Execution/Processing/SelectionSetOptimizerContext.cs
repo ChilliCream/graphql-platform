@@ -5,6 +5,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.Properties.Resources;
+using NameUtils = HotChocolate.Utilities.NameUtils;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -126,7 +127,7 @@ public readonly ref struct SelectionSetOptimizerContext
     /// </exception>
     public void ReplaceSelection(string responseName, Selection newSelection)
     {
-        if (!NameUtils.IsValidGraphQLName(responseName))
+        if (!responseName.IsValidGraphQLName())
         {
             throw new ArgumentException(
                 string.Format(SelectionSetOptimizerContext_InvalidFieldName, responseName));

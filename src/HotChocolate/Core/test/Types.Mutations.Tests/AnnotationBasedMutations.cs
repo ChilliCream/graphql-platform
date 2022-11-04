@@ -5,7 +5,7 @@ using HotChocolate.Tests;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
+using SnapshotExtensions = CookieCrumble.SnapshotExtensions;
 
 namespace HotChocolate.Types;
 
@@ -20,10 +20,7 @@ public class AnnotationBasedMutations
             .AddGraphQL()
             .AddMutationType<SimpleMutation>()
             .AddMutationConventions(
-                new MutationConventionOptions
-                {
-                    ApplyToAllMutations = true
-                })
+                new MutationConventionOptions { ApplyToAllMutations = true })
             .ModifyOptions(o => o.StrictValidation = false)
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
@@ -38,10 +35,7 @@ public class AnnotationBasedMutations
             .AddGraphQL()
             .AddMutationType<SimpleMutationReturnList>()
             .AddMutationConventions(
-                new MutationConventionOptions
-                {
-                    ApplyToAllMutations = true
-                })
+                new MutationConventionOptions { ApplyToAllMutations = true })
             .ModifyOptions(o => o.StrictValidation = false)
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
@@ -56,10 +50,7 @@ public class AnnotationBasedMutations
             .AddGraphQL()
             .AddMutationType<SimpleMutationReturnList>()
             .AddMutationConventions(
-                new MutationConventionOptions
-                {
-                    ApplyToAllMutations = true
-                })
+                new MutationConventionOptions { ApplyToAllMutations = true })
             .ModifyOptions(o => o.StrictValidation = false)
             .ExecuteRequestAsync(
                 @"mutation {
@@ -80,10 +71,7 @@ public class AnnotationBasedMutations
             .AddQueryType(d => d.Field("abc").Resolve("def"))
             .AddMutationType<SimpleMutation>()
             .AddMutationConventions(
-                new MutationConventionOptions
-                {
-                    ApplyToAllMutations = true
-                })
+                new MutationConventionOptions { ApplyToAllMutations = true })
             .AddQueryFieldToMutationPayloads()
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
@@ -99,10 +87,7 @@ public class AnnotationBasedMutations
             .AddMutationType()
             .AddTypeExtension<SimpleMutationExtension>()
             .AddMutationConventions(
-                new MutationConventionOptions
-                {
-                    ApplyToAllMutations = true
-                })
+                new MutationConventionOptions { ApplyToAllMutations = true })
             .ModifyOptions(o => o.StrictValidation = false)
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
@@ -118,10 +103,7 @@ public class AnnotationBasedMutations
             .AddMutationType()
             .AddTypeExtension<SimpleMutationExtension>()
             .AddMutationConventions(
-                new MutationConventionOptions
-                {
-                    ApplyToAllMutations = true
-                })
+                new MutationConventionOptions { ApplyToAllMutations = true })
             .ModifyOptions(o => o.StrictValidation = false)
             .ExecuteRequestAsync(
                 @"mutation {
@@ -141,21 +123,21 @@ public class AnnotationBasedMutations
             .AddGraphQL()
             .AddMutationType()
             .AddTypeExtension<SimpleMutationExtension>()
-            .AddDirectiveType(new DirectiveType(d =>
-            {
-                d.Name("foo");
-                d.Location(DirectiveLocation.Field);
-                d.Use(next => async context =>
-                {
-                    // this is just a dummy middleware
-                    await next(context);
-                });
-            }))
+            .AddDirectiveType(
+                new DirectiveType(
+                    d =>
+                    {
+                        d.Name("foo");
+                        d.Location(DirectiveLocation.Field);
+                        d.Use(
+                            next => async context =>
+                            {
+                                // this is just a dummy middleware
+                                await next(context);
+                            });
+                    }))
             .AddMutationConventions(
-                new MutationConventionOptions
-                {
-                    ApplyToAllMutations = true
-                })
+                new MutationConventionOptions { ApplyToAllMutations = true })
             .ModifyOptions(o => o.StrictValidation = false)
             .ExecuteRequestAsync(
                 @"mutation {
@@ -208,10 +190,7 @@ public class AnnotationBasedMutations
             .AddGraphQL()
             .AddMutationType<SimpleMutationWithSingleError>()
             .AddMutationConventions(
-                new MutationConventionOptions
-                {
-                    ApplyToAllMutations = true
-                })
+                new MutationConventionOptions { ApplyToAllMutations = true })
             .ModifyOptions(o => o.StrictValidation = false)
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
@@ -250,10 +229,7 @@ public class AnnotationBasedMutations
             .AddGraphQL()
             .AddMutationType<SimpleMutationWithTwoErrors>()
             .AddMutationConventions(
-                new MutationConventionOptions
-                {
-                    ApplyToAllMutations = true
-                })
+                new MutationConventionOptions { ApplyToAllMutations = true })
             .ModifyOptions(o => o.StrictValidation = false)
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
@@ -290,10 +266,7 @@ public class AnnotationBasedMutations
             .AddGraphQL()
             .AddMutationType<SimpleMutationAttribute>()
             .AddMutationConventions(
-                new MutationConventionOptions
-                {
-                    ApplyToAllMutations = true
-                })
+                new MutationConventionOptions { ApplyToAllMutations = true })
             .ModifyOptions(o => o.StrictValidation = false)
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
@@ -433,6 +406,442 @@ public class AnnotationBasedMutations
             .MatchSnapshotAsync();
     }
 
+    [Fact]
+    public async Task Union_Result_1()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithUnionResult1>()
+            .AddMutationConventions(true)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                    doSomething(input: {
+                        something: ""abc""
+                    }) {
+                        errors { ... on Error { message } }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Union_Result_1_Schema()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithUnionResult1>()
+            .AddMutationConventions()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Union_Result_2()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithUnionResult2>()
+            .AddMutationConventions(true)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                    doSomething(input: {
+                        something: ""abc""
+                    }) {
+                        string
+                        errors { ... on Error { message } }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Union_Result_2_Task()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType()
+            .AddTypeExtension<MutationWithUnionResult2_Task>()
+            .AddMutationConventions(true)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                        doSomething(input: {
+                            something: ""abc""
+                        }) {
+                            string
+                            errors { ... on Error { message } }
+                        }
+                    }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Union_Result_2_Success()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithUnionResult2_Success>()
+            .AddMutationConventions(true)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                    doSomething(input: {
+                        something: ""abc""
+                    }) {
+                        string
+                        errors { ... on Error { message } }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Union_Result_2_Schema()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithUnionResult2>()
+            .AddMutationConventions()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Union_Result_2_Task_Schema()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType()
+            .AddTypeExtension<MutationWithUnionResult2_Task>()
+            .AddMutationConventions()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Union_Result_2_Error_Name_Collision()
+    {
+        async Task Error() => await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithErrorCollision>()
+            .AddMutationConventions()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .BuildSchemaAsync();
+
+        var exception = await Assert.ThrowsAsync<SchemaException>(Error);
+
+        SnapshotExtensions.MatchSnapshot(exception.Message);
+    }
+
+    [Fact]
+    public async Task Union_Result_3()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithUnionResult3>()
+            .AddMutationConventions(true)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                    doSomething(input: {
+                        something: ""abc""
+                    }) {
+                        string
+                        errors { ... on Error { message } }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Union_Result_3_Success()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithUnionResult3_Success>()
+            .AddMutationConventions(true)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                    doSomething(input: {
+                        something: ""abc""
+                    }) {
+                        string
+                        errors { ... on Error { message } }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Union_Result_3_Schema()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithUnionResult3>()
+            .AddMutationConventions()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Union_Result_4()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithUnionResult4>()
+            .AddMutationConventions(true)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                    doSomething(input: {
+                        something: ""abc""
+                    }) {
+                        string
+                        errors { ... on Error { message } }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Union_Result_4_Success()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithUnionResult4_Success>()
+            .AddMutationConventions(true)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                    doSomething(input: {
+                        something: ""abc""
+                    }) {
+                        string
+                        errors { ... on Error { message } }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Union_Result_4_Schema()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithUnionResult4>()
+            .AddMutationConventions()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Union_Result_5()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithUnionResult5>()
+            .AddMutationConventions(true)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                    doSomething(input: {
+                        something: ""abc""
+                    }) {
+                        string
+                        errors { ... on Error { message } }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Union_Result_5_Success()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithUnionResult5_Success>()
+            .AddMutationConventions(true)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                    doSomething(input: {
+                        something: ""abc""
+                    }) {
+                        string
+                        errors { ... on Error { message } }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Union_Result_5_Schema()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithUnionResult5>()
+            .AddMutationConventions()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Union_Result_6()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithUnionResult6>()
+            .AddMutationConventions(true)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                    doSomething(input: {
+                        something: ""abc""
+                    }) {
+                        string
+                        errors { ... on Error { message } }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Union_Result_6_Success()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithUnionResult6_Success>()
+            .AddMutationConventions(true)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                    doSomething(input: {
+                        something: ""abc""
+                    }) {
+                        string
+                        errors { ... on Error { message } }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Union_Result_6_Schema()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithUnionResult6>()
+            .AddMutationConventions()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Union_Result_7()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithUnionResult7>()
+            .AddMutationConventions(true)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                    doSomething(input: {
+                        something: ""abc""
+                    }) {
+                        string
+                        errors { ... on Error { message } }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Union_Result_7_Success()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithUnionResult7_Success>()
+            .AddMutationConventions(true)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                    doSomething(input: {
+                        something: ""abc""
+                    }) {
+                        string
+                        errors { ... on Error { message } }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Union_Result_7_Schema()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithUnionResult7>()
+            .AddMutationConventions()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
     public class SimpleMutation
     {
         public string DoSomething(string something)
@@ -441,7 +850,8 @@ public class AnnotationBasedMutations
 
     public class SimpleMutationReturnList
     {
-        public System.Collections.Generic.List<string> DoSomething(string something) => new() { something };
+        public System.Collections.Generic.List<string> DoSomething(string something)
+            => new() { something };
     }
 
     [ExtendObjectType("Mutation")]
@@ -505,24 +915,23 @@ public class AnnotationBasedMutations
 
     public class MutationWithIds
     {
-        public User? DoSomething([ID("Foo")]Guid  id)
+        public User? DoSomething([ID("Foo")] Guid id)
         {
-            return new User() {Name = "Foo", Id = id,};
+            return new User() { Name = "Foo", Id = id, };
         }
     }
 
     public class MutationWithInputObject
     {
-        public User? DoSomething(Test  test)
+        public User? DoSomething(Test test)
         {
-            return new User() {Name = test.Name};
+            return new User() { Name = test.Name };
         }
     }
 
     public class Test
     {
         public string Name { get; set; } = default!;
-
     }
 
     public class MultipleArgumentMutation
@@ -548,6 +957,103 @@ public class AnnotationBasedMutations
             => throw new CustomException();
     }
 
+    public class MutationWithUnionResult1
+    {
+        [Error(typeof(CustomException))]
+        [Error(typeof(Custom2Exception))]
+        public MutationResult<string> DoSomething(string something)
+            => new(new Custom2Exception());
+    }
+
+    public class MutationWithUnionResult2
+    {
+        public MutationResult<string, Custom2Exception> DoSomething(string something)
+            => new Custom2Exception();
+    }
+
+    [ExtendObjectType(OperationTypeNames.Mutation)]
+    public class MutationWithUnionResult2_Task
+    {
+        public async Task<MutationResult<string, Custom2Exception>> DoSomething(string something)
+            => await Task.FromResult(new Custom2Exception());
+    }
+
+    public class MutationWithUnionResult2_Success
+    {
+        public MutationResult<string, Custom2Exception> DoSomething(string something)
+            => something;
+    }
+
+    public class MutationWithUnionResult3
+    {
+        public MutationResult<string, CustomException, Custom2Exception> DoSomething(
+            string something)
+            => new Custom2Exception();
+    }
+
+    public class MutationWithUnionResult3_Success
+    {
+        public MutationResult<string, CustomException, Custom2Exception> DoSomething(
+            string something)
+            => something;
+    }
+
+    public class MutationWithUnionResult4
+    {
+        public MutationResult<string, CustomException, Custom2Exception, Custom3Exception>
+            DoSomething(string something)
+            => new Custom2Exception();
+    }
+
+    public class MutationWithUnionResult4_Success
+    {
+        public MutationResult<string, CustomException, Custom2Exception, Custom3Exception>
+            DoSomething(string something)
+            => something;
+    }
+
+    public class MutationWithUnionResult5
+    {
+        public MutationResult<string, CustomException, Custom2Exception, Custom4Exception>
+            DoSomething(string something)
+            => new Custom4Exception();
+    }
+
+    public class MutationWithUnionResult5_Success
+    {
+        public MutationResult<string, CustomException, Custom2Exception, Custom4Exception>
+            DoSomething(string something)
+            => something;
+    }
+
+    public class MutationWithUnionResult6
+    {
+        public MutationResult<string, CustomException, Custom2Exception, Custom4Exception, Custom5>
+            DoSomething(string something)
+            => new Custom5();
+    }
+
+    public class MutationWithUnionResult6_Success
+    {
+        public MutationResult<string, CustomException, Custom2Exception, Custom4Exception, Custom5>
+            DoSomething(string something)
+            => something;
+    }
+
+    public class MutationWithUnionResult7
+    {
+        public MutationResult<string, CustomException, Custom2Exception, Custom4Exception, Custom5,
+            Custom6> DoSomething(string something)
+            => new Custom5();
+    }
+
+    public class MutationWithUnionResult7_Success
+    {
+        public MutationResult<string, CustomException, Custom2Exception, Custom4Exception, Custom5,
+            Custom6> DoSomething(string something)
+            => something;
+    }
+
     public class CustomException : Exception
     {
         public override string Message => "Hello";
@@ -556,6 +1062,36 @@ public class AnnotationBasedMutations
     public class Custom2Exception : Exception
     {
         public override string Message => "Hello2";
+    }
+
+    public class Custom3Exception : Exception
+    {
+        public override string Message => "Hello3";
+    }
+
+    public class Custom4Exception : Exception
+    {
+        public override string Message => "Hello4";
+    }
+
+    public class Custom5
+    {
+        public string Message => "Hello5";
+    }
+
+    public class Custom6
+    {
+        public string Message => "Hello6";
+    }
+
+    public class Custom7
+    {
+        public Custom7(Custom6 c)
+        {
+            Message = c.Message;
+        }
+
+        public string Message { get; }
     }
 
     public class QueryWithMutationAnnotation
@@ -577,5 +1113,21 @@ public class AnnotationBasedMutations
         public Guid Id { get; set; }
 
         public string? Name { get; set; }
+    }
+
+    public class MutationWithErrorCollision
+    {
+        public MutationResult<string, FooError> Foo()
+            => new FooError("some error");
+    }
+
+    public class FooError
+    {
+        public FooError(string message)
+        {
+            Message = message;
+        }
+
+        public string Message { get; }
     }
 }

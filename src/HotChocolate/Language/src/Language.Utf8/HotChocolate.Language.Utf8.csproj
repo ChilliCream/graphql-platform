@@ -28,6 +28,42 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>LangUtf8Resources.resx</DependentUpon>
     </Compile>
+    <Compile Update="Utf8GraphQLParser.Directives.cs">
+      <DependentUpon>Utf8GraphQLParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Utf8GraphQLParser.Extensions.cs">
+      <DependentUpon>Utf8GraphQLParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Utf8GraphQLParser.Fragments.cs">
+      <DependentUpon>Utf8GraphQLParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Utf8GraphQLParser.Operations.cs">
+      <DependentUpon>Utf8GraphQLParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Utf8GraphQLParser.SchemaCoordinate.cs">
+      <DependentUpon>Utf8GraphQLParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Utf8GraphQLParser.Syntax.cs">
+      <DependentUpon>Utf8GraphQLParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Utf8GraphQLParser.TokenInfo.cs">
+      <DependentUpon>Utf8GraphQLParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Utf8GraphQLParser.TypeDefinition.cs">
+      <DependentUpon>Utf8GraphQLParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Utf8GraphQLParser.Types.cs">
+      <DependentUpon>Utf8GraphQLParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Utf8GraphQLParser.Utilities.cs">
+      <DependentUpon>Utf8GraphQLParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Utf8GraphQLParser.Values.cs">
+      <DependentUpon>Utf8GraphQLParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Utf8GraphQLReader.Utilities.cs">
+      <DependentUpon>Utf8GraphQLReader.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

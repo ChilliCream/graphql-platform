@@ -9,6 +9,7 @@ using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Factories;
+using HotChocolate.Types.Helpers;
 using HotChocolate.Types.Interceptors;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
@@ -70,6 +71,10 @@ public partial class SchemaBuilder
             {
                 context.SchemaInterceptor.OnError(context, ex);
                 throw;
+            }
+            finally
+            {
+                TypeMemHelper.Clear();
             }
         }
 

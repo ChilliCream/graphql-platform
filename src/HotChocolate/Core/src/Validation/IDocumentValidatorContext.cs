@@ -18,6 +18,11 @@ public interface IDocumentValidatorContext : ISyntaxVisitorContext
     ISchema Schema { get; }
 
     /// <summary>
+    /// Gets the current operation type.
+    /// </summary>
+    OperationType? OperationType { get; set; }
+
+    /// <summary>
     /// Gets a non-null string type.
     /// </summary>
     IOutputType NonNullString { get; }
@@ -25,7 +30,7 @@ public interface IDocumentValidatorContext : ISyntaxVisitorContext
     /// <summary>
     /// Specifies the max allowed validation errors.
     /// </summary>
-    int MaxAllowedErrors { get;}
+    int MaxAllowedErrors { get; }
 
     /// <summary>
     /// The current visitation path of syntax nodes.

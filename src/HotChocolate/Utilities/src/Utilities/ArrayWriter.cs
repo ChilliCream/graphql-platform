@@ -12,7 +12,7 @@ internal sealed class ArrayWriter
     private int _capacity;
     private int _start;
     private bool _disposed;
-    
+
     public ArrayWriter()
     {
         _buffer = ArrayPool<byte>.Shared.Rent(_initialBufferSize);
@@ -68,10 +68,11 @@ internal sealed class ArrayWriter
 
     public void Clear()
     {
-        ArrayPool<byte>.Shared.Return(_buffer);
-        _buffer = ArrayPool<byte>.Shared.Rent(_initialBufferSize);
-        _capacity = _buffer.Length;
-        _start = 0;
+        if (_start > 0)
+        {
+            _buffer.AsSpan().Slice(0, _start).Clear();
+            _start = 0;
+        }
     }
 
     public void Dispose()

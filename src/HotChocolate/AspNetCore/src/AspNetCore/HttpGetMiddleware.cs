@@ -13,6 +13,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
 {
     private readonly IHttpRequestParser _requestParser;
     private readonly IServerDiagnosticEvents _diagnosticEvents;
+    private readonly PathString _matchUrl;
 
     public HttpGetMiddleware(
         HttpRequestDelegate next,
@@ -20,6 +21,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
         IHttpResponseFormatter responseFormatter,
         IHttpRequestParser requestParser,
         IServerDiagnosticEvents diagnosticEvents,
+        PathString matchUrl,
         string schemaName)
         : base(next, executorResolver, responseFormatter, schemaName)
     {
@@ -27,11 +29,15 @@ public sealed class HttpGetMiddleware : MiddlewareBase
             throw new ArgumentNullException(nameof(requestParser));
         _diagnosticEvents = diagnosticEvents ??
             throw new ArgumentNullException(nameof(diagnosticEvents));
+        _matchUrl = matchUrl;
     }
 
     public async Task InvokeAsync(HttpContext context)
     {
         if (HttpMethods.IsGet(context.Request.Method) &&
+            (!_matchUrl.HasValue ||
+                (context.Request.TryMatchPath(_matchUrl, false, out var subPath) &&
+                !subPath.HasValue)) &&
             (context.GetGraphQLServerOptions()?.EnableGetRequests ?? true))
         {
             if (!IsDefaultSchema)
@@ -64,14 +70,39 @@ public sealed class HttpGetMiddleware : MiddlewareBase
         context.Items[WellKnownContextData.RequestExecutor] = requestExecutor;
 
         // next we will inspect the accept headers and determine if we can execute this request.
-        // if the request defines the accept header value and we cannot meet any of the provided
-        // media types we will fail the request with 406 Not Acceptable.
-        var acceptMediaTypes = HeaderUtilities.GetAcceptHeader(context.Request);
-        var requestFlags = CreateRequestFlags(acceptMediaTypes);
+        var headerResult = HeaderUtilities.GetAcceptHeader(context.Request);
+        var acceptMediaTypes = headerResult.AcceptMediaTypes;
 
+        // if we cannot parse all media types that we provided we will fail the request
+        // with a 400 Bad Request.
+        if (headerResult.HasError)
+        {
+            // in this case accept headers were specified and we will
+            // respond with proper error codes
+            acceptMediaTypes = HeaderUtilities.GraphQLResponseContentTypes;
+            statusCode = HttpStatusCode.BadRequest;
+
+#if NET5_0_OR_GREATER
+            var errors = headerResult.ErrorResult.Errors!;
+#else
+            var errors = headerResult.ErrorResult!.Errors!;
+#endif
+            result = headerResult.ErrorResult;
+            _diagnosticEvents.HttpRequestError(context, errors[0]);
+            goto HANDLE_RESULT;
+        }
+
+        var requestFlags = CreateRequestFlags(headerResult.AcceptMediaTypes);
+
+        // if the request defines accept header values of which we cannot handle any provided
+        // media type then we will fail the request with 406 Not Acceptable.
         if (requestFlags is None)
         {
+            // in this case accept headers were specified and we will
+            // respond with proper error codes
+            acceptMediaTypes = HeaderUtilities.GraphQLResponseContentTypes;
             statusCode = HttpStatusCode.NotAcceptable;
+
             var error = ErrorHelper.NoSupportedAcceptMediaType();
             result = QueryResultBuilder.CreateError(error);
             _diagnosticEvents.HttpRequestError(context, error);

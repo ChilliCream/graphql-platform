@@ -7,8 +7,7 @@ namespace HotChocolate.Types.Filters;
 /// Represents a specific filter that can be applied on a field.
 /// </summary>
 [Obsolete("Use HotChocolate.Data.")]
-public class FilterOperationDefintion
-    : InputFieldDefinition
+public class FilterOperationDefinition : InputFieldDefinition
 {
     /// <summary>
     /// Gets or sets the operation description for this field.

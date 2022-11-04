@@ -131,15 +131,62 @@ public interface IObjectTypeDescriptor
     /// </param>
     IObjectFieldDescriptor Field(MemberInfo propertyOrMethod);
 
+    /// <summary>
+    /// Sets a directive on the object type
+    /// <example>
+    /// <code lang="csharp">
+    /// descriptor.Directive(new MyDirective());
+    /// </code>
+    /// Results in the following schema
+    /// <code lang="graphql">
+    /// type Query {
+    ///     ships(name: String @myDirective): [Ship!]!
+    /// }
+    /// </code>
+    /// </example>
+    /// </summary>
+    /// <param name="directiveInstance">
+    /// The instance of the directive
+    /// </param>
+    /// <typeparam name="T">The type of the directive</typeparam>
     IObjectTypeDescriptor Directive<T>(T directiveInstance)
         where T : class;
 
+    /// <summary>
+    /// Sets a directive on the object type
+    /// <example>
+    /// <code lang="csharp">
+    /// descriptor.Directive&lt;MyDirective>();
+    /// </code>
+    /// Results in the following schema
+    /// <code lang="graphql">
+    /// type Query {
+    ///     ships(name: String @myDirective): [Ship!]!
+    /// }
+    /// </code>
+    /// </example>
+    /// </summary>
+    /// <typeparam name="T">The type of the directive</typeparam>
     IObjectTypeDescriptor Directive<T>()
         where T : class, new();
 
-    IObjectTypeDescriptor Directive(
-        string name,
-        params ArgumentNode[] arguments);
+    /// <summary>
+    /// Sets a directive on the object type
+    /// <example>
+    /// <code lang="csharp">
+    /// descriptor.Directive("myDirective");
+    /// </code>
+    /// Results in the following schema
+    /// <code lang="graphql">
+    /// type Query {
+    ///     ships(name: String @myDirective): [Ship!]!
+    /// }
+    /// </code>
+    /// </example>
+    /// </summary>
+    /// <param name="name">The name of the directive</param>
+    /// <param name="arguments">The arguments of the directive</param>
+    IObjectTypeDescriptor Directive(string name, params ArgumentNode[] arguments);
 
     /// <summary>
     /// If configuring a type extension this is the type that shall be extended.

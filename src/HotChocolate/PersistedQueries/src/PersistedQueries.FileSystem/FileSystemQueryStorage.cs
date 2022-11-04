@@ -52,11 +52,10 @@ public class FileSystemQueryStorage
             return _null;
         }
 
-        return TryReadQueryInternalAsync(queryId, filePath, cancellationToken);
+        return TryReadQueryInternalAsync(filePath, cancellationToken);
     }
 
     private async Task<QueryDocument?> TryReadQueryInternalAsync(
-        string queryId,
         string filePath,
         CancellationToken cancellationToken)
     {
@@ -64,7 +63,7 @@ public class FileSystemQueryStorage
 
         var document = await BufferHelper.ReadAsync(
                 stream,
-                (buffer, buffered) =>
+                static (buffer, buffered) =>
                 {
                     var span = buffer.AsSpan().Slice(0, buffered);
                     return Utf8GraphQLParser.Parse(span);
@@ -92,11 +91,10 @@ public class FileSystemQueryStorage
         }
 
         var filePath = _queryMap.MapToFilePath(queryId);
-        return WriteQueryInternalAsync(queryId, query, filePath, cancellationToken);
+        return WriteQueryInternalAsync(query, filePath, cancellationToken);
     }
 
     private async Task WriteQueryInternalAsync(
-        string queryId,
         IQuery query,
         string filePath,
         CancellationToken cancellationToken)

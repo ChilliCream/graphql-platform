@@ -32,7 +32,7 @@ public interface ISchemaBuilder
 
     ISchemaBuilder SetOptions(IReadOnlySchemaOptions options);
 
-    ISchemaBuilder ModifyOptions(Action<ISchemaOptions> configure);
+    ISchemaBuilder ModifyOptions(Action<SchemaOptions> configure);
 
     ISchemaBuilder Use(FieldMiddleware middleware);
 

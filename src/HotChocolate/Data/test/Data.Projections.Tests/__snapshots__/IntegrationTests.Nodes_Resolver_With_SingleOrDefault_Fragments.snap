@@ -1,0 +1,11 @@
+{
+  "data": {
+    "nodes": [
+      {
+        "id": "Rm9vCmRB",
+        "__typename": "Foo",
+        "fieldOfFoo": "fieldOfFoo"
+      }
+    ]
+  }
+}

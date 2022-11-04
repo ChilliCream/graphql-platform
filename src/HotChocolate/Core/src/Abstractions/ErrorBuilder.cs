@@ -237,8 +237,7 @@ public class ErrorBuilder : IErrorBuilder
 
         if (dict.TryGetValue("locations", out obj) && obj is IList<object> locations)
         {
-            foreach (var loc in locations
-                .OfType<IDictionary<string, object>>())
+            foreach (var loc in locations.OfType<IDictionary<string, object>>())
             {
                 builder.AddLocation(new Location(
                     Convert.ToInt32(loc["line"]),

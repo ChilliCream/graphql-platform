@@ -64,12 +64,10 @@ public class SelectionVisitor<TContext>
         var result = Enter(selection, localContext);
         localContext = OnAfterEnter(selection, localContext, result);
 
-        if (result.Kind == SelectionVisitorActionKind.Continue)
+        if (result.Kind == SelectionVisitorActionKind.Continue &&
+            VisitChildren(selection, context).Kind == SelectionVisitorActionKind.Break)
         {
-            if (VisitChildren(selection, context).Kind == SelectionVisitorActionKind.Break)
-            {
-                return Break;
-            }
+            return Break;
         }
 
         if (result.Kind == SelectionVisitorActionKind.Continue ||
@@ -113,9 +111,8 @@ public class SelectionVisitor<TContext>
         var namedType = type.NamedType();
         if (namedType.IsAbstractType())
         {
-            var possibleTypes = context.Context.Schema.GetPossibleTypes(field.Type.NamedType());
-
-            foreach (var possibleType in possibleTypes)
+            foreach (var possibleType in
+                context.ResolverContext.Schema.GetPossibleTypes(field.Type.NamedType()))
             {
                 var result = VisitObjectType(field, possibleType, selection, context);
 
@@ -143,11 +140,11 @@ public class SelectionVisitor<TContext>
 
         try
         {
-            var selections = context.Context.GetSelections(objectType, selection, true);
+            var selections = context.ResolverContext.GetSelections(objectType, selection, true);
 
             for (var i = 0; i < selections.Count; i++)
             {
-                var result = Visit((ISelection)selections[i], context);
+                var result = Visit(selections[i], context);
                 if (result.Kind is SelectionVisitorActionKind.Break)
                 {
                     return Break;

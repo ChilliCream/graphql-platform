@@ -199,6 +199,10 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         {
             resolver = CompileStaticResolver(method, parameterExpressionBuilders ?? _empty);
         }
+        else if (member is PropertyInfo { GetMethod: { IsStatic: true } getMethod })
+        {
+            resolver = CompileStaticResolver(getMethod, parameterExpressionBuilders ?? _empty);
+        }
         else
         {
             resolver = CreateResolver(
@@ -334,7 +338,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         }
 
         throw new NotSupportedException(
-            DefaultResolverCompilerService_CreateResolver_ArgumentValudationError);
+            DefaultResolverCompilerService_CreateResolver_ArgumentValidationError);
     }
 
     private PureFieldDelegate? TryCompilePureResolver(
@@ -528,7 +532,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
 #if NETSTANDARD
                 _cache[parameter] = builder;
 #else
-                _cache.TryAdd(parameter, builder);
+                    _cache.TryAdd(parameter, builder);
 #endif
                     return builder;
                 }

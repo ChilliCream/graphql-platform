@@ -150,6 +150,57 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
     }
 
     /// <summary>
+    /// This request does not specify a accept header.
+    /// expected response content-type: multipart/mixed
+    /// expected status code: 200
+    /// </summary>
+    [Fact]
+    public async Task Legacy_With_Stream_1()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        {
+            Content = JsonContent.Create(
+                new ClientQueryRequest
+                {
+                    Query = "{ ... @defer { __typename } }"
+                })
+        };
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        // expected response content-type: multipart/mixed
+        // expected status code: 200
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                @"Headers:
+                Cache-Control: no-cache
+                Content-Type: multipart/mixed; boundary=""-""
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+
+                ---
+                Content-Type: application/json; charset=utf-8
+
+                {""data"":{},""hasNext"":true}
+                ---
+                Content-Type: application/json; charset=utf-8
+
+                {""incremental"":[{""data"":{""__typename"":""Query""}," +
+                @"""path"":[]}],""hasNext"":false}
+                -----
+                ");
+    }
+
+    /// <summary>
     /// This request specifies the application/graphql-response+json accept header.
     /// expected response content-type: application/graphql-response+json
     /// expected status code: 200
@@ -271,7 +322,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
             .Add(response)
             .MatchInline(
                 @"Headers:
-                Content-Type: multipart/mixed; boundary=""-""; charset=utf-8
+                Content-Type: multipart/mixed; boundary=""-""
                 -------------------------->
                 Status Code: OK
                 -------------------------->
@@ -335,7 +386,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
 
     /// <summary>
     /// This request specifies the */* accept header.
-    /// expected response content-type: application/graphql-response+json; charset=utf-8
+    /// expected response content-type: application/json; charset=utf-8
     /// expected status code: 200
     /// </summary>
     [Fact]
@@ -362,14 +413,14 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         using var response = await client.SendAsync(request);
 
         // assert
-        // expected response content-type: application/graphql-response+json; charset=utf-8
+        // expected response content-type: application/json; charset=utf-8
         // expected status code: 200
         Snapshot
             .Create()
             .Add(response)
             .MatchInline(
                 @"Headers:
-                Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Type: application/json; charset=utf-8
                 -------------------------->
                 Status Code: OK
                 -------------------------->
@@ -576,6 +627,135 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
     }
 
     /// <summary>
+    /// This request specifies the application/unsupported content types as accept header value.
+    /// expected response content-type: application/graphql-response+json
+    /// expected status code: 400
+    /// </summary>
+    [Fact]
+    public async Task New_Query_No_Streams_10()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        {
+            Content = JsonContent.Create(
+                new ClientQueryRequest
+                {
+                    Query = "{ __typename }"
+                })
+        };
+
+        request.Headers.TryAddWithoutValidation("Accept", "unsupported");
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        // expected response content-type: application/graphql-response+json
+        // expected status code: 400
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                @"Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {""errors"":[{""message"":""Unable to parse the accept header value " +
+                @"\u0060unsupported\u0060."",""extensions"":{""headerValue"":""unsupported""," +
+                @"""code"":""HC0064""}}]}");
+    }
+
+    /// <summary>
+    /// This request specifies the application/unsupported content types as accept header value.
+    /// expected response content-type: application/graphql-response+json
+    /// expected status code: 206
+    /// </summary>
+    [Fact]
+    public async Task New_Query_No_Streams_12()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        {
+            Content = JsonContent.Create(
+                new ClientQueryRequest
+                {
+                    Query = "{ __typename }"
+                })
+        };
+
+        request.Headers.TryAddWithoutValidation("Accept", "application/unsupported");
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        // expected response content-type: application/graphql-response+json
+        // expected status code: 206
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                @"Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: NotAcceptable
+                -------------------------->
+                {""errors"":[{""message"":""None of the proved accept header media types " +
+                @"is supported."",""extensions"":{""code"":""HC0063""}}]}");
+    }
+
+    /// <summary>
+    /// This request specifies the application/graphql-response+json; charset=utf-8,
+    /// multipart/mixed; charset=utf-8 content types as accept header value.
+    /// expected response content-type: application/graphql-response+json
+    /// expected status code: 200
+    /// </summary>
+    [Fact]
+    public async Task New_Query_No_Streams_13()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        {
+            Content = JsonContent.Create(
+                new ClientQueryRequest
+                {
+                    Query = "{ __typename }"
+                })
+        };
+
+        request.Headers.TryAddWithoutValidation(
+            "Accept",
+            "application/graphql-response+json; charset=utf-8, multipart/mixed; charset=utf-8");
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        // expected response content-type: application/graphql-response+json
+        // expected status code: 200
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                @"Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+                {""data"":{""__typename"":""Query""}}");
+    }
+
+    /// <summary>
     /// This request specifies the application/graphql-response+json and
     /// the multipart/mixed content type as accept header value.
     /// expected response content-type: multipart/mixed
@@ -617,7 +797,8 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
             .Add(response)
             .MatchInline(
                 @"Headers:
-                Content-Type: multipart/mixed; boundary=""-""; charset=utf-8
+                Cache-Control: no-cache
+                Content-Type: multipart/mixed; boundary=""-""
                 -------------------------->
                 Status Code: OK
                 -------------------------->
@@ -629,7 +810,8 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 ---
                 Content-Type: application/json; charset=utf-8
 
-                {""path"":[],""data"":{""__typename"":""Query""},""hasNext"":false}
+                {""incremental"":[{""data"":{""__typename"":""Query""}," +
+                @"""path"":[]}],""hasNext"":false}
                 -----
                 ");
     }
@@ -678,6 +860,63 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 Status Code: MethodNotAllowed
                 -------------------------->
                 {""errors"":[{""message"":""The specified operation kind is not allowed.""}]}");
+    }
+
+    /// <summary>
+    /// This request specifies the text/event-stream content type as accept header value.
+    /// expected response content-type: text/event-stream
+    /// expected status code: 200
+    /// </summary>
+    [Fact]
+    public async Task New_Query_With_Streams_3()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        {
+            Content = JsonContent.Create(
+                new ClientQueryRequest
+                {
+                    Query = "{ ... @defer { __typename } }"
+                }),
+            Headers =
+            {
+                { "Accept", new[]
+                    {
+                        ContentType.EventStream
+                    }
+                }
+            }
+        };
+
+        using var response = await client.SendAsync(request, ResponseHeadersRead);
+
+        // assert
+        // expected response content-type: text/event-stream
+        // expected status code: 200
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                @"Headers:
+                Cache-Control: no-cache
+                Content-Type: text/event-stream; charset=utf-8
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+                event: next
+                data: {""data"":{},""hasNext"":true}
+
+                event: next
+                data: {""incremental"":[{""data"":{""__typename"":""Query""}," +
+                @"""path"":[]}],""hasNext"":false}
+
+                event: complete
+
+                ");
     }
 }
 #endif

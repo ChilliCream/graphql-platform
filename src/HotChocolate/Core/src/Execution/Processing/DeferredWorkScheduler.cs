@@ -23,10 +23,7 @@ internal sealed class DeferredWorkScheduler : IDeferredWorkScheduler
             {
                 lock (_stateSync)
                 {
-                    if (_stateOwner is null)
-                    {
-                        _stateOwner = _deferredWorkStateFactory.Create();
-                    }
+                    _stateOwner ??= _deferredWorkStateFactory.Create();
                 }
             }
 
@@ -40,6 +37,7 @@ internal sealed class DeferredWorkScheduler : IDeferredWorkScheduler
     {
         var services = operationContext.Services;
 
+        _stateOwner = null;
         _parentContext = operationContext;
         _operationContextFactory = services.GetRequiredService<IFactory<OperationContextOwner>>();
         _deferredWorkStateFactory = services.GetRequiredService<IFactory<DeferredWorkStateOwner>>();
@@ -53,12 +51,35 @@ internal sealed class DeferredWorkScheduler : IDeferredWorkScheduler
         _deferredWorkStateFactory = scheduler._deferredWorkStateFactory;
     }
 
-    public void Register(DeferredExecutionTask task)
+    public void Register(DeferredExecutionTask task, ResultData parentResult)
+    {
+        // first we get the result identifier which is used to refer to the result that we defer.
+        var resultId = StateOwner.State.CreateId();
+
+        // next we assign a patch identifier to the result set into which the deferred result
+        // shall be patched into.
+        var patchId = StateOwner.State.AssignPatchId(parentResult);
+
+        // for the spawned execution we need a operation context which we will initialize
+        // from the current operation context.
+        var taskContextOwner = _operationContextFactory.Create();
+        taskContextOwner.OperationContext.InitializeFrom(_parentContext);
+
+        // Last we register our patch identifier with the parent result so that
+        // we can more efficiently mark discarded result sets to not send down
+        // patches that cannot be applied.
+        _parentContext.Result.AddPatchId(patchId);
+
+        // with all in place we will start the execution of the deferred task.
+        task.Begin(taskContextOwner, resultId, patchId);
+    }
+
+    public void Register(DeferredExecutionTask task, uint patchId)
     {
         var resultId = StateOwner.State.CreateId();
         var taskContextOwner = _operationContextFactory.Create();
         taskContextOwner.OperationContext.InitializeFrom(_parentContext);
-        task.Begin(taskContextOwner, resultId);
+        task.Begin(taskContextOwner, resultId, patchId);
     }
 
     public void Complete(DeferredExecutionTaskResult result)
@@ -70,6 +91,14 @@ internal sealed class DeferredWorkScheduler : IDeferredWorkScheduler
             StateOwner,
             _parentContext.Operation,
             _parentContext.DiagnosticEvents);
+
+    public void Clear()
+    {
+        _stateOwner = null;
+        _operationContextFactory = default!;
+        _deferredWorkStateFactory = default!;
+        _parentContext = default!;
+    }
 
     private class DeferResultStream : IAsyncEnumerable<IQueryResult>
     {
@@ -98,23 +127,24 @@ internal sealed class DeferredWorkScheduler : IDeferredWorkScheduler
 
             try
             {
-
                 yield return _initialResult;
 
                 while (!cancellationToken.IsCancellationRequested)
                 {
-                    var result = await _stateOwner.State.TryDequeueResultAsync(cancellationToken);
+                    var result = await _stateOwner.State.TryDequeueResultsAsync(cancellationToken);
+
                     if (result is not null)
                     {
                         hasNext = result.HasNext ?? false;
                         yield return result;
                     }
-                    else
+                    else if (_stateOwner.State.IsCompleted)
                     {
                         if (hasNext)
                         {
                             yield return new QueryResult(null, hasNext: false);
                         }
+
                         yield break;
                     }
                 }

@@ -94,10 +94,9 @@ public class IntegrationTests : IClassFixture<RedisResource>
             result.ExpectQueryResult().Errors!,
             error =>
             {
-                Assert.Equal("The query request contains no document.", error.Message);
-                Assert.Equal("HC0015", error.Code);
+                Assert.Equal("The specified persisted query key is invalid.", error.Message);
+                Assert.Equal("HC0020", error.Code);
             });
-        result.MatchSnapshot();
     }
 
     [Fact]

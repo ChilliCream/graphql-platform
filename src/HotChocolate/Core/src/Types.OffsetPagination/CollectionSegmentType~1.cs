@@ -41,7 +41,7 @@ internal class CollectionSegmentType
                         definition.Name = type.NamedType().Name + "CollectionSegment";
                     },
                     Definition,
-                    ApplyConfigurationOn.Naming,
+                    ApplyConfigurationOn.BeforeNaming,
                     nodeType,
                     TypeDependencyKind.Named));
         }
@@ -57,7 +57,7 @@ internal class CollectionSegmentType
                     nodes.Type = TypeReference.Parse($"[{ItemType.Print()}]", TypeContext.Output);
                 },
                 Definition,
-                ApplyConfigurationOn.Naming,
+                ApplyConfigurationOn.BeforeNaming,
                 nodeType,
                 TypeDependencyKind.Named));
 

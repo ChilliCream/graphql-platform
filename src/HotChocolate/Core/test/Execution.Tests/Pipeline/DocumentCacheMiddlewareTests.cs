@@ -180,7 +180,8 @@ public class DocumentCacheMiddlewareTests
         var parserMiddleware = new DocumentParserMiddleware(
             context => default,
             new NoopExecutionDiagnosticEvents(),
-            hashProvider);
+            hashProvider,
+            new ParserOptions());
 
         var middleware = new DocumentCacheMiddleware(
             context =>

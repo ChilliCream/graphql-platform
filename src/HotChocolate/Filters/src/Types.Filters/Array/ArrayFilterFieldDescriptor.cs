@@ -79,7 +79,7 @@ public class ArrayFilterFieldDescriptor
         return field;
     }
 
-    protected override FilterOperationDefintion CreateOperationDefinition(
+    protected override FilterOperationDefinition CreateOperationDefinition(
         FilterOperationKind operationKind)
     {
         return FilterOperationKind.ArrayAny == operationKind

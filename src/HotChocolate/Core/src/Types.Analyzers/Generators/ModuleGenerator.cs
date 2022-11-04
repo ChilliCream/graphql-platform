@@ -77,12 +77,24 @@ public class ModuleGenerator : ISyntaxGenerator
                     if ((module.Options & ModuleOptions.RegisterTypes) ==
                         ModuleOptions.RegisterTypes)
                     {
-                        code.Append(Indent)
-                            .Append(Indent)
-                            .Append(Indent)
-                            .Append("builder.AddTypeExtension<")
-                            .Append(extension.Name)
-                            .AppendLine(">();");
+                        if (extension.IsStatic)
+                        {
+                            code.Append(Indent)
+                                .Append(Indent)
+                                .Append(Indent)
+                                .Append("builder.AddTypeExtension(typeof(")
+                                .Append(extension.Name)
+                                .AppendLine("));");
+                        }
+                        else
+                        {
+                            code.Append(Indent)
+                                .Append(Indent)
+                                .Append(Indent)
+                                .Append("builder.AddTypeExtension<")
+                                .Append(extension.Name)
+                                .AppendLine(">();");
+                        }
                     }
                     break;
 

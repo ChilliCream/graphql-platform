@@ -183,7 +183,7 @@ internal sealed class OperationExecutionMiddleware
             context.Schema.MutationType!,
             ref _cachedMutation);
 
-    private bool IsOperationAllowed(IOperation operation, IQueryRequest request)
+    private static bool IsOperationAllowed(IOperation operation, IQueryRequest request)
     {
         if (request.Flags is AllowAll)
         {

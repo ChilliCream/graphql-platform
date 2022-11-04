@@ -1,7 +1,9 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 
 namespace HotChocolate.AspNetCore;
@@ -14,13 +16,22 @@ internal static class HeaderUtilities
     private static readonly ConcurrentDictionary<string, CacheEntry> _cache =
         new(StringComparer.Ordinal);
 
+    public static readonly AcceptMediaType[] GraphQLResponseContentTypes =
+    {
+        new AcceptMediaType(
+            ContentType.Types.Application,
+            ContentType.SubTypes.GraphQLResponse,
+            null,
+            StringSegment.Empty)
+    };
+
     /// <summary>
     /// Gets the parsed accept header values from a request.
     /// </summary>
     /// <param name="request">
     /// The HTTP request.
     /// </param>
-    public static AcceptMediaType[] GetAcceptHeader(HttpRequest request)
+    public static AcceptHeaderResult GetAcceptHeader(HttpRequest request)
     {
         if (request.Headers.TryGetValue(HeaderNames.Accept, out var value))
         {
@@ -28,20 +39,33 @@ internal static class HeaderUtilities
 
             if (count == 0)
             {
-                return Array.Empty<AcceptMediaType>();
+                return new AcceptHeaderResult(Array.Empty<AcceptMediaType>());
             }
+
+            string[] innerArray;
 
             if (count == 1)
             {
-                if (TryParseMediaType(value[0], out var parsedValue))
+                var headerValue = value[0]!;
+
+                if (TryParseMediaType(headerValue, out var parsedValue))
                 {
-                    return new[] { parsedValue };
+                    return new AcceptHeaderResult(new[] { parsedValue });
                 }
 
-                return Array.Empty<AcceptMediaType>();
+                // note: this is a workaround for now. we need to parse this properly.
+                if (headerValue.IndexOf(',', StringComparison.Ordinal) != -1)
+                {
+                    innerArray = headerValue.Split(',');
+                    goto MULTI_VALUES;
+                }
+
+                return new AcceptHeaderResult(headerValue);
             }
 
-            string[] innerArray = value;
+            innerArray = value!;
+
+MULTI_VALUES:
             ref var searchSpace = ref MemoryMarshal.GetReference(innerArray.AsSpan());
             var parsedValues = new AcceptMediaType[innerArray.Length];
             var p = 0;
@@ -53,6 +77,10 @@ internal static class HeaderUtilities
                 {
                     parsedValues[p++] = parsedValue;
                 }
+                else
+                {
+                    return new AcceptHeaderResult(mediaType);
+                }
             }
 
             if (parsedValues.Length > p)
@@ -60,10 +88,10 @@ internal static class HeaderUtilities
                 Array.Resize(ref parsedValues, p);
             }
 
-            return parsedValues;
+            return new AcceptHeaderResult(parsedValues);
         }
 
-        return Array.Empty<AcceptMediaType>();
+        return new AcceptHeaderResult(Array.Empty<AcceptMediaType>());
     }
 
     private static bool TryParseMediaType(string s, out AcceptMediaType value)
@@ -117,5 +145,31 @@ internal static class HeaderUtilities
         public AcceptMediaType Value { get; }
 
         public DateTime CreatedAt { get; }
+    }
+
+    internal readonly struct AcceptHeaderResult
+    {
+        public AcceptHeaderResult(AcceptMediaType[] acceptMediaTypes)
+        {
+            AcceptMediaTypes = acceptMediaTypes;
+            ErrorResult = null;
+            HasError = false;
+        }
+
+        public AcceptHeaderResult(string headerValue)
+        {
+            AcceptMediaTypes = Array.Empty<AcceptMediaType>();
+            ErrorResult = ErrorHelper.InvalidAcceptMediaType(headerValue);
+            HasError = true;
+        }
+
+        public AcceptMediaType[] AcceptMediaTypes { get; }
+
+        public IQueryResult? ErrorResult { get; }
+
+#if NET5_0_OR_GREATER
+        [MemberNotNullWhen(true, nameof(ErrorResult))]
+#endif
+        public bool HasError { get; }
     }
 }

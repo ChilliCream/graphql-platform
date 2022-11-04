@@ -26,6 +26,12 @@ public static class WellKnownContextData
     public const string DocumentSaved = "HotChocolate.Execution.DocumentSaved";
 
     /// <summary>
+    /// The key that specifies that the current context allows standard queries
+    /// that are not known to the server.
+    /// </summary>
+    public const string NonPersistedQueryAllowed = "HotChocolate.Execution.NonPersistedQueryAllowed";
+
+    /// <summary>
     /// The key for setting a flag that the execution had document validation errors.
     /// </summary>
     public const string ValidationErrors = "HotChocolate.Execution.ValidationErrors";
@@ -136,4 +142,75 @@ public static class WellKnownContextData
     /// The key to overwrite the root type instance for a request.
     /// </summary>
     public const string InitialValue = "HotChocolate.Execution.InitialValue";
+
+    /// <summary>
+    /// The key to lookup significant results that were removed during execution.
+    /// </summary>
+    public const string RemovedResults = "HotChocolate.Execution.RemovedResults";
+
+    /// <summary>
+    /// The key to lookup result sets that expect data patches.
+    /// </summary>
+    public const string ExpectedPatches = "HotChocolate.Execution.ExpectedPatches";
+
+    /// <summary>
+    /// The key to the patch ID of a result set. The patch ID references the result into which
+    /// the result set containing the patch ID shall be patched into.
+    /// </summary>
+    public const string PatchId = "HotChocolate.Execution.PatchId";
+
+    /// <summary>
+    /// The key to get the type discovery interceptors from the schema context data.
+    /// </summary>
+    public const string TypeDiscoveryHandlers = "HotChocolate.Execution.TypeDiscoveryHandlers";
+
+    /// <summary>
+    /// The key to get the node resolvers.
+    /// </summary>
+    public const string NodeResolver = "HotChocolate.Relay.Node.Resolver";
+
+    /// <summary>
+    /// The key to check if relay support is enabled.
+    /// </summary>
+    public const string IsRelaySupportEnabled = "HotChocolate.Relay.IsEnabled";
+
+    /// <summary>
+    /// The key to check if the global identification spec is enabled.
+    /// </summary>
+    public const string GlobalIdSupportEnabled = "HotChocolate.Relay.GlobalId";
+
+    /// <summary>
+    /// The key to get the node id from the context data.
+    /// </summary>
+    public const string NodeId = "HotChocolate.Relay.Node.Id";
+
+    /// <summary>
+    /// The key to get the internal id from the context data.
+    /// </summary>
+    public const string InternalId = "HotChocolate.Relay.Node.Id.InternalId";
+
+    /// <summary>
+    /// The key to get the id type name from the context data.
+    /// </summary>
+    public const string InternalTypeName = "HotChocolate.Relay.Node.Id.InternalTypeName";
+
+    /// <summary>
+    /// The key to get the id type from the context data.
+    /// </summary>
+    public const string InternalType = "HotChocolate.Relay.Node.Id.InternalType";
+
+    /// <summary>
+    /// The key to get the IdValue object from the context data.
+    /// </summary>
+    public const string IdValue = "HotChocolate.Relay.Node.Id.Value";
+
+    /// <summary>
+    /// The key to get check if a field is the node field.
+    /// </summary>
+    public const string IsNodeField = "HotChocolate.Relay.Node.IsNodeField";
+
+    /// <summary>
+    /// The key to get check if a field is the nodes field.
+    /// </summary>
+    public const string IsNodesField = "HotChocolate.Relay.Node.IsNodeField";
 }

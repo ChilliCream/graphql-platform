@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 public class ObjectFieldDefinition : OutputFieldDefinitionBase
 {
     private List<FieldMiddlewareDefinition>? _middlewareDefinitions;
-    private List<ResultConverterDefinition>? _resultConverters;
+    private List<ResultFormatterDefinition>? _resultConverters;
     private List<IParameterExpressionBuilder>? _expressionBuilders;
     private List<object>? _customSettings;
     private bool _middlewareDefinitionsCleaned;
@@ -127,14 +127,14 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     }
 
     /// <summary>
-    /// A list of converters that can transform the resolver result.
+    /// A list of formatters that can transform the resolver result.
     /// </summary>
-    public IList<ResultConverterDefinition> ResultConverters
+    public IList<ResultFormatterDefinition> FormatterDefinitions
     {
         get
         {
             _resultConvertersCleaned = false;
-            return _resultConverters ??= new List<ResultConverterDefinition>();
+            return _resultConverters ??= new List<ResultFormatterDefinition>();
         }
     }
 
@@ -233,11 +233,11 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     /// <summary>
     /// A list of converters that can transform the resolver result.
     /// </summary>
-    internal IReadOnlyList<ResultConverterDefinition> GetResultConverters()
+    internal IReadOnlyList<ResultFormatterDefinition> GetResultConverters()
     {
         if (_resultConverters is null)
         {
-            return Array.Empty<ResultConverterDefinition>();
+            return Array.Empty<ResultFormatterDefinition>();
         }
 
         CleanMiddlewareDefinitions(_resultConverters, ref _resultConvertersCleaned);
@@ -330,7 +330,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
 
         if (_resultConverters is { Count: > 0 })
         {
-            target._resultConverters ??= new List<ResultConverterDefinition>();
+            target._resultConverters ??= new List<ResultFormatterDefinition>();
             target._resultConverters.AddRange(_resultConverters);
             _resultConvertersCleaned = false;
         }

@@ -122,6 +122,9 @@
       PublicKeyToken=b77a5c561934e089
     </value>
   </resheader>
+  <data name="ThrowHelper_MissingDirectiveIfArgument" xml:space="preserve">
+    <value>The {0}-directive is missing the if-argument.</value>
+  </data>
   <data name="ArgumentDescriptor_InputTypeViolation" xml:space="preserve">
     <value>The argument type has to be an input-type.</value>
   </data>
@@ -734,7 +737,7 @@ Type: `{0}`</value>
   <data name="EventMessageParameterExpressionBuilder_MessageNotFound" xml:space="preserve">
     <value>The event message parameter can only be used in a subscription context.</value>
   </data>
-  <data name="DefaultResolverCompilerService_CreateResolver_ArgumentValudationError" xml:space="preserve">
+  <data name="DefaultResolverCompilerService_CreateResolver_ArgumentValidationError" xml:space="preserve">
     <value>The public method should already have ensured that we do not have members other than method or property at this point.</value>
   </data>
   <data name="DefaultResolverCompilerService_CompileSubscribe_OnlyMethodsAllowed" xml:space="preserve">
@@ -875,6 +878,9 @@ Type: `{0}`</value>
   </data>
   <data name="ThrowHelper_FieldBase_Sealed" xml:space="preserve">
     <value>The field is already sealed and cannot be mutated.</value>
+  </data>
+  <data name="TypeInitializer_CannotFindType" xml:space="preserve">
+    <value>Unable to find type(s) {0}</value>
   </data>
   <data name="ThrowHelper_RelayIdFieldHelpers_NoFieldType" xml:space="preserve">
     <value>Unable to resolve type from field `{0}`.</value>
@@ -1055,5 +1061,8 @@ Type: `{0}`</value>
   </data>
   <data name="ThrowHelper_InvalidInputFieldNames_Single" xml:space="preserve">
     <value>The field `{0}` does not exist on the type `{1}`.</value>
+  </data>
+  <data name="ThrowHelper_MutationDuplicateErrorName" xml:space="preserve">
+    <value>Mutation conventions infer the error name from the mutation. In this case the error union was inferred from the mutation `{0}` as `{1}`, but the type initialization encountered another object with the name `{1}`. Either rename the error object or specify a naming exception for this particular mutation. You can do that by using the `UseMutationConventionAttribute` for instance.</value>
   </data>
 </root>

@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Threading;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -13,8 +11,6 @@ namespace HotChocolate.Types.Helpers;
 
 public static class FieldDescriptorUtilities
 {
-    private static HashSet<string>? _names = new(StringComparer.Ordinal);
-
     public static void AddExplicitFields<TMember, TField>(
         IEnumerable<TField> fieldDefinitions,
         Func<TField, TMember?> resolveMember,
@@ -69,10 +65,16 @@ public static class FieldDescriptorUtilities
     {
         if (fieldBindingType != typeof(object))
         {
-            var members = descriptor.Context.TypeInspector
-                .GetMembers(fieldBindingType, includeIgnoredMembers)
-                .OfType<TMember>()
-                .ToList();
+            var inspector = descriptor.Context.TypeInspector;
+            var members = new List<TMember>();
+
+            foreach (var member in inspector.GetMembers(fieldBindingType, includeIgnoredMembers))
+            {
+                if (member is TMember m)
+                {
+                    members.Add(m);
+                }
+            }
 
             foreach (var member in members)
             {
@@ -106,7 +108,7 @@ public static class FieldDescriptorUtilities
 
         if (member is MethodInfo method)
         {
-            var processedNames = Interlocked.Exchange(ref _names, null) ?? new();
+            var processedNames = TypeMemHelper.RentNameSet();
 
             try
             {
@@ -137,8 +139,7 @@ public static class FieldDescriptorUtilities
             }
             finally
             {
-                processedNames.Clear();
-                Interlocked.CompareExchange(ref _names, processedNames, null);
+                TypeMemHelper.Return(processedNames);
             }
         }
     }

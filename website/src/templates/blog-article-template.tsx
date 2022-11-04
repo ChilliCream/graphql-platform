@@ -6,7 +6,7 @@ import { Layout } from "../components/layout";
 import { SEO } from "../components/misc/seo";
 
 interface BlogArticleTemplateProps {
-  data: BlogArticleFragment;
+  readonly data: BlogArticleFragment;
 }
 
 const BlogArticleTemplate: FC<BlogArticleTemplateProps> = ({ data }) => {

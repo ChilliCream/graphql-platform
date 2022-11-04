@@ -81,7 +81,7 @@ export const GlobalStyle = createGlobalStyle`
   h6 {
     margin-bottom: 10px;
     font-family: ${FONT_FAMILY_HEADING};
-    font-weight: bold;
+    font-weight: 500;
     line-height: 1.250em;
     text-rendering: optimizeLegibility;
     color: ${THEME_COLORS.heading};
@@ -128,12 +128,12 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   strong {
-    font-weight: bold;
+    font-weight: 600;
   }
 
   blockquote {
     margin-bottom: 20px;
-    background-color: #e8ecf5;
+    background-color: ${THEME_COLORS.backgroundAlt};
 
     > p:last-child {
       margin-bottom: 0;
@@ -187,7 +187,7 @@ export const GlobalStyle = createGlobalStyle`
     }
 
     > tr:hover {
-      background-color: #e8ecf5;
+      background-color: ${THEME_COLORS.backgroundAlt};
     }
   }
 
@@ -203,7 +203,7 @@ export const GlobalStyle = createGlobalStyle`
   th {
     border-top: 1px solid #aaa;
     border-bottom: 2px solid #aaa;
-    font-weight: bold;
+    font-weight: 600;
   }
 
   th:first-child,
@@ -243,5 +243,15 @@ export const GlobalStyle = createGlobalStyle`
   h5:hover a.anchor,
   h6:hover a.anchor {
     visibility: visible;
+  }
+
+  .sr-only:not(:focus):not(:active) {
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
   }
 `;

@@ -54,6 +54,12 @@ public static class ErrorCodes
         /// A persisted query was not found when using the active persisted query pipeline.
         /// </summary>
         public const string PersistedQueryNotFound = "HC0020";
+
+        /// <summary>
+        /// Only persisted queries are allowed.
+        /// </summary>
+        public const string OnlyPersistedQueriesAllowed = "HC0067";
+
         public const string TaskProcessingError = "HC0008";
         public const string SyntaxError = "HC0014";
         public const string CannotCreateRootValue = "HC0019";
@@ -176,6 +182,11 @@ public static class ErrorCodes
         /// The request did not specify any supported accept media type.
         /// </summary>
         public const string NoSupportedAcceptMediaType = "HC0063";
+
+        /// <summary>
+        /// The request did not specify any supported accept media type.
+        /// </summary>
+        public const string InvalidAcceptHeaderValue = "HC0064";
     }
 
     public static class Schema
@@ -190,6 +201,8 @@ public static class ErrorCodes
         public const string InvalidArgument = "TS_INVALID_ARG";
         public const string NonNullArgument = "TS_ARG_NON_NULL";
         public const string InterfaceNotImplemented = "SCHEMA_INTERFACE_NO_IMPL";
+        public const string DuplicateTypeName = "HC0065";
+        public const string DuplicateMutationErrorTypeName = "HC0066";
 
         /// <summary>
         /// The middleware order of a field pipeline is incorrect.

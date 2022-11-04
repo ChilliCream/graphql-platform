@@ -56,7 +56,7 @@ public class ArrayFilterTests
         var schema = SchemaBuilder.New()
             .AddQueryType<QueryType>()
             .AddServices(services)
-            .BindClrType<ObjectId, IdType>()
+            .BindRuntimeType<ObjectId, IdType>()
             .Create();
 
         var request = QueryRequestBuilder.New()
@@ -152,7 +152,7 @@ public class ArrayFilterTests
         var schema = SchemaBuilder.New()
             .AddQueryType<QueryType>()
             .AddServices(services)
-            .BindClrType<ObjectId, IdType>()
+            .BindRuntimeType<ObjectId, IdType>()
             .Create();
 
         var request = QueryRequestBuilder.New()
@@ -203,7 +203,7 @@ public class ArrayFilterTests
         var schema = SchemaBuilder.New()
             .AddQueryType<QueryType>()
             .AddServices(services)
-            .BindClrType<ObjectId, IdType>()
+            .BindRuntimeType<ObjectId, IdType>()
             .Create();
 
         var request = QueryRequestBuilder.New()

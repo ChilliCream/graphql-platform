@@ -1,14 +1,13 @@
 using HotChocolate.Types;
 
-namespace HotChocolate.Validation.Types
+namespace HotChocolate.Validation.Types;
+
+public class FurColor : EnumType
 {
-    public class FurColor : EnumType
+    protected override void Configure(IEnumTypeDescriptor descriptor)
     {
-        protected override void Configure(IEnumTypeDescriptor descriptor)
-        {
-            descriptor.Value("RED");
-            descriptor.Value("BLUE");
-            descriptor.Value("GREEN");
-        }
+        descriptor.Value("RED");
+        descriptor.Value("BLUE");
+        descriptor.Value("GREEN");
     }
 }

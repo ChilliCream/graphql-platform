@@ -44,6 +44,8 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
                             c => c.GetRequiredService<PersistedQueryCache>())
                         .AddSingleton<IWriteStoredQueries>(
                             c => c.GetRequiredService<PersistedQueryCache>()))
+                    .AddGraphQLServer("StarWars")
+                    .AddStarWarsTypes()
                     .AddGraphQLServer("evict")
                     .AddQueryType(d => d.Name("Query"))
                     .AddTypeExtension<QueryExtension>()
@@ -81,6 +83,7 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
                     endpoints.MapGraphQL("/evict", "evict");
                     endpoints.MapGraphQL("/arguments", "arguments");
                     endpoints.MapGraphQL("/upload", "upload");
+                    endpoints.MapGraphQL("/starwars", "StarWars");
                 }));
     }
 

@@ -818,7 +818,7 @@ public class SchemaBuilderTests
         // act
         var schema = SchemaBuilder.New()
             .AddQueryType<QueryWithIntField>()
-            .BindClrType<int, StringType>()
+            .BindRuntimeType<int, StringType>()
             .Create();
 
         // assert
@@ -830,7 +830,7 @@ public class SchemaBuilderTests
     {
         // arrange
         // act
-        void Action() => SchemaBuilderExtensions.BindClrType<int, StringType>(null);
+        void Action() => SchemaBuilderExtensions.BindRuntimeType<int, StringType>(null);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);

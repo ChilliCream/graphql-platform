@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
+using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data;
@@ -113,16 +114,179 @@ public class IntegrationTests
 
         result.MatchSnapshot();
     }
+
+    [Fact]
+    public async Task Node_Resolver_With_SingleOrDefault_Schema()
+    {
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithNodeResolvers>()
+            .AddObjectType<Foo>(d => d.ImplementsNode().IdField(t => t.Bar))
+            .AddObjectType<Bar>(d => d.ImplementsNode().IdField(t => t.IdOfBar))
+            .AddObjectType<Baz>(d => d.ImplementsNode().IdField(t => t.Bar2))
+            .AddGlobalObjectIdentification()
+            .AddProjections()
+            .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Node_Resolver_With_SingleOrDefault()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithNodeResolvers>()
+            .AddObjectType<Foo>(d => d.ImplementsNode().IdField(t => t.Bar))
+            .AddObjectType<Bar>(d => d.ImplementsNode().IdField(t => t.IdOfBar))
+            .AddObjectType<Baz>(d => d.ImplementsNode().IdField(t => t.Bar2))
+            .AddGlobalObjectIdentification()
+            .AddProjections()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(@"{ node(id: ""Rm9vCmRB"") { id __typename } }");
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Node_Resolver_With_SingleOrDefault_Fragments()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithNodeResolvers>()
+            .AddObjectType<Foo>(d => d.ImplementsNode().IdField(t => t.Bar))
+            .AddObjectType<Bar>(d => d.ImplementsNode().IdField(t => t.IdOfBar))
+            .AddObjectType<Baz>(d => d.ImplementsNode().IdField(t => t.Bar2))
+            .AddGlobalObjectIdentification()
+            .AddProjections()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor
+            .ExecuteAsync("""
+                {
+                    node(id: "Rm9vCmRB") {
+                        id
+                        __typename
+                        ... on Baz { fieldOfBaz }
+                        ... on Foo { fieldOfFoo }
+                    }
+                }
+                """);
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Node_Resolver_Without_SingleOrDefault()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithNodeResolvers>()
+            .AddObjectType<Foo>(d => d.ImplementsNode().IdField(t => t.Bar))
+            .AddObjectType<Bar>(d => d.ImplementsNode().IdField(t => t.IdOfBar))
+            .AddObjectType<Baz>(d => d.ImplementsNode().IdField(t => t.Bar2))
+            .AddGlobalObjectIdentification()
+            .AddProjections()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor
+            .ExecuteAsync("""
+                {
+                    node(id: "QmFyCmRB") {
+                        id
+                        __typename
+                        ... on Baz { fieldOfBaz }
+                        ... on Foo { fieldOfFoo }
+                        ... on Bar { fieldOfBar }
+                    }
+                }
+                """);
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Nodes_Resolver_With_SingleOrDefault()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithNodeResolvers>()
+            .AddObjectType<Foo>(d => d.ImplementsNode().IdField(t => t.Bar))
+            .AddObjectType<Bar>(d => d.ImplementsNode().IdField(t => t.IdOfBar))
+            .AddObjectType<Baz>(d => d.ImplementsNode().IdField(t => t.Bar2))
+            .AddGlobalObjectIdentification()
+            .AddProjections()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(@"{ nodes(ids: ""Rm9vCmRB"") { id __typename } }");
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Nodes_Resolver_With_SingleOrDefault_Fragments()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithNodeResolvers>()
+            .AddObjectType<Foo>(d => d.ImplementsNode().IdField(t => t.Bar))
+            .AddObjectType<Bar>(d => d.ImplementsNode().IdField(t => t.IdOfBar))
+            .AddObjectType<Baz>(d => d.ImplementsNode().IdField(t => t.Bar2))
+            .AddGlobalObjectIdentification()
+            .AddProjections()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor
+            .ExecuteAsync("""
+                {
+                    nodes(ids: "Rm9vCmRB") {
+                        id
+                        __typename
+                        ... on Baz { fieldOfBaz }
+                        ... on Foo { fieldOfFoo }
+                    }
+                }
+                """);
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Nodes_Resolver_Without_SingleOrDefault()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithNodeResolvers>()
+            .AddObjectType<Foo>(d => d.ImplementsNode().IdField(t => t.Bar))
+            .AddObjectType<Bar>(d => d.ImplementsNode().IdField(t => t.IdOfBar))
+            .AddObjectType<Baz>(d => d.ImplementsNode().IdField(t => t.Bar2))
+            .AddGlobalObjectIdentification()
+            .AddProjections()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor
+            .ExecuteAsync("""
+                {
+                    nodes(ids: "QmFyCmRB") {
+                        id
+                        __typename
+                        ... on Baz { fieldOfBaz }
+                        ... on Foo { fieldOfFoo }
+                        ... on Bar { fieldOfBar }
+                    }
+                }
+                """);
+
+        result.MatchSnapshot();
+    }
 }
 
 public class Query
 {
     [UseProjection]
-    public IQueryable<Foo> Foos => new Foo[]
-    {
-            new() { Bar = "A" },
-            new() { Bar = "B" }
-    }.AsQueryable();
+    public IQueryable<Foo> Foos
+        => new Foo[] { new() { Bar = "A" }, new() { Bar = "B" } }.AsQueryable();
 }
 
 [ExtendObjectType(typeof(Foo))]
@@ -130,15 +294,9 @@ public class FooExtensions
 {
     public string Baz => "baz";
 
-    public IEnumerable<string> Qux => new[]
-    {
-            "baz"
-        };
+    public IEnumerable<string> Qux => new[] { "baz" };
 
-    public IEnumerable<Foo> NestedList => new[]
-    {
-            new Foo() { Bar = "C" }
-        };
+    public IEnumerable<Foo> NestedList => new[] { new Foo() { Bar = "C" } };
 
     public Foo Nested => new() { Bar = "C" };
 }
@@ -146,4 +304,41 @@ public class FooExtensions
 public class Foo
 {
     public string? Bar { get; set; }
+    public string FieldOfFoo => "fieldOfFoo";
+}
+
+public class Baz
+{
+    public string? Bar2 { get; set; }
+
+    public string FieldOfBaz => "fieldOfBaz";
+}
+
+public class Bar
+{
+    public string? IdOfBar { get; set; }
+
+    public string FieldOfBar => "fieldOfBar";
+}
+
+public class QueryWithNodeResolvers
+{
+    [UseProjection]
+    public IQueryable<Foo> All()
+        => new Foo[] { new() { Bar = "A" }, }.AsQueryable();
+
+    [NodeResolver]
+    [UseSingleOrDefault]
+    [UseProjection]
+    public IQueryable<Foo> GetById(string id)
+        => new Foo[] { new() { Bar = "A" }, }.AsQueryable();
+
+    [NodeResolver]
+    [UseSingleOrDefault]
+    [UseProjection]
+    public IQueryable<Baz> GetBazById(string id)
+        => new Baz[] { new() { Bar2 = "A" }, }.AsQueryable();
+
+    [NodeResolver]
+    public Bar GetBarById(string id) => new() { IdOfBar = "A" };
 }
