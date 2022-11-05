@@ -11,7 +11,7 @@ public partial class DocumentAnalyzer
 {
     private static readonly InterfaceTypeSelectionSetAnalyzer _selectionAnalyzer = new();
 
-    private static OperationModel CreateOperationModel(
+    private OperationModel CreateOperationModel(
         IDocumentAnalyzerContext context)
     {
         CollectEnumTypes(context);
@@ -20,7 +20,7 @@ public partial class DocumentAnalyzer
         return new(
             context.OperationName,
             context.OperationType,
-            QueryDocumentRewriter.Rewrite(context.Document, context.Schema),
+            _schemaDocumentRewriter.RewriteSchemaForOperationModel(context.Document, context.Schema),
             context.OperationDefinition.Operation,
             CreateOperationArguments(context),
             GetResultType(context),

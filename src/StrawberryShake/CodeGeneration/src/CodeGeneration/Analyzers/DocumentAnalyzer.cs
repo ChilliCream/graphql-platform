@@ -1,20 +1,20 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using HotChocolate;
-using HotChocolate.Language;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
-using StrawberryShake.CodeGeneration.Utilities;
 using static StrawberryShake.CodeGeneration.Utilities.OperationDocumentHelper;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 
 public partial class DocumentAnalyzer
 {
+    private readonly ISchemaDocumentRewriter _schemaDocumentRewriter;
     private readonly List<DocumentNode> _documents = new();
     private ISchema? _schema;
 
     public static DocumentAnalyzer New() => new();
+
+    public DocumentAnalyzer(ISchemaDocumentRewriter? schemaDocumentRewriter = null)
+    {
+        _schemaDocumentRewriter = schemaDocumentRewriter ?? new DefaultSchemaDocumentRewriter();
+    }
 
     public DocumentAnalyzer SetSchema(ISchema schema)
     {
