@@ -12,7 +12,7 @@ namespace StrawberryShake.Transport.WebSockets;
 public interface ISocketClient : IAsyncDisposable
 {
     /// <summary>
-    ///  A even that is called when the message receiving cycle stoped
+    /// An event that is called when the message receiving cycle stoped
     /// </summary>
     event EventHandler ReceiveFinished;
 
