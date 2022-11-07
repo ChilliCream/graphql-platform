@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Internal;
@@ -29,7 +30,12 @@ internal sealed partial class ResolverTask
                         break;
 
                     default:
+                        #if NET6_0_OR_GREATER
+                        _operationContext.Scheduler.Register(
+                            CollectionsMarshal.AsSpan(_taskBuffer));
+                        #else
                         _operationContext.Scheduler.Register(_taskBuffer);
+                        #endif
                         break;
                 }
             }

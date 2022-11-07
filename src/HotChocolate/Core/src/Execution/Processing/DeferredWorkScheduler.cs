@@ -7,7 +7,10 @@ using static HotChocolate.Execution.QueryResultBuilder;
 
 namespace HotChocolate.Execution.Processing;
 
-internal sealed class DeferredWorkScheduler : IDeferredWorkScheduler
+/// <summary>
+/// Represents a backlog for deferred work.
+/// </summary>
+internal sealed class DeferredWorkScheduler
 {
     private readonly object _stateSync = new();
     private IFactory<OperationContextOwner> _operationContextFactory = default!;
@@ -31,6 +34,9 @@ internal sealed class DeferredWorkScheduler : IDeferredWorkScheduler
         }
     }
 
+    /// <summary>
+    /// Specifies if there was deferred work enqueued.
+    /// </summary>
     public bool HasResults => _stateOwner?.State.HasResults is true;
 
     public void Initialize(OperationContext operationContext)
@@ -51,6 +57,9 @@ internal sealed class DeferredWorkScheduler : IDeferredWorkScheduler
         _deferredWorkStateFactory = scheduler._deferredWorkStateFactory;
     }
 
+    /// <summary>
+    /// Registers deferred work
+    /// </summary>
     public void Register(DeferredExecutionTask task, ResultData parentResult)
     {
         // first we get the result identifier which is used to refer to the result that we defer.
