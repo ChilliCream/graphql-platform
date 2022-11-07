@@ -17,6 +17,8 @@ public sealed class SocketClientStub : ISocketClient
         new(TaskCreationOptions.None);
     private bool _isClosed = true;
 
+    public event EventHandler ReceiveFinished = default!;
+
     public SemaphoreSlim Blocker { get; } = new(0);
 
     public Uri? Uri { get; set; }

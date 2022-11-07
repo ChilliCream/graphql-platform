@@ -470,4 +470,13 @@ internal static class ErrorHelper
             .SetMessage(ErrorHelper_NodeResolver_NodeTypeHasNoId, type.Name)
             .SetTypeSystemObject(type)
             .Build();
+
+    public static ISchemaError NodeResolverMissing(
+        ObjectType type)
+        => SchemaErrorBuilder.New()
+            .SetMessage(string.Format(ErrorHelper_NodeResolverMissing, type.Name))
+            .SetCode(ErrorCodes.Schema.NodeResolverMissing)
+            .SetTypeSystemObject(type)
+            .Build();
+
 }

@@ -6,6 +6,9 @@ namespace HotChocolate.Execution.Processing;
 
 internal partial class MiddlewareContext
 {
+    private static readonly ImmutableDictionary<string, object?> _emptyLocalContextData =
+        ImmutableDictionary<string, object?>.Empty;
+
     public MiddlewareContext()
     {
         _childContext = new PureResolverContext(this);
@@ -26,10 +29,10 @@ internal partial class MiddlewareContext
         ParentResult = parentResult;
         ResponseIndex = responseIndex;
         _parent = parent;
-        _parser = _operationContext.Services.GetRequiredService<InputParser>();
+        _parser = operationContext.InputParser;
         Path = path;
         ScopedContextData = scopedContextData;
-        LocalContextData = ImmutableDictionary<string, object?>.Empty;
+        LocalContextData = _emptyLocalContextData;
         Arguments = _selection.Arguments;
         RequestAborted = _operationContext.RequestAborted;
     }
