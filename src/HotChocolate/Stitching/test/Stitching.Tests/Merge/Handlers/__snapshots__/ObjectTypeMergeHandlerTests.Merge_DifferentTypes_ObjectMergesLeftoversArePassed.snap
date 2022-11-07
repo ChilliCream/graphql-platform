@@ -1,0 +1,223 @@
+﻿[
+  "type A @source(name: \"A\", schema: \"Schema_A\") {\n  b: String\n}",
+  [
+    {
+      "Definition": {
+        "Kind": "EnumTypeDefinition",
+        "Description": null,
+        "Values": [
+          {
+            "Kind": "EnumValueDefinition",
+            "Description": null,
+            "Location": {
+              "Start": 9,
+              "End": 12,
+              "Line": 1,
+              "Column": 10
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 9,
+                "End": 12,
+                "Line": 1,
+                "Column": 10
+              },
+              "Value": "B"
+            },
+            "Directives": []
+          },
+          {
+            "Kind": "EnumValueDefinition",
+            "Description": null,
+            "Location": {
+              "Start": 11,
+              "End": 14,
+              "Line": 1,
+              "Column": 12
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 11,
+                "End": 14,
+                "Line": 1,
+                "Column": 12
+              },
+              "Value": "C"
+            },
+            "Directives": []
+          }
+        ],
+        "Location": {
+          "Start": 0,
+          "End": 14,
+          "Line": 1,
+          "Column": 1
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 5,
+            "End": 8,
+            "Line": 1,
+            "Column": 6
+          },
+          "Value": "A"
+        },
+        "Directives": []
+      },
+      "Schema": {
+        "Name": "Schema_B",
+        "Document": {
+          "Kind": "Document",
+          "Location": {
+            "Start": 0,
+            "End": 14,
+            "Line": 1,
+            "Column": 1
+          },
+          "Definitions": [
+            {
+              "Kind": "EnumTypeDefinition",
+              "Description": null,
+              "Values": [
+                {
+                  "Kind": "EnumValueDefinition",
+                  "Description": null,
+                  "Location": {
+                    "Start": 9,
+                    "End": 12,
+                    "Line": 1,
+                    "Column": 10
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 9,
+                      "End": 12,
+                      "Line": 1,
+                      "Column": 10
+                    },
+                    "Value": "B"
+                  },
+                  "Directives": []
+                },
+                {
+                  "Kind": "EnumValueDefinition",
+                  "Description": null,
+                  "Location": {
+                    "Start": 11,
+                    "End": 14,
+                    "Line": 1,
+                    "Column": 12
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 11,
+                      "End": 14,
+                      "Line": 1,
+                      "Column": 12
+                    },
+                    "Value": "C"
+                  },
+                  "Directives": []
+                }
+              ],
+              "Location": {
+                "Start": 0,
+                "End": 14,
+                "Line": 1,
+                "Column": 1
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 5,
+                  "End": 8,
+                  "Line": 1,
+                  "Column": 6
+                },
+                "Value": "A"
+              },
+              "Directives": []
+            }
+          ]
+        },
+        "Types": {
+          "A": {
+            "Kind": "EnumTypeDefinition",
+            "Description": null,
+            "Values": [
+              {
+                "Kind": "EnumValueDefinition",
+                "Description": null,
+                "Location": {
+                  "Start": 9,
+                  "End": 12,
+                  "Line": 1,
+                  "Column": 10
+                },
+                "Name": {
+                  "Kind": "Name",
+                  "Location": {
+                    "Start": 9,
+                    "End": 12,
+                    "Line": 1,
+                    "Column": 10
+                  },
+                  "Value": "B"
+                },
+                "Directives": []
+              },
+              {
+                "Kind": "EnumValueDefinition",
+                "Description": null,
+                "Location": {
+                  "Start": 11,
+                  "End": 14,
+                  "Line": 1,
+                  "Column": 12
+                },
+                "Name": {
+                  "Kind": "Name",
+                  "Location": {
+                    "Start": 11,
+                    "End": 14,
+                    "Line": 1,
+                    "Column": 12
+                  },
+                  "Value": "C"
+                },
+                "Directives": []
+              }
+            ],
+            "Location": {
+              "Start": 0,
+              "End": 14,
+              "Line": 1,
+              "Column": 1
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 5,
+                "End": 8,
+                "Line": 1,
+                "Column": 6
+              },
+              "Value": "A"
+            },
+            "Directives": []
+          }
+        },
+        "Directives": {},
+        "QueryType": null,
+        "MutationType": null,
+        "SubscriptionType": null
+      },
+      "IsRootType": false
+    }
+  ]
+]

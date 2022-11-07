@@ -1,0 +1,3 @@
+type A implements IA & IB & IC @source(name: "A", schema: "Schema_A") @source(name: "A", schema: "Schema_B") @source(name: "A", schema: "Schema_C") {
+  b: String
+}

@@ -9,6 +9,7 @@ namespace HotChocolate.Language;
 // Implements the parsing rules in the Values section.
 public ref partial struct Utf8GraphQLParser
 {
+    // note: this is internal for the stitching legacy layer
     /// <summary>
     /// Parses a value.
     /// <see cref="IValueNode" />:
@@ -29,7 +30,7 @@ public ref partial struct Utf8GraphQLParser
     /// Defines if only constant values are allowed;
     /// otherwise, variables are allowed.
     /// </param>
-    private IValueNode ParseValueLiteral(bool isConstant)
+    internal IValueNode ParseValueLiteral(bool isConstant)
     {
         if (_reader.Kind == TokenKind.LeftBracket)
         {

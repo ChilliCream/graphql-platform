@@ -1,0 +1,35 @@
+﻿{
+  "Data": {
+    "a": {
+      "bar": "Freddy Freeman",
+      "contracts": [
+        {
+          "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0CmQx"
+        },
+        {
+          "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0CmQy"
+        },
+        {
+          "id": "U29tZU90aGVyQ29udHJhY3QKZDE="
+        }
+      ]
+    },
+    "b": {
+      "foo": "Freddy Freeman",
+      "contracts": [
+        {
+          "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0CmQx"
+        },
+        {
+          "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0CmQy"
+        },
+        {
+          "id": "U29tZU90aGVyQ29udHJhY3QKZDE="
+        }
+      ]
+    }
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
+}
