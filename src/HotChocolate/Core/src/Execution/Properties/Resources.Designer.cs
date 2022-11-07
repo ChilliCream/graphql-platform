@@ -446,5 +446,11 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("MiddlewareContext_ReplaceArgument_InvalidKey", resourceCulture);
             }
         }
+        
+        internal static string VariableValueOrLiteral_NullNotAllowed {
+            get {
+                return ResourceManager.GetString("VariableValueOrLiteral_NullNotAllowed", resourceCulture);
+            }
+        }
     }
 }
