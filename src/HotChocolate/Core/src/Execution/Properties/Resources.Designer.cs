@@ -440,5 +440,11 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("ErrorHelper_OnlyPersistedQueriesAreAllowed", resourceCulture);
             }
         }
+        
+        internal static string MiddlewareContext_ReplaceArgument_InvalidKey {
+            get {
+                return ResourceManager.GetString("MiddlewareContext_ReplaceArgument_InvalidKey", resourceCulture);
+            }
+        }
     }
 }

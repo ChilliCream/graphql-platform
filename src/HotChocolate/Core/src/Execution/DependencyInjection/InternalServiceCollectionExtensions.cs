@@ -59,7 +59,7 @@ internal static class InternalServiceCollectionExtensions
         int maximumRetained = 128)
     {
         services.TryAddSingleton<ObjectPool<ResolverTask>>(
-            _ => new ExecutionTaskPool<ResolverTask>(
+            _ => new ExecutionTaskPool<ResolverTask, ResolverTaskPoolPolicy>(
                 new ResolverTaskPoolPolicy(),
                 maximumRetained));
         services.TryAddSingleton<IFactory<ResolverTask>>(

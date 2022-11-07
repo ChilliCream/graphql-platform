@@ -5,19 +5,13 @@ namespace HotChocolate.Execution.Processing;
 internal sealed partial class OperationContext : IExecutionTaskContext
 {
     void IExecutionTaskContext.ReportError(IExecutionTask task, IError error)
-    {
-        ReportError(task, error);
-    }
+        => ReportError(task, error);
 
     void IExecutionTaskContext.ReportError(IExecutionTask task, Exception exception)
-    {
-        ReportError(task, ErrorHandler.CreateUnexpectedError(exception).Build());
-    }
+        => ReportError(task, ErrorHandler.CreateUnexpectedError(exception).Build());
 
     void IExecutionTaskContext.Register(IExecutionTask task)
-    {
-        Scheduler.Register(task);
-    }
+        => Scheduler.Register(task);
 
     private void ReportError(IExecutionTask task, IError error)
     {
