@@ -48,6 +48,7 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
         StrictRuntimeTypeValidation = options.StrictRuntimeTypeValidation;
         DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck;
         EnableOneOf = options.EnableOneOf;
+        EnsureAllNodesCanBeResolved = options.EnsureAllNodesCanBeResolved;
     }
 
     /// <summary>
@@ -149,4 +150,7 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
 
     /// <inheritdoc />
     public bool EnableOneOf { get; }
+
+    /// <inheritdoc />
+    public bool EnsureAllNodesCanBeResolved { get; }
 }

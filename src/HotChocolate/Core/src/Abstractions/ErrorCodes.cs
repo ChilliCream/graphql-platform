@@ -213,6 +213,11 @@ public static class ErrorCodes
         /// Type system members are not supported as runtime types
         /// </summary>
         public const string NoSchemaTypesAllowedAsRuntimeType = "HC0051";
+
+        /// <summary>
+        /// An object type implementing the node interface does not provide a node resolver.
+        /// </summary>
+        public const string NodeResolverMissing = "HC0068";
     }
 
     public static class Scalars
