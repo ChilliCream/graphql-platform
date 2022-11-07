@@ -192,7 +192,7 @@ namespace Microsoft.Extensions.DependencyInjection
                         sp => new HttpRequestClient(
                             sp.GetCombinedServices().GetRequiredService<IHttpClientFactory>(),
                             sp.GetRequiredService<IErrorHandler>(),
-                            sp.GetRequiredService<IHttpStitchingRequestInterceptor>()));
+                            sp.GetCombinedServices().GetRequiredService<IHttpStitchingRequestInterceptor>()));
 
                     services.TryAddSingleton<
                         IHttpStitchingRequestInterceptor,
