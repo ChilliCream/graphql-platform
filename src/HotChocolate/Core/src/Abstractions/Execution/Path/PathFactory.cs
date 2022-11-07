@@ -26,7 +26,7 @@ public class PathFactory
 
         indexer.Parent = parent;
         indexer.Index = index;
-        indexer.Depth = parent.Depth + 1;
+        indexer.Length = parent.Length + 1;
 
         return indexer;
     }
@@ -48,7 +48,7 @@ public class PathFactory
 
         indexer.Parent = parent;
         indexer.Name = name;
-        indexer.Depth = parent.Depth + 1;
+        indexer.Length = parent.Length + 1;
 
         return indexer;
     }

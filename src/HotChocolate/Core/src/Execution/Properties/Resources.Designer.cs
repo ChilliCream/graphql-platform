@@ -452,5 +452,11 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("VariableValueOrLiteral_NullNotAllowed", resourceCulture);
             }
         }
+        
+        internal static string Operation_GetPossibleTypes_NoSelectionSet {
+            get {
+                return ResourceManager.GetString("Operation_GetPossibleTypes_NoSelectionSet", resourceCulture);
+            }
+        }
     }
 }

@@ -35,6 +35,8 @@ internal sealed class ArgumentMap : IArgumentMap
         }
     }
 
+    public static ArgumentMap Empty { get; } = new(new Dictionary<string, ArgumentValue>());
+
     public ArgumentValue this[string key] => _arguments[key];
 
     public bool IsFullyCoercedNoErrors => _isFinal && !_hasErrors;

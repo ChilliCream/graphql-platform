@@ -4,7 +4,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing;
 
-internal class OperationContextOwner : IDisposable
+internal sealed class OperationContextOwner : IDisposable
 {
     private readonly OperationContext _operationContext;
     private readonly ObjectPool<OperationContext> _operationContextPool;

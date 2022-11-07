@@ -14,9 +14,7 @@ namespace HotChocolate.Execution.Processing;
 /// </summary>
 public class Selection : ISelection
 {
-    private static readonly ArgumentMap _emptyArguments =
-        new(new Dictionary<string, ArgumentValue>());
-
+    private static readonly ArgumentMap _emptyArguments = ArgumentMap.Empty;
     private long[] _includeConditions;
     private long _streamIfCondition;
     private Flags _flags;

@@ -321,4 +321,7 @@
   <data name="VariableValueOrLiteral_NullNotAllowed" xml:space="preserve">
     <value>The runtime value can only be null if the literal is also null.</value>
   </data>
+  <data name="Operation_GetPossibleTypes_NoSelectionSet" xml:space="preserve">
+    <value>The specified selection does not have a selection set.</value>
+  </data>
 </root>
