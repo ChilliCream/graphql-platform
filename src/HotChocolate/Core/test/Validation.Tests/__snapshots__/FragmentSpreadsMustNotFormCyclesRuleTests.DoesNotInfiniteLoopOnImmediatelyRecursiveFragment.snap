@@ -8,13 +8,13 @@
         "Name": "dogOrHuman",
         "Parent": {
           "Parent": null,
-          "Depth": -1,
+          "Length": -1,
           "IsRoot": true
         },
-        "Depth": 0,
+        "Length": 0,
         "IsRoot": false
       },
-      "Depth": 1,
+      "Length": 1,
       "IsRoot": false
     },
     "Locations": [
