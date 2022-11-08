@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Data.Raven</PackageId>
+    <AssemblyName>HotChocolate.Data.Raven</AssemblyName>
+    <RootNamespace>HotChocolate.Data.Raven</RootNamespace>
+    <Description>Contains extensions for seamless integration of Raven into the HotChocolate.Data package.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="RavenDataResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>RavenDataResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="RavenDataResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>RavenDataResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Directory.Build.props" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Raven" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj" />
+  </ItemGroup>
+
+</Project>
