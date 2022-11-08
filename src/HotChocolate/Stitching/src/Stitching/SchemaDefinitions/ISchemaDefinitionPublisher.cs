@@ -1,12 +1,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace HotChocolate.Stitching.SchemaDefinitions
+namespace HotChocolate.Stitching.SchemaDefinitions;
+
+public interface ISchemaDefinitionPublisher
 {
-    public interface ISchemaDefinitionPublisher
-    {
-        ValueTask PublishAsync(
-            RemoteSchemaDefinition schemaDefinition,
-            CancellationToken cancellationToken = default);
-    }
+    ValueTask PublishAsync(
+        RemoteSchemaDefinition schemaDefinition,
+        CancellationToken cancellationToken = default);
 }

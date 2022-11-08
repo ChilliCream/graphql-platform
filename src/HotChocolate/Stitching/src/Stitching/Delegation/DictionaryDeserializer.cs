@@ -4,135 +4,134 @@ using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Stitching.Delegation
+namespace HotChocolate.Stitching.Delegation;
+
+internal static class DictionaryDeserializer
 {
-    internal static class DictionaryDeserializer
+    public static object? DeserializeResult(
+        IType fieldType,
+        object? obj,
+        InputParser parser,
+        Path path)
     {
-        public static object? DeserializeResult(
-            IType fieldType,
-            object? obj,
-            InputParser parser,
-            Path path)
+        var namedType = fieldType.NamedType();
+
+        if (namedType is IInputType && fieldType is IInputType inputType)
         {
-            var namedType = fieldType.NamedType();
-
-            if (namedType is IInputType && fieldType is IInputType inputType)
+            if (namedType.Kind == TypeKind.Enum)
             {
-                if (namedType.Kind == TypeKind.Enum)
-                {
-                    return DeserializeEnumResult(inputType, obj, parser, path);
-                }
-
-                if (namedType.Kind == TypeKind.Scalar)
-                {
-                    return DeserializeScalarResult(inputType, obj, parser, path);
-                }
+                return DeserializeEnumResult(inputType, obj, parser, path);
             }
 
-            return obj is NullValueNode ? null : obj;
-        }
-
-        private static object? DeserializeEnumResult(
-            IInputType inputType,
-            object? value,
-            InputParser parser,
-            Path path)
-        {
-            switch (value)
+            if (namedType.Kind == TypeKind.Scalar)
             {
-                case IReadOnlyList<object> list:
-                {
-                    var elementType = (IInputType)inputType.ElementType();
-                    var deserializedList = (IList)Activator.CreateInstance(inputType.RuntimeType)!;
-
-                    var i = 0;
-                    foreach (var item in list)
-                    {
-                        deserializedList.Add(
-                            DeserializeEnumResult(elementType, item, parser, path.Append(i++)));
-                    }
-
-                    return deserializedList;
-                }
-
-                case ListValueNode listLiteral:
-                {
-                    var elementType = (IInputType)inputType.ElementType();
-                    var list = new List<object?>();
-
-                    var i = 0;
-                    foreach (var item in listLiteral.Items)
-                    {
-                        list.Add(
-                            DeserializeEnumResult(elementType, item, parser, path.Append(i++)));
-                    }
-
-                    return list;
-                }
-
-                case StringValueNode stringLiteral:
-                    return parser.ParseResult(stringLiteral.Value, inputType, path);
-
-                case IValueNode literal:
-                    return parser.ParseLiteral(literal, inputType, path);
-
-                default:
-                    return parser.ParseResult(value, inputType, path);
+                return DeserializeScalarResult(inputType, obj, parser, path);
             }
         }
 
-        private static object? DeserializeScalarResult(
-            IInputType inputType,
-            object? value,
-            InputParser parser,
-            Path path)
+        return obj is NullValueNode ? null : obj;
+    }
+
+    private static object? DeserializeEnumResult(
+        IInputType inputType,
+        object? value,
+        InputParser parser,
+        Path path)
+    {
+        switch (value)
         {
-            switch (value)
+            case IReadOnlyList<object> list:
             {
-                case IReadOnlyList<object> list:
+                var elementType = (IInputType)inputType.ElementType();
+                var deserializedList = (IList)Activator.CreateInstance(inputType.RuntimeType)!;
+
+                var i = 0;
+                foreach (var item in list)
                 {
-                    var elementType = inputType;
-                    var runtimeType = typeof(List<object>);
-                    if (inputType.IsListType())
-                    {
-                        elementType = (IInputType)inputType.ElementType();
-                        runtimeType = inputType.RuntimeType;
-                    }
-
-                    var deserializedList =
-                        (IList)Activator.CreateInstance(runtimeType)!;
-
-                    var i = 0;
-                    foreach (var item in list)
-                    {
-                        deserializedList.Add(
-                            DeserializeScalarResult(elementType, item, parser, path.Append(i++)));
-                    }
-
-                    return deserializedList;
+                    deserializedList.Add(
+                        DeserializeEnumResult(elementType, item, parser, path.Append(i++)));
                 }
 
-                case ListValueNode listLiteral:
-                {
-                    var elementType = (IInputType)inputType.ElementType();
-                    var list = new List<object?>();
-
-                    var i = 0;
-                    foreach (var item in listLiteral.Items)
-                    {
-                        list.Add(
-                            DeserializeScalarResult(elementType, item, parser, path.Append(i++)));
-                    }
-
-                    return list;
-                }
-
-                case IValueNode literal:
-                    return parser.ParseLiteral(literal, inputType, path);
-
-                default:
-                    return parser.ParseResult(value, inputType, path);
+                return deserializedList;
             }
+
+            case ListValueNode listLiteral:
+            {
+                var elementType = (IInputType)inputType.ElementType();
+                var list = new List<object?>();
+
+                var i = 0;
+                foreach (var item in listLiteral.Items)
+                {
+                    list.Add(
+                        DeserializeEnumResult(elementType, item, parser, path.Append(i++)));
+                }
+
+                return list;
+            }
+
+            case StringValueNode stringLiteral:
+                return parser.ParseResult(stringLiteral.Value, inputType, path);
+
+            case IValueNode literal:
+                return parser.ParseLiteral(literal, inputType, path);
+
+            default:
+                return parser.ParseResult(value, inputType, path);
+        }
+    }
+
+    private static object? DeserializeScalarResult(
+        IInputType inputType,
+        object? value,
+        InputParser parser,
+        Path path)
+    {
+        switch (value)
+        {
+            case IReadOnlyList<object> list:
+            {
+                var elementType = inputType;
+                var runtimeType = typeof(List<object>);
+                if (inputType.IsListType())
+                {
+                    elementType = (IInputType)inputType.ElementType();
+                    runtimeType = inputType.RuntimeType;
+                }
+
+                var deserializedList =
+                    (IList)Activator.CreateInstance(runtimeType)!;
+
+                var i = 0;
+                foreach (var item in list)
+                {
+                    deserializedList.Add(
+                        DeserializeScalarResult(elementType, item, parser, path.Append(i++)));
+                }
+
+                return deserializedList;
+            }
+
+            case ListValueNode listLiteral:
+            {
+                var elementType = (IInputType)inputType.ElementType();
+                var list = new List<object?>();
+
+                var i = 0;
+                foreach (var item in listLiteral.Items)
+                {
+                    list.Add(
+                        DeserializeScalarResult(elementType, item, parser, path.Append(i++)));
+                }
+
+                return list;
+            }
+
+            case IValueNode literal:
+                return parser.ParseLiteral(literal, inputType, path);
+
+            default:
+                return parser.ParseResult(value, inputType, path);
         }
     }
 }

@@ -5,124 +5,123 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Stitching.Pipeline
+namespace HotChocolate.Stitching.Pipeline;
+
+internal static class HttpResponseDeserializer
 {
-    internal static class HttpResponseDeserializer
+    private const string _data = "data";
+    private const string _extensions = "extensions";
+    private const string _errors = "errors";
+
+    private static readonly ObjectValueToDictionaryConverter _converter =
+        new ObjectValueToDictionaryConverter();
+
+    public static IQueryResult Deserialize(
+        IReadOnlyDictionary<string, object?> serializedResult)
     {
-        private const string _data = "data";
-        private const string _extensions = "extensions";
-        private const string _errors = "errors";
+        var result = new QueryResultBuilder();
 
-        private static readonly ObjectValueToDictionaryConverter _converter =
-            new ObjectValueToDictionaryConverter();
-
-        public static IQueryResult Deserialize(
-            IReadOnlyDictionary<string, object?> serializedResult)
+        if (serializedResult.TryGetValue(_data, out var data))
         {
-            var result = new QueryResultBuilder();
-
-            if (serializedResult.TryGetValue(_data, out var data))
-            {
-                result.SetData(data as IReadOnlyDictionary<string, object?>);
-            }
-
-            if (serializedResult.TryGetValue(_extensions, out var extensionData))
-            {
-                result.SetExtensions(extensionData as IReadOnlyDictionary<string, object?>);
-            }
-
-            DeserializeErrors(result, serializedResult);
-
-            return result.Create();
+            result.SetData(data as IReadOnlyDictionary<string, object?>);
         }
 
-        private static void DeserializeErrors(
-            IQueryResultBuilder result,
-            IReadOnlyDictionary<string, object?> serializedResult)
+        if (serializedResult.TryGetValue(_extensions, out var extensionData))
         {
-            if (serializedResult.TryGetValue(_errors, out var o)
-                && o is IReadOnlyList<object> errors)
-            {
-                foreach (var obj in errors)
-                {
-                    var error = ErrorBuilder
-                        .FromDictionary(DeserializeErrorObject(obj))
-                        .Build();
-
-                    result.AddError(error);
-                }
-            }
+            result.SetExtensions(extensionData as IReadOnlyDictionary<string, object?>);
         }
 
-        private static object? DeserializeErrorValue(object? value)
+        DeserializeErrors(result, serializedResult);
+
+        return result.Create();
+    }
+
+    private static void DeserializeErrors(
+        IQueryResultBuilder result,
+        IReadOnlyDictionary<string, object?> serializedResult)
+    {
+        if (serializedResult.TryGetValue(_errors, out var o)
+            && o is IReadOnlyList<object> errors)
         {
-            switch (value)
+            foreach (var obj in errors)
             {
-                case IReadOnlyDictionary<string, object?> obj:
-                    return DeserializeErrorObject(obj);
+                var error = ErrorBuilder
+                    .FromDictionary(DeserializeErrorObject(obj))
+                    .Build();
 
-                case IReadOnlyList<object?> list:
-                    return DeserializeErrorList(list);
-
-                case StringValueNode sv:
-                    return sv.Value;
-
-                case EnumValueNode ev:
-                    return ev.Value;
-
-                case IntValueNode iv:
-                    return iv.ToInt32();
-
-                case FloatValueNode fv:
-                    return fv.ToDouble();
-
-                case BooleanValueNode bv:
-                    return bv.Value;
-
-                case NullValueNode:
-                case null:
-                    return null;
-
-                default:
-                    throw new NotSupportedException();
+                result.AddError(error);
             }
         }
+    }
 
-        private static Dictionary<string, object?> DeserializeErrorObject(
-            object obj)
+    private static object? DeserializeErrorValue(object? value)
+    {
+        switch (value)
         {
-            if (obj is IReadOnlyDictionary<string, object?> dict)
-            {
-                return DeserializeErrorObject(dict);
-            }
+            case IReadOnlyDictionary<string, object?> obj:
+                return DeserializeErrorObject(obj);
 
-            throw new NotSupportedException("An error object must be a dictionary.");
+            case IReadOnlyList<object?> list:
+                return DeserializeErrorList(list);
+
+            case StringValueNode sv:
+                return sv.Value;
+
+            case EnumValueNode ev:
+                return ev.Value;
+
+            case IntValueNode iv:
+                return iv.ToInt32();
+
+            case FloatValueNode fv:
+                return fv.ToDouble();
+
+            case BooleanValueNode bv:
+                return bv.Value;
+
+            case NullValueNode:
+            case null:
+                return null;
+
+            default:
+                throw new NotSupportedException();
+        }
+    }
+
+    private static Dictionary<string, object?> DeserializeErrorObject(
+        object obj)
+    {
+        if (obj is IReadOnlyDictionary<string, object?> dict)
+        {
+            return DeserializeErrorObject(dict);
         }
 
-        private static Dictionary<string, object?> DeserializeErrorObject(
-            IReadOnlyDictionary<string, object?> obj)
+        throw new NotSupportedException("An error object must be a dictionary.");
+    }
+
+    private static Dictionary<string, object?> DeserializeErrorObject(
+        IReadOnlyDictionary<string, object?> obj)
+    {
+        var deserialized = new Dictionary<string, object?>();
+
+        foreach (var item in obj)
         {
-            var deserialized = new Dictionary<string, object?>();
-
-            foreach (var item in obj)
-            {
-                deserialized.Add(item.Key, DeserializeErrorValue(item.Value));
-            }
-
-            return deserialized;
+            deserialized.Add(item.Key, DeserializeErrorValue(item.Value));
         }
 
-        private static List<object?> DeserializeErrorList(
-            IReadOnlyList<object?> list)
+        return deserialized;
+    }
+
+    private static List<object?> DeserializeErrorList(
+        IReadOnlyList<object?> list)
+    {
+        var deserialized = new List<object?>();
+
+        foreach (var item in list)
         {
-            var deserialized = new List<object?>();
-
-            foreach (var item in list)
-            {
-                deserialized.Add(DeserializeErrorValue(item));
-            }
-
-            return deserialized;
+            deserialized.Add(DeserializeErrorValue(item));
         }
+
+        return deserialized;
     }
 }

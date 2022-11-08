@@ -1,15 +1,14 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.Stitching.Merge
+namespace HotChocolate.Stitching.Merge;
+
+internal class UnionTypeInfo
+    : TypeInfo<UnionTypeDefinitionNode>
 {
-    internal class UnionTypeInfo
-        : TypeInfo<UnionTypeDefinitionNode>
+    public UnionTypeInfo(
+        UnionTypeDefinitionNode typeDefinition,
+        ISchemaInfo schema)
+        : base(typeDefinition, schema)
     {
-        public UnionTypeInfo(
-            UnionTypeDefinitionNode typeDefinition,
-            ISchemaInfo schema)
-            : base(typeDefinition, schema)
-        {
-        }
     }
 }

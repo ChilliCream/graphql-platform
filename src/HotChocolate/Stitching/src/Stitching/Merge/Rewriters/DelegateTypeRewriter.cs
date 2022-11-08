@@ -1,28 +1,27 @@
 using System;
 using HotChocolate.Language;
 
-namespace HotChocolate.Stitching.Merge.Rewriters
+namespace HotChocolate.Stitching.Merge.Rewriters;
+
+public delegate ITypeDefinitionNode RewriteTypeDefinitionDelegate(
+    ISchemaInfo schema,
+    ITypeDefinitionNode typeDefinition);
+
+internal class DelegateTypeRewriter
+    : ITypeRewriter
 {
-    public delegate ITypeDefinitionNode RewriteTypeDefinitionDelegate(
-        ISchemaInfo schema,
-        ITypeDefinitionNode typeDefinition);
+    private readonly RewriteTypeDefinitionDelegate _rewrite;
 
-    internal class DelegateTypeRewriter
-        : ITypeRewriter
+    public DelegateTypeRewriter(RewriteTypeDefinitionDelegate rewrite)
     {
-        private readonly RewriteTypeDefinitionDelegate _rewrite;
+        _rewrite = rewrite
+            ?? throw new ArgumentNullException(nameof(rewrite));
+    }
 
-        public DelegateTypeRewriter(RewriteTypeDefinitionDelegate rewrite)
-        {
-            _rewrite = rewrite
-                ?? throw new ArgumentNullException(nameof(rewrite));
-        }
-
-        public ITypeDefinitionNode Rewrite(
-            ISchemaInfo schema,
-            ITypeDefinitionNode typeDefinition)
-        {
-            return _rewrite.Invoke(schema, typeDefinition);
-        }
+    public ITypeDefinitionNode Rewrite(
+        ISchemaInfo schema,
+        ITypeDefinitionNode typeDefinition)
+    {
+        return _rewrite.Invoke(schema, typeDefinition);
     }
 }

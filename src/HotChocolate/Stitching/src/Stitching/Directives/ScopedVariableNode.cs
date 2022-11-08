@@ -3,181 +3,180 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 
-namespace HotChocolate.Stitching
-{
-    public sealed class ScopedVariableNode
-        : IValueNode<string>
+namespace HotChocolate.Stitching;
+
+public sealed class ScopedVariableNode
+    : IValueNode<string>
         , IEquatable<ScopedVariableNode>
+{
+    public ScopedVariableNode(
+        string scope,
+        string name)
+        : this(new NameNode(scope), new NameNode(name))
     {
-        public ScopedVariableNode(
-            string scope,
-            string name)
-            : this(new NameNode(scope), new NameNode(name))
+    }
+
+    public ScopedVariableNode(
+        NameNode scope,
+        NameNode name)
+        : this(null, scope, name)
+    {
+    }
+
+    public ScopedVariableNode(
+        Language.Location? location,
+        NameNode scope,
+        NameNode name)
+    {
+        Location = location;
+        Scope = scope ?? throw new ArgumentNullException(nameof(scope));
+        Name = name ?? throw new ArgumentNullException(nameof(name));
+    }
+
+    public SyntaxKind Kind { get; } = SyntaxKind.Variable;
+
+    public Language.Location? Location { get; }
+
+    public NameNode Scope { get; }
+
+    public NameNode Name { get; }
+
+    public string Value => Scope.Value + ":" + Name.Value;
+
+    object IValueNode.Value => Value;
+
+    public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
+
+    /// <summary>
+    /// Determines whether the specified <see cref="ScopedVariableNode"/>
+    /// is equal to the current <see cref="ScopedVariableNode"/>.
+    /// </summary>
+    /// <param name="other">
+    /// The <see cref="ScopedVariableNode"/> to compare with the current
+    /// <see cref="ScopedVariableNode"/>.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the specified <see cref="ScopedVariableNode"/>
+    /// is equal to the current <see cref="ScopedVariableNode"/>;
+    /// otherwise, <c>false</c>.
+    /// </returns>
+    public bool Equals(ScopedVariableNode? other)
+    {
+        if (other is null)
         {
-        }
-
-        public ScopedVariableNode(
-            NameNode scope,
-            NameNode name)
-            : this(null, scope, name)
-        {
-        }
-
-        public ScopedVariableNode(
-            Language.Location? location,
-            NameNode scope,
-            NameNode name)
-        {
-            Location = location;
-            Scope = scope ?? throw new ArgumentNullException(nameof(scope));
-            Name = name ?? throw new ArgumentNullException(nameof(name));
-        }
-
-        public SyntaxKind Kind { get; } = SyntaxKind.Variable;
-
-        public Language.Location? Location { get; }
-
-        public NameNode Scope { get; }
-
-        public NameNode Name { get; }
-
-        public string Value => Scope.Value + ":" + Name.Value;
-
-        object IValueNode.Value => Value;
-
-        public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
-
-        /// <summary>
-        /// Determines whether the specified <see cref="ScopedVariableNode"/>
-        /// is equal to the current <see cref="ScopedVariableNode"/>.
-        /// </summary>
-        /// <param name="other">
-        /// The <see cref="ScopedVariableNode"/> to compare with the current
-        /// <see cref="ScopedVariableNode"/>.
-        /// </param>
-        /// <returns>
-        /// <c>true</c> if the specified <see cref="ScopedVariableNode"/>
-        /// is equal to the current <see cref="ScopedVariableNode"/>;
-        /// otherwise, <c>false</c>.
-        /// </returns>
-        public bool Equals(ScopedVariableNode? other)
-        {
-            if (other is null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(other, this))
-            {
-                return true;
-            }
-
-            return other.Value.Equals(Value, StringComparison.Ordinal);
-        }
-
-        /// <summary>
-        /// Determines whether the specified <see cref="IValueNode"/> is equal
-        /// to the current <see cref="ScopedVariableNode"/>.
-        /// </summary>
-        /// <param name="other">
-        /// The <see cref="IValueNode"/> to compare with the current
-        /// <see cref="ScopedVariableNode"/>.
-        /// </param>
-        /// <returns>
-        /// <c>true</c> if the specified <see cref="IValueNode"/> is equal
-        /// to the current <see cref="ScopedVariableNode"/>;
-        /// otherwise, <c>false</c>.
-        /// </returns>
-        public bool Equals(IValueNode? other)
-        {
-            if (other is null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(other, this))
-            {
-                return true;
-            }
-
-            if (other is ScopedVariableNode v)
-            {
-                return Equals(v);
-            }
-
             return false;
         }
 
-        /// <summary>
-        /// Determines whether the specified <see cref="object"/> is equal to
-        /// the current <see cref="ScopedVariableNode"/>.
-        /// </summary>
-        /// <param name="obj">
-        /// The <see cref="object"/> to compare with the current
-        /// <see cref="ScopedVariableNode"/>.
-        /// </param>
-        /// <returns>
-        /// <c>true</c> if the specified <see cref="object"/> is equal to the
-        /// current <see cref="ScopedVariableNode"/>; otherwise, <c>false</c>.
-        /// </returns>
-        public override bool Equals(object? obj)
+        if (ReferenceEquals(other, this))
         {
-            if (obj is null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(obj, this))
-            {
-                return true;
-            }
-
-            return Equals(obj as ScopedVariableNode);
+            return true;
         }
 
-        /// <summary>
-        /// Serves as a hash function for a <see cref="ScopedVariableNode"/>
-        /// object.
-        /// </summary>
-        /// <returns>
-        /// A hash code for this instance that is suitable for use in
-        /// hashing algorithms and data structures such as a hash table.
-        /// </returns>
-        public override int GetHashCode()
+        return other.Value.Equals(Value, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Determines whether the specified <see cref="IValueNode"/> is equal
+    /// to the current <see cref="ScopedVariableNode"/>.
+    /// </summary>
+    /// <param name="other">
+    /// The <see cref="IValueNode"/> to compare with the current
+    /// <see cref="ScopedVariableNode"/>.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the specified <see cref="IValueNode"/> is equal
+    /// to the current <see cref="ScopedVariableNode"/>;
+    /// otherwise, <c>false</c>.
+    /// </returns>
+    public bool Equals(IValueNode? other)
+    {
+        if (other is null)
         {
-            unchecked
-            {
-                return (Kind.GetHashCode() * 397)
-                    ^ (Value.GetHashCode() * 97);
-            }
+            return false;
         }
 
-        /// <summary>
-        /// Returns a <see cref="string"/> that represents the current
-        /// <see cref="ScopedVariableNode"/>.
-        /// </summary>
-        /// <returns>
-        /// A <see cref="string"/> that represents the current
-        /// <see cref="ScopedVariableNode"/>.
-        /// </returns>
-        public override string ToString()
+        if (ReferenceEquals(other, this))
         {
-            return Value;
+            return true;
         }
 
-        public string ToString(bool indented)
+        if (other is ScopedVariableNode v)
         {
-            throw new NotSupportedException();
+            return Equals(v);
         }
 
-        public VariableNode ToVariableNode()
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether the specified <see cref="object"/> is equal to
+    /// the current <see cref="ScopedVariableNode"/>.
+    /// </summary>
+    /// <param name="obj">
+    /// The <see cref="object"/> to compare with the current
+    /// <see cref="ScopedVariableNode"/>.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the specified <see cref="object"/> is equal to the
+    /// current <see cref="ScopedVariableNode"/>; otherwise, <c>false</c>.
+    /// </returns>
+    public override bool Equals(object? obj)
+    {
+        if (obj is null)
         {
-            return new VariableNode(new NameNode(ToVariableName()));
+            return false;
         }
 
-        public string ToVariableName()
+        if (ReferenceEquals(obj, this))
         {
-            return "__" + Scope.Value + "_" + Name.Value;
+            return true;
         }
+
+        return Equals(obj as ScopedVariableNode);
+    }
+
+    /// <summary>
+    /// Serves as a hash function for a <see cref="ScopedVariableNode"/>
+    /// object.
+    /// </summary>
+    /// <returns>
+    /// A hash code for this instance that is suitable for use in
+    /// hashing algorithms and data structures such as a hash table.
+    /// </returns>
+    public override int GetHashCode()
+    {
+        unchecked
+        {
+            return (Kind.GetHashCode() * 397)
+                ^ (Value.GetHashCode() * 97);
+        }
+    }
+
+    /// <summary>
+    /// Returns a <see cref="string"/> that represents the current
+    /// <see cref="ScopedVariableNode"/>.
+    /// </summary>
+    /// <returns>
+    /// A <see cref="string"/> that represents the current
+    /// <see cref="ScopedVariableNode"/>.
+    /// </returns>
+    public override string ToString()
+    {
+        return Value;
+    }
+
+    public string ToString(bool indented)
+    {
+        throw new NotSupportedException();
+    }
+
+    public VariableNode ToVariableNode()
+    {
+        return new VariableNode(new NameNode(ToVariableName()));
+    }
+
+    public string ToVariableName()
+    {
+        return "__" + Scope.Value + "_" + Name.Value;
     }
 }

@@ -1,9 +1,8 @@
-namespace HotChocolate.Stitching.Requests
-{
-    public interface IStitchingContext
-    {
-        IRemoteRequestExecutor GetRemoteRequestExecutor(string schemaName);
+namespace HotChocolate.Stitching.Requests;
 
-        ISchema GetRemoteSchema(string schemaName);
-    }
+public interface IStitchingContext
+{
+    IRemoteRequestExecutor GetRemoteRequestExecutor(string schemaName);
+
+    ISchema GetRemoteSchema(string schemaName);
 }

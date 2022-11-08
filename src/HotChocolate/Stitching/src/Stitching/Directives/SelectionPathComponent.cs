@@ -4,59 +4,58 @@ using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching;
+
+public class SelectionPathComponent
 {
-    public class SelectionPathComponent
+    public SelectionPathComponent(
+        NameNode name,
+        IReadOnlyList<ArgumentNode> arguments)
     {
-        public SelectionPathComponent(
-            NameNode name,
-            IReadOnlyList<ArgumentNode> arguments)
+        Name = name
+            ?? throw new ArgumentNullException(nameof(name));
+        Arguments = arguments
+            ?? throw new ArgumentNullException(nameof(arguments));
+    }
+
+    public NameNode Name { get; }
+
+    public IReadOnlyList<ArgumentNode> Arguments { get; }
+
+    public override string ToString()
+    {
+        if (Arguments.Count == 0)
         {
-            Name = name
-                ?? throw new ArgumentNullException(nameof(name));
-            Arguments = arguments
-                ?? throw new ArgumentNullException(nameof(arguments));
+            return Name.Value;
         }
 
-        public NameNode Name { get; }
+        var sb = new StringBuilder();
+        sb.Append(Name.Value);
+        sb.Append('(');
+        sb.Append(SerializeArgument(Arguments[0]));
 
-        public IReadOnlyList<ArgumentNode> Arguments { get; }
-
-        public override string ToString()
+        for (var i = 1; i < Arguments.Count; i++)
         {
-            if (Arguments.Count == 0)
-            {
-                return Name.Value;
-            }
-
-            var sb = new StringBuilder();
-            sb.Append(Name.Value);
-            sb.Append('(');
-            sb.Append(SerializeArgument(Arguments[0]));
-
-            for (var i = 1; i < Arguments.Count; i++)
-            {
-                sb.Append(',');
-                sb.Append(' ');
-                sb.Append(SerializeArgument(Arguments[i]));
-            }
-
-            sb.Append(')');
-            return sb.ToString();
+            sb.Append(',');
+            sb.Append(' ');
+            sb.Append(SerializeArgument(Arguments[i]));
         }
 
-        private static string SerializeArgument(ArgumentNode argument)
-        {
-            return $"{argument.Name.Value}: {SerializeValue(argument.Value)}";
-        }
+        sb.Append(')');
+        return sb.ToString();
+    }
 
-        private static string SerializeValue(IValueNode value)
+    private static string SerializeArgument(ArgumentNode argument)
+    {
+        return $"{argument.Name.Value}: {SerializeValue(argument.Value)}";
+    }
+
+    private static string SerializeValue(IValueNode value)
+    {
+        if (value is ScopedVariableNode variable)
         {
-            if (value is ScopedVariableNode variable)
-            {
-                return $"${variable.Scope.Value}:{variable.Name.Value}";
-            }
-            return value.Print();
+            return $"${variable.Scope.Value}:{variable.Name.Value}";
         }
+        return value.Print();
     }
 }

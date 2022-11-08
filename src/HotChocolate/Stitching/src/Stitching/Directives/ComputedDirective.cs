@@ -1,7 +1,6 @@
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching;
+
+public class ComputedDirective
 {
-    public class ComputedDirective
-    {
-        public string[] DependantOn { get; set; }
-    }
+    public string[] DependantOn { get; set; }
 }

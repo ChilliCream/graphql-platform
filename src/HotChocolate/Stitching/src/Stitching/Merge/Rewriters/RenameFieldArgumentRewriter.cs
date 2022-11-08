@@ -3,104 +3,103 @@ using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
-namespace HotChocolate.Stitching.Merge.Rewriters
+namespace HotChocolate.Stitching.Merge.Rewriters;
+
+internal class RenameFieldArgumentRewriter
+    : ITypeRewriter
 {
-    internal class RenameFieldArgumentRewriter
-        : ITypeRewriter
+    public RenameFieldArgumentRewriter(
+        FieldReference field,
+        string argumentName,
+        string newArgumentName,
+        string? schemaName = null)
     {
-        public RenameFieldArgumentRewriter(
-            FieldReference field,
-            string argumentName,
-            string newArgumentName,
-            string? schemaName = null)
+        Field = field ?? throw new ArgumentNullException(nameof(field));
+        ArgumentName = argumentName.EnsureNotEmpty(nameof(argumentName));
+        NewArgumentName = newArgumentName.EnsureNotEmpty(nameof(newArgumentName));
+        SchemaName = schemaName?.EnsureNotEmpty(nameof(schemaName));
+    }
+
+    public FieldReference Field { get; }
+
+    public string ArgumentName { get; }
+
+    public string NewArgumentName { get; }
+
+    public string? SchemaName { get; }
+
+    public ITypeDefinitionNode Rewrite(
+        ISchemaInfo schema,
+        ITypeDefinitionNode typeDefinition)
+    {
+        if (SchemaName.HasValue && !SchemaName.Value.Equals(schema.Name))
         {
-            Field = field ?? throw new ArgumentNullException(nameof(field));
-            ArgumentName = argumentName.EnsureNotEmpty(nameof(argumentName));
-            NewArgumentName = newArgumentName.EnsureNotEmpty(nameof(newArgumentName));
-            SchemaName = schemaName?.EnsureNotEmpty(nameof(schemaName));
+            return typeDefinition;
         }
 
-        public FieldReference Field { get; }
-
-        public string ArgumentName { get; }
-
-        public string NewArgumentName { get; }
-
-        public string? SchemaName { get; }
-
-        public ITypeDefinitionNode Rewrite(
-            ISchemaInfo schema,
-            ITypeDefinitionNode typeDefinition)
+        var typeName = typeDefinition.GetOriginalName(schema.Name);
+        if (!Field.TypeName.Equals(typeName))
         {
-            if (SchemaName.HasValue && !SchemaName.Value.Equals(schema.Name))
-            {
+            return typeDefinition;
+        }
+
+        switch (typeDefinition)
+        {
+            case ObjectTypeDefinitionNode otd:
+                return SelectField(otd, schema.Name,
+                    f => otd.WithFields(f));
+
+            case InterfaceTypeDefinitionNode itd:
+                return SelectField(itd, schema.Name,
+                    f => itd.WithFields(f));
+
+            default:
                 return typeDefinition;
-            }
-
-            var typeName = typeDefinition.GetOriginalName(schema.Name);
-            if (!Field.TypeName.Equals(typeName))
-            {
-                return typeDefinition;
-            }
-
-            switch (typeDefinition)
-            {
-                case ObjectTypeDefinitionNode otd:
-                    return SelectField(otd, schema.Name,
-                        f => otd.WithFields(f));
-
-                case InterfaceTypeDefinitionNode itd:
-                    return SelectField(itd, schema.Name,
-                        f => itd.WithFields(f));
-
-                default:
-                    return typeDefinition;
-            }
         }
+    }
 
-        private T SelectField<T>(
-            T typeDefinition,
-            string schemaName,
-            RewriteFieldsDelegate<T> rewrite)
-            where T : ComplexTypeDefinitionNodeBase, ITypeDefinitionNode
+    private T SelectField<T>(
+        T typeDefinition,
+        string schemaName,
+        RewriteFieldsDelegate<T> rewrite)
+        where T : ComplexTypeDefinitionNodeBase, ITypeDefinitionNode
+    {
+        var renamedFields = new List<FieldDefinitionNode>();
+
+        foreach (var field in typeDefinition.Fields)
         {
-            var renamedFields = new List<FieldDefinitionNode>();
-
-            foreach (var field in typeDefinition.Fields)
+            if (Field.FieldName.Equals(field.Name.Value))
             {
-                if (Field.FieldName.Equals(field.Name.Value))
-                {
-                    renamedFields.Add(RewriteArgument(schemaName, field));
-                }
-                else
-                {
-                    renamedFields.Add(field);
-                }
+                renamedFields.Add(RewriteArgument(schemaName, field));
             }
-
-            return rewrite(renamedFields);
+            else
+            {
+                renamedFields.Add(field);
+            }
         }
 
-        private FieldDefinitionNode RewriteArgument(
-            string schemaName,
-            FieldDefinitionNode field)
+        return rewrite(renamedFields);
+    }
+
+    private FieldDefinitionNode RewriteArgument(
+        string schemaName,
+        FieldDefinitionNode field)
+    {
+        var renamedArguments = new List<InputValueDefinitionNode>();
+
+        foreach (var argument in field.Arguments)
         {
-            var renamedArguments = new List<InputValueDefinitionNode>();
-
-            foreach (var argument in field.Arguments)
+            if (ArgumentName.Equals(argument.Name.Value))
             {
-                if (ArgumentName.Equals(argument.Name.Value))
-                {
-                    renamedArguments.Add(argument.Rename(
-                        NewArgumentName, schemaName));
-                }
-                else
-                {
-                    renamedArguments.Add(argument);
-                }
+                renamedArguments.Add(argument.Rename(
+                    NewArgumentName, schemaName));
             }
-
-            return field.WithArguments(renamedArguments);
+            else
+            {
+                renamedArguments.Add(argument);
+            }
         }
+
+        return field.WithArguments(renamedArguments);
     }
 }

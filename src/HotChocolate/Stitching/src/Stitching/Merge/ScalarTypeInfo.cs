@@ -1,15 +1,14 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.Stitching.Merge
+namespace HotChocolate.Stitching.Merge;
+
+internal class ScalarTypeInfo
+    : TypeInfo<ScalarTypeDefinitionNode>
 {
-    internal class ScalarTypeInfo
-        : TypeInfo<ScalarTypeDefinitionNode>
+    public ScalarTypeInfo(
+        ScalarTypeDefinitionNode typeDefinition,
+        ISchemaInfo schema)
+        : base(typeDefinition, schema)
     {
-        public ScalarTypeInfo(
-            ScalarTypeDefinitionNode typeDefinition,
-            ISchemaInfo schema)
-            : base(typeDefinition, schema)
-        {
-        }
     }
 }

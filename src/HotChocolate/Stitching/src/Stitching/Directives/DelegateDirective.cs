@@ -1,11 +1,10 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.Stitching
-{
-    public class DelegateDirective
-    {
-        public string? Path { get; set; }
+namespace HotChocolate.Stitching;
 
-        public string Schema { get; set; }
-    }
+public class DelegateDirective
+{
+    public string? Path { get; set; }
+
+    public string Schema { get; set; }
 }
