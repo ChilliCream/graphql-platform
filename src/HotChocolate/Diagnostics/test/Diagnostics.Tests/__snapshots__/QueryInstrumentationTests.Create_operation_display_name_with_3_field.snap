@@ -7,15 +7,15 @@
       "tags": [
         {
           "Key": "graphql.document.id",
-          "Value": "LlX74QqePd8mk1qPjRXsiQ=="
+          "Value": "2e55fbe10a9e3ddf26935a8f8d15ec89"
         },
         {
           "Key": "graphql.document.hash",
-          "Value": "LlX74QqePd8mk1qPjRXsiQ=="
+          "Value": "2e55fbe10a9e3ddf26935a8f8d15ec89"
         },
         {
           "Key": "graphql.operation.id",
-          "Value": "LlX74QqePd8mk1qPjRXsiQ=="
+          "Value": "2e55fbe10a9e3ddf26935a8f8d15ec89"
         }
       ],
       "event": [
@@ -48,11 +48,11 @@
           "tags": [
             {
               "Key": "graphql.document.id",
-              "Value": "LlX74QqePd8mk1qPjRXsiQ=="
+              "Value": "2e55fbe10a9e3ddf26935a8f8d15ec89"
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "LlX74QqePd8mk1qPjRXsiQ=="
+              "Value": "2e55fbe10a9e3ddf26935a8f8d15ec89"
             },
             {
               "Key": "otel.status_code",

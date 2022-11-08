@@ -673,7 +673,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
 
         var document = Utf8GraphQLParser.Parse("{ __typename }");
 
-        var hashProvider = new MD5DocumentHashProvider();
+        var hashProvider = new MD5DocumentHashProvider(HashFormat.Hex);
         var hash = hashProvider.ComputeHash(
             Encoding.UTF8.GetBytes(document.ToString(false)));
 
@@ -702,7 +702,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
 
         var query = "{__typename}";
 
-        var hashProvider = new MD5DocumentHashProvider();
+        var hashProvider = new MD5DocumentHashProvider(HashFormat.Hex);
         var hash = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
 
         // act
@@ -712,14 +712,10 @@ public class HttpGetMiddlewareTests : ServerTestBase
                 "md5Hash",
                 hash);
 
-        var resultB =
-            await server.GetActivePersistedQueryAsync("md5Hash", hash);
+        var resultB = await server.GetActivePersistedQueryAsync("md5Hash", hash);
 
         // assert
-        new[] {
-                resultA,
-                resultB
-            }.MatchSnapshot();
+        new[] { resultA, resultB }.MatchSnapshot();
     }
 
     [Fact]
