@@ -59,6 +59,11 @@ public partial class AddSchemaExtensionRewriter : SyntaxRewriter<MergeContext>
         var context = new MergeContext(current, extensions);
         current = RewriteDocument(current, context);
 
+        if (current is null)
+        {
+            throw new InvalidOperationException("The current node was removed.");
+        }
+
         if (context.Extensions.Count > 0)
         {
             var definitions = current.Definitions.ToList();
@@ -116,21 +121,24 @@ public partial class AddSchemaExtensionRewriter : SyntaxRewriter<MergeContext>
         return document.WithDefinitions(definitions);
     }
 
-    protected override UnionTypeDefinitionNode RewriteUnionTypeDefinition(
+    protected override UnionTypeDefinitionNode? RewriteUnionTypeDefinition(
         UnionTypeDefinitionNode node,
         MergeContext context)
     {
         var current = node;
 
-        if (context.Extensions.TryGetValue(
-            current.Name.Value,
-            out var extension))
+        if (context.Extensions.TryGetValue(current.Name.Value, out var extension))
         {
             if (extension is UnionTypeExtensionNode unionTypeExtension)
             {
                 current = AddTypes(current, unionTypeExtension);
-                current = AddDirectives(current, unionTypeExtension,
-                    d => current.WithDirectives(d), context);
+
+                var captured = current;
+                current = AddDirectives(
+                    current,
+                    unionTypeExtension,
+                    d => captured.WithDirectives(d),
+                    context);
             }
             else
             {
@@ -173,7 +181,7 @@ public partial class AddSchemaExtensionRewriter : SyntaxRewriter<MergeContext>
         return typeDefinition.WithTypes(types.Values.ToList());
     }
 
-    protected override ObjectTypeDefinitionNode RewriteObjectTypeDefinition(
+    protected override ObjectTypeDefinitionNode? RewriteObjectTypeDefinition(
         ObjectTypeDefinitionNode node,
         MergeContext context)
     {
@@ -188,8 +196,13 @@ public partial class AddSchemaExtensionRewriter : SyntaxRewriter<MergeContext>
 
                 current = AddInterfaces(current, objectTypeExtension);
                 current = AddFields(current, objectTypeExtension);
-                current = AddDirectives(current, objectTypeExtension,
-                    d => current.WithDirectives(d), context);
+
+                var captured = current;
+                current = AddDirectives(
+                    current,
+                    objectTypeExtension,
+                    d => captured.WithDirectives(d),
+                    context);
             }
             else
             {
@@ -213,10 +226,9 @@ public partial class AddSchemaExtensionRewriter : SyntaxRewriter<MergeContext>
         ObjectTypeDefinitionNode typeDefinition,
         ObjectTypeExtensionNode typeExtension)
     {
-        var fields =
-            AddFields(typeDefinition.Fields, typeExtension.Fields);
+        var fields = AddFields(typeDefinition.Fields, typeExtension.Fields);
 
-        return fields == typeDefinition.Fields
+        return Equals(fields, typeDefinition.Fields)
             ? typeDefinition
             : typeDefinition.WithFields(fields);
     }
@@ -249,10 +261,9 @@ public partial class AddSchemaExtensionRewriter : SyntaxRewriter<MergeContext>
                 .ToList());
     }
 
-    protected override InterfaceTypeDefinitionNode
-        RewriteInterfaceTypeDefinition(
-            InterfaceTypeDefinitionNode node,
-            MergeContext context)
+    protected override InterfaceTypeDefinitionNode? RewriteInterfaceTypeDefinition(
+        InterfaceTypeDefinitionNode node,
+        MergeContext context)
     {
         var current = node;
 
@@ -263,8 +274,13 @@ public partial class AddSchemaExtensionRewriter : SyntaxRewriter<MergeContext>
             if (extension is InterfaceTypeExtensionNode ite)
             {
                 current = AddFields(current, ite);
-                current = AddDirectives(current, ite,
-                    d => current.WithDirectives(d), context);
+
+                var captured = current;
+                current = AddDirectives(
+                    current,
+                    ite,
+                    d => captured.WithDirectives(d),
+                    context);
             }
             else
             {
@@ -273,8 +289,7 @@ public partial class AddSchemaExtensionRewriter : SyntaxRewriter<MergeContext>
                     extension,
                     string.Format(
                         CultureInfo.InvariantCulture,
-                        StitchingResources
-                            .AddSchemaExtensionRewriter_TypeMismatch,
+                        StitchingResources.AddSchemaExtensionRewriter_TypeMismatch,
                         node.Name.Value,
                         node.Kind,
                         extension.Kind));
@@ -288,10 +303,9 @@ public partial class AddSchemaExtensionRewriter : SyntaxRewriter<MergeContext>
         InterfaceTypeDefinitionNode typeDefinition,
         InterfaceTypeExtensionNode typeExtension)
     {
-        var fields =
-            AddFields(typeDefinition.Fields, typeExtension.Fields);
+        var fields = AddFields(typeDefinition.Fields, typeExtension.Fields);
 
-        return fields == typeDefinition.Fields
+        return Equals(fields, typeDefinition.Fields)
             ? typeDefinition
             : typeDefinition.WithFields(fields);
     }
@@ -321,10 +335,9 @@ public partial class AddSchemaExtensionRewriter : SyntaxRewriter<MergeContext>
         return fields.Values.ToList();
     }
 
-    protected override InputObjectTypeDefinitionNode
-        RewriteInputObjectTypeDefinition(
-            InputObjectTypeDefinitionNode node,
-            MergeContext context)
+    protected override InputObjectTypeDefinitionNode? RewriteInputObjectTypeDefinition(
+        InputObjectTypeDefinitionNode node,
+        MergeContext context)
     {
         var current = node;
 
@@ -332,11 +345,16 @@ public partial class AddSchemaExtensionRewriter : SyntaxRewriter<MergeContext>
             current.Name.Value,
             out var extension))
         {
-            if (extension is InputObjectTypeExtensionNode iote)
+            if (extension is InputObjectTypeExtensionNode typeExtension)
             {
-                current = AddInputFields(current, iote);
-                current = AddDirectives(current, iote,
-                    d => current.WithDirectives(d), context);
+                current = AddInputFields(current, typeExtension);
+
+                var captured = current;
+                current = AddDirectives(
+                    current,
+                    typeExtension,
+                    d => captured.WithDirectives(d),
+                    context);
             }
             else
             {
@@ -364,8 +382,7 @@ public partial class AddSchemaExtensionRewriter : SyntaxRewriter<MergeContext>
             return typeDefinition;
         }
 
-        var fields =
-            new OrderedDictionary<string, InputValueDefinitionNode>();
+        var fields = new OrderedDictionary<string, InputValueDefinitionNode>();
 
         foreach (var field in typeDefinition.Fields)
         {
@@ -381,7 +398,7 @@ public partial class AddSchemaExtensionRewriter : SyntaxRewriter<MergeContext>
         return typeDefinition.WithFields(fields.Values.ToList());
     }
 
-    protected override EnumTypeDefinitionNode RewriteEnumTypeDefinition(
+    protected override EnumTypeDefinitionNode? RewriteEnumTypeDefinition(
         EnumTypeDefinitionNode node,
         MergeContext context)
     {
@@ -394,8 +411,13 @@ public partial class AddSchemaExtensionRewriter : SyntaxRewriter<MergeContext>
             if (extension is EnumTypeExtensionNode ete)
             {
                 current = AddEnumValues(current, ete);
-                current = AddDirectives(current, ete,
-                    d => current.WithDirectives(d), context);
+
+                var captured = current;
+                current = AddDirectives(
+                    current,
+                    ete,
+                    d => captured.WithDirectives(d),
+                    context);
             }
             else
             {
@@ -440,7 +462,7 @@ public partial class AddSchemaExtensionRewriter : SyntaxRewriter<MergeContext>
         return typeDefinition.WithValues(values.Values.ToList());
     }
 
-    protected override ScalarTypeDefinitionNode RewriteScalarTypeDefinition(
+    protected override ScalarTypeDefinitionNode? RewriteScalarTypeDefinition(
         ScalarTypeDefinitionNode node,
         MergeContext context)
     {
@@ -452,8 +474,12 @@ public partial class AddSchemaExtensionRewriter : SyntaxRewriter<MergeContext>
         {
             if (extension is ScalarTypeExtensionNode ste)
             {
-                current = AddDirectives(current, ste,
-                    d => current.WithDirectives(d), context);
+                var captured = current;
+                current = AddDirectives(
+                    current,
+                    ste,
+                    d => captured.WithDirectives(d),
+                    context);
             }
             else
             {
@@ -505,7 +531,7 @@ public partial class AddSchemaExtensionRewriter : SyntaxRewriter<MergeContext>
             }
 
             if (!alreadyDeclared.Add(directive.Name.Value)
-                && directiveDefinition.IsUnique)
+                && !directiveDefinition.IsRepeatable)
             {
                 throw new SchemaMergeException(
                     typeDefinition, typeExtension,

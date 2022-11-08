@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Pipeline;
@@ -21,7 +15,7 @@ public class IntrospectionHelper
     public IntrospectionHelper(HttpClient httpClient, string configuration)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-        _configuration = configuration.EnsureNotEmpty(nameof(configuration));
+        _configuration = configuration.EnsureGraphQLName(nameof(configuration));
     }
 
     public async Task<RemoteSchemaDefinition> GetSchemaDefinitionAsync(
@@ -104,7 +98,7 @@ public class IntrospectionHelper
                                 extensionDocuments
                             }}
                         }}")
-                .SetVariableValue("c", new StringValueNode(_configuration.Value))
+                .SetVariableValue("c", new StringValueNode(_configuration))
                 .Create();
 
         var requestMessage = await HttpRequestClient

@@ -2,18 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Stitching.Requests;
 
-internal class MergeRequestRewriter : QuerySyntaxRewriter<bool>
+internal class MergeRequestRewriter : SyntaxRewriter<bool>
 {
-    private static readonly NameNode _defaultName = new NameNode("exec_batch");
+    private static readonly NameNode _defaultName = new("exec_batch");
 
-    private readonly List<FieldNode> _fields = new List<FieldNode>();
-    private readonly Dictionary<string, VariableDefinitionNode> _variables =
-        new Dictionary<string, VariableDefinitionNode>();
-    private readonly Dictionary<string, FragmentDefinitionNode> _fragments =
-        new Dictionary<string, FragmentDefinitionNode>();
+    private readonly List<FieldNode> _fields = new();
+    private readonly Dictionary<string, VariableDefinitionNode> _variables = new();
+    private readonly Dictionary<string, FragmentDefinitionNode> _fragments = new();
 
     private Dictionary<string, string>? _aliases;
     private string _requestPrefix;
@@ -33,11 +32,9 @@ internal class MergeRequestRewriter : QuerySyntaxRewriter<bool>
         _operationType = request.Operation.Operation;
         _aliases = new Dictionary<string, string>();
 
-        DocumentNode rewritten =
-            RewriteDocument(request.Document, true);
+        var rewritten = RewriteDocument(request.Document, true)!;
 
-        var operation =
-            BufferedRequest.ResolveOperation(rewritten, request.Request.OperationName);
+        var operation = BufferedRequest.ResolveOperation(rewritten, request.Request.OperationName);
 
         foreach (var variable in operation.VariableDefinitions)
         {
@@ -82,8 +79,8 @@ internal class MergeRequestRewriter : QuerySyntaxRewriter<bool>
     }
 
     protected override VariableDefinitionNode RewriteVariableDefinition(
-        VariableDefinitionNode node, bool context) =>
-        node.WithVariable(node.Variable.WithName(
+        VariableDefinitionNode node, bool context)
+        => node.WithVariable(node.Variable.WithName(
             node.Variable.Name.CreateNewName(_requestPrefix)));
 
     protected override FieldNode RewriteField(FieldNode node, bool first)

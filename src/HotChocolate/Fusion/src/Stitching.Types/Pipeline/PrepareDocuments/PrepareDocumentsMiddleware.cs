@@ -16,15 +16,15 @@ public class PrepareDocumentsMiddleware
 
     public async ValueTask InvokeAsync(ISchemaMergeContext context)
     {
-        foreach (ServiceConfiguration configuration in context.Configurations)
+        foreach (var configuration in context.Configurations)
         {
             var definitions = new List<IDefinitionNode>();
 
             RegisterServiceInfo(definitions, configuration);
 
-            foreach (DocumentNode document in configuration.Documents)
+            foreach (var document in configuration.Documents)
             {
-                foreach (IDefinitionNode definition in document.Definitions)
+                foreach (var definition in document.Definitions)
                 {
                     definitions.Add(definition);
                 }

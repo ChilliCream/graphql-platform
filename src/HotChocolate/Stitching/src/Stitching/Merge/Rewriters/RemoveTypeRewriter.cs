@@ -1,7 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching.Merge.Rewriters;
 
@@ -9,8 +7,8 @@ internal class RemoveTypeRewriter : IDocumentRewriter
 {
     public RemoveTypeRewriter(string typeName, string? schemaName = null)
     {
-        TypeName = typeName.EnsureNotEmpty(nameof(typeName));
-        SchemaName = schemaName?.EnsureNotEmpty(nameof(schemaName));
+        TypeName = typeName.EnsureGraphQLName(nameof(typeName));
+        SchemaName = schemaName?.EnsureGraphQLName(nameof(schemaName));
     }
 
     public string TypeName { get; }
@@ -19,7 +17,7 @@ internal class RemoveTypeRewriter : IDocumentRewriter
 
     public DocumentNode Rewrite(ISchemaInfo schema, DocumentNode document)
     {
-        if (SchemaName.HasValue && !SchemaName.Value.Equals(schema.Name))
+        if (!string.IsNullOrEmpty(SchemaName) && !SchemaName.Equals(schema.Name))
         {
             return document;
         }

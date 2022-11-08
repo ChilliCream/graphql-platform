@@ -20,7 +20,7 @@ public sealed class ApplyRenamingMiddleware
     {
         for (var i = 0; i < context.Documents.Count; i++)
         {
-            Document doc = context.Documents[i];
+            var doc = context.Documents[i];
 
             var renameContext = new RenameContext(doc.Name);
             _indexer.Visit(doc.SyntaxTree, renameContext);

@@ -75,7 +75,7 @@ public class PublishSchemaDefinitionDescriptor : IPublishSchemaDefinitionDescrip
 #if NET5_0 || NET6_0
                 await using (stream)
 #else
-                    using (stream)
+                using (stream)
 #endif
                 {
                     var buffer = new byte[stream.Length];
@@ -161,7 +161,7 @@ public class PublishSchemaDefinitionDescriptor : IPublishSchemaDefinitionDescrip
         }
 
         _schemaDefinition = new RemoteSchemaDefinition(
-            _name.HasValue ? _name : schema.Name,
+            !string.IsNullOrEmpty(_name) ? _name : schema.Name,
             schema.ToDocument(),
             extensionDocuments);
 

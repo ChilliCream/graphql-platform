@@ -21,7 +21,7 @@ internal sealed class RenameDirective
         {
             if (syntax.Arguments.Count == 1)
             {
-                ArgumentNode argument = syntax.Arguments[0];
+                var argument = syntax.Arguments[0];
                 if (argument.Name.Value.EqualsOrdinal("to") &&
                     argument.Value is StringValueNode sv &&
                     sv.Value.Length > 0)
@@ -42,7 +42,7 @@ internal sealed class RenameDirective
         {
             if (syntax.Arguments.Count == 1)
             {
-                ArgumentNode argument = syntax.Arguments[0];
+                var argument = syntax.Arguments[0];
                 if (argument.Name.Value.EqualsOrdinal("to"))
                 {
                     return true;

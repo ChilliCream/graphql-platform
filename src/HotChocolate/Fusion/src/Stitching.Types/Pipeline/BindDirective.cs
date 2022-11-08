@@ -29,7 +29,7 @@ internal sealed class BindDirective
             string? toValue = null;
             string? asValue = null;
 
-            foreach (ArgumentNode argument in syntax.Arguments)
+            foreach (var argument in syntax.Arguments)
             {
                 switch (argument.Name.Value)
                 {
@@ -82,7 +82,7 @@ internal sealed class BindDirective
 
             bool hasTo = false, hasAs = false;
 
-            foreach (ArgumentNode argument in syntax.Arguments)
+            foreach (var argument in syntax.Arguments)
             {
                 if (argument.Name.Value.EqualsOrdinal("to") &&
                     argument.Value is StringValueNode { Value.Length: > 0 })

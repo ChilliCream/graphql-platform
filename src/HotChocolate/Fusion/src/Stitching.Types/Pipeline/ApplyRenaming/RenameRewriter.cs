@@ -33,7 +33,7 @@ internal sealed class RenameRewriter : SyntaxRewriter<RenameContext>
             return default;
         }
 
-        if (context.RenamedTypes.TryGetValue(originalName, out RenameInfo? _))
+        if (context.RenamedTypes.TryGetValue(originalName, out var _))
         {
             rewrittenNode = ApplyBindDirective(
                 rewrittenNode,
@@ -57,7 +57,7 @@ internal sealed class RenameRewriter : SyntaxRewriter<RenameContext>
             return default;
         }
 
-        if (context.RenamedTypes.TryGetValue(originalName, out RenameInfo? _))
+        if (context.RenamedTypes.TryGetValue(originalName, out var _))
         {
             rewrittenNode = ApplyBindDirective(
                 rewrittenNode,
@@ -81,7 +81,7 @@ internal sealed class RenameRewriter : SyntaxRewriter<RenameContext>
             return default;
         }
 
-        if (context.RenamedTypes.TryGetValue(originalName, out RenameInfo? _))
+        if (context.RenamedTypes.TryGetValue(originalName, out var _))
         {
             rewrittenNode = ApplyBindDirective(
                 rewrittenNode,
@@ -105,7 +105,7 @@ internal sealed class RenameRewriter : SyntaxRewriter<RenameContext>
             return default;
         }
 
-        if (context.RenamedTypes.TryGetValue(originalName, out RenameInfo? _))
+        if (context.RenamedTypes.TryGetValue(originalName, out var _))
         {
             rewrittenNode = ApplyBindDirective(
                 rewrittenNode,
@@ -129,7 +129,7 @@ internal sealed class RenameRewriter : SyntaxRewriter<RenameContext>
             return default;
         }
 
-        if (context.RenamedTypes.TryGetValue(originalName, out RenameInfo? _))
+        if (context.RenamedTypes.TryGetValue(originalName, out var _))
         {
             rewrittenNode = ApplyBindDirective(
                 rewrittenNode,
@@ -153,7 +153,7 @@ internal sealed class RenameRewriter : SyntaxRewriter<RenameContext>
             return default;
         }
 
-        if (context.RenamedTypes.TryGetValue(originalName, out RenameInfo? _))
+        if (context.RenamedTypes.TryGetValue(originalName, out var _))
         {
             rewrittenNode = ApplyBindDirective(
                 rewrittenNode,
@@ -175,7 +175,7 @@ internal sealed class RenameRewriter : SyntaxRewriter<RenameContext>
             return default;
         }
 
-        if (context.Navigator.TryPeek(1, out ISyntaxNode? parent) &&
+        if (context.Navigator.TryPeek(1, out var parent) &&
             parent.Kind is SyntaxKind.ObjectTypeDefinition or InterfaceTypeDefinition &&
             context.TypesWithFieldRenames.Contains(((INamedSyntaxNode)parent).Name.Value))
         {
@@ -206,7 +206,7 @@ internal sealed class RenameRewriter : SyntaxRewriter<RenameContext>
 
     protected override NameNode RewriteName(NameNode node, RenameContext context)
     {
-        if (!context.Navigator.TryPeek(1, out ISyntaxNode? parent))
+        if (!context.Navigator.TryPeek(1, out var parent))
         {
             return base.RewriteName(node, context);
         }
@@ -218,12 +218,12 @@ internal sealed class RenameRewriter : SyntaxRewriter<RenameContext>
                 EnumTypeDefinition or
                 ScalarTypeDefinition or
                 NamedType &&
-            context.RenamedTypes.TryGetValue(node.Value, out RenameInfo? value))
+            context.RenamedTypes.TryGetValue(node.Value, out var value))
         {
             return node.WithValue(value.Name);
         }
 
-        if (!context.Navigator.TryPeek(2, out ISyntaxNode? grandParent))
+        if (!context.Navigator.TryPeek(2, out var grandParent))
         {
             return base.RewriteName(node, context);
         }
@@ -258,7 +258,7 @@ internal sealed class RenameRewriter : SyntaxRewriter<RenameContext>
 
         var copy = node.Directives.ToList();
 
-        foreach (DirectiveNode directive in node.Directives)
+        foreach (var directive in node.Directives)
         {
             if (RenameDirective.IsOfType(directive))
             {

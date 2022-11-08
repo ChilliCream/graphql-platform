@@ -13,9 +13,9 @@ internal abstract class ApplyComplexTypeExtension<TDef, TExt>
 {
     protected override TDef Apply(TDef definition, TExt extension)
     {
-        IReadOnlyList<DirectiveNode> directives = definition.Directives;
-        IReadOnlyList<NamedTypeNode> interfaces = definition.Interfaces;
-        IReadOnlyList<FieldDefinitionNode> fields = definition.Fields;
+        var directives = definition.Directives;
+        var interfaces = definition.Interfaces;
+        var fields = definition.Fields;
 
         if (extension.Directives.Count > 0)
         {
@@ -29,7 +29,7 @@ internal abstract class ApplyComplexTypeExtension<TDef, TExt>
             var names = definition.Interfaces.Select(t => t.Name.Value).ToHashSet();
             List<NamedTypeNode>? temp = null;
 
-            foreach (NamedTypeNode type in extension.Interfaces)
+            foreach (var type in extension.Interfaces)
             {
                 if (names.Add(type.Name.Value))
                 {
@@ -51,14 +51,14 @@ internal abstract class ApplyComplexTypeExtension<TDef, TExt>
                     t)));
             var touched = false;
 
-            foreach (FieldDefinitionNode extensionField in extension.Fields)
+            foreach (var extensionField in extension.Fields)
             {
                 // By default extensions would only allow to insert new fields.
                 // We also use extensions as a vehicle to annotate fields.
                 // So if we see that there is already a field we will try to merge it.
-                if (map.TryGetValue(extensionField.Name.Value, out FieldDefinitionNode? field))
+                if (map.TryGetValue(extensionField.Name.Value, out var field))
                 {
-                    FieldDefinitionNode temp =
+                    var temp =
                         ApplyExtensions(definition.Name.Value, field, extensionField);
 
                     if (!touched)
@@ -111,8 +111,8 @@ internal abstract class ApplyComplexTypeExtension<TDef, TExt>
             throw ApplyExtensionsMiddleware_ArgumentCountMismatch(typeName, definition, extension);
         }
 
-        IReadOnlyList<InputValueDefinitionNode> arguments = definition.Arguments;
-        IReadOnlyList<DirectiveNode> directives = definition.Directives;
+        var arguments = definition.Arguments;
+        var directives = definition.Directives;
 
         if (definition.Arguments.Count > 0)
         {
@@ -120,8 +120,8 @@ internal abstract class ApplyComplexTypeExtension<TDef, TExt>
 
             for (var i = 0; i < definition.Arguments.Count; i++)
             {
-                InputValueDefinitionNode arg = definition.Arguments[i];
-                InputValueDefinitionNode argExt = definition.Arguments[i];
+                var arg = definition.Arguments[i];
+                var argExt = definition.Arguments[i];
 
                 if (!arg.Name.Equals(argExt.Name, SyntaxComparison.Syntax))
                 {

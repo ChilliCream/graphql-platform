@@ -14,7 +14,7 @@ internal sealed class ObjectTypeDefinition : ITypeDefinition
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         Name = definition.Name.Value;
 
-        foreach (FieldDefinitionNode field in Definition.Fields)
+        foreach (var field in Definition.Fields)
         {
             Bindings.Add(new SourceBinding(new(Name, field.Name.Value), schemaName));
         }
@@ -45,7 +45,7 @@ internal sealed class ObjectTypeDefinition : ITypeDefinition
 
         try
         {
-            ObjectTypeDefinitionNode definitionNode = ParseObjectTypeDefinition(s);
+            var definitionNode = ParseObjectTypeDefinition(s);
             definition = new ObjectTypeDefinition(definitionNode, schemaName);
             return true;
         }

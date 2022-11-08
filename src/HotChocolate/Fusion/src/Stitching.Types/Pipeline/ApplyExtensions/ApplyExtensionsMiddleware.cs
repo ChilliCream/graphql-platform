@@ -29,11 +29,11 @@ public sealed class ApplyExtensionsMiddleware
 
         for (var i = 0; i < context.Documents.Count; i++)
         {
-            Document document = context.Documents[i];
+            var document = context.Documents[i];
             CollectTypeDefinitions(definitions, extensions, document.SyntaxTree);
             CollectTypeExtensions(extensions, document.SyntaxTree);
 
-            DocumentNode rewritten = ApplyExtensions(definitions, extensions);
+            var rewritten = ApplyExtensions(definitions, extensions);
             document = new Document(document.Name, rewritten);
             context.Documents = context.Documents.SetItem(i, document);
 
@@ -49,7 +49,7 @@ public sealed class ApplyExtensionsMiddleware
         List<ITypeSystemExtensionNode> extensions,
         DocumentNode document)
     {
-        foreach (IDefinitionNode definition in document.Definitions)
+        foreach (var definition in document.Definitions)
         {
             if (definition is ITypeSystemDefinitionNode typeDef)
             {
@@ -75,7 +75,7 @@ public sealed class ApplyExtensionsMiddleware
         List<ITypeSystemExtensionNode> extensions,
         DocumentNode document)
     {
-        foreach (IDefinitionNode definition in document.Definitions)
+        foreach (var definition in document.Definitions)
         {
             if (definition is ITypeSystemExtensionNode typeExt)
             {
@@ -90,7 +90,7 @@ public sealed class ApplyExtensionsMiddleware
     {
         var preserved = new List<ITypeSystemExtensionNode>();
 
-        foreach (ITypeSystemExtensionNode extension in extensions)
+        foreach (var extension in extensions)
         {
             if (extension is SchemaExtensionNode schemaExt)
             {
@@ -122,7 +122,7 @@ public sealed class ApplyExtensionsMiddleware
         Dictionary<string, ITypeSystemDefinitionNode> definitions,
         SchemaExtensionNode extension)
     {
-        if (definitions.TryGetValue(_schema, out ITypeSystemDefinitionNode? def) &&
+        if (definitions.TryGetValue(_schema, out var def) &&
             def is SchemaDefinitionNode schemaDef)
         {
             var directives = schemaDef.Directives.ToList();
@@ -143,12 +143,12 @@ public sealed class ApplyExtensionsMiddleware
         Dictionary<string, ITypeSystemDefinitionNode> definitions,
         ITypeExtensionNode extension)
     {
-        if (definitions.TryGetValue(extension.Name.Value, out ITypeSystemDefinitionNode? node) &&
+        if (definitions.TryGetValue(extension.Name.Value, out var node) &&
             node is ITypeDefinitionNode typeDef)
         {
             for (var i = 0; i < _applyExtensions.Length; i++)
             {
-                ITypeDefinitionNode? merged = _applyExtensions[i].TryApply(typeDef, extension);
+                var merged = _applyExtensions[i].TryApply(typeDef, extension);
 
                 if (merged is not null)
                 {

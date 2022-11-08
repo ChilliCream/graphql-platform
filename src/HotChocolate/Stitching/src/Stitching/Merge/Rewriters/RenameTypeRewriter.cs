@@ -1,4 +1,5 @@
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching.Merge.Rewriters;
 
@@ -10,9 +11,9 @@ internal class RenameTypeRewriter
         string newTypeName,
         string? schemaName = null)
     {
-        OriginalTypeName = originalTypeName.EnsureNotEmpty(nameof(originalTypeName));
-        NewTypeName = newTypeName.EnsureNotEmpty(nameof(newTypeName));
-        SchemaName = schemaName?.EnsureNotEmpty(nameof(schemaName));
+        OriginalTypeName = originalTypeName.EnsureGraphQLName(nameof(originalTypeName));
+        NewTypeName = newTypeName.EnsureGraphQLName(nameof(newTypeName));
+        SchemaName = schemaName?.EnsureGraphQLName(nameof(schemaName));
     }
 
     public string OriginalTypeName { get; }
@@ -25,7 +26,7 @@ internal class RenameTypeRewriter
         ISchemaInfo schema,
         ITypeDefinitionNode typeDefinition)
     {
-        if (SchemaName.HasValue && !SchemaName.Value.Equals(schema.Name))
+        if (!string.IsNullOrEmpty(SchemaName) && !SchemaName.Equals(schema.Name))
         {
             return typeDefinition;
         }

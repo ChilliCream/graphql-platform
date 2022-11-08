@@ -18,7 +18,7 @@ internal sealed class BindingList : ICollection<IBinding>
     {
         _count++;
 
-        if (!_bindings.TryGetValue(item.Target, out IBinding[]? bindings))
+        if (!_bindings.TryGetValue(item.Target, out var bindings))
         {
             bindings = new[] { item };
             _bindings.Add(item.Target, bindings);
@@ -38,7 +38,7 @@ internal sealed class BindingList : ICollection<IBinding>
         SchemaCoordinate target,
         [NotNullWhen(true)] out IReadOnlyList<IBinding>? bindings)
     {
-        if (_bindings.TryGetValue(target, out IBinding[]? b))
+        if (_bindings.TryGetValue(target, out var b))
         {
             bindings = b;
             return true;
@@ -50,7 +50,7 @@ internal sealed class BindingList : ICollection<IBinding>
 
     public bool Contains(IBinding item)
     {
-        if (_bindings.TryGetValue(item.Target, out IBinding[]? bindings))
+        if (_bindings.TryGetValue(item.Target, out var bindings))
         {
             return bindings.Length is 0
                 ? bindings[0].Equals(item)
@@ -65,9 +65,9 @@ internal sealed class BindingList : ICollection<IBinding>
     public void CopyTo(IBinding[] array, int arrayIndex)
     {
         var i = arrayIndex;
-        foreach (IBinding[] bindings in _bindings.Values)
+        foreach (var bindings in _bindings.Values)
         {
-            foreach (IBinding binding in bindings)
+            foreach (var binding in bindings)
             {
                 array[i++] = binding;
             }
@@ -76,9 +76,9 @@ internal sealed class BindingList : ICollection<IBinding>
 
     public void CopyTo(BindingList bindings)
     {
-        foreach (KeyValuePair<SchemaCoordinate, IBinding[]> item in _bindings)
+        foreach (var item in _bindings)
         {
-            if (!bindings._bindings.TryGetValue(item.Key, out IBinding[]? b))
+            if (!bindings._bindings.TryGetValue(item.Key, out var b))
             {
                 var copy = new IBinding[item.Value.Length];
                 Array.Copy(item.Value, 0, copy, 0, copy.Length);
@@ -97,9 +97,9 @@ internal sealed class BindingList : ICollection<IBinding>
 
     public IEnumerator<IBinding> GetEnumerator()
     {
-        foreach (IBinding[] bindings in _bindings.Values)
+        foreach (var bindings in _bindings.Values)
         {
-            foreach (IBinding binding in bindings)
+            foreach (var binding in bindings)
             {
                 yield return binding;
             }

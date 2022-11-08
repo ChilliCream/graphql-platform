@@ -18,7 +18,7 @@ public class SquashDocumentsMiddleware
     {
         var definitions = new List<IDefinitionNode>();
 
-        foreach (Document document in context.Documents)
+        foreach (var document in context.Documents)
         {
             definitions.AddRange(document.SyntaxTree.Definitions);
         }

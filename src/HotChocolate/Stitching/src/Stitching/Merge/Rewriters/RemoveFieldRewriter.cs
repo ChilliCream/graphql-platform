@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using HotChocolate.Language;
+﻿using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching.Merge.Rewriters;
 
@@ -11,7 +10,7 @@ internal class RemoveFieldRewriter
     public RemoveFieldRewriter(FieldReference field, string? schemaName = null)
     {
         Field = field ?? throw new ArgumentNullException(nameof(field));
-        SchemaName = schemaName?.EnsureNotEmpty(nameof(schemaName));
+        SchemaName = schemaName?.EnsureGraphQLName(nameof(schemaName));
     }
 
     public FieldReference Field { get; }
@@ -22,7 +21,7 @@ internal class RemoveFieldRewriter
         ISchemaInfo schema,
         ITypeDefinitionNode typeDefinition)
     {
-        if (SchemaName.HasValue && !SchemaName.Value.Equals(schema.Name))
+        if (!string.IsNullOrEmpty(SchemaName) && !SchemaName.Equals(schema.Name))
         {
             return typeDefinition;
         }

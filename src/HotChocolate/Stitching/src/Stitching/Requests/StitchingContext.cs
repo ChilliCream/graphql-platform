@@ -1,16 +1,14 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
 using GreenDonut;
 using HotChocolate.Execution;
 using HotChocolate.Stitching.Properties;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching.Requests;
 
 public class StitchingContext : IStitchingContext
 {
-    private readonly Dictionary<string, RemoteRequestExecutor> _executors =
-        new Dictionary<string, RemoteRequestExecutor>();
+    private readonly Dictionary<string, RemoteRequestExecutor> _executors = new();
 
     public StitchingContext(
         IBatchScheduler batchScheduler,
@@ -39,7 +37,7 @@ public class StitchingContext : IStitchingContext
 
     public IRemoteRequestExecutor GetRemoteRequestExecutor(string schemaName)
     {
-        schemaName.EnsureNotEmpty(nameof(schemaName));
+        schemaName.EnsureGraphQLName(nameof(schemaName));
 
         if (_executors.TryGetValue(schemaName, out var executor))
         {

@@ -17,8 +17,8 @@ public class ApplyMissingBindingsMiddleware
     {
         for (var i = 0; i < context.Documents.Count; i++)
         {
-            Document document = context.Documents[i];
-            DocumentNode syntaxTree = document.SyntaxTree;
+            var document = context.Documents[i];
+            var syntaxTree = document.SyntaxTree;
 
             var bindContext = new BindingContext(document.Name);
             syntaxTree = (DocumentNode)_rewriter.Rewrite(syntaxTree, bindContext);

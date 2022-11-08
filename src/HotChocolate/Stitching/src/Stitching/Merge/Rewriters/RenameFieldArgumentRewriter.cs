@@ -1,7 +1,6 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching.Merge.Rewriters;
 
@@ -15,9 +14,9 @@ internal class RenameFieldArgumentRewriter
         string? schemaName = null)
     {
         Field = field ?? throw new ArgumentNullException(nameof(field));
-        ArgumentName = argumentName.EnsureNotEmpty(nameof(argumentName));
-        NewArgumentName = newArgumentName.EnsureNotEmpty(nameof(newArgumentName));
-        SchemaName = schemaName?.EnsureNotEmpty(nameof(schemaName));
+        ArgumentName = argumentName.EnsureGraphQLName(nameof(argumentName));
+        NewArgumentName = newArgumentName.EnsureGraphQLName(nameof(newArgumentName));
+        SchemaName = schemaName?.EnsureGraphQLName(nameof(schemaName));
     }
 
     public FieldReference Field { get; }
@@ -32,7 +31,7 @@ internal class RenameFieldArgumentRewriter
         ISchemaInfo schema,
         ITypeDefinitionNode typeDefinition)
     {
-        if (SchemaName.HasValue && !SchemaName.Value.Equals(schema.Name))
+        if (!string.IsNullOrEmpty(SchemaName) && !SchemaName.Equals(schema.Name))
         {
             return typeDefinition;
         }

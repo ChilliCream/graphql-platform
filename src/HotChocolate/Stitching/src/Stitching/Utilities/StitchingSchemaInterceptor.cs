@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -12,6 +9,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
+using static HotChocolate.Language.SyntaxKind;
 using IHasName = HotChocolate.Types.IHasName;
 using static HotChocolate.Stitching.DirectiveFieldNames;
 
@@ -100,7 +98,8 @@ internal class StitchingSchemaInterceptor : SchemaInterceptor
         foreach (var extension in typeExtensions)
         {
             currentSchema = rewriter.AddExtensions(
-                currentSchema, extension);
+                currentSchema,
+                extension);
         }
 
         return currentSchema;
@@ -139,18 +138,24 @@ internal class StitchingSchemaInterceptor : SchemaInterceptor
         var externalFieldLookup =
             new Dictionary<string, ISet<string>>();
 
-        foreach (ObjectTypeDefinitionNodeBase objectType in
-            document.Definitions.OfType<ObjectTypeDefinitionNodeBase>())
+        foreach (var objectType in document.Definitions)
         {
-            if (!externalFieldLookup.TryGetValue(
-                objectType.Name.Value,
-                out var externalFields))
+            if (objectType.Kind is ObjectTypeDefinition or SyntaxKind.ObjectTypeExtension)
             {
-                externalFields = new HashSet<string>();
-                externalFieldLookup.Add(objectType.Name.Value, externalFields);
-            }
+                if (!externalFieldLookup.TryGetValue(
+                    ((ComplexTypeDefinitionNodeBase)objectType).Name.Value,
+                    out var externalFields))
+                {
+                    externalFields = new HashSet<string>();
+                    externalFieldLookup.Add(
+                        ((ComplexTypeDefinitionNodeBase)objectType).Name.Value,
+                        externalFields);
+                }
 
-            MarkExternalFields(objectType.Fields, externalFields);
+                MarkExternalFields(
+                    ((ComplexTypeDefinitionNodeBase)objectType).Fields,
+                    externalFields);
+            }
         }
 
         schemaBuilder.AddExternalFieldLookup(externalFieldLookup);
@@ -196,7 +201,7 @@ internal class StitchingSchemaInterceptor : SchemaInterceptor
             }
             else
             {
-                nameLookup[(rewriter.NewTypeName, rewriter.SchemaName.Value)] =
+                nameLookup[(rewriter.NewTypeName, rewriter.SchemaName)] =
                     rewriter.OriginalTypeName;
             }
         }
@@ -229,7 +234,9 @@ internal class StitchingSchemaInterceptor : SchemaInterceptor
                 TryDeserializeTypeName(value, out var typeName))
             {
                 if (objectType.Directives.Contains(DirectiveNames.Source) &&
-                    context.ScopedContextData.TryGetValue(WellKnownContextData.SchemaName, out var o) &&
+                    context.ScopedContextData.TryGetValue(
+                        WellKnownContextData.SchemaName,
+                        out var o) &&
                     o is string schemaName &&
                     objectType.TryGetSourceDirective(schemaName, out var source))
                 {

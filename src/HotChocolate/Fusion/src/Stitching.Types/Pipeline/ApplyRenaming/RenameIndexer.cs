@@ -68,7 +68,7 @@ internal sealed class RenameIndexer : SyntaxWalker<RenameContext>
 
             case FieldDefinitionNode field
                 when TryGetRenameInformation(field.Directives, out var dn, out var to):
-                SchemaCoordinateNode coordinateNode = context.Navigator.CreateCoordinate();
+                var coordinateNode = context.Navigator.CreateCoordinate();
                 context.RenamedFields[coordinateNode] = new RenameInfo(to, dn);
                 break;
         }
@@ -96,8 +96,8 @@ internal sealed class RenameIndexer : SyntaxWalker<RenameContext>
 
         for (var i = 0; i < directives.Count; i++)
         {
-            DirectiveNode node = directives[0];
-            if (RenameDirective.TryParse(node, out RenameDirective? rename))
+            var node = directives[0];
+            if (RenameDirective.TryParse(node, out var rename))
             {
                 directive = node;
                 to = rename.To;
