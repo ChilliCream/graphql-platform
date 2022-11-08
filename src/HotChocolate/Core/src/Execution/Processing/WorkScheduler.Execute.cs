@@ -1,4 +1,6 @@
 using System;
+using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using static System.Environment;
 
@@ -42,14 +44,16 @@ RESTART:
 
                     if (!first.IsSerial)
                     {
-                        first.BeginExecute(_ct);
+                        ThreadPool.UnsafeQueueUserWorkItem(t => t.BeginExecute(_ct), first, true);
+                        // first.BeginExecute(_ct);
                         buffer[0] = null;
 
                         // if work is not serial we will just enqueue it and not wait
                         // for it to finish.
                         for (var i = 1; i < work; i++)
                         {
-                            buffer[i]!.BeginExecute(_ct);
+                            ThreadPool.UnsafeQueueUserWorkItem(t => t.BeginExecute(_ct), buffer[i]!, true);
+                            // buffer[i]!.BeginExecute(_ct);
                             buffer[i] = null;
                         }
                     }
