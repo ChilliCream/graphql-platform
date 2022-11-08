@@ -21,7 +21,8 @@ public class DocumentParserMiddlewareTests
         var middleware = new DocumentParserMiddleware(
             context => default,
             new NoopExecutionDiagnosticEvents(),
-            hashProvider);
+            hashProvider,
+            new ParserOptions());
 
         var request = QueryRequestBuilder.New()
             .SetQuery("{ a }")
@@ -51,7 +52,8 @@ public class DocumentParserMiddlewareTests
         var middleware = new DocumentParserMiddleware(
             context => default,
             new NoopExecutionDiagnosticEvents(),
-            hashProvider);
+            hashProvider,
+            new ParserOptions());
 
         var request = QueryRequestBuilder.New()
             .SetQuery("{ a }")
@@ -81,7 +83,8 @@ public class DocumentParserMiddlewareTests
         var middleware = new DocumentParserMiddleware(
             context => throw new Exception("Should not be invoked."),
             new NoopExecutionDiagnosticEvents(),
-            hashProvider);
+            hashProvider,
+            new ParserOptions());
 
         var request = QueryRequestBuilder.New()
             .SetQuery("{")

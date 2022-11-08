@@ -26,14 +26,25 @@ public ref partial struct Utf8GraphQLParser
     private bool MoveNext() => _reader.MoveNext();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private TokenInfo Start() =>
-        _createLocation
+    private TokenInfo Start()
+    {
+        if (++_parsedNodes > _maxAllowedNodes)
+        {
+            throw new SyntaxException(
+                _reader,
+                string.Format(
+                    Utf8GraphQLParser_Start_MaxAllowedNodesReached,
+                    _maxAllowedNodes));
+        }
+
+        return _createLocation
             ? new TokenInfo(
                 _reader.Start,
                 _reader.End,
                 _reader.Line,
                 _reader.Column)
             : default;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Location? CreateLocation(in TokenInfo start) =>

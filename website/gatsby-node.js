@@ -4,6 +4,7 @@ const git = require("simple-git/promise");
 
 exports.createPages = async ({ actions, graphql, reporter }) => {
   const { createPage, createRedirect } = actions;
+
   const result = await graphql(`
     {
       blog: allMdx(
@@ -34,6 +35,15 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
           }
         }
       }
+      productsConfig: file(
+        sourceInstanceName: { eq: "docs" }
+        relativePath: { eq: "docs.json" }
+      ) {
+        products: childrenDocsJson {
+          path
+          latestStableVersion
+        }
+      }
     }
   `);
 
@@ -44,7 +54,10 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
   }
 
   createBlogArticles(createPage, result.data.blog);
-  createDocPages(createPage, result.data.docs);
+
+  const products = result.data.productsConfig.products;
+
+  createDocPages(createPage, result.data.docs, products);
 
   createRedirect({
     fromPath: "/blog/2019/03/18/entity-framework",
@@ -61,6 +74,48 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
   createRedirect({
     fromPath: "/docs/marshmallowpie/",
     toPath: "/docs/hotchocolate/",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+
+  // Banana Cake Pop
+  createRedirect({
+    fromPath: "/banana-cake-pop",
+    toPath: "/products/bananacakepop",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+  createRedirect({
+    fromPath: "/banana-cake-pop/",
+    toPath: "/products/bananacakepop",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+
+  // Products
+  createRedirect({
+    fromPath: "/products",
+    toPath: "/",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+  createRedirect({
+    fromPath: "/products/",
+    toPath: "/",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+
+  // company
+  createRedirect({
+    fromPath: "/company",
+    toPath: "/",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+  createRedirect({
+    fromPath: "/company/",
+    toPath: "/",
     redirectInBrowser: true,
     isPermanent: true,
   });
@@ -123,7 +178,7 @@ exports.onCreateNode = async ({ node, actions, getNode, reporter }) => {
     return;
   }
 
-  // if the path is defined on the frontmatter (like for posts) use that as slug
+  // if the path is defined on the frontmatter (like for blogs) use that as slug
   let path = node.frontmatter && node.frontmatter.path;
 
   if (!path) {
@@ -229,23 +284,70 @@ function createBlogArticles(createPage, data) {
   });
 }
 
-function createDocPages(createPage, data) {
+function createDocPages(createPage, data, products) {
   const docTemplate = path.resolve(`src/templates/doc-page-template.tsx`);
   const { pages } = data;
 
   // Create Single Pages
   pages.forEach((page) => {
-    const path = page.childMdx.fields.slug;
+    const slug = page.childMdx.fields.slug;
     const originPath = `${page.relativeDirectory}/${page.name}.md`;
 
+    const product = getProductFromSlug(slug, products);
+
+    if (product && product.version === product.latestStableVersion) {
+      const unversionedSlug = slug.replace(
+        product.basePath,
+        "/docs/" + product.path
+      );
+
+      // Instead of duplicating the page here, we could just create a page that
+      // does a JS redirect to the actual (versioned) slug. Google's crawler
+      // should handle that just fine. But just to be fully backwards compatible,
+      // this duplicates all of the versioned pages of the latest
+      // stable version as unversioned pages.
+      // If v12 is the stable version, two versions will live side by side:
+      // /docs/hotchocolate/v12/whatever
+      // /docs/hotchocolate/whatever
+
+      createPage({
+        path: unversionedSlug,
+        component: docTemplate,
+        context: {
+          originPath,
+        },
+      });
+    }
+
     createPage({
-      path,
+      path: slug,
       component: docTemplate,
       context: {
         originPath,
       },
     });
   });
+}
+
+const productAndVersionPattern = /^\/docs\/([\w-]+)(?:\/(v\d+))?/;
+
+function getProductFromSlug(slug, products) {
+  const productMatch = productAndVersionPattern.exec(slug);
+
+  if (!productMatch) {
+    return null;
+  }
+
+  const productName = productMatch[1] || "";
+  const productVersion = productMatch[2] || "";
+
+  const product = products.find((p) => p?.path === productName);
+
+  return {
+    ...product,
+    version: productVersion,
+    basePath: productMatch[0],
+  };
 }
 
 function getGitLog(filepath) {

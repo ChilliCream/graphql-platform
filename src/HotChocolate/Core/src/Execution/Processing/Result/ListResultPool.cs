@@ -1,4 +1,5 @@
 using Microsoft.Extensions.ObjectPool;
+using static HotChocolate.Execution.Processing.ResultPoolDefaults;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -19,7 +20,7 @@ internal sealed class ListResultPool : DefaultObjectPool<ResultBucket<ListResult
         }
 
         public override ResultBucket<ListResult> Create()
-            => new(16, _objectPolicy);
+            => new(BucketSize, _objectPolicy);
 
         public override bool Return(ResultBucket<ListResult> obj)
         {

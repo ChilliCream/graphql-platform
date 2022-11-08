@@ -6,6 +6,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\StarWars\HotChocolate.StarWars.csproj" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.1" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.2" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,0 +1,11 @@
+{
+  "ContentType": "application/json; charset=utf-8",
+  "StatusCode": "OK",
+  "Data": null,
+  "Errors": [
+    {
+      "message": "Not allowed!"
+    }
+  ],
+  "Extensions": null
+}

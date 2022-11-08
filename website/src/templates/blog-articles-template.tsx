@@ -3,7 +3,7 @@ import React, { FC } from "react";
 import { GetBlogArticlesQuery } from "../../graphql-types";
 import { Layout } from "../components/layout";
 import { SEO } from "../components/misc/seo";
-import { BlogArticles } from "../components/widgets/blog-articles";
+import { BlogArticles } from "../components/widgets";
 
 interface BlogArticlesTemplateProps {
   pageContext: BlogArticlesTemplatePageContext;

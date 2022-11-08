@@ -7,6 +7,7 @@ import LogoIconSvg from "../../images/chillicream.svg";
 import GithubIconSvg from "../../images/github.svg";
 import SlackIconSvg from "../../images/slack.svg";
 import TwitterIconSvg from "../../images/twitter.svg";
+import YouTubeIconSvg from "../../images/youtube.svg";
 import { FONT_FAMILY_HEADING, THEME_COLORS } from "../../shared-style";
 import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
@@ -16,14 +17,12 @@ export const Footer: FC = () => {
     query getFooterData {
       site {
         siteMetadata {
-          topnav {
-            name
-            link
-          }
           tools {
             github
+            shop
             slack
             twitter
+            youtube
           }
         }
       }
@@ -41,7 +40,7 @@ export const Footer: FC = () => {
       }
     }
   `);
-  const { topnav, tools } = data.site!.siteMetadata!;
+  const { tools } = data.site!.siteMetadata!;
   const { products } = data.docNav!;
 
   return (
@@ -72,6 +71,12 @@ export const Footer: FC = () => {
               </IconContainer>{" "}
               to get in touch with us
             </ConnectLink>
+            <ConnectLink to={tools!.youtube!}>
+              <IconContainer>
+                <YouTubeIcon />
+              </IconContainer>{" "}
+              to learn new stuff
+            </ConnectLink>
             <ConnectLink to={tools!.twitter!}>
               <IconContainer>
                 <TwitterIcon />
@@ -81,32 +86,32 @@ export const Footer: FC = () => {
           </Connect>
         </About>
         <Links>
-          <Title>Navigation</Title>
+          <Title>Products</Title>
           <Navigation>
-            {topnav!.map((item, index) => (
-              <NavLink key={`topnav-item-${index}`} to={item!.link!}>
-                {item!.name}
-              </NavLink>
-            ))}
+            <NavLink to="/products/bananacakepop">Banana Cake Pop</NavLink>
+            <NavLink to="/docs/hotchocolate">Hot Chocolate</NavLink>
+            <NavLink to="/docs/strawberryshake">Strawberry Shake</NavLink>
+          </Navigation>
+          <Title>Company</Title>
+          <Navigation>
+            <NavLink to="/support">Support</NavLink>
+            <NavLink to={tools!.shop!}>Shop</NavLink>
           </Navigation>
         </Links>
-        <Location>
-          <Title>Documentation</Title>
+        <Links>
+          <Title>Developers</Title>
           <Navigation>
             {products!.map((product, index) => (
               <NavLink
                 key={`products-item-${index}`}
-                to={
-                  product!.versions![0]!.path! === ""
-                    ? `/docs/${product!.path!}/`
-                    : `/docs/${product!.path!}/${product!.versions![0]!.path!}/`
-                }
+                to={`/docs/${product!.path!}/`}
               >
                 {product!.title}
               </NavLink>
             ))}
+            <NavLink to="/blog">Blog</NavLink>
           </Navigation>
-        </Location>
+        </Links>
       </Section>
       <Section>
         <Copyright>© {new Date().getFullYear()} ChilliCream</Copyright>
@@ -212,6 +217,11 @@ const TwitterIcon = styled(TwitterIconSvg)`
   fill: ${THEME_COLORS.footerText};
 `;
 
+const YouTubeIcon = styled(YouTubeIconSvg)`
+  height: 22px;
+  fill: ${THEME_COLORS.footerText};
+`;
+
 const Links = styled.div`
   display: none;
   flex: 2 1 auto;
@@ -244,22 +254,10 @@ const NavLink = styled(Link)`
   }
 `;
 
-const Location = styled.div`
-  display: none;
-  flex: 3 1 auto;
-  flex-direction: column;
-  padding: 0 20px;
-  line-height: 1.5em;
-
-  @media only screen and (min-width: 768px) {
-    display: flex;
-  }
-`;
-
 const Title = styled.h3`
   margin: 15px 0 9px;
   font-size: 1em;
-  font-weight: bold;
+  font-weight: 600;
   color: ${THEME_COLORS.footerText};
 `;
 

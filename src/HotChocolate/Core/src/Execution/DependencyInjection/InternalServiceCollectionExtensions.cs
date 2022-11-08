@@ -59,7 +59,7 @@ internal static class InternalServiceCollectionExtensions
         int maximumRetained = 128)
     {
         services.TryAddSingleton<ObjectPool<ResolverTask>>(
-            _ => new ExecutionTaskPool<ResolverTask>(
+            _ => new ExecutionTaskPool<ResolverTask, ResolverTaskPoolPolicy>(
                 new ResolverTaskPoolPolicy(),
                 maximumRetained));
         services.TryAddSingleton<IFactory<ResolverTask>>(
@@ -225,7 +225,7 @@ internal static class InternalServiceCollectionExtensions
         this IServiceCollection services)
     {
         services.TryAddSingleton<IDocumentHashProvider>(
-            _ => new MD5DocumentHashProvider());
+            _ => new MD5DocumentHashProvider(HashFormat.Hex));
         return services;
     }
 

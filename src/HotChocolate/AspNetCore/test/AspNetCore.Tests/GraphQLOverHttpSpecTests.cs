@@ -181,6 +181,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
             .Add(response)
             .MatchInline(
                 @"Headers:
+                Cache-Control: no-cache
                 Content-Type: multipart/mixed; boundary=""-""
                 -------------------------->
                 Status Code: OK
@@ -796,6 +797,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
             .Add(response)
             .MatchInline(
                 @"Headers:
+                Cache-Control: no-cache
                 Content-Type: multipart/mixed; boundary=""-""
                 -------------------------->
                 Status Code: OK
@@ -861,9 +863,8 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
     }
 
     /// <summary>
-    /// This request specifies the application/graphql-response+json and
-    /// the multipart/mixed content type as accept header value.
-    /// expected response content-type: multipart/mixed
+    /// This request specifies the text/event-stream content type as accept header value.
+    /// expected response content-type: text/event-stream
     /// expected status code: 200
     /// </summary>
     [Fact]
@@ -894,21 +895,27 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         using var response = await client.SendAsync(request, ResponseHeadersRead);
 
         // assert
-        // expected response content-type: multipart/mixed
+        // expected response content-type: text/event-stream
         // expected status code: 200
         Snapshot
             .Create()
             .Add(response)
             .MatchInline(
                 @"Headers:
+                Cache-Control: no-cache
                 Content-Type: text/event-stream; charset=utf-8
                 -------------------------->
                 Status Code: OK
                 -------------------------->
-                {""event"":""next"",""data"":{""data"":{},""hasNext"":true}}
-                {""event"":""next"",""data"":{""incremental"":[{""data"":{" +
-                @"""__typename"":""Query""},""path"":[]}],""hasNext"":false}}
-                {""event"":""complete""}
+                event: next
+                data: {""data"":{},""hasNext"":true}
+
+                event: next
+                data: {""incremental"":[{""data"":{""__typename"":""Query""}," +
+                @"""path"":[]}],""hasNext"":false}
+
+                event: complete
+
                 ");
     }
 }

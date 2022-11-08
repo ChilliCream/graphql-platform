@@ -662,8 +662,7 @@ public class SyntaxRewriter<TContext>
         TContext context)
     {
         var name = RewriteNodeOrDefault(node.Name, context);
-        var variableDefinitions =
-            RewriteList(node.VariableDefinitions, context);
+        var variableDefinitions = RewriteList(node.VariableDefinitions, context);
         var directives = RewriteList(node.Directives, context);
         var selectionSet = RewriteNode(node.SelectionSet, context);
 

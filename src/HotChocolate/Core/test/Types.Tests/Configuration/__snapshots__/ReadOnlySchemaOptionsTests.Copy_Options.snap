@@ -18,5 +18,6 @@
   "ValidatePipelineOrder": true,
   "StrictRuntimeTypeValidation": false,
   "DefaultIsOfTypeCheck": null,
-  "EnableOneOf": false
+  "EnableOneOf": false,
+  "EnsureAllNodesCanBeResolved": false
 }

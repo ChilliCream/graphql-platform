@@ -78,9 +78,7 @@ public class PersonType : ObjectType<Person>
 
 With version 0.5 we will focus on subscriptions and custom directives.
 
-Custom will allow for writing field resolver middlewares that alter or replace the default execution behaviour.
+Custom will allow for writing field resolver middlewares that alter or replace the default execution behavior.
 
 Subscriptions is one of our last spec gaps.
 
-[hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/hotchocolate

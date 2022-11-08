@@ -9,8 +9,8 @@ authorImageUrl: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4
 ---
 
 Today we have released Hot Chocolate `0.7.0`, containing one cool new feature,
-we wanne talk about here, namely _Apollo Tracing_ which is extremely powerful in
-identifing things like performance bottlenecks in our _GraphQL_ _APIs_ for
+we want to talk about here, namely _Apollo Tracing_ which is extremely powerful in
+identifying things like performance bottlenecks in our _GraphQL_ _APIs_ for
 example. As a result, we had to enhance our general instrumentation layer, which
 we all benefit from. For instance, now it's way easier to register a
 _DiagnosticObserver_ and bring in your own tracing framework, respectively. In
@@ -54,7 +54,7 @@ query execution pipeline. This really helped us enhancing the
 _Instrumentation_ _API_ which has been evolved in two ways. First, we increased
 the amount of available diagnostic events for more fine-grained tracing
 scenarios. Second, we simplified the registering of _DiagnosticObservers_ by
-using _Dependancy Injection_ infrastructure. In the next example we can see how
+using _Dependency Injection_ infrastructure. In the next example we can see how
 to register a custom _DiagnosticObservers_.
 
 ```csharp

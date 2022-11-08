@@ -54,6 +54,12 @@ public static class ErrorCodes
         /// A persisted query was not found when using the active persisted query pipeline.
         /// </summary>
         public const string PersistedQueryNotFound = "HC0020";
+
+        /// <summary>
+        /// Only persisted queries are allowed.
+        /// </summary>
+        public const string OnlyPersistedQueriesAllowed = "HC0067";
+
         public const string TaskProcessingError = "HC0008";
         public const string SyntaxError = "HC0014";
         public const string CannotCreateRootValue = "HC0019";
@@ -207,6 +213,11 @@ public static class ErrorCodes
         /// Type system members are not supported as runtime types
         /// </summary>
         public const string NoSchemaTypesAllowedAsRuntimeType = "HC0051";
+
+        /// <summary>
+        /// An object type implementing the node interface does not provide a node resolver.
+        /// </summary>
+        public const string NodeResolverMissing = "HC0068";
     }
 
     public static class Scalars
