@@ -27,11 +27,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="RavenDB.Client" Version="5.4.4" />
+    <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj" />
+    <PackageReference Include="RavenDB.Client" Version="5.4.4" />
   </ItemGroup>
 
 </Project>

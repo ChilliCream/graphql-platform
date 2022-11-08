@@ -87,15 +87,12 @@ public class QueryableFilterVisitorListTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1,
-                        "a"),
-                    res2,
-                    "d"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "a").AddResult(
+                res2,
+                "d").AddResult(
                 res3,
                 "null")
             .MatchAsync();
@@ -127,15 +124,12 @@ public class QueryableFilterVisitorListTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1,
-                        "a"),
-                    res2,
-                    "d"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "a").AddResult(
+                res2,
+                "d").AddResult(
                 res3,
                 "null")
             .MatchAsync();
@@ -181,11 +175,9 @@ public class QueryableFilterVisitorListTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(Snapshot.Create(), res1, "a"),
-                    res2,
-                    "d"),
+        await Snapshot.Create().AddResult(res1, "a").AddResult(
+                res2,
+                "d").AddResult(
                 res3,
                 "null")
             .MatchAsync();
@@ -217,13 +209,11 @@ public class QueryableFilterVisitorListTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(Snapshot.Create(),
-                        res1,
-                        "a"),
-                    res2,
-                    "d"),
+        await Snapshot.Create().AddResult(
+                res1,
+                "a").AddResult(
+                res2,
+                "d").AddResult(
                 res3,
                 "null")
             .MatchAsync();
@@ -249,13 +239,11 @@ public class QueryableFilterVisitorListTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1,
-                        "false"),
-                    res2,
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "false").AddResult(
+                res2,
                     "true")
             .MatchAsync();
     }

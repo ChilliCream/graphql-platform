@@ -2,16 +2,17 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using Raven;
-using Raven.Linq;
 using Microsoft.Extensions.DependencyInjection;
+using Raven.Client.Documents;
+using Raven.Client.Documents.Linq;
+using Raven.Client.Documents.Session;
 using Squadron;
 
 namespace HotChocolate.Data.Filters;
 
 public abstract class FilterVisitorTestBase : IAsyncLifetime
 {
-    protected PostgreSqlResource Resource { get; } = new();
+    protected RavenDBResource Resource { get; } = new();
 
     public Task InitializeAsync() => Resource.InitializeAsync();
 
@@ -28,11 +29,10 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
         where T : FilterInputType<TEntity>
     {
         var dbName = $"DB_{Guid.NewGuid():N}";
-        Resource.CreateDatabaseAsync(dbName).GetAwaiter().GetResult();
-        var store = DocumentStore.For(Resource.GetConnectionString(dbName));
+        var documentStore = Resource.CreateDatabase(dbName);
 
         var resolver =
-            BuildResolver(store, entities);
+            BuildResolver(documentStore, entities);
 
         var builder = SchemaBuilder.New()
             .AddRavenFiltering()
@@ -40,12 +40,12 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
                 c =>
                 {
                     ApplyConfigurationToField<TEntity, T>(
-                        store,
+                        documentStore,
                         c.Name("Query").Field("root").Resolve(resolver),
                         withPaging);
 
                     ApplyConfigurationToField<TEntity, T>(
-                        store,
+                        documentStore,
                         c.Name("Query")
                             .Field("rootExecutable")
                             .Resolve(
@@ -93,7 +93,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
     {
         field.Use(next => async context =>
         {
-            await using (var session = store.LightweightSession())
+            using (var session = store.OpenAsyncSession())
             {
                 context.LocalContextData = context.LocalContextData.SetItem("session", session);
                 await next(context);
@@ -106,7 +106,8 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
 
                 if (context.Result is IRavenQueryable<TEntity> queryable)
                 {
-                    context.ContextData["sql"] = queryable.ToCommand().CommandText;
+                    // TODO : print raven DB query
+                    // context.ContextData["sql"] = queryable.Get
                     context.Result = await queryable.ToListAsync(context.RequestAborted);
                 }
             });
@@ -124,7 +125,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
         params TResult[] results)
         where TResult : class
     {
-        using var session = store.LightweightSession();
+        using var session = store.OpenSession();
 
         foreach (var item in results)
         {
@@ -133,6 +134,6 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
 
         session.SaveChanges();
 
-        return ctx => ((IDocumentSession)ctx.LocalContextData["session"]!).Query<TResult>();
+        return ctx => ((IAsyncDocumentSession)ctx.LocalContextData["session"]!).Query<TResult>();
     }
 }

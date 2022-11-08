@@ -16,15 +16,6 @@ public static class RavenFilteringSchemaBuilderExtensions
     private static void UseRavenQueryableFilterProvider(
         this IFilterConventionDescriptor descriptor)
     {
-        descriptor.Provider(new RavenQueryableFilterProvider(x =>
-        {
-            x.AddFieldHandler<RavenQueryableComparableInHandler>();
-            x.AddFieldHandler<RavenQueryableComparableNotInHandler>();
-            x.AddFieldHandler<RavenQueryableEnumInHandler>();
-            x.AddFieldHandler<RavenQueryableEnumNotInHandler>();
-            x.AddFieldHandler<RavenQueryableStringInHandler>();
-            x.AddFieldHandler<RavenQueryableStringNotInHandler>();
-            x.AddDefaultFieldHandlers();
-        }));
+        descriptor.Provider<RavenQueryableFilterProvider>();
     }
 }
