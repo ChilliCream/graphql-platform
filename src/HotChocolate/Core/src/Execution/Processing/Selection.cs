@@ -14,9 +14,7 @@ namespace HotChocolate.Execution.Processing;
 /// </summary>
 public class Selection : ISelection
 {
-    private static readonly ArgumentMap _emptyArguments =
-        new(new Dictionary<string, ArgumentValue>());
-
+    private static readonly ArgumentMap _emptyArguments = ArgumentMap.Empty;
     private long[] _includeConditions;
     private long _streamIfCondition;
     private Flags _flags;
@@ -28,7 +26,7 @@ public class Selection : ISelection
         IType type,
         FieldNode syntaxNode,
         string responseName,
-        IArgumentMap? arguments = null,
+        ArgumentMap? arguments = null,
         long[]? includeConditions = null,
         bool isInternal = false,
         bool isParallelExecutable = true,
@@ -128,7 +126,7 @@ public class Selection : ISelection
     public PureFieldDelegate? PureResolver { get; private set; }
 
     /// <inheritdoc />
-    public IArgumentMap Arguments { get; }
+    public ArgumentMap Arguments { get; }
 
     /// <inheritdoc />
     public bool HasStreamResult => (_flags & Flags.StreamResult) == Flags.StreamResult;

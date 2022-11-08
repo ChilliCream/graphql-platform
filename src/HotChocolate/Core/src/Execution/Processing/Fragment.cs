@@ -14,7 +14,6 @@ internal sealed class Fragment : IFragment
         IObjectType typeCondition,
         ISyntaxNode syntaxNode,
         IReadOnlyList<DirectiveNode> directives,
-        int selectionSetId,
         ISelectionSet selectionSet,
         long includeCondition,
         long deferIfCondition,
@@ -24,7 +23,6 @@ internal sealed class Fragment : IFragment
         TypeCondition = typeCondition;
         SyntaxNode = syntaxNode;
         Directives = directives;
-        SelectionSetId = selectionSetId;
         SelectionSet = selectionSet;
         _includeCondition = includeCondition;
         _deferIfCondition = deferIfCondition;
@@ -38,8 +36,6 @@ internal sealed class Fragment : IFragment
     public ISyntaxNode SyntaxNode { get; }
 
     public IReadOnlyList<DirectiveNode> Directives { get; }
-
-    public int SelectionSetId { get; }
 
     public ISelectionSet SelectionSet { get; }
 

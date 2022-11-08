@@ -12,16 +12,16 @@ internal sealed partial class ResultBuilder
 
     public ObjectResult RentObject(int capacity)
     {
-        lock (_objectSync)
+        while (true)
         {
-            while (true)
+            if (_objectBucket.TryPop(out var obj))
             {
-                if (_objectBucket.TryPop(out var obj))
-                {
-                    obj.EnsureCapacity(capacity);
-                    return obj;
-                }
+                obj.EnsureCapacity(capacity);
+                return obj;
+            }
 
+            lock (_objectSync)
+            {
                 _objectBucket = _resultPool.GetObjectBucket();
                 _resultOwner.ObjectBuckets.Add(_objectBucket);
             }
@@ -30,16 +30,16 @@ internal sealed partial class ResultBuilder
 
     public ListResult RentList(int capacity)
     {
-        lock (_listSync)
+        while (true)
         {
-            while (true)
+            if (_listBucket.TryPop(out var obj))
             {
-                if (_listBucket.TryPop(out var obj))
-                {
-                    obj.EnsureCapacity(capacity);
-                    return obj;
-                }
+                obj.EnsureCapacity(capacity);
+                return obj;
+            }
 
+            lock (_listSync)
+            {
                 _listBucket = _resultPool.GetListBucket();
                 _resultOwner.ListBuckets.Add(_listBucket);
             }

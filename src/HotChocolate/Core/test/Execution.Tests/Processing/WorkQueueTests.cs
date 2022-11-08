@@ -2,7 +2,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Xunit;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -16,10 +15,9 @@ public class WorkQueueTests
         var task = new MockExecutionTask();
 
         // act
-        var count = queue.Push(task);
+        queue.Push(task);
 
         // assert
-        Assert.Equal(1, count);
         Assert.False(queue.HasRunningTasks);
         Assert.False(queue.IsEmpty);
     }
@@ -33,12 +31,10 @@ public class WorkQueueTests
         var task2 = new MockExecutionTask();
 
         // act
-        var count1 = queue.Push(task1);
-        var count2 = queue.Push(task2);
+        queue.Push(task1);
+        queue.Push(task2);
 
         // assert
-        Assert.Equal(1, count1);
-        Assert.Equal(2, count2);
         Assert.False(queue.HasRunningTasks);
         Assert.False(queue.IsEmpty);
     }
