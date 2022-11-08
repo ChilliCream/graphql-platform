@@ -26,7 +26,7 @@ public class Selection : ISelection
         IType type,
         FieldNode syntaxNode,
         string responseName,
-        IArgumentMap? arguments = null,
+        ArgumentMap? arguments = null,
         long[]? includeConditions = null,
         bool isInternal = false,
         bool isParallelExecutable = true,
@@ -126,7 +126,7 @@ public class Selection : ISelection
     public PureFieldDelegate? PureResolver { get; private set; }
 
     /// <inheritdoc />
-    public IArgumentMap Arguments { get; }
+    public ArgumentMap Arguments { get; }
 
     /// <inheritdoc />
     public bool HasStreamResult => (_flags & Flags.StreamResult) == Flags.StreamResult;

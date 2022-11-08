@@ -95,7 +95,7 @@ internal sealed partial class ResolverTask
             // signal that this resolver task has errors and shall end.
             if (Selection.Arguments.HasErrors)
             {
-                foreach (var argument in Selection.Arguments.Values)
+                foreach (var argument in Selection.Arguments)
                 {
                     if (argument.HasError)
                     {

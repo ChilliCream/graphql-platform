@@ -85,7 +85,7 @@ public interface ISelection : IOptionalSelection
     /// <summary>
     /// The arguments that have been pre-coerced for this field selection.
     /// </summary>
-    IArgumentMap Arguments { get; }
+    ArgumentMap Arguments { get; }
 
     /// <summary>
     /// Defines that the resolver pipeline returns an

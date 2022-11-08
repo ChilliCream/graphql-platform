@@ -29,7 +29,7 @@ public static class ArgumentCoercionHelper
     /// <c>true</c> if the arguments were successfully coerced; otherwise, <c>false</c>.
     /// </returns>
     public static bool TryCoerceArguments(
-        this IArgumentMap arguments,
+        this ArgumentMap arguments,
         IResolverContext resolverContext,
         [NotNullWhen(true)] out IReadOnlyDictionary<string, ArgumentValue>? coercedArgs)
     {
@@ -43,7 +43,7 @@ public static class ArgumentCoercionHelper
         // signal that this resolver task has errors and shall end.
         if (arguments.HasErrors)
         {
-            foreach (var argument in arguments.Values)
+            foreach (var argument in arguments)
             {
                 if (argument.HasError)
                 {
@@ -69,13 +69,13 @@ public static class ArgumentCoercionHelper
     /// pass in a dictionary on which we coerce the argument values.
     /// </summary>
     internal static void CoerceArguments(
-        this IArgumentMap arguments,
+        this ArgumentMap arguments,
         IVariableValueCollection variableValues,
         Dictionary<string, ArgumentValue> coercedArgs)
     {
         // if there are arguments that have variables and need variable replacement we will
         // rewrite the arguments that need variable replacement.
-        foreach (var argument in arguments.Values)
+        foreach (var argument in arguments)
         {
             if (argument.IsFullyCoerced)
             {
@@ -89,13 +89,15 @@ public static class ArgumentCoercionHelper
                     argument.DefaultValue,
                     variableValues);
 
-                coercedArgs.Add(argument.Name, new ArgumentValue(
-                    argument,
-                    literal.TryGetValueKind(out var kind) ? kind : ValueKind.Unknown,
-                    argument.IsFullyCoerced,
-                    argument.IsDefaultValue,
-                    null,
-                    literal));
+                coercedArgs.Add(
+                    argument.Name,
+                    new ArgumentValue(
+                        argument,
+                        literal.TryGetValueKind(out var kind) ? kind : ValueKind.Unknown,
+                        argument.IsFullyCoerced,
+                        argument.IsDefaultValue,
+                        null,
+                        literal));
             }
         }
     }
