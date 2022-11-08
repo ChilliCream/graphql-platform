@@ -561,7 +561,6 @@ public sealed partial class OperationCompiler
                     context.Type,
                     selection,
                     directives,
-                    selectionSetId: id,
                     variants.GetSelectionSet(context.Type),
                     includeCondition,
                     ifConditionFlags);
