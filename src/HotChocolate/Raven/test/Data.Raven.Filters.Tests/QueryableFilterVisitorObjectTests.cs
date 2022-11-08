@@ -669,7 +669,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
 
     public class Foo
     {
-        public int Id { get; set; }
+        public string? Id { get; set; }
 
         public short BarShort { get; set; }
 
@@ -684,7 +684,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
 
     public class FooNullable
     {
-        public int Id { get; set; }
+        public string? Id { get; set; }
 
         public short? BarShort { get; set; }
 
@@ -699,14 +699,14 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
 
     public class Bar
     {
-        public int Id { get; set; }
+        public string? Id { get; set; }
 
         public Foo Foo { get; set; } = default!;
     }
 
     public class BarNullable
     {
-        public int Id { get; set; }
+        public string? Id { get; set; }
 
         public FooNullable? Foo { get; set; }
     }

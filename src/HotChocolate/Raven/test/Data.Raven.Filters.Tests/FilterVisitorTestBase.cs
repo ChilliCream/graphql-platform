@@ -106,8 +106,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
 
                 if (context.Result is IRavenQueryable<TEntity> queryable)
                 {
-                    // TODO : print raven DB query
-                    // context.ContextData["sql"] = queryable.Get
+                    context.ContextData["sql"] = queryable.ToString();
                     context.Result = await queryable.ToListAsync(context.RequestAborted);
                 }
             });

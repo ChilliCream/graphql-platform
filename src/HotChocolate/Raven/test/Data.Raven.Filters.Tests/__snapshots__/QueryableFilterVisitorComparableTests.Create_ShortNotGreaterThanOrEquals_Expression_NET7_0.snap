@@ -9,7 +9,7 @@
 
 12 SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foo as d where CAST(d.data ->> 'BarShort' as smallint) < :p0
+from 'Foos' where (true and not (BarShort >= $p0))
 ---------------
 
 13 Result:
@@ -27,7 +27,7 @@ select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foo
 
 13 SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foo as d where CAST(d.data ->> 'BarShort' as smallint) < :p0
+from 'Foos' where (true and not (BarShort >= $p0))
 ---------------
 
 14 Result:
@@ -48,7 +48,7 @@ select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foo
 
 14 SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foo as d where CAST(d.data ->> 'BarShort' as smallint) < :p0
+from 'Foos' where (true and not (BarShort >= $p0))
 ---------------
 
 null

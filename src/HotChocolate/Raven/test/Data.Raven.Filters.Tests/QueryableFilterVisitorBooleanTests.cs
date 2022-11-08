@@ -13,18 +13,9 @@ public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
 
     private static readonly FooNullable[] _fooNullableEntities =
     {
-        new()
-        {
-            Bar = true
-        },
-        new()
-        {
-            Bar = null
-        },
-        new()
-        {
-            Bar = false
-        }
+        new() { Bar = true },
+        new() { Bar = null },
+        new() { Bar = false }
     };
 
     private readonly SchemaCache _cache;
@@ -53,11 +44,9 @@ public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
 
         // assert
         await Snapshot
-            .Create().AddResult(
-                res1,
-                "true").AddResult(
-                res2,
-                "false")
+            .Create()
+            .AddResult(res1, "true")
+            .AddResult(res2, "false")
             .MatchAsync();
     }
 
@@ -80,11 +69,9 @@ public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
 
         // assert
         await Snapshot
-            .Create().AddResult(
-                res1,
-                "true").AddResult(
-                res2,
-                "false")
+            .Create()
+            .AddResult(res1, "true")
+            .AddResult(res2, "false")
             .MatchAsync();
     }
 
@@ -112,13 +99,10 @@ public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
 
         // assert
         await Snapshot
-            .Create().AddResult(
-                res1,
-                "true").AddResult(
-                res2,
-                "false").AddResult(
-                res3,
-                "null")
+            .Create()
+            .AddResult(res1, "true")
+            .AddResult(res2, "false")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -147,13 +131,10 @@ public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
 
         // assert
         await Snapshot
-            .Create().AddResult(
-                res1,
-                "true").AddResult(
-                res2,
-                "false").AddResult(
-                res3,
-                "null")
+            .Create()
+            .AddResult(res1, "true")
+            .AddResult(res2, "false")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 

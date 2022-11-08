@@ -5,7 +5,11 @@ namespace HotChocolate.Data.Filters;
 
 public class FilteringAndPaging : IClassFixture<SchemaCache>
 {
-    private static readonly Foo[] _fooEntities = { new() { Bar = true }, new() { Bar = false } };
+    private static readonly Foo[] _fooEntities =
+    {
+        new() { Bar = true },
+        new() { Bar = false }
+    };
 
     private readonly SchemaCache _cache;
 
@@ -41,25 +45,19 @@ public class FilteringAndPaging : IClassFixture<SchemaCache>
 
     public class Foo
     {
-        public int Id { get; set; }
+        public string? Id { get; set; }
 
         public bool Bar { get; set; }
     }
 
     public class FooNullable
     {
-        public int Id { get; set; }
+        public string? Id { get; set; }
 
         public bool? Bar { get; set; }
     }
 
-    public class FooFilterInput
-        : FilterInputType<Foo>
-    {
-    }
+    public class FooFilterInput : FilterInputType<Foo> { }
 
-    public class FooNullableFilterInput
-        : FilterInputType<FooNullable>
-    {
-    }
+    public class FooNullableFilterInput : FilterInputType<FooNullable> { }
 }

@@ -15,7 +15,7 @@ BAR Result:
 
 BAR SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_barnullable as d where CAST(d.data -> 'Foo' ->> 'BarEnum' as integer) = :p0
+from 'BarNullables' where Foo.BarEnum = $p0
 ---------------
 
 FOO Result:
@@ -35,7 +35,7 @@ FOO Result:
 
 FOO SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_barnullable as d where CAST(d.data -> 'Foo' ->> 'BarEnum' as integer) = :p0
+from 'BarNullables' where Foo.BarEnum = $p0
 ---------------
 
 null Result:
@@ -49,5 +49,5 @@ null Result:
 
 null SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_barnullable as d where d.data -> 'Foo' ->> 'BarEnum' is null
+from 'BarNullables' where Foo.BarEnum = $p0
 ---------------
