@@ -315,4 +315,13 @@
   <data name="ErrorHelper_OnlyPersistedQueriesAreAllowed" xml:space="preserve">
     <value>Only persisted queries are allowed.</value>
   </data>
+  <data name="MiddlewareContext_ReplaceArgument_InvalidKey" xml:space="preserve">
+    <value>There is no argument with the name `{0}`.</value>
+  </data>
+  <data name="VariableValueOrLiteral_NullNotAllowed" xml:space="preserve">
+    <value>The runtime value can only be null if the literal is also null.</value>
+  </data>
+  <data name="Operation_GetPossibleTypes_NoSelectionSet" xml:space="preserve">
+    <value>The specified selection does not have a selection set.</value>
+  </data>
 </root>

@@ -123,6 +123,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// </summary>
     public bool EnableOneOf { get; set; }
 
+    /// <inheritdoc />
+    public bool EnsureAllNodesCanBeResolved { get; set; }
+
     /// <summary>
     /// Creates a mutable options object from a read-only options object.
     /// </summary>
@@ -150,7 +153,8 @@ public class SchemaOptions : IReadOnlySchemaOptions
             RemoveUnreachableTypes = options.RemoveUnreachableTypes,
             SortFieldsByName = options.SortFieldsByName,
             DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck,
-            EnableOneOf = options.EnableOneOf
+            EnableOneOf = options.EnableOneOf,
+            EnsureAllNodesCanBeResolved = options.EnsureAllNodesCanBeResolved
         };
     }
 }

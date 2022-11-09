@@ -10,8 +10,8 @@ namespace HotChocolate.Execution.Processing;
 
 public sealed partial class OperationCompiler
 {
-    private IArgumentMap? CoerceArgumentValues(
-        IObjectField field,
+    private ArgumentMap? CoerceArgumentValues(
+        ObjectField field,
         FieldNode selection,
         string responseName)
     {

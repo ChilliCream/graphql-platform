@@ -1,17 +1,17 @@
 #nullable enable
 
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Types;
 using static HotChocolate.Configuration.Validation.TypeValidationHelper;
 using static HotChocolate.Utilities.ErrorHelper;
 
 namespace HotChocolate.Configuration.Validation;
 
-public class InputObjectTypeValidationRule : ISchemaValidationRule
+internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
 {
     public void Validate(
-        IReadOnlyList<ITypeSystemObject> typeSystemObjects,
+        ReadOnlySpan<ITypeSystemObject> typeSystemObjects,
         IReadOnlySchemaOptions options,
         ICollection<ISchemaError> errors)
     {
@@ -19,12 +19,15 @@ public class InputObjectTypeValidationRule : ISchemaValidationRule
         {
             List<string>? names = null;
 
-            foreach (var type in typeSystemObjects.OfType<InputObjectType>())
+            foreach (var type in typeSystemObjects)
             {
-                EnsureTypeHasFields(type, errors);
-                EnsureFieldNamesAreValid(type, errors);
-                EnsureOneOfFieldsAreValid(type, errors, ref names);
-                EnsureFieldDeprecationIsValid(type, errors);
+                if (type is InputObjectType inputType)
+                {
+                    EnsureTypeHasFields(inputType, errors);
+                    EnsureFieldNamesAreValid(inputType, errors);
+                    EnsureOneOfFieldsAreValid(inputType, errors, ref names);
+                    EnsureFieldDeprecationIsValid(inputType, errors);
+                }
             }
         }
     }

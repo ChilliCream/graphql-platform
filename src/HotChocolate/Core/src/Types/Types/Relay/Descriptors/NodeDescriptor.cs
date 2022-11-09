@@ -120,6 +120,16 @@ public class NodeDescriptor
             Context.TypeInspector.GetNodeResolverMethod(
                 Definition.NodeType ?? type)!);
 
+    internal void TryResolveNode(Type type)
+    {
+        var resolver = Context.TypeInspector.GetNodeResolverMethod(Definition.NodeType ?? type);
+
+        if (resolver is not null)
+        {
+            ResolveNodeWith(resolver);
+        }
+    }
+
     /// <inheritdoc cref="INodeDescriptor.ResolveNodeWith{TResolver}()"/>
     public IObjectFieldDescriptor ResolveNodeWith<TResolver>()
         => ResolveNodeWith(

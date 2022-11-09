@@ -1,5 +1,8 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing;
@@ -30,12 +33,14 @@ internal sealed class ResultBucket<T> where T : class
 
     public bool TryPop([NotNullWhen(true)] out T? obj)
     {
-        var nextIndex = _index++;
+        var nextIndex = Interlocked.Increment(ref _index);
         if (nextIndex < _capacity)
         {
-            if (_buffer[nextIndex] is { } o)
+            var buffered = _buffer[nextIndex];
+
+            if(!ReferenceEquals(buffered, null))
             {
-                obj = o;
+                obj = buffered;
                 return true;
             }
 
@@ -60,11 +65,15 @@ internal sealed class ResultBucket<T> where T : class
             _index = _capacity;
         }
 
+        ref var mem = ref MemoryMarshal.GetReference(_buffer.AsSpan());
+
         for (var i = 0; i < _index; i++)
         {
-            if (!_policy.Return(_buffer[i]!))
+            ref var element = ref Unsafe.Add(ref mem, i);
+
+            if (element is not null && !_policy.Return(element))
             {
-                _buffer[i] = null;
+                element = default;
             }
         }
         _index = 0;

@@ -2,7 +2,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Pipeline.Complexity;
 
-internal class OperationComplexityAnalyzer
+internal sealed class OperationComplexityAnalyzer
 {
     public OperationComplexityAnalyzer(
         OperationDefinitionNode operationDefinitionNode,
