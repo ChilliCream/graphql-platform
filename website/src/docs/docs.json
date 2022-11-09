@@ -216,6 +216,10 @@
               {
                 "path": "spatial-data",
                 "title": "Spatial Data"
+              },
+              {
+                "path": "marten",
+                "title": "Marten"
               }
             ]
           },
@@ -546,10 +550,6 @@
               {
                 "path": "spatial-data",
                 "title": "Spatial Data"
-              },
-              {
-                "path": "marten",
-                "title": "Marten"
               }
             ]
           },
