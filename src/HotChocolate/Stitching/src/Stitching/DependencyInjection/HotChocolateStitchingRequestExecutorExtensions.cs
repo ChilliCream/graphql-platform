@@ -257,8 +257,8 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
 
                 foreach (var extensionDocument in schemaDefinition.ExtensionDocuments)
                 {
-                    var doc = (DocumentNode)extensionsRewriter
-                        .Rewrite(extensionDocument, schemaName.Value);
+                    var doc = (DocumentNode)extensionsRewriter.Rewrite(
+                        extensionDocument, new(schemaName))!;
 
                     var schemaExtension =
                         doc.Definitions.OfType<SchemaExtensionNode>().FirstOrDefault();
@@ -359,7 +359,7 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        schemaName.EnsureNotEmpty(nameof(schemaName));
+        schemaName.EnsureGraphQLName(nameof(schemaName));
 
         // Next, we will register a request executor proxy with the stitched schema,
         // that the stitching runtime will use to send requests to the schema representing

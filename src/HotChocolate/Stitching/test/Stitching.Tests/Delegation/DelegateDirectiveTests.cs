@@ -4,28 +4,27 @@ using HotChocolate.Language.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Stitching.Delegation
+namespace HotChocolate.Stitching.Delegation;
+
+public class DelegateDirectiveTests
 {
-    public class DelegateDirectiveTests
+    [Fact]
+    public void Directive_Definition_PrintIsMtch()
     {
-        [Fact]
-        public void Directive_Definition_PrintIsMtch()
-        {
-            // arrange
-            DocumentNode schemaDocument = SchemaBuilder.New()
-                .ModifyOptions(x => x.StrictValidation = false)
-                .AddDirectiveType<DelegateDirectiveType>()
-                .Create()
-                .ToDocument();
+        // arrange
+        var schemaDocument = SchemaBuilder.New()
+            .ModifyOptions(x => x.StrictValidation = false)
+            .AddDirectiveType<DelegateDirectiveType>()
+            .Create()
+            .ToDocument();
 
-            // act
-            var printed = schemaDocument.Definitions
-                .OfType<DirectiveDefinitionNode>()
-                .First(x => x.Name.Value == "delegate")
-                .Print();
+        // act
+        var printed = schemaDocument.Definitions
+            .OfType<DirectiveDefinitionNode>()
+            .First(x => x.Name.Value == "delegate")
+            .Print();
 
-            // assert
-            printed.MatchSnapshot();
-        }
+        // assert
+        printed.MatchSnapshot();
     }
 }

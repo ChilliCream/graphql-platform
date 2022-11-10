@@ -1,13 +1,5 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Language;
-using HotChocolate.Stitching.Types.Pipeline.ApplyExtensions;
-using HotChocolate.Stitching.Types.Pipeline.ApplyMissingBindings;
-using HotChocolate.Stitching.Types.Pipeline.ApplyRenaming;
-using HotChocolate.Stitching.Types.Pipeline.PrepareDocuments;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Stitching.Types.Pipeline;
 
@@ -50,7 +42,7 @@ public class FullPipelineTests
         await pipeline(context);
 
         // assert
-        context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
+        context.Documents.Single().SyntaxTree.MatchSnapshot();
     }
 
     private MergeSchema CreatePipeline()

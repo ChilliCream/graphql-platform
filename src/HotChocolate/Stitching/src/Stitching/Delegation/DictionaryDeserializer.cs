@@ -1,8 +1,7 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using static HotChocolate.Execution.PathFactory;
 
 namespace HotChocolate.Stitching.Delegation;
 
@@ -29,7 +28,9 @@ internal static class DictionaryDeserializer
             }
         }
 
-        return obj is NullValueNode ? null : obj;
+        return obj is NullValueNode
+            ? null
+            : obj;
     }
 
     private static object? DeserializeEnumResult(
@@ -46,10 +47,15 @@ internal static class DictionaryDeserializer
                 var deserializedList = (IList)Activator.CreateInstance(inputType.RuntimeType)!;
 
                 var i = 0;
+
                 foreach (var item in list)
                 {
                     deserializedList.Add(
-                        DeserializeEnumResult(elementType, item, parser, path.Append(i++)));
+                        DeserializeEnumResult(
+                            elementType,
+                            item,
+                            parser,
+                            Instance.Append(path, i++)));
                 }
 
                 return deserializedList;
@@ -61,10 +67,15 @@ internal static class DictionaryDeserializer
                 var list = new List<object?>();
 
                 var i = 0;
+
                 foreach (var item in listLiteral.Items)
                 {
                     list.Add(
-                        DeserializeEnumResult(elementType, item, parser, path.Append(i++)));
+                        DeserializeEnumResult(
+                            elementType,
+                            item,
+                            parser,
+                            Instance.Append(path, i++)));
                 }
 
                 return list;
@@ -93,6 +104,7 @@ internal static class DictionaryDeserializer
             {
                 var elementType = inputType;
                 var runtimeType = typeof(List<object>);
+
                 if (inputType.IsListType())
                 {
                     elementType = (IInputType)inputType.ElementType();
@@ -103,10 +115,15 @@ internal static class DictionaryDeserializer
                     (IList)Activator.CreateInstance(runtimeType)!;
 
                 var i = 0;
+
                 foreach (var item in list)
                 {
                     deserializedList.Add(
-                        DeserializeScalarResult(elementType, item, parser, path.Append(i++)));
+                        DeserializeScalarResult(
+                            elementType,
+                            item,
+                            parser,
+                            Instance.Append(path, i++)));
                 }
 
                 return deserializedList;
@@ -118,10 +135,15 @@ internal static class DictionaryDeserializer
                 var list = new List<object?>();
 
                 var i = 0;
+
                 foreach (var item in listLiteral.Items)
                 {
                     list.Add(
-                        DeserializeScalarResult(elementType, item, parser, path.Append(i++)));
+                        DeserializeScalarResult(
+                            elementType,
+                            item,
+                            parser,
+                            Instance.Append(path, i++)));
                 }
 
                 return list;

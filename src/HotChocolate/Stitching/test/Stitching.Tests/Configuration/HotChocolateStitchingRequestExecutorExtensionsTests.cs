@@ -10,86 +10,85 @@ using HotChocolate.Types.Descriptors.Definitions;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HotChocolate.Stitching.Configuration
+namespace HotChocolate.Stitching.Configuration;
+
+public class HotChocolateStitchingRequestExecutorExtensionsTests
 {
-    public class HotChocolateStitchingRequestExecutorExtensionsTests
+    [Fact]
+    public async Task RewriteType()
     {
-        [Fact]
-        public async Task RewriteType()
-        {
-            // arrange
-            IRequestExecutorBuilder executorBuilder =
-                new ServiceCollection().AddGraphQL().AddQueryType<CustomQueryType>();
+        // arrange
+        var executorBuilder =
+            new ServiceCollection().AddGraphQL().AddQueryType<CustomQueryType>();
 
-            // act
-            executorBuilder.RewriteType("OriginalType1", "NewType1", "Schema1");
-            executorBuilder.RewriteType("OriginalType2", "NewType2", "Schema2");
+        // act
+        executorBuilder.RewriteType("OriginalType1", "NewType1", "Schema1");
+        executorBuilder.RewriteType("OriginalType2", "NewType2", "Schema2");
 
-            // assert
-            ISchema schema = await executorBuilder.BuildSchemaAsync();
-            IReadOnlyDictionary<(string, string), string> lookup =
-                schema
-                    .GetType<CustomQueryType>(nameof(CustomQueryType))
-                    .Context
-                    .GetNameLookup();
-            Assert.Equal("OriginalType1", lookup[("NewType1", "Schema1")]);
-            Assert.Equal("OriginalType2", lookup[("NewType2", "Schema2")]);
-        }
-
-        [Fact]
-        public void AddTypeExtensionsFromResource_Builder_Is_Null()
-        {
-            // arrange
-            // act
-            void Configure() =>
-                HotChocolateStitchingRequestExecutorExtensions
-                    .AddTypeExtensionsFromResource(null!, GetType().Assembly, "abc");
-
-            // assert
-            Assert.Throws<ArgumentNullException>(Configure);
-        }
-
-        [Fact]
-        public void AddTypeExtensionsFromResource_Assembly_Is_Null()
-        {
-            // arrange
-            // act
-            void Configure() =>
-                new ServiceCollection().AddGraphQL()
-                    .AddTypeExtensionsFromResource(null!, "abc");
-
-            // assert
-            Assert.Throws<ArgumentNullException>(Configure);
-        }
-
-        [Fact]
-        public void AddTypeExtensionsFromResource_Key_Is_Null()
-        {
-            // arrange
-            // act
-            void Configure() =>
-                new ServiceCollection().AddGraphQL()
-                    .AddTypeExtensionsFromResource(GetType().Assembly, null!);
-
-            // assert
-            Assert.Throws<ArgumentNullException>(Configure);
-        }
+        // assert
+        var schema = await executorBuilder.BuildSchemaAsync();
+        var lookup =
+            schema
+                .GetType<CustomQueryType>(nameof(CustomQueryType))
+                .Context
+                .GetNameLookup();
+        Assert.Equal("OriginalType1", lookup[("NewType1", "Schema1")]);
+        Assert.Equal("OriginalType2", lookup[("NewType2", "Schema2")]);
     }
 
-    public class CustomQueryType : ObjectType
+    [Fact]
+    public void AddTypeExtensionsFromResource_Builder_Is_Null()
     {
-        public IDescriptorContext Context { get; set; }
+        // arrange
+        // act
+        void Configure() =>
+            HotChocolateStitchingRequestExecutorExtensions
+                .AddTypeExtensionsFromResource(null!, GetType().Assembly, "abc");
 
-        protected override void Configure(IObjectTypeDescriptor descriptor)
-        {
-            descriptor.Field("foo").Resolve("bar");
-        }
+        // assert
+        Assert.Throws<ArgumentNullException>(Configure);
+    }
 
-        protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
-        {
-            Context = context.DescriptorContext;
+    [Fact]
+    public void AddTypeExtensionsFromResource_Assembly_Is_Null()
+    {
+        // arrange
+        // act
+        void Configure() =>
+            new ServiceCollection().AddGraphQL()
+                .AddTypeExtensionsFromResource(null!, "abc");
 
-            return base.CreateDefinition(context);
-        }
+        // assert
+        Assert.Throws<ArgumentNullException>(Configure);
+    }
+
+    [Fact]
+    public void AddTypeExtensionsFromResource_Key_Is_Null()
+    {
+        // arrange
+        // act
+        void Configure() =>
+            new ServiceCollection().AddGraphQL()
+                .AddTypeExtensionsFromResource(GetType().Assembly, null!);
+
+        // assert
+        Assert.Throws<ArgumentNullException>(Configure);
+    }
+}
+
+public class CustomQueryType : ObjectType
+{
+    public IDescriptorContext Context { get; set; }
+
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor.Field("foo").Resolve("bar");
+    }
+
+    protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    {
+        Context = context.DescriptorContext;
+
+        return base.CreateDefinition(context);
     }
 }

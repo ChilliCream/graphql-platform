@@ -1,12 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
+using static HotChocolate.Stitching.Requests.MergeRequestRewriter;
 
 namespace HotChocolate.Stitching.Requests;
 
-internal class MergeRequestRewriter : SyntaxRewriter<bool>
+internal class MergeRequestRewriter : SyntaxRewriter<Context>
 {
     private static readonly NameNode _defaultName = new("exec_batch");
 
@@ -15,7 +13,7 @@ internal class MergeRequestRewriter : SyntaxRewriter<bool>
     private readonly Dictionary<string, FragmentDefinitionNode> _fragments = new();
 
     private Dictionary<string, string>? _aliases;
-    private string _requestPrefix;
+    private string _requestPrefix = default!;
     private bool _rewriteFragments;
     private OperationType? _operationType;
     private NameNode? _operationName;
@@ -32,7 +30,7 @@ internal class MergeRequestRewriter : SyntaxRewriter<bool>
         _operationType = request.Operation.Operation;
         _aliases = new Dictionary<string, string>();
 
-        var rewritten = RewriteDocument(request.Document, true)!;
+        var rewritten = RewriteDocument(request.Document, new Context(true))!;
 
         var operation = BufferedRequest.ResolveOperation(rewritten, request.Request.OperationName);
 
@@ -62,8 +60,7 @@ internal class MergeRequestRewriter : SyntaxRewriter<bool>
     {
         var definitions = new List<IDefinitionNode>
         {
-            new OperationDefinitionNode
-            (
+            new OperationDefinitionNode(
                 null,
                 _operationName ?? _defaultName,
                 _operationType ?? OperationType.Query,
@@ -79,71 +76,53 @@ internal class MergeRequestRewriter : SyntaxRewriter<bool>
     }
 
     protected override VariableDefinitionNode RewriteVariableDefinition(
-        VariableDefinitionNode node, bool context)
-        => node.WithVariable(node.Variable.WithName(
-            node.Variable.Name.CreateNewName(_requestPrefix)));
+        VariableDefinitionNode node,
+        Context context)
+        => node.WithVariable(
+            node.Variable.WithName(
+                node.Variable.Name.CreateNewName(_requestPrefix)));
 
-    protected override FieldNode RewriteField(FieldNode node, bool first)
+    protected override FieldNode? RewriteField(FieldNode node, Context context)
     {
-        var current = node;
-
-        if (first)
+        if (context.First)
         {
             var responseName = node.Alias ?? node.Name;
-            var alias = responseName.CreateNewName(_requestPrefix);
-            _aliases![alias.Value] = responseName.Value;
-            current = current.WithAlias(alias);
+            var prefix = responseName.CreateNewName(_requestPrefix);
+            _aliases![prefix.Value] = responseName.Value;
+            node = node.WithAlias(prefix);
         }
 
-        current = Rewrite(current, node.Arguments, first,
-            (p, c) => RewriteMany(p, c, RewriteArgument),
-            current.WithArguments);
-
-        current = Rewrite(current, node.Directives, first,
-            (p, c) => RewriteMany(p, c, RewriteDirective),
-            current.WithDirectives);
-
-        if (node.SelectionSet != null)
-        {
-            current = Rewrite(current, node.SelectionSet, false,
-                RewriteSelectionSet, current.WithSelectionSet);
-        }
-
-        return current;
+        return base.RewriteField(node, context);
     }
 
     protected override FragmentSpreadNode RewriteFragmentSpread(
-        FragmentSpreadNode node, bool first) =>
+        FragmentSpreadNode node,
+        Context context) =>
         _rewriteFragments
             ? node.WithName(node.Name.CreateNewName(_requestPrefix))
             : node;
 
-    protected override FragmentDefinitionNode RewriteFragmentDefinition(
-        FragmentDefinitionNode node, bool first) =>
+    protected override FragmentDefinitionNode? RewriteFragmentDefinition(
+        FragmentDefinitionNode node,
+        Context context) =>
         _rewriteFragments
             ? base.RewriteFragmentDefinition(
                 node.WithName(node.Name.CreateNewName(_requestPrefix)),
-                false)
-            : base.RewriteFragmentDefinition(node, false);
-
-    protected override DirectiveNode RewriteDirective(
-        DirectiveNode node, bool first)
-    {
-        if (node.Arguments.Count == 0)
-        {
-            return node;
-        }
-
-        var current = node;
-
-        current = Rewrite(current, current.Arguments, first,
-            (p, c) => RewriteMany(p, c, RewriteArgument),
-            current.WithArguments);
-
-        return current;
-    }
+                new Context(false))
+            : base.RewriteFragmentDefinition(node, new Context(false));
 
     protected override VariableNode RewriteVariable(
-        VariableNode node, bool first) =>
+        VariableNode node,
+        Context context) =>
         node.WithName(node.Name.CreateNewName(_requestPrefix));
+
+    internal sealed class Context : ISyntaxVisitorContext
+    {
+        public Context(bool first)
+        {
+            First = first;
+        }
+
+        public bool First { get; }
+    }
 }

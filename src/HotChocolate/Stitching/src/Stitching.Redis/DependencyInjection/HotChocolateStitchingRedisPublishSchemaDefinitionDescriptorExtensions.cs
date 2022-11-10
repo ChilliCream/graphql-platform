@@ -2,6 +2,7 @@ using System;
 using HotChocolate;
 using HotChocolate.Stitching.Redis;
 using HotChocolate.Stitching.SchemaDefinitions;
+using HotChocolate.Utilities;
 using StackExchange.Redis;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -18,7 +19,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(connectionFactory));
             }
 
-            configurationName.EnsureNotEmpty(nameof(configurationName));
+            configurationName.EnsureGraphQLName(nameof(configurationName));
 
             return descriptor.SetSchemaDefinitionPublisher(sp =>
             {

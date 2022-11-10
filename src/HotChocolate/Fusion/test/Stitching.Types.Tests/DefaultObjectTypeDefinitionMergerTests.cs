@@ -1,3 +1,4 @@
+using CookieCrumble;
 using HotChocolate.Stitching.Types.Bindings;
 
 namespace HotChocolate.Stitching.Types;

@@ -1,108 +1,100 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Serialization;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution;
+using HotChocolate.Types;
+using Snapshooter.Xunit;
+using HotChocolate.Language;
 using HotChocolate.Stitching.Schemas.Accounts;
 using HotChocolate.Stitching.Schemas.Inventory;
 using HotChocolate.Stitching.Schemas.Products;
 using HotChocolate.Stitching.Schemas.Reviews;
-using HotChocolate.Types;
-using Snapshooter.Xunit;
-using Xunit;
-using HotChocolate.Language;
-using Snapshooter;
+using Microsoft.AspNetCore.Builder;
 
-namespace HotChocolate.Stitching.Integration
+namespace HotChocolate.Stitching.Integration;
+
+public class FederatedSchemaErrorTests : IClassFixture<StitchingTestContext>
 {
-    public class FederatedSchemaErrorTests : IClassFixture<StitchingTestContext>
+    private const string _accounts = "accounts";
+    private const string _inventory = "inventory";
+    private const string _products = "products";
+    private const string _reviews = "reviews";
+
+    public FederatedSchemaErrorTests(StitchingTestContext context)
     {
-        private const string _accounts = "accounts";
-        private const string _inventory = "inventory";
-        private const string _products = "products";
-        private const string _reviews = "reviews";
+        Context = context;
+    }
 
-        public FederatedSchemaErrorTests(StitchingTestContext context)
-        {
-            Context = context;
-        }
+    private StitchingTestContext Context { get; }
 
-        private StitchingTestContext Context { get; }
+    [Fact]
+    public async Task AutoMerge_Schema()
+    {
+        // arrange
+        var httpClientFactory = CreateDefaultRemoteSchemas();
 
-        [Fact]
-        public async Task AutoMerge_Schema()
-        {
-            // arrange
-            IHttpClientFactory httpClientFactory = CreateDefaultRemoteSchemas();
+        // act
+        var schema =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddQueryType(d => d.Name("Query"))
+                .AddRemoteSchema(_accounts)
+                .AddRemoteSchema(_inventory)
+                .AddRemoteSchema(_products)
+                .AddRemoteSchema(_reviews)
+                .BuildSchemaAsync();
 
-            // act
-            ISchema schema =
-                await new ServiceCollection()
-                    .AddSingleton(httpClientFactory)
-                    .AddGraphQL()
-                    .AddQueryType(d => d.Name("Query"))
-                    .AddRemoteSchema(_accounts)
-                    .AddRemoteSchema(_inventory)
-                    .AddRemoteSchema(_products)
-                    .AddRemoteSchema(_reviews)
-                    .BuildSchemaAsync();
+        // assert
+        schema.Print().MatchSnapshot();
+    }
 
-            // assert
-            schema.Print().MatchSnapshot();
-        }
+    [Fact]
+    public async Task Execute_Error_StatusCode_On_DownStream_Request()
+    {
+        // arrange
+        var httpClientFactory = CreateDefaultRemoteSchemas();
 
-        [Fact]
-        public async Task Execute_Error_StatusCode_On_DownStream_Request()
-        {
-            // arrange
-            IHttpClientFactory httpClientFactory = CreateDefaultRemoteSchemas();
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddQueryType(d => d.Name("Query"))
+                .AddRemoteSchema(_accounts)
+                .AddRemoteSchema(_inventory)
+                .AddRemoteSchema(_products)
+                .AddRemoteSchema(_reviews)
+                .BuildRequestExecutorAsync();
 
-            IRequestExecutor executor =
-                await new ServiceCollection()
-                    .AddSingleton(httpClientFactory)
-                    .AddGraphQL()
-                    .AddQueryType(d => d.Name("Query"))
-                    .AddRemoteSchema(_accounts)
-                    .AddRemoteSchema(_inventory)
-                    .AddRemoteSchema(_products)
-                    .AddRemoteSchema(_reviews)
-                    .BuildRequestExecutorAsync();
-
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"{
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
                     error
                 }");
 
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task Execute_Ok_StatusCode_With_Error_On_DownStream_Request()
-        {
-            // arrange
-            IHttpClientFactory httpClientFactory = CreateDefaultRemoteSchemas();
+    [Fact]
+    public async Task Execute_Ok_StatusCode_With_Error_On_DownStream_Request()
+    {
+        // arrange
+        var httpClientFactory = CreateDefaultRemoteSchemas();
 
-            IRequestExecutor executor =
-                await new ServiceCollection()
-                    .AddSingleton(httpClientFactory)
-                    .AddGraphQL()
-                    .AddQueryType(d => d.Name("Query"))
-                    .AddRemoteSchema(_accounts)
-                    .AddRemoteSchema(_inventory)
-                    .AddRemoteSchema(_products)
-                    .AddRemoteSchema(_reviews)
-                    .BuildRequestExecutorAsync();
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddQueryType(d => d.Name("Query"))
+                .AddRemoteSchema(_accounts)
+                .AddRemoteSchema(_inventory)
+                .AddRemoteSchema(_products)
+                .AddRemoteSchema(_reviews)
+                .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"{
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
                     a: topProducts(first: 1) {
                         upc
                         error
@@ -113,90 +105,87 @@ namespace HotChocolate.Stitching.Integration
                     }
                 }");
 
-            // assert
-            Assert.Collection(
-                result.Errors!.Select(t => t.Path!.ToString()).OrderBy(t => t),
-                t => Assert.Equal("/a[0]/error", t),
-                t => Assert.Equal("/b[0]/error", t),
-                t => Assert.Equal("/b[1]/error", t));
+        // assert
+        Assert.Collection(
+            result.ExpectQueryResult().Errors!.Select(t => t.Path!.ToString()).OrderBy(t => t),
+            t => Assert.Equal("/a[0]/error", t),
+            t => Assert.Equal("/b[0]/error", t),
+            t => Assert.Equal("/b[1]/error", t));
 
-        }
+    }
 
-        public TestServer CreateAccountsService() =>
-            Context.ServerFactory.Create(
-                services => services
-                    .AddRouting()
-                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
-                    .AddGraphQLServer()
-                    .AddAccountsSchema()
-                    .PublishSchemaDefinition(c => c
-                        .SetName(_accounts)
-                        .IgnoreRootTypes()
-                        .AddTypeExtensionsFromString(
-                            @"extend type Query {
+    public TestServer CreateAccountsService() =>
+        Context.ServerFactory.Create(
+            services => services
+                .AddRouting()
+                .AddGraphQLServer()
+                .AddAccountsSchema()
+                .PublishSchemaDefinition(c => c
+                    .SetName(_accounts)
+                    .IgnoreRootTypes()
+                    .AddTypeExtensionsFromString(
+                        @"extend type Query {
                                 me: User! @delegate(path: ""user(id: 1)"")
                             }
 
                             extend type Review {
                                 author: User @delegate(path: ""user(id: $fields:authorId)"")
                             }")),
-                app => app
-                    .UseWebSockets()
-                    .UseRouting()
-                    .UseEndpoints(endpoints => endpoints.MapGraphQL("/")));
+            app => app
+                .UseWebSockets()
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints.MapGraphQL("/")));
 
-        public TestServer CreateInventoryService() =>
-            Context.ServerFactory.Create(
-                services => services
-                    .AddRouting()
-                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
-                    .AddGraphQLServer()
-                    .AddInventorySchema()
-                    .PublishSchemaDefinition(c => c
-                        .SetName(_inventory)
-                        .IgnoreRootTypes()
-                        .AddTypeExtensionsFromString(
-                            @"extend type Product {
+    public TestServer CreateInventoryService() =>
+        Context.ServerFactory.Create(
+            services => services
+                .AddRouting()
+                .AddGraphQLServer()
+                .AddInventorySchema()
+                .PublishSchemaDefinition(c => c
+                    .SetName(_inventory)
+                    .IgnoreRootTypes()
+                    .AddTypeExtensionsFromString(
+                        @"extend type Product {
                                 inStock: Boolean
                                     @delegate(path: ""inventoryInfo(upc: $fields:upc).isInStock"")
                                 shippingEstimate: Int
                                     @delegate(path: ""shippingEstimate(price: $fields:price weight: $fields:weight)"")
                             }")),
-                app => app
-                    .UseWebSockets()
-                    .UseRouting()
-                    .UseEndpoints(endpoints => endpoints.MapGraphQL("/")));
+            app => app
+                .UseWebSockets()
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints.MapGraphQL("/")));
 
-        public TestServer CreateProductsService() =>
-            Context.ServerFactory.Create(
-                services => services
-                    .AddRouting()
-                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
-                    .AddGraphQLServer()
-                    .AddProductsSchema()
-                    .AddTypeExtension(new ObjectTypeExtension(d =>
-                    {
-                        d.Name("Query")
-                            .Field("error")
-                            .Type(new NonNullTypeNode(new NamedTypeNode("String")))
-                            .Resolve(() => throw new GraphQLException("error_message_query"));
-                    }))
-                    .AddTypeExtension(new ObjectTypeExtension(d =>
-                    {
-                        d.Name("Product")
-                            .Field("error")
-                            .Type(new NamedTypeNode("String"))
-                            .Resolve(ctx => throw new GraphQLException(
-                                ErrorBuilder.New()
-                                    .SetMessage("error_message_product")
-                                    .SetPath(ctx.Path)
-                                    .Build()));
-                    }))
-                    .PublishSchemaDefinition(c => c
-                        .SetName(_products)
-                        .IgnoreRootTypes()
-                        .AddTypeExtensionsFromString(
-                            @"extend type Query {
+    public TestServer CreateProductsService() =>
+        Context.ServerFactory.Create(
+            services => services
+                .AddRouting()
+                .AddGraphQLServer()
+                .AddProductsSchema()
+                .AddTypeExtension(new ObjectTypeExtension(d =>
+                {
+                    d.Name("Query")
+                        .Field("error")
+                        .Type(new NonNullTypeNode(new NamedTypeNode("String")))
+                        .Resolve(() => throw new GraphQLException("error_message_query"));
+                }))
+                .AddTypeExtension(new ObjectTypeExtension(d =>
+                {
+                    d.Name("Product")
+                        .Field("error")
+                        .Type(new NamedTypeNode("String"))
+                        .Resolve(ctx => throw new GraphQLException(
+                            ErrorBuilder.New()
+                                .SetMessage("error_message_product")
+                                .SetPath(ctx.Path)
+                                .Build()));
+                }))
+                .PublishSchemaDefinition(c => c
+                    .SetName(_products)
+                    .IgnoreRootTypes()
+                    .AddTypeExtensionsFromString(
+                        @"extend type Query {
                                 topProducts(first: Int = 5): [Product] @delegate
                                 auth: String! @delegate
                                 error: String! @delegate
@@ -205,23 +194,22 @@ namespace HotChocolate.Stitching.Integration
                             extend type Review {
                                 product: Product @delegate(path: ""product(upc: $fields:upc)"")
                             }")),
-                app => app
-                    .UseWebSockets()
-                    .UseRouting()
-                    .UseEndpoints(endpoints => endpoints.MapGraphQL("/")));
+            app => app
+                .UseWebSockets()
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints.MapGraphQL("/")));
 
-        public TestServer CreateReviewsService() =>
-            Context.ServerFactory.Create(
-                services => services
-                    .AddRouting()
-                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
-                    .AddGraphQLServer()
-                    .AddReviewSchema()
-                    .PublishSchemaDefinition(c => c
-                        .SetName(_reviews)
-                        .IgnoreRootTypes()
-                        .AddTypeExtensionsFromString(
-                            @"extend type User {
+    public TestServer CreateReviewsService() =>
+        Context.ServerFactory.Create(
+            services => services
+                .AddRouting()
+                .AddGraphQLServer()
+                .AddReviewSchema()
+                .PublishSchemaDefinition(c => c
+                    .SetName(_reviews)
+                    .IgnoreRootTypes()
+                    .AddTypeExtensionsFromString(
+                        @"extend type User {
                                 reviews: [Review]
                                     @delegate(path:""reviewsByAuthor(authorId: $fields:id)"")
                             }
@@ -230,22 +218,21 @@ namespace HotChocolate.Stitching.Integration
                                 reviews: [Review]
                                     @delegate(path:""reviewsByProduct(upc: $fields:upc)"")
                             }")),
-                app => app
-                    .UseWebSockets()
-                    .UseRouting()
-                    .UseEndpoints(endpoints => endpoints.MapGraphQL("/")));
+            app => app
+                .UseWebSockets()
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints.MapGraphQL("/")));
 
-        public IHttpClientFactory CreateDefaultRemoteSchemas()
+    public IHttpClientFactory CreateDefaultRemoteSchemas()
+    {
+        var connections = new Dictionary<string, HttpClient>
         {
-            var connections = new Dictionary<string, HttpClient>
-            {
-                { _accounts, CreateAccountsService().CreateClient() },
-                { _inventory, CreateInventoryService().CreateClient() },
-                { _products, CreateProductsService().CreateClient() },
-                { _reviews, CreateReviewsService().CreateClient() },
-            };
+            { _accounts, CreateAccountsService().CreateClient() },
+            { _inventory, CreateInventoryService().CreateClient() },
+            { _products, CreateProductsService().CreateClient() },
+            { _reviews, CreateReviewsService().CreateClient() },
+        };
 
-            return StitchingTestContext.CreateRemoteSchemas(connections);
-        }
+        return StitchingTestContext.CreateRemoteSchemas(connections);
     }
 }

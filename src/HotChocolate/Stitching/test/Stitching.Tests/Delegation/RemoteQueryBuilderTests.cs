@@ -6,20 +6,20 @@ using HotChocolate.Language.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Stitching.Delegation
+namespace HotChocolate.Stitching.Delegation;
+
+public class RemoteQueryBuilderTests
 {
-    public class RemoteQueryBuilderTests
+    [Fact]
+    public void BuildRemoteQuery()
     {
-        [Fact]
-        public void BuildRemoteQuery()
-        {
-            // arrange
-            IImmutableStack<SelectionPathComponent> path =
-                SelectionPathParser.Parse("a.b.c.d(a: $fields:bar)");
+        // arrange
+        var path =
+            SelectionPathParser.Parse("a.b.c.d(a: $fields:bar)");
 
-            DocumentNode initialQuery =
-                Utf8GraphQLParser.Parse(
-                    @"{
+        var initialQuery =
+            Utf8GraphQLParser.Parse(
+                @"{
                         foo {
                           bar {
                             baz {
@@ -32,35 +32,35 @@ namespace HotChocolate.Stitching.Delegation
                       }
                     ");
 
-            FieldNode field = initialQuery.Definitions
-                .OfType<OperationDefinitionNode>().Single()
-                .SelectionSet.Selections
-                .OfType<FieldNode>().Single()
-                .SelectionSet.Selections
-                .OfType<FieldNode>().Single();
+        var field = initialQuery.Definitions
+            .OfType<OperationDefinitionNode>().Single()
+            .SelectionSet.Selections
+            .OfType<FieldNode>().Single()
+            .SelectionSet.Selections
+            .OfType<FieldNode>().Single();
 
-            // act
-            DocumentNode newQuery = RemoteQueryBuilder.New()
-                .SetOperation(null, OperationType.Query)
-                .SetSelectionPath(path)
-                .SetRequestField(field)
-                .AddVariable("__fields_bar", new NamedTypeNode(null, new NameNode("String")))
-                .Build("abc", new Dictionary<(string Type, string Schema), string>());
+        // act
+        var newQuery = RemoteQueryBuilder.New()
+            .SetOperation(null, OperationType.Query)
+            .SetSelectionPath(path)
+            .SetRequestField(field)
+            .AddVariable("__fields_bar", new NamedTypeNode(null, new NameNode("String")))
+            .Build("abc", new Dictionary<(string Type, string Schema), string>());
 
-            // assert
-            newQuery.Print().MatchSnapshot();
-        }
+        // assert
+        newQuery.Print().MatchSnapshot();
+    }
 
-        [Fact]
-        public void BuildRemoteQueryCanOverrideOperationName()
-        {
-            // arrange
-            IImmutableStack<SelectionPathComponent> path =
-                SelectionPathParser.Parse("a.b.c.d(a: $fields:bar)");
+    [Fact]
+    public void BuildRemoteQueryCanOverrideOperationName()
+    {
+        // arrange
+        var path =
+            SelectionPathParser.Parse("a.b.c.d(a: $fields:bar)");
 
-            DocumentNode initialQuery =
-                Utf8GraphQLParser.Parse(
-                    @"{
+        var initialQuery =
+            Utf8GraphQLParser.Parse(
+                @"{
                         foo {
                           bar {
                             baz {
@@ -73,26 +73,25 @@ namespace HotChocolate.Stitching.Delegation
                       }
                     ");
 
-            FieldNode field = initialQuery.Definitions
-                .OfType<OperationDefinitionNode>().Single()
-                .SelectionSet.Selections
-                .OfType<FieldNode>().Single()
-                .SelectionSet!.Selections
-                .OfType<FieldNode>().Single();
+        var field = initialQuery.Definitions
+            .OfType<OperationDefinitionNode>().Single()
+            .SelectionSet.Selections
+            .OfType<FieldNode>().Single()
+            .SelectionSet!.Selections
+            .OfType<FieldNode>().Single();
 
 
-            // act
-            DocumentNode newQuery = RemoteQueryBuilder.New()
-                .SetOperation(new NameNode(
+        // act
+        var newQuery = RemoteQueryBuilder.New()
+            .SetOperation(new NameNode(
                     nameof(BuildRemoteQueryCanOverrideOperationName)),
-                    OperationType.Query)
-                .SetSelectionPath(path)
-                .SetRequestField(field)
-                .AddVariable("__fields_bar", new NamedTypeNode(null, new NameNode("String")))
-                .Build("abc", new Dictionary<(string Type, string Schema), string>());
+                OperationType.Query)
+            .SetSelectionPath(path)
+            .SetRequestField(field)
+            .AddVariable("__fields_bar", new NamedTypeNode(null, new NameNode("String")))
+            .Build("abc", new Dictionary<(string Type, string Schema), string>());
 
-            // assert
-            newQuery.Print().MatchSnapshot();
-        }
+        // assert
+        newQuery.Print().MatchSnapshot();
     }
 }

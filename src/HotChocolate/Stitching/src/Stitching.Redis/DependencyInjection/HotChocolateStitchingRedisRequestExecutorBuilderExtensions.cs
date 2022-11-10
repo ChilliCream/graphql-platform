@@ -1,9 +1,8 @@
-using System;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Stitching.Redis;
 using HotChocolate.Stitching.Requests;
+using HotChocolate.Utilities;
 using StackExchange.Redis;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -20,7 +19,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(connectionFactory));
             }
 
-            configurationName.EnsureNotEmpty(nameof(configurationName));
+            configurationName.EnsureGraphQLName(nameof(configurationName));
 
             builder.Services.AddSingleton<IRequestExecutorOptionsProvider>(sp =>
             {

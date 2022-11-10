@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Properties;
@@ -131,9 +127,9 @@ internal class BufferedRequest
                 string.Equals(t.Variable.Name.Value, name, StringComparison.Ordinal));
 
         if (variableDefinition is not null &&
-            schema.TryGetType(
+            schema.TryGetType<INamedInputType>(
                 variableDefinition.Type.NamedType().Name.Value,
-                out INamedInputType namedType))
+                out var namedType))
         {
             var variableType = (IInputType)variableDefinition.Type.ToType(namedType);
 
@@ -151,7 +147,7 @@ internal class BufferedRequest
             return inputFormatter.FormatValue(
                 value,
                 variableType,
-                Path.New(variableDefinition.Variable.Name.Value));
+                PathFactory.Instance.New(variableDefinition.Variable.Name.Value));
         }
 
         throw BufferedRequest_VariableDoesNotExist(name);

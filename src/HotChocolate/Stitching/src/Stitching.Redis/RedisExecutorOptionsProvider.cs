@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
@@ -16,7 +11,7 @@ namespace HotChocolate.Stitching.Redis
         private readonly string _schemaName;
         private readonly string _configurationName;
         private readonly IDatabase _database;
-        private readonly List<OnChangeListener> _listeners = new List<OnChangeListener>();
+        private readonly List<OnChangeListener> _listeners = new();
 
         public RedisExecutorOptionsProvider(
             string schemaName,
@@ -27,7 +22,7 @@ namespace HotChocolate.Stitching.Redis
             _schemaName = schemaName;
             _configurationName = configurationName;
             _database = database;
-            subscriber.Subscribe(configurationName.Value).OnMessage(OnChangeMessageAsync);
+            subscriber.Subscribe(configurationName).OnMessage(OnChangeMessageAsync);
         }
 
         public async ValueTask<IEnumerable<IConfigureRequestExecutorSetup>> GetOptionsAsync(
@@ -81,7 +76,7 @@ namespace HotChocolate.Stitching.Redis
         private async ValueTask<IEnumerable<RemoteSchemaDefinition>> GetSchemaDefinitionsAsync(
             CancellationToken cancellationToken)
         {
-            var items = await _database.SetMembersAsync(_configurationName.Value)
+            var items = await _database.SetMembersAsync(_configurationName)
                 .ConfigureAwait(false);
 
             var schemaDefinitions = new List<RemoteSchemaDefinition>();
@@ -110,7 +105,7 @@ namespace HotChocolate.Stitching.Redis
                     .AddGraphQL(_schemaName)
                     .AddRemoteSchema(
                         schemaDefinition.Name,
-                        (sp, ct) => new ValueTask<RemoteSchemaDefinition>(schemaDefinition))
+                        (_, _) => new ValueTask<RemoteSchemaDefinition>(schemaDefinition))
                     .Services
                     .BuildServiceProvider();
 

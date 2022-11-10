@@ -12,87 +12,87 @@ using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Stitching.Integration
+namespace HotChocolate.Stitching.Integration;
+
+public class BaseTests : IClassFixture<StitchingTestContext>
 {
-    public class BaseTests : IClassFixture<StitchingTestContext>
+    public BaseTests(StitchingTestContext context)
     {
-        public BaseTests(StitchingTestContext context)
-        {
-            Context = context;
-        }
+        Context = context;
+    }
 
-        protected StitchingTestContext Context { get; }
+    protected StitchingTestContext Context { get; }
 
-        [Fact]
-        public async Task AutoMerge_Schema()
-        {
-            // arrange
-            IHttpClientFactory httpClientFactory =
-                Context.CreateDefaultRemoteSchemas();
+    [Fact]
+    public async Task AutoMerge_Schema()
+    {
+        // arrange
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-            // act
-            ISchema schema =
-                await new ServiceCollection()
-                    .AddSingleton(httpClientFactory)
-                    .AddGraphQL()
-                    .AddRemoteSchema(Context.ContractSchema)
-                    .AddRemoteSchema(Context.CustomerSchema)
-                    .BuildSchemaAsync();
+        // act
+        var schema =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddRemoteSchema(Context.ContractSchema)
+                .AddRemoteSchema(Context.CustomerSchema)
+                .BuildSchemaAsync();
 
-            // assert
-            schema.Print().MatchSnapshot();
-        }
+        // assert
+        schema.Print().MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task AutoMerge_Execute()
-        {
-            // arrange
-            IHttpClientFactory httpClientFactory =
-                Context.CreateDefaultRemoteSchemas();
+    [Fact]
+    public async Task AutoMerge_Execute()
+    {
+        // arrange
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-            IRequestExecutor executor =
-                await new ServiceCollection()
-                    .AddSingleton(httpClientFactory)
-                    .AddGraphQL()
-                    .AddRemoteSchema(Context.ContractSchema)
-                    .AddRemoteSchema(Context.CustomerSchema)
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .BuildRequestExecutorAsync();
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddRemoteSchema(Context.ContractSchema)
+                .AddRemoteSchema(Context.CustomerSchema)
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"{
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
                     allCustomers {
                         id
                         name
                     }
                 }");
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task LocalField_Execute()
-        {
-            // arrange
-            IHttpClientFactory httpClientFactory =
-                Context.CreateDefaultRemoteSchemas();
+    [Fact]
+    public async Task LocalField_Execute()
+    {
+        // arrange
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-            IRequestExecutor executor =
-                await new ServiceCollection()
-                    .AddSingleton(httpClientFactory)
-                    .AddGraphQL()
-                    .AddTypeExtension(new ObjectTypeExtension(d
-                        => d.Name("Query").Field("local").Resolve("I am local.")))
-                    .AddRemoteSchema(Context.ContractSchema)
-                    .AddRemoteSchema(Context.CustomerSchema)
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .BuildRequestExecutorAsync();
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddTypeExtension(new ObjectTypeExtension(d
+                    => d.Name("Query").Field("local").Resolve("I am local.")))
+                .AddRemoteSchema(Context.ContractSchema)
+                .AddRemoteSchema(Context.CustomerSchema)
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"{
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
                     local
                     allCustomers {
                         id
@@ -100,31 +100,31 @@ namespace HotChocolate.Stitching.Integration
                     }
                 }");
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task Schema_AddResolver()
-        {
-            // arrange
-            IHttpClientFactory httpClientFactory =
-                Context.CreateDefaultRemoteSchemas();
+    [Fact]
+    public async Task Schema_AddResolver()
+    {
+        // arrange
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-            IRequestExecutor executor =
-                await new ServiceCollection()
-                    .AddSingleton(httpClientFactory)
-                    .AddGraphQL()
-                    .AddRemoteSchema(Context.ContractSchema)
-                    .AddRemoteSchema(Context.CustomerSchema)
-                    .AddResolver("Query", "local", "I am local")
-                    .AddTypeExtensionsFromString("extend type Query { local: String }")
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .BuildRequestExecutorAsync();
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddRemoteSchema(Context.ContractSchema)
+                .AddRemoteSchema(Context.CustomerSchema)
+                .AddResolver("Query", "local", "I am local")
+                .AddTypeExtensionsFromString("extend type Query { local: String }")
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"{
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
                     local
                     allCustomers {
                         id
@@ -132,36 +132,36 @@ namespace HotChocolate.Stitching.Integration
                     }
                 }");
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task AutoMerge_Execute_Inline_Fragment()
-        {
-            // arrange
-            IHttpClientFactory httpClientFactory =
-                Context.CreateDefaultRemoteSchemas();
+    [Fact]
+    public async Task AutoMerge_Execute_Inline_Fragment()
+    {
+        // arrange
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-            IRequestExecutor executor =
-                await new ServiceCollection()
-                    .AddSingleton(httpClientFactory)
-                    .AddGraphQL()
-                    .AddRemoteSchema(Context.ContractSchema)
-                    .AddRemoteSchema(Context.CustomerSchema)
-                    .AddTypeExtensionsFromString(
-                        @"extend type Customer {
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddRemoteSchema(Context.ContractSchema)
+                .AddRemoteSchema(Context.CustomerSchema)
+                .AddTypeExtensionsFromString(
+                    @"extend type Customer {
                             contracts: [Contract!]
                                 @delegate(
                                     schema: ""contract"",
                                     path: ""contracts(customerId:$fields:id)"")
                         }")
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .BuildRequestExecutorAsync();
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"{
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
                     customer(id: ""Q3VzdG9tZXIKZDE="") {
                         name
                         consultant {
@@ -179,36 +179,36 @@ namespace HotChocolate.Stitching.Integration
                     }
                 }");
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task AutoMerge_Execute_Fragment_Definition()
-        {
-            // arrange
-            IHttpClientFactory httpClientFactory =
-                Context.CreateDefaultRemoteSchemas();
+    [Fact]
+    public async Task AutoMerge_Execute_Fragment_Definition()
+    {
+        // arrange
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-            IRequestExecutor executor =
-                await new ServiceCollection()
-                    .AddSingleton(httpClientFactory)
-                    .AddGraphQL()
-                    .AddRemoteSchema(Context.ContractSchema)
-                    .AddRemoteSchema(Context.CustomerSchema)
-                    .AddTypeExtensionsFromString(
-                        @"extend type Customer {
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddRemoteSchema(Context.ContractSchema)
+                .AddRemoteSchema(Context.CustomerSchema)
+                .AddTypeExtensionsFromString(
+                    @"extend type Customer {
                             contracts: [Contract!]
                                 @delegate(
                                     schema: ""contract"",
                                     path: ""contracts(customerId:$fields:id)"")
                         }")
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .BuildRequestExecutorAsync();
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"{
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
                     customer(id: ""Q3VzdG9tZXIKZDE="") {
                         name
                         consultant {
@@ -230,41 +230,41 @@ namespace HotChocolate.Stitching.Integration
                     expiryDate
                 }");
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task AutoMerge_Execute_Variables()
-        {
-            // arrange
-            IHttpClientFactory httpClientFactory =
-                Context.CreateDefaultRemoteSchemas();
+    [Fact]
+    public async Task AutoMerge_Execute_Variables()
+    {
+        // arrange
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-            IRequestExecutor executor =
-                await new ServiceCollection()
-                    .AddSingleton(httpClientFactory)
-                    .AddGraphQL()
-                    .AddRemoteSchema(Context.ContractSchema)
-                    .AddRemoteSchema(Context.CustomerSchema)
-                    .AddTypeExtensionsFromString(
-                        @"extend type Customer {
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddRemoteSchema(Context.ContractSchema)
+                .AddRemoteSchema(Context.CustomerSchema)
+                .AddTypeExtensionsFromString(
+                    @"extend type Customer {
                             contracts: [Contract!]
                                 @delegate(
                                     schema: ""contract"",
                                     path: ""contracts(customerId:$fields:id)"")
                         }")
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .BuildRequestExecutorAsync();
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildRequestExecutorAsync();
 
-            var variables = new Dictionary<string, object>
-            {
-                { "customerId", "Q3VzdG9tZXIKZDE=" }, { "deep", "deep" }, { "deeper", "deeper" }
-            };
+        var variables = new Dictionary<string, object>
+        {
+            { "customerId", "Q3VzdG9tZXIKZDE=" }, { "deep", "deep" }, { "deeper", "deeper" }
+        };
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"query customer_query(
+        // act
+        var result = await executor.ExecuteAsync(
+            @"query customer_query(
                     $customerId: ID!
                     $deep: String!
                     $deeper: String!
@@ -316,38 +316,38 @@ namespace HotChocolate.Stitching.Integration
                         }
                     }
                 }",
-                variables);
+            variables);
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task AutoMerge_Execute_Union()
-        {
-            // arrange
-            IHttpClientFactory httpClientFactory =
-                Context.CreateDefaultRemoteSchemas();
+    [Fact]
+    public async Task AutoMerge_Execute_Union()
+    {
+        // arrange
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-            IRequestExecutor executor =
-                await new ServiceCollection()
-                    .AddSingleton(httpClientFactory)
-                    .AddGraphQL()
-                    .AddRemoteSchema(Context.ContractSchema)
-                    .AddRemoteSchema(Context.CustomerSchema)
-                    .AddTypeExtensionsFromString(
-                        @"extend type Customer {
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddRemoteSchema(Context.ContractSchema)
+                .AddRemoteSchema(Context.CustomerSchema)
+                .AddTypeExtensionsFromString(
+                    @"extend type Customer {
                             contracts: [Contract!]
                                 @delegate(
                                     schema: ""contract"",
                                     path: ""contracts(customerId:$fields:id)"")
                         }")
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .BuildRequestExecutorAsync();
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"{
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
                     customer: customerOrConsultant(id: ""Q3VzdG9tZXIKZDE="") {
                         ...customer
                         ...consultant
@@ -378,36 +378,36 @@ namespace HotChocolate.Stitching.Integration
                     name
                 }");
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task Directive_Delegation()
-        {
-            // arrange
-            IHttpClientFactory httpClientFactory =
-                Context.CreateDefaultRemoteSchemas();
+    [Fact]
+    public async Task Directive_Delegation()
+    {
+        // arrange
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-            IRequestExecutor executor =
-                await new ServiceCollection()
-                    .AddSingleton(httpClientFactory)
-                    .AddGraphQL()
-                    .AddRemoteSchema(Context.ContractSchema)
-                    .AddRemoteSchema(Context.CustomerSchema)
-                    .AddTypeExtensionsFromString(
-                        @"extend type Customer {
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddRemoteSchema(Context.ContractSchema)
+                .AddRemoteSchema(Context.CustomerSchema)
+                .AddTypeExtensionsFromString(
+                    @"extend type Customer {
                             contracts: [Contract!]
                                 @delegate(
                                     schema: ""contract"",
                                     path: ""contracts(customerId:$fields:id)"")
                         }")
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .BuildRequestExecutorAsync();
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"{
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
                     customer: customerOrConsultant(id: ""Q3VzdG9tZXIKZDE="") {
                         ...customer
                         ...consultant
@@ -441,218 +441,218 @@ namespace HotChocolate.Stitching.Integration
                     name
                 }");
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task AutoMerge_Execute_Arguments()
-        {
-            // arrange
-            IHttpClientFactory httpClientFactory =
-                Context.CreateDefaultRemoteSchemas();
+    [Fact]
+    public async Task AutoMerge_Execute_Arguments()
+    {
+        // arrange
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-            IRequestExecutor executor =
-                await new ServiceCollection()
-                    .AddSingleton(httpClientFactory)
-                    .AddGraphQL()
-                    .AddRemoteSchema(Context.ContractSchema)
-                    .AddRemoteSchema(Context.CustomerSchema)
-                    .AddTypeExtensionsFromString(
-                        @"extend type Customer {
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddRemoteSchema(Context.ContractSchema)
+                .AddRemoteSchema(Context.CustomerSchema)
+                .AddTypeExtensionsFromString(
+                    @"extend type Customer {
                             contracts: [Contract!]
                                 @delegate(
                                     schema: ""contract"",
                                     path: ""contracts(customerId:$fields:id)"")
                         }")
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .BuildRequestExecutorAsync();
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"{
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
                     contracts(id: ""Q3VzdG9tZXIKZDE="") {
                         id
                     }
                 }");
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task AutoMerge_Execute_List_Aggregations()
-        {
-            // arrange
-            IHttpClientFactory httpClientFactory =
-                Context.CreateDefaultRemoteSchemas();
+    [Fact]
+    public async Task AutoMerge_Execute_List_Aggregations()
+    {
+        // arrange
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-            IRequestExecutor executor =
-                await new ServiceCollection()
-                    .AddSingleton(httpClientFactory)
-                    .AddGraphQL()
-                    .AddRemoteSchema(Context.ContractSchema)
-                    .AddRemoteSchema(Context.CustomerSchema)
-                    .AddTypeExtensionsFromString(
-                        @"extend type Customer {
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddRemoteSchema(Context.ContractSchema)
+                .AddRemoteSchema(Context.CustomerSchema)
+                .AddTypeExtensionsFromString(
+                    @"extend type Customer {
                             contractIds: [ID!]
                                 @delegate(
                                     schema: ""contract"",
                                     path: ""contracts(customerId:$fields:id).id"")
                         }")
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .BuildRequestExecutorAsync();
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"{
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
                     customer(id: ""Q3VzdG9tZXIKZDE="") {
                         contractIds
                     }
                 }");
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task AutoMerge_Execute_Object_Aggregations()
-        {
-            // arrange
-            IHttpClientFactory httpClientFactory =
-                Context.CreateDefaultRemoteSchemas();
+    [Fact]
+    public async Task AutoMerge_Execute_Object_Aggregations()
+    {
+        // arrange
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-            IRequestExecutor executor =
-                await new ServiceCollection()
-                    .AddSingleton(httpClientFactory)
-                    .AddGraphQL()
-                    .AddRemoteSchema(Context.ContractSchema)
-                    .AddRemoteSchema(Context.CustomerSchema)
-                    .AddTypeExtensionsFromString(
-                        @"extend type Query {
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddRemoteSchema(Context.ContractSchema)
+                .AddRemoteSchema(Context.CustomerSchema)
+                .AddTypeExtensionsFromString(
+                    @"extend type Query {
                             consultant: Consultant
                                 @delegate(
                                     schema: ""customer""
                                     path: ""customer(id:\""Q3VzdG9tZXIKZDE=\"").consultant"")
                         }")
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .BuildRequestExecutorAsync();
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"{
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
                     consultant {
                         name
                     }
                 }");
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task AutoMerge_Execute_Scalar_Aggregations()
-        {
-            // arrange
-            IHttpClientFactory httpClientFactory =
-                Context.CreateDefaultRemoteSchemas();
+    [Fact]
+    public async Task AutoMerge_Execute_Scalar_Aggregations()
+    {
+        // arrange
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-            IRequestExecutor executor =
-                await new ServiceCollection()
-                    .AddSingleton(httpClientFactory)
-                    .AddGraphQL()
-                    .AddRemoteSchema(Context.ContractSchema)
-                    .AddRemoteSchema(Context.CustomerSchema)
-                    .AddTypeExtensionsFromString(
-                        @"extend type Query {
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddRemoteSchema(Context.ContractSchema)
+                .AddRemoteSchema(Context.CustomerSchema)
+                .AddTypeExtensionsFromString(
+                    @"extend type Query {
                             consultantName: String!
                                 @delegate(
                                     schema: ""customer""
                                     path: ""customer(id:\""Q3VzdG9tZXIKZDE=\"").consultant.name"")
                         }")
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .BuildRequestExecutorAsync();
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"{
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
                     consultantName
                 }");
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task AutoMerge_Execute_Computed()
-        {
-            // arrange
-            IHttpClientFactory httpClientFactory =
-                Context.CreateDefaultRemoteSchemas();
+    [Fact]
+    public async Task AutoMerge_Execute_Computed()
+    {
+        // arrange
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-            IRequestExecutor executor =
-                await new ServiceCollection()
-                    .AddSingleton(httpClientFactory)
-                    .AddGraphQL()
-                    .AddRemoteSchema(Context.ContractSchema)
-                    .AddRemoteSchema(Context.CustomerSchema)
-                    .AddTypeExtensionsFromString(
-                        @"extend type Customer {
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddRemoteSchema(Context.ContractSchema)
+                .AddRemoteSchema(Context.CustomerSchema)
+                .AddTypeExtensionsFromString(
+                    @"extend type Customer {
                             foo: String @computed(dependantOn: [""id"", ""name""])
                         }")
-                    .MapField(
-                        new FieldReference("Customer", "foo"),
-                        next => context =>
-                        {
-                            var obj = context.Parent<IReadOnlyDictionary<string, object>>();
-                            context.Result = obj["name"] + "_" + obj["id"];
-                            return default;
-                        })
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .BuildRequestExecutorAsync();
+                .MapField(
+                    new FieldReference("Customer", "foo"),
+                    next => context =>
+                    {
+                        var obj = context.Parent<IReadOnlyDictionary<string, object>>();
+                        context.Result = obj["name"] + "_" + obj["id"];
+                        return default;
+                    })
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"{
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
                     customer(id: ""Q3VzdG9tZXIKZDE="") {
                         foo
                     }
                 }");
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task AutoMerge_Execute_RenameScalar()
-        {
-            // arrange
-            IHttpClientFactory httpClientFactory =
-                Context.CreateDefaultRemoteSchemas();
+    [Fact]
+    public async Task AutoMerge_Execute_RenameScalar()
+    {
+        // arrange
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-            IRequestExecutor executor =
-                await new ServiceCollection()
-                    .AddSingleton(httpClientFactory)
-                    .AddGraphQL()
-                    .AddType(new FloatType("Foo"))
-                    .AddRemoteSchema(Context.ContractSchema)
-                    .AddRemoteSchema(Context.CustomerSchema)
-                    .RenameType("Float", "Foo")
-                    .AddTypeExtensionsFromString(
-                        @"extend type Customer {
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddType(new FloatType("Foo"))
+                .AddRemoteSchema(Context.ContractSchema)
+                .AddRemoteSchema(Context.CustomerSchema)
+                .RenameType("Float", "Foo")
+                .AddTypeExtensionsFromString(
+                    @"extend type Customer {
                             contracts: [Contract!]
                                 @delegate(
                                     schema: ""contract"",
                                     path: ""contracts(customerId:$fields:id)"")
                         }")
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .BuildRequestExecutorAsync();
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildRequestExecutorAsync();
 
-            var variables = new Dictionary<string, object> { { "v", new FloatValueNode(1.2f) } };
+        var variables = new Dictionary<string, object> { { "v", new FloatValueNode(1.2f) } };
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"query ($v: Foo) {
+        // act
+        var result = await executor.ExecuteAsync(
+            @"query ($v: Foo) {
                     customer: customerOrConsultant(id: ""Q3VzdG9tZXIKZDE="") {
                         ...customer
                         ...consultant
@@ -684,224 +684,224 @@ namespace HotChocolate.Stitching.Integration
                 fragment consultant on Consultant {
                     name
                 }",
-                variables);
+            variables);
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task AutoMerge_Execute_IntField()
-        {
-            // arrange
-            IHttpClientFactory httpClientFactory =
-                Context.CreateDefaultRemoteSchemas();
+    [Fact]
+    public async Task AutoMerge_Execute_IntField()
+    {
+        // arrange
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-            IRequestExecutor executor =
-                await new ServiceCollection()
-                    .AddSingleton(httpClientFactory)
-                    .AddGraphQL()
-                    .AddRemoteSchema(Context.ContractSchema)
-                    .AddRemoteSchema(Context.CustomerSchema)
-                    .AddTypeExtensionsFromString(
-                        @"extend type Customer {
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddRemoteSchema(Context.ContractSchema)
+                .AddRemoteSchema(Context.CustomerSchema)
+                .AddTypeExtensionsFromString(
+                    @"extend type Customer {
                             int: Int!
                                 @delegate(
                                     schema: ""contract"",
                                     path: ""int(i:$fields:someInt)"")
                         }")
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .BuildRequestExecutorAsync();
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"{
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
                     customer(id: ""Q3VzdG9tZXIKZDE="") {
                         int
                     }
                 }");
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task AutoMerge_Execute_Customer_DoesNotExist_And_Is_Correctly_Null()
-        {
-            // arrange
-            IHttpClientFactory httpClientFactory =
-                Context.CreateDefaultRemoteSchemas();
+    [Fact]
+    public async Task AutoMerge_Execute_Customer_DoesNotExist_And_Is_Correctly_Null()
+    {
+        // arrange
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-            IRequestExecutor executor =
-                await new ServiceCollection()
-                    .AddSingleton(httpClientFactory)
-                    .AddGraphQL()
-                    .AddRemoteSchema(Context.ContractSchema)
-                    .AddRemoteSchema(Context.CustomerSchema)
-                    .AddTypeExtensionsFromString(
-                        @"extend type Customer {
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddRemoteSchema(Context.ContractSchema)
+                .AddRemoteSchema(Context.CustomerSchema)
+                .AddTypeExtensionsFromString(
+                    @"extend type Customer {
                             int: Int!
                                 @delegate(
                                     schema: ""contract"",
                                     path: ""int(i:$fields:someInt)"")
                         }")
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .BuildRequestExecutorAsync();
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"{
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
                     customer(id: ""Q3VzdG9tZXIKaTI5OTk="") {
                         int
                     }
                 }");
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task AutoMerge_Execute_GuidField()
-        {
-            // arrange
-            IHttpClientFactory httpClientFactory =
-                Context.CreateDefaultRemoteSchemas();
+    [Fact]
+    public async Task AutoMerge_Execute_GuidField()
+    {
+        // arrange
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-            IRequestExecutor executor =
-                await new ServiceCollection()
-                    .AddSingleton(httpClientFactory)
-                    .AddGraphQL()
-                    .AddRemoteSchema(Context.ContractSchema)
-                    .AddRemoteSchema(Context.CustomerSchema)
-                    .AddTypeExtensionsFromString(
-                        @"extend type Customer {
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddRemoteSchema(Context.ContractSchema)
+                .AddRemoteSchema(Context.CustomerSchema)
+                .AddTypeExtensionsFromString(
+                    @"extend type Customer {
                             guid: UUID!
                                 @delegate(
                                     schema: ""contract"",
                                     path: ""guid(guid:$fields:someGuid)"")
                         }")
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .BuildRequestExecutorAsync();
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"{
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
                     customer(id: ""Q3VzdG9tZXIKZDE="") {
                         guid
                     }
                 }");
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task Add_Dummy_Directive()
+    [Fact]
+    public async Task Add_Dummy_Directive()
+    {
+        // arrange
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
+
+        // act
+        var schema =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddRemoteSchema(Context.ContractSchema)
+                .AddRemoteSchema(Context.CustomerSchema)
+                .AddTypeExtensionsFromString(
+                    @"directive @foo on FIELD_DEFINITION")
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildSchemaAsync();
+
+        // assert
+        Assert.NotNull(schema.GetDirectiveType("foo"));
+    }
+
+    [Fact]
+    public async Task Add_Dummy_Directive_From_Resource()
+    {
+        // arrange
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
+
+        // act
+        var schema =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddRemoteSchema(Context.ContractSchema)
+                .AddRemoteSchema(Context.CustomerSchema)
+                .AddTypeExtensionsFromResource(
+                    GetType().Assembly,
+                    "HotChocolate.Stitching.__resources__.DummyDirective.graphql")
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildSchemaAsync();
+
+        // assert
+        Assert.NotNull(schema.GetDirectiveType("foo"));
+    }
+
+    [Fact]
+    public async Task Add_Dummy_Directive_From_Resource_Key_Does_Not_Exist()
+    {
+        // arrange
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
+
+        // act
+        async Task Configure() =>
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddRemoteSchema(Context.ContractSchema)
+                .AddRemoteSchema(Context.CustomerSchema)
+                .AddTypeExtensionsFromResource(
+                    GetType().Assembly,
+                    "HotChocolate.Stitching.__resources__.abc")
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildSchemaAsync();
+
+        // assert
+        var exception = await Assert.ThrowsAsync<SchemaException>(Configure);
+        Assert.Contains(
+            "The resource `HotChocolate.Stitching.__resources__.abc` was not found!",
+            exception.Message);
+    }
+
+    [Fact]
+    public async Task AddLocalSchema()
+    {
+        // arrange
+        var connections = new Dictionary<string, HttpClient>
         {
-            // arrange
-            IHttpClientFactory httpClientFactory =
-                Context.CreateDefaultRemoteSchemas();
+            { Context.ContractSchema, Context.CreateContractService().CreateClient() }
+        };
 
-            // act
-            ISchema schema =
-                await new ServiceCollection()
-                    .AddSingleton(httpClientFactory)
-                    .AddGraphQL()
-                    .AddRemoteSchema(Context.ContractSchema)
-                    .AddRemoteSchema(Context.CustomerSchema)
-                    .AddTypeExtensionsFromString(
-                        @"directive @foo on FIELD_DEFINITION")
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .BuildSchemaAsync();
+        var httpClientFactory =
+            StitchingTestContext.CreateRemoteSchemas(connections);
 
-            // assert
-            Assert.NotNull(schema.GetDirectiveType("foo"));
-        }
-
-        [Fact]
-        public async Task Add_Dummy_Directive_From_Resource()
-        {
-            // arrange
-            IHttpClientFactory httpClientFactory =
-                Context.CreateDefaultRemoteSchemas();
-
-            // act
-            ISchema schema =
-                await new ServiceCollection()
-                    .AddSingleton(httpClientFactory)
-                    .AddGraphQL()
-                    .AddRemoteSchema(Context.ContractSchema)
-                    .AddRemoteSchema(Context.CustomerSchema)
-                    .AddTypeExtensionsFromResource(
-                        GetType().Assembly,
-                        "HotChocolate.Stitching.__resources__.DummyDirective.graphql")
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .BuildSchemaAsync();
-
-            // assert
-            Assert.NotNull(schema.GetDirectiveType("foo"));
-        }
-
-        [Fact]
-        public async Task Add_Dummy_Directive_From_Resource_Key_Does_Not_Exist()
-        {
-            // arrange
-            IHttpClientFactory httpClientFactory =
-                Context.CreateDefaultRemoteSchemas();
-
-            // act
-            async Task Configure() =>
-                await new ServiceCollection()
-                    .AddSingleton(httpClientFactory)
-                    .AddGraphQL()
-                    .AddRemoteSchema(Context.ContractSchema)
-                    .AddRemoteSchema(Context.CustomerSchema)
-                    .AddTypeExtensionsFromResource(
-                        GetType().Assembly,
-                        "HotChocolate.Stitching.__resources__.abc")
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .BuildSchemaAsync();
-
-            // assert
-            SchemaException exception = await Assert.ThrowsAsync<SchemaException>(Configure);
-            Assert.Contains(
-                "The resource `HotChocolate.Stitching.__resources__.abc` was not found!",
-                exception.Message);
-        }
-
-        [Fact]
-        public async Task AddLocalSchema()
-        {
-            // arrange
-            var connections = new Dictionary<string, HttpClient>
-            {
-                { Context.ContractSchema, Context.CreateContractService().CreateClient() }
-            };
-
-            IHttpClientFactory httpClientFactory =
-                StitchingTestContext.CreateRemoteSchemas(connections);
-
-            IRequestExecutor executor =
-                await new ServiceCollection()
-                    .AddSingleton(httpClientFactory)
-                    .AddGraphQL()
-                    .AddRemoteSchema(Context.ContractSchema)
-                    .AddLocalSchema(Context.CustomerSchema)
-                    .AddTypeExtensionsFromString(
-                        @"extend type Customer {
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddRemoteSchema(Context.ContractSchema)
+                .AddLocalSchema(Context.CustomerSchema)
+                .AddTypeExtensionsFromString(
+                    @"extend type Customer {
                             contracts: [Contract!]
                                 @delegate(
                                     schema: ""contract"",
                                     path: ""contracts(customerId:$fields:id)"")
                         }")
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .AddGraphQL(Context.CustomerSchema)
-                    .AddCustomerSchema()
-                    .BuildRequestExecutorAsync();
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .AddGraphQL(Context.CustomerSchema)
+                .AddCustomerSchema()
+                .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"{
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
                     customer(id: ""Q3VzdG9tZXIKZDE="") {
                         name
                         consultant {
@@ -919,8 +919,7 @@ namespace HotChocolate.Stitching.Integration
                     }
                 }");
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
     }
 }

@@ -1,8 +1,5 @@
-using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
@@ -134,7 +131,7 @@ internal class MergeRequestHelper
         {
             foreach (var item in original)
             {
-                var variableName = MergeUtils.CreateNewName(item.Key, requestPrefix);
+                var variableName = item.Key.CreateNewName(requestPrefix);
                 merged.Add(variableName, item.Value);
             }
         }
@@ -178,7 +175,7 @@ internal class MergeRequestHelper
         IQueryResult mergedResult,
         QueryResultBuilder result)
     {
-        var data = new ResultMap();
+        var data = new ObjectResult();
         data.EnsureCapacity(aliases.Count);
         var i = 0;
 
@@ -188,7 +185,7 @@ internal class MergeRequestHelper
             {
                 if (mergedResult.Data.TryGetValue(alias.Key, out var o))
                 {
-                    data.SetValue(i++, alias.Value, o);
+                    data.SetValueUnsafe(i++, alias.Value, o);
                 }
             }
         }
@@ -196,7 +193,7 @@ internal class MergeRequestHelper
         {
             foreach (var alias in aliases)
             {
-                data.SetValue(i++, alias.Value, null);
+                data.SetValueUnsafe(i++, alias.Value, null);
             }
         }
 
@@ -229,8 +226,8 @@ internal class MergeRequestHelper
             return error;
         }
 
-        return error.WithPath(error.Path.Depth == 1
-            ? Path.New(responseName)
+        return error.WithPath(error.Path.Length == 1
+            ? PathFactory.Instance.New(responseName)
             : ReplaceRoot(error.Path, responseName));
     }
 
@@ -254,12 +251,12 @@ internal class MergeRequestHelper
     {
         var current = path;
 
-        if (current is null || current is RootPathSegment)
+        if (current is null || current.IsRoot)
         {
             return null;
         }
 
-        while (current.Parent is not null && current.Parent is not RootPathSegment)
+        while (!current.Parent.IsRoot)
         {
             current = current.Parent;
         }
@@ -269,7 +266,7 @@ internal class MergeRequestHelper
 
     private static Path ReplaceRoot(Path path, string responseName)
     {
-        var depth = path.Depth + 1;
+        var depth = path.Length + 1;
         var buffer = ArrayPool<Path>.Shared.Rent(depth);
         var paths = buffer.AsSpan().Slice(0, depth);
 
@@ -281,21 +278,21 @@ internal class MergeRequestHelper
             {
                 paths[--depth] = current;
                 current = current.Parent;
-            } while (current is not null && current is not RootPathSegment);
+            } while (!current.IsRoot);
 
             paths = paths.Slice(1);
 
-            current = Path.New(responseName);
+            current = PathFactory.Instance.New(responseName);
 
             for (var i = 0; i < paths.Length; i++)
             {
                 if (paths[i] is IndexerPathSegment index)
                 {
-                    current = current.Append(index.Index);
+                    current = PathFactory.Instance.Append(current, index.Index);
                 }
                 else if (paths[i] is NamePathSegment name)
                 {
-                    current = current.Append(name.Name);
+                    current = PathFactory.Instance.Append(current, name.Name);
                 }
             }
 

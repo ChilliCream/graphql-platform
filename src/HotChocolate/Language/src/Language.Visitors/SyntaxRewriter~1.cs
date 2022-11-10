@@ -144,9 +144,7 @@ public class SyntaxRewriter<TContext>
 
         if (!ReferenceEquals(definitions, node.Definitions))
         {
-            return new DocumentNode(
-                node.Location,
-                definitions);
+            return new DocumentNode(node.Location, definitions);
         }
 
         return node;

@@ -15,7 +15,7 @@ type Consultant implements Node {
 }
 
 type CreateCustomerPayload {
-  customer: Customer
+  customer: Customer!
 }
 
 type Customer implements Node {
@@ -49,8 +49,8 @@ type CustomersEdge {
 }
 
 type Mutation {
-  createCustomer(input: CreateCustomerInput): CreateCustomerPayload
-  createCustomers(inputs: [CreateCustomerInput]): [CreateCustomerPayload]
+  createCustomer(input: CreateCustomerInput!): CreateCustomerPayload!
+  createCustomers(inputs: [CreateCustomerInput!]!): [CreateCustomerPayload!]!
 }
 
 "Information about pagination in a connection."
@@ -75,7 +75,7 @@ type Query {
   consultant(id: ID!): Consultant
   customerOrConsultant(id: ID!): CustomerOrConsultant
   customerByKind(kind: CustomerKind!): Customer
-  allCustomers: [Customer]
+  allCustomers: [Customer!]!
 }
 
 union CustomerOrConsultant = Customer | Consultant
@@ -83,18 +83,18 @@ union CustomerOrConsultant = Customer | Consultant
 input ComplexInputType {
   value: String
   deeper: ComplexInputType
-  valueArray: [String]
-  deeperArray: [ComplexInputType]
+  valueArray: [String!]!
+  deeperArray: [ComplexInputType!]!
 }
 
 input CreateCustomerInput {
-  name: String
-  street: String
-  consultantId: String
+  name: String!
+  street: String!
+  consultantId: String!
 }
 
 input SayInput {
-  words: [String]
+  words: [String!]!
 }
 
 enum CustomerKind {

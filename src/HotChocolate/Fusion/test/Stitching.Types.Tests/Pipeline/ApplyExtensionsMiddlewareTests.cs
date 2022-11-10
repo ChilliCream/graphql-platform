@@ -1,10 +1,6 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Stitching.Types.Pipeline.ApplyExtensions;
 using HotChocolate.Stitching.Types.Pipeline.PrepareDocuments;
-using Snapshooter.Xunit;
-using Xunit;
 using static HotChocolate.Language.Utf8GraphQLParser;
 
 namespace HotChocolate.Stitching.Types.Pipeline;
@@ -34,7 +30,7 @@ public class ApplyExtensionsMiddlewareTests
         await pipeline(context);
 
         // assert
-        context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
+        context.Documents.Single().SyntaxTree.MatchSnapshot();
     }
 
     [Fact]
@@ -60,7 +56,7 @@ public class ApplyExtensionsMiddlewareTests
         await pipeline(context);
 
         // assert
-        context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
+        context.Documents.Single().SyntaxTree.MatchSnapshot();
     }
 
     [Fact]
@@ -86,7 +82,7 @@ public class ApplyExtensionsMiddlewareTests
         await pipeline(context);
 
         // assert
-        context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
+        context.Documents.Single().SyntaxTree.MatchSnapshot();
     }
 
     [Fact]
@@ -110,7 +106,7 @@ public class ApplyExtensionsMiddlewareTests
         await pipeline(context);
 
         // assert
-        context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
+        context.Documents.Single().SyntaxTree.MatchSnapshot();
     }
 
     [Fact]
@@ -134,7 +130,7 @@ public class ApplyExtensionsMiddlewareTests
         await pipeline(context);
 
         // assert
-        context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
+        context.Documents.Single().SyntaxTree.MatchSnapshot();
     }
 
     [Fact(Skip = "This needs to be fixed.")]
@@ -186,7 +182,7 @@ public class ApplyExtensionsMiddlewareTests
         await pipeline(context);
 
         // assert
-        context.Documents.Single().SyntaxTree.ToString().MatchSnapshot();
+        context.Documents.Single().SyntaxTree.MatchSnapshot();
     }
 
     private MergeSchema CreatePipeline()
