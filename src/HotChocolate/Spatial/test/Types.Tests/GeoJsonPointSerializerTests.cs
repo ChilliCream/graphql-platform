@@ -198,6 +198,7 @@ public class GeoJsonPointSerializerTests
     }
 
     [Theory]
+    [InlineData(CoordinatesTypeName)]
     [InlineData(GeometryTypeName)]
     public void ParseLiteral_Should_Throw_When_NoGeometryType(string typeName)
     {
@@ -474,6 +475,7 @@ public class GeoJsonPointSerializerTests
     }
 
     [Theory]
+    [InlineData(CoordinatesTypeName)]
     [InlineData(GeometryTypeName)]
     public void Deserialize_Should_Fail_WhenTypeNameIsMissing(string typeName)
     {
