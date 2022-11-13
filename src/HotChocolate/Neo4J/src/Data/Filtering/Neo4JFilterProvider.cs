@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Execution;
 using HotChocolate.Data.Neo4J.Language;

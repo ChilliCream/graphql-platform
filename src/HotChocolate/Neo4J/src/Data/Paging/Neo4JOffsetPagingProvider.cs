@@ -1,9 +1,4 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Data.Neo4J.Execution;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
@@ -70,8 +65,7 @@ public class Neo4JOffsetPagingProvider : OffsetPagingProvider
         {
             return source switch
             {
-                Neo4JExecutable<TEntity> nfe =>
-                    CreatePagingContainer(nfe.Pipeline()),
+                Neo4JExecutable<TEntity> nfe => nfe,
                 _ => throw ThrowHelper.PagingTypeNotSupported(source.GetType())
             };
         }
@@ -81,21 +75,31 @@ public class Neo4JOffsetPagingProvider : OffsetPagingProvider
             Neo4JExecutable<TEntity> queryable,
             OffsetPagingArguments arguments = default)
         {
-            if (arguments.Skip.HasValue)
-            {
-                queryable = queryable.WithSkip(arguments.Skip.Value);
-            }
-
             if (arguments.Take.HasValue)
             {
                 queryable = queryable.WithLimit(arguments.Take.Value + 1);
             }
 
+            if (arguments.Skip.HasValue)
+            {
+                queryable = queryable.WithSkip(arguments.Skip.Value);
+            }
+
+            var hasPreviousPage = arguments.Skip > 0;
+
             var items = await queryable
                 .ToListAsync(context.RequestAborted)
                 .ConfigureAwait(false);
 
-            return new CollectionSegment((IReadOnlyCollection<object>)items, null!);
+            var hasNextPage = items.Count > arguments.Take;
+
+            if (hasNextPage)
+            {
+                items.RemoveAt(items.Count - 1);
+            }
+
+            var segmentInfo = new CollectionSegmentInfo(hasNextPage, hasPreviousPage);
+            return new CollectionSegment((IReadOnlyCollection<object>) items, segmentInfo);
         }
     }
 }
