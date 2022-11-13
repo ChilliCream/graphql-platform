@@ -1,0 +1,26 @@
+Result:
+---------------
+{
+  "data": {
+    "root": {
+      "items": [
+        {
+          "bar": "d"
+        },
+        {
+          "bar": "e"
+        }
+      ],
+      "pageInfo": {
+        "hasNextPage": true,
+        "hasPreviousPage": true
+      }
+    }
+  }
+}
+---------------
+
+Query:
+---------------
+MATCH (foo:Foo) RETURN foo ORDER BY foo ASC SKIP 2 LIMIT 3
+---------------

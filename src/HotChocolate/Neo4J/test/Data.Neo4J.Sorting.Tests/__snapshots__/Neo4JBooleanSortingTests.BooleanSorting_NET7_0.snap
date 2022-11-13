@@ -1,0 +1,41 @@
+BooleanSorting_ASC Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": false
+      },
+      {
+        "bar": true
+      }
+    ]
+  }
+}
+---------------
+
+BooleanSorting_ASC Query:
+---------------
+MATCH (fooBool:FooBool) RETURN fooBool ORDER BY fooBool.Bar ASC
+---------------
+
+BooleanSorting_DESC Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": true
+      },
+      {
+        "bar": false
+      }
+    ]
+  }
+}
+---------------
+
+BooleanSorting_DESC Query:
+---------------
+MATCH (fooBool:FooBool) RETURN fooBool ORDER BY fooBool.Bar DESC
+---------------
