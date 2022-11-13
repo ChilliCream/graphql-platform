@@ -80,7 +80,6 @@ public class StatementBuilder
 
         _match?.Visit(visitor);
         _return?.Visit(visitor);
-        //_orderBy?.Visit(visitor);
         if (_orderBy is not null)
         {
             _orderBy?.Visit(visitor);
