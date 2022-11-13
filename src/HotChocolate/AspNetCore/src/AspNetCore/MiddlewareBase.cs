@@ -17,6 +17,7 @@ public class MiddlewareBase : IDisposable
     private readonly RequestDelegate _next;
     private readonly IHttpResponseFormatter _responseFormatter;
     private bool _disposed;
+    private readonly RequestExecutorProxy _executorProxy;
 
     protected MiddlewareBase(
         RequestDelegate next,
@@ -35,7 +36,7 @@ public class MiddlewareBase : IDisposable
             throw new ArgumentNullException(nameof(responseFormatter));
         SchemaName = schemaName;
         IsDefaultSchema = SchemaName.EqualsOrdinal(Schema.DefaultName);
-        ExecutorProxy = new RequestExecutorProxy(executorResolver, schemaName);
+        _executorProxy = new RequestExecutorProxy(executorResolver, schemaName);
     }
 
     /// <summary>
@@ -51,7 +52,7 @@ public class MiddlewareBase : IDisposable
     /// <summary>
     /// Gets the request executor proxy.
     /// </summary>
-    protected RequestExecutorProxy ExecutorProxy { get; }
+    protected RequestExecutorProxy ExecutorProxy => _executorProxy;
 
     /// <summary>
     /// Invokes the next middleware in line.
@@ -71,7 +72,7 @@ public class MiddlewareBase : IDisposable
     /// Returns the request executor for this middleware.
     /// </returns>
     protected ValueTask<IRequestExecutor> GetExecutorAsync(CancellationToken cancellationToken)
-        => ExecutorProxy.GetRequestExecutorAsync(cancellationToken);
+        => _executorProxy.GetRequestExecutorAsync(cancellationToken);
 
     /// <summary>
     /// Gets the schema for this middleware.
@@ -82,11 +83,8 @@ public class MiddlewareBase : IDisposable
     /// <returns>
     /// Returns the schema for this middleware.
     /// </returns>
-    protected async ValueTask<ISchema> GetSchemaAsync(CancellationToken cancellationToken)
-    {
-        var requestExecutor = await GetExecutorAsync(cancellationToken);
-        return requestExecutor.Schema;
-    }
+    protected ValueTask<ISchema> GetSchemaAsync(CancellationToken cancellationToken)
+        => _executorProxy.GetSchemaAsync(cancellationToken);
 
     protected ValueTask WriteResultAsync(
         HttpContext context,
