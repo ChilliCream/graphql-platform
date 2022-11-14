@@ -460,7 +460,7 @@ public class SchemaMergerTests
             .Merge();
 
         // assert
-        a.Print().MatchSnapshot(SnapshotNameExtension.Create("A"));
+         a.Print().MatchSnapshot(SnapshotNameExtension.Create("A"));
         b.Print().MatchSnapshot(SnapshotNameExtension.Create("B"));
     }
 

@@ -1,4 +1,4 @@
-﻿schema @_hc_service(name: "SchemaName") {
+schema @_hc_service(name: "SchemaName") {
 
 }
 

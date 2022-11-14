@@ -1,4 +1,4 @@
-﻿extend scalar String @rename(to: "SpecialString")
+extend scalar String @rename(to: "SpecialString")
 
 schema @_hc_service(name: "abc") {
 

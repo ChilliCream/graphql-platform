@@ -1,14 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching.Merge;
 
-internal sealed class TypeReferenceRewriter
-    : SyntaxRewriter<TypeReferenceRewriter.Context>
+internal sealed class TypeReferenceRewriter : SyntaxRewriter<TypeReferenceRewriter.Context>
 {
     public DocumentNode? RewriteSchema(
         DocumentNode document,
@@ -295,7 +291,7 @@ internal sealed class TypeReferenceRewriter
         NamedSyntaxNode typeDefinition,
         Context context)
     {
-        return !string.IsNullOrEmpty(context.SourceSchema)
+        return string.IsNullOrEmpty(context.SourceSchema)
             || typeDefinition.IsFromSchema(context.SourceSchema);
     }
 

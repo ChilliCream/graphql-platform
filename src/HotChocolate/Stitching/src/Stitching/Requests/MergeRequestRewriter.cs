@@ -92,7 +92,7 @@ internal class MergeRequestRewriter : SyntaxRewriter<Context>
             node = node.WithAlias(prefix);
         }
 
-        return base.RewriteField(node, context);
+        return base.RewriteField(node, new Context(false));
     }
 
     protected override FragmentSpreadNode RewriteFragmentSpread(

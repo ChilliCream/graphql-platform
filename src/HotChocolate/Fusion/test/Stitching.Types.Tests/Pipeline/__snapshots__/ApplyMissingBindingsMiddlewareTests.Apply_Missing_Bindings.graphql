@@ -1,10 +1,10 @@
-﻿schema @_hc_service(name: "SchemaName") {
+schema @_hc_service(name: "SchemaName") {
 
 }
 
 type Foo implements IFoo & IFooExt {
   newName: String @_hc_bind(to: "SchemaName", as: "abc")
-  def: String
+  def: String @_hc_bind(to: "SchemaName")
 }
 
 interface IFoo {
@@ -13,5 +13,5 @@ interface IFoo {
 
 interface IFooExt implements IFoo {
   newName: String @_hc_bind(to: "SchemaName", as: "abc")
-  def: String
+  def: String @_hc_bind(to: "SchemaName")
 }

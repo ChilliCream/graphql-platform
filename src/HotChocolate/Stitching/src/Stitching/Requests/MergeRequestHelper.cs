@@ -7,7 +7,7 @@ using static HotChocolate.Stitching.WellKnownContextData;
 
 namespace HotChocolate.Stitching.Requests;
 
-internal class MergeRequestHelper
+internal static class MergeRequestHelper
 {
     public static IEnumerable<(IQueryRequest, IEnumerable<BufferedRequest>)> MergeRequests(
         IEnumerable<BufferedRequest> requests)

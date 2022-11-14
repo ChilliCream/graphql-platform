@@ -1,4 +1,4 @@
-﻿extend type Bar {
+extend type Bar {
   def: String
 }
 
