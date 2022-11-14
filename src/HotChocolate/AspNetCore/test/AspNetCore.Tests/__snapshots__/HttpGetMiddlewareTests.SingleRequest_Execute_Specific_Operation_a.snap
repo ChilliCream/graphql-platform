@@ -1,5 +1,5 @@
 {
-  "ContentType": "application/json; charset=utf-8",
+  "ContentType": "application/graphql-response+json; charset=utf-8",
   "StatusCode": "OK",
   "Data": {
     "a": {
