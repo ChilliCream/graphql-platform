@@ -251,13 +251,6 @@ internal static class ThrowHelper
     public static ObjectDisposedException Object_Not_Initialized() =>
         new("The specified object was not initialized and is no longer usable.");
 
-    public static GraphQLException ReadPersistedQueryMiddleware_PersistedQueryNotFound() =>
-        new(ErrorBuilder.New()
-            // this string is defined in the APQ spec!
-            .SetMessage("PersistedQueryNotFound")
-            .SetCode(ErrorCodes.Execution.PersistedQueryNotFound)
-            .Build());
-
     public static GraphQLException ResolverContext_CannotCastParent(
         FieldCoordinate field,
         Path path,
