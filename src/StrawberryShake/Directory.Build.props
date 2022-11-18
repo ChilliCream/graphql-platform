@@ -12,12 +12,9 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TestTargetFrameworks Condition="'$(IsMacOsArm)' != 'true'">net7.0; net6.0; netcoreapp3.1</TestTargetFrameworks>
-    <TestTargetFrameworks Condition="'$(IsMacOsArm)' == 'true'">net7.0; net6.0</TestTargetFrameworks>
-    <LibraryTargetFrameworks Condition="'$(IsMacOsArm)' != 'true'">net7.0; net6.0; netcoreapp3.1; netstandard2.1; netstandard2.0</LibraryTargetFrameworks>
-    <LibraryTargetFrameworks Condition="'$(IsMacOsArm)' == 'true'">net7.0; net6.0; netstandard2.0</LibraryTargetFrameworks>
-    <ToolingTargetFrameworks Condition="'$(IsMacOsArm)' != 'true'">net7.0; net6.0</ToolingTargetFrameworks>
-    <ToolingTargetFrameworks Condition="'$(IsMacOsArm)' == 'true'">net7.0; net6.0</ToolingTargetFrameworks>
+    <TestTargetFrameworks>net7.0; net6.0</TestTargetFrameworks>
+    <LibraryTargetFrameworks>net7.0; net6.0; netstandard2.1; netstandard2.0</LibraryTargetFrameworks>
+    <ToolingTargetFrameworks>net7.0; net6.0</ToolingTargetFrameworks>
   </PropertyGroup>
 
 </Project>
