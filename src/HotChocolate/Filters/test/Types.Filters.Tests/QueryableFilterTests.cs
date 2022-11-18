@@ -146,7 +146,7 @@ public class QueryableFilterTests
                 x.Field("list")
                     .Type<ListType<ObjectType<FooObject>>>()
                     .Resolve(
-                        x => new FooObject[] {
+                        ctx => new FooObject[] {
                             null,
                             new FooObject { FooNested = new FooNested { Bar = "a" }
                             }
