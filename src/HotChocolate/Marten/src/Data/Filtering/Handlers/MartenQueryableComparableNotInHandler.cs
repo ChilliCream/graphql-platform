@@ -4,12 +4,20 @@ using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using static HotChocolate.Data.Marten.ThrowHelper;
 
 namespace HotChocolate.Data.Marten.Filtering;
 
-public class MartenQueryableComparableNotInHandler
-    : QueryableComparableOperationHandler
+/// <summary>
+/// Represents the comparable not in operation handler.
+/// </summary>
+public class MartenQueryableComparableNotInHandler : QueryableComparableOperationHandler
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="MartenQueryableComparableNotInHandler"/>.
+    /// </summary>
+    /// <param name="typeConverter">The type converter.</param>
+    /// <param name="inputParser">The input parser.</param>
     public MartenQueryableComparableNotInHandler(
         ITypeConverter typeConverter,
         InputParser inputParser)
@@ -18,8 +26,12 @@ public class MartenQueryableComparableNotInHandler
         CanBeNull = false;
     }
 
+    /// <summary>
+    /// Specifies the database operation.
+    /// </summary>
     protected override int Operation => DefaultFilterOperations.NotIn;
 
+    /// <inheritdoc cref="QueryableOperationHandlerBase"/>
     public override Expression HandleOperation(
         QueryableFilterContext context,
         IFilterOperationField field,
@@ -31,10 +43,7 @@ public class MartenQueryableComparableNotInHandler
 
         if (parsedValue is null)
         {
-            throw HotChocolate.Data.ThrowHelper.Filtering_CouldNotParseValue(this,
-                value,
-                field.Type,
-                field);
+            throw Filtering_CouldNotParseValue(this, value, field.Type, field);
         }
 
         return FilterExpressionBuilder.Not(

@@ -18,7 +18,6 @@
     <InternalsVisibleTo Include="HotChocolate.Data.Filters.InMemory.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Data.Filters.SqlServer.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Data.Filters.Tests" />
-    <InternalsVisibleTo Include="HotChocolate.Data.Marten" />
   </ItemGroup>
 
   <ItemGroup>
