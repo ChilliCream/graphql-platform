@@ -12,12 +12,7 @@ public static class MergeSyntaxNodeExtensions
         string newName,
         params string[] schemaNames)
         where T : ITypeDefinitionNode
-    {
-        return Rename(
-            enumTypeDefinition,
-            newName,
-            (IEnumerable<string>)schemaNames);
-    }
+        => Rename(enumTypeDefinition, newName, (IEnumerable<string>)schemaNames);
 
     public static T Rename<T>(
         this T typeDefinitionNode,
@@ -27,35 +22,16 @@ public static class MergeSyntaxNodeExtensions
     {
         ITypeDefinitionNode node = typeDefinitionNode;
 
-        switch (node)
+        node = node switch
         {
-            case ObjectTypeDefinitionNode otd:
-                node = Rename(otd, newName, schemaNames);
-                break;
-
-            case InterfaceTypeDefinitionNode itd:
-                node = Rename(itd, newName, schemaNames);
-                break;
-
-            case UnionTypeDefinitionNode utd:
-                node = Rename(utd, newName, schemaNames);
-                break;
-
-            case InputObjectTypeDefinitionNode iotd:
-                node = Rename(iotd, newName, schemaNames);
-                break;
-
-            case EnumTypeDefinitionNode etd:
-                node = Rename(etd, newName, schemaNames);
-                break;
-
-            case ScalarTypeDefinitionNode std:
-                node = Rename(std, newName, schemaNames);
-                break;
-
-            default:
-                throw new NotSupportedException();
-        }
+            ObjectTypeDefinitionNode otd => Rename(otd, newName, schemaNames),
+            InterfaceTypeDefinitionNode itd => Rename(itd, newName, schemaNames),
+            UnionTypeDefinitionNode utd => Rename(utd, newName, schemaNames),
+            InputObjectTypeDefinitionNode iotd => Rename(iotd, newName, schemaNames),
+            EnumTypeDefinitionNode etd => Rename(etd, newName, schemaNames),
+            ScalarTypeDefinitionNode std => Rename(std, newName, schemaNames),
+            _ => throw new NotSupportedException(),
+        };
 
         return (T)node;
     }
@@ -64,22 +40,20 @@ public static class MergeSyntaxNodeExtensions
         this FieldDefinitionNode enumTypeDefinition,
         string newName,
         params string[] schemaNames)
-    {
-        return Rename(
+        => Rename(
             enumTypeDefinition,
             newName,
             (IEnumerable<string>)schemaNames);
-    }
 
     public static FieldDefinitionNode Rename(
         this FieldDefinitionNode enumTypeDefinition,
         string newName,
         IEnumerable<string> schemaNames)
-    {
-        return AddSource(enumTypeDefinition, newName, schemaNames,
-            (n, d) => enumTypeDefinition
-                .WithName(n).WithDirectives(d));
-    }
+        => AddSource(
+            enumTypeDefinition,
+            newName,
+            schemaNames,
+            (n, d) => enumTypeDefinition.WithName(n).WithDirectives(d));
 
     public static InputValueDefinitionNode Rename(
         this InputValueDefinitionNode enumTypeDefinition,
@@ -322,8 +296,7 @@ public static class MergeSyntaxNodeExtensions
         {
             var argument = directive.Arguments.FirstOrDefault(t =>
                 DirectiveFieldNames.Source_Schema.Equals(t.Name.Value));
-            return argument != null
-                && argument.Value is StringValueNode sv
+            return argument?.Value is StringValueNode sv
                 && schemaName.Equals(sv.Value);
         }
         return false;
@@ -331,14 +304,14 @@ public static class MergeSyntaxNodeExtensions
 
     public static FieldDefinitionNode AddDelegationPath(
         this FieldDefinitionNode field,
-        string schemaName) =>
-        AddDelegationPath(field, schemaName, false);
+        string schemaName)
+        => AddDelegationPath(field, schemaName, false);
 
     public static FieldDefinitionNode AddDelegationPath(
         this FieldDefinitionNode field,
         string schemaName,
-        bool overwrite) =>
-        AddDelegationPath(field, schemaName, (string)null);
+        bool overwrite)
+        => AddDelegationPath(field, schemaName, (string?)null, overwrite);
 
     public static FieldDefinitionNode AddDelegationPath(
         this FieldDefinitionNode field,
@@ -417,23 +390,22 @@ public static class MergeSyntaxNodeExtensions
             path.Append(component);
         }
 
-        return AddDelegationPath(
-            field, schemaName, path.ToString(), overwrite);
+        return AddDelegationPath(field, schemaName, path.ToString(), overwrite);
     }
 
     public static FieldDefinitionNode AddDelegationPath(
         this FieldDefinitionNode field,
         string schemaName,
-        string delegationPath) =>
-        AddDelegationPath(field, schemaName, delegationPath, false);
+        string? delegationPath)
+        => AddDelegationPath(field, schemaName, delegationPath, false);
 
     public static FieldDefinitionNode AddDelegationPath(
         this FieldDefinitionNode field,
         string schemaName,
-        string delegationPath,
+        string? delegationPath,
         bool overwrite)
     {
-        if (field == null)
+        if (field is null)
         {
             throw new ArgumentNullException(nameof(field));
         }
@@ -448,13 +420,14 @@ public static class MergeSyntaxNodeExtensions
 
         var list = new List<DirectiveNode>(field.Directives);
 
-        list.RemoveAll(t =>
-            DirectiveNames.Delegate.Equals(t.Name.Value));
+        list.RemoveAll(t => DirectiveNames.Delegate.Equals(t.Name.Value));
 
-        var arguments = new List<ArgumentNode>();
-        arguments.Add(new ArgumentNode(
-            DirectiveFieldNames.Delegate_Schema,
-            schemaName));
+        var arguments = new List<ArgumentNode>
+        {
+            new ArgumentNode(
+                DirectiveFieldNames.Delegate_Schema,
+                schemaName)
+        };
 
         if (!string.IsNullOrEmpty(delegationPath))
         {

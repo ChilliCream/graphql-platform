@@ -48,10 +48,9 @@ internal sealed class TypeReferenceRewriter : SyntaxRewriter<TypeReferenceRewrit
         return names;
     }
 
-    private static Dictionary<FieldDefinitionNode, string>
-        GetFieldsToRename(
-            DocumentNode document,
-            string schemaName)
+    private static Dictionary<FieldDefinitionNode, string> GetFieldsToRename(
+        DocumentNode document,
+        string schemaName)
     {
         var fieldsToRename =
             new Dictionary<FieldDefinitionNode, string>();
@@ -112,10 +111,9 @@ internal sealed class TypeReferenceRewriter : SyntaxRewriter<TypeReferenceRewrit
         }
     }
 
-    private static IReadOnlyCollection<InterfaceTypeDefinitionNode>
-        GetInterfaceTypes(
-            ObjectTypeDefinitionNode objectType,
-            IDictionary<string, ComplexTypeDefinitionNodeBase> types)
+    private static IReadOnlyCollection<InterfaceTypeDefinitionNode> GetInterfaceTypes(
+        ObjectTypeDefinitionNode objectType,
+        IDictionary<string, ComplexTypeDefinitionNodeBase> types)
     {
         var interfaceTypes = new List<InterfaceTypeDefinitionNode>();
 
@@ -159,8 +157,7 @@ internal sealed class TypeReferenceRewriter : SyntaxRewriter<TypeReferenceRewrit
         foreach (var fieldDefinition in
             interfaceType.Fields)
         {
-            var originalName =
-                fieldDefinition.GetOriginalName(renameContext.SchemaName);
+            var originalName = fieldDefinition.GetOriginalName(renameContext.SchemaName);
             if (!originalName.Equals(fieldDefinition.Name.Value))
             {
                 RenameInterfaceField(
@@ -331,13 +328,10 @@ internal sealed class TypeReferenceRewriter : SyntaxRewriter<TypeReferenceRewrit
             SchemaName = schemaName;
         }
 
-        public IDictionary<string, ComplexTypeDefinitionNodeBase> Types
-        { get; }
+        public IDictionary<string, ComplexTypeDefinitionNodeBase> Types { get; }
 
-        public IDictionary<FieldDefinitionNode, string> RenamedFields
-        { get; }
+        public IDictionary<FieldDefinitionNode, string> RenamedFields { get; }
 
-        public string SchemaName
-        { get; }
+        public string SchemaName { get; }
     }
 }

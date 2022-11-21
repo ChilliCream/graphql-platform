@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Stitching.Merge;
 
 public static class TypeInfoExtensions

@@ -1,7 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching.Merge.Handlers;
 
@@ -10,36 +8,27 @@ internal static class ComplexTypeMergeHelpers
     public static bool CanBeMergedWith(
         this InterfaceTypeInfo left,
         InterfaceTypeInfo right)
-    {
-        return CanBeMerged(left.Definition, right.Definition);
-    }
+        => CanBeMerged(left.Definition, right.Definition);
 
     public static bool CanBeMergedWith(
         this ObjectTypeInfo left,
         ObjectTypeInfo right)
-    {
-        return CanBeMerged(left.Definition, right.Definition);
-    }
+        => CanBeMerged(left.Definition, right.Definition);
 
     private static bool CanBeMerged(
         ComplexTypeDefinitionNodeBase left,
         ComplexTypeDefinitionNodeBase right)
     {
-        if (left.Name.Value.Equals(
-                right.Name.Value,
-                StringComparison.Ordinal)
+        if (left.Name.Value.EqualsOrdinal(right.Name.Value)
             && left.Fields.Count == right.Fields.Count)
         {
-            var leftFields =
-                left.Fields.ToDictionary(t => t.Name.Value);
-            var rightFields =
-                right.Fields.ToDictionary(t => t.Name.Value);
+            var leftFields = left.Fields.ToDictionary(t => t.Name.Value);
+            var rightFields = right.Fields.ToDictionary(t => t.Name.Value);
 
             foreach (var name in leftFields.Keys)
             {
                 var leftField = leftFields[name];
-                if (!rightFields.TryGetValue(name,
-                        out var rightField)
+                if (!rightFields.TryGetValue(name, out var rightField)
                     || !HasSameShape(leftField, rightField))
                 {
                     return false;
@@ -54,9 +43,7 @@ internal static class ComplexTypeMergeHelpers
         FieldDefinitionNode left,
         FieldDefinitionNode right)
     {
-        if (left.Name.Value.Equals(
-                right.Name.Value,
-                StringComparison.Ordinal)
+        if (left.Name.Value.EqualsOrdinal(right.Name.Value)
             && HasSameType(left.Type, right.Type)
             && left.Arguments.Count == right.Arguments.Count)
         {
@@ -75,8 +62,7 @@ internal static class ComplexTypeMergeHelpers
         foreach (var name in leftArgs.Keys)
         {
             var leftArgument = leftArgs[name];
-            if (!rightArgs.TryGetValue(name,
-                    out var rightArgument)
+            if (!rightArgs.TryGetValue(name, out var rightArgument)
                 || !HasSameType(leftArgument.Type, rightArgument.Type))
             {
                 return false;
@@ -102,9 +88,7 @@ internal static class ComplexTypeMergeHelpers
         if (left is NamedTypeNode lntn
             && right is NamedTypeNode rntn)
         {
-            return lntn.Name.Value.Equals(
-                rntn.Name.Value,
-                StringComparison.Ordinal);
+            return lntn.Name.Value.EqualsOrdinal(rntn.Name.Value);
         }
 
         return false;

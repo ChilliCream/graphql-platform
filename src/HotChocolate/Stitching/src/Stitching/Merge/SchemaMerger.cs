@@ -320,7 +320,7 @@ public class SchemaMerger
         }
     }
 
-    private void SetTypes(
+    private static void SetTypes(
         string name,
         IReadOnlyCollection<ISchemaInfo> schemas,
         ICollection<ITypeInfo> types)
@@ -337,7 +337,7 @@ public class SchemaMerger
         }
     }
 
-    private void SetDirectives(
+    private static void SetDirectives(
         string name,
         IReadOnlyCollection<ISchemaInfo> schemas,
         ICollection<IDirectiveTypeInfo> directives)
@@ -401,5 +401,5 @@ public class SchemaMerger
         return current;
     }
 
-    public static SchemaMerger New() => new SchemaMerger();
+    public static SchemaMerger New() => new();
 }

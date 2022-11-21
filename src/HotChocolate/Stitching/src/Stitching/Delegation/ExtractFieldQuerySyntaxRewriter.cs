@@ -87,8 +87,7 @@ public partial class ExtractFieldQuerySyntaxRewriter
     {
         sourceSchema.EnsureGraphQLName(nameof(sourceSchema));
 
-        var context = new Context(sourceSchema, null, null, null);
-        context.InputType = inputType;
+        var context = new Context(sourceSchema, null, null, null) { InputType = inputType };
         return (IValueNode)Rewrite(value, context)!;
     }
 
@@ -102,15 +101,12 @@ public partial class ExtractFieldQuerySyntaxRewriter
             var cloned = context.Clone();
             cloned.OutputField = field;
 
-            var name = RewriteNode(node.Name, cloned);
-            var alias = RewriteNodeOrDefault(node.Alias, cloned);
+            var name = node.Name;
+            var alias = node.Alias;
 
             if (field.TryGetSourceDirective(cloned.Schema, out var sourceDirective))
             {
-                if (alias == null)
-                {
-                    alias = name;
-                }
+                alias ??= name;
                 name = new NameNode(sourceDirective.Name);
             }
 
@@ -121,9 +117,9 @@ public partial class ExtractFieldQuerySyntaxRewriter
 
             if (node.SelectionSet is not null && field.Type.NamedType() is INamedOutputType n)
             {
-                var cloned2 = cloned.Clone();
-                cloned.TypeContext = n;
-                RewriteNodeOrDefault(node.SelectionSet, cloned2);
+                var selectionSetContext = cloned.Clone();
+                selectionSetContext.TypeContext = n;
+                selectionSet = RewriteNodeOrDefault(node.SelectionSet, selectionSetContext);
             }
 
             if (!ReferenceEquals(name, node.Name) ||
@@ -196,7 +192,7 @@ public partial class ExtractFieldQuerySyntaxRewriter
 
         current = current.WithSelections(selections);
         current = base.RewriteSelectionSet(current, context);
-        current = OnRewriteSelectionSet(current, context);
+        current = OnRewriteSelectionSet(current!, context);
 
         return current;
     }
@@ -224,7 +220,7 @@ public partial class ExtractFieldQuerySyntaxRewriter
         return current;
     }
 
-    protected override ArgumentNode RewriteArgument(
+    protected override ArgumentNode? RewriteArgument(
         ArgumentNode node,
         Context context)
     {
@@ -254,25 +250,20 @@ public partial class ExtractFieldQuerySyntaxRewriter
         return base.RewriteArgument(current, context);
     }
 
-    protected override ObjectFieldNode RewriteObjectField(
+    protected override ObjectFieldNode? RewriteObjectField(
         ObjectFieldNode node,
         Context context)
     {
         var current = node;
 
-        if (context.InputType != null &&
-            context.InputType.NamedType() is InputObjectType inputType &&
-            inputType.Fields.TryGetField(
-                current.Name.Value,
-                out var inputField))
+        if (context.InputType?.NamedType() is InputObjectType inputType &&
+            inputType.Fields.TryGetField(current.Name.Value, out var inputField))
         {
             var cloned = context.Clone();
             cloned.InputField = inputField;
             cloned.InputType = inputField.Type;
 
-            if (inputField.TryGetSourceDirective(
-                    context.Schema,
-                    out var sourceDirective) &&
+            if (inputField.TryGetSourceDirective(context.Schema, out var sourceDirective) &&
                 !sourceDirective.Name.Equals(current.Name.Value))
             {
                 current = current.WithName(
@@ -306,10 +297,8 @@ public partial class ExtractFieldQuerySyntaxRewriter
     }
 
     private static bool IsDelegationField(IDirectiveCollection directives)
-    {
-        return directives.Contains(DirectiveNames.Delegate) ||
+        => directives.Contains(DirectiveNames.Delegate) ||
             directives.Contains(DirectiveNames.Computed);
-    }
 
     private static void AddDependencies(
         Types.IHasName typeContext,
@@ -336,26 +325,21 @@ public partial class ExtractFieldQuerySyntaxRewriter
                         null,
                         new NamedTypeNode(null, new NameNode(typeGroup.Key)),
                         Array.Empty<DirectiveNode>(),
-                        new SelectionSetNode(null, fields)
-                    ));
+                        new SelectionSetNode(null, fields)));
             }
         }
     }
 
     private static FieldNode CreateField(string fieldName)
-    {
-        return new FieldNode(
-            null,
+        => new(null,
             new NameNode(fieldName),
             null,
             null,
             Array.Empty<DirectiveNode>(),
             Array.Empty<ArgumentNode>(),
-            null
-        );
-    }
+            null);
 
-    protected override VariableNode RewriteVariable(
+    protected override VariableNode? RewriteVariable(
         VariableNode node,
         Context context)
     {

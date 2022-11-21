@@ -141,8 +141,7 @@ public class RemoteQueryBuilder
                 new[] { requestField });
         }
 
-        var fields = new List<FieldNode>();
-        fields.Add(_requestField);
+        var fields = new List<FieldNode> { _requestField };
         fields.AddRange(_additionalFields);
 
         return CreateDelegationQuery(

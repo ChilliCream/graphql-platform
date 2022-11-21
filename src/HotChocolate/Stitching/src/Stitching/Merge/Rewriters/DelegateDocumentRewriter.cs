@@ -3,11 +3,9 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Merge.Rewriters;
 
-public delegate DocumentNode RewriteDocumentDelegate(
-    ISchemaInfo schema, DocumentNode document);
+public delegate DocumentNode RewriteDocumentDelegate(ISchemaInfo schema, DocumentNode document);
 
-internal class DelegateDocumentRewriter
-    : IDocumentRewriter
+internal class DelegateDocumentRewriter : IDocumentRewriter
 {
     private readonly RewriteDocumentDelegate _rewrite;
 

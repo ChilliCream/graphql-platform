@@ -1,15 +1,9 @@
-using System.Runtime.InteropServices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
-using HotChocolate.Stitching.Delegation;
 using HotChocolate.Stitching.Delegation.ScopedVariables;
 
 namespace HotChocolate.Stitching.Merge.Handlers;
 
-internal class RootTypeMergeHandler
-    : ITypeMergeHandler
+internal class RootTypeMergeHandler : ITypeMergeHandler
 {
     private readonly MergeTypeRuleDelegate _next;
 
@@ -29,8 +23,7 @@ internal class RootTypeMergeHandler
                 var names = new HashSet<string>();
                 var fields = new List<FieldDefinitionNode>();
 
-                foreach (var type in
-                    types.OfType<ObjectTypeInfo>())
+                foreach (var type in types.OfType<ObjectTypeInfo>())
                 {
                     IntegrateFields(type.Definition, type, names, fields);
                 }
@@ -78,18 +71,18 @@ internal class RootTypeMergeHandler
             {
                 var path = new SelectionPathComponent(
                     field.Name,
-                    field.Arguments.Select(t => new ArgumentNode(
-                        t.Name,
-                        new ScopedVariableNode(
-                            null,
-                            new NameNode(ScopeNames.Arguments),
-                            t.Name))).ToList());
+                    field.Arguments
+                        .Select(
+                            t => new ArgumentNode(
+                                t.Name,
+                                new ScopedVariableNode(
+                                    null,
+                                    new NameNode(ScopeNames.Arguments),
+                                    t.Name)))
+                        .ToList());
 
-                var newName = new NameNode(
-                    typeInfo.CreateUniqueName(current));
-
-                current = current.WithName(newName)
-                    .AddDelegationPath(schemaName, path);
+                var newName = new NameNode(typeInfo.CreateUniqueName(current));
+                current = current.WithName(newName).AddDelegationPath(schemaName, path);
             }
 
             fields.Add(current);

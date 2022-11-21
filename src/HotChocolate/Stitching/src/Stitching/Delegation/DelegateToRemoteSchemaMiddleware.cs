@@ -51,11 +51,9 @@ public sealed class DelegateToRemoteSchemaMiddleware
                 reversePath = ImmutableStack.CreateRange(path);
             }
 
-            var request =
-                CreateQuery(context, delegateDirective.Schema, path, reversePath);
+            var request = CreateQuery(context, delegateDirective.Schema, path, reversePath);
 
-            var result = await ExecuteQueryAsync(
-                    context, request, delegateDirective.Schema)
+            var result = await ExecuteQueryAsync(context, request, delegateDirective.Schema)
                 .ConfigureAwait(false);
             context.RegisterForCleanup(result.DisposeAsync);
 
@@ -72,15 +70,14 @@ public sealed class DelegateToRemoteSchemaMiddleware
         await _next.Invoke(context).ConfigureAwait(false);
     }
 
-    private void UpdateContextData(
+    private static void UpdateContextData(
         IResolverContext context,
         IQueryResult result,
         DelegateDirective delegateDirective)
     {
         if (result.ContextData is { Count: > 0 })
         {
-            var builder =
-                ImmutableDictionary.CreateBuilder<string, object?>();
+            var builder = ImmutableDictionary.CreateBuilder<string, object?>();
             builder.AddRange(context.ScopedContextData);
             builder[SchemaName] = delegateDirective.Schema;
             builder.AddRange(result.ContextData);

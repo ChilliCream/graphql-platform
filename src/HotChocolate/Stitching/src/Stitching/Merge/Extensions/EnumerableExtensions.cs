@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace HotChocolate.Stitching.Merge;
 
 internal static class EnumerableExtensions
@@ -8,7 +5,7 @@ internal static class EnumerableExtensions
     public static IReadOnlyList<ITypeInfo> NotOfType<T>(
         this IEnumerable<ITypeInfo> types)
     {
-        if (types == null)
+        if (types is null)
         {
             throw new ArgumentNullException(nameof(types));
         }
@@ -17,7 +14,7 @@ internal static class EnumerableExtensions
 
         foreach (var type in types)
         {
-            if (!(type is T))
+            if (type is not T)
             {
                 list.Add(type);
             }

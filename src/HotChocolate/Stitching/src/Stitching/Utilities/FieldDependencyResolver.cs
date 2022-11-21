@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Delegation.ScopedVariables;
 using HotChocolate.Types;
@@ -80,11 +77,9 @@ public class FieldDependencyResolver
     private static IDictionary<string, FragmentDefinitionNode> GetFragments(
         DocumentNode document)
     {
-        var fragments =
-            new Dictionary<string, FragmentDefinitionNode>();
+        var fragments = new Dictionary<string, FragmentDefinitionNode>();
 
-        foreach (var fragment in
-            document.Definitions.OfType<FragmentDefinitionNode>())
+        foreach (var fragment in document.Definitions.OfType<FragmentDefinitionNode>())
         {
             if (!string.IsNullOrEmpty(fragment.Name?.Value))
             {
@@ -97,9 +92,8 @@ public class FieldDependencyResolver
 
     protected override void VisitField(FieldNode node, Context context)
     {
-        if (context.TypeContext is IComplexOutputType type
-            && type.Fields.TryGetField(node.Name.Value,
-                out var field))
+        if (context.TypeContext is IComplexOutputType type &&
+            type.Fields.TryGetField(node.Name.Value, out var field))
         {
             CollectDelegationDependencies(context, type, field);
             CollectComputeDependencies(context, type, field);
@@ -111,8 +105,7 @@ public class FieldDependencyResolver
         Types.IHasName type,
         IOutputField field)
     {
-        var directive = field.Directives[DirectiveNames.Delegate]
-            .FirstOrDefault();
+        var directive = field.Directives[DirectiveNames.Delegate].FirstOrDefault();
 
         if (directive is not null)
         {
@@ -128,21 +121,20 @@ public class FieldDependencyResolver
         IComplexOutputType type,
         IOutputField field)
     {
-        var directive = field.Directives[DirectiveNames.Computed]
-            .FirstOrDefault();
+        var directive = field.Directives[DirectiveNames.Computed].FirstOrDefault();
 
         var dependantOn = directive?.ToObject<ComputedDirective>().DependantOn;
 
-        if (dependantOn != null)
+        if (dependantOn is not null)
         {
             foreach (var fieldName in dependantOn)
             {
-                if (type.Fields.TryGetField(
-                    fieldName,
-                    out var dependency))
+                if (type.Fields.TryGetField(fieldName, out var dependency))
                 {
-                    context.Dependencies.Add(new FieldDependency(
-                        type.Name, dependency.Name));
+                    context.Dependencies.Add(
+                        new FieldDependency(
+                            type.Name,
+                            dependency.Name));
                 }
             }
         }
@@ -153,8 +145,7 @@ public class FieldDependencyResolver
         Types.IHasName type,
         ISet<FieldDependency> dependencies)
     {
-        var path =
-            SelectionPathParser.Parse(directive.Path);
+        var path = SelectionPathParser.Parse(directive.Path);
 
         foreach (var component in path)
         {
@@ -193,9 +184,7 @@ public class FieldDependencyResolver
             return;
         }
 
-        if (_schema.TryGetType(
-            node.TypeCondition.Name.Value,
-            out IComplexOutputType type))
+        if (_schema.TryGetType<IComplexOutputType>(node.TypeCondition.Name.Value, out var type))
         {
             newContext = newContext
                 .AddFragment(node.Name.Value)
@@ -211,9 +200,8 @@ public class FieldDependencyResolver
     {
         var newContext = context;
 
-        if (_schema.TryGetType(
-            node.TypeCondition.Name.Value,
-            out IComplexOutputType type))
+        if (node.TypeCondition is not null &&
+            _schema.TryGetType<IComplexOutputType>(node.TypeCondition.Name.Value, out var type))
         {
             newContext = newContext.SetTypeContext(type);
         }
@@ -221,7 +209,7 @@ public class FieldDependencyResolver
         base.VisitInlineFragment(node, newContext);
     }
 
-    public class Context
+    public sealed class Context
     {
         private Context(
             INamedOutputType typeContext,
@@ -253,12 +241,11 @@ public class FieldDependencyResolver
 
         public ISet<FieldDependency> Dependencies { get; }
 
-        public INamedOutputType TypeContext { get; protected set; }
+        public INamedOutputType TypeContext { get; }
 
         public ImmutableHashSet<string> FragmentPath { get; }
 
-        public IDictionary<string, FragmentDefinitionNode> Fragments
-        { get; }
+        public IDictionary<string, FragmentDefinitionNode> Fragments { get; }
 
         public Context SetTypeContext(INamedOutputType type)
         {

@@ -6,7 +6,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Stitching.Merge.Handlers;
 
 internal class InterfaceTypeMergeHandler
-    : TypeMergeHanlderBase<InterfaceTypeInfo>
+    : TypeMergeHandlerBase<InterfaceTypeInfo>
 {
     public InterfaceTypeMergeHandler(MergeTypeRuleDelegate next)
         : base(next)

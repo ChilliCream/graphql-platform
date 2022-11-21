@@ -1,16 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace HotChocolate.Stitching.Merge.Handlers;
 
-public abstract class TypeMergeHanlderBase<T>
-    : ITypeMergeHandler
-    where T : ITypeInfo
+public abstract class TypeMergeHandlerBase<T>: ITypeMergeHandler where T : ITypeInfo
 {
     private readonly MergeTypeRuleDelegate _next;
 
-    protected TypeMergeHanlderBase(MergeTypeRuleDelegate next)
+    protected TypeMergeHandlerBase(MergeTypeRuleDelegate next)
     {
         _next = next ?? throw new ArgumentNullException(nameof(next));
     }

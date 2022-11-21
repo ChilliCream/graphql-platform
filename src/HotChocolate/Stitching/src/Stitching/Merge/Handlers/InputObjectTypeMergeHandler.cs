@@ -7,7 +7,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Stitching.Merge.Handlers;
 
 internal class InputObjectTypeMergeHandler
-    : TypeMergeHanlderBase<InputObjectTypeInfo>
+    : TypeMergeHandlerBase<InputObjectTypeInfo>
 {
     public InputObjectTypeMergeHandler(MergeTypeRuleDelegate next)
         : base(next)

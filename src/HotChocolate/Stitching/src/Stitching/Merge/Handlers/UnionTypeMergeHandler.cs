@@ -1,14 +1,6 @@
-using System.ComponentModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using HotChocolate.Execution;
-using HotChocolate.Language;
-
 namespace HotChocolate.Stitching.Merge.Handlers;
 
-internal class UnionTypeMergeHandler
-    : ITypeMergeHandler
+internal class UnionTypeMergeHandler : ITypeMergeHandler
 {
     private readonly MergeTypeRuleDelegate _next;
 

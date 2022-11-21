@@ -1,12 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Merge.Handlers;
 
-internal class ObjectTypeMergeHandler
-    : TypeMergeHanlderBase<ObjectTypeInfo>
+internal class ObjectTypeMergeHandler : TypeMergeHandlerBase<ObjectTypeInfo>
 {
     public ObjectTypeMergeHandler(MergeTypeRuleDelegate next)
         : base(next)

@@ -1,10 +1,4 @@
-using System;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate;
 using HotChocolate.Execution;
@@ -120,7 +114,7 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
         return AddRemoteSchema(
             builder,
             schemaName,
-            (services, cancellationToken) =>
+            (_, __) =>
                 new ValueTask<RemoteSchemaDefinition>(
                     new RemoteSchemaDefinition(
                         schemaName,
@@ -144,17 +138,11 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
         return AddRemoteSchema(
             builder,
             schemaName,
-            async (services, cancellationToken) =>
+            async (_, cancellationToken) =>
             {
-#if NETSTANDARD2_0
-                    byte[] schemaSdl = await Task
-                        .Run(() => File.ReadAllBytes(fileName), cancellationToken)
-                        .ConfigureAwait(false);
-#else
                 var schemaSdl = await File
                     .ReadAllBytesAsync(fileName, cancellationToken)
                     .ConfigureAwait(false);
-#endif
 
                 return new RemoteSchemaDefinition(
                     schemaName,
@@ -192,7 +180,8 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
                     sp => new HttpRequestClient(
                         sp.GetCombinedServices().GetRequiredService<IHttpClientFactory>(),
                         sp.GetRequiredService<IErrorHandler>(),
-                        sp.GetCombinedServices().GetRequiredService<IHttpStitchingRequestInterceptor>()));
+                        sp.GetCombinedServices()
+                            .GetRequiredService<IHttpStitchingRequestInterceptor>()));
 
                 services.TryAddSingleton<
                     IHttpStitchingRequestInterceptor,

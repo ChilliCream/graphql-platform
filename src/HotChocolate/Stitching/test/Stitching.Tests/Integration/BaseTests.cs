@@ -1,16 +1,11 @@
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Stitching.Schemas.Contracts;
 using HotChocolate.Stitching.Schemas.Customers;
 using HotChocolate.Tests;
 using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Stitching.Integration;
 
@@ -786,13 +781,40 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         // act
         var result = await executor.ExecuteAsync(
             @"{
-                    customer(id: ""Q3VzdG9tZXIKZDE="") {
-                        guid
-                    }
-                }");
+                customer(id: ""Q3VzdG9tZXIKZDE="") {
+                    guid
+                }
+            }");
 
         // assert
         result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task AutoMerge_Execute_Schema_GuidField()
+    {
+        // arrange
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
+
+        var schema =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddRemoteSchema(Context.ContractSchema)
+                .AddRemoteSchema(Context.CustomerSchema)
+                .AddTypeExtensionsFromString(
+                    @"extend type Customer {
+                            guid: UUID!
+                                @delegate(
+                                    schema: ""contract"",
+                                    path: ""guid(guid:$fields:someGuid)"")
+                        }")
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildSchemaAsync();
+
+        // assert
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -902,22 +924,22 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         // act
         var result = await executor.ExecuteAsync(
             @"{
-                    customer(id: ""Q3VzdG9tZXIKZDE="") {
+                customer(id: ""Q3VzdG9tZXIKZDE="") {
+                    name
+                    consultant {
                         name
-                        consultant {
-                            name
+                    }
+                    contracts {
+                        id
+                        ... on LifeInsuranceContract {
+                            premium
                         }
-                        contracts {
-                            id
-                            ... on LifeInsuranceContract {
-                                premium
-                            }
-                            ... on SomeOtherContract {
-                                expiryDate
-                            }
+                        ... on SomeOtherContract {
+                            expiryDate
                         }
                     }
-                }");
+                }
+            }");
 
         // assert
         result.MatchSnapshot();

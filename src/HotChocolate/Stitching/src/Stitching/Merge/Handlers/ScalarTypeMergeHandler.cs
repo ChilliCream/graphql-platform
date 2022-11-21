@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace HotChocolate.Stitching.Merge.Handlers;
 
-internal class ScalarTypeMergeHandler
-    : ITypeMergeHandler
+internal class ScalarTypeMergeHandler : ITypeMergeHandler
 {
     private readonly MergeTypeRuleDelegate _next;
 
