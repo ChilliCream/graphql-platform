@@ -1,6 +1,6 @@
 {
-  "ContentType": "application/json; charset=utf-8",
-  "StatusCode": "OK",
+  "ContentType": "application/graphql-response+json; charset=utf-8",
+  "StatusCode": "MethodNotAllowed",
   "Data": null,
   "Errors": [
     {
