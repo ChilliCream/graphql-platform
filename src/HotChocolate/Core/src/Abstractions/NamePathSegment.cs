@@ -34,7 +34,7 @@ public sealed class NamePathSegment : Path
         }
 
         if (other is NamePathSegment name &&
-            Depth.Equals(name.Depth) &&
+            Length.Equals(name.Length) &&
             string.Equals(Name, name.Name, Ordinal))
         {
             if (ReferenceEquals(Parent, other.Parent))
@@ -50,11 +50,11 @@ public sealed class NamePathSegment : Path
 
     /// <inheritdoc />
     public override Path Clone()
-        => new NamePathSegment { Depth = Depth, Name = Name, Parent = Parent.Clone() };
+        => new NamePathSegment { Length = Length, Name = Name, Parent = Parent.Clone() };
 
     /// <inheritdoc />
     public override int GetHashCode()
         // ReSharper disable NonReadonlyMemberInGetHashCode
-        => HashCode.Combine(Parent, Depth, Name);
+        => HashCode.Combine(Parent, Length, Name);
         // ReSharper restore NonReadonlyMemberInGetHashCode
 }

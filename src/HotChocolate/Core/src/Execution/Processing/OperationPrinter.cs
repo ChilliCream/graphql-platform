@@ -76,7 +76,7 @@ internal static class OperationPrinter
 
             foreach (var fragment in selectionSet.Fragments)
             {
-                if (context.GetOrCreateFragmentName(fragment.SelectionSetId, out var fragmentName))
+                if (context.GetOrCreateFragmentName(fragment.SelectionSet.Id, out var fragmentName))
                 {
                     var index = context.Definitions.Count;
                     context.Definitions.Add(default!);

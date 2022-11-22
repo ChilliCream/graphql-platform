@@ -136,7 +136,7 @@ public class InputObjectTypeDescriptor
 
     protected virtual void OnCompleteFields(
         IDictionary<string, InputFieldDefinition> fields,
-        ISet<MemberInfo> handledProperties)
+        ISet<MemberInfo> handledMembers)
     { }
 
     public IInputObjectTypeDescriptor SyntaxNode(

@@ -1,3 +1,3 @@
 ﻿For more details look at the `Errors` property.
 
-1. The type `Qux` implements the node interface but does not provide a node resolver for re-fetching.
+1. The type `Qux` implements the node interface but does not provide a node resolver for re-fetching. (HotChocolate.Types.ObjectType<HotChocolate.Types.NodeTypeTests.Qux>)

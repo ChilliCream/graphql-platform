@@ -19,6 +19,8 @@ namespace HotChocolate.Execution.Processing;
 /// </summary>
 public sealed partial class OperationCompiler
 {
+    private static readonly ImmutableList<ISelectionSetOptimizer> _emptyOptimizers =
+        ImmutableList<ISelectionSetOptimizer>.Empty;
     private readonly InputParser _parser;
     private readonly Stack<BacklogItem> _backlog = new();
     private readonly Dictionary<Selection, SelectionSetInfo[]> _selectionLookup = new();
@@ -82,7 +84,7 @@ public sealed partial class OperationCompiler
             // prepare optimizers
             PrepareOptimizers(optimizers);
 
-            var rootOptimizers = ImmutableList<ISelectionSetOptimizer>.Empty;
+            var rootOptimizers = _emptyOptimizers;
 
             if (_selectionSetOptimizers.Count > 0)
             {
@@ -559,7 +561,6 @@ public sealed partial class OperationCompiler
                     context.Type,
                     selection,
                     directives,
-                    selectionSetId: id,
                     variants.GetSelectionSet(context.Type),
                     includeCondition,
                     ifConditionFlags);

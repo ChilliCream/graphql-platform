@@ -81,8 +81,7 @@ internal partial class MiddlewareContext
             => _parentContext.ContextData;
 
         public T Parent<T>()
-        {
-            return _parent switch
+            => _parent switch
             {
                 T casted => casted,
                 null => default!,
@@ -92,7 +91,6 @@ internal partial class MiddlewareContext
                     typeof(T),
                     _parent.GetType())
             };
-        }
 
         public T ArgumentValue<T>(string name)
         {

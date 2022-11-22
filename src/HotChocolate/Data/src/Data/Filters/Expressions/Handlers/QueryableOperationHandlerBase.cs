@@ -1,8 +1,6 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using HotChocolate.Data.Filters.Internal;
-using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -16,6 +14,9 @@ public abstract class QueryableOperationHandlerBase
         InputParser = inputParser;
     }
 
+    /// <summary>
+    /// Provides access to the input parser.
+    /// </summary>
     protected InputParser InputParser { get; }
 
     public override bool TryHandleOperation(
