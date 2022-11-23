@@ -217,23 +217,10 @@ export function useProductInformation(
 
   return {
     path: selectedPath,
-    name: getProductNameFromPath(selectedPath),
+    name: selectedProduct?.title ?? "",
     version: selectedVersion,
     stableVersion,
   };
-}
-
-function getProductNameFromPath(path: string): string | null {
-  switch (path) {
-    case "hotchocolate":
-      return "Hot Chocolate";
-    case "strawberryshake":
-      return "Strawberry Shake";
-    case "bananacakepop":
-      return "Banana Cake Pop";
-    default:
-      return null;
-  }
 }
 
 const ResponsiveMenuWrapper = styled.div`

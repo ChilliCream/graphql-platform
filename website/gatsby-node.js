@@ -477,12 +477,6 @@ function createHotChocolateRedirects(product, createRedirect) {
   });
 
   createRedirect({
-    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/security/authorization`,
-    toPath: "/docs/hotchocolate/security/authorization",
-    redirectInBrowser: true,
-  });
-
-  createRedirect({
     fromPath: `/docs/hotchocolate/${product.latestStableVersion}/security/security`,
     toPath: "/docs/hotchocolate/security",
     redirectInBrowser: true,
