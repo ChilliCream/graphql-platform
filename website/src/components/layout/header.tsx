@@ -30,7 +30,7 @@ import TwitterIconSvg from "../../images/twitter.svg";
 import YouTubeIconSvg from "../../images/youtube.svg";
 import { FONT_FAMILY_HEADING, THEME_COLORS } from "../../shared-style";
 import { useObservable } from "../../state";
-import { WorkshopNdcMinnesota } from "../images/workshop-ndc-minnesota";
+import { WorkshopNdcLondon } from "../images/workshop-ndc-london";
 import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
 import { SearchModal } from "../misc/search-modal";
@@ -500,16 +500,14 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
       </SubNavMain>
       <SubNavAdditionalInfo>
         <SubNavTitle>Upcoming Workshop</SubNavTitle>
-        <TeaserLink to="https://ndcminnesota.com/workshops/building-modern-applications-with-graphql-using-asp-net-core-6-hot-chocolate-and-relay/c58c2f23b8aa">
+        <TeaserLink to="https://ndclondon.com/workshops/reactive-mobile-apps-with-graphql-and-maui/8a69a3c2659d">
           <TeaserImage>
-            <WorkshopNdcMinnesota />
+            <WorkshopNdcLondon />
           </TeaserImage>
           <TeaserMetadata>
-            15 - 18 Nov 2022 ・ NDC {"{"} Minnesota {"}"}
+            23 - 24 Nov 2022 ・ NDC {"{"} London {"}"}
           </TeaserMetadata>
-          <TeaserTitle>
-            Building Modern Apps with GraphQL in ASP.NET Core 7 and React 18
-          </TeaserTitle>
+          <TeaserTitle>Reactive Mobile Apps with GraphQL and Maui</TeaserTitle>
         </TeaserLink>
       </SubNavAdditionalInfo>
     </>
