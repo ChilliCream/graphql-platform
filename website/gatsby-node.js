@@ -487,6 +487,12 @@ function createHotChocolateRedirects(product, createRedirect) {
     toPath: "/docs/hotchocolate/distributed-schema",
     redirectInBrowser: true,
   });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/tutorials`,
+    toPath: "/docs/hotchocolate/integrations/entity-framework",
+    redirectInBrowser: true,
+  });
 }
 
 const productAndVersionPattern = /^\/docs\/([\w-]+)(?:\/(v\d+))?/;
