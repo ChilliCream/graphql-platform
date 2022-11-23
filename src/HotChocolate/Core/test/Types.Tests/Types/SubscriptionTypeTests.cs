@@ -645,23 +645,7 @@ public class SubscriptionTypeTests : TypeTestBase
         executor.Schema.ToString().MatchSnapshot();
     }
 
-    [Fact]
-    public async Task Subscribe_Attribute_With_Two_Topic_Attributes_Error()
-    {
-        // arrange
-        // act
-        async Task Error() => await CreateExecutorAsync(r => r.AddInMemorySubscriptions()
-            .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-            .AddSubscriptionType<InvalidSubscription_TwoTopicAttributes>());
-
-        // assert
-        (await Assert.ThrowsAsync<SchemaException>(Error)).Message.MatchSnapshot();
-    }
-
-    public class TestObservable
-        : IObservable<string>
-            , IDisposable
-
+    public class TestObservable : IObservable<string>, IDisposable
     {
         public bool DisposeRaised { get; private set; }
 
@@ -986,8 +970,9 @@ public class SubscriptionTypeTests : TypeTestBase
     public class MySubscription
     {
         [Subscribe]
+        [Topic("{userid}")]
         public string OnMessage(
-            [Topic] string userId,
+            string userId,
             [EventMessage] string message) =>
             message;
 
@@ -1041,16 +1026,6 @@ public class SubscriptionTypeTests : TypeTestBase
 
         [Subscribe(With = nameof(SubscribeToOnExplicitSync))]
         public string OnExplicitSync(
-            [EventMessage] string message) =>
-            message;
-    }
-
-    public class InvalidSubscription_TwoTopicAttributes
-    {
-        [Subscribe]
-        [Topic]
-        public string OnMessage(
-            [Topic] string userId,
             [EventMessage] string message) =>
             message;
     }

@@ -24,8 +24,7 @@ public interface ITopicEventReceiver
     /// Returns a <see cref="ISourceStream{TMessage}" />
     /// for the given event <paramref name="topic" />.
     /// </returns>
-    ValueTask<ISourceStream<TMessage>> SubscribeAsync<TTopic, TMessage>(
-        TTopic topic,
-        CancellationToken cancellationToken = default)
-        where TTopic : notnull;
+    ValueTask<ISourceStream<TMessage>> SubscribeAsync<TMessage>(
+        string topic,
+        CancellationToken cancellationToken = default);
 }

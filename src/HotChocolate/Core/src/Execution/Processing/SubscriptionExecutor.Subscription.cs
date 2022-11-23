@@ -67,9 +67,6 @@ internal sealed partial class SubscriptionExecutor
         /// <param name="requestContext">
         /// The original request context.
         /// </param>
-        /// <param name="queryPlan">
-        /// The subscription query plan.
-        /// </param>
         /// <param name="subscriptionType">
         /// The object type that represents the subscription.
         /// </param>

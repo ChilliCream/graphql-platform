@@ -2,23 +2,20 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using static System.StringComparer;
 
 namespace HotChocolate.Subscriptions.InMemory;
 
-public class InMemoryPubSub
-    : ITopicEventReceiver
-    , ITopicEventSender
+public class InMemoryPubSub : ITopicEventReceiver, ITopicEventSender
 {
-    private readonly ConcurrentDictionary<object, IEventTopic> _topics =
-        new ConcurrentDictionary<object, IEventTopic>();
+    private readonly ConcurrentDictionary<string, IEventTopic> _topics = new(Ordinal);
 
-    public ValueTask SendAsync<TTopic, TMessage>(
-        TTopic topic,
+    public ValueTask SendAsync<TMessage>(
+        string topic,
         TMessage message,
         CancellationToken cancellationToken = default)
-        where TTopic : notnull
     {
-        IEventTopic eventTopic = _topics.GetOrAdd(topic, s => new EventTopic<TMessage>());
+        var eventTopic = _topics.GetOrAdd(topic, t => CreateTopic<TMessage>(t));
 
         if (eventTopic is EventTopic<TMessage> et)
         {
@@ -29,21 +26,19 @@ public class InMemoryPubSub
         throw new InvalidMessageTypeException();
     }
 
-    public async ValueTask CompleteAsync<TTopic>(TTopic topic)
-        where TTopic : notnull
+    public async ValueTask CompleteAsync(string topic)
     {
-        if (_topics.TryRemove(topic, out IEventTopic? eventTopic))
+        if (_topics.TryRemove(topic, out var eventTopic))
         {
             await eventTopic.CompleteAsync().ConfigureAwait(false);
         }
     }
 
-    public async ValueTask<ISourceStream<TMessage>> SubscribeAsync<TTopic, TMessage>(
-        TTopic topic,
+    public async ValueTask<ISourceStream<TMessage>> SubscribeAsync<TMessage>(
+        string topic,
         CancellationToken cancellationToken = default)
-        where TTopic : notnull
     {
-        IEventTopic eventTopic = _topics.GetOrAdd(topic, s => new EventTopic<TMessage>());
+        var eventTopic = _topics.GetOrAdd(topic, t => CreateTopic<TMessage>(t));
 
         if (eventTopic is EventTopic<TMessage> et)
         {
@@ -51,5 +46,17 @@ public class InMemoryPubSub
         }
 
         throw new InvalidMessageTypeException();
+    }
+
+    private EventTopic<TMessage> CreateTopic<TMessage>(string topic)
+    {
+        var eventTopic = new EventTopic<TMessage>(topic);
+        eventTopic.Unsubscribed += (sender, __) =>
+        {
+            var s = (EventTopic<TMessage>)sender!;
+            _topics.TryRemove(s.Topic, out _);
+            s.Dispose();
+        };
+        return eventTopic;
     }
 }

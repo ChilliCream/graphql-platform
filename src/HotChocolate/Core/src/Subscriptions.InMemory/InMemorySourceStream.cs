@@ -4,17 +4,18 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Types;
 using static HotChocolate.Subscriptions.InMemory.Properties.Resources;
 
 namespace HotChocolate.Subscriptions.InMemory;
 
-public class InMemorySourceStream<TMessage> : ISourceStream<TMessage>
+internal sealed class InMemorySourceStream<TMessage> : ISourceStream<TMessage>
 {
-    private readonly Channel<TMessage> _channel;
+    private readonly Channel<EventMessageEnvelope<TMessage>> _channel;
     private bool _read;
     private bool _disposed;
 
-    public InMemorySourceStream(Channel<TMessage> channel)
+    public InMemorySourceStream(Channel<EventMessageEnvelope<TMessage>> channel)
     {
         _channel = channel;
     }
@@ -51,9 +52,9 @@ public class InMemorySourceStream<TMessage> : ISourceStream<TMessage>
 
     private sealed class EnumerateMessages<T> : IAsyncEnumerable<T>
     {
-        private readonly Channel<T> _channel;
+        private readonly Channel<EventMessageEnvelope<T>> _channel;
 
-        public EnumerateMessages(Channel<T> channel)
+        public EnumerateMessages(Channel<EventMessageEnvelope<T>> channel)
         {
             _channel = channel;
         }
@@ -67,24 +68,23 @@ public class InMemorySourceStream<TMessage> : ISourceStream<TMessage>
         private async IAsyncEnumerator<T> GetAsyncEnumeratorInternally(
             CancellationToken cancellationToken = default)
         {
-            while (await _channel.Reader.WaitToReadAsync(cancellationToken)
-                .ConfigureAwait(false))
+            while (await _channel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
             {
-                if (cancellationToken.IsCancellationRequested)
+                while (_channel.Reader.TryRead(out var value))
                 {
-                    yield break;
-                }
+                    if (value.IsCompletedMessage)
+                    {
+                        _channel.Writer.TryComplete();
+                        yield break;
+                    }
 
-                while (_channel.Reader.TryRead(out T? value))
-                {
-                    yield return value;
+                    yield return value.Body;
                 }
             }
         }
 
         private ValueTask CompleteChannel()
         {
-            // no more readers, outgoing channel should be closed
             _channel.Writer.TryComplete();
             return default;
         }
@@ -102,7 +102,7 @@ public class InMemorySourceStream<TMessage> : ISourceStream<TMessage>
         public async IAsyncEnumerator<object> GetAsyncEnumerator(
             CancellationToken cancellationToken = default)
         {
-            await foreach (TMessage message in _messages.WithCancellation(cancellationToken))
+            await foreach (var message in _messages.WithCancellation(cancellationToken))
             {
                 yield return message!;
             }

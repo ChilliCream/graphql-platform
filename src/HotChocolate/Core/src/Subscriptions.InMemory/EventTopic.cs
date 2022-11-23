@@ -7,26 +7,26 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Subscriptions.InMemory;
 
-internal sealed class EventTopic<TMessage>
-    : IEventTopic
-        , IDisposable
+internal sealed class EventTopic<TMessage> : IEventTopic
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
-    private readonly Channel<TMessage> _incoming = Channel.CreateUnbounded<TMessage>();
-    private readonly List<Channel<TMessage>> _outgoing = new();
+    private readonly Channel<EventMessageEnvelope<TMessage>> _incoming =
+        Channel.CreateUnbounded<EventMessageEnvelope<TMessage>>();
+    private readonly List<Channel<EventMessageEnvelope<TMessage>>> _outgoing = new();
     private bool _disposed;
 
     public event EventHandler<EventArgs>? Unsubscribed;
 
-    public EventTopic()
+    public EventTopic(string topic)
     {
+        Topic = topic;
         BeginProcessing();
     }
 
+    public string Topic { get; }
+
     public void TryWrite(TMessage message)
-    {
-        _incoming.Writer.TryWrite(message);
-    }
+        => _incoming.Writer.TryWrite(new EventMessageEnvelope<TMessage>(message));
 
     public async ValueTask CompleteAsync()
     {
@@ -36,7 +36,7 @@ internal sealed class EventTopic<TMessage>
         {
             for (var i = 0; i < _outgoing.Count; i++)
             {
-                _outgoing[i].Writer.TryComplete();
+                _outgoing[i].Writer.TryWrite(new EventMessageEnvelope<TMessage>());
             }
             _outgoing.Clear();
         }
@@ -51,7 +51,7 @@ internal sealed class EventTopic<TMessage>
 
         try
         {
-            var channel = Channel.CreateUnbounded<TMessage>();
+            var channel = Channel.CreateUnbounded<EventMessageEnvelope<TMessage>>();
             var stream = new InMemorySourceStream<TMessage>(channel);
             _outgoing.Add(channel);
 
@@ -63,49 +63,10 @@ internal sealed class EventTopic<TMessage>
         }
     }
 
-    public async Task<bool> TryClose()
-    {
-        await _semaphore.WaitAsync().ConfigureAwait(false);
-
-        try
-        {
-            if (_outgoing.Count > 0)
-            {
-                ImmutableHashSet<Channel<TMessage>> closedChannel =
-                    ImmutableHashSet<Channel<TMessage>>.Empty;
-
-                for (var i = 0; i < _outgoing.Count; i++)
-                {
-                    if (_outgoing[i].Reader.Completion.IsCompleted)
-                    {
-                        closedChannel = closedChannel.Add(_outgoing[i]);
-                    }
-                }
-
-                _outgoing.RemoveAll(c => closedChannel.Contains(c));
-            }
-
-            if (_outgoing.Count == 0)
-            {
-                Dispose();
-                return true;
-            }
-
-            return false;
-        }
-        finally
-        {
-            if (!_disposed)
-            {
-                _semaphore.Release();
-            }
-        }
-    }
-
     private void BeginProcessing()
-    {
-        Task.Run(async () => await ProcessMessages().ConfigureAwait(false));
-    }
+        => Task.Factory.StartNew(
+            async () => await ProcessMessages().ConfigureAwait(false),
+            TaskCreationOptions.LongRunning);
 
     private async Task ProcessMessages()
     {
@@ -117,17 +78,13 @@ internal sealed class EventTopic<TMessage>
 
                 try
                 {
-                    TMessage message =
-                        await _incoming.Reader.ReadAsync().ConfigureAwait(false);
-
-                    ImmutableHashSet<Channel<TMessage>> closedChannel =
-                        ImmutableHashSet<Channel<TMessage>>.Empty;
-
+                    var message = await _incoming.Reader.ReadAsync().ConfigureAwait(false);
+                    var closedChannel = ImmutableHashSet<Channel<EventMessageEnvelope<TMessage>>>.Empty;
                     var outgoingCount = _outgoing.Count;
 
                     for (var i = 0; i < outgoingCount; i++)
                     {
-                        Channel<TMessage> channel = _outgoing[i];
+                        var channel = _outgoing[i];
 
                         // close outgoing channel if related subscription is completed
                         // (no reader available)
@@ -160,9 +117,7 @@ internal sealed class EventTopic<TMessage>
 
 
     private void RaiseUnsubscribedEvent()
-    {
-        Task.Run(() => Unsubscribed?.Invoke(this, EventArgs.Empty));
-    }
+        => Task.Run(() => Unsubscribed?.Invoke(this, EventArgs.Empty));
 
     public void Dispose()
     {
@@ -173,7 +128,6 @@ internal sealed class EventTopic<TMessage>
                 for (var i = 0; i < _outgoing.Count; i++)
                 {
                     _outgoing[i].Writer.TryComplete();
-                    ;
                 }
                 _outgoing.Clear();
             }

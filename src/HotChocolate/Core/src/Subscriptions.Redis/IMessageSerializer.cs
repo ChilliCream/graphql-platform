@@ -6,6 +6,11 @@ namespace HotChocolate.Subscriptions.Redis;
 public interface IMessageSerializer
 {
     /// <summary>
+    /// Gets the default complete message.
+    /// </summary>
+    string CompleteMessage { get; }
+
+    /// <summary>
     /// Serializes a topic ot a message to a string
     /// that is used to send it to the redis pub/sub.
     /// </summary>

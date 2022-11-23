@@ -6,12 +6,8 @@ using StackExchange.Redis;
 
 namespace HotChocolate.Subscriptions.Redis;
 
-public class RedisPubSub
-    : ITopicEventReceiver
-    , ITopicEventSender
+internal sealed class RedisPubSub : ITopicEventReceiver, ITopicEventSender
 {
-    internal const string Completed = "{completed}";
-
     private readonly IConnectionMultiplexer _connection;
     private readonly IMessageSerializer _messageSerializer;
 
@@ -23,38 +19,29 @@ public class RedisPubSub
             throw new ArgumentNullException(nameof(messageSerializer));
     }
 
-    public async ValueTask SendAsync<TTopic, TMessage>(
-        TTopic topic,
+    public async ValueTask<ISourceStream<TMessage>> SubscribeAsync<TMessage>(
+        string topic,
+        CancellationToken cancellationToken = default)
+    {
+        var subscriber = _connection.GetSubscriber();
+        var channel = await subscriber.SubscribeAsync(topic).ConfigureAwait(false);
+        return new RedisSourceStream<TMessage>(channel, _messageSerializer);
+    }
+
+    public async ValueTask SendAsync<TMessage>(
+        string topic,
         TMessage message,
         CancellationToken cancellationToken = default)
-        where TTopic : notnull
     {
         var subscriber = _connection.GetSubscriber();
-        var serializedTopic = topic as string ?? _messageSerializer.Serialize(topic);
-        var serializedMessage = _messageSerializer.Serialize(message);
-        await subscriber.PublishAsync(serializedTopic, serializedMessage).ConfigureAwait(false);
+        var serializedMessage = _messageSerializer.Serialize(new EventMessage<TMessage>(message));
+        await subscriber.PublishAsync(topic, serializedMessage).ConfigureAwait(false);
     }
 
-    public async ValueTask CompleteAsync<TTopic>(TTopic topic)
-        where TTopic : notnull
+    public async ValueTask CompleteAsync(string topic)
     {
         var subscriber = _connection.GetSubscriber();
-        var serializedTopic = topic as string ?? _messageSerializer.Serialize(topic);
-        await subscriber.PublishAsync(serializedTopic, Completed).ConfigureAwait(false);
-    }
-
-    public async ValueTask<ISourceStream<TMessage>> SubscribeAsync<TTopic, TMessage>(
-        TTopic topic,
-        CancellationToken cancellationToken = default)
-        where TTopic : notnull
-    {
-        var subscriber = _connection.GetSubscriber();
-        var serializedTopic = topic as string ?? _messageSerializer.Serialize(topic);
-
-        var channel = await subscriber
-            .SubscribeAsync(serializedTopic)
-            .ConfigureAwait(false);
-
-        return new RedisEventStream<TMessage>(channel, _messageSerializer);
+        var message = _messageSerializer.CompleteMessage;
+        await subscriber.PublishAsync(topic, message).ConfigureAwait(false);
     }
 }
