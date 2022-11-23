@@ -1,4 +1,6 @@
-# Configuring Strawberry Shake
+---
+title: Configuration
+---
 
 Strawberry Shake is configured by altering the `.graphqlrc.json` at the root of your project.
 All settings to into `extensions.strawberryShake` object.
