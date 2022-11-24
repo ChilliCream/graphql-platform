@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Subscriptions;
 using HotChocolate.Subscriptions.Redis;
@@ -11,7 +10,8 @@ public static class RedisSubscriptionsServiceCollectionExtensions
 {
     public static IServiceCollection AddRedisSubscriptions(
         this IServiceCollection services,
-        Func<IServiceProvider, IConnectionMultiplexer> connection)
+        Func<IServiceProvider, IConnectionMultiplexer> connection,
+        SubscriptionOptions? options = null)
     {
         if (services is null)
         {
@@ -23,10 +23,12 @@ public static class RedisSubscriptionsServiceCollectionExtensions
             throw new ArgumentNullException(nameof(connection));
         }
 
+        services.TryAddSingleton<SubscriptionOptions>(_ => options ?? new SubscriptionOptions());
         services.TryAddSingleton<IMessageSerializer, DefaultJsonMessageSerializer>();
         services.TryAddSingleton(sp => new RedisPubSub(
-            connection(sp),
-            sp.GetRequiredService<IMessageSerializer>()));
+            connection(sp).GetSubscriber(),
+            sp.GetRequiredService<IMessageSerializer>(),
+            sp.GetRequiredService<SubscriptionOptions>()));
         services.TryAddSingleton<ITopicEventSender>(sp =>
             sp.GetRequiredService<RedisPubSub>());
         services.TryAddSingleton<ITopicEventReceiver>(sp =>
@@ -36,7 +38,8 @@ public static class RedisSubscriptionsServiceCollectionExtensions
 
     public static IRequestExecutorBuilder AddRedisSubscriptions(
         this IRequestExecutorBuilder builder,
-        Func<IServiceProvider, IConnectionMultiplexer> connection)
+        Func<IServiceProvider, IConnectionMultiplexer> connection,
+        SubscriptionOptions? options = null)
     {
         if (builder is null)
         {
@@ -48,12 +51,13 @@ public static class RedisSubscriptionsServiceCollectionExtensions
             throw new ArgumentNullException(nameof(connection));
         }
 
-        AddRedisSubscriptions(builder.Services, connection);
+        AddRedisSubscriptions(builder.Services, connection, options);
         return builder;
     }
 
     public static IRequestExecutorBuilder AddRedisSubscriptions(
-        this IRequestExecutorBuilder builder)
+        this IRequestExecutorBuilder builder,
+        SubscriptionOptions? options = null)
     {
         if (builder is null)
         {
@@ -61,6 +65,7 @@ public static class RedisSubscriptionsServiceCollectionExtensions
         }
 
         return builder.AddRedisSubscriptions(
-            sp => sp.GetRequiredService<IConnectionMultiplexer>());
+            sp => sp.GetRequiredService<IConnectionMultiplexer>(),
+            options);
     }
 }

@@ -18,12 +18,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
     <ProjectReference Include="..\Subscriptions\HotChocolate.Subscriptions.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AlterNats.Hosting" Version="1.0.6" />
-    <PackageReference Include="AlterNats.MessagePack" Version="1.0.6" />
   </ItemGroup>
 
   <ItemGroup>

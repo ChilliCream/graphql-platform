@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace HotChocolate.Subscriptions.InMemory;
 
 internal sealed class InMemoryMessageEnvelope<TBody> : DefaultMessageEnvelope<TBody>

@@ -1,31 +1,64 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Collections.Concurrent;
 using HotChocolate.Execution;
 using StackExchange.Redis;
+using static System.StringComparer;
 
 namespace HotChocolate.Subscriptions.Redis;
 
 internal sealed class RedisPubSub : ITopicEventReceiver, ITopicEventSender
 {
-    private readonly IConnectionMultiplexer _connection;
-    private readonly IMessageSerializer _messageSerializer;
+    private readonly ConcurrentDictionary<string, IDisposable> _topics = new(Ordinal);
+    private readonly TopicFormatter _formatter;
+    private readonly SubscriptionOptions _options;
+    private readonly ISubscriber _subscriber;
+    private readonly IMessageSerializer _serializer;
+    private readonly string _completed;
 
-    public RedisPubSub(IConnectionMultiplexer connection, IMessageSerializer messageSerializer)
+    public RedisPubSub(
+        ISubscriber subscriber,
+        IMessageSerializer serializer,
+        SubscriptionOptions options)
     {
-        _connection = connection ??
-            throw new ArgumentNullException(nameof(connection));
-        _messageSerializer = messageSerializer ??
-            throw new ArgumentNullException(nameof(messageSerializer));
+        _subscriber = subscriber;
+        _serializer = serializer;
+        _completed = serializer.CompleteMessage;
+        _options = options;
+        _formatter = new TopicFormatter(options.TopicPrefix);
     }
 
     public async ValueTask<ISourceStream<TMessage>> SubscribeAsync<TMessage>(
         string topic,
+        int? bufferCapacity = null,
+        TopicBufferFullMode? bufferFullMode = null,
         CancellationToken cancellationToken = default)
     {
-        var subscriber = _connection.GetSubscriber();
-        var channel = await subscriber.SubscribeAsync(topic).ConfigureAwait(false);
-        return new RedisSourceStream<TMessage>(channel, _messageSerializer);
+        if (topic is null)
+        {
+            throw new ArgumentNullException(nameof(topic));
+        }
+
+        var formattedTopic = _formatter.Format(topic);
+        ISourceStream<TMessage>? sourceStream = null;
+
+        while (sourceStream is null)
+        {
+            var eventTopic = _topics.GetOrAdd(
+                formattedTopic,
+                t => CreateTopic<TMessage>(t, bufferCapacity, bufferFullMode));
+
+            if (eventTopic is RedisTopic<TMessage> et)
+            {
+                sourceStream = await et.TrySubscribeAsync(cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                // we found a topic with the same name but a different message type.
+                // this is an invalid state and we will except.
+                throw new InvalidMessageTypeException();
+            }
+        }
+
+        return sourceStream;
     }
 
     public async ValueTask SendAsync<TMessage>(
@@ -33,15 +66,47 @@ internal sealed class RedisPubSub : ITopicEventReceiver, ITopicEventSender
         TMessage message,
         CancellationToken cancellationToken = default)
     {
-        var subscriber = _connection.GetSubscriber();
-        var serializedMessage = _messageSerializer.Serialize(new EventMessage<TMessage>(message));
-        await subscriber.PublishAsync(topic, serializedMessage).ConfigureAwait(false);
+        if (topic is null)
+        {
+            throw new ArgumentNullException(nameof(topic));
+        }
+
+        var formattedTopic = _formatter.Format(topic);
+        var envelope = new RedisMessageEnvelope<TMessage>(message, false);
+        var serialized = _serializer.Serialize(envelope);
+        await _subscriber.PublishAsync(formattedTopic, serialized).ConfigureAwait(false);
     }
 
     public async ValueTask CompleteAsync(string topic)
     {
-        var subscriber = _connection.GetSubscriber();
-        var message = _messageSerializer.CompleteMessage;
-        await subscriber.PublishAsync(topic, message).ConfigureAwait(false);
+        if (topic is null)
+        {
+            throw new ArgumentNullException(nameof(topic));
+        }
+
+        var formattedTopic = _formatter.Format(topic);
+        await _subscriber.PublishAsync(formattedTopic, _completed).ConfigureAwait(false);
+    }
+
+    private RedisTopic<TMessage> CreateTopic<TMessage>(
+        string topic,
+        int? bufferCapacity,
+        TopicBufferFullMode? bufferFullMode)
+    {
+        var eventTopic = new RedisTopic<TMessage>(
+            topic,
+            _subscriber,
+            _serializer,
+            bufferCapacity ?? _options.TopicBufferCapacity,
+            bufferFullMode ?? _options.TopicBufferFullMode);
+
+        eventTopic.Unsubscribed += (sender, __) =>
+        {
+            var s = (RedisTopic<TMessage>)sender!;
+            _topics.TryRemove(s.Name, out _);
+            s.Dispose();
+        };
+
+        return eventTopic;
     }
 }

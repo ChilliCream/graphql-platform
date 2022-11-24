@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Channels;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
-#if !NETSTANDARD2_0
 using static System.Runtime.InteropServices.CollectionsMarshal;
-#endif
 using static System.Threading.Channels.Channel;
 
 namespace HotChocolate.Subscriptions;
@@ -124,12 +118,6 @@ public abstract class DefaultTopic<TEnvelope, TMessage>
         {
             if (await _incoming.Reader.WaitToReadAsync().ConfigureAwait(false))
             {
-#if NETSTANDARD2_0
-                await _semaphore.WaitAsync().ConfigureAwait(false);
-
-                try
-                {
-#endif
                 DispatchMessages(closedChannels, postponedMessages);
 
                 if (postponedMessages.Count > 0)
@@ -139,17 +127,25 @@ public abstract class DefaultTopic<TEnvelope, TMessage>
                         var postponedMessage = postponedMessages[i];
                         var channel = postponedMessage.Channel;
                         var message = postponedMessage.Message;
-                        await channel.Writer.WriteAsync(message).ConfigureAwait(false);
+
+                        try
+                        {
+                            await channel.Writer.WriteAsync(message).ConfigureAwait(false);
+                        }
+                        catch (ChannelClosedException)
+                        {
+                            // the channel might have been closed in the meantime.
+                            // we will skip over this error and the channel will be collected
+                            // on the next iteration.
+                        }
                     }
                     postponedMessages.Clear();
                 }
 
-#if !NETSTANDARD2_0
                 await _semaphore.WaitAsync().ConfigureAwait(false);
 
                 try
                 {
-#endif
                     if (closedChannels.Count > 0)
                     {
                         _outgoing.RemoveAll(c => closedChannels.Contains(c));

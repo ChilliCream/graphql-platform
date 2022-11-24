@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Subscriptions.Redis.Properties;
 using Newtonsoft.Json;
 

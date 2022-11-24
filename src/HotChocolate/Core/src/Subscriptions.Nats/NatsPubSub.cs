@@ -9,7 +9,7 @@ internal sealed class NatsPubSub : ITopicEventReceiver, ITopicEventSender, IDisp
 {
     private readonly CancellationTokenSource _cts = new();
     private readonly ConcurrentDictionary<string, IDisposable> _topics = new(Ordinal);
-    private readonly NatsTopicFormatter _formatter;
+    private readonly TopicFormatter _formatter;
     private readonly SubscriptionOptions _options;
     private readonly NatsConnection _connection;
     private readonly IMessageSerializer _serializer;
@@ -27,7 +27,7 @@ internal sealed class NatsPubSub : ITopicEventReceiver, ITopicEventSender, IDisp
         _serializer = serializer;
         _completed = serializer.CompleteMessage;
         _options = options;
-        _formatter = new NatsTopicFormatter(options.TopicPrefix);
+        _formatter = new TopicFormatter(options.TopicPrefix);
         _abortBackgroundWork = _cts.Token;
 
         // we start ping messages to the server to keep the connection alive.

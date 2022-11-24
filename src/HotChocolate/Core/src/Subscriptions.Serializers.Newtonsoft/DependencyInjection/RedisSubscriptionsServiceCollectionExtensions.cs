@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Subscriptions;
 using HotChocolate.Subscriptions.Redis;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -8,7 +9,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// Dependency injection helpers to register the Newtonsoft based message
 /// serializer for the Hot Chocolate Redis subscription provider.
 /// </summary>
-public static class NewtonsoftRedisSubscriptionsServiceCollectionExtensions
+public static class NewtonsoftSubscriptionsServiceCollectionExtensions
 {
     /// <summary>
     /// Adds a Newtonsoft based message serializer for the Hot Chocolate
@@ -23,7 +24,7 @@ public static class NewtonsoftRedisSubscriptionsServiceCollectionExtensions
     /// <exception cref="ArgumentNullException">
     /// The <paramref name="services"/> is <c>null</c>.
     /// </exception>
-    public static IServiceCollection AddRedisNewtonsoftSerialization(
+    public static IServiceCollection AddNewtonsoftMessageSerialization(
         this IServiceCollection services)
     {
         if (services is null)

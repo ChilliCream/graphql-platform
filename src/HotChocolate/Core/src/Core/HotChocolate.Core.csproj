@@ -18,7 +18,6 @@
     <ProjectReference Include="..\Validation\HotChocolate.Validation.csproj" />
     <ProjectReference Include="..\Fetching\HotChocolate.Fetching.csproj" />
     <ProjectReference Include="..\Execution\HotChocolate.Execution.csproj" />
-    <ProjectReference Include="..\Subscriptions.InMemory\HotChocolate.Subscriptions.InMemory.csproj" />
   </ItemGroup>
 
 </Project>

@@ -14,7 +14,7 @@ namespace HotChocolate.Subscriptions.Nats;
 
 public class NatsIntegrationTests : IClassFixture<NatsResource>
 {
-    private const int _timeout = 100000000;
+    private const int _timeout = 5000;
     private readonly NatsResource _natsResource;
 
     public NatsIntegrationTests(NatsResource natsResource)
@@ -34,7 +34,7 @@ public class NatsIntegrationTests : IClassFixture<NatsResource>
                 Url = _natsResource.NatsConnectionString
             })
             .AddLogging()
-            .AddNatsSubscriptions(new SubscriptionOptions { TopicPrefix = "test" })
+            .AddNatsSubscriptions(new SubscriptionOptions { TopicPrefix = "Subscribe_Infer_Topic" })
             .AddGraphQL()
             .AddSubscriptionType<Subscription>()
             .ModifyOptions(o => o.StrictValidation = false)
@@ -42,25 +42,39 @@ public class NatsIntegrationTests : IClassFixture<NatsResource>
             .BuildServiceProvider();
 
         var sender = services.GetRequiredService<ITopicEventSender>();
-        var executorResolver = services.GetRequiredService<IRequestExecutorResolver>();
-        var executor = await executorResolver.GetRequestExecutorAsync(cancellationToken: cts.Token);
 
         // act
-        var result = await executor.ExecuteAsync("subscription { onMessage }", cts.Token);
+        var result = await services.ExecuteRequestAsync(
+            "subscription { onMessage }",
+            cancellationToken: cts.Token);
 
         // we need to execute the read for the subscription to start receiving.
         await using var responseStream = result.ExpectResponseStream();
         var results = responseStream.ReadResultsAsync();
 
         // assert
-        await sender.SendAsync("OnMessage", "bar", cts.Token);
-        await sender.CompleteAsync("OnMessage");
+        Task.Factory.StartNew(
+            async () =>
+            {
+                await Task.Delay(50, cts.Token);
+                await sender.SendAsync("OnMessage", "bar", cts.Token);
+                await sender.CompleteAsync("OnMessage");
+            },
+            TaskCreationOptions.LongRunning);
+
+        var snapshot = new Snapshot();
 
         await foreach (var response in results.WithCancellation(cts.Token))
         {
-            Assert.Null(response.Errors);
-            Assert.Equal("bar", response.Data!["onMessage"]);
+            snapshot.Add(response);
         }
+
+        snapshot.MatchInline(
+            @"{
+              ""data"": {
+                ""onMessage"": ""bar""
+              }
+            }");
     }
 
     [Fact]
@@ -75,30 +89,33 @@ public class NatsIntegrationTests : IClassFixture<NatsResource>
                 Url = _natsResource.NatsConnectionString
             })
             .AddLogging()
-            .AddNatsSubscriptions(new SubscriptionOptions { TopicPrefix = "test" })
+            .AddNatsSubscriptions(new SubscriptionOptions { TopicPrefix = "Subscribe_Static_Topic" })
             .AddGraphQL()
-            .AddQueryType(d => d
-                .Name("foo")
-                .Field("a")
-                .Resolve("b"))
             .AddSubscriptionType<Subscription2>()
+            .ModifyOptions(o => o.StrictValidation = false)
             .Services
             .BuildServiceProvider();
 
         var sender = services.GetRequiredService<ITopicEventSender>();
-        var executorResolver = services.GetRequiredService<IRequestExecutorResolver>();
-        var executor = await executorResolver.GetRequestExecutorAsync(cancellationToken: cts.Token);
 
         // act
-        var result = await executor.ExecuteAsync("subscription { onMessage { bar } }", cts.Token);
+        var result = await services.ExecuteRequestAsync(
+            "subscription { onMessage { bar } }",
+            cancellationToken: cts.Token);
 
         // we need to execute the read for the subscription to start receiving.
         await using var responseStream = result.ExpectResponseStream();
         var results = responseStream.ReadResultsAsync();
 
         // assert
-        await sender.SendAsync("OnMessage", new Foo { Bar = "Hello" }, cts.Token);
-        await sender.CompleteAsync("OnMessage");
+        Task.Factory.StartNew(
+            async () =>
+            {
+                await Task.Delay(50, cts.Token);
+                await sender.SendAsync("OnMessage", new Foo { Bar = "Hello" }, cts.Token);
+                await sender.CompleteAsync("OnMessage");
+            },
+            TaskCreationOptions.LongRunning);
 
         var snapshot = new Snapshot();
 
@@ -129,13 +146,10 @@ public class NatsIntegrationTests : IClassFixture<NatsResource>
                 Url = _natsResource.NatsConnectionString
             })
             .AddLogging()
-            .AddNatsSubscriptions(new SubscriptionOptions { TopicPrefix = "test" })
+            .AddNatsSubscriptions(new SubscriptionOptions { TopicPrefix = "Subscribe_Topic_With_Arguments" })
             .AddGraphQL()
-            .AddQueryType(d => d
-                .Name("foo")
-                .Field("a")
-                .Resolve("b"))
             .AddSubscriptionType<Subscription3>()
+            .ModifyOptions(o => o.StrictValidation = false)
             .Services
             .BuildServiceProvider();
 
@@ -147,6 +161,7 @@ public class NatsIntegrationTests : IClassFixture<NatsResource>
         var resultA = await executor.ExecuteAsync(
             "subscription { onMessage(arg:\"a\") }",
             cts.Token);
+
         var resultB = await executor.ExecuteAsync(
             "subscription { onMessage(arg:\"b\") }",
             cts.Token);
@@ -154,14 +169,19 @@ public class NatsIntegrationTests : IClassFixture<NatsResource>
         // we need to execute the read for the subscription to start receiving.
         await using var responseStreamA = resultA.ExpectResponseStream();
         var resultsA = responseStreamA.ReadResultsAsync();
+
         await using var responseStreamB = resultB.ExpectResponseStream();
         var resultsB = responseStreamB.ReadResultsAsync();
 
         // assert
-        await sender.SendAsync("OnMessage_a", "abc", cts.Token);
-        await sender.CompleteAsync("OnMessage_a");
-        await sender.SendAsync("OnMessage_b", "def", cts.Token);
-        await sender.CompleteAsync("OnMessage_b");
+        Task.Factory.StartNew(
+            async () =>
+            {
+                await Task.Delay(50, cts.Token);
+                await sender.SendAsync("OnMessage_a", "abc", cts.Token);
+                await sender.CompleteAsync("OnMessage_a");
+            },
+            TaskCreationOptions.LongRunning);
 
         var snapshot = new Snapshot();
 
@@ -169,6 +189,15 @@ public class NatsIntegrationTests : IClassFixture<NatsResource>
         {
             snapshot.Add(response, name: "From Stream A");
         }
+
+        Task.Factory.StartNew(
+            async () =>
+            {
+                await Task.Delay(50, cts.Token);
+                await sender.SendAsync("OnMessage_b", "def", cts.Token);
+                await sender.CompleteAsync("OnMessage_b");
+            },
+            TaskCreationOptions.LongRunning);
 
         await foreach (var response in resultsB.WithCancellation(cts.Token))
         {
@@ -192,7 +221,8 @@ public class NatsIntegrationTests : IClassFixture<NatsResource>
                 ""onMessage"": ""def""
               }
             }
-            ---------------");
+            ---------------
+            ");
     }
 
     public class Subscription
