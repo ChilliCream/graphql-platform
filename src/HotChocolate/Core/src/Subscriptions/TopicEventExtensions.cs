@@ -31,7 +31,7 @@ public static class TopicEventExtensions
         TTopic topic,
         CancellationToken cancellationToken = default)
         where TTopic : notnull
-        => receiver.SubscribeAsync<TMessage>(Format(topic), cancellationToken);
+        => receiver.SubscribeAsync<TMessage>(Format(topic), null, null, cancellationToken);
 
     /// <summary>
     /// Sends an event message to the pub/sub-system.

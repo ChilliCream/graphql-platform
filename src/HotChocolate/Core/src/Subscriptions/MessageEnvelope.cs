@@ -1,27 +1,23 @@
-﻿#if NET6_0_OR_GREATER
+﻿
 using System.Diagnostics.CodeAnalysis;
-#endif
-using MessagePack;
 
-namespace HotChocolate.Subscriptions.Nats;
+namespace HotChocolate.Subscriptions;
 
-[MessagePackObject(true)]
-internal sealed class EventMessageEnvelope<TBody>
+public abstract class DefaultMessageEnvelope<TBody>
 {
-    [SerializationConstructor]
-    private EventMessageEnvelope(TBody? body, bool isCompletedMessage)
+    protected DefaultMessageEnvelope(TBody? body, bool isCompletedMessage)
     {
         Body = body;
         IsCompletedMessage = isCompletedMessage;
     }
 
-    public EventMessageEnvelope(TBody body)
+    protected DefaultMessageEnvelope(TBody body)
     {
         Body = body;
         IsCompletedMessage = false;
     }
 
-    public EventMessageEnvelope()
+    protected DefaultMessageEnvelope()
     {
         Body = default;
         IsCompletedMessage = true;

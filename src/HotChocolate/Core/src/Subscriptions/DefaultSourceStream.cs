@@ -1,17 +1,25 @@
-﻿using System.Threading.Channels;
+﻿using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Channels;
+using System.Threading.Tasks;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Subscriptions.Nats;
+namespace HotChocolate.Subscriptions;
 
 /// <summary>
 /// Represents the NATS event stream.
 /// </summary>
+/// <typeparam name="TEnvelope">
+/// The message envelope type.
+/// </typeparam>
 /// <typeparam name="TMessage">
 /// The message type.
 /// </typeparam>
-internal sealed class NatsSourceStream<TMessage> : ISourceStream<TMessage>
+public sealed class DefaultSourceStream<TEnvelope, TMessage>
+    : ISourceStream<TMessage>
+    where TEnvelope : DefaultMessageEnvelope<TMessage>
 {
-    private readonly Channel<EventMessageEnvelope<TMessage>> _channel;
+    private readonly Channel<TEnvelope> _channel;
 
     /// <summary>
     /// Initializes a new instance of <see cref="TMessage"/>.
@@ -19,16 +27,16 @@ internal sealed class NatsSourceStream<TMessage> : ISourceStream<TMessage>
     /// <param name="channel">
     /// The internal message channel.
     /// </param>
-    public NatsSourceStream(Channel<EventMessageEnvelope<TMessage>> channel)
+    public DefaultSourceStream(Channel<TEnvelope> channel)
         => _channel = channel;
 
     /// <inheritdoc />
     public IAsyncEnumerable<TMessage> ReadEventsAsync()
-        => new NatsAsyncEnumerable(_channel.Reader);
+        => new MessageEnumerable(_channel.Reader);
 
     /// <inheritdoc />
     IAsyncEnumerable<object> ISourceStream.ReadEventsAsync()
-        => new NatsAsyncEnumerableAsObject(_channel.Reader);
+        => new MessageEnumerableAsObject(_channel.Reader);
 
     /// <inheritdoc />
     public ValueTask DisposeAsync()
@@ -36,14 +44,14 @@ internal sealed class NatsSourceStream<TMessage> : ISourceStream<TMessage>
         // if the source stream is disposed, we are completing the channel which will trigger
         // an unsubscribe from the topic.
         _channel.Writer.TryComplete();
-        return ValueTask.CompletedTask;
+        return default;
     }
 
-    private sealed class NatsAsyncEnumerable : IAsyncEnumerable<TMessage>
+    private sealed class MessageEnumerable : IAsyncEnumerable<TMessage>
     {
-        private readonly ChannelReader<EventMessageEnvelope<TMessage>> _reader;
+        private readonly ChannelReader<TEnvelope> _reader;
 
-        public NatsAsyncEnumerable(ChannelReader<EventMessageEnvelope<TMessage>> reader)
+        public MessageEnumerable(ChannelReader<TEnvelope> reader)
             => _reader = reader;
 
         public async IAsyncEnumerator<TMessage> GetAsyncEnumerator(
@@ -66,11 +74,11 @@ internal sealed class NatsSourceStream<TMessage> : ISourceStream<TMessage>
         }
     }
 
-    private sealed class NatsAsyncEnumerableAsObject : IAsyncEnumerable<object>
+    private sealed class MessageEnumerableAsObject : IAsyncEnumerable<object>
     {
-        private readonly ChannelReader<EventMessageEnvelope<TMessage>> _reader;
+        private readonly ChannelReader<TEnvelope> _reader;
 
-        public NatsAsyncEnumerableAsObject(ChannelReader<EventMessageEnvelope<TMessage>> reader)
+        public MessageEnumerableAsObject(ChannelReader<TEnvelope> reader)
             => _reader = reader;
 
         public async IAsyncEnumerator<object> GetAsyncEnumerator(

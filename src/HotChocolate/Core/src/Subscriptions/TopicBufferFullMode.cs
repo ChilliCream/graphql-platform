@@ -1,27 +1,9 @@
-namespace HotChocolate.Subscriptions.Nats;
-
-public sealed class NatsPubSubOptions
-{
-    /// <summary>
-    /// Specifies the topic prefix.
-    /// </summary>
-    public string? TopicPrefix { get; set; }
-
-    /// <summary>
-    /// Specifies the in-memory buffer size for messages per topic.
-    /// </summary>
-    public int TopicBufferCapacity { get; set; } = 20;
-
-    /// <summary>
-    /// Specifies the behavior to use when writing to a topic buffer that is already full.
-    /// </summary>
-    public NatsTopicBufferFullMode TopicBufferFullMode { get; set; } = NatsTopicBufferFullMode.Wait;
-}
+namespace HotChocolate.Subscriptions;
 
 /// <summary>
 /// Specifies the behavior to use when writing to a topic buffer that is already full.
 /// </summary>
-public enum NatsTopicBufferFullMode
+public enum TopicBufferFullMode
 {
     /// <summary>
     /// Wait for space to be available in order to complete the write operation.

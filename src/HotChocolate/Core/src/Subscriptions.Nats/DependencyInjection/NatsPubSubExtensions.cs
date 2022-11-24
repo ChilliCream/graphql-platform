@@ -1,8 +1,6 @@
-using System.Text.RegularExpressions;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.Subscriptions;
 using HotChocolate.Subscriptions.Nats;
-using AlterNats;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -26,24 +24,22 @@ public static class NatsPubSubExtensions
     ///
     /// If you do not provide a prefix, the server will use the default prefix of "graphql".
     /// Only a-z,A-Z and 0-9 characters are permitted. The prefix is case sensitive. </param>
+    /// <param name="options"></param>
     /// <returns></returns>
     public static IServiceCollection AddNatsSubscriptions(
         this IServiceCollection services,
-        string prefix = "graphql")
+        SubscriptionOptions? options = null)
     {
-        // validate prefix only contains letters and numbers
-        if (string.IsNullOrWhiteSpace(prefix) || !Regex.IsMatch(prefix, "^[a-zA-Z0-9]+$"))
+        if (services == null)
         {
-            throw new ArgumentException(
-                NatsResources.NatsPubSubExtensions_AddNatsSubscriptions_PrefixInvalid,
-                nameof(prefix));
+            throw new ArgumentNullException(nameof(services));
         }
 
-        services.TryAddSingleton(
-            sp => new NatsPubSub(sp.GetRequiredService<NatsConnection>(), prefix));
+        services.TryAddSingleton(_ => options ?? new SubscriptionOptions());
+        services.TryAddSingleton<IMessageSerializer, DefaultJsonMessageSerializer>();
+        services.TryAddSingleton<NatsPubSub>();
         services.TryAddSingleton<ITopicEventSender>(sp => sp.GetRequiredService<NatsPubSub>());
         services.TryAddSingleton<ITopicEventReceiver>(sp => sp.GetRequiredService<NatsPubSub>());
-
         return services;
     }
 }

@@ -12,6 +12,10 @@
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
     <PackageReference Include="System.Text.Json" Version="6.0.0" />
   </ItemGroup>
+  
+  <ItemGroup Condition="'$(TargetFramework)' == 'NETSTANDARD2.0'">
+    <PackageReference Include="System.Threading.Channels" Version="4.7.0" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />

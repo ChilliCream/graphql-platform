@@ -1,3 +1,4 @@
+using System.Reflection.Emit;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -17,6 +18,12 @@ public interface ITopicEventReceiver
     /// <param name="topic">
     /// The topic to which the event message belongs to.
     /// </param>
+    /// <param name="bufferCapacity">
+    ///
+    /// </param>
+    /// <param name="bufferFullMode">
+    ///
+    /// </param>
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
@@ -26,5 +33,7 @@ public interface ITopicEventReceiver
     /// </returns>
     ValueTask<ISourceStream<TMessage>> SubscribeAsync<TMessage>(
         string topic,
+        int? bufferCapacity = null,
+        TopicBufferFullMode? bufferFullMode = null,
         CancellationToken cancellationToken = default);
 }

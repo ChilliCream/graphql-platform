@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace HotChocolate.Subscriptions.InMemory;
+namespace HotChocolate.Subscriptions;
 
 [Serializable]
 public class InvalidMessageTypeException : Exception

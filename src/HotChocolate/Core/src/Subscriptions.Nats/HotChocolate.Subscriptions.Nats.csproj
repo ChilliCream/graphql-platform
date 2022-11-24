@@ -1,38 +1,44 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-        <TargetFrameworks />
-    </PropertyGroup>
+  <PropertyGroup>
+    <PackageId>HotChocolate.Subscriptions.Nats</PackageId>
+    <AssemblyName>HotChocolate.Subscriptions.Nats</AssemblyName>
+    <RootNamespace>HotChocolate.Subscriptions.Nats</RootNamespace>
+    <Description>Contains a Hot Chocolate GraphQL subscription provider for NATS.</Description>
+  </PropertyGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\Execution\HotChocolate.Execution.csproj" />
-      <ProjectReference Include="..\Subscriptions.InMemory\HotChocolate.Subscriptions.InMemory.csproj" />
-      <ProjectReference Include="..\Subscriptions\HotChocolate.Subscriptions.csproj" />
-    </ItemGroup>
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TargetFrameworks>$(Library2TargetFrameworks)</TargetFrameworks>
+  </PropertyGroup>
 
-    <ItemGroup>
-      <PackageReference Include="AlterNats.Hosting" Version="1.0.6" />
-      <PackageReference Include="AlterNats.MessagePack" Version="1.0.6" />
-      <PackageReference Include="System.Data.HashFunction.SpookyHash" Version="2.0.0" />
-      <PackageReference Include="System.Linq.Async" Version="6.0.1" />
-    </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Subscriptions.Nats.Tests" />
+  </ItemGroup>
 
-    <ItemGroup>
-      <EmbeddedResource Update="NatsResources.resx">
-        <Generator>ResXFileCodeGenerator</Generator>
-        <LastGenOutput>NatsResources.Designer.cs</LastGenOutput>
-      </EmbeddedResource>
-    </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Subscriptions\HotChocolate.Subscriptions.csproj" />
+  </ItemGroup>
 
-    <ItemGroup>
-      <Compile Update="NatsResources.Designer.cs">
-        <DesignTime>True</DesignTime>
-        <AutoGen>True</AutoGen>
-        <DependentUpon>NatsResources.resx</DependentUpon>
-      </Compile>
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="AlterNats.Hosting" Version="1.0.6" />
+    <PackageReference Include="AlterNats.MessagePack" Version="1.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\NatsResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>NatsResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\NatsResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>NatsResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
 
 </Project>

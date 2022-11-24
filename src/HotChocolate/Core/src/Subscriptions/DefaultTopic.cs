@@ -1,43 +1,79 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Channels;
-using AlterNats;
-using HotChocolate.Subscriptions.InMemory;
+using System.Threading.Tasks;
+using HotChocolate.Execution;
+#if !NETSTANDARD2_0
 using static System.Runtime.InteropServices.CollectionsMarshal;
+#endif
 using static System.Threading.Channels.Channel;
 
-namespace HotChocolate.Subscriptions.Nats;
+namespace HotChocolate.Subscriptions;
 
-internal sealed class EventTopic<TMessage> : IEventTopic
+/// <summary>
+/// This base class can be used to implement a Hot Chocolate subscription provider and already
+/// implements a lot of the logic needed for the typical pub/sub topic like backpressure/throttling.
+/// </summary>
+/// <typeparam name="TEnvelope">
+/// The message envelope.
+/// </typeparam>
+/// <typeparam name="TMessage">
+/// The message.
+/// </typeparam>
+public abstract class DefaultTopic<TEnvelope, TMessage>
+    : IDisposable
+    where TEnvelope : DefaultMessageEnvelope<TMessage>
 {
-    private static readonly EventMessageEnvelope<TMessage> _completed = new();
     private readonly SemaphoreSlim _semaphore = new(1, 1);
-    private readonly Channel<EventMessageEnvelope<TMessage>> _incoming;
-    private readonly List<Channel<EventMessageEnvelope<TMessage>>> _outgoing = new();
-    private readonly NatsConnection _connection;
+    private readonly Channel<TEnvelope> _incoming;
+    private readonly List<Channel<TEnvelope>> _outgoing = new();
     private readonly BoundedChannelOptions _channelOptions;
     private bool _closed;
     private bool _disposed;
 
     public event EventHandler<EventArgs>? Unsubscribed;
 
-    public EventTopic(
-        string topic,
-        NatsConnection connection,
+    protected DefaultTopic(
+        string name,
         int capacity,
-        NatsTopicBufferFullMode fullMode)
+        TopicBufferFullMode fullMode)
     {
-        Topic = topic;
-        _connection = connection;
+        Name = name ?? throw new ArgumentNullException(nameof(name));
         _channelOptions = new BoundedChannelOptions(capacity)
         {
             FullMode = (BoundedChannelFullMode)(int)fullMode
         };
-        _incoming = CreateBounded<EventMessageEnvelope<TMessage>>(_channelOptions);
+        _incoming = CreateBounded<TEnvelope>(_channelOptions);
         BeginProcessing();
     }
 
-    public string Topic { get; }
+    protected DefaultTopic(
+        string name,
+        int capacity,
+        TopicBufferFullMode fullMode,
+        Channel<TEnvelope> incomingMessages)
+    {
+        Name = name ?? throw new ArgumentNullException(nameof(name));
+        _channelOptions = new BoundedChannelOptions(capacity)
+        {
+            FullMode = (BoundedChannelFullMode)(int)fullMode
+        };
+        _incoming = incomingMessages;
+        BeginProcessing();
+    }
 
-    public async ValueTask<NatsSourceStream<TMessage>?> TrySubscribeAsync(
+    /// <summary>
+    /// The name of this topic.
+    /// </summary>
+    public string Name { get; }
+
+    /// <summary>
+    /// Allows to write to the incoming message channel.
+    /// </summary>
+    protected ChannelWriter<TEnvelope> Incoming => _incoming;
+
+    public async ValueTask<ISourceStream<TMessage>?> TrySubscribeAsync(
         CancellationToken cancellationToken)
     {
         try
@@ -54,8 +90,8 @@ internal sealed class EventTopic<TMessage> : IEventTopic
                     return null;
                 }
 
-                var channel = CreateBounded<EventMessageEnvelope<TMessage>>(_channelOptions);
-                var stream = new NatsSourceStream<TMessage>(channel);
+                var channel = CreateBounded<TEnvelope>(_channelOptions);
+                var stream = new DefaultSourceStream<TEnvelope, TMessage>(channel);
                 _outgoing.Add(channel);
 
                 return stream;
@@ -80,14 +116,20 @@ internal sealed class EventTopic<TMessage> : IEventTopic
 
     private async Task ProcessMessagesAsync()
     {
-        using var subscription = await ConnectAsync().ConfigureAwait(false);
-        var closedChannels = new List<Channel<EventMessageEnvelope<TMessage>>>();
+        using var subscription = await ConnectAsync(_incoming.Writer).ConfigureAwait(false);
+        var closedChannels = new List<Channel<TEnvelope>>();
         var postponedMessages = new List<PostponedMessage>();
 
         while (!_incoming.Reader.Completion.IsCompleted)
         {
             if (await _incoming.Reader.WaitToReadAsync().ConfigureAwait(false))
             {
+#if NETSTANDARD2_0
+                await _semaphore.WaitAsync().ConfigureAwait(false);
+
+                try
+                {
+#endif
                 DispatchMessages(closedChannels, postponedMessages);
 
                 if (postponedMessages.Count > 0)
@@ -102,10 +144,12 @@ internal sealed class EventTopic<TMessage> : IEventTopic
                     postponedMessages.Clear();
                 }
 
+#if !NETSTANDARD2_0
                 await _semaphore.WaitAsync().ConfigureAwait(false);
 
                 try
                 {
+#endif
                     if (closedChannels.Count > 0)
                     {
                         _outgoing.RemoveAll(c => closedChannels.Contains(c));
@@ -128,17 +172,68 @@ internal sealed class EventTopic<TMessage> : IEventTopic
         }
     }
 
-    private ValueTask<IDisposable> ConnectAsync()
-        => _connection.SubscribeAsync(
-            Topic,
-            (EventMessageEnvelope<TMessage> message)
-                => EnqueueMessageAsync(message));
+    /// <summary>
+    /// Override this method to connect to an external pub/sub provider.
+    /// </summary>
+    /// <param name="incoming">
+    /// Write incoming messages to this channel writer.
+    /// </param>
+    /// <returns>
+    /// Returns a session to dispose the subscription session.
+    /// </returns>
+    protected virtual ValueTask<IDisposable> ConnectAsync(ChannelWriter<TEnvelope> incoming)
+        => new(DefaultSession.Instance);
 
-    private async Task EnqueueMessageAsync(EventMessageEnvelope<TMessage> message)
-        => await _incoming.Writer.WriteAsync(message).ConfigureAwait(false);
-
+#if NETSTANDARD2_0
     private void DispatchMessages(
-        List<Channel<EventMessageEnvelope<TMessage>>> closedChannels,
+        List<Channel<TEnvelope>> closedChannels,
+        List<PostponedMessage> postponedMessages)
+    {
+        var batchSize = 4;
+        var dispatched = 0;
+
+        while (_incoming.Reader.TryRead(out var message))
+        {
+            // we are not locking at this point since the only thing happening to this list
+            // is that new subscribers are added. This thread we are in is handling removals,
+            // so we just grab the internal array and iterate over the window we have.
+            var subscriberCount = _outgoing.Count;
+
+            for (var i = 0; i < subscriberCount; i++)
+            {
+                var channel = _outgoing[i];
+
+                if (!channel.Writer.TryWrite(message))
+                {
+                    if (channel.Reader.Completion.IsCompleted)
+                    {
+                        // if we detect channels that unsubscribed we will take a break and
+                        // reorganize the subscriber list.
+                        closedChannels.Add(channel);
+                        batchSize = 0;
+                    }
+                    else
+                    {
+                        // if we cannot write because of backpressure we will postpone the message
+                        // and take a break from processing further.
+                        postponedMessages.Add(new PostponedMessage(message, channel));
+                        batchSize = 0;
+                    }
+                }
+            }
+
+            // we try to avoid full message processing cycles and keep on dispatching messages,
+            // but we will interrupt every 4 messages and allow for new subscribers
+            // to join in.
+            if (++dispatched >= batchSize)
+            {
+                break;
+            }
+        }
+    }
+#else
+    private void DispatchMessages(
+        List<Channel<TEnvelope>> closedChannels,
         List<PostponedMessage> postponedMessages)
     {
         var batchSize = 4;
@@ -184,32 +279,56 @@ internal sealed class EventTopic<TMessage> : IEventTopic
             }
         }
     }
+#endif
 
     private sealed class PostponedMessage
     {
         public PostponedMessage(
-            EventMessageEnvelope<TMessage> message,
-            Channel<EventMessageEnvelope<TMessage>> channel)
+            TEnvelope message,
+            Channel<TEnvelope> channel)
         {
             Message = message;
             Channel = channel;
         }
 
-        public EventMessageEnvelope<TMessage> Message { get; }
+        public TEnvelope Message { get; }
 
-        public Channel<EventMessageEnvelope<TMessage>> Channel { get; }
+        public Channel<TEnvelope> Channel { get; }
+    }
+
+    private sealed class DefaultSession : IDisposable
+    {
+        private DefaultSession() { }
+        public void Dispose() { }
+
+        public static readonly DefaultSession Instance = new();
     }
 
     private void RaiseUnsubscribedEvent()
         => Unsubscribed?.Invoke(this, EventArgs.Empty);
 
+    ~DefaultTopic()
+    {
+        Dispose(false);
+    }
+
     public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
     {
         if (!_disposed)
         {
-            _incoming.Writer.TryComplete();
-            _semaphore.Dispose();
-            _outgoing.Clear();
+            if (disposing)
+            {
+                _incoming.Writer.TryComplete();
+                _semaphore.Dispose();
+                _outgoing.Clear();
+            }
+
             _closed = true;
             _disposed = true;
         }

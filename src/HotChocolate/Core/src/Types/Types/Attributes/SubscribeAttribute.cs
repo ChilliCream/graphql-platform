@@ -124,7 +124,12 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
         {
             var ct = ctx.RequestAborted;
             var receiver = ctx.Service<ITopicEventReceiver>();
-            return await receiver.SubscribeAsync<TMessage>(topicString, ct).ConfigureAwait(false);
+            return await receiver.SubscribeAsync<TMessage>(
+                topicString,
+                null,
+                null,
+                ct)
+                .ConfigureAwait(false);
         };
     }
 
@@ -148,7 +153,12 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
 
             // last we subscribe with the topic string.
             var receiver = ctx.Service<ITopicEventReceiver>();
-            return await receiver.SubscribeAsync<TMessage>(topicString, ct).ConfigureAwait(false);
+            return await receiver.SubscribeAsync<TMessage>(
+                topicString,
+                null,
+                null,
+                ct)
+                .ConfigureAwait(false);
         };
     }
 }
