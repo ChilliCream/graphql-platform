@@ -1,110 +1,153 @@
 using System.Collections.Concurrent;
-using System.Data.HashFunction.SpookyHash;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Threading.Channels;
-using HotChocolate.Execution;
 using AlterNats;
-using MessagePack;
+using HotChocolate.Execution;
+using static System.StringComparer;
 
 namespace HotChocolate.Subscriptions.Nats;
 
-/// <summary>
-/// Represents the NATS Pub/Sub connection.
-/// </summary>
-public sealed class NatsPubSub : ITopicEventReceiver, ITopicEventSender
+internal sealed class NatsPubSub : ITopicEventReceiver, ITopicEventSender, IDisposable
 {
+    private readonly CancellationTokenSource _cts = new();
+    private readonly ConcurrentDictionary<string, IDisposable> _topics = new(Ordinal);
+    private readonly NatsTopicFormatter _formatter;
+    private readonly SubscriptionOptions _options;
     private readonly NatsConnection _connection;
-    private readonly string _prefix;
-    private readonly ConcurrentDictionary<object, string> _subjects = new();
-    // http://burtleburtle.net/bob/hash/spooky.html
-    private readonly ISpookyHash _hasher = SpookyHashV2Factory.Instance.Create();
+    private readonly IMessageSerializer _serializer;
+    private readonly string _completed;
+    private readonly CancellationToken _abortBackgroundWork;
+    private readonly TimeSpan _pingTimeout = TimeSpan.FromSeconds(30);
+    private bool _disposed;
 
-    /// <summary>
-    /// Initializes a new instance of <see cref="NatsPubSub"/>.
-    /// </summary>
-    /// <param name="connection">
-    /// The underlying NATS connection.
-    /// </param>
-    /// <param name="prefix">
-    /// The NATS prefix.
-    /// </param>
-    /// <exception cref="ArgumentException">
-    /// The prefix cannot be null or empty.
-    /// </exception>
-    public NatsPubSub(NatsConnection connection, string prefix)
+    public NatsPubSub(
+        NatsConnection connection,
+        IMessageSerializer serializer,
+        SubscriptionOptions options)
     {
-        if (string.IsNullOrWhiteSpace(prefix))
-        {
-            throw new ArgumentException(
-                NatsResources.NatsPubSub_NatsPubSub_PrefixCannotBeNull,
-                nameof(prefix));
-        }
-
         _connection = connection;
-        _prefix = prefix;
+        _serializer = serializer;
+        _completed = serializer.CompleteMessage;
+        _options = options;
+        _formatter = new NatsTopicFormatter(options.TopicPrefix);
+        _abortBackgroundWork = _cts.Token;
+
+        // we start ping messages to the server to keep the connection alive.
+        BeginPingPong();
     }
 
-    /// <inheritdoc />
-    public async ValueTask<ISourceStream<TMessage>> SubscribeAsync<TTopic, TMessage>(TTopic topic,
+    public async ValueTask<ISourceStream<TMessage>> SubscribeAsync<TMessage>(
+        string topic,
+        int? bufferCapacity = null,
+        TopicBufferFullMode? bufferFullMode = null,
         CancellationToken cancellationToken = default)
-        where TTopic : notnull
     {
-        Debug.Assert(topic != null);
-        var subject = GetSubject(topic);
-
-        var channel = Channel.CreateUnbounded<TMessage>();
-        var subscription = await _connection.SubscribeAsync(
-            subject,
-            async (NatsMessageEnvelope<TMessage> message) =>
+        if (topic is null)
         {
-            // fixme
-            if (message.MessageType == NatsMessageType.Completed)
+            throw new ArgumentNullException(nameof(topic));
+        }
+
+        var formattedTopic = _formatter.Format(topic);
+        ISourceStream<TMessage>? sourceStream = null;
+
+        while (sourceStream is null)
+        {
+            var eventTopic = _topics.GetOrAdd(
+                formattedTopic,
+                t => CreateTopic<TMessage>(t, bufferCapacity, bufferFullMode));
+
+            if (eventTopic is NatsTopic<TMessage> et)
             {
-                channel.Writer.Complete();
+                sourceStream = await et.TrySubscribeAsync(cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                await channel.Writer.WriteAsync(message.Body!, cancellationToken).ConfigureAwait(false);
+                // we found a topic with the same name but a different message type.
+                // this is an invalid state and we will except.
+                throw new InvalidMessageTypeException();
             }
-        }).ConfigureAwait(false);
+        }
 
-        return await ValueTask.FromResult(new NatsEventStream<TMessage>(channel, subscription)).ConfigureAwait(false);
+        return sourceStream;
     }
 
-    /// <inheritdoc />
-    public async ValueTask SendAsync<TTopic, TMessage>(TTopic topic, TMessage message,
-        CancellationToken cancellationToken = default) where TTopic : notnull
+    public async ValueTask SendAsync<TMessage>(
+        string topic,
+        TMessage message,
+        CancellationToken cancellationToken = default)
     {
-        Debug.Assert(topic != null);
-        var subject = GetSubject(topic);
-
-        await _connection.PublishAsync(subject, new NatsMessageEnvelope<TMessage>(message)).ConfigureAwait(false);
-    }
-
-    /// <inheritdoc />
-    public async ValueTask CompleteAsync<TTopic>(TTopic topic) where TTopic : notnull
-    {
-        Debug.Assert(topic != null);
-        var subject = GetSubject(topic);
-
-        await _connection.PublishAsync(subject, NatsMessageEnvelope<object>.Completed).ConfigureAwait(false);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private string GetSubject<TTopic>(TTopic topic) where TTopic : notnull
-        => _subjects.GetOrAdd(topic, static (topic, tuple) =>
+        if (topic is null)
         {
-            var (prefix, hasher) = tuple;
+            throw new ArgumentNullException(nameof(topic));
+        }
 
-            // We always serialize, even if TTopic is a string, because the string
-            // may contain characters that are not allowed in a NATS subject.
-            // NOTE: this can fail if the topic is not serializable.
-            var subject = Convert.ToHexString(
-                hasher.ComputeHash(
-                    MessagePackSerializer.Serialize(topic)).Hash);
+        var formattedTopic = _formatter.Format(topic);
+        var envelope = new NatsMessageEnvelope<TMessage>(message, false);
+        var serialized = _serializer.Serialize(envelope);
+        await _connection.PublishAsync(formattedTopic, serialized).ConfigureAwait(false);
+    }
 
-            return string.Concat(prefix, ".", subject);
+    public async ValueTask CompleteAsync(string topic)
+    {
+        if (topic is null)
+        {
+            throw new ArgumentNullException(nameof(topic));
+        }
 
-        }, (_prefix, _hasher));
+        var formattedTopic = _formatter.Format(topic);
+        await _connection.PublishAsync(formattedTopic, _completed).ConfigureAwait(false);
+    }
+
+    private NatsTopic<TMessage> CreateTopic<TMessage>(
+        string topic,
+        int? bufferCapacity,
+        TopicBufferFullMode? bufferFullMode)
+    {
+        var eventTopic = new NatsTopic<TMessage>(
+            topic,
+            _connection,
+            _serializer,
+            bufferCapacity ?? _options.TopicBufferCapacity,
+            bufferFullMode ?? _options.TopicBufferFullMode);
+
+        eventTopic.Unsubscribed += (sender, __) =>
+        {
+            var s = (NatsTopic<TMessage>)sender!;
+            _topics.TryRemove(s.Name, out _);
+            s.Dispose();
+        };
+
+        return eventTopic;
+    }
+
+    private void BeginPingPong()
+    {
+        _connection.PostPing();
+
+        Task.Factory.StartNew(
+            async () =>
+            {
+                while (!_abortBackgroundWork.IsCancellationRequested)
+                {
+                    try
+                    {
+                        await Task.Delay(_pingTimeout, _abortBackgroundWork).ConfigureAwait(false);
+                        _connection.PostPing();
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // we ignore this one and exit our work
+                    }
+                }
+            },
+            TaskCreationOptions.LongRunning);
+    }
+
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            _cts.Cancel();
+            _cts.Dispose();
+            _disposed = true;
+        }
+    }
 }

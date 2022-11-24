@@ -3,11 +3,7 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Subscriptions.InMemory;
 
-internal interface IEventTopic
+internal interface IEventTopic : IDisposable
 {
-    event EventHandler<EventArgs>? Unsubscribed;
-
     ValueTask CompleteAsync();
-
-    Task<bool> TryClose();
 }

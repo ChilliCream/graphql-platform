@@ -9,18 +9,20 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static class InMemorySubscriptionsServiceCollectionExtensions
 {
     public static IServiceCollection AddInMemorySubscriptions(
-        this IServiceCollection services)
+        this IServiceCollection services,
+        SubscriptionOptions? options = null)
     {
         if (services is null)
         {
             throw new ArgumentNullException(nameof(services));
         }
 
+        services.TryAddSingleton(options ?? new SubscriptionOptions());
         services.TryAddSingleton<InMemoryPubSub>();
-        services.TryAddSingleton<ITopicEventSender>(sp =>
-            sp.GetRequiredService<InMemoryPubSub>());
-        services.TryAddSingleton<ITopicEventReceiver>(sp =>
-            sp.GetRequiredService<InMemoryPubSub>());
+        services.TryAddSingleton<ITopicEventSender>(
+            sp => sp.GetRequiredService<InMemoryPubSub>());
+        services.TryAddSingleton<ITopicEventReceiver>(
+            sp => sp.GetRequiredService<InMemoryPubSub>());
         return services;
     }
 

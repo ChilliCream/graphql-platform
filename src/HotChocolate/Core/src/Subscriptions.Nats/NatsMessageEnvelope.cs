@@ -3,20 +3,10 @@
 namespace HotChocolate.Subscriptions.Nats;
 
 [MessagePackObject(true)]
-public sealed class NatsMessageEnvelope<TBody>
+internal sealed class NatsMessageEnvelope<TBody> : DefaultMessageEnvelope<TBody>
 {
-    public NatsMessageEnvelope(TBody? body, NatsMessageType messageType = NatsMessageType.Message)
+    public NatsMessageEnvelope(TBody? body = default, bool isCompletedMessage = true)
+        : base(body, isCompletedMessage)
     {
-        if (messageType == NatsMessageType.Message && body == null)
-        {
-            throw new ArgumentNullException(nameof(body));
-        }
-        MessageType = messageType;
-        Body = body;
     }
-
-    public NatsMessageType MessageType { get; }
-    public TBody? Body { get; }
-
-    public static NatsMessageEnvelope<TBody> Completed { get; } = new(default, NatsMessageType.Completed);
 }

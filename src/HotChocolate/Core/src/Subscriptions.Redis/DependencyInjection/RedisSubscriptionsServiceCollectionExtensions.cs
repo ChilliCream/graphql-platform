@@ -23,7 +23,7 @@ public static class RedisSubscriptionsServiceCollectionExtensions
             throw new ArgumentNullException(nameof(connection));
         }
 
-        services.TryAddSingleton<IMessageSerializer, JsonMessageSerializer>();
+        services.TryAddSingleton<IMessageSerializer, DefaultJsonMessageSerializer>();
         services.TryAddSingleton(sp => new RedisPubSub(
             connection(sp),
             sp.GetRequiredService<IMessageSerializer>()));

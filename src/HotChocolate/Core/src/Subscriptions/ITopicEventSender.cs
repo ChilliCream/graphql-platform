@@ -23,11 +23,10 @@ public interface ITopicEventSender
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
-    ValueTask SendAsync<TTopic, TMessage>(
-        TTopic topic,
+    ValueTask SendAsync<TMessage>(
+        string topic,
         TMessage message,
-        CancellationToken cancellationToken = default)
-        where TTopic : notnull;
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Completes a event topic which causes the
@@ -36,6 +35,5 @@ public interface ITopicEventSender
     /// <param name="topic">
     /// The topic to which the event message belongs to.
     /// </param>
-    ValueTask CompleteAsync<TTopic>(TTopic topic)
-        where TTopic : notnull;
+    ValueTask CompleteAsync(string topic);
 }

@@ -1,55 +1,111 @@
+using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using static System.StringComparer;
 
 namespace HotChocolate.Subscriptions.InMemory;
 
-public class InMemoryPubSub
-    : ITopicEventReceiver
-    , ITopicEventSender
+public class InMemoryPubSub : ITopicEventReceiver, ITopicEventSender
 {
-    private readonly ConcurrentDictionary<object, IEventTopic> _topics =
-        new ConcurrentDictionary<object, IEventTopic>();
+    private readonly ConcurrentDictionary<string, IInMemoryTopic> _topics = new(Ordinal);
+    private readonly SubscriptionOptions _options;
 
-    public ValueTask SendAsync<TTopic, TMessage>(
-        TTopic topic,
+    public InMemoryPubSub(SubscriptionOptions options)
+        => _options = options;
+
+    public async ValueTask<ISourceStream<TMessage>> SubscribeAsync<TMessage>(
+        string topic,
+        int? bufferCapacity = null,
+        TopicBufferFullMode? bufferFullMode = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (topic is null)
+        {
+            throw new ArgumentNullException(nameof(topic));
+        }
+
+        ISourceStream<TMessage>? sourceStream = null;
+
+        while (sourceStream is null)
+        {
+            var eventTopic = _topics.GetOrAdd(
+                topic,
+                t => CreateTopic<TMessage>(t, bufferCapacity, bufferFullMode));
+
+            if (eventTopic is InMemoryTopic<TMessage> et)
+            {
+                sourceStream = await et.TrySubscribeAsync(cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                // we found a topic with the same name but a different message type.
+                // this is an invalid state and we will except.
+                throw new InvalidMessageTypeException();
+            }
+        }
+
+        return sourceStream;
+    }
+
+    public ValueTask SendAsync<TMessage>(
+        string topic,
         TMessage message,
         CancellationToken cancellationToken = default)
-        where TTopic : notnull
     {
-        IEventTopic eventTopic = _topics.GetOrAdd(topic, s => new EventTopic<TMessage>());
-
-        if (eventTopic is EventTopic<TMessage> et)
+        if (topic is null)
         {
-            et.TryWrite(message);
-            return default;
+            throw new ArgumentNullException(nameof(topic));
         }
 
-        throw new InvalidMessageTypeException();
+        if (_topics.TryGetValue(topic, out var eventTopic))
+        {
+            if (eventTopic is InMemoryTopic<TMessage> et)
+            {
+                et.TryWrite(message);
+            }
+            else
+            {
+                throw new InvalidMessageTypeException();
+            }
+        }
+
+        return default;
     }
 
-    public async ValueTask CompleteAsync<TTopic>(TTopic topic)
-        where TTopic : notnull
+    public ValueTask CompleteAsync(string topic)
     {
-        if (_topics.TryRemove(topic, out IEventTopic? eventTopic))
+        if (topic is null)
         {
-            await eventTopic.CompleteAsync().ConfigureAwait(false);
+            throw new ArgumentNullException(nameof(topic));
         }
+
+        if (_topics.TryGetValue(topic, out var eventTopic))
+        {
+            eventTopic.TryComplete();
+        }
+
+        return default;
     }
 
-    public async ValueTask<ISourceStream<TMessage>> SubscribeAsync<TTopic, TMessage>(
-        TTopic topic,
-        CancellationToken cancellationToken = default)
-        where TTopic : notnull
+    private InMemoryTopic<TMessage> CreateTopic<TMessage>(
+        string topic,
+        int? bufferCapacity,
+        TopicBufferFullMode? bufferFullMode)
     {
-        IEventTopic eventTopic = _topics.GetOrAdd(topic, s => new EventTopic<TMessage>());
+        var eventTopic = new InMemoryTopic<TMessage>(
+            topic,
+            bufferCapacity ?? _options.TopicBufferCapacity,
+            bufferFullMode ?? _options.TopicBufferFullMode);
 
-        if (eventTopic is EventTopic<TMessage> et)
+        eventTopic.Unsubscribed += (sender, __) =>
         {
-            return await et.SubscribeAsync(cancellationToken).ConfigureAwait(false);
-        }
+            var s = (InMemoryTopic<TMessage>)sender!;
+            _topics.TryRemove(s.Name, out _);
+            s.Dispose();
+        };
 
-        throw new InvalidMessageTypeException();
+        return eventTopic;
     }
 }

@@ -1,7 +1,7 @@
-namespace HotChocolate.Subscriptions.Redis;
+namespace HotChocolate.Subscriptions;
 
 /// <summary>
-/// The redis event message serializer.
+/// The event message serializer.
 /// </summary>
 public interface IMessageSerializer
 {
