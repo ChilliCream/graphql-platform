@@ -1,6 +1,6 @@
 namespace GreenDonut;
 
-internal sealed class DefaultDataLoaderDiagnosticEventListener : DataLoaderDiagnosticEventListener
+internal sealed class NoopDataLoaderDiagnosticEventListener : DataLoaderDiagnosticEventListener
 {
-    internal static readonly DefaultDataLoaderDiagnosticEventListener Default = new();
+    internal static readonly NoopDataLoaderDiagnosticEventListener Default = new();
 }
