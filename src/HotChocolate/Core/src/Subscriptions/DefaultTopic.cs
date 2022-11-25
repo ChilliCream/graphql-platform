@@ -180,54 +180,6 @@ public abstract class DefaultTopic<TEnvelope, TMessage>
     protected virtual ValueTask<IDisposable> ConnectAsync(ChannelWriter<TEnvelope> incoming)
         => new(DefaultSession.Instance);
 
-#if NETSTANDARD2_0
-    private void DispatchMessages(
-        List<Channel<TEnvelope>> closedChannels,
-        List<PostponedMessage> postponedMessages)
-    {
-        var batchSize = 4;
-        var dispatched = 0;
-
-        while (_incoming.Reader.TryRead(out var message))
-        {
-            // we are not locking at this point since the only thing happening to this list
-            // is that new subscribers are added. This thread we are in is handling removals,
-            // so we just grab the internal array and iterate over the window we have.
-            var subscriberCount = _outgoing.Count;
-
-            for (var i = 0; i < subscriberCount; i++)
-            {
-                var channel = _outgoing[i];
-
-                if (!channel.Writer.TryWrite(message))
-                {
-                    if (channel.Reader.Completion.IsCompleted)
-                    {
-                        // if we detect channels that unsubscribed we will take a break and
-                        // reorganize the subscriber list.
-                        closedChannels.Add(channel);
-                        batchSize = 0;
-                    }
-                    else
-                    {
-                        // if we cannot write because of backpressure we will postpone the message
-                        // and take a break from processing further.
-                        postponedMessages.Add(new PostponedMessage(message, channel));
-                        batchSize = 0;
-                    }
-                }
-            }
-
-            // we try to avoid full message processing cycles and keep on dispatching messages,
-            // but we will interrupt every 4 messages and allow for new subscribers
-            // to join in.
-            if (++dispatched >= batchSize)
-            {
-                break;
-            }
-        }
-    }
-#else
     private void DispatchMessages(
         List<Channel<TEnvelope>> closedChannels,
         List<PostponedMessage> postponedMessages)
@@ -275,7 +227,6 @@ public abstract class DefaultTopic<TEnvelope, TMessage>
             }
         }
     }
-#endif
 
     private sealed class PostponedMessage
     {
