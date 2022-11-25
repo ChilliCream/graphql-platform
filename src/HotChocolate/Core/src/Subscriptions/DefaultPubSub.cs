@@ -159,7 +159,7 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
             throw new ArgumentNullException(nameof(topicName));
         }
 
-        var formattedTopic = _topicFormatter.Format(topicName);
+        var formattedTopic = FormatTopicName(topicName);
         _diagnosticEvents.Send(formattedTopic, _completed);
 
         return OnCompleteAsync(formattedTopic);

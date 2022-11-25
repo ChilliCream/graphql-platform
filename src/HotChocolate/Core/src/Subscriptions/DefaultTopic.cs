@@ -291,27 +291,27 @@ public abstract class DefaultTopic<TMessage> : IDisposable
             return;
         }
 
-        await _semaphore.WaitAsync().ConfigureAwait(false);
-
-        try
+        if (closedChannels.Count > 0)
         {
-            if (closedChannels.Count > 0)
+            await _semaphore.WaitAsync().ConfigureAwait(false);
+
+            try
             {
                 _diagnosticEvents.Unsubscribe(Name, closedChannels.Count);
                 _outgoing.RemoveAll(c => closedChannels.Contains(c));
                 closedChannels.Clear();
-            }
 
-            // raises unsubscribed event only once all outgoing channels
-            // (subscriptions) are removed
-            if (_outgoing.Count == 0)
-            {
-                _closed = true;
+                // raises unsubscribed event only once all outgoing channels
+                // (subscriptions) are removed
+                if (_outgoing.Count == 0)
+                {
+                    _closed = true;
+                }
             }
-        }
-        finally
-        {
-            _semaphore.Release();
+            finally
+            {
+                _semaphore.Release();
+            }
         }
 
         if (_closed)

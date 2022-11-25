@@ -11,7 +11,7 @@ namespace HotChocolate.Subscriptions.InMemory;
 /// </typeparam>
 internal sealed class InMemoryTopic<TMessage> : DefaultTopic<TMessage>, IInMemoryTopic
 {
-    private static readonly MessageEnvelope<TMessage> _complete = new();
+    private static readonly MessageEnvelope<TMessage> _complete = new(kind: MessageKind.Completed);
 
     public InMemoryTopic(
         string name,
