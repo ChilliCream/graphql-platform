@@ -234,8 +234,8 @@ public abstract class DefaultTopic<TMessage> : IDisposable
                         }
                         else
                         {
-                            // if we cannot write because of backpressure we will postpone the message
-                            // and take a break from processing further.
+                            // if we cannot write because of back pressure we will postpone
+                            // the message and take a break from processing further.
                             postponedMessages.Add(new PostponedMessage(message, channel));
                             batchSize = 0;
                         }

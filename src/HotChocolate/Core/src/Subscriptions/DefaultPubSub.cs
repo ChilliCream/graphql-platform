@@ -72,7 +72,6 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
 
             _diagnosticEvents.TrySubscribe(formattedTopic, attempt);
 
-
             if (_topics.TryGetValue(formattedTopic, out var topic))
             {
                 sourceStream = await TryCreateSourceStream(topic, cancellationToken)

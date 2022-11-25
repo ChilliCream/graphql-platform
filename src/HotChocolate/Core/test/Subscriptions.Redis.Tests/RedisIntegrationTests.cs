@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using CookieCrumble;
@@ -13,7 +14,7 @@ namespace HotChocolate.Subscriptions.Redis;
 
 public class RedisIntegrationTests : IClassFixture<RedisResource>
 {
-    private const int _timeout = 5000;
+    private static readonly int _timeout = Debugger.IsAttached ? 1000000 : 5000;
     private readonly RedisResource _redisResource;
     private readonly TestDiagnostics _testDiagnostics;
 
@@ -52,15 +53,19 @@ public class RedisIntegrationTests : IClassFixture<RedisResource>
         var result = await services.ExecuteRequestAsync(
             "subscription { onMessage }",
             cancellationToken: cts.Token)
-            .ConfigureAwait(false);;
+            .ConfigureAwait(false);
+        ;
 
         // we need to execute the read for the subscription to start receiving.
         await using var responseStream = result.ExpectResponseStream();
-        var results = responseStream.ReadResultsAsync().ConfigureAwait(false);;
+        var results = responseStream.ReadResultsAsync().ConfigureAwait(false);
+        ;
 
         // assert
-        await sender.SendAsync("OnMessage", "bar", cts.Token).ConfigureAwait(false);;
-        await sender.CompleteAsync("OnMessage").ConfigureAwait(false);;
+        await sender.SendAsync("OnMessage", "bar", cts.Token).ConfigureAwait(false);
+        ;
+        await sender.CompleteAsync("OnMessage").ConfigureAwait(false);
+        ;
 
         var snapshot = new Snapshot();
 
@@ -103,16 +108,20 @@ public class RedisIntegrationTests : IClassFixture<RedisResource>
         var result = await services.ExecuteRequestAsync(
             "subscription { onMessage { bar } }",
             cancellationToken: cts.Token)
-            .ConfigureAwait(false);;
+            .ConfigureAwait(false);
+        ;
 
         // we need to execute the read for the subscription to start receiving.
         await using var responseStream = result.ExpectResponseStream();
-        var results = responseStream.ReadResultsAsync().ConfigureAwait(false);;
+        var results = responseStream.ReadResultsAsync().ConfigureAwait(false);
+        ;
 
         // assert
         await sender.SendAsync("OnMessage", new Foo { Bar = "Hello" }, cts.Token)
-            .ConfigureAwait(false);;
-        await sender.CompleteAsync("OnMessage").ConfigureAwait(false);;
+            .ConfigureAwait(false);
+        ;
+        await sender.CompleteAsync("OnMessage").ConfigureAwait(false);
+        ;
 
         var snapshot = new Snapshot();
 
@@ -239,7 +248,7 @@ public class RedisIntegrationTests : IClassFixture<RedisResource>
             snapshot.Add(response, name: "From Stream 1");
         }
 
-        await foreach (var response in results1.WithCancellation(cts.Token).ConfigureAwait(false))
+        await foreach (var response in results2.WithCancellation(cts.Token).ConfigureAwait(false))
         {
             snapshot.Add(response, name: "From Stream 2");
         }
