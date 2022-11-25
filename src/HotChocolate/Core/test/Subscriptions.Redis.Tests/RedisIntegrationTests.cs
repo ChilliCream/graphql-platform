@@ -254,11 +254,107 @@ public class RedisIntegrationTests : IClassFixture<RedisResource>
         }
 
         snapshot.MatchInline(
-            @"{
-              ""data"": {
+            @"From Stream 1
+            ---------------
+            {
+            ""data"": {
                 ""onMessage"": ""abc""
-              }
-            }");
+            }
+            }
+            ---------------
+
+            From Stream 2
+            ---------------
+            {
+            ""data"": {
+                ""onMessage"": ""abc""
+            }
+            }
+            ---------------
+            ");
+    }
+
+    [Fact]
+    public async Task Subscribe_Topic_With_Arguments_2_Topics()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(_timeout);
+
+        var connection = _redisResource.GetConnection();
+        Assert.True(connection.IsConnected, "connection.IsConnected");
+
+        await using var services = new ServiceCollection()
+            .AddGraphQL()
+            .AddSubscriptionType<Subscription3>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .AddRedisSubscriptions(
+                _ => connection,
+                options: new SubscriptionOptions
+                {
+                    TopicPrefix = nameof(Subscribe_Topic_With_Arguments)
+                })
+            .Services
+            .AddSingleton<ISubscriptionDiagnosticEvents>(_testDiagnostics)
+            .BuildServiceProvider();
+
+        var sender = services.GetRequiredService<ITopicEventSender>();
+
+        // act
+        var result1 = await services.ExecuteRequestAsync(
+            "subscription { onMessage(arg: \"a\") }",
+            cancellationToken: cts.Token)
+            .ConfigureAwait(false);
+
+        var result2 = await services.ExecuteRequestAsync(
+            "subscription { onMessage(arg: \"b\") }",
+            cancellationToken: cts.Token)
+            .ConfigureAwait(false);
+
+        // we need to execute the read for the subscription to start receiving.
+        await using var responseStream1 = result1.ExpectResponseStream();
+        var results1 = responseStream1.ReadResultsAsync().ConfigureAwait(false);
+
+        await using var responseStream2 = result2.ExpectResponseStream();
+        var results2 = responseStream2.ReadResultsAsync().ConfigureAwait(false);
+
+        // assert
+        await sender.SendAsync("OnMessage_a", "abc", cts.Token).ConfigureAwait(false);
+        await sender.CompleteAsync("OnMessage_a").ConfigureAwait(false);
+
+        await sender.SendAsync("OnMessage_b", "def", cts.Token).ConfigureAwait(false);
+        await sender.CompleteAsync("OnMessage_b").ConfigureAwait(false);
+
+        var snapshot = new Snapshot();
+
+        await foreach (var response in results1.WithCancellation(cts.Token).ConfigureAwait(false))
+        {
+            snapshot.Add(response, name: "From Stream 1");
+        }
+
+        await foreach (var response in results2.WithCancellation(cts.Token).ConfigureAwait(false))
+        {
+            snapshot.Add(response, name: "From Stream 2");
+        }
+
+        snapshot.MatchInline(
+            @"From Stream 1
+            ---------------
+            {
+            ""data"": {
+                ""onMessage"": ""abc""
+            }
+            }
+            ---------------
+
+            From Stream 2
+            ---------------
+            {
+            ""data"": {
+                ""onMessage"": ""def""
+            }
+            }
+            ---------------
+            ");
     }
 
     public class Subscription

@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution;
@@ -91,6 +92,8 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
                                 bufferCapacity,
                                 bufferFullMode)
                                 .ConfigureAwait(false);
+                        var success = _topics.TryAdd(formattedTopic, topic);
+                        Debug.Assert(success, "Topic added!");
                     }
                 }
                 finally
