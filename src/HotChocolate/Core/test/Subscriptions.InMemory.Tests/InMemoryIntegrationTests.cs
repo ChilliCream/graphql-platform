@@ -32,6 +32,10 @@ public class InMemoryIntegrationTests : SubscriptionIntegrationTestBase
     public override Task Subscribe_Topic_With_Arguments_2_Topics()
         => base.Subscribe_Topic_With_Arguments_2_Topics();
 
+    [Fact]
+    public override Task Subscribe_Topic_With_2_Arguments()
+        => base.Subscribe_Topic_With_2_Arguments();
+
     protected override void ConfigurePubSub(IRequestExecutorBuilder graphqlBuilder)
         => graphqlBuilder.AddInMemorySubscriptions();
 }

@@ -264,6 +264,43 @@ public abstract  class SubscriptionIntegrationTestBase
             ");
     }
 
+    [Fact]
+    public virtual async Task Subscribe_Topic_With_2_Arguments()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(_timeout);
+        await using var services = CreateServer<Subscription3>();
+        var sender = services.GetRequiredService<ITopicEventSender>();
+
+        // act
+        var result = await services.ExecuteRequestAsync(
+                "subscription { onMessage2(arg1: \"a\", arg2: \"b\") }",
+                cancellationToken: cts.Token)
+            .ConfigureAwait(false);
+
+        // we need to execute the read for the subscription to start receiving.
+        await using var responseStream = result.ExpectResponseStream();
+        var results = responseStream.ReadResultsAsync().ConfigureAwait(false);
+
+        // assert
+        await sender.SendAsync("OnMessage2_a_b", "abc", cts.Token).ConfigureAwait(false);
+        await sender.CompleteAsync("OnMessage2_a_b").ConfigureAwait(false);
+
+        var snapshot = new Snapshot();
+
+        await foreach (var response in results.WithCancellation(cts.Token).ConfigureAwait(false))
+        {
+            snapshot.Add(response, name: "From Stream A");
+        }
+
+        snapshot.MatchInline(
+            @"{
+              ""data"": {
+                ""onMessage2"": ""abc""
+              }
+            }");
+    }
+
     protected ServiceProvider CreateServer<TSubscriptionType>() where TSubscriptionType : class
         => CreateServer(builder =>
         {
@@ -304,7 +341,13 @@ public abstract  class SubscriptionIntegrationTestBase
     {
         [Topic("OnMessage_{arg}")]
         [Subscribe]
-        public string OnMessage(string arg, [EventMessage] string message) => message;
+        public string OnMessage(string arg, [EventMessage] string message)
+            => message;
+
+        [Topic("OnMessage2_{arg1}_{arg2}")]
+        [Subscribe]
+        public string OnMessage2(string arg1, string arg2, [EventMessage] string message)
+            => message;
     }
 
     public class Foo
