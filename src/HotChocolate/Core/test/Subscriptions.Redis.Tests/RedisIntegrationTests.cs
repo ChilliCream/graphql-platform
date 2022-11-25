@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using CookieCrumble;
@@ -6,6 +7,8 @@ using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
 using StackExchange.Redis;
+using Xunit.Abstractions;
+using static System.Text.Json.JsonSerializer;
 
 namespace HotChocolate.Subscriptions.Redis;
 
@@ -13,10 +16,12 @@ public class RedisIntegrationTests : IClassFixture<RedisResource>
 {
     private const int _timeout = 5000;
     private readonly ConnectionMultiplexer _connection;
+    private readonly TestDiagnostics _testDiagnostics;
 
-    public RedisIntegrationTests(RedisResource redisResource)
+    public RedisIntegrationTests(RedisResource redisResource, ITestOutputHelper output)
     {
         _connection = redisResource.GetConnection();
+        _testDiagnostics = new TestDiagnostics(output);
     }
 
     [Fact]
@@ -36,6 +41,7 @@ public class RedisIntegrationTests : IClassFixture<RedisResource>
                     TopicPrefix = nameof(Subscribe_Infer_Topic)
                 })
             .Services
+            .AddSingleton<ISubscriptionDiagnosticEvents>(_testDiagnostics)
             .BuildServiceProvider();
 
         var sender = services.GetRequiredService<ITopicEventSender>();
@@ -83,6 +89,7 @@ public class RedisIntegrationTests : IClassFixture<RedisResource>
                 _ => _connection,
                 options: new SubscriptionOptions { TopicPrefix = nameof(Subscribe_Static_Topic) })
             .Services
+            .AddSingleton<ISubscriptionDiagnosticEvents>(_testDiagnostics)
             .BuildServiceProvider();
 
         var sender = services.GetRequiredService<ITopicEventSender>();
@@ -136,6 +143,7 @@ public class RedisIntegrationTests : IClassFixture<RedisResource>
                     TopicPrefix = nameof(Subscribe_Topic_With_Arguments)
                 })
             .Services
+            .AddSingleton<ISubscriptionDiagnosticEvents>(_testDiagnostics)
             .BuildServiceProvider();
 
         var sender = services.GetRequiredService<ITopicEventSender>();
@@ -194,5 +202,55 @@ public class RedisIntegrationTests : IClassFixture<RedisResource>
     public class Foo
     {
         public string? Bar { get; set; }
+    }
+
+    private sealed class TestDiagnostics : SubscriptionDiagnosticEventsListener
+    {
+        private readonly ITestOutputHelper _output;
+
+        public TestDiagnostics(ITestOutputHelper output)
+            => _output = output;
+
+        public override void Created(string topic)
+            => _output.WriteLine($"Created: {topic}");
+
+        public override void Connected(string topic)
+            => _output.WriteLine($"Connected: {topic}");
+
+        public override void Disconnected(string topic)
+            => _output.WriteLine($"Disconnected: {topic}");
+
+        public override void MessageProcessingError(string topic, Exception ex)
+            => _output.WriteLine($"Error: {topic} {ex.Message}");
+
+        public override void Received(string topic, string message)
+            => _output.WriteLine($"Received: {topic} {message}");
+
+        public override void WaitForMessages(string topic)
+            => _output.WriteLine($"WaitForMessages: {topic}");
+
+        public override void Dispatched<T>(
+            string topic,
+            DefaultMessageEnvelope<T> message,
+            int subscribers)
+            => _output.WriteLine($"Dispatched: {topic} {Serialize(message)} {subscribers}");
+
+        public override void Delayed<T>(
+            string topic,
+            DefaultMessageEnvelope<T> message,
+            int subscribers)
+            => _output.WriteLine($"Delayed: {topic} {Serialize(message)} {subscribers}");
+
+        public override void Subscribe(string topic)
+            => _output.WriteLine($"Subscribe: {topic}");
+
+        public override void Unsubscribe(string topic, int subscribers)
+            => _output.WriteLine($"Unsubscribe: {topic} {subscribers}");
+
+        public override void Close(string topic)
+            => _output.WriteLine($"Close: {topic}");
+
+        public override void Send<T>(string topic, DefaultMessageEnvelope<T> message)
+            => _output.WriteLine($"Send: {topic} {Serialize(message)}");
     }
 }

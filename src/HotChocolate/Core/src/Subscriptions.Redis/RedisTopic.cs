@@ -13,8 +13,9 @@ internal sealed class RedisTopic<TMessage> : DefaultTopic<RedisMessageEnvelope<T
         ISubscriber subscriber,
         IMessageSerializer serializer,
         int capacity,
-        TopicBufferFullMode fullMode)
-        : base(name, capacity, fullMode)
+        TopicBufferFullMode fullMode,
+        ISubscriptionDiagnosticEvents diagnosticEvents)
+        : base(name, capacity, fullMode, diagnosticEvents)
     {
         _subscriber = subscriber ?? throw new ArgumentNullException(nameof(subscriber));
         _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
@@ -25,12 +26,14 @@ internal sealed class RedisTopic<TMessage> : DefaultTopic<RedisMessageEnvelope<T
     {
         var messageQueue = await _subscriber.SubscribeAsync(Name).ConfigureAwait(false);
 
-        messageQueue.OnMessage(async redisMessage =>
-        {
-            var rawMessage = redisMessage.Message.ToString();
-            var envelope =_serializer.Deserialize<RedisMessageEnvelope<TMessage>>(rawMessage);
-            await incoming.WriteAsync(envelope).ConfigureAwait(false);
-        });
+        messageQueue.OnMessage(
+            async redisMessage =>
+            {
+                var rawMessage = redisMessage.Message.ToString();
+                DiagnosticEvents.Received(Name, rawMessage);
+                var envelope = _serializer.Deserialize<RedisMessageEnvelope<TMessage>>(rawMessage);
+                await incoming.WriteAsync(envelope).ConfigureAwait(false);
+            });
 
         return new Session(_subscriber, Name);
     }

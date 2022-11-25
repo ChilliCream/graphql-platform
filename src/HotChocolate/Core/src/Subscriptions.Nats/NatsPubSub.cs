@@ -11,9 +11,11 @@ internal sealed class NatsPubSub : ITopicEventReceiver, ITopicEventSender, IDisp
     private readonly ConcurrentDictionary<string, IDisposable> _topics = new(Ordinal);
     private readonly TopicFormatter _formatter;
     private readonly SubscriptionOptions _options;
+    private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;
     private readonly NatsConnection _connection;
     private readonly IMessageSerializer _serializer;
     private readonly string _completed;
+    private readonly NatsMessageEnvelope<object> _completedEnvelope = new(isCompletedMessage: true);
     private readonly CancellationToken _abortBackgroundWork;
     private readonly TimeSpan _pingTimeout = TimeSpan.FromSeconds(30);
     private bool _disposed;
@@ -21,12 +23,14 @@ internal sealed class NatsPubSub : ITopicEventReceiver, ITopicEventSender, IDisp
     public NatsPubSub(
         NatsConnection connection,
         IMessageSerializer serializer,
-        SubscriptionOptions options)
+        SubscriptionOptions options,
+        ISubscriptionDiagnosticEvents diagnosticEvents)
     {
         _connection = connection;
         _serializer = serializer;
         _completed = serializer.CompleteMessage;
         _options = options;
+        _diagnosticEvents = diagnosticEvents;
         _formatter = new TopicFormatter(options.TopicPrefix);
         _abortBackgroundWork = _cts.Token;
 
@@ -82,6 +86,7 @@ internal sealed class NatsPubSub : ITopicEventReceiver, ITopicEventSender, IDisp
         var formattedTopic = _formatter.Format(topic);
         var envelope = new NatsMessageEnvelope<TMessage>(message, false);
         var serialized = _serializer.Serialize(envelope);
+        _diagnosticEvents.Send(formattedTopic, envelope);
         await _connection.PublishAsync(formattedTopic, serialized).ConfigureAwait(false);
     }
 
@@ -93,6 +98,7 @@ internal sealed class NatsPubSub : ITopicEventReceiver, ITopicEventSender, IDisp
         }
 
         var formattedTopic = _formatter.Format(topic);
+        _diagnosticEvents.Send(formattedTopic, _completedEnvelope);
         await _connection.PublishAsync(formattedTopic, _completed).ConfigureAwait(false);
     }
 
@@ -106,7 +112,8 @@ internal sealed class NatsPubSub : ITopicEventReceiver, ITopicEventSender, IDisp
             _connection,
             _serializer,
             bufferCapacity ?? _options.TopicBufferCapacity,
-            bufferFullMode ?? _options.TopicBufferFullMode);
+            bufferFullMode ?? _options.TopicBufferFullMode,
+            _diagnosticEvents);
 
         eventTopic.Unsubscribed += (sender, __) =>
         {

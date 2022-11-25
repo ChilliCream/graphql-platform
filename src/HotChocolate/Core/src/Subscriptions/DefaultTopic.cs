@@ -23,6 +23,7 @@ public abstract class DefaultTopic<TEnvelope, TMessage>
     private readonly Channel<TEnvelope> _incoming;
     private readonly List<Channel<TEnvelope>> _outgoing = new();
     private readonly BoundedChannelOptions _channelOptions;
+    private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;
     private bool _closed;
     private bool _disposed;
 
@@ -31,7 +32,8 @@ public abstract class DefaultTopic<TEnvelope, TMessage>
     protected DefaultTopic(
         string name,
         int capacity,
-        TopicBufferFullMode fullMode)
+        TopicBufferFullMode fullMode,
+        ISubscriptionDiagnosticEvents diagnosticEvents)
     {
         Name = name ?? throw new ArgumentNullException(nameof(name));
         _channelOptions = new BoundedChannelOptions(capacity)
@@ -39,6 +41,9 @@ public abstract class DefaultTopic<TEnvelope, TMessage>
             FullMode = (BoundedChannelFullMode)(int)fullMode
         };
         _incoming = CreateBounded<TEnvelope>(_channelOptions);
+        _diagnosticEvents = diagnosticEvents;
+        diagnosticEvents.Created(Name);
+
         BeginProcessing();
     }
 
@@ -46,6 +51,7 @@ public abstract class DefaultTopic<TEnvelope, TMessage>
         string name,
         int capacity,
         TopicBufferFullMode fullMode,
+        ISubscriptionDiagnosticEvents diagnosticEvents,
         Channel<TEnvelope> incomingMessages)
     {
         Name = name ?? throw new ArgumentNullException(nameof(name));
@@ -54,6 +60,7 @@ public abstract class DefaultTopic<TEnvelope, TMessage>
             FullMode = (BoundedChannelFullMode)(int)fullMode
         };
         _incoming = incomingMessages;
+        _diagnosticEvents = diagnosticEvents;
         BeginProcessing();
     }
 
@@ -66,6 +73,11 @@ public abstract class DefaultTopic<TEnvelope, TMessage>
     /// Allows to write to the incoming message channel.
     /// </summary>
     protected ChannelWriter<TEnvelope> Incoming => _incoming;
+
+    /// <summary>
+    /// Allows access to the diagnostic events.
+    /// </summary>
+    protected ISubscriptionDiagnosticEvents DiagnosticEvents => _diagnosticEvents;
 
     public async ValueTask<ISourceStream<TMessage>?> TrySubscribeAsync(
         CancellationToken cancellationToken)
@@ -84,6 +96,7 @@ public abstract class DefaultTopic<TEnvelope, TMessage>
                     return null;
                 }
 
+                _diagnosticEvents.Subscribe(Name);
                 var channel = CreateBounded<TEnvelope>(_channelOptions);
                 var stream = new DefaultSourceStream<TEnvelope, TMessage>(channel);
                 _outgoing.Add(channel);
@@ -108,62 +121,51 @@ public abstract class DefaultTopic<TEnvelope, TMessage>
             async () => await ProcessMessagesAsync().ConfigureAwait(false),
             TaskCreationOptions.LongRunning);
 
+    private async Task ProcessMessagesSessionAsync()
+    {
+        try
+        {
+            // we first connect to the pub/sub system.
+            using var subscription = await ConnectAsync(_incoming.Writer).ConfigureAwait(false);
+            DiagnosticEvents.Connected(Name);
+
+            // then we start processing incoming messages.
+            await ProcessMessagesAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            DiagnosticEvents.MessageProcessingError(Name, ex);
+        }
+        finally
+        {
+            // if we hit an error and were not correctly closed we handle this here.
+            if (!_closed)
+            {
+                // todo: this is not well done yet ... and we have some issue if it were done like this
+                _closed = true;
+                RaiseUnsubscribedEvent();
+            }
+
+            DiagnosticEvents.Disconnected(Name);
+        }
+    }
+
     private async Task ProcessMessagesAsync()
     {
-        using var subscription = await ConnectAsync(_incoming.Writer).ConfigureAwait(false);
         var closedChannels = new List<Channel<TEnvelope>>();
         var postponedMessages = new List<PostponedMessage>();
 
-        while (!_incoming.Reader.Completion.IsCompleted)
+        while (!_closed && !_incoming.Reader.Completion.IsCompleted)
         {
+            _diagnosticEvents.WaitForMessages(Name);
+
             if (await _incoming.Reader.WaitToReadAsync().ConfigureAwait(false))
             {
                 DispatchMessages(closedChannels, postponedMessages);
 
-                if (postponedMessages.Count > 0)
-                {
-                    for (var i = 0; i < postponedMessages.Count; i++)
-                    {
-                        var postponedMessage = postponedMessages[i];
-                        var channel = postponedMessage.Channel;
-                        var message = postponedMessage.Message;
+                await DispatchDelayedMessagesAsync(postponedMessages).ConfigureAwait(false);
 
-                        try
-                        {
-                            await channel.Writer.WriteAsync(message).ConfigureAwait(false);
-                        }
-                        catch (ChannelClosedException)
-                        {
-                            // the channel might have been closed in the meantime.
-                            // we will skip over this error and the channel will be collected
-                            // on the next iteration.
-                        }
-                    }
-                    postponedMessages.Clear();
-                }
-
-                await _semaphore.WaitAsync().ConfigureAwait(false);
-
-                try
-                {
-                    if (closedChannels.Count > 0)
-                    {
-                        _outgoing.RemoveAll(c => closedChannels.Contains(c));
-                        closedChannels.Clear();
-                    }
-
-                    // raises unsubscribed event only once all outgoing channels
-                    // (subscriptions) are removed
-                    if (_outgoing.Count == 0)
-                    {
-                        _closed = true;
-                        RaiseUnsubscribedEvent();
-                    }
-                }
-                finally
-                {
-                    _semaphore.Release();
-                }
+                await UnsubscribeClosedChannels(closedChannels).ConfigureAwait(false);
             }
         }
     }
@@ -192,8 +194,10 @@ public abstract class DefaultTopic<TEnvelope, TMessage>
             // we are not locking at this point since the only thing happening to this list
             // is that new subscribers are added. This thread we are in is handling removals,
             // so we just grab the internal array and iterate over the window we have.
-            var subscriberCount = _outgoing.Count;
             var outgoingSpan = AsSpan(_outgoing);
+            var subscriberCount = outgoingSpan.Length;
+
+            _diagnosticEvents.Dispatched(Name, message, subscriberCount);
 
             for (var i = 0; i < subscriberCount; i++)
             {
@@ -225,6 +229,63 @@ public abstract class DefaultTopic<TEnvelope, TMessage>
             {
                 break;
             }
+        }
+    }
+
+    private async ValueTask DispatchDelayedMessagesAsync(List<PostponedMessage> postponedMessages)
+    {
+        if (postponedMessages.Count > 0)
+        {
+            _diagnosticEvents.Delayed(
+                Name,
+                postponedMessages[0].Message,
+                postponedMessages.Count);
+
+            for (var i = 0; i < postponedMessages.Count; i++)
+            {
+                var postponedMessage = postponedMessages[i];
+                var channel = postponedMessage.Channel;
+                var message = postponedMessage.Message;
+
+                try
+                {
+                    await channel.Writer.WriteAsync(message).ConfigureAwait(false);
+                }
+                catch (ChannelClosedException)
+                {
+                    // the channel might have been closed in the meantime.
+                    // we will skip over this error and the channel will be collected
+                    // on the next iteration.
+                }
+            }
+            postponedMessages.Clear();
+        }
+    }
+
+    private async Task UnsubscribeClosedChannels(List<Channel<TEnvelope>> closedChannels)
+    {
+        await _semaphore.WaitAsync().ConfigureAwait(false);
+
+        try
+        {
+            if (closedChannels.Count > 0)
+            {
+                _diagnosticEvents.Unsubscribe(Name, closedChannels.Count);
+                _outgoing.RemoveAll(c => closedChannels.Contains(c));
+                closedChannels.Clear();
+            }
+
+            // raises unsubscribed event only once all outgoing channels
+            // (subscriptions) are removed
+            if (_outgoing.Count == 0)
+            {
+                _closed = true;
+                RaiseUnsubscribedEvent();
+            }
+        }
+        finally
+        {
+            _semaphore.Release();
         }
     }
 
@@ -271,6 +332,7 @@ public abstract class DefaultTopic<TEnvelope, TMessage>
         {
             if (disposing)
             {
+                _diagnosticEvents.Close(Name);
                 _incoming.Writer.TryComplete();
                 _semaphore.Dispose();
                 _outgoing.Clear();

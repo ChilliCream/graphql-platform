@@ -11,9 +11,15 @@ public class InMemoryPubSub : ITopicEventReceiver, ITopicEventSender
 {
     private readonly ConcurrentDictionary<string, IInMemoryTopic> _topics = new(Ordinal);
     private readonly SubscriptionOptions _options;
+    private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;
 
-    public InMemoryPubSub(SubscriptionOptions options)
-        => _options = options;
+    public InMemoryPubSub(
+        SubscriptionOptions options,
+        ISubscriptionDiagnosticEvents diagnosticEvents)
+    {
+        _options = options;
+        _diagnosticEvents = diagnosticEvents;
+    }
 
     public async ValueTask<ISourceStream<TMessage>> SubscribeAsync<TMessage>(
         string topic,
@@ -97,7 +103,8 @@ public class InMemoryPubSub : ITopicEventReceiver, ITopicEventSender
         var eventTopic = new InMemoryTopic<TMessage>(
             topic,
             bufferCapacity ?? _options.TopicBufferCapacity,
-            bufferFullMode ?? _options.TopicBufferFullMode);
+            bufferFullMode ?? _options.TopicBufferFullMode,
+            _diagnosticEvents);
 
         eventTopic.Unsubscribed += (sender, __) =>
         {

@@ -10,6 +10,7 @@ internal sealed class RedisPubSub : ITopicEventReceiver, ITopicEventSender
     private readonly ConcurrentDictionary<string, IDisposable> _topics = new(Ordinal);
     private readonly TopicFormatter _formatter;
     private readonly SubscriptionOptions _options;
+    private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;
     private readonly ISubscriber _subscriber;
     private readonly IMessageSerializer _serializer;
     private readonly string _completed;
@@ -17,13 +18,19 @@ internal sealed class RedisPubSub : ITopicEventReceiver, ITopicEventSender
     public RedisPubSub(
         ISubscriber subscriber,
         IMessageSerializer serializer,
-        SubscriptionOptions options)
+        SubscriptionOptions options,
+        ISubscriptionDiagnosticEvents diagnosticEvents)
     {
-        _subscriber = subscriber;
-        _serializer = serializer;
+        _subscriber = subscriber ??
+            throw new ArgumentNullException(nameof(subscriber));
+        _serializer = serializer ??
+            throw new ArgumentNullException(nameof(serializer));
         _completed = serializer.CompleteMessage;
-        _options = options;
+        _options = options ??
+            throw new ArgumentNullException(nameof(options));
         _formatter = new TopicFormatter(options.TopicPrefix);
+        _diagnosticEvents = diagnosticEvents ??
+            throw new ArgumentNullException(nameof(diagnosticEvents));
     }
 
     public async ValueTask<ISourceStream<TMessage>> SubscribeAsync<TMessage>(
@@ -98,7 +105,8 @@ internal sealed class RedisPubSub : ITopicEventReceiver, ITopicEventSender
             _subscriber,
             _serializer,
             bufferCapacity ?? _options.TopicBufferCapacity,
-            bufferFullMode ?? _options.TopicBufferFullMode);
+            bufferFullMode ?? _options.TopicBufferFullMode,
+            _diagnosticEvents);
 
         eventTopic.Unsubscribed += (sender, __) =>
         {

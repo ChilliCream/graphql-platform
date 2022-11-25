@@ -11,14 +11,27 @@ internal sealed class InMemoryTopic<TMessage>
     public InMemoryTopic(
         string name,
         int capacity,
-        TopicBufferFullMode fullMode)
-        : base(name, capacity, fullMode, CreateUnbounded<InMemoryMessageEnvelope<TMessage>>())
+        TopicBufferFullMode fullMode,
+        ISubscriptionDiagnosticEvents diagnosticEvents)
+        : base(
+            name,
+            capacity,
+            fullMode,
+            diagnosticEvents,
+            CreateUnbounded<InMemoryMessageEnvelope<TMessage>>())
     {
     }
 
     public void TryWrite(TMessage message)
-        => Incoming.TryWrite(new InMemoryMessageEnvelope<TMessage>(message));
+    {
+        var envelope = new InMemoryMessageEnvelope<TMessage>(message);
+        DiagnosticEvents.Send(Name, envelope);
+        Incoming.TryWrite(envelope);
+    }
 
     public void TryComplete()
-        => Incoming.TryWrite(_complete);
+    {
+        DiagnosticEvents.Send(Name, _complete);
+        Incoming.TryWrite(_complete);
+    }
 }

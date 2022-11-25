@@ -13,8 +13,9 @@ internal sealed class NatsTopic<TMessage> : DefaultTopic<NatsMessageEnvelope<TMe
         NatsConnection connection,
         IMessageSerializer serializer,
         int capacity,
-        TopicBufferFullMode fullMode)
-        : base(name, capacity, fullMode)
+        TopicBufferFullMode fullMode,
+        ISubscriptionDiagnosticEvents diagnosticEvents)
+        : base(name, capacity, fullMode, diagnosticEvents)
     {
         _connection = connection ?? throw new ArgumentNullException(nameof(connection));
         _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
@@ -26,6 +27,7 @@ internal sealed class NatsTopic<TMessage> : DefaultTopic<NatsMessageEnvelope<TMe
             Name,
             async (string rawMessage) =>
             {
+                DiagnosticEvents.Received(Name, rawMessage);
                 var envelope = _serializer.Deserialize<NatsMessageEnvelope<TMessage>>(rawMessage);
                 await incoming.WriteAsync(envelope).ConfigureAwait(false);
             });

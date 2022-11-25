@@ -28,7 +28,8 @@ public static class RedisSubscriptionsServiceCollectionExtensions
         services.TryAddSingleton(sp => new RedisPubSub(
             connection(sp).GetSubscriber(),
             sp.GetRequiredService<IMessageSerializer>(),
-            sp.GetRequiredService<SubscriptionOptions>()));
+            sp.GetRequiredService<SubscriptionOptions>(),
+            sp.GetRequiredService<ISubscriptionDiagnosticEvents>()));
         services.TryAddSingleton<ITopicEventSender>(sp =>
             sp.GetRequiredService<RedisPubSub>());
         services.TryAddSingleton<ITopicEventReceiver>(sp =>
