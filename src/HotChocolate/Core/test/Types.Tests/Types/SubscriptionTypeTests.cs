@@ -418,7 +418,7 @@ public class SubscriptionTypeTests : TypeTestBase
     [Fact]
     public async Task Subscribe_Attribute_With_Argument_Topic()
     {
-        Snapshot.FullName();
+        var snapshot = new CookieCrumble.Snapshot();
 
         await TryTest(async ct =>
         {
@@ -430,9 +430,10 @@ public class SubscriptionTypeTests : TypeTestBase
                 .AddSubscriptionType<MySubscription>());
 
             // act
-            var stream = (IResponseStream)await executor.ExecuteAsync(
+            await using var subscriptionResult = await executor.ExecuteAsync(
                 "subscription { onMessage(userId: \"abc\") }",
                 ct);
+            var results = subscriptionResult.ExpectResponseStream().ReadResultsAsync();
 
             // assert
             var mutationResult = await executor.ExecuteAsync(
@@ -440,19 +441,19 @@ public class SubscriptionTypeTests : TypeTestBase
                 ct);
             Assert.Null(mutationResult.ExpectQueryResult().Errors);
 
-            var results = new StringBuilder();
-            await foreach (var queryResult in
-                stream.ReadResultsAsync().WithCancellation(ct))
+            await foreach (var queryResult in results.WithCancellation(ct).ConfigureAwait(false))
             {
-                var result = queryResult;
-                results.AppendLine(result.ToJson());
+                snapshot.Add(queryResult);
                 break;
             }
+        }).ConfigureAwait(false);
 
-            await stream.DisposeAsync();
-
-            results.ToString().MatchSnapshot();
-        });
+        snapshot.MatchInline(
+            @"{
+              ""data"": {
+                ""onMessage"": ""def""
+              }
+            }");
     }
 
     [Fact]
@@ -970,7 +971,7 @@ public class SubscriptionTypeTests : TypeTestBase
     public class MySubscription
     {
         [Subscribe]
-        [Topic("{userid}")]
+        [Topic("{userId}")]
         public string OnMessage(
             string userId,
             [EventMessage] string message) =>

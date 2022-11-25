@@ -399,7 +399,7 @@ internal sealed partial class SubscriptionExecutor
         {
             if (!_disposed)
             {
-                await _eventEnumerator.DisposeAsync();
+                await _eventEnumerator.DisposeAsync().ConfigureAwait(false);
                 _disposed = true;
             }
         }

@@ -23,7 +23,7 @@ internal sealed class RedisTopic<TMessage> : DefaultTopic<RedisMessageEnvelope<T
     protected override async ValueTask<IDisposable> ConnectAsync(
         ChannelWriter<RedisMessageEnvelope<TMessage>> incoming)
     {
-        var messageQueue = await _subscriber.SubscribeAsync(Name);
+        var messageQueue = await _subscriber.SubscribeAsync(Name).ConfigureAwait(false);
 
         messageQueue.OnMessage(async redisMessage =>
         {

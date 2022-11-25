@@ -3,6 +3,7 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Subscriptions.Redis.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Subscriptions.Redis</RootNamespace>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

@@ -2,7 +2,7 @@ using CookieCrumble;
 
 namespace HotChocolate.Subscriptions.Redis;
 
-public class NatsTopicFormatterTests
+public class TopicFormatterTests
 {
     [Fact]
     public void Format_Topic_Without_Prefix()

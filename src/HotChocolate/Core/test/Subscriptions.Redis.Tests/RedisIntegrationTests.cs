@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using CookieCrumble;
@@ -24,16 +23,14 @@ public class RedisIntegrationTests : IClassFixture<RedisResource>
     public async Task Subscribe_Infer_Topic()
     {
         // arrange
-        await using var redis = await CreateRedisResource();
         using var cts = new CancellationTokenSource(_timeout);
-        var connection = redis.GetConnection();
 
         await using var services = new ServiceCollection()
             .AddGraphQL()
             .AddSubscriptionType<Subscription>()
             .ModifyOptions(o => o.StrictValidation = false)
             .AddRedisSubscriptions(
-                _ => connection,
+                _ => _connection,
                 options: new SubscriptionOptions
                 {
                     TopicPrefix = nameof(Subscribe_Infer_Topic)
@@ -46,19 +43,20 @@ public class RedisIntegrationTests : IClassFixture<RedisResource>
         // act
         var result = await services.ExecuteRequestAsync(
             "subscription { onMessage }",
-            cancellationToken: cts.Token);
+            cancellationToken: cts.Token)
+            .ConfigureAwait(false);;
 
         // we need to execute the read for the subscription to start receiving.
         await using var responseStream = result.ExpectResponseStream();
-        var results = responseStream.ReadResultsAsync();
+        var results = responseStream.ReadResultsAsync().ConfigureAwait(false);;
 
         // assert
-        await sender.SendAsync("OnMessage", "bar", cts.Token);
-        await sender.CompleteAsync("OnMessage");
+        await sender.SendAsync("OnMessage", "bar", cts.Token).ConfigureAwait(false);;
+        await sender.CompleteAsync("OnMessage").ConfigureAwait(false);;
 
         var snapshot = new Snapshot();
 
-        await foreach (var response in results.WithCancellation(cts.Token))
+        await foreach (var response in results.WithCancellation(cts.Token).ConfigureAwait(false))
         {
             snapshot.Add(response);
         }
@@ -75,16 +73,14 @@ public class RedisIntegrationTests : IClassFixture<RedisResource>
     public async Task Subscribe_Static_Topic()
     {
         // arrange
-        await using var redis = await CreateRedisResource();
         using var cts = new CancellationTokenSource(_timeout);
-        var connection = redis.GetConnection();
 
         await using var services = new ServiceCollection()
             .AddGraphQL()
             .AddSubscriptionType<Subscription2>()
             .ModifyOptions(o => o.StrictValidation = false)
             .AddRedisSubscriptions(
-                _ => connection,
+                _ => _connection,
                 options: new SubscriptionOptions { TopicPrefix = nameof(Subscribe_Static_Topic) })
             .Services
             .BuildServiceProvider();
@@ -94,19 +90,21 @@ public class RedisIntegrationTests : IClassFixture<RedisResource>
         // act
         var result = await services.ExecuteRequestAsync(
             "subscription { onMessage { bar } }",
-            cancellationToken: cts.Token);
+            cancellationToken: cts.Token)
+            .ConfigureAwait(false);;
 
         // we need to execute the read for the subscription to start receiving.
         await using var responseStream = result.ExpectResponseStream();
-        var results = responseStream.ReadResultsAsync();
+        var results = responseStream.ReadResultsAsync().ConfigureAwait(false);;
 
         // assert
-        await sender.SendAsync("OnMessage", new Foo { Bar = "Hello" }, cts.Token);
-        await sender.CompleteAsync("OnMessage");
+        await sender.SendAsync("OnMessage", new Foo { Bar = "Hello" }, cts.Token)
+            .ConfigureAwait(false);;
+        await sender.CompleteAsync("OnMessage").ConfigureAwait(false);;
 
         var snapshot = new Snapshot();
 
-        await foreach (var response in results.WithCancellation(cts.Token))
+        await foreach (var response in results.WithCancellation(cts.Token).ConfigureAwait(false))
         {
             snapshot.Add(response);
         }
@@ -125,16 +123,14 @@ public class RedisIntegrationTests : IClassFixture<RedisResource>
     public async Task Subscribe_Topic_With_Arguments()
     {
         // arrange
-        await using var redis = await CreateRedisResource();
         using var cts = new CancellationTokenSource(_timeout);
-        var connection = redis.GetConnection();
 
         await using var services = new ServiceCollection()
             .AddGraphQL()
             .AddSubscriptionType<Subscription3>()
             .ModifyOptions(o => o.StrictValidation = false)
             .AddRedisSubscriptions(
-                _ => connection,
+                _ => _connection,
                 options: new SubscriptionOptions
                 {
                     TopicPrefix = nameof(Subscribe_Topic_With_Arguments)
@@ -143,25 +139,24 @@ public class RedisIntegrationTests : IClassFixture<RedisResource>
             .BuildServiceProvider();
 
         var sender = services.GetRequiredService<ITopicEventSender>();
-        var executorResolver = services.GetRequiredService<IRequestExecutorResolver>();
-        var executor = await executorResolver.GetRequestExecutorAsync(cancellationToken: cts.Token);
 
         // act
-        var resultA = await executor.ExecuteAsync(
-            "subscription { onMessage(arg:\"a\") }",
-            cts.Token);
+        var result = await services.ExecuteRequestAsync(
+            "subscription { onMessage(arg: \"a\") }",
+            cancellationToken: cts.Token)
+            .ConfigureAwait(false);
 
         // we need to execute the read for the subscription to start receiving.
-        await using var responseStreamA = resultA.ExpectResponseStream();
-        var resultsA = responseStreamA.ReadResultsAsync();
+        await using var responseStream = result.ExpectResponseStream();
+        var results = responseStream.ReadResultsAsync().ConfigureAwait(false);
 
         // assert
-        await sender.SendAsync("OnMessage_a", "abc", cts.Token);
-        await sender.CompleteAsync("OnMessage_a");
+        await sender.SendAsync("OnMessage_a", "abc", cts.Token).ConfigureAwait(false);
+        await sender.CompleteAsync("OnMessage_a").ConfigureAwait(false);
 
         var snapshot = new Snapshot();
 
-        await foreach (var response in resultsA.WithCancellation(cts.Token))
+        await foreach (var response in results.WithCancellation(cts.Token).ConfigureAwait(false))
         {
             snapshot.Add(response, name: "From Stream A");
         }
@@ -199,12 +194,5 @@ public class RedisIntegrationTests : IClassFixture<RedisResource>
     public class Foo
     {
         public string? Bar { get; set; }
-    }
-
-    private async Task<RedisResource> CreateRedisResource()
-    {
-        var res = new RedisResource();
-        await res.InitializeAsync();
-        return res;
     }
 }

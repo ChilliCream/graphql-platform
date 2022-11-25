@@ -24,9 +24,9 @@ internal sealed class NatsTopic<TMessage> : DefaultTopic<NatsMessageEnvelope<TMe
         ChannelWriter<NatsMessageEnvelope<TMessage>> incoming)
         => _connection.SubscribeAsync(
             Name,
-            (string rawMessage) =>
+            async (string rawMessage) =>
             {
                 var envelope = _serializer.Deserialize<NatsMessageEnvelope<TMessage>>(rawMessage);
-                incoming.WriteAsync(envelope);
+                await incoming.WriteAsync(envelope).ConfigureAwait(false);
             });
 }
