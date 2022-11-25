@@ -101,4 +101,10 @@
   <data name="JsonMessageSerializer_Deserialize_MessageIsNull" xml:space="preserve">
     <value>The deserialized message mustn't be null.</value>
   </data>
+  <data name="RedisTopic_SubscribedToRedis" xml:space="preserve">
+    <value>Subscribed to Redis.</value>
+  </data>
+  <data name="RedisTopic_UnsubscribedFromRedis" xml:space="preserve">
+    <value>Unsubscribed from Redis.</value>
+  </data>
 </root>

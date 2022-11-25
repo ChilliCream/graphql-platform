@@ -28,7 +28,7 @@ namespace HotChocolate.Subscriptions.Nats {
         internal static System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.Equals(null, resourceMan)) {
-                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.Subscriptions.Nats.NatsResources", typeof(NatsResources).Assembly);
+                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.Subscriptions.Nats.Properties.NatsResources", typeof(NatsResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -54,6 +54,18 @@ namespace HotChocolate.Subscriptions.Nats {
         internal static string NatsPubSub_NatsPubSub_PrefixCannotBeNull {
             get {
                 return ResourceManager.GetString("NatsPubSub_NatsPubSub_PrefixCannotBeNull", resourceCulture);
+            }
+        }
+        
+        internal static string Session_Dispose_UnsubscribedFromNats {
+            get {
+                return ResourceManager.GetString("Session_Dispose_UnsubscribedFromNats", resourceCulture);
+            }
+        }
+        
+        internal static string NatsTopic_ConnectAsync_SubscribedToNats {
+            get {
+                return ResourceManager.GetString("NatsTopic_ConnectAsync_SubscribedToNats", resourceCulture);
             }
         }
     }

@@ -12,10 +12,10 @@ namespace HotChocolate.Subscriptions;
 public interface ITopicEventReceiver
 {
     /// <summary>
-    /// Subscribes to the specified event <paramref name="topic" />.
+    /// Subscribes to the specified event <paramref name="topicName" />.
     /// </summary>
-    /// <param name="topic">
-    /// The topic to which the event message belongs to.
+    /// <param name="topicName">
+    /// The topic name to which the event message belongs to.
     /// </param>
     /// <param name="bufferCapacity">
     ///
@@ -28,10 +28,10 @@ public interface ITopicEventReceiver
     /// </param>
     /// <returns>
     /// Returns a <see cref="ISourceStream{TMessage}" />
-    /// for the given event <paramref name="topic" />.
+    /// for the given event <paramref name="topicName" />.
     /// </returns>
     ValueTask<ISourceStream<TMessage>> SubscribeAsync<TMessage>(
-        string topic,
+        string topicName,
         int? bufferCapacity = null,
         TopicBufferFullMode? bufferFullMode = null,
         CancellationToken cancellationToken = default);

@@ -50,5 +50,17 @@ namespace HotChocolate.Subscriptions.Redis.Properties {
                 return ResourceManager.GetString("JsonMessageSerializer_Deserialize_MessageIsNull", resourceCulture);
             }
         }
+        
+        internal static string RedisTopic_SubscribedToRedis {
+            get {
+                return ResourceManager.GetString("RedisTopic_SubscribedToRedis", resourceCulture);
+            }
+        }
+        
+        internal static string RedisTopic_UnsubscribedFromRedis {
+            get {
+                return ResourceManager.GetString("RedisTopic_UnsubscribedFromRedis", resourceCulture);
+            }
+        }
     }
 }

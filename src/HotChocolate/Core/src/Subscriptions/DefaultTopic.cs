@@ -9,19 +9,14 @@ namespace HotChocolate.Subscriptions;
 /// This base class can be used to implement a Hot Chocolate subscription provider and already
 /// implements a lot of the logic needed for the typical pub/sub topic like backpressure/throttling.
 /// </summary>
-/// <typeparam name="TEnvelope">
-/// The message envelope.
-/// </typeparam>
 /// <typeparam name="TMessage">
 /// The message.
 /// </typeparam>
-public abstract class DefaultTopic<TEnvelope, TMessage>
-    : IDisposable
-    where TEnvelope : DefaultMessageEnvelope<TMessage>
+public abstract class DefaultTopic<TMessage> : IDisposable
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
-    private readonly Channel<TEnvelope> _incoming;
-    private readonly List<Channel<TEnvelope>> _outgoing = new();
+    private readonly Channel<MessageEnvelope<TMessage>> _incoming;
+    private readonly List<Channel<MessageEnvelope<TMessage>>> _outgoing = new();
     private readonly BoundedChannelOptions _channelOptions;
     private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;
     private bool _closed;
@@ -40,11 +35,9 @@ public abstract class DefaultTopic<TEnvelope, TMessage>
         {
             FullMode = (BoundedChannelFullMode)(int)fullMode
         };
-        _incoming = CreateBounded<TEnvelope>(_channelOptions);
+        _incoming = CreateBounded<MessageEnvelope<TMessage>>(_channelOptions);
         _diagnosticEvents = diagnosticEvents;
         diagnosticEvents.Created(Name);
-
-        BeginProcessing();
     }
 
     protected DefaultTopic(
@@ -52,7 +45,7 @@ public abstract class DefaultTopic<TEnvelope, TMessage>
         int capacity,
         TopicBufferFullMode fullMode,
         ISubscriptionDiagnosticEvents diagnosticEvents,
-        Channel<TEnvelope> incomingMessages)
+        Channel<MessageEnvelope<TMessage>> incomingMessages)
     {
         Name = name ?? throw new ArgumentNullException(nameof(name));
         _channelOptions = new BoundedChannelOptions(capacity)
@@ -61,7 +54,6 @@ public abstract class DefaultTopic<TEnvelope, TMessage>
         };
         _incoming = incomingMessages;
         _diagnosticEvents = diagnosticEvents;
-        BeginProcessing();
     }
 
     /// <summary>
@@ -72,7 +64,7 @@ public abstract class DefaultTopic<TEnvelope, TMessage>
     /// <summary>
     /// Allows to write to the incoming message channel.
     /// </summary>
-    protected ChannelWriter<TEnvelope> Incoming => _incoming;
+    protected ChannelWriter<MessageEnvelope<TMessage>> Incoming => _incoming;
 
     /// <summary>
     /// Allows access to the diagnostic events.
@@ -96,11 +88,11 @@ public abstract class DefaultTopic<TEnvelope, TMessage>
                     return null;
                 }
 
-                _diagnosticEvents.Subscribe(Name);
-                var channel = CreateBounded<TEnvelope>(_channelOptions);
-                var stream = new DefaultSourceStream<TEnvelope, TMessage>(channel);
-                _outgoing.Add(channel);
 
+                var channel = CreateBounded<MessageEnvelope<TMessage>>(_channelOptions);
+                var stream = new DefaultSourceStream<TMessage>(channel);
+                _outgoing.Add(channel);
+                _diagnosticEvents.SubscribeSuccess(Name);
                 return stream;
             }
             finally
@@ -116,9 +108,9 @@ public abstract class DefaultTopic<TEnvelope, TMessage>
         }
     }
 
-    private void BeginProcessing()
+    protected void BeginProcessing()
         => Task.Factory.StartNew(
-            async () => await ProcessMessagesAsync().ConfigureAwait(false),
+            async () => await ProcessMessagesSessionAsync().ConfigureAwait(false),
             TaskCreationOptions.LongRunning);
 
     private async Task ProcessMessagesSessionAsync()
@@ -138,21 +130,14 @@ public abstract class DefaultTopic<TEnvelope, TMessage>
         }
         finally
         {
-            // if we hit an error and were not correctly closed we handle this here.
-            if (!_closed)
-            {
-                // todo: this is not well done yet ... and we have some issue if it were done like this
-                _closed = true;
-                RaiseUnsubscribedEvent();
-            }
-
+            await UnsubscribeAllChannels().ConfigureAwait(false);
             DiagnosticEvents.Disconnected(Name);
         }
     }
 
     private async Task ProcessMessagesAsync()
     {
-        var closedChannels = new List<Channel<TEnvelope>>();
+        var closedChannels = new List<Channel<MessageEnvelope<TMessage>>>();
         var postponedMessages = new List<PostponedMessage>();
 
         while (!_closed && !_incoming.Reader.Completion.IsCompleted)
@@ -179,11 +164,12 @@ public abstract class DefaultTopic<TEnvelope, TMessage>
     /// <returns>
     /// Returns a session to dispose the subscription session.
     /// </returns>
-    protected virtual ValueTask<IDisposable> ConnectAsync(ChannelWriter<TEnvelope> incoming)
+    protected virtual ValueTask<IDisposable> ConnectAsync(
+        ChannelWriter<MessageEnvelope<TMessage>> incoming)
         => new(DefaultSession.Instance);
 
     private void DispatchMessages(
-        List<Channel<TEnvelope>> closedChannels,
+        List<Channel<MessageEnvelope<TMessage>>> closedChannels,
         List<PostponedMessage> postponedMessages)
     {
         var batchSize = 4;
@@ -262,7 +248,8 @@ public abstract class DefaultTopic<TEnvelope, TMessage>
         }
     }
 
-    private async Task UnsubscribeClosedChannels(List<Channel<TEnvelope>> closedChannels)
+    private async Task UnsubscribeClosedChannels(
+        List<Channel<MessageEnvelope<TMessage>>> closedChannels)
     {
         await _semaphore.WaitAsync().ConfigureAwait(false);
 
@@ -289,19 +276,46 @@ public abstract class DefaultTopic<TEnvelope, TMessage>
         }
     }
 
+    private async Task UnsubscribeAllChannels()
+    {
+        await _semaphore.WaitAsync().ConfigureAwait(false);
+
+        try
+        {
+            if (_outgoing.Count > 0)
+            {
+                _diagnosticEvents.Unsubscribe(Name, _outgoing.Count);
+
+                foreach (var channel in _outgoing)
+                {
+                    channel.Writer.TryComplete();
+                }
+
+                _outgoing.Clear();
+            }
+
+            _closed = true;
+            RaiseUnsubscribedEvent();
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
     private sealed class PostponedMessage
     {
         public PostponedMessage(
-            TEnvelope message,
-            Channel<TEnvelope> channel)
+            MessageEnvelope<TMessage> message,
+            Channel<MessageEnvelope<TMessage>> channel)
         {
             Message = message;
             Channel = channel;
         }
 
-        public TEnvelope Message { get; }
+        public MessageEnvelope<TMessage> Message { get; }
 
-        public Channel<TEnvelope> Channel { get; }
+        public Channel<MessageEnvelope<TMessage>> Channel { get; }
     }
 
     private sealed class DefaultSession : IDisposable

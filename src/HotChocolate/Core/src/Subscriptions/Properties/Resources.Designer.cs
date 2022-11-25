@@ -50,5 +50,11 @@ namespace HotChocolate.Subscriptions.Properties {
                 return ResourceManager.GetString("JsonMessageSerializer_Deserialize_MessageIsNull", resourceCulture);
             }
         }
+        
+        internal static string DefaultPubSub_SubscribeAsync_MinimumAllowedBufferSize {
+            get {
+                return ResourceManager.GetString("DefaultPubSub_SubscribeAsync_MinimumAllowedBufferSize", resourceCulture);
+            }
+        }
     }
 }

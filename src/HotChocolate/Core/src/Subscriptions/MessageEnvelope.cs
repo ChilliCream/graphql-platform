@@ -1,32 +1,17 @@
-﻿
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Subscriptions;
 
-public abstract class DefaultMessageEnvelope<TBody>
+public sealed class MessageEnvelope<TBody>
 {
-    protected DefaultMessageEnvelope(TBody? body, bool isCompletedMessage)
+    public MessageEnvelope(TBody? body = default, bool isCompletedMessage = false)
     {
         Body = body;
         IsCompletedMessage = isCompletedMessage;
     }
 
-    protected DefaultMessageEnvelope(TBody body)
-    {
-        Body = body;
-        IsCompletedMessage = false;
-    }
-
-    protected DefaultMessageEnvelope()
-    {
-        Body = default;
-        IsCompletedMessage = true;
-    }
-
     public TBody? Body { get; }
 
-#if NET6_0_OR_GREATER
     [MemberNotNullWhen(false, nameof(Body))]
-#endif
     public bool IsCompletedMessage { get; }
 }

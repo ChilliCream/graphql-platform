@@ -1,60 +1,83 @@
+using System.Diagnostics;
 using System.Threading.Channels;
 using StackExchange.Redis;
+using static HotChocolate.Subscriptions.Redis.Properties.Resources;
 
 namespace HotChocolate.Subscriptions.Redis;
 
-internal sealed class RedisTopic<TMessage> : DefaultTopic<RedisMessageEnvelope<TMessage>, TMessage>
+internal sealed class RedisTopic<TMessage> : DefaultTopic<TMessage>
 {
-    private readonly ISubscriber _subscriber;
+    private readonly IConnectionMultiplexer _connection;
     private readonly IMessageSerializer _serializer;
 
     public RedisTopic(
         string name,
-        ISubscriber subscriber,
+        IConnectionMultiplexer connection,
         IMessageSerializer serializer,
         int capacity,
         TopicBufferFullMode fullMode,
         ISubscriptionDiagnosticEvents diagnosticEvents)
         : base(name, capacity, fullMode, diagnosticEvents)
     {
-        _subscriber = subscriber ?? throw new ArgumentNullException(nameof(subscriber));
+        _connection = connection ?? throw new ArgumentNullException(nameof(connection));
         _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+
+        // we need to start the processing the minute the complete context is
+        // fully initialized.
+        BeginProcessing();
     }
 
     protected override async ValueTask<IDisposable> ConnectAsync(
-        ChannelWriter<RedisMessageEnvelope<TMessage>> incoming)
+        ChannelWriter<MessageEnvelope<TMessage>> incoming)
     {
-        var messageQueue = await _subscriber.SubscribeAsync(Name).ConfigureAwait(false);
+        // We ensure that the processing is not started before the context is fully initialized.
+        Debug.Assert(_connection != null, "_connection != null");
+        Debug.Assert(_connection != null, "_serializer != null");
+
+        var subscriber = _connection.GetSubscriber();
+        var messageQueue = await subscriber.SubscribeAsync(Name).ConfigureAwait(false);
+        DiagnosticEvents.ProviderTopicInfo(Name, RedisTopic_SubscribedToRedis);
 
         messageQueue.OnMessage(
             async redisMessage =>
             {
-                var rawMessage = redisMessage.Message.ToString();
-                DiagnosticEvents.Received(Name, rawMessage);
-                var envelope = _serializer.Deserialize<RedisMessageEnvelope<TMessage>>(rawMessage);
-                await incoming.WriteAsync(envelope).ConfigureAwait(false);
+                var raw = redisMessage.Message.ToString();
+
+                // we ensure that if there is noise on the channel we filter it out.
+                if (!string.IsNullOrEmpty(raw))
+                {
+                    DiagnosticEvents.Received(Name, raw);
+                    var envelope = _serializer.Deserialize<MessageEnvelope<TMessage>>(raw);
+                    await incoming.WriteAsync(envelope).ConfigureAwait(false);
+                }
             });
 
-        return new Session(_subscriber, Name);
+        return new Session(Name, _connection, DiagnosticEvents);
     }
 
     private sealed class Session : IDisposable
     {
-        private readonly ISubscriber _subscriber;
         private readonly string _name;
+        private readonly IConnectionMultiplexer _connection;
+        private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;
         private bool _disposed;
 
-        public Session(ISubscriber subscriber, string name)
+        public Session(
+            string name,
+            IConnectionMultiplexer connection,
+            ISubscriptionDiagnosticEvents diagnosticEvents)
         {
-            _subscriber = subscriber;
             _name = name;
+            _connection = connection;
+            _diagnosticEvents = diagnosticEvents;
         }
 
         public void Dispose()
         {
             if (!_disposed)
             {
-                _subscriber.Unsubscribe(_name);
+                _connection.GetSubscriber().Unsubscribe(_name);
+                _diagnosticEvents.ProviderTopicInfo(_name, RedisTopic_UnsubscribedFromRedis);
                 _disposed = true;
             }
         }

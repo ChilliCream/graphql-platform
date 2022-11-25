@@ -24,4 +24,10 @@
   <data name="NatsPubSub_NatsPubSub_PrefixCannotBeNull" xml:space="preserve">
     <value>Value cannot be null or whitespace.</value>
   </data>
+  <data name="Session_Dispose_UnsubscribedFromNats" xml:space="preserve">
+    <value>Unsubscribed from NATS.</value>
+  </data>
+  <data name="NatsTopic_ConnectAsync_SubscribedToNats" xml:space="preserve">
+    <value>Subscribed to NATS.</value>
+  </data>
 </root>

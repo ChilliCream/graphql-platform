@@ -28,19 +28,27 @@ public class SubscriptionDiagnosticEventsListener : ISubscriptionDiagnosticEvent
 
     public virtual void Dispatched<T>(
         string topic,
-        DefaultMessageEnvelope<T> message,
+        MessageEnvelope<T> message,
         int subscribers)
     {
     }
 
     public virtual void Delayed<T>(
         string topic,
-        DefaultMessageEnvelope<T> message,
+        MessageEnvelope<T> message,
         int subscribers)
     {
     }
 
-    public virtual void Subscribe(string topic)
+    public virtual void TrySubscribe(string topic, int attempt)
+    {
+    }
+
+    public virtual void SubscribeSuccess(string topic)
+    {
+    }
+
+    public virtual void SubscribeFailed(string topic)
     {
     }
 
@@ -52,7 +60,15 @@ public class SubscriptionDiagnosticEventsListener : ISubscriptionDiagnosticEvent
     {
     }
 
-    public virtual void Send<T>(string topic, DefaultMessageEnvelope<T> message)
+    public virtual void Send<T>(string topic, MessageEnvelope<T> message)
+    {
+    }
+
+    public virtual  void ProviderInfo(string infoText)
+    {
+    }
+
+    public virtual void ProviderTopicInfo(string topic, string infoText)
     {
     }
 }

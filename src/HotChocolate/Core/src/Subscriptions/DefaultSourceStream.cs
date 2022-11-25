@@ -12,11 +12,9 @@ namespace HotChocolate.Subscriptions;
 /// <typeparam name="TMessage">
 /// The message type.
 /// </typeparam>
-public sealed class DefaultSourceStream<TEnvelope, TMessage>
-    : ISourceStream<TMessage>
-    where TEnvelope : DefaultMessageEnvelope<TMessage>
+public sealed class DefaultSourceStream<TMessage> : ISourceStream<TMessage>
 {
-    private readonly Channel<TEnvelope> _channel;
+    private readonly Channel<MessageEnvelope<TMessage>> _channel;
 
     /// <summary>
     /// Initializes a new instance of <see cref="TMessage"/>.
@@ -24,7 +22,7 @@ public sealed class DefaultSourceStream<TEnvelope, TMessage>
     /// <param name="channel">
     /// The internal message channel.
     /// </param>
-    public DefaultSourceStream(Channel<TEnvelope> channel)
+    public DefaultSourceStream(Channel<MessageEnvelope<TMessage>> channel)
         => _channel = channel;
 
     /// <inheritdoc />
@@ -46,9 +44,9 @@ public sealed class DefaultSourceStream<TEnvelope, TMessage>
 
     private sealed class MessageEnumerable : IAsyncEnumerable<TMessage>
     {
-        private readonly ChannelReader<TEnvelope> _reader;
+        private readonly ChannelReader<MessageEnvelope<TMessage>> _reader;
 
-        public MessageEnumerable(ChannelReader<TEnvelope> reader)
+        public MessageEnumerable(ChannelReader<MessageEnvelope<TMessage>> reader)
             => _reader = reader;
 
         public async IAsyncEnumerator<TMessage> GetAsyncEnumerator(
@@ -73,9 +71,9 @@ public sealed class DefaultSourceStream<TEnvelope, TMessage>
 
     private sealed class MessageEnumerableAsObject : IAsyncEnumerable<object>
     {
-        private readonly ChannelReader<TEnvelope> _reader;
+        private readonly ChannelReader<MessageEnvelope<TMessage>> _reader;
 
-        public MessageEnumerableAsObject(ChannelReader<TEnvelope> reader)
+        public MessageEnumerableAsObject(ChannelReader<MessageEnvelope<TMessage>> reader)
             => _reader = reader;
 
         public async IAsyncEnumerator<object> GetAsyncEnumerator(

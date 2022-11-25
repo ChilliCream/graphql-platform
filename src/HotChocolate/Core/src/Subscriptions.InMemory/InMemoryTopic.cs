@@ -2,11 +2,9 @@ using static System.Threading.Channels.Channel;
 
 namespace HotChocolate.Subscriptions.InMemory;
 
-internal sealed class InMemoryTopic<TMessage>
-    : DefaultTopic<InMemoryMessageEnvelope<TMessage>, TMessage>
-    , IInMemoryTopic
+internal sealed class InMemoryTopic<TMessage> : DefaultTopic<TMessage>, IInMemoryTopic
 {
-    private static readonly InMemoryMessageEnvelope<TMessage> _complete = new();
+    private static readonly MessageEnvelope<TMessage> _complete = new();
 
     public InMemoryTopic(
         string name,
@@ -18,20 +16,16 @@ internal sealed class InMemoryTopic<TMessage>
             capacity,
             fullMode,
             diagnosticEvents,
-            CreateUnbounded<InMemoryMessageEnvelope<TMessage>>())
+            CreateUnbounded<MessageEnvelope<TMessage>>())
     {
+        // we need to start the processing the minute the complete context is
+        // fully initialized.
+        BeginProcessing();
     }
 
-    public void TryWrite(TMessage message)
-    {
-        var envelope = new InMemoryMessageEnvelope<TMessage>(message);
-        DiagnosticEvents.Send(Name, envelope);
-        Incoming.TryWrite(envelope);
-    }
+    public void TryWrite(MessageEnvelope<TMessage> message)
+        => Incoming.TryWrite(message);
 
     public void TryComplete()
-    {
-        DiagnosticEvents.Send(Name, _complete);
-        Incoming.TryWrite(_complete);
-    }
+        => Incoming.TryWrite(_complete);
 }

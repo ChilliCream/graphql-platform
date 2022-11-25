@@ -101,4 +101,7 @@
   <data name="JsonMessageSerializer_Deserialize_MessageIsNull" xml:space="preserve">
     <value>The deserialized message mustn't be null.</value>
   </data>
+  <data name="DefaultPubSub_SubscribeAsync_MinimumAllowedBufferSize" xml:space="preserve">
+    <value>The minimum allowed buffer size is 8.</value>
+  </data>
 </root>

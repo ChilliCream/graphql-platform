@@ -6,7 +6,6 @@ using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
-using StackExchange.Redis;
 using Xunit.Abstractions;
 using static System.Text.Json.JsonSerializer;
 
@@ -15,12 +14,12 @@ namespace HotChocolate.Subscriptions.Redis;
 public class RedisIntegrationTests : IClassFixture<RedisResource>
 {
     private const int _timeout = 5000;
-    private readonly ConnectionMultiplexer _connection;
+    private readonly RedisResource _redisResource;
     private readonly TestDiagnostics _testDiagnostics;
 
     public RedisIntegrationTests(RedisResource redisResource, ITestOutputHelper output)
     {
-        _connection = redisResource.GetConnection();
+        _redisResource = redisResource;
         _testDiagnostics = new TestDiagnostics(output);
     }
 
@@ -30,12 +29,15 @@ public class RedisIntegrationTests : IClassFixture<RedisResource>
         // arrange
         using var cts = new CancellationTokenSource(_timeout);
 
+        var connection = _redisResource.GetConnection();
+        Assert.True(connection.IsConnected, "connection.IsConnected");
+
         await using var services = new ServiceCollection()
             .AddGraphQL()
             .AddSubscriptionType<Subscription>()
             .ModifyOptions(o => o.StrictValidation = false)
             .AddRedisSubscriptions(
-                _ => _connection,
+                _ => connection,
                 options: new SubscriptionOptions
                 {
                     TopicPrefix = nameof(Subscribe_Infer_Topic)
@@ -81,12 +83,15 @@ public class RedisIntegrationTests : IClassFixture<RedisResource>
         // arrange
         using var cts = new CancellationTokenSource(_timeout);
 
+        var connection = _redisResource.GetConnection();
+        Assert.True(connection.IsConnected, "connection.IsConnected");
+
         await using var services = new ServiceCollection()
             .AddGraphQL()
             .AddSubscriptionType<Subscription2>()
             .ModifyOptions(o => o.StrictValidation = false)
             .AddRedisSubscriptions(
-                _ => _connection,
+                _ => connection,
                 options: new SubscriptionOptions { TopicPrefix = nameof(Subscribe_Static_Topic) })
             .Services
             .AddSingleton<ISubscriptionDiagnosticEvents>(_testDiagnostics)
@@ -132,12 +137,15 @@ public class RedisIntegrationTests : IClassFixture<RedisResource>
         // arrange
         using var cts = new CancellationTokenSource(_timeout);
 
+        var connection = _redisResource.GetConnection();
+        Assert.True(connection.IsConnected, "connection.IsConnected");
+
         await using var services = new ServiceCollection()
             .AddGraphQL()
             .AddSubscriptionType<Subscription3>()
             .ModifyOptions(o => o.StrictValidation = false)
             .AddRedisSubscriptions(
-                _ => _connection,
+                _ => connection,
                 options: new SubscriptionOptions
                 {
                     TopicPrefix = nameof(Subscribe_Topic_With_Arguments)
@@ -221,7 +229,9 @@ public class RedisIntegrationTests : IClassFixture<RedisResource>
             => _output.WriteLine($"Disconnected: {topic}");
 
         public override void MessageProcessingError(string topic, Exception ex)
-            => _output.WriteLine($"Error: {topic} {ex.Message}");
+        {
+            _output.WriteLine($"Error: {topic} {ex.Message} {ex.StackTrace} {ex.GetType().FullName}");
+        }
 
         public override void Received(string topic, string message)
             => _output.WriteLine($"Received: {topic} {message}");
@@ -231,18 +241,24 @@ public class RedisIntegrationTests : IClassFixture<RedisResource>
 
         public override void Dispatched<T>(
             string topic,
-            DefaultMessageEnvelope<T> message,
+            MessageEnvelope<T> message,
             int subscribers)
             => _output.WriteLine($"Dispatched: {topic} {Serialize(message)} {subscribers}");
 
         public override void Delayed<T>(
             string topic,
-            DefaultMessageEnvelope<T> message,
+            MessageEnvelope<T> message,
             int subscribers)
             => _output.WriteLine($"Delayed: {topic} {Serialize(message)} {subscribers}");
 
-        public override void Subscribe(string topic)
-            => _output.WriteLine($"Subscribe: {topic}");
+        public override void TrySubscribe(string topic, int attempt)
+            => _output.WriteLine($"TrySubscribe: {topic} {attempt}");
+
+        public override void SubscribeSuccess(string topic)
+            => _output.WriteLine($"Subscribe Successful: {topic}");
+
+        public override void SubscribeFailed(string topic)
+            => _output.WriteLine($"Subscribe Failed: {topic}");
 
         public override void Unsubscribe(string topic, int subscribers)
             => _output.WriteLine($"Unsubscribe: {topic} {subscribers}");
@@ -250,7 +266,13 @@ public class RedisIntegrationTests : IClassFixture<RedisResource>
         public override void Close(string topic)
             => _output.WriteLine($"Close: {topic}");
 
-        public override void Send<T>(string topic, DefaultMessageEnvelope<T> message)
+        public override void Send<T>(string topic, MessageEnvelope<T> message)
             => _output.WriteLine($"Send: {topic} {Serialize(message)}");
+
+        public override void ProviderInfo(string infoText)
+            => _output.WriteLine($"Info: {infoText}");
+
+        public override void ProviderTopicInfo(string topic, string infoText)
+            => _output.WriteLine($"Info: {infoText}");
     }
 }

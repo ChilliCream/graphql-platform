@@ -1,120 +1,58 @@
-using System.Collections.Concurrent;
-using HotChocolate.Execution;
 using StackExchange.Redis;
-using static System.StringComparer;
 
 namespace HotChocolate.Subscriptions.Redis;
 
-internal sealed class RedisPubSub : ITopicEventReceiver, ITopicEventSender
+internal sealed class RedisPubSub : DefaultPubSub
 {
-    private readonly ConcurrentDictionary<string, IDisposable> _topics = new(Ordinal);
-    private readonly TopicFormatter _formatter;
-    private readonly SubscriptionOptions _options;
-    private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;
-    private readonly ISubscriber _subscriber;
+    private readonly IConnectionMultiplexer _connection;
     private readonly IMessageSerializer _serializer;
     private readonly string _completed;
-
+    private readonly int _topicBufferCapacity;
+    private readonly TopicBufferFullMode _topicBufferFullMode;
     public RedisPubSub(
-        ISubscriber subscriber,
+        IConnectionMultiplexer connection,
         IMessageSerializer serializer,
         SubscriptionOptions options,
         ISubscriptionDiagnosticEvents diagnosticEvents)
+        : base(options, diagnosticEvents)
     {
-        _subscriber = subscriber ??
-            throw new ArgumentNullException(nameof(subscriber));
-        _serializer = serializer ??
-            throw new ArgumentNullException(nameof(serializer));
+        _connection = connection ?? throw new ArgumentNullException(nameof(connection));
+        _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+        _topicBufferCapacity = options.TopicBufferCapacity;
+        _topicBufferFullMode = options.TopicBufferFullMode;
         _completed = serializer.CompleteMessage;
-        _options = options ??
-            throw new ArgumentNullException(nameof(options));
-        _formatter = new TopicFormatter(options.TopicPrefix);
-        _diagnosticEvents = diagnosticEvents ??
-            throw new ArgumentNullException(nameof(diagnosticEvents));
     }
 
-    public async ValueTask<ISourceStream<TMessage>> SubscribeAsync<TMessage>(
-        string topic,
-        int? bufferCapacity = null,
-        TopicBufferFullMode? bufferFullMode = null,
+    protected override async ValueTask OnSendAsync<TMessage>(
+        string formattedTopic,
+        MessageEnvelope<TMessage> message,
         CancellationToken cancellationToken = default)
     {
-        if (topic is null)
-        {
-            throw new ArgumentNullException(nameof(topic));
-        }
+        var serialized = _serializer.Serialize(message);
 
-        var formattedTopic = _formatter.Format(topic);
-        ISourceStream<TMessage>? sourceStream = null;
-
-        while (sourceStream is null)
-        {
-            var eventTopic = _topics.GetOrAdd(
-                formattedTopic,
-                t => CreateTopic<TMessage>(t, bufferCapacity, bufferFullMode));
-
-            if (eventTopic is RedisTopic<TMessage> et)
-            {
-                sourceStream = await et.TrySubscribeAsync(cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                // we found a topic with the same name but a different message type.
-                // this is an invalid state and we will except.
-                throw new InvalidMessageTypeException();
-            }
-        }
-
-        return sourceStream;
+        // The object returned from GetSubscriber is a cheap pass-thru object that does not need
+        // to be stored.
+        var subscriber = _connection.GetSubscriber();
+        await subscriber.PublishAsync(formattedTopic, serialized).ConfigureAwait(false);
     }
 
-    public async ValueTask SendAsync<TMessage>(
-        string topic,
-        TMessage message,
-        CancellationToken cancellationToken = default)
+    protected override async ValueTask OnCompleteAsync(string formattedTopic)
     {
-        if (topic is null)
-        {
-            throw new ArgumentNullException(nameof(topic));
-        }
-
-        var formattedTopic = _formatter.Format(topic);
-        var envelope = new RedisMessageEnvelope<TMessage>(message, false);
-        var serialized = _serializer.Serialize(envelope);
-        await _subscriber.PublishAsync(formattedTopic, serialized).ConfigureAwait(false);
+        // The object returned from GetSubscriber is a cheap pass-thru object that does not need
+        // to be stored.
+        var subscriber = _connection.GetSubscriber();
+        await subscriber.PublishAsync(formattedTopic, _completed).ConfigureAwait(false);
     }
 
-    public async ValueTask CompleteAsync(string topic)
-    {
-        if (topic is null)
-        {
-            throw new ArgumentNullException(nameof(topic));
-        }
-
-        var formattedTopic = _formatter.Format(topic);
-        await _subscriber.PublishAsync(formattedTopic, _completed).ConfigureAwait(false);
-    }
-
-    private RedisTopic<TMessage> CreateTopic<TMessage>(
-        string topic,
+    protected override DefaultTopic<TMessage> OnCreateTopic<TMessage>(
+        string formattedTopic,
         int? bufferCapacity,
         TopicBufferFullMode? bufferFullMode)
-    {
-        var eventTopic = new RedisTopic<TMessage>(
-            topic,
-            _subscriber,
+        => new RedisTopic<TMessage>(
+            formattedTopic,
+            _connection,
             _serializer,
-            bufferCapacity ?? _options.TopicBufferCapacity,
-            bufferFullMode ?? _options.TopicBufferFullMode,
-            _diagnosticEvents);
-
-        eventTopic.Unsubscribed += (sender, __) =>
-        {
-            var s = (RedisTopic<TMessage>)sender!;
-            _topics.TryRemove(s.Name, out _);
-            s.Dispose();
-        };
-
-        return eventTopic;
-    }
+            bufferCapacity ?? _topicBufferCapacity,
+            bufferFullMode ?? _topicBufferFullMode,
+            DiagnosticEvents);
 }

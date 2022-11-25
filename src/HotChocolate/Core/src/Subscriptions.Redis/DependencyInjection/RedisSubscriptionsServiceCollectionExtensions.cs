@@ -26,7 +26,7 @@ public static class RedisSubscriptionsServiceCollectionExtensions
         services.TryAddSingleton<SubscriptionOptions>(_ => options ?? new SubscriptionOptions());
         services.TryAddSingleton<IMessageSerializer, DefaultJsonMessageSerializer>();
         services.TryAddSingleton(sp => new RedisPubSub(
-            connection(sp).GetSubscriber(),
+            connection(sp),
             sp.GetRequiredService<IMessageSerializer>(),
             sp.GetRequiredService<SubscriptionOptions>(),
             sp.GetRequiredService<ISubscriptionDiagnosticEvents>()));
