@@ -1,7 +1,6 @@
-using System.Runtime.CompilerServices;
 using CookieCrumble;
 
-namespace HotChocolate.Subscriptions.Redis;
+namespace HotChocolate.Subscriptions;
 
 public class TopicFormatterTests
 {

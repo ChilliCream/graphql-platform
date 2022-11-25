@@ -1,4 +1,4 @@
-namespace HotChocolate.Subscriptions.Redis;
+namespace HotChocolate.Subscriptions;
 
 public class MessageEnvelopeTests
 {

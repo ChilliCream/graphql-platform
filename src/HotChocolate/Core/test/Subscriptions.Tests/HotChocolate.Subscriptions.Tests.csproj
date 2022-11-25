@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>HotChocolate.Subscriptions.Redis.Tests</AssemblyName>
-    <RootNamespace>HotChocolate.Subscriptions.Redis</RootNamespace>
+    <AssemblyName>HotChocolate.Subscriptions.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Subscriptions</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup>

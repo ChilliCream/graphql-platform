@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Subscriptions.Nats\HotChocolate.Subscriptions.Nats.csproj" />
+    <ProjectReference Include="..\Subscriptions.Tests\HotChocolate.Subscriptions.Tests.csproj" />
     <ProjectReference Include="..\Utilities\HotChocolate.Tests.Utilities.csproj" />
   </ItemGroup>
   

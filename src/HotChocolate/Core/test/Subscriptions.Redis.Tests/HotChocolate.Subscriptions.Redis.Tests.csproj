@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Subscriptions.Redis\HotChocolate.Subscriptions.Redis.csproj" />
+    <ProjectReference Include="..\Subscriptions.Tests\HotChocolate.Subscriptions.Tests.csproj" />
     <ProjectReference Include="..\Utilities\HotChocolate.Tests.Utilities.csproj" />
   </ItemGroup>
 

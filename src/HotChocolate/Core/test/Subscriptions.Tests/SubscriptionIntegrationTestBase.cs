@@ -1,52 +1,31 @@
-using System;
 using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Subscriptions.Diagnostics;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 using Xunit.Abstractions;
 using static System.Text.Json.JsonSerializer;
 
-namespace HotChocolate.Subscriptions.Redis;
+namespace HotChocolate.Subscriptions;
 
-public class IntegrationTestBase
+public abstract  class SubscriptionIntegrationTestBase
 {
     private static readonly int _timeout = Debugger.IsAttached ? 1000000 : 5000;
-    private readonly TestDiagnostics _testDiagnostics;
+    private readonly ITestOutputHelper _output;
 
-    public IntegrationTestBase(ITestOutputHelper output)
+    protected SubscriptionIntegrationTestBase(ITestOutputHelper output)
     {
-        _testDiagnostics = new TestDiagnostics(output);
+        _output = output ?? throw new ArgumentNullException(nameof(output));
     }
 
     [Fact]
-    public async Task Subscribe_Infer_Topic()
+    public virtual async Task Subscribe_Infer_Topic()
     {
         // arrange
         using var cts = new CancellationTokenSource(_timeout);
-
-        var connection = _redisResource.GetConnection();
-        Assert.True(connection.IsConnected, "connection.IsConnected");
-
-        await using var services = new ServiceCollection()
-            .AddGraphQL()
-            .AddSubscriptionType<Subscription>()
-            .ModifyOptions(o => o.StrictValidation = false)
-            .AddRedisSubscriptions(
-                _ => connection,
-                options: new SubscriptionOptions
-                {
-                    TopicPrefix = nameof(Subscribe_Infer_Topic)
-                })
-            .Services
-            .AddSingleton<ISubscriptionDiagnosticEvents>(_testDiagnostics)
-            .BuildServiceProvider();
-
+        await using var services = CreateServer<Subscription>();
         var sender = services.GetRequiredService<ITopicEventSender>();
 
         // act
@@ -54,18 +33,14 @@ public class IntegrationTestBase
             "subscription { onMessage }",
             cancellationToken: cts.Token)
             .ConfigureAwait(false);
-        ;
 
         // we need to execute the read for the subscription to start receiving.
         await using var responseStream = result.ExpectResponseStream();
         var results = responseStream.ReadResultsAsync().ConfigureAwait(false);
-        ;
 
         // assert
         await sender.SendAsync("OnMessage", "bar", cts.Token).ConfigureAwait(false);
-        ;
         await sender.CompleteAsync("OnMessage").ConfigureAwait(false);
-        ;
 
         var snapshot = new Snapshot();
 
@@ -83,25 +58,11 @@ public class IntegrationTestBase
     }
 
     [Fact]
-    public async Task Subscribe_Static_Topic()
+    public virtual async Task Subscribe_Static_Topic()
     {
         // arrange
         using var cts = new CancellationTokenSource(_timeout);
-
-        var connection = _redisResource.GetConnection();
-        Assert.True(connection.IsConnected, "connection.IsConnected");
-
-        await using var services = new ServiceCollection()
-            .AddGraphQL()
-            .AddSubscriptionType<Subscription2>()
-            .ModifyOptions(o => o.StrictValidation = false)
-            .AddRedisSubscriptions(
-                _ => connection,
-                options: new SubscriptionOptions { TopicPrefix = nameof(Subscribe_Static_Topic) })
-            .Services
-            .AddSingleton<ISubscriptionDiagnosticEvents>(_testDiagnostics)
-            .BuildServiceProvider();
-
+        await using var services = CreateServer<Subscription2>();
         var sender = services.GetRequiredService<ITopicEventSender>();
 
         // act
@@ -109,19 +70,15 @@ public class IntegrationTestBase
             "subscription { onMessage { bar } }",
             cancellationToken: cts.Token)
             .ConfigureAwait(false);
-        ;
 
         // we need to execute the read for the subscription to start receiving.
         await using var responseStream = result.ExpectResponseStream();
         var results = responseStream.ReadResultsAsync().ConfigureAwait(false);
-        ;
 
         // assert
         await sender.SendAsync("OnMessage", new Foo { Bar = "Hello" }, cts.Token)
             .ConfigureAwait(false);
-        ;
         await sender.CompleteAsync("OnMessage").ConfigureAwait(false);
-        ;
 
         var snapshot = new Snapshot();
 
@@ -141,28 +98,11 @@ public class IntegrationTestBase
     }
 
     [Fact]
-    public async Task Subscribe_Topic_With_Arguments()
+    public virtual async Task Subscribe_Topic_With_Arguments()
     {
         // arrange
         using var cts = new CancellationTokenSource(_timeout);
-
-        var connection = _redisResource.GetConnection();
-        Assert.True(connection.IsConnected, "connection.IsConnected");
-
-        await using var services = new ServiceCollection()
-            .AddGraphQL()
-            .AddSubscriptionType<Subscription3>()
-            .ModifyOptions(o => o.StrictValidation = false)
-            .AddRedisSubscriptions(
-                _ => connection,
-                options: new SubscriptionOptions
-                {
-                    TopicPrefix = nameof(Subscribe_Topic_With_Arguments)
-                })
-            .Services
-            .AddSingleton<ISubscriptionDiagnosticEvents>(_testDiagnostics)
-            .BuildServiceProvider();
-
+        await using var services = CreateServer<Subscription3>();
         var sender = services.GetRequiredService<ITopicEventSender>();
 
         // act
@@ -195,28 +135,11 @@ public class IntegrationTestBase
     }
 
     [Fact]
-    public async Task Subscribe_Topic_With_Arguments_2_Subscriber()
+    public virtual async Task Subscribe_Topic_With_Arguments_2_Subscriber()
     {
         // arrange
         using var cts = new CancellationTokenSource(_timeout);
-
-        var connection = _redisResource.GetConnection();
-        Assert.True(connection.IsConnected, "connection.IsConnected");
-
-        await using var services = new ServiceCollection()
-            .AddGraphQL()
-            .AddSubscriptionType<Subscription3>()
-            .ModifyOptions(o => o.StrictValidation = false)
-            .AddRedisSubscriptions(
-                _ => connection,
-                options: new SubscriptionOptions
-                {
-                    TopicPrefix = nameof(Subscribe_Topic_With_Arguments)
-                })
-            .Services
-            .AddSingleton<ISubscriptionDiagnosticEvents>(_testDiagnostics)
-            .BuildServiceProvider();
-
+        await using var services = CreateServer<Subscription3>();
         var sender = services.GetRequiredService<ITopicEventSender>();
 
         // act
@@ -275,28 +198,11 @@ public class IntegrationTestBase
     }
 
     [Fact]
-    public async Task Subscribe_Topic_With_Arguments_2_Topics()
+    public virtual async Task Subscribe_Topic_With_Arguments_2_Topics()
     {
         // arrange
         using var cts = new CancellationTokenSource(_timeout);
-
-        var connection = _redisResource.GetConnection();
-        Assert.True(connection.IsConnected, "connection.IsConnected");
-
-        await using var services = new ServiceCollection()
-            .AddGraphQL()
-            .AddSubscriptionType<Subscription3>()
-            .ModifyOptions(o => o.StrictValidation = false)
-            .AddRedisSubscriptions(
-                _ => connection,
-                options: new SubscriptionOptions
-                {
-                    TopicPrefix = nameof(Subscribe_Topic_With_Arguments)
-                })
-            .Services
-            .AddSingleton<ISubscriptionDiagnosticEvents>(_testDiagnostics)
-            .BuildServiceProvider();
-
+        await using var services = CreateServer<Subscription3>();
         var sender = services.GetRequiredService<ITopicEventSender>();
 
         // act
@@ -357,7 +263,7 @@ public class IntegrationTestBase
             ");
     }
 
-    protected ServiceProvider CreateServer<TSubscriptionType>()
+    protected ServiceProvider CreateServer<TSubscriptionType>() where TSubscriptionType : class
         => CreateServer(builder =>
         {
             builder
@@ -370,10 +276,12 @@ public class IntegrationTestBase
         var serviceCollection = new ServiceCollection();
         var graphqlBuilder = serviceCollection.AddGraphQL();
 
+        graphqlBuilder.AddDiagnosticEventListener(sp => new TestDiagnostics(_output));
+
         configure(graphqlBuilder);
         ConfigurePubSub(graphqlBuilder);
 
-
+        return serviceCollection.BuildServiceProvider();
     }
 
     protected abstract void ConfigurePubSub(IRequestExecutorBuilder graphqlBuilder);
@@ -398,8 +306,6 @@ public class IntegrationTestBase
         public string OnMessage(string arg, [EventMessage] string message) => message;
     }
 
-    public class FooType : ObjectType<Foo> { }
-
     public class Foo
     {
         public string? Bar { get; set; }
@@ -423,7 +329,9 @@ public class IntegrationTestBase
 
         public override void MessageProcessingError(string topicName, Exception error)
         {
-            _output.WriteLine($"Error: {topicName} {error.Message} {error.StackTrace} {error.GetType().FullName}");
+            _output.WriteLine(
+                $"Error: {topicName} {error.Message} " +
+                $"{error.StackTrace} {error.GetType().FullName}");
         }
 
         public override void Received(string topicName, string serializedMessage)
