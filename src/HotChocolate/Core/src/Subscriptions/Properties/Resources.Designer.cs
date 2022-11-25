@@ -62,5 +62,17 @@ namespace HotChocolate.Subscriptions.Properties {
                 return ResourceManager.GetString("MessageEnumerable_UnsubscribedNotAllowed", resourceCulture);
             }
         }
+        
+        internal static string MessageEnvelope_DefaultMessage_NeedsBody {
+            get {
+                return ResourceManager.GetString("MessageEnvelope_DefaultMessage_NeedsBody", resourceCulture);
+            }
+        }
+        
+        internal static string MessageEnvelope_UnsubscribeAndComplete_DoNotHaveBody {
+            get {
+                return ResourceManager.GetString("MessageEnvelope_UnsubscribeAndComplete_DoNotHaveBody", resourceCulture);
+            }
+        }
     }
 }

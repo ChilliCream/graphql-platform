@@ -1,4 +1,4 @@
-namespace HotChocolate.Subscriptions;
+namespace HotChocolate.Subscriptions.Diagnostics;
 
 /// <summary>
 /// Register an implementation of this interface in the DI container to

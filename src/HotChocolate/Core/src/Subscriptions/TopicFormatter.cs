@@ -4,7 +4,7 @@ using System.Text;
 
 namespace HotChocolate.Subscriptions;
 
-public sealed class TopicFormatter
+internal sealed class TopicFormatter
 {
     private static readonly Encoding _utf8 = Encoding.UTF8;
     private readonly ThreadLocal<MD5> _md5 = new(MD5.Create);

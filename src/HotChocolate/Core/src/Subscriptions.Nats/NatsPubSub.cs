@@ -1,9 +1,11 @@
-using System.Collections.Concurrent;
 using AlterNats;
-using HotChocolate.Execution;
+using HotChocolate.Subscriptions.Diagnostics;
 
 namespace HotChocolate.Subscriptions.Nats;
 
+/// <summary>
+/// The NATS pub/sub provider implementation.
+/// </summary>
 internal sealed class NatsPubSub : DefaultPubSub
 {
     private readonly NatsConnection _connection;

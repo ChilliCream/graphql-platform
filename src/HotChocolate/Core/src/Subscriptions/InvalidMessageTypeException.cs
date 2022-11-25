@@ -2,6 +2,10 @@ using System.Runtime.Serialization;
 
 namespace HotChocolate.Subscriptions;
 
+/// <summary>
+/// This exception is thrown if a subscribe attempt is being made to an existing topic
+/// with a different message type.
+/// </summary>
 [Serializable]
 public class InvalidMessageTypeException : Exception
 {

@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Subscriptions.Diagnostics;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,15 +14,13 @@ using static System.Text.Json.JsonSerializer;
 
 namespace HotChocolate.Subscriptions.Redis;
 
-public class RedisIntegrationTests : IClassFixture<RedisResource>
+public class IntegrationTestBase
 {
     private static readonly int _timeout = Debugger.IsAttached ? 1000000 : 5000;
-    private readonly RedisResource _redisResource;
     private readonly TestDiagnostics _testDiagnostics;
 
-    public RedisIntegrationTests(RedisResource redisResource, ITestOutputHelper output)
+    public IntegrationTestBase(ITestOutputHelper output)
     {
-        _redisResource = redisResource;
         _testDiagnostics = new TestDiagnostics(output);
     }
 
@@ -357,6 +356,27 @@ public class RedisIntegrationTests : IClassFixture<RedisResource>
             ---------------
             ");
     }
+
+    protected ServiceProvider CreateServer<TSubscriptionType>()
+        => CreateServer(builder =>
+        {
+            builder
+                .AddSubscriptionType<TSubscriptionType>()
+                .ModifyOptions(o => o.StrictValidation = false);
+        });
+
+    protected ServiceProvider CreateServer(Action<IRequestExecutorBuilder> configure)
+    {
+        var serviceCollection = new ServiceCollection();
+        var graphqlBuilder = serviceCollection.AddGraphQL();
+
+        configure(graphqlBuilder);
+        ConfigurePubSub(graphqlBuilder);
+
+
+    }
+
+    protected abstract void ConfigurePubSub(IRequestExecutorBuilder graphqlBuilder);
 
     public class Subscription
     {

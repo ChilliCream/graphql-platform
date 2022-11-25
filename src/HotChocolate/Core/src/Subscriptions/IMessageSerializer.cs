@@ -11,8 +11,7 @@ public interface IMessageSerializer
     string CompleteMessage { get; }
 
     /// <summary>
-    /// Serializes a topic ot a message to a string
-    /// that is used to send it to the redis pub/sub.
+    /// Serializes a message to a string that can be send to a pub/sub system.
     /// </summary>
     /// <param name="message">The message that shall be serialized.</param>
     /// <typeparam name="TMessage">The type of the message.</typeparam>
@@ -22,7 +21,7 @@ public interface IMessageSerializer
     string Serialize<TMessage>(TMessage message);
 
     /// <summary>
-    /// Deserializes a topic ot a message from a string to <typeparamref name="TMessage"/>.
+    /// Deserializes a message from a string to <typeparamref name="TMessage"/>.
     /// </summary>
     /// <param name="serializedMessage">
     /// The serialized message that shall be deserialized.

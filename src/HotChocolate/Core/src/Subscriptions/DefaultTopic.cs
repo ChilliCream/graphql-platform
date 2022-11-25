@@ -1,5 +1,6 @@
 using System.Threading.Channels;
 using HotChocolate.Execution;
+using HotChocolate.Subscriptions.Diagnostics;
 using static System.Runtime.InteropServices.CollectionsMarshal;
 using static System.Threading.Channels.Channel;
 
@@ -37,7 +38,6 @@ public abstract class DefaultTopic<TMessage> : IDisposable
         };
         _incoming = CreateBounded<MessageEnvelope<TMessage>>(_channelOptions);
         _diagnosticEvents = diagnosticEvents;
-        diagnosticEvents.Created(Name);
     }
 
     protected DefaultTopic(
@@ -217,7 +217,7 @@ public abstract class DefaultTopic<TMessage> : IDisposable
             }
             else
             {
-                _diagnosticEvents.Dispatched(Name, message, subscriberCount);
+                _diagnosticEvents.Dispatch(Name, message, subscriberCount);
 
                 for (var i = 0; i < subscriberCount; i++)
                 {
@@ -257,7 +257,7 @@ public abstract class DefaultTopic<TMessage> : IDisposable
     {
         if (postponedMessages.Count > 0)
         {
-            _diagnosticEvents.Delayed(
+            _diagnosticEvents.DelayedDispatch(
                 Name,
                 postponedMessages[0].Message,
                 postponedMessages.Count);

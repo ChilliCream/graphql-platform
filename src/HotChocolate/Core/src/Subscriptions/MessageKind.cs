@@ -1,5 +1,9 @@
 namespace HotChocolate.Subscriptions;
 
+/// <summary>
+/// Represents the kinds of messages that are supported by the
+/// default implementation of a pub/sub provider.
+/// </summary>
 public enum MessageKind
 {
     /// <summary>

@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
+    <ProjectReference Include="..\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
   </ItemGroup>
 
   <ItemGroup>

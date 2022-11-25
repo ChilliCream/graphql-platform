@@ -2,6 +2,9 @@ using System.Runtime.Serialization;
 
 namespace HotChocolate.Subscriptions;
 
+/// <summary>
+/// This exception is being thrown if the GraphQL execution engine cannot subscribe to a topic.
+/// </summary>
 [Serializable]
 public class CannotSubscribeException : Exception
 {

@@ -1,7 +1,11 @@
+using HotChocolate.Subscriptions.Diagnostics;
 using StackExchange.Redis;
 
 namespace HotChocolate.Subscriptions.Redis;
 
+/// <summary>
+/// The redis pub/sub provider implementation.
+/// </summary>
 internal sealed class RedisPubSub : DefaultPubSub
 {
     private readonly IConnectionMultiplexer _connection;

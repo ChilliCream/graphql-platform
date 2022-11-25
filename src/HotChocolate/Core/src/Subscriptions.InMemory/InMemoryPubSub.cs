@@ -1,6 +1,11 @@
+using HotChocolate.Subscriptions.Diagnostics;
+
 namespace HotChocolate.Subscriptions.InMemory;
 
-public sealed class InMemoryPubSub : DefaultPubSub
+/// <summary>
+/// The in-memory pub/sub provider implementation.
+/// </summary>
+internal sealed class InMemoryPubSub : DefaultPubSub
 {
     private readonly SubscriptionOptions _options;
     private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;

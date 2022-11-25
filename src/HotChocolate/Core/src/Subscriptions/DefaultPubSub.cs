@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution;
+using HotChocolate.Subscriptions.Diagnostics;
 using static System.StringComparer;
 using static HotChocolate.Subscriptions.MessageKind;
 using static HotChocolate.Subscriptions.Properties.Resources;
@@ -88,9 +89,9 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
                     {
                         topic =
                             await CreateTopicAsync<TMessage>(
-                                formattedTopic,
-                                bufferCapacity,
-                                bufferFullMode)
+                                    formattedTopic,
+                                    bufferCapacity,
+                                    bufferFullMode)
                                 .ConfigureAwait(false);
                         var success = _topics.TryAdd(formattedTopic, topic);
                         Debug.Assert(success, "Topic added!");
@@ -181,6 +182,8 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
             s.Dispose();
         };
 
+        DiagnosticEvents.Created(formattedTopic);
+
         await eventTopic.ConnectAsync().ConfigureAwait(false);
 
         return eventTopic;
@@ -229,7 +232,10 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
     {
         if (!_disposed)
         {
-            _subscribeSemaphore.Dispose();
+            if (disposing)
+            {
+                _subscribeSemaphore.Dispose();
+            }
             _disposed = true;
         }
     }

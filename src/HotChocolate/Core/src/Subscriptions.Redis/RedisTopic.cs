@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Threading.Channels;
+using HotChocolate.Subscriptions.Diagnostics;
 using StackExchange.Redis;
 using static HotChocolate.Subscriptions.Redis.Properties.Resources;
 
