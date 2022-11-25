@@ -1,17 +1,19 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace HotChocolate.Subscriptions;
+﻿namespace HotChocolate.Subscriptions;
 
 public sealed class MessageEnvelope<TBody>
 {
-    public MessageEnvelope(TBody? body = default, bool isCompletedMessage = false)
+    public MessageEnvelope(TBody? body = default, MessageKind kind = MessageKind.Default)
     {
+        if (kind is MessageKind.Default && body is null)
+        {
+            throw new ArgumentNullException(nameof(body));
+        }
+
         Body = body;
-        IsCompletedMessage = isCompletedMessage;
+        Kind = kind;
     }
 
     public TBody? Body { get; }
 
-    [MemberNotNullWhen(false, nameof(Body))]
-    public bool IsCompletedMessage { get; }
+    public MessageKind Kind { get; }
 }

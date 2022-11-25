@@ -18,9 +18,6 @@ internal sealed class InMemoryTopic<TMessage> : DefaultTopic<TMessage>, IInMemor
             diagnosticEvents,
             CreateUnbounded<MessageEnvelope<TMessage>>())
     {
-        // we need to start the processing the minute the complete context is
-        // fully initialized.
-        BeginProcessing();
     }
 
     public void TryWrite(MessageEnvelope<TMessage> message)

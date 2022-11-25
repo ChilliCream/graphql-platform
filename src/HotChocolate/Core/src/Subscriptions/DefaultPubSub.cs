@@ -3,16 +3,19 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution;
 using static System.StringComparer;
+using static HotChocolate.Subscriptions.MessageKind;
 using static HotChocolate.Subscriptions.Properties.Resources;
 
 namespace HotChocolate.Subscriptions;
 
-public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender
+public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, IDisposable
 {
+    private readonly SemaphoreSlim _subscribeSemaphore = new(1, 1);
     private readonly ConcurrentDictionary<string, IDisposable> _topics = new(Ordinal);
     private readonly TopicFormatter _topicFormatter;
     private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;
-    private readonly MessageEnvelope<object> _completed = new(isCompletedMessage: true);
+    private readonly MessageEnvelope<object> _completed = new(kind: Completed);
+    private bool _disposed;
 
     protected DefaultPubSub(
         SubscriptionOptions options,
@@ -31,18 +34,18 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender
         _topicFormatter = new TopicFormatter(options.TopicPrefix);
         _diagnosticEvents = diagnosticEvents;
     }
-    
+
     protected ISubscriptionDiagnosticEvents DiagnosticEvents => _diagnosticEvents;
 
     public async ValueTask<ISourceStream<TMessage>> SubscribeAsync<TMessage>(
-        string topic,
+        string topicName,
         int? bufferCapacity = null,
         TopicBufferFullMode? bufferFullMode = null,
         CancellationToken cancellationToken = default)
     {
-        if (topic is null)
+        if (topicName is null)
         {
-            throw new ArgumentNullException(nameof(topic));
+            throw new ArgumentNullException(nameof(topicName));
         }
 
         if (bufferCapacity < 8)
@@ -53,7 +56,7 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender
                 DefaultPubSub_SubscribeAsync_MinimumAllowedBufferSize);
         }
 
-        var formattedTopic = FormatTopicName(topic);
+        var formattedTopic = FormatTopicName(topicName);
         ISourceStream<TMessage>? sourceStream = null;
         const int allowedAttempts = 4;
         var attempt = 0;
@@ -64,24 +67,40 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender
 
             if (attempt > 1)
             {
-                await Task.Delay(25 * attempt, cancellationToken);
+                await Task.Delay(5 * attempt, cancellationToken);
             }
 
             _diagnosticEvents.TrySubscribe(formattedTopic, attempt);
 
-            var eventTopic = _topics.GetOrAdd(
-                formattedTopic,
-                t => CreateTopic<TMessage>(t, bufferCapacity, bufferFullMode));
 
-            if (eventTopic is DefaultTopic<TMessage> et)
+            if (_topics.TryGetValue(formattedTopic, out var topic))
             {
-                sourceStream = await et.TrySubscribeAsync(cancellationToken).ConfigureAwait(false);
+                sourceStream = await TryCreateSourceStream(topic, cancellationToken)
+                    .ConfigureAwait(false);
             }
             else
             {
-                // we found a topic with the same name but a different message type.
-                // this is an invalid state and we will except.
-                throw new InvalidMessageTypeException();
+                await _subscribeSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+                try
+                {
+                    if (!_topics.TryGetValue(formattedTopic, out topic))
+                    {
+                        topic =
+                            await CreateTopicAsync<TMessage>(
+                                formattedTopic,
+                                bufferCapacity,
+                                bufferFullMode)
+                                .ConfigureAwait(false);
+                    }
+                }
+                finally
+                {
+                    _subscribeSemaphore.Release();
+                }
+
+                sourceStream = await TryCreateSourceStream(topic, cancellationToken)
+                    .ConfigureAwait(false);
             }
         }
 
@@ -92,19 +111,33 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender
         }
 
         return sourceStream;
+
+        static async ValueTask<ISourceStream<TMessage>?> TryCreateSourceStream(
+            IDisposable topic,
+            CancellationToken cancellationToken)
+        {
+            if (topic is DefaultTopic<TMessage> et)
+            {
+                return await et.TrySubscribeAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            // we found a topic with the same name but a different message type.
+            // this is an invalid state and we will except.
+            throw new InvalidMessageTypeException();
+        }
     }
 
     public ValueTask SendAsync<TMessage>(
-        string topic,
+        string topicName,
         TMessage message,
         CancellationToken cancellationToken = default)
     {
-        if (topic is null)
+        if (topicName is null)
         {
-            throw new ArgumentNullException(nameof(topic));
+            throw new ArgumentNullException(nameof(topicName));
         }
 
-        var formattedTopic = FormatTopicName(topic);
+        var formattedTopic = FormatTopicName(topicName);
         var envelopedMessage = new MessageEnvelope<TMessage>(message);
         _diagnosticEvents.Send(formattedTopic, envelopedMessage);
 
@@ -116,14 +149,14 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender
         MessageEnvelope<TMessage> message,
         CancellationToken cancellationToken = default);
 
-    public ValueTask CompleteAsync(string topic)
+    public ValueTask CompleteAsync(string topicName)
     {
-        if (topic is null)
+        if (topicName is null)
         {
-            throw new ArgumentNullException(nameof(topic));
+            throw new ArgumentNullException(nameof(topicName));
         }
 
-        var formattedTopic = _topicFormatter.Format(topic);
+        var formattedTopic = _topicFormatter.Format(topicName);
         _diagnosticEvents.Send(formattedTopic, _completed);
 
         return OnCompleteAsync(formattedTopic);
@@ -132,19 +165,21 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender
     protected abstract ValueTask OnCompleteAsync(
         string formattedTopic);
 
-    private DefaultTopic<TMessage> CreateTopic<TMessage>(
+    private async ValueTask<DefaultTopic<TMessage>> CreateTopicAsync<TMessage>(
         string formattedTopic,
         int? bufferCapacity,
         TopicBufferFullMode? bufferFullMode)
     {
         var eventTopic = OnCreateTopic<TMessage>(formattedTopic, bufferCapacity, bufferFullMode);
 
-        eventTopic.Unsubscribed += (sender, __) =>
+        eventTopic.Closed += (sender, __) =>
         {
             var s = (DefaultTopic<TMessage>)sender!;
             _topics.TryRemove(s.Name, out _);
             s.Dispose();
         };
+
+        await eventTopic.ConnectAsync().ConfigureAwait(false);
 
         return eventTopic;
     }
@@ -175,5 +210,25 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender
 
         topic = default;
         return false;
+    }
+
+    ~DefaultPubSub()
+    {
+        Dispose(false);
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposed)
+        {
+            _subscribeSemaphore.Dispose();
+            _disposed = true;
+        }
     }
 }

@@ -56,5 +56,11 @@ namespace HotChocolate.Subscriptions.Properties {
                 return ResourceManager.GetString("DefaultPubSub_SubscribeAsync_MinimumAllowedBufferSize", resourceCulture);
             }
         }
+        
+        internal static string MessageEnumerable_UnsubscribedNotAllowed {
+            get {
+                return ResourceManager.GetString("MessageEnumerable_UnsubscribedNotAllowed", resourceCulture);
+            }
+        }
     }
 }

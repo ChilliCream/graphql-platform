@@ -36,9 +36,7 @@ internal sealed class NatsPubSub : DefaultPubSub
     }
 
     protected override async ValueTask OnCompleteAsync(string formattedTopic)
-    {
-        await _connection.PublishAsync(formattedTopic, _completed).ConfigureAwait(false);
-    }
+        => await _connection.PublishAsync(formattedTopic, _completed).ConfigureAwait(false);
 
     protected override DefaultTopic<TMessage> OnCreateTopic<TMessage>(
         string formattedTopic,

@@ -7,7 +7,7 @@ namespace HotChocolate.Subscriptions;
 
 public sealed class DefaultJsonMessageSerializer : IMessageSerializer
 {
-    private const string _completed = "{\"isCompletedMessage\":true}";
+    private const string _completed = "{\"kind\":\"Completed\"}";
 
     private readonly JsonSerializerOptions _options =
         new(JsonSerializerDefaults.Web)

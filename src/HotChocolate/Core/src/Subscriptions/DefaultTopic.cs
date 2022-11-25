@@ -22,7 +22,7 @@ public abstract class DefaultTopic<TMessage> : IDisposable
     private bool _closed;
     private bool _disposed;
 
-    public event EventHandler<EventArgs>? Unsubscribed;
+    public event EventHandler<EventArgs>? Closed;
 
     protected DefaultTopic(
         string name,
@@ -89,9 +89,9 @@ public abstract class DefaultTopic<TMessage> : IDisposable
                 }
 
 
-                var channel = CreateBounded<MessageEnvelope<TMessage>>(_channelOptions);
-                var stream = new DefaultSourceStream<TMessage>(channel);
-                _outgoing.Add(channel);
+                var outgoing = CreateBounded<MessageEnvelope<TMessage>>(_channelOptions);
+                var stream = new DefaultSourceStream<TMessage>(_incoming.Writer, outgoing);
+                _outgoing.Add(outgoing);
                 _diagnosticEvents.SubscribeSuccess(Name);
                 return stream;
             }
@@ -108,20 +108,31 @@ public abstract class DefaultTopic<TMessage> : IDisposable
         }
     }
 
-    protected void BeginProcessing()
-        => Task.Factory.StartNew(
-            async () => await ProcessMessagesSessionAsync().ConfigureAwait(false),
-            TaskCreationOptions.LongRunning);
-
-    private async Task ProcessMessagesSessionAsync()
+    internal async ValueTask ConnectAsync(CancellationToken ct = default)
     {
         try
         {
-            // we first connect to the pub/sub system.
-            using var subscription = await ConnectAsync(_incoming.Writer).ConfigureAwait(false);
+            var session = await OnConnectAsync(_incoming.Writer, ct).ConfigureAwait(false);
             DiagnosticEvents.Connected(Name);
 
-            // then we start processing incoming messages.
+            BeginProcessing(session);
+        }
+        catch (Exception ex)
+        {
+            DiagnosticEvents.MessageProcessingError(Name, ex);
+        }
+    }
+
+    private void BeginProcessing(IDisposable session)
+        => Task.Factory.StartNew(
+            async s => await ProcessMessagesSessionAsync((IDisposable)s!).ConfigureAwait(false),
+            session,
+            TaskCreationOptions.LongRunning);
+
+    private async Task ProcessMessagesSessionAsync(IDisposable session)
+    {
+        try
+        {
             await ProcessMessagesAsync().ConfigureAwait(false);
         }
         catch (Exception ex)
@@ -131,6 +142,7 @@ public abstract class DefaultTopic<TMessage> : IDisposable
         finally
         {
             await UnsubscribeAllChannels().ConfigureAwait(false);
+            session.Dispose();
             DiagnosticEvents.Disconnected(Name);
         }
     }
@@ -161,11 +173,15 @@ public abstract class DefaultTopic<TMessage> : IDisposable
     /// <param name="incoming">
     /// Write incoming messages to this channel writer.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// Returns a session to dispose the subscription session.
     /// </returns>
-    protected virtual ValueTask<IDisposable> ConnectAsync(
-        ChannelWriter<MessageEnvelope<TMessage>> incoming)
+    protected virtual ValueTask<IDisposable> OnConnectAsync(
+        ChannelWriter<MessageEnvelope<TMessage>> incoming,
+        CancellationToken cancellationToken)
         => new(DefaultSession.Instance);
 
     private void DispatchMessages(
@@ -183,14 +199,13 @@ public abstract class DefaultTopic<TMessage> : IDisposable
             var outgoingSpan = AsSpan(_outgoing);
             var subscriberCount = outgoingSpan.Length;
 
-            _diagnosticEvents.Dispatched(Name, message, subscriberCount);
-
-            for (var i = 0; i < subscriberCount; i++)
+            // if we get an unsubscribed message we will only collect closed channels.
+            if (message.Kind is MessageKind.Unsubscribed)
             {
-                var channel = outgoingSpan[i];
-
-                if (!channel.Writer.TryWrite(message))
+                for (var i = 0; i < subscriberCount; i++)
                 {
+                    var channel = outgoingSpan[i];
+
                     if (channel.Reader.Completion.IsCompleted)
                     {
                         // if we detect channels that unsubscribed we will take a break and
@@ -198,12 +213,32 @@ public abstract class DefaultTopic<TMessage> : IDisposable
                         closedChannels.Add(channel);
                         batchSize = 0;
                     }
-                    else
+                }
+            }
+            else
+            {
+                _diagnosticEvents.Dispatched(Name, message, subscriberCount);
+
+                for (var i = 0; i < subscriberCount; i++)
+                {
+                    var channel = outgoingSpan[i];
+
+                    if (!channel.Writer.TryWrite(message))
                     {
-                        // if we cannot write because of backpressure we will postpone the message
-                        // and take a break from processing further.
-                        postponedMessages.Add(new PostponedMessage(message, channel));
-                        batchSize = 0;
+                        if (channel.Reader.Completion.IsCompleted)
+                        {
+                            // if we detect channels that unsubscribed we will take a break and
+                            // reorganize the subscriber list.
+                            closedChannels.Add(channel);
+                            batchSize = 0;
+                        }
+                        else
+                        {
+                            // if we cannot write because of backpressure we will postpone the message
+                            // and take a break from processing further.
+                            postponedMessages.Add(new PostponedMessage(message, channel));
+                            batchSize = 0;
+                        }
                     }
                 }
             }
@@ -267,7 +302,7 @@ public abstract class DefaultTopic<TMessage> : IDisposable
             if (_outgoing.Count == 0)
             {
                 _closed = true;
-                RaiseUnsubscribedEvent();
+                RaiseClosedEvent();
             }
         }
         finally
@@ -295,7 +330,7 @@ public abstract class DefaultTopic<TMessage> : IDisposable
             }
 
             _closed = true;
-            RaiseUnsubscribedEvent();
+            RaiseClosedEvent();
         }
         finally
         {
@@ -326,8 +361,8 @@ public abstract class DefaultTopic<TMessage> : IDisposable
         public static readonly DefaultSession Instance = new();
     }
 
-    private void RaiseUnsubscribedEvent()
-        => Unsubscribed?.Invoke(this, EventArgs.Empty);
+    private void RaiseClosedEvent()
+        => Closed?.Invoke(this, EventArgs.Empty);
 
     ~DefaultTopic()
     {

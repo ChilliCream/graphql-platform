@@ -104,4 +104,7 @@
   <data name="DefaultPubSub_SubscribeAsync_MinimumAllowedBufferSize" xml:space="preserve">
     <value>The minimum allowed buffer size is 8.</value>
   </data>
+  <data name="MessageEnumerable_UnsubscribedNotAllowed" xml:space="preserve">
+    <value>Unsubscribe message are not allowed to leak to the source stream</value>
+  </data>
 </root>
