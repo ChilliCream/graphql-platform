@@ -23,7 +23,7 @@ public class Mutation
         [Service] ITopicEventSender eventSender)
     {
         repository.AddReview(episode, review);
-        await eventSender.SendAsync($"{OnReview}_episode", review);
+        await eventSender.SendAsync($"{OnReview}_{episode}", review);
         return review;
     }
 }
