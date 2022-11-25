@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using CookieCrumble;
 
 namespace HotChocolate.Subscriptions.Redis;

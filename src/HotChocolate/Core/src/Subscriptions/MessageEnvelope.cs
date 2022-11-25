@@ -6,7 +6,18 @@ public sealed class MessageEnvelope<TBody>
     {
         if (kind is MessageKind.Default && body is null)
         {
-            throw new ArgumentNullException(nameof(body));
+            // TODO : resources
+            throw new ArgumentException(
+                "Default messages must have a body.",
+                nameof(body));
+        }
+
+        if(kind is not MessageKind.Default && body is not null)
+        {
+            // TODO : resources
+            throw new ArgumentException(
+                "Complete and Unsubscribe messages do not have a body.",
+                nameof(body));
         }
 
         Body = body;

@@ -71,7 +71,7 @@ public abstract class DefaultTopic<TMessage> : IDisposable
     /// </summary>
     protected ISubscriptionDiagnosticEvents DiagnosticEvents => _diagnosticEvents;
 
-    public async ValueTask<ISourceStream<TMessage>?> TrySubscribeAsync(
+    internal async ValueTask<ISourceStream<TMessage>?> TrySubscribeAsync(
         CancellationToken cancellationToken)
     {
         try
@@ -286,6 +286,11 @@ public abstract class DefaultTopic<TMessage> : IDisposable
     private async Task UnsubscribeClosedChannels(
         List<Channel<MessageEnvelope<TMessage>>> closedChannels)
     {
+        if (_disposed)
+        {
+            return;
+        }
+
         await _semaphore.WaitAsync().ConfigureAwait(false);
 
         try
@@ -302,17 +307,26 @@ public abstract class DefaultTopic<TMessage> : IDisposable
             if (_outgoing.Count == 0)
             {
                 _closed = true;
-                RaiseClosedEvent();
             }
         }
         finally
         {
             _semaphore.Release();
         }
+
+        if (_closed)
+        {
+            RaiseClosedEvent();
+        }
     }
 
     private async Task UnsubscribeAllChannels()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
         await _semaphore.WaitAsync().ConfigureAwait(false);
 
         try
@@ -330,12 +344,13 @@ public abstract class DefaultTopic<TMessage> : IDisposable
             }
 
             _closed = true;
-            RaiseClosedEvent();
         }
         finally
         {
             _semaphore.Release();
         }
+
+        RaiseClosedEvent();
     }
 
     private sealed class PostponedMessage
