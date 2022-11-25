@@ -1,11 +1,11 @@
-using HotChocolate.Subscriptions.Redis.Properties;
+using HotChocolate.Subscriptions.Properties;
 using Newtonsoft.Json;
 
-namespace HotChocolate.Subscriptions.Redis;
+namespace HotChocolate.Subscriptions;
 
 internal sealed class NewtonsoftJsonMessageSerializer : IMessageSerializer
 {
-    private const string _completed = "{\"isCompletedMessage\":true}";
+    private const string _completed = "{\"Kind\":1}";
     private readonly JsonSerializerSettings _settings = new()
     {
         TypeNameHandling = TypeNameHandling.All,

@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Subscriptions.Serializers.Newtonsoft\HotChocolate.Subscriptions.Serializers.Newtonsoft.csproj" />
     <ProjectReference Include="..\..\src\Subscriptions\HotChocolate.Subscriptions.csproj" />
     <ProjectReference Include="..\Utilities\HotChocolate.Tests.Utilities.csproj" />
   </ItemGroup>

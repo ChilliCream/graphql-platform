@@ -1,8 +1,7 @@
-using System;
 using HotChocolate.Subscriptions;
-using HotChocolate.Subscriptions.Redis;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
