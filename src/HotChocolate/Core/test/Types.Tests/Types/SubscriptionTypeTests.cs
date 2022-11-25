@@ -740,7 +740,7 @@ public class SubscriptionTypeTests : TypeTestBase
             string userId,
             [Service] ITopicEventReceiver receiver)
         {
-            return receiver.SubscribeAsync<string, bool>(userId);
+            return receiver.SubscribeAsync<bool>(userId);
         }
     }
 
@@ -995,7 +995,7 @@ public class SubscriptionTypeTests : TypeTestBase
 
         public ValueTask<ISourceStream<string>> SubscribeToOnExplicit(
             [Service] ITopicEventReceiver eventReceiver) =>
-            eventReceiver.SubscribeAsync<string, string>("explicit");
+            eventReceiver.SubscribeAsync<string>("explicit");
 
         [Subscribe(With = nameof(SubscribeToOnExplicit))]
         public string OnExplicit(
@@ -1035,7 +1035,7 @@ public class SubscriptionTypeTests : TypeTestBase
     {
         public async ValueTask<ISourceStream<string>> SubscribeToOnExplicit(
             [Service] ITopicEventReceiver eventReceiver) =>
-            await eventReceiver.SubscribeAsync<string, string>("explicit");
+            await eventReceiver.SubscribeAsync<string>("explicit");
 
         [Subscribe(With = nameof(SubscribeToOnExplicit))]
         public string OnExplicit(
