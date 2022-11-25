@@ -14,7 +14,7 @@ public interface ITopicEventSender
     /// <summary>
     /// Sends an event message to the pub/sub-system.
     /// </summary>
-    /// <param name="topic">
+    /// <param name="topicName">
     /// The topic to which the event message belongs to.
     /// </param>
     /// <param name="message">
@@ -23,19 +23,17 @@ public interface ITopicEventSender
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
-    ValueTask SendAsync<TTopic, TMessage>(
-        TTopic topic,
+    ValueTask SendAsync<TMessage>(
+        string topicName,
         TMessage message,
-        CancellationToken cancellationToken = default)
-        where TTopic : notnull;
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Completes a event topic which causes the
     /// <see cref="ISourceStream{TMessage}" /> to complete.
     /// </summary>
-    /// <param name="topic">
+    /// <param name="topicName">
     /// The topic to which the event message belongs to.
     /// </param>
-    ValueTask CompleteAsync<TTopic>(TTopic topic)
-        where TTopic : notnull;
+    ValueTask CompleteAsync(string topicName);
 }

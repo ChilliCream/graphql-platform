@@ -4,86 +4,85 @@ using HotChocolate.Resolvers;
 using HotChocolate.StarWars.Data;
 using HotChocolate.StarWars.Models;
 
-namespace HotChocolate.StarWars
+namespace HotChocolate.StarWars;
+
+public class Query
 {
-    public class Query
+    private readonly CharacterRepository _repository;
+
+    public Query(CharacterRepository repository)
     {
-        private readonly CharacterRepository _repository;
+        _repository = repository
+            ?? throw new ArgumentNullException(nameof(repository));
+    }
 
-        public Query(CharacterRepository repository)
+    /// <summary>
+    /// Retrieve a hero by a particular Star Wars episode.
+    /// </summary>
+    /// <param name="episode">The episode to look up by.</param>
+    /// <returns>The character.</returns>
+    public ICharacter GetHero(Episode episode)
+    {
+        return _repository.GetHero(episode);
+    }
+
+    /// <summary>
+    /// Retrieve a heros by a particular Star Wars episodes.
+    /// </summary>
+    /// <param name="episode">The episode to look up by.</param>
+    /// <returns>The character.</returns>
+    public IReadOnlyList< ICharacter> GetHeroes(IReadOnlyList<Episode> episodes)
+    {
+        var list = new List<ICharacter>();
+
+        foreach (Episode episode in episodes)
         {
-            _repository = repository
-                ?? throw new ArgumentNullException(nameof(repository));
+            list.Add(_repository.GetHero(episode));
         }
 
-        /// <summary>
-        /// Retrieve a hero by a particular Star Wars episode.
-        /// </summary>
-        /// <param name="episode">The episode to look up by.</param>
-        /// <returns>The character.</returns>
-        public ICharacter GetHero(Episode episode)
-        {
-            return _repository.GetHero(episode);
-        }
+        return list;
+    }
 
-        /// <summary>
-        /// Retrieve a heros by a particular Star Wars episodes.
-        /// </summary>
-        /// <param name="episode">The episode to look up by.</param>
-        /// <returns>The character.</returns>
-        public IReadOnlyList< ICharacter> GetHeroes(IReadOnlyList<Episode> episodes)
-        {
-            var list = new List<ICharacter>();
+    /// <summary>
+    /// Gets a human by Id.
+    /// </summary>
+    /// <param name="id">The Id of the human to retrieve.</param>
+    /// <returns>The human.</returns>
+    public Human GetHuman(string id)
+    {
+        return _repository.GetHuman(id);
+    }
 
-            foreach (Episode episode in episodes)
+    /// <summary>
+    /// Get a particular droid by Id.
+    /// </summary>
+    /// <param name="id">The Id of the droid.</param>
+    /// <returns>The droid.</returns>
+    public Droid GetDroid(string id)
+    {
+        return _repository.GetDroid(id);
+    }
+
+    public IEnumerable<ICharacter> GetCharacter(string[] characterIds, IResolverContext context)
+    {
+        foreach (var characterId in characterIds)
+        {
+            ICharacter character = _repository.GetCharacter(characterId);
+            if (character is null)
             {
-                list.Add(_repository.GetHero(episode));
+                context.ReportError(
+                    "Could not resolve a character for the " +
+                    $"character-id {characterId}.");
             }
-
-            return list;
-        }
-
-        /// <summary>
-        /// Gets a human by Id.
-        /// </summary>
-        /// <param name="id">The Id of the human to retrieve.</param>
-        /// <returns>The human.</returns>
-        public Human GetHuman(string id)
-        {
-            return _repository.GetHuman(id);
-        }
-
-        /// <summary>
-        /// Get a particular droid by Id.
-        /// </summary>
-        /// <param name="id">The Id of the droid.</param>
-        /// <returns>The droid.</returns>
-        public Droid GetDroid(string id)
-        {
-            return _repository.GetDroid(id);
-        }
-
-        public IEnumerable<ICharacter> GetCharacter(string[] characterIds, IResolverContext context)
-        {
-            foreach (var characterId in characterIds)
+            else
             {
-                ICharacter character = _repository.GetCharacter(characterId);
-                if (character is null)
-                {
-                    context.ReportError(
-                        "Could not resolve a character for the " +
-                        $"character-id {characterId}.");
-                }
-                else
-                {
-                    yield return character;
-                }
+                yield return character;
             }
         }
+    }
 
-        public IEnumerable<object> Search(string text)
-        {
-            return _repository.Search(text);
-        }
+    public IEnumerable<object> Search(string text)
+    {
+        return _repository.Search(text);
     }
 }
