@@ -505,7 +505,7 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
             <WorkshopNdcLondon />
           </TeaserImage>
           <TeaserMetadata>
-            23 - 24 Nov 2022 ・ NDC {"{"} London {"}"}
+            23 - 24 Jan 2023 ・ NDC {"{"} London {"}"}
           </TeaserMetadata>
           <TeaserTitle>Reactive Mobile Apps with GraphQL and Maui</TeaserTitle>
         </TeaserLink>
