@@ -972,9 +972,6 @@ Type: `{0}`</value>
   <data name="ThrowHelper_SubscribeAttribute_SubscribeResolverNotFound" xml:space="preserve">
     <value>Unable to find the subscribe resolver `{2}` defined on {0}.{1}. The subscribe resolver bust be a method that is public, non-static and on the same type as the resolver. (SubscribeAttribute)</value>
   </data>
-  <data name="ThrowHelper_SubscribeAttribute_TopicOnParameterAndMethod" xml:space="preserve">
-    <value>The topic is declared multiple times on {0}.{1}. (TopicAttribute)</value>
-  </data>
   <data name="ThrowHelper_SubscribeAttribute_TopicTypeUnspecified" xml:space="preserve">
     <value>You need to specify the topic type on {0}.{1}. (SubscribeAttribute)</value>
   </data>

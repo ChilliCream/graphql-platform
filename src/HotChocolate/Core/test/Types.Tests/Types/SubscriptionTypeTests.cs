@@ -418,7 +418,7 @@ public class SubscriptionTypeTests : TypeTestBase
     [Fact]
     public async Task Subscribe_Attribute_With_Argument_Topic()
     {
-        Snapshot.FullName();
+        var snapshot = new CookieCrumble.Snapshot();
 
         await TryTest(async ct =>
         {
@@ -430,9 +430,10 @@ public class SubscriptionTypeTests : TypeTestBase
                 .AddSubscriptionType<MySubscription>());
 
             // act
-            var stream = (IResponseStream)await executor.ExecuteAsync(
+            await using var subscriptionResult = await executor.ExecuteAsync(
                 "subscription { onMessage(userId: \"abc\") }",
                 ct);
+            var results = subscriptionResult.ExpectResponseStream().ReadResultsAsync();
 
             // assert
             var mutationResult = await executor.ExecuteAsync(
@@ -440,19 +441,19 @@ public class SubscriptionTypeTests : TypeTestBase
                 ct);
             Assert.Null(mutationResult.ExpectQueryResult().Errors);
 
-            var results = new StringBuilder();
-            await foreach (var queryResult in
-                stream.ReadResultsAsync().WithCancellation(ct))
+            await foreach (var queryResult in results.WithCancellation(ct).ConfigureAwait(false))
             {
-                var result = queryResult;
-                results.AppendLine(result.ToJson());
+                snapshot.Add(queryResult);
                 break;
             }
+        }).ConfigureAwait(false);
 
-            await stream.DisposeAsync();
-
-            results.ToString().MatchSnapshot();
-        });
+        snapshot.MatchInline(
+            @"{
+              ""data"": {
+                ""onMessage"": ""def""
+              }
+            }");
     }
 
     [Fact]
@@ -645,23 +646,7 @@ public class SubscriptionTypeTests : TypeTestBase
         executor.Schema.ToString().MatchSnapshot();
     }
 
-    [Fact]
-    public async Task Subscribe_Attribute_With_Two_Topic_Attributes_Error()
-    {
-        // arrange
-        // act
-        async Task Error() => await CreateExecutorAsync(r => r.AddInMemorySubscriptions()
-            .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-            .AddSubscriptionType<InvalidSubscription_TwoTopicAttributes>());
-
-        // assert
-        (await Assert.ThrowsAsync<SchemaException>(Error)).Message.MatchSnapshot();
-    }
-
-    public class TestObservable
-        : IObservable<string>
-            , IDisposable
-
+    public class TestObservable : IObservable<string>, IDisposable
     {
         public bool DisposeRaised { get; private set; }
 
@@ -756,7 +741,7 @@ public class SubscriptionTypeTests : TypeTestBase
             string userId,
             [Service] ITopicEventReceiver receiver)
         {
-            return receiver.SubscribeAsync<string, bool>(userId);
+            return receiver.SubscribeAsync<bool>(userId);
         }
     }
 
@@ -986,8 +971,9 @@ public class SubscriptionTypeTests : TypeTestBase
     public class MySubscription
     {
         [Subscribe]
+        [Topic("{userId}")]
         public string OnMessage(
-            [Topic] string userId,
+            string userId,
             [EventMessage] string message) =>
             message;
 
@@ -1010,7 +996,7 @@ public class SubscriptionTypeTests : TypeTestBase
 
         public ValueTask<ISourceStream<string>> SubscribeToOnExplicit(
             [Service] ITopicEventReceiver eventReceiver) =>
-            eventReceiver.SubscribeAsync<string, string>("explicit");
+            eventReceiver.SubscribeAsync<string>("explicit");
 
         [Subscribe(With = nameof(SubscribeToOnExplicit))]
         public string OnExplicit(
@@ -1045,22 +1031,12 @@ public class SubscriptionTypeTests : TypeTestBase
             message;
     }
 
-    public class InvalidSubscription_TwoTopicAttributes
-    {
-        [Subscribe]
-        [Topic]
-        public string OnMessage(
-            [Topic] string userId,
-            [EventMessage] string message) =>
-            message;
-    }
-
     [ExtendObjectType("Subscription")]
     public class MySubscriptionExtension
     {
         public async ValueTask<ISourceStream<string>> SubscribeToOnExplicit(
             [Service] ITopicEventReceiver eventReceiver) =>
-            await eventReceiver.SubscribeAsync<string, string>("explicit");
+            await eventReceiver.SubscribeAsync<string>("explicit");
 
         [Subscribe(With = nameof(SubscribeToOnExplicit))]
         public string OnExplicit(

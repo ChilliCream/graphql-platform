@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
+using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Pipeline;
+using static HotChocolate.Execution.ErrorHelper;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -200,7 +203,17 @@ public static partial class RequestExecutorBuilderExtensions
             {
                 if (context.Document is null && context.Request.Query is null)
                 {
-                    throw ThrowHelper.ReadPersistedQueryMiddleware_PersistedQueryNotFound();
+                    var error = ReadPersistedQueryMiddleware_PersistedQueryNotFound();
+                    var result = QueryResultBuilder.CreateError(
+                        error,
+                        new Dictionary<string, object?>
+                        {
+                            { WellKnownContextData.HttpStatusCode, HttpStatusCode.BadRequest }
+                        });
+
+                    context.DiagnosticEvents.RequestError(context, new GraphQLException(error));
+                    context.Result = result;
+                    return default;
                 }
 
                 return next(context);
