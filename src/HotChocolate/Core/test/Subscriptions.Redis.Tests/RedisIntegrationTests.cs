@@ -41,5 +41,5 @@ public class RedisIntegrationTests : SubscriptionIntegrationTestBase, IClassFixt
         => base.Subscribe_Topic_With_2_Arguments();
 
     protected override void ConfigurePubSub(IRequestExecutorBuilder graphqlBuilder)
-        => graphqlBuilder.AddRedisSubscriptions(sp => _redisResource.GetConnection());
+        => graphqlBuilder.AddRedisSubscriptions(_ => _redisResource.GetConnection());
 }

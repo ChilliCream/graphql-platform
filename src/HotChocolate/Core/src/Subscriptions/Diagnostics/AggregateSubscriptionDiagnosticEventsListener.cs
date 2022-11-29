@@ -81,13 +81,17 @@ internal sealed class AggregateSubscriptionDiagnosticEventsListener
         }
     }
 
-    public override void DelayedDispatch<T>(string topicName, MessageEnvelope<T> message, int subscribers)
+    public override void DelayedDispatch<T>(
+        string topicName,
+        int shard,
+        MessageEnvelope<T> message,
+        int subscribers)
     {
         var listenerSpan = _listeners.AsSpan();
 
         for (var i = 0; i < listenerSpan.Length; i++)
         {
-            listenerSpan[i].DelayedDispatch(topicName, message, subscribers);
+            listenerSpan[i].DelayedDispatch(topicName, shard, message, subscribers);
         }
     }
 
@@ -121,13 +125,13 @@ internal sealed class AggregateSubscriptionDiagnosticEventsListener
         }
     }
 
-    public override void Unsubscribe(string topicName, int subscribers)
+    public override void Unsubscribe(string topicName, int shard, int subscribers)
     {
         var listenerSpan = _listeners.AsSpan();
 
         for (var i = 0; i < listenerSpan.Length; i++)
         {
-            listenerSpan[i].Unsubscribe(topicName, subscribers);
+            listenerSpan[i].Unsubscribe(topicName, shard, subscribers);
         }
     }
 

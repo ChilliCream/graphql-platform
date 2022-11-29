@@ -87,6 +87,9 @@ public interface ISubscriptionDiagnosticEvents
     /// <param name="topicName">
     /// The name of the topic.
     /// </param>
+    /// <param name="shard">
+    /// The shard of the topic that has delayed messages.
+    /// </param>
     /// <param name="message">
     /// The message that shall be dispatched.
     /// </param>
@@ -96,7 +99,7 @@ public interface ISubscriptionDiagnosticEvents
     /// <typeparam name="T">
     /// The message body type.
     /// </typeparam>
-    void DelayedDispatch<T>(string topicName, MessageEnvelope<T> message, int subscribers);
+    void DelayedDispatch<T>(string topicName, int shard, MessageEnvelope<T> message, int subscribers);
 
     /// <summary>
     /// The GraphQL execution engine is trying to subscribe to a topic.
@@ -131,10 +134,13 @@ public interface ISubscriptionDiagnosticEvents
     /// <param name="topicName">
     /// The name of the topic.
     /// </param>
+    /// <param name="shard">
+    /// The shard to which the subscribers belonged to.
+    /// </param>
     /// <param name="subscribers">
     /// The amount of subscribers that have unsubscribed.
     /// </param>
-    void Unsubscribe(string topicName, int subscribers);
+    void Unsubscribe(string topicName, int shard, int subscribers);
 
     /// <summary>
     /// An event topic was closed.

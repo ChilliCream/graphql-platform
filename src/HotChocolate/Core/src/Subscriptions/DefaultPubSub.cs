@@ -177,9 +177,7 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
 
         eventTopic.Closed += (sender, __) =>
         {
-            var s = (DefaultTopic<TMessage>)sender!;
-            _topics.TryRemove(s.Name, out _);
-            s.Dispose();
+            _topics.TryRemove(((DefaultTopic<TMessage>)sender!).Name, out _);
         };
 
         DiagnosticEvents.Created(formattedTopic);
