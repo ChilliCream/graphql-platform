@@ -47,6 +47,7 @@ public class SubscriptionDiagnosticEventsListener : ISubscriptionDiagnosticEvent
     /// <inheritdoc cref="ISubscriptionDiagnosticEvents.DelayedDispatch{T}"/>
     public virtual void DelayedDispatch<T>(
         string topicName,
+        int shard,
         MessageEnvelope<T> message,
         int subscribers)
     {
@@ -68,7 +69,7 @@ public class SubscriptionDiagnosticEventsListener : ISubscriptionDiagnosticEvent
     }
 
     /// <inheritdoc cref="ISubscriptionDiagnosticEvents.Unsubscribe"/>
-    public virtual void Unsubscribe(string topicName, int subscribers)
+    public virtual void Unsubscribe(string topicName, int shard, int subscribers)
     {
     }
 

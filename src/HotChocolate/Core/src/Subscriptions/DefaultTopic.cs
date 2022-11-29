@@ -15,11 +15,13 @@ namespace HotChocolate.Subscriptions;
 /// </typeparam>
 public abstract class DefaultTopic<TMessage> : IDisposable
 {
+    private readonly CancellationTokenSource _cts = new();
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly Channel<MessageEnvelope<TMessage>> _incoming;
-    private readonly List<Channel<MessageEnvelope<TMessage>>> _outgoing = new();
+    private readonly List<TopicShard<TMessage>> _shards = new();
     private readonly BoundedChannelOptions _channelOptions;
     private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;
+    private int _subscribers;
     private bool _closed;
     private bool _disposed;
 
@@ -38,6 +40,9 @@ public abstract class DefaultTopic<TMessage> : IDisposable
         };
         _incoming = CreateBounded<MessageEnvelope<TMessage>>(_channelOptions);
         _diagnosticEvents = diagnosticEvents;
+
+        // initially we will run with one shard.
+        _shards.Add(new TopicShard<TMessage>(_channelOptions, name, 0, diagnosticEvents));
     }
 
     protected DefaultTopic(
@@ -54,6 +59,9 @@ public abstract class DefaultTopic<TMessage> : IDisposable
         };
         _incoming = incomingMessages;
         _diagnosticEvents = diagnosticEvents;
+
+        // initially we will run with one shard.
+        _shards.Add(new TopicShard<TMessage>(_channelOptions, name, 0, diagnosticEvents));
     }
 
     /// <summary>
@@ -88,10 +96,7 @@ public abstract class DefaultTopic<TMessage> : IDisposable
                     return null;
                 }
 
-
-                var outgoing = CreateBounded<MessageEnvelope<TMessage>>(_channelOptions);
-                var stream = new DefaultSourceStream<TMessage>(_incoming.Writer, outgoing);
-                _outgoing.Add(outgoing);
+                var stream = GetOptimalShard().Subscribe();
                 _diagnosticEvents.SubscribeSuccess(Name);
                 return stream;
             }
@@ -106,6 +111,59 @@ public abstract class DefaultTopic<TMessage> : IDisposable
             // in this case we return null to signal that subscribe was unsuccessful.
             return null;
         }
+    }
+
+    /// <summary>
+    /// Gets the shard that is cheapest to get and is not considered full.
+    ///
+    /// We will try to balance the shards, but shards that have less than 250 subscribers
+    /// will always be picked since such a shard already will perform optimally.
+    /// </summary>
+    private TopicShard<TMessage> GetOptimalShard()
+    {
+        var shards = AsSpan(_shards);
+
+        var best = shards[0];
+
+        // if the first shard has less than 250 subscribers we will just take it.
+        if (best.Subscribers < 250)
+        {
+            return best;
+        }
+
+        if (shards.Length == 1)
+        {
+            // if the first shard has more than 250 subscribers we will scale.
+            var second = CreateShard(1);
+            _shards.Insert(0, second);
+            return second;
+        }
+
+        for (var i = 1; i < shards.Length; i++)
+        {
+            var current = shards[i];
+
+            if (best.Subscribers > current.Subscribers)
+            {
+                best = current;
+            }
+
+            if (best.Subscribers < 250)
+            {
+                return best;
+            }
+        }
+
+        if (best.Subscribers > 999)
+        {
+            // new shards are always inserted as the first shard
+            // so that we do not need to iterate to find it as the
+            // best shard.
+            best = CreateShard(shards.Length);
+            _shards.Insert(0, best);
+        }
+
+        return best;
     }
 
     internal async ValueTask ConnectAsync(CancellationToken ct = default)
@@ -126,8 +184,7 @@ public abstract class DefaultTopic<TMessage> : IDisposable
     private void BeginProcessing(IDisposable session)
         => Task.Factory.StartNew(
             async s => await ProcessMessagesSessionAsync((IDisposable)s!).ConfigureAwait(false),
-            session,
-            TaskCreationOptions.LongRunning);
+            session);
 
     private async Task ProcessMessagesSessionAsync(IDisposable session)
     {
@@ -141,7 +198,6 @@ public abstract class DefaultTopic<TMessage> : IDisposable
         }
         finally
         {
-            await UnsubscribeAllChannels().ConfigureAwait(false);
             session.Dispose();
             DiagnosticEvents.Disconnected(Name);
         }
@@ -149,21 +205,33 @@ public abstract class DefaultTopic<TMessage> : IDisposable
 
     private async Task ProcessMessagesAsync()
     {
-        var closedChannels = new List<Channel<MessageEnvelope<TMessage>>>();
-        var postponedMessages = new List<PostponedMessage>();
+        var ct = _cts.Token;
 
-        while (!_closed && !_incoming.Reader.Completion.IsCompleted)
+        try
         {
-            _diagnosticEvents.WaitForMessages(Name);
+            var postponedMessages = new List<PostponedMessage>();
 
-            if (await _incoming.Reader.WaitToReadAsync().ConfigureAwait(false))
+            while (!_closed && !_incoming.Reader.Completion.IsCompleted)
             {
-                DispatchMessages(closedChannels, postponedMessages);
+                _diagnosticEvents.WaitForMessages(Name);
 
-                await DispatchDelayedMessagesAsync(postponedMessages).ConfigureAwait(false);
+                if (await _incoming.Reader.WaitToReadAsync(ct).ConfigureAwait(false))
+                {
+                    DispatchMessagesToShards(postponedMessages, out var completed);
 
-                await UnsubscribeClosedChannels(closedChannels).ConfigureAwait(false);
+                    if (completed)
+                    {
+                        TryClose();
+                    }
+
+                    await DispatchDelayedMessagesAsync(postponedMessages).ConfigureAwait(false);
+                }
             }
+        }
+        finally
+        {
+            TryClose();
+            Dispose();
         }
     }
 
@@ -184,69 +252,41 @@ public abstract class DefaultTopic<TMessage> : IDisposable
         CancellationToken cancellationToken)
         => new(DefaultSession.Instance);
 
-    private void DispatchMessages(
-        List<Channel<MessageEnvelope<TMessage>>> closedChannels,
-        List<PostponedMessage> postponedMessages)
+    private void DispatchMessagesToShards(
+        List<PostponedMessage> postponedMessages,
+        out bool completed)
     {
         var batchSize = 4;
         var dispatched = 0;
+        var subscribers = _subscribers;
+        completed = false;
 
-        while (_incoming.Reader.TryRead(out var message))
+        while (!completed && _incoming.Reader.TryRead(out var message))
         {
+            completed = message.Kind is MessageKind.Completed;
+
             // we are not locking at this point since the only thing happening to this list
-            // is that new subscribers are added. This thread we are in is handling removals,
-            // so we just grab the internal array and iterate over the window we have.
-            var outgoingSpan = AsSpan(_outgoing);
-            var subscriberCount = outgoingSpan.Length;
+            // is that new shards are being added. Shards are never being removed from a topic.
+            var shards = AsSpan(_shards);
 
-            // if we get an unsubscribed message we will only collect closed channels.
-            if (message.Kind is MessageKind.Unsubscribed)
+            _diagnosticEvents.Dispatch(Name, message, _subscribers);
+
+            for (var i = 0; i < shards.Length; i++)
             {
-                for (var i = 0; i < subscriberCount; i++)
+                var shard = shards[i];
+
+                if (!shard.Writer.TryWrite(message))
                 {
-                    var channel = outgoingSpan[i];
-
-                    if (channel.Reader.Completion.IsCompleted)
-                    {
-                        // if we detect channels that unsubscribed we will take a break and
-                        // reorganize the subscriber list.
-                        closedChannels.Add(channel);
-                        batchSize = 0;
-                    }
-                }
-            }
-            else
-            {
-                _diagnosticEvents.Dispatch(Name, message, subscriberCount);
-
-                for (var i = 0; i < subscriberCount; i++)
-                {
-                    var channel = outgoingSpan[i];
-
-                    if (!channel.Writer.TryWrite(message))
-                    {
-                        if (channel.Reader.Completion.IsCompleted)
-                        {
-                            // if we detect channels that unsubscribed we will take a break and
-                            // reorganize the subscriber list.
-                            closedChannels.Add(channel);
-                            batchSize = 0;
-                        }
-                        else
-                        {
-                            // if we cannot write because of back pressure we will postpone
-                            // the message and take a break from processing further.
-                            postponedMessages.Add(new PostponedMessage(message, channel));
-                            batchSize = 0;
-                        }
-                    }
+                    // if we cannot write because of back pressure we will postpone
+                    // the message.
+                    postponedMessages.Add(new PostponedMessage(message, shard));
                 }
             }
 
             // we try to avoid full message processing cycles and keep on dispatching messages,
             // but we will interrupt every 4 messages and allow for new subscribers
-            // to join in.
-            if (++dispatched >= batchSize)
+            // to join in. Also, we will interrupt if the subscriber count has changed.
+            if (++dispatched >= batchSize || subscribers != _subscribers)
             {
                 break;
             }
@@ -257,123 +297,87 @@ public abstract class DefaultTopic<TMessage> : IDisposable
     {
         if (postponedMessages.Count > 0)
         {
-            _diagnosticEvents.DelayedDispatch(
-                Name,
-                postponedMessages[0].Message,
-                postponedMessages.Count);
-
             for (var i = 0; i < postponedMessages.Count; i++)
             {
                 var postponedMessage = postponedMessages[i];
-                var channel = postponedMessage.Channel;
+                var shard = postponedMessage.Shard;
                 var message = postponedMessage.Message;
 
                 try
                 {
-                    await channel.Writer.WriteAsync(message).ConfigureAwait(false);
+                    await shard.Writer.WriteAsync(message).ConfigureAwait(false);
                 }
                 catch (ChannelClosedException)
                 {
                     // the channel might have been closed in the meantime.
-                    // we will skip over this error and the channel will be collected
-                    // on the next iteration.
+                    // we will skip over this error.
+                    // It might signal that the shard was already disposed.
                 }
             }
             postponedMessages.Clear();
         }
     }
 
-    private async Task UnsubscribeClosedChannels(
-        List<Channel<MessageEnvelope<TMessage>>> closedChannels)
+    private void TryClose()
     {
-        if (_disposed)
+        if (!_closed)
         {
-            return;
-        }
+            var raise = false;
 
-        if (closedChannels.Count > 0)
+            _semaphore.Wait();
+
+            if (!_closed)
+            {
+                _closed = true;
+                raise = true;
+            }
+
+            _semaphore.Release();
+
+            if (raise)
+            {
+                RaiseClosedEvent();
+            }
+        }
+    }
+
+    private TopicShard<TMessage> CreateShard(int shardId)
+    {
+        var shard = new TopicShard<TMessage>(_channelOptions, Name, shardId, DiagnosticEvents);
+
+        shard.Unsubscribed += subscribers =>
         {
-            await _semaphore.WaitAsync().ConfigureAwait(false);
+            if (_closed)
+            {
+                return;
+            }
+
+            var raise = false;
+
+            _semaphore.Wait();
 
             try
             {
-                _diagnosticEvents.Unsubscribe(Name, closedChannels.Count);
-                _outgoing.RemoveAll(c => closedChannels.Contains(c));
-                closedChannels.Clear();
+                _subscribers -= subscribers;
 
-                // raises unsubscribed event only once all outgoing channels
-                // (subscriptions) are removed
-                if (_outgoing.Count == 0)
+                if (_subscribers == 0 && !_closed)
                 {
                     _closed = true;
+                    raise = true;
                 }
             }
             finally
             {
                 _semaphore.Release();
             }
-        }
 
-        if (_closed)
-        {
-            RaiseClosedEvent();
-        }
-    }
-
-    private async Task UnsubscribeAllChannels()
-    {
-        if (_disposed)
-        {
-            return;
-        }
-
-        await _semaphore.WaitAsync().ConfigureAwait(false);
-
-        try
-        {
-            if (_outgoing.Count > 0)
+            if (raise)
             {
-                _diagnosticEvents.Unsubscribe(Name, _outgoing.Count);
-
-                foreach (var channel in _outgoing)
-                {
-                    channel.Writer.TryComplete();
-                }
-
-                _outgoing.Clear();
+                RaiseClosedEvent();
             }
+        };
 
-            _closed = true;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
-
-        RaiseClosedEvent();
-    }
-
-    private sealed class PostponedMessage
-    {
-        public PostponedMessage(
-            MessageEnvelope<TMessage> message,
-            Channel<MessageEnvelope<TMessage>> channel)
-        {
-            Message = message;
-            Channel = channel;
-        }
-
-        public MessageEnvelope<TMessage> Message { get; }
-
-        public Channel<MessageEnvelope<TMessage>> Channel { get; }
-    }
-
-    private sealed class DefaultSession : IDisposable
-    {
-        private DefaultSession() { }
-        public void Dispose() { }
-
-        public static readonly DefaultSession Instance = new();
+        return shard;
     }
 
     private void RaiseClosedEvent()
@@ -397,13 +401,45 @@ public abstract class DefaultTopic<TMessage> : IDisposable
             if (disposing)
             {
                 _diagnosticEvents.Close(Name);
+                _cts.Cancel();
+
                 _incoming.Writer.TryComplete();
+
+                foreach (var shard in _shards)
+                {
+                    shard.Writer.Complete();
+                }
+
                 _semaphore.Dispose();
-                _outgoing.Clear();
+                _cts.Dispose();
+                _shards.Clear();
             }
 
             _closed = true;
             _disposed = true;
         }
+    }
+
+    private sealed class PostponedMessage
+    {
+        public PostponedMessage(
+            MessageEnvelope<TMessage> message,
+            TopicShard<TMessage> shard)
+        {
+            Message = message;
+            Shard = shard;
+        }
+
+        public MessageEnvelope<TMessage> Message { get; }
+
+        public TopicShard<TMessage> Shard { get; }
+    }
+
+    private sealed class DefaultSession : IDisposable
+    {
+        private DefaultSession() { }
+        public void Dispose() { }
+
+        public static readonly DefaultSession Instance = new();
     }
 }
