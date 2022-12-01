@@ -12,6 +12,7 @@ using static HotChocolate.WellKnownMiddleware;
 
 #nullable enable
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
 
 public static class DataLoaderObjectFieldExtensions
@@ -27,7 +28,7 @@ public static class DataLoaderObjectFieldExtensions
     {
         FieldMiddlewareDefinition placeholder = new(_ => _ => default, key: DataLoader);
 
-        if (!TryGetDataLoaderTypes(dataLoaderType, out Type? keyType, out Type? valueType))
+        if (!TryGetDataLoaderTypes(dataLoaderType, out var keyType, out var valueType))
         {
             throw DataLoader_InvalidType(dataLoaderType);
         }
@@ -42,7 +43,7 @@ public static class DataLoaderObjectFieldExtensions
                     IExtendedType schemaType;
                     if (!valueType.IsArray)
                     {
-                        IExtendedType resolverType =
+                        var resolverType =
                             c.TypeInspector.GetType(definition.ResultType!);
 
                         schemaType = c.TypeInspector.GetType(resolverType.IsArrayOrList
@@ -94,7 +95,7 @@ public static class DataLoaderObjectFieldExtensions
                     .MakeGenericType(dataLoaderType, keyType, valueType);
         }
 
-        FieldMiddleware middleware = FieldClassMiddlewareFactory.Create(middlewareType);
+        var middleware = FieldClassMiddlewareFactory.Create(middlewareType);
         var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
         definition.MiddlewareDefinitions[index] = new(middleware, key: DataLoader);
     }
@@ -104,11 +105,11 @@ public static class DataLoaderObjectFieldExtensions
         [NotNullWhen(true)] out Type? key,
         [NotNullWhen(true)] out Type? value)
     {
-        foreach (Type interfaceType in type.GetInterfaces())
+        foreach (var interfaceType in type.GetInterfaces())
         {
             if (interfaceType.IsGenericType)
             {
-                Type typeDefinition = interfaceType.GetGenericTypeDefinition();
+                var typeDefinition = interfaceType.GetGenericTypeDefinition();
                 if (typeof(IDataLoader<,>) == typeDefinition)
                 {
                     key = interfaceType.GetGenericArguments()[0];
@@ -136,13 +137,13 @@ public static class DataLoaderObjectFieldExtensions
 
         public async Task InvokeAsync(IMiddlewareContext context)
         {
-            TDataLoader dataloader = context.DataLoader<TDataLoader>();
+            var dataloader = context.DataLoader<TDataLoader>();
 
             await _next(context).ConfigureAwait(false);
 
             if (context.Result is IReadOnlyCollection<TKey> values)
             {
-                IReadOnlyList<TValue[]> data = await dataloader
+                var data = await dataloader
                     .LoadAsync(values, context.RequestAborted)
                     .ConfigureAwait(false);
 
@@ -179,7 +180,7 @@ public static class DataLoaderObjectFieldExtensions
 
         public async Task InvokeAsync(IMiddlewareContext context)
         {
-            TDataLoader dataloader = context.DataLoader<TDataLoader>();
+            var dataloader = context.DataLoader<TDataLoader>();
 
             await _next(context).ConfigureAwait(false);
 

@@ -15,7 +15,7 @@ testatestAndtestb SQL:
 ---------------
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE "d"."Bar" NOT IN ('testatest', 'testbtest') OR "d"."Bar" IS NULL
+WHERE "d"."Bar" NOT IN ('testatest', 'testbtest') OR ("d"."Bar" IS NULL)
 ---------------
 
 testbtestAndNull Result:
@@ -35,7 +35,7 @@ testbtestAndNull SQL:
 ---------------
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE "d"."Bar" <> 'testbtest' AND "d"."Bar" IS NOT NULL
+WHERE "d"."Bar" <> 'testbtest' AND ("d"."Bar" IS NOT NULL)
 ---------------
 
 testatest Result:
@@ -58,5 +58,5 @@ testatest SQL:
 ---------------
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE "d"."Bar" <> 'testatest' OR "d"."Bar" IS NULL
+WHERE "d"."Bar" <> 'testatest' OR ("d"."Bar" IS NULL)
 ---------------

@@ -1,0 +1,25 @@
+﻿{
+  "data": {
+    "customer": {
+      "name": "Freddy Freeman",
+      "consultant": {
+        "name": "Jordan Belfort"
+      },
+      "complexArg": "{ value: \u0022deep\u0022, deeper: { value: \u0022CONSTANT\u0022, deeper: { value: \u0022deeper\u0022, deeperArray: [ { value: \u0022CONSTANT_ARRAY\u0022, deeper: { value: null } } ] } }, deeperArray: [ { value: \u0022CONSTANT_ARRAY\u0022, deeper: { value: null } }, null ] }",
+      "contracts": [
+        {
+          "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0CmQx",
+          "premium": 123456.11
+        },
+        {
+          "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0CmQy",
+          "premium": 456789.12
+        },
+        {
+          "id": "U29tZU90aGVyQ29udHJhY3QKZDE=",
+          "expiryDate": "2015-02-01T00:00:00.000Z"
+        }
+      ]
+    }
+  }
+}

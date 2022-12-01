@@ -74,5 +74,5 @@ nullAndFoo SQL:
 SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarEnum" = 0 OR "f"."BarEnum" IS NULL
+WHERE "f"."BarEnum" = 0 OR ("f"."BarEnum" IS NULL)
 ---------------

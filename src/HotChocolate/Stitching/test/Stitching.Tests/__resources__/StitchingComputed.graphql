@@ -1,0 +1,49 @@
+type Query {
+  customer(id: ID!): Customer @delegate(schema: "customer")
+  customerOrConsultant(id: ID!): CustomerOrConsultant
+    @delegate(schema: "customer")
+  contracts(id: ID!): [Contract!]
+    @delegate(schema: "contract", path: "contracts(customerId:$arguments:id)")
+  consultantName: String!
+    @delegate(
+      schema: "customer"
+      path: "customer(id:\"Q3VzdG9tZXIKZDE=\").consultant.name"
+    )
+  consultant: Consultant
+    @delegate(
+      schema: "customer"
+      path: "customer(id:\"Q3VzdG9tZXIKZDE=\").consultant"
+    )
+}
+
+type Customer {
+  id: ID!
+  name: String!
+  consultant: Consultant
+  contracts: [Contract!]
+    @delegate(schema: "contract", path: "contracts(customerId:$fields:id)")
+  contractIds: [ID!]
+    @delegate(schema: "contract", path: "contracts(customerId:$fields:id).id")
+  foo: String @computed(dependantOn: ["id", "name"])
+}
+
+type Consultant {
+  id: ID!
+  name: String!
+}
+
+interface Contract {
+  id: ID!
+}
+
+type LifeInsuranceContract implements Contract {
+  id: ID!
+  premium: Float
+}
+
+type SomeOtherContract implements Contract {
+  id: ID!
+  expiryDate: DateTime
+}
+
+union CustomerOrConsultant = Customer | Consultant

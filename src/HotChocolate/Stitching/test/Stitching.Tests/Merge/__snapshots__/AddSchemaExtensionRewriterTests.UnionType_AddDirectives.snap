@@ -1,0 +1,11 @@
+union Foo @foo = A | B
+
+type A {
+  a: String
+}
+
+type B {
+  b: String
+}
+
+directive @foo on INTERFACE

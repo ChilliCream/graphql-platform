@@ -17,7 +17,7 @@ a SQL:
 
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE "d"."Bar" IS NOT NULL AND (@__p_0 = '' OR instr("d"."Bar", @__p_0) > 0)
+WHERE ("d"."Bar" IS NOT NULL) AND (@__p_0 = '' OR instr("d"."Bar", @__p_0) > 0)
 ---------------
 
 b Result:
@@ -39,7 +39,7 @@ b SQL:
 
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE "d"."Bar" IS NOT NULL AND (@__p_0 = '' OR instr("d"."Bar", @__p_0) > 0)
+WHERE ("d"."Bar" IS NOT NULL) AND (@__p_0 = '' OR instr("d"."Bar", @__p_0) > 0)
 ---------------
 
 null

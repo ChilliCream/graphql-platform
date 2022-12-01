@@ -26,7 +26,7 @@ BAR SQL:
 
 SELECT "d"."Id", "d"."BarEnum"
 FROM "Data" AS "d"
-WHERE "d"."BarEnum" <> @__p_0 OR "d"."BarEnum" IS NULL
+WHERE "d"."BarEnum" <> @__p_0 OR ("d"."BarEnum" IS NULL)
 ---------------
 
 FOO Result:
@@ -57,7 +57,7 @@ FOO SQL:
 
 SELECT "d"."Id", "d"."BarEnum"
 FROM "Data" AS "d"
-WHERE "d"."BarEnum" <> @__p_0 OR "d"."BarEnum" IS NULL
+WHERE "d"."BarEnum" <> @__p_0 OR ("d"."BarEnum" IS NULL)
 ---------------
 
 null Result:

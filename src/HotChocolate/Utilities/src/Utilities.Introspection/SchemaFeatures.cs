@@ -25,7 +25,7 @@ namespace HotChocolate.Utilities.Introspection
         {
             var features = new SchemaFeatures();
 
-            FullType? directive = result.Data.Schema.Types.FirstOrDefault(t =>
+            var directive = result.Data.Schema.Types.FirstOrDefault(t =>
                  t.Name.Equals(__Directive, StringComparison.Ordinal));
             if (directive is not null)
             {
@@ -35,7 +35,7 @@ namespace HotChocolate.Utilities.Introspection
                     t.Name.Equals(Locations, StringComparison.Ordinal));
             }
 
-            FullType? schema = result.Data.Schema.Types.FirstOrDefault(t =>
+            var schema = result.Data.Schema.Types.FirstOrDefault(t =>
                  t.Name.Equals(__Schema, StringComparison.Ordinal));
             if (schema is not null)
             {

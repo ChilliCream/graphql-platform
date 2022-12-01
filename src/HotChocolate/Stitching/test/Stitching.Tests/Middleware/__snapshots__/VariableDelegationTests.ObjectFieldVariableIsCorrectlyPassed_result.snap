@@ -1,0 +1,13 @@
+﻿{
+  "Data": {
+    "createCustomer": {
+      "customer": {
+        "name": "someName",
+        "kind": "STANDARD"
+      }
+    }
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
+}
