@@ -94,5 +94,5 @@ WHERE "f"."BarShort" IN (13, 14)
 SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarShort" = 13 OR "f"."BarShort" IS NULL
+WHERE "f"."BarShort" = 13 OR ("f"."BarShort" IS NULL)
 ---------------

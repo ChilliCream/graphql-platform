@@ -17,7 +17,7 @@ testa SQL:
 
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE "d"."Bar" IS NOT NULL AND (@__p_0 = '' OR (("d"."Bar" LIKE @__p_0 || '%') AND substr("d"."Bar", 1, length(@__p_0)) = @__p_0) OR @__p_0 = '')
+WHERE ("d"."Bar" IS NOT NULL) AND (@__p_0 = '' OR (("d"."Bar" LIKE @__p_0 || '%') AND substr("d"."Bar", 1, length(@__p_0)) = @__p_0) OR @__p_0 = '')
 ---------------
 
 testb Result:
@@ -39,7 +39,7 @@ testb SQL:
 
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE "d"."Bar" IS NOT NULL AND (@__p_0 = '' OR (("d"."Bar" LIKE @__p_0 || '%') AND substr("d"."Bar", 1, length(@__p_0)) = @__p_0) OR @__p_0 = '')
+WHERE ("d"."Bar" IS NOT NULL) AND (@__p_0 = '' OR (("d"."Bar" LIKE @__p_0 || '%') AND substr("d"."Bar", 1, length(@__p_0)) = @__p_0) OR @__p_0 = '')
 ---------------
 
 null
