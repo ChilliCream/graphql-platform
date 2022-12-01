@@ -55,7 +55,7 @@ public sealed class DelegateToRemoteSchemaMiddleware
 
             var result = await ExecuteQueryAsync(context, request, delegateDirective.Schema)
                 .ConfigureAwait(false);
-            context.RegisterForCleanup(result.DisposeAsync);
+            context.RegisterForCleanup(result.DisposeAsync, cleanAfter: CleanAfter.Request);
 
             UpdateContextData(context, result, delegateDirective);
 

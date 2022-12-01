@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace HotChocolate.Stitching.Schemas.Customers;
 
 public class CustomerRepository

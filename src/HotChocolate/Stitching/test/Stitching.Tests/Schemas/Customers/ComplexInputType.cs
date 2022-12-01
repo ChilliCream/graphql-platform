@@ -4,8 +4,7 @@ using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Stitching.Schemas.Customers;
 
-public class ComplexInputType
-    : InputObjectType<ComplexInput>
+public class ComplexInputType : InputObjectType<ComplexInput>
 {
     protected override void Configure(
         IInputObjectTypeDescriptor<ComplexInput> descriptor)

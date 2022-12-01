@@ -143,18 +143,18 @@ public class FederatedSchemaTests : IClassFixture<StitchingTestContext>
         // act
         var result = await executor.ExecuteAsync(
             @"query ($if1: Boolean! $if2: Boolean! $if3: Boolean! $if4: Boolean!) {
-                    me {
-                        id
-                        alias1: name @include(if: $if1)
-                        alias2: reviews @include(if: $if2) {
-                            alias3: body @include(if: $if3)
-                            alias4: product @include(if: $if4) {
-                                upc
-                            }
+                me {
+                    id
+                    alias1: name @include(if: $if1)
+                    alias2: reviews @include(if: $if2) {
+                        alias3: body @include(if: $if3)
+                        alias4: product @include(if: $if4) {
+                            upc
                         }
                     }
-                    local
-                }",
+                }
+                local
+            }",
             new Dictionary<string, object?>
             {
                 { "if1", true },
@@ -178,12 +178,12 @@ public class FederatedSchemaTests : IClassFixture<StitchingTestContext>
                     .IgnoreRootTypes()
                     .AddTypeExtensionsFromString(
                         @"extend type Query {
-                                me: User! @delegate(path: ""user(id: 1)"")
-                            }
+                            me: User! @delegate(path: ""user(id: 1)"")
+                        }
 
-                            extend type Review {
-                                author: User @delegate(path: ""user(id: $fields:authorId)"")
-                            }")),
+                        extend type Review {
+                            author: User @delegate(path: ""user(id: $fields:authorId)"")
+                        }")),
             app => app
                 .UseWebSockets()
                 .UseRouting()
@@ -200,11 +200,11 @@ public class FederatedSchemaTests : IClassFixture<StitchingTestContext>
                     .IgnoreRootTypes()
                     .AddTypeExtensionsFromString(
                         @"extend type Product {
-                                inStock: Boolean
-                                    @delegate(path: ""inventoryInfo(upc: $fields:upc).isInStock"")
-                                shippingEstimate: Int
-                                    @delegate(path: ""shippingEstimate(price: $fields:price weight: $fields:weight)"")
-                            }")),
+                            inStock: Boolean
+                                @delegate(path: ""inventoryInfo(upc: $fields:upc).isInStock"")
+                            shippingEstimate: Int
+                                @delegate(path: ""shippingEstimate(price: $fields:price weight: $fields:weight)"")
+                        }")),
             app => app
                 .UseWebSockets()
                 .UseRouting()
@@ -221,12 +221,12 @@ public class FederatedSchemaTests : IClassFixture<StitchingTestContext>
                     .IgnoreRootTypes()
                     .AddTypeExtensionsFromString(
                         @"extend type Query {
-                                topProducts(first: Int = 5): [Product] @delegate
-                            }
+                            topProducts(first: Int = 5): [Product] @delegate
+                        }
 
-                            extend type Review {
-                                product: Product @delegate(path: ""product(upc: $fields:upc)"")
-                            }")),
+                        extend type Review {
+                            product: Product @delegate(path: ""product(upc: $fields:upc)"")
+                        }")),
             app => app
                 .UseWebSockets()
                 .UseRouting()
@@ -243,14 +243,14 @@ public class FederatedSchemaTests : IClassFixture<StitchingTestContext>
                     .IgnoreRootTypes()
                     .AddTypeExtensionsFromString(
                         @"extend type User {
-                                reviews: [Review]
-                                    @delegate(path:""reviewsByAuthor(authorId: $fields:id)"")
-                            }
+                            reviews: [Review]
+                                @delegate(path:""reviewsByAuthor(authorId: $fields:id)"")
+                        }
 
-                            extend type Product {
-                                reviews: [Review]
-                                    @delegate(path:""reviewsByProduct(upc: $fields:upc)"")
-                            }")),
+                        extend type Product {
+                            reviews: [Review]
+                                @delegate(path:""reviewsByProduct(upc: $fields:upc)"")
+                        }")),
             app => app
                 .UseWebSockets()
                 .UseRouting()

@@ -8,19 +8,19 @@ public class QueryType
     protected override void Configure(
         IObjectTypeDescriptor<Query> descriptor)
     {
-        descriptor.Field(t => t.GetCustomer(default(string)))
+        descriptor.Field(t => t.GetCustomer(default(string)!))
             .Argument("id", a => a.Type<NonNullType<IdType>>())
             .Type<CustomerType>();
 
-        descriptor.Field(t => t.GetCustomers(default(string[])))
+        descriptor.Field(t => t.GetCustomers(default!))
             .Argument("ids", a => a.Type<NonNullType<ListType<NonNullType<IdType>>>>())
             .Type<ListType<CustomerType>>();
 
-        descriptor.Field(t => t.GetConsultant(default))
+        descriptor.Field(t => t.GetConsultant(default!))
             .Argument("id", a => a.Type<NonNullType<IdType>>())
             .Type<ConsultantType>();
 
-        descriptor.Field(t => t.GetCustomerOrConsultant(default))
+        descriptor.Field(t => t.GetCustomerOrConsultant(default!))
             .Argument("id", a => a.Type<NonNullType<IdType>>())
             .Type<CustomerOrConsultantType>();
 

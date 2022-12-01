@@ -83,18 +83,18 @@ union CustomerOrConsultant = Customer | Consultant
 input ComplexInputType {
   value: String
   deeper: ComplexInputType
-  valueArray: [String!]!
-  deeperArray: [ComplexInputType!]!
+  valueArray: [String]
+  deeperArray: [ComplexInputType]
 }
 
 input CreateCustomerInput {
-  name: String!
-  street: String!
-  consultantId: String!
+  name: String
+  street: String
+  consultantId: String
 }
 
 input SayInput {
-  words: [String!]!
+  words: [String!]
 }
 
 enum CustomerKind {

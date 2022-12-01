@@ -8,7 +8,7 @@ using static HotChocolate.Stitching.ThrowHelper;
 
 namespace HotChocolate.Stitching.Requests;
 
-internal class BufferedRequest
+internal sealed class BufferedRequest
 {
     private BufferedRequest(
         IQueryRequest request,

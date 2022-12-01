@@ -111,6 +111,25 @@ internal class MergeRequestRewriter : SyntaxRewriter<Context>
                 new Context(false))
             : base.RewriteFragmentDefinition(node, new Context(false));
 
+    protected override DirectiveNode RewriteDirective(
+        DirectiveNode node,
+        Context context)
+    {
+        if (node.Arguments.Count == 0)
+        {
+            return node;
+        }
+
+        var arguments = RewriteList(node.Arguments, context);
+
+        if (!ReferenceEquals(node.Arguments, arguments))
+        {
+            return node.WithArguments(arguments);
+        }
+
+        return node;
+    }
+
     protected override VariableNode RewriteVariable(
         VariableNode node,
         Context context) =>

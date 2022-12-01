@@ -15,6 +15,6 @@ public static class CustomerSchemaRequestExecutorBuilderExtensions
         return builder
             .AddQueryType<QueryType>()
             .AddMutationType<MutationType>()
-            .EnableRelaySupport();
+            .AddGlobalObjectIdentification();
     }
 }

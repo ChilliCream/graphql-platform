@@ -121,18 +121,18 @@ union CustomerOrConsultant @source(name: "CustomerOrConsultant", schema: "custom
 input ComplexInputType @source(name: "ComplexInputType", schema: "customer") {
   value: String
   deeper: ComplexInputType
-  valueArray: [String!]!
-  deeperArray: [ComplexInputType!]!
+  valueArray: [String]
+  deeperArray: [ComplexInputType]
 }
 
 input CreateCustomerInput @source(name: "CreateCustomerInput", schema: "customer") {
-  name: String!
-  street: String!
-  consultantId: String!
+  name: String
+  street: String
+  consultantId: String
 }
 
 input SayInput @source(name: "SayInput", schema: "customer") {
-  words: [String!]!
+  words: [String!]
 }
 
 enum CustomerKind @source(name: "CustomerKind", schema: "customer") {

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using ChilliCream.Testing;
@@ -9,7 +10,6 @@ using HotChocolate.Stitching.Schemas.Inventory;
 using HotChocolate.Stitching.Schemas.Products;
 using HotChocolate.Stitching.Schemas.Reviews;
 using HotChocolate.Types;
-using Microsoft.AspNetCore.Builder;
 using Snapshooter.Xunit;
 using Squadron;
 using StackExchange.Redis;
@@ -19,7 +19,7 @@ namespace HotChocolate.Stitching.Integration;
 
 public class FederatedRedisSchemaTests
     : IClassFixture<StitchingTestContext>
-        , IClassFixture<RedisResource>
+    , IClassFixture<RedisResource>
 {
     private const string _accounts = "accounts";
     private const string _inventory = "inventory";
@@ -248,17 +248,17 @@ public class FederatedRedisSchemaTests
         // act
         var result = await executor.ExecuteAsync(
             @"{
-                    me {
-                        id
-                        name
-                        reviews {
-                            body
-                            product {
-                                upc
-                            }
+                me {
+                    id
+                    name
+                    reviews {
+                        body
+                        product {
+                            upc
                         }
                     }
-                }",
+                }
+            }",
             cts.Token);
 
         // assert

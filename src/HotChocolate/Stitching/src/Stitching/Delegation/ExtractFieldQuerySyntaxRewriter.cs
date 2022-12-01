@@ -4,6 +4,7 @@ using HotChocolate.Language.Visitors;
 using HotChocolate.Stitching.Utilities;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using HotChocolate.Utilities.Introspection;
 
 namespace HotChocolate.Stitching.Delegation;
 
@@ -95,6 +96,27 @@ public partial class ExtractFieldQuerySyntaxRewriter
         FieldNode node,
         Context context)
     {
+        var directives = node.Directives;
+
+        if (directives.Count > 0)
+        {
+            List<DirectiveNode>? temp = null;
+
+            foreach (var directive in directives)
+            {
+                if (BuiltInTypes.IsBuiltInType(directive.Name.Value))
+                {
+                    temp ??= new List<DirectiveNode>(directives);
+                    temp.Remove(directive);
+                }
+            }
+
+            if (temp is not null)
+            {
+                directives = temp;
+            }
+        }
+
         if (context.TypeContext is IComplexOutputType type &&
             type.Fields.TryGetField(node.Name.Value, out var field))
         {
@@ -111,7 +133,7 @@ public partial class ExtractFieldQuerySyntaxRewriter
             }
 
             var required = RewriteNodeOrDefault(node.Required, cloned);
-            var directives = RewriteList(node.Directives, cloned);
+            directives = RewriteList(directives, cloned);
             var arguments = RewriteList(node.Arguments, cloned);
             var selectionSet = node.SelectionSet;
 
@@ -139,7 +161,12 @@ public partial class ExtractFieldQuerySyntaxRewriter
                     selectionSet);
             }
 
-            node = OnRewriteField(node, cloned);
+            return OnRewriteField(node, cloned);
+        }
+
+        if (!ReferenceEquals(directives, node.Directives))
+        {
+            return node.WithDirectives(directives);
         }
 
         return node;
@@ -185,7 +212,7 @@ public partial class ExtractFieldQuerySyntaxRewriter
         RemoveDelegationFields(current, context, selections);
         AddDependencies(context.TypeContext!, selections, dependencies);
 
-        if (!selections.OfType<FieldNode>().Any(n => n.Name.Value == WellKnownFieldNames.TypeName))
+        if (selections.OfType<FieldNode>().All(n => n.Name.Value != WellKnownFieldNames.TypeName))
         {
             selections.Add(CreateField(WellKnownFieldNames.TypeName));
         }
@@ -240,8 +267,7 @@ public partial class ExtractFieldQuerySyntaxRewriter
                     out var sourceDirective) &&
                 !sourceDirective.Name.Equals(current.Name.Value))
             {
-                current = current.WithName(
-                    new NameNode(sourceDirective.Name));
+                current = current.WithName(new NameNode(sourceDirective.Name));
             }
 
             return base.RewriteArgument(current, cloned);

@@ -11,8 +11,8 @@ internal sealed class RemoteRequestExecutor
     : IRemoteRequestExecutor
         , IDisposable
 {
-    private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
-    private readonly List<BufferedRequest> _bufferedRequests = new List<BufferedRequest>();
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
+    private readonly List<BufferedRequest> _bufferedRequests = new();
     private readonly IBatchScheduler _batchScheduler;
     private readonly IRequestExecutor _executor;
     private bool _taskRegistered;

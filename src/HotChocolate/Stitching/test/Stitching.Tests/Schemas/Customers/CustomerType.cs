@@ -1,5 +1,3 @@
-using System.Linq;
-using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -12,13 +10,13 @@ public class CustomerType
         IObjectTypeDescriptor<Customer> descriptor)
     {
         descriptor
-            .AsNode()
+            .ImplementsNode()
             .IdField(t => t.Id)
-            .NodeResolver((ctx, id) =>
+            .ResolveNode((ctx, id) =>
             {
                 return Task.FromResult(
                     ctx.Service<CustomerRepository>()
-                        .Customers.FirstOrDefault(t => t.Id.Equals(id)));
+                        .Customers.Find(t => t.Id?.Equals(id) ?? false));
             });
 
         descriptor.Field(t => t.Name).Type<NonNullType<StringType>>();
@@ -26,15 +24,14 @@ public class CustomerType
         descriptor.Field(t => t.ConsultantId).Ignore();
 
         descriptor.Field<CustomerResolver>(
-                t => t.GetConsultant(default, default))
+                t => t.GetConsultant(default!, default!))
             .Type<ConsultantType>();
 
         descriptor.Field("say")
             .Argument("input", a =>
                 a.Type<NonNullType<InputObjectType<SayInput>>>())
             .Type<StringType>()
-            .Resolve(ctx => string.Join(", ",
-                ctx.ArgumentValue<SayInput>("input").Words));
+            .Resolve(ctx => string.Join(", ", ctx.ArgumentValue<SayInput>("input").Words!));
 
         descriptor.Field("complexArg")
             .Argument("arg", a => a.Type<ComplexInputType>())

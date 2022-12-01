@@ -252,9 +252,10 @@ public class BaseTests : IClassFixture<StitchingTestContext>
                 .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .BuildRequestExecutorAsync();
 
-        var variables = new Dictionary<string, object>
+        var variables = new Dictionary<string, object?>
         {
-            { "customerId", "Q3VzdG9tZXIKZDE=" }, { "deep", "deep" }, { "deeper", "deeper" }
+            { "customerId", "Q3VzdG9tZXIKZDE=" },
+            { "deep", "deep" }, { "deeper", "deeper" }
         };
 
         // act
@@ -403,38 +404,38 @@ public class BaseTests : IClassFixture<StitchingTestContext>
         // act
         var result = await executor.ExecuteAsync(
             @"{
-                    customer: customerOrConsultant(id: ""Q3VzdG9tZXIKZDE="") {
-                        ...customer
-                        ...consultant
-                    }
-                    consultant: customerOrConsultant(id: ""Q29uc3VsdGFudApkMQ=="") {
-                        ...customer
-                        ...consultant
+                customer: customerOrConsultant(id: ""Q3VzdG9tZXIKZDE="") {
+                    ...customer
+                    ...consultant
+                }
+                consultant: customerOrConsultant(id: ""Q29uc3VsdGFudApkMQ=="") {
+                    ...customer
+                    ...consultant
+                }
+            }
+
+            fragment customer on Customer {
+                name
+                consultant {
+                    name
+                }
+                contracts @include(if: true) {
+                    id
+                    ... on LifeInsuranceContract {
+                        premium
                     }
                 }
-
-                fragment customer on Customer {
-                    name
-                    consultant {
-                        name
-                    }
-                    contracts @include(if: true) {
-                        id
-                        ... on LifeInsuranceContract {
-                            premium
-                        }
-                    }
-                    contracts @include(if: true) {
-                        id
-                        ... on SomeOtherContract {
-                            expiryDate
-                        }
+                contracts @include(if: true) {
+                    id
+                    ... on SomeOtherContract {
+                        expiryDate
                     }
                 }
+            }
 
-                fragment consultant on Consultant {
-                    name
-                }");
+            fragment consultant on Consultant {
+                name
+            }");
 
         // assert
         result.MatchSnapshot();
