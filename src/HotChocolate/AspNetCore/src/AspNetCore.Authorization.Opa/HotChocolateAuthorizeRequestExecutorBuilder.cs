@@ -44,11 +44,7 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
             var jsonOptions = new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-#if NET5_0_OR_GREATER
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-#else
-                IgnoreNullValues = true
-#endif
             };
             jsonOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, false));
             o.JsonSerializerOptions = jsonOptions;

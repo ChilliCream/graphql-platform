@@ -6,6 +6,7 @@ using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -46,7 +47,9 @@ public class Selection : ISelection
 
         _includeConditions = includeConditions ?? Array.Empty<long>();
 
-        _flags = isInternal ? Flags.Internal : Flags.None;
+        _flags = isInternal
+            ? Flags.Internal
+            : Flags.None;
 
         if (Type.IsListType())
         {
@@ -162,6 +165,7 @@ public class Selection : ISelection
         // if there are flags in most cases we just have one so we can
         // check the first and optimize for this.
         var includeCondition = _includeConditions[0];
+
         if ((includeFlags & includeCondition) == includeCondition)
         {
             return !IsInternal || allowInternals;
@@ -177,6 +181,7 @@ public class Selection : ISelection
         for (var i = 1; i < _includeConditions.Length; i++)
         {
             includeCondition = _includeConditions[i];
+
             if ((includeFlags & includeCondition) == includeCondition)
             {
                 return !IsInternal || allowInternals;
@@ -247,7 +252,7 @@ public class Selection : ISelection
         {
             var selections = new ISelectionNode[
                 selectionSet.Selections.Count +
-                    other.SelectionSet.Selections.Count];
+                other.SelectionSet.Selections.Count];
             var next = 0;
 
             for (var i = 0; i < selectionSet.Selections.Count; i++)

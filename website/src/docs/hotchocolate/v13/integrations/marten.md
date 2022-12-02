@@ -8,15 +8,13 @@ work out of the box as expected, but filtering and sorting do not. LINQ expressi
 be translated in a format that is digestible for the Marten LINQ provider before they are applied to the `IQueryable<T>` object.
 This integration provides custom configurations to seamlessly integrate Marten with the `HotChocolate.Data` package.
 
+You can find a sample project for the integration in [Hot Chocolate Examples](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/MartenDB).
+
 # Get Started
 
-To use the MongoDB integration, you need to install the package `HotChocolate.Data.Marten`.
+To use the Marten integration, you need to install the package `HotChocolate.Data.Marten`.
 
-```bash
-dotnet add package HotChocolate.Data.Marten
-```
-
-> ⚠️ Note: All `HotChocolate.*` packages need to have the same version.
+<PackageInstallation packageName="HotChocolate.Data.Marten" />
 
 # Filtering
 

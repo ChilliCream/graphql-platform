@@ -1725,12 +1725,6 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string ThrowHelper_SubscribeAttribute_TopicOnParameterAndMethod {
-            get {
-                return ResourceManager.GetString("ThrowHelper_SubscribeAttribute_TopicOnParameterAndMethod", resourceCulture);
-            }
-        }
-        
         internal static string ThrowHelper_SubscribeAttribute_TopicTypeUnspecified {
             get {
                 return ResourceManager.GetString("ThrowHelper_SubscribeAttribute_TopicTypeUnspecified", resourceCulture);

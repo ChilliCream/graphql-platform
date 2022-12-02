@@ -51,7 +51,7 @@ public sealed class TaskCache : ITaskCache
 
         var read = true;
 
-        Entry entry = _map.GetOrAdd(key, k =>
+        var entry = _map.GetOrAdd(key, k =>
         {
             read = false;
             return AddNewEntry(k, createTask());
@@ -116,7 +116,7 @@ public sealed class TaskCache : ITaskCache
     /// <inheritdoc />
     public bool TryRemove(TaskCacheKey key)
     {
-        if (_map.TryRemove(key, out Entry? entry))
+        if (_map.TryRemove(key, out var entry))
         {
             lock (_sync)
             {
@@ -156,7 +156,7 @@ public sealed class TaskCache : ITaskCache
     {
         while (_head is not null && _usage > _size)
         {
-            Entry last = _head.Previous!;
+            var last = _head.Previous!;
             RemoveEntryUnsafe(last);
             _map.TryRemove(last.Key, out _);
         }

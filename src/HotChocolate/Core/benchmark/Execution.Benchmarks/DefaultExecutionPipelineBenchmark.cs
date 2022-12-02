@@ -138,7 +138,7 @@ namespace HotChocolate.Execution.Benchmarks
             }
 
             // var jsonWriter = new HotChocolate.Execution.Serialization.JsonQueryResultSerializer(true);
-            // Console.WriteLine(jsonWriter.Serialize((IReadOnlyQueryResult)result));
+            // Console.WriteLine(jsonWriter.Serialize((IQueryResult)result));
             await result.DisposeAsync();
         }
 

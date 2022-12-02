@@ -37,7 +37,7 @@ public interface IResolverContext : IPureResolverContext
     /// resolvers to store and retrieve data during execution scoped to the
     /// hierarchy.
     /// </summary>
-    IImmutableDictionary<string, object?> ScopedContextData { get; set; }
+    new IImmutableDictionary<string, object?> ScopedContextData { get; set; }
 
     /// <summary>
     /// The local context data dictionary can be used by middlewares and

@@ -1,69 +1,41 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Execution;
-using HotChocolate.Types;
-using Xunit;
+using HotChocolate.Execution.Configuration;
+using Xunit.Abstractions;
 
-namespace HotChocolate.Subscriptions.InMemory
+namespace HotChocolate.Subscriptions.InMemory;
+
+public class InMemoryIntegrationTests : SubscriptionIntegrationTestBase
 {
-    public class InMemoryIntegrationTests
+    public InMemoryIntegrationTests(ITestOutputHelper output)
+        : base(output)
     {
-        [Fact]
-        public async Task SubscribeAndComplete()
-        {
-            // arrange
-            IServiceProvider services = new ServiceCollection()
-                .AddGraphQL()
-                .AddInMemorySubscriptions()
-                .AddQueryType(d => d
-                    .Name("foo")
-                    .Field("a")
-                    .Resolve("b"))
-                .AddSubscriptionType<Subscription>()
-                .Services
-                .BuildServiceProvider();
-
-            var sender = services.GetRequiredService<ITopicEventSender>();
-            var executorResolver = services.GetRequiredService<IRequestExecutorResolver>();
-            IRequestExecutor executor = await executorResolver.GetRequestExecutorAsync();
-
-            var cts = new CancellationTokenSource(10000);
-
-            // act
-            var result = (IResponseStream)await executor.ExecuteAsync(
-                "subscription { onMessage }",
-                cts.Token);
-
-            // assert
-            await sender.SendAsync("OnMessage", "bar", cts.Token);
-            await sender.CompleteAsync("OnMessage");
-
-            await foreach (IQueryResult response in result.ReadResultsAsync()
-                .WithCancellation(cts.Token))
-            {
-                Assert.Null(response.Errors);
-                Assert.Equal("bar", response.Data!["onMessage"]);
-            }
-
-            await result.DisposeAsync();
-        }
-
-        public class FooType : InputObjectType
-        {
-            protected override void Configure(
-                IInputObjectTypeDescriptor descriptor)
-            {
-                descriptor.Name("Abc");
-                descriptor.Field("def").Type<StringType>();
-            }
-        }
-
-        public class Subscription
-        {
-            [Subscribe]
-            public string OnMessage([EventMessage] string message) => message;
-        }
     }
+
+    [Fact]
+    public override Task Subscribe_Infer_Topic()
+        => base.Subscribe_Infer_Topic();
+
+    [Fact]
+    public override Task Subscribe_Static_Topic()
+        => base.Subscribe_Static_Topic();
+
+    [Fact]
+    public override Task Subscribe_Topic_With_Arguments()
+        => base.Subscribe_Topic_With_Arguments();
+
+    [Fact]
+    public override Task Subscribe_Topic_With_Arguments_2_Subscriber()
+        => base.Subscribe_Topic_With_Arguments_2_Subscriber();
+
+    [Fact]
+    public override Task Subscribe_Topic_With_Arguments_2_Topics()
+        => base.Subscribe_Topic_With_Arguments_2_Topics();
+
+    [Fact]
+    public override Task Subscribe_Topic_With_2_Arguments()
+        => base.Subscribe_Topic_With_2_Arguments();
+
+    protected override void ConfigurePubSub(IRequestExecutorBuilder graphqlBuilder)
+        => graphqlBuilder.AddInMemorySubscriptions();
 }

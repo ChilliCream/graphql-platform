@@ -64,5 +64,5 @@ WHERE "d"."BarShort" IN (13, 14)
 ---------------
 SELECT "d"."Id", "d"."BarShort"
 FROM "Data" AS "d"
-WHERE "d"."BarShort" = 13 OR "d"."BarShort" IS NULL
+WHERE "d"."BarShort" = 13 OR ("d"."BarShort" IS NULL)
 ---------------

@@ -1,0 +1,14 @@
+﻿type A @source(name: "A", schema: "A") {
+  b1: Foo!
+  b2: [Foo!]
+  b3: [Foo]
+  b4: [Foo!]!
+}
+
+type Foo implements C @source(name: "B", schema: "A") {
+  c: String
+}
+
+interface C @source(name: "C", schema: "A") {
+  c: String
+}

@@ -18,7 +18,7 @@
 ---------------
 SELECT "d"."Id", "d"."BarShort"
 FROM "Data" AS "d"
-WHERE "d"."BarShort" NOT IN (12, 13) OR "d"."BarShort" IS NULL
+WHERE "d"."BarShort" NOT IN (12, 13) OR ("d"."BarShort" IS NULL)
 ---------------
 
 13and14 Result:
@@ -41,7 +41,7 @@ WHERE "d"."BarShort" NOT IN (12, 13) OR "d"."BarShort" IS NULL
 ---------------
 SELECT "d"."Id", "d"."BarShort"
 FROM "Data" AS "d"
-WHERE "d"."BarShort" NOT IN (13, 14) OR "d"."BarShort" IS NULL
+WHERE "d"."BarShort" NOT IN (13, 14) OR ("d"."BarShort" IS NULL)
 ---------------
 
 13andNull Result:
@@ -64,5 +64,5 @@ WHERE "d"."BarShort" NOT IN (13, 14) OR "d"."BarShort" IS NULL
 ---------------
 SELECT "d"."Id", "d"."BarShort"
 FROM "Data" AS "d"
-WHERE "d"."BarShort" <> 13 AND "d"."BarShort" IS NOT NULL
+WHERE "d"."BarShort" <> 13 AND ("d"."BarShort" IS NOT NULL)
 ---------------

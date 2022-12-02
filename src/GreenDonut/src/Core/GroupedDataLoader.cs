@@ -43,7 +43,7 @@ public abstract class GroupedDataLoader<TKey, TValue>
         Memory<Result<TValue[]>> results,
         CancellationToken cancellationToken)
     {
-        ILookup<TKey, TValue> result =
+        var result =
             await LoadGroupedBatchAsync(keys, cancellationToken)
                 .ConfigureAwait(false);
 
