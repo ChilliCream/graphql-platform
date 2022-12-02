@@ -18,22 +18,21 @@ public class Neo4JListFilterTests : IClassFixture<Neo4JFixture>
     }
 
     private const string FooEntitiesCypher = @"
-            CREATE (a:Foo {BarString: 'a'})-[:RELATED_FOO]->(:FooNested {Bar: 'a'})-[:RELATED_BAR]->(:BarNested {Foo: 'a'}),
-                    (a)-[:RELATED_FOO]->(:FooNested {Bar: 'a'})-[:RELATED_BAR]->(:BarNested {Foo: 'a'}),
-                    (a)-[:RELATED_FOO]->(:FooNested {Bar: 'a'})-[:RELATED_BAR]->(:BarNested {Foo: 'a'}),
-                    (b:Foo {BarString: 'b'})-[:RELATED_FOO]->(:FooNested {Bar: 'c'}),
-                    (b)-[:RELATED_FOO]->(:FooNested {Bar: 'a'}),
-                    (b)-[:RELATED_FOO]->(:FooNested {Bar: 'a'}),
-                    (c:Foo {BarString: 'c'})-[:RELATED_FOO]->(:FooNested {Bar: 'a'}),
-                    (c)-[:RELATED_FOO]->(:FooNested {Bar: 'd'}),
-                    (c)-[:RELATED_FOO]->(:FooNested {Bar: 'b'}),
-                    (d:Foo {BarString: 'd'})-[:RELATED_FOO]->(:FooNested {Bar: 'c'}),
-                    (d)-[:RELATED_FOO]->(:FooNested {Bar: 'd'}),
-                    (d)-[:RELATED_FOO]->(:FooNested {Bar: 'b'}),
-                    (e:Foo {BarString: 'e'})-[:RELATED_FOO]->(:FooNested),
-                    (e)-[:RELATED_FOO]->(:FooNested {Bar: 'd'}),
-                    (e)-[:RELATED_FOO]->(:FooNested {Bar: 'b'})
-        ";
+        CREATE (a:Foo {BarString: 'a'})-[:RELATED_FOO]->(:FooNested {Bar: 'a'})-[:RELATED_BAR]->(:BarNested {Foo: 'a'}),
+                (a)-[:RELATED_FOO]->(:FooNested {Bar: 'a'})-[:RELATED_BAR]->(:BarNested {Foo: 'a'}),
+                (a)-[:RELATED_FOO]->(:FooNested {Bar: 'a'})-[:RELATED_BAR]->(:BarNested {Foo: 'a'}),
+                (b:Foo {BarString: 'b'})-[:RELATED_FOO]->(:FooNested {Bar: 'c'}),
+                (b)-[:RELATED_FOO]->(:FooNested {Bar: 'a'}),
+                (b)-[:RELATED_FOO]->(:FooNested {Bar: 'a'}),
+                (c:Foo {BarString: 'c'})-[:RELATED_FOO]->(:FooNested {Bar: 'a'}),
+                (c)-[:RELATED_FOO]->(:FooNested {Bar: 'd'}),
+                (c)-[:RELATED_FOO]->(:FooNested {Bar: 'b'}),
+                (d:Foo {BarString: 'd'})-[:RELATED_FOO]->(:FooNested {Bar: 'c'}),
+                (d)-[:RELATED_FOO]->(:FooNested {Bar: 'd'}),
+                (d)-[:RELATED_FOO]->(:FooNested {Bar: 'b'}),
+                (e:Foo {BarString: 'e'})-[:RELATED_FOO]->(:FooNested),
+                (e)-[:RELATED_FOO]->(:FooNested {Bar: 'd'}),
+                (e)-[:RELATED_FOO]->(:FooNested {Bar: 'b'})";
 
     [Fact]
     public async Task Create_ArrayAllObjectStringEqual_Expression()

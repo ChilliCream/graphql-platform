@@ -54,7 +54,10 @@ public class Neo4JStringFilterTests : IClassFixture<Neo4JFixture>
 
         // assert
         await Snapshot
-            .Create().AddResult(res1, "testatest").AddResult(res2, "testbtest").AddResult(res3, "null")
+            .Create()
+            .AddResult(res1, "testatest")
+            .AddResult(res2, "testbtest")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -86,7 +89,10 @@ public class Neo4JStringFilterTests : IClassFixture<Neo4JFixture>
 
         // assert
         await Snapshot
-            .Create().AddResult(res1, "testatest").AddResult(res2, "testbtest").AddResult(res3, "null")
+            .Create()
+            .AddResult(res1, "testatest")
+            .AddResult(res2, "testbtest")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -118,7 +124,10 @@ public class Neo4JStringFilterTests : IClassFixture<Neo4JFixture>
 
         // assert
         await Snapshot
-            .Create().AddResult(res1, "testa").AddResult(res2, "testb").AddResult(res3, "null")
+            .Create()
+            .AddResult(res1, "testa")
+            .AddResult(res2, "testb")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -150,7 +159,10 @@ public class Neo4JStringFilterTests : IClassFixture<Neo4JFixture>
 
         // assert
         await Snapshot
-            .Create().AddResult(res1, "testa").AddResult(res2, "testb").AddResult(res3, "null")
+            .Create()
+            .AddResult(res1, "testa")
+            .AddResult(res2, "testb")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -183,7 +195,10 @@ public class Neo4JStringFilterTests : IClassFixture<Neo4JFixture>
 
         // assert
         await Snapshot
-            .Create().AddResult(res1, "testatestAndtestb").AddResult(res2, "testbtestAndNull").AddResult(res3, "testatest")
+            .Create()
+            .AddResult(res1, "testatestAndtestb")
+            .AddResult(res2, "testbtestAndNull")
+            .AddResult(res3, "testatest")
             .MatchAsync();
     }
 
@@ -216,7 +231,10 @@ public class Neo4JStringFilterTests : IClassFixture<Neo4JFixture>
 
         // assert
         await Snapshot
-            .Create().AddResult(res1, "testatestAndtestb").AddResult(res2, "testbtestAndNull").AddResult(res3, "testatest")
+            .Create()
+            .AddResult(res1, "testatestAndtestb")
+            .AddResult(res2, "testbtestAndNull")
+            .AddResult(res3, "testatest")
             .MatchAsync();
     }
 
@@ -344,7 +362,10 @@ public class Neo4JStringFilterTests : IClassFixture<Neo4JFixture>
 
         // assert
         await Snapshot
-            .Create().AddResult(res1, "atest").AddResult(res2, "btest").AddResult(res3, "null")
+            .Create()
+            .AddResult(res1, "atest")
+            .AddResult(res2, "btest")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -377,7 +398,10 @@ public class Neo4JStringFilterTests : IClassFixture<Neo4JFixture>
 
         // assert
         await Snapshot
-            .Create().AddResult(res1, "testatest").AddResult(res2, "testbtest").AddResult(res3, "null")
+            .Create()
+            .AddResult(res1, "testatest")
+            .AddResult(res2, "testbtest")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -410,7 +434,10 @@ public class Neo4JStringFilterTests : IClassFixture<Neo4JFixture>
 
         // assert
         await Snapshot
-            .Create().AddResult(res1, "testatest").AddResult(res2, "testbtest").AddResult(res3, "null")
+            .Create()
+            .AddResult(res1, "testatest")
+            .AddResult(res2, "testbtest")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -444,7 +471,10 @@ public class Neo4JStringFilterTests : IClassFixture<Neo4JFixture>
 
         // assert
         await Snapshot
-            .Create().AddResult(res1, "testatestAndtestb").AddResult(res2, "testbtestAndNull").AddResult(res3, "testatest")
+            .Create()
+            .AddResult(res1, "testatestAndtestb")
+            .AddResult(res2, "testbtestAndNull")
+            .AddResult(res3, "testatest")
             .MatchAsync();
     }
 
@@ -478,7 +508,10 @@ public class Neo4JStringFilterTests : IClassFixture<Neo4JFixture>
 
         // assert
         await Snapshot
-            .Create().AddResult(res1, "testatestAndtestb").AddResult(res2, "testbtestAndNull").AddResult(res3, "testatest")
+            .Create()
+            .AddResult(res1, "testatestAndtestb")
+            .AddResult(res2, "testbtestAndNull")
+            .AddResult(res3, "testatest")
             .MatchAsync();
     }
 
@@ -511,7 +544,10 @@ public class Neo4JStringFilterTests : IClassFixture<Neo4JFixture>
 
         // assert
         await Snapshot
-            .Create().AddResult(res1, "a").AddResult(res2, "b").AddResult(res3, "null")
+            .Create()
+            .AddResult(res1, "a")
+            .AddResult(res2, "b")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -544,7 +580,10 @@ public class Neo4JStringFilterTests : IClassFixture<Neo4JFixture>
 
         // assert
         await Snapshot
-            .Create().AddResult(res1, "a").AddResult(res2, "b").AddResult(res3, "null")
+            .Create()
+            .AddResult(res1, "a")
+            .AddResult(res2, "b")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -577,7 +616,10 @@ public class Neo4JStringFilterTests : IClassFixture<Neo4JFixture>
 
         // assert
         await Snapshot
-            .Create().AddResult(res1, "testa").AddResult(res2, "testb").AddResult(res3, "null")
+            .Create()
+            .AddResult(res1, "testa")
+            .AddResult(res2, "testb")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -610,7 +652,10 @@ public class Neo4JStringFilterTests : IClassFixture<Neo4JFixture>
 
         // assert
         await Snapshot
-            .Create().AddResult(res1, "testa").AddResult(res2, "testb").AddResult(res3, "null")
+            .Create()
+            .AddResult(res1, "testa")
+            .AddResult(res2, "testb")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -643,7 +688,10 @@ public class Neo4JStringFilterTests : IClassFixture<Neo4JFixture>
 
         // assert
         await Snapshot
-            .Create().AddResult(res1, "atest").AddResult(res2, "btest").AddResult(res3, "null")
+            .Create()
+            .AddResult(res1, "atest")
+            .AddResult(res2, "btest")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -676,7 +724,10 @@ public class Neo4JStringFilterTests : IClassFixture<Neo4JFixture>
 
         // assert
         await Snapshot
-            .Create().AddResult(res1, "atest").AddResult(res2, "btest").AddResult(res3, "null")
+            .Create()
+            .AddResult(res1, "atest")
+            .AddResult(res2, "btest")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
