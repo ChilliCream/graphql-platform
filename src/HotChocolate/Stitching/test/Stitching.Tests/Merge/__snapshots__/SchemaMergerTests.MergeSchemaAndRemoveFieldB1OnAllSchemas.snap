@@ -1,0 +1,11 @@
+type A @source(name: "A", schema: "A") {
+  b2: String
+}
+
+type B_A @source(name: "A", schema: "B") {
+  b3: String
+}
+
+type B @source(name: "B", schema: "A") @source(name: "B", schema: "B") {
+  c: String
+}

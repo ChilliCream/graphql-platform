@@ -1,0 +1,10 @@
+﻿{
+  "Data": {
+    "contract": {
+      "string_field": "abc"
+    }
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
+}

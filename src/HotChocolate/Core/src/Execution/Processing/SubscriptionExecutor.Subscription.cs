@@ -67,9 +67,6 @@ internal sealed partial class SubscriptionExecutor
         /// <param name="requestContext">
         /// The original request context.
         /// </param>
-        /// <param name="queryPlan">
-        /// The subscription query plan.
-        /// </param>
         /// <param name="subscriptionType">
         /// The object type that represents the subscription.
         /// </param>
@@ -79,7 +76,7 @@ internal sealed partial class SubscriptionExecutor
         /// <param name="resolveQueryRootValue">
         /// A delegate to resolve the subscription instance.
         /// </param>
-        /// <param name="executionDiagnosticsEvents">
+        /// <param name="diagnosticsEvents">
         /// The internal diagnostic events to report telemetry.
         /// </param>
         /// <returns>
@@ -92,7 +89,7 @@ internal sealed partial class SubscriptionExecutor
             ObjectType subscriptionType,
             ISelectionSet rootSelections,
             Func<object?> resolveQueryRootValue,
-            IExecutionDiagnosticEvents executionDiagnosticsEvents)
+            IExecutionDiagnosticEvents diagnosticsEvents)
         {
             var subscription = new Subscription(
                 operationContextPool,
@@ -101,13 +98,10 @@ internal sealed partial class SubscriptionExecutor
                 subscriptionType,
                 rootSelections,
                 resolveQueryRootValue,
-                executionDiagnosticsEvents);
+                diagnosticsEvents);
 
-            subscription._subscriptionScope =
-                executionDiagnosticsEvents.ExecuteSubscription(subscription);
-
-            subscription._sourceStream =
-                await subscription.SubscribeAsync().ConfigureAwait(false);
+            subscription._subscriptionScope = diagnosticsEvents.ExecuteSubscription(subscription);
+            subscription._sourceStream = await subscription.SubscribeAsync().ConfigureAwait(false);
 
             return subscription;
         }
@@ -269,7 +263,8 @@ internal sealed partial class SubscriptionExecutor
                 // last but not least we can invoke the subscribe resolver which will subscribe
                 // to the underlying pub/sub-system yielding the source stream.
                 var sourceStream =
-                    await rootSelection.Field.SubscribeResolver!.Invoke(middlewareContext)
+                    await rootSelection.Field.SubscribeResolver!
+                        .Invoke(middlewareContext)
                         .ConfigureAwait(false);
                 _scopedContextData = middlewareContext.ScopedContextData;
 
@@ -277,6 +272,16 @@ internal sealed partial class SubscriptionExecutor
                 {
                     // again if we have any errors we will just throw them and not opening
                     // any subscription context.
+                    try
+                    {
+                        // we make sure that we unsubscribe again by disposing the stream.
+                        await sourceStream.DisposeAsync().ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                        // we ignore any errors here since already are in error state.
+                    }
+
                     throw new GraphQLException(operationContext.Result.Errors);
                 }
 
@@ -394,7 +399,7 @@ internal sealed partial class SubscriptionExecutor
         {
             if (!_disposed)
             {
-                await _eventEnumerator.DisposeAsync();
+                await _eventEnumerator.DisposeAsync().ConfigureAwait(false);
                 _disposed = true;
             }
         }

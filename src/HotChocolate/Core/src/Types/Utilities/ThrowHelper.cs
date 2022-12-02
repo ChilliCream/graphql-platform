@@ -59,17 +59,6 @@ internal static class ThrowHelper
                 .SetExtension("member", member)
                 .Build());
 
-    public static SchemaException SubscribeAttribute_TopicOnParameterAndMethod(
-        MemberInfo member) =>
-        new SchemaException(
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    ThrowHelper_SubscribeAttribute_TopicOnParameterAndMethod,
-                    member.DeclaringType!.FullName,
-                    member.Name)
-                .SetExtension("member", member)
-                .Build());
-
     public static SchemaException SubscribeAttribute_SubscribeResolverNotFound(
         MemberInfo member,
         string subscribeResolverName) =>

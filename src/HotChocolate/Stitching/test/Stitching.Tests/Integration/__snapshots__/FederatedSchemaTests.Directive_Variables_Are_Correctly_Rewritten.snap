@@ -1,0 +1,23 @@
+﻿{
+  "data": {
+    "me": {
+      "id": 1,
+      "alias1": "Ada Lovelace",
+      "alias2": [
+        {
+          "alias3": "Love it!",
+          "alias4": {
+            "upc": 1
+          }
+        },
+        {
+          "alias3": "Too expensive.",
+          "alias4": {
+            "upc": 2
+          }
+        }
+      ]
+    },
+    "local": "I am local."
+  }
+}

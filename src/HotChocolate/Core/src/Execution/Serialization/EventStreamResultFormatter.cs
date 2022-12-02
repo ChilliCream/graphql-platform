@@ -177,6 +177,6 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
 #else
         await outputStream.WriteAsync(_newLine, 0, _newLine.Length, ct).ConfigureAwait(false);
 #endif
-        await outputStream.FlushAsync(ct);
+        await outputStream.FlushAsync(ct).ConfigureAwait(false);
     }
 }

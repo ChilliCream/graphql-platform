@@ -1,6 +1,6 @@
 [
   {
-    "ContentType": "application/json; charset=utf-8",
+    "ContentType": "application/graphql-response+json; charset=utf-8",
     "StatusCode": "OK",
     "Data": {
       "__typename": "Query"
@@ -8,13 +8,13 @@
     "Errors": null,
     "Extensions": {
       "persistedQuery": {
-        "md5Hash": "71yeex4k3iYWQgg9TilDIg==",
+        "md5Hash": "ef5c9e7b1e24de261642083d4e294322",
         "persisted": true
       }
     }
   },
   {
-    "ContentType": "application/json; charset=utf-8",
+    "ContentType": "application/graphql-response+json; charset=utf-8",
     "StatusCode": "OK",
     "Data": {
       "__typename": "Query"

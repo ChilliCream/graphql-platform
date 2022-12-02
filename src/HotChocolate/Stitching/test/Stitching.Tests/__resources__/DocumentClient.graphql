@@ -1,0 +1,339 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Query {
+  envelope(processId: String = null): CustomerEnvelope
+  envelopes(after: String = null before: String = null contractId: String = null first: PaginationAmount = null invoiceNumber: String = null last: PaginationAmount = null order_by: CustomerEnvelopeSort = null processId: String = null where: CustomerEnvelopeFilter = null): CustomerEnvelopeConnection
+}
+
+type Mutation {
+  requestDocumentDownload(id: ID! = null): String!
+  requestEnvelopeDownload(fileFormat: FileFormat! = null id: ID! = null): String!
+}
+
+type NvsDocument implements Document {
+  contractId: String
+  contractNumber: String
+  "Translated"
+  documentCategory: String!
+  documentCategoryCode: DocumentCategoryType!
+  documentDate: DateTime!
+  documentId: String!
+  documentTitle: String!
+  documentType: String!
+  documentTypeCode: String!
+  id: ID!
+  isTaxRelevant: Boolean!
+  processId: String
+}
+
+type EvDocument implements Document {
+  contractId: String
+  contractNumber: String
+  "Translated"
+  documentCategory: String!
+  documentCategoryCode: DocumentCategoryType!
+  documentDate: DateTime!
+  documentId: String!
+  documentTitle: String!
+  "Translated"
+  documentType: String!
+  documentTypeCode: String!
+  id: ID!
+  invoiceNumber: String
+  isTaxRelevant: Boolean!
+  partnerNumber: String!
+}
+
+type BankingDocument implements Document {
+  businessUnit: String!
+  contractId: String
+  contractNumber: String
+  "Translated"
+  documentCategory: String!
+  documentCategoryCode: DocumentCategoryType!
+  documentDate: DateTime!
+  documentId: String!
+  documentTitle: String!
+  "Translated"
+  documentType: String!
+  documentTypeCode: String!
+  id: ID!
+  isTaxRelevant: Boolean!
+  planNr: String! @deprecated(reason: "Use contractId instead")
+}
+
+enum ApplyPolicy {
+  BEFORE_RESOLVER
+  AFTER_RESOLVER
+}
+
+type CustomerEnvelope {
+  contractNumber: String
+  documents: [Document!]!
+  envelopeDate: DateTime!
+  envelopeId: String!
+  envelopeTitle: String
+  id: ID!
+}
+
+input CustomerEnvelopeSort {
+  envelopeDate: SortOperationKind = null
+}
+
+input CustomerEnvelopeFilter {
+  AND: [CustomerEnvelopeFilter!] = null
+  documents_some: DocumentFilter = null
+  envelopeDate: DateTime = null
+  envelopeDate_gt: DateTime = null
+  envelopeDate_gte: DateTime = null
+  envelopeDate_in: [DateTime!] = null
+  envelopeDate_lt: DateTime = null
+  envelopeDate_lte: DateTime = null
+  envelopeDate_not: DateTime = null
+  envelopeDate_not_gt: DateTime = null
+  envelopeDate_not_gte: DateTime = null
+  envelopeDate_not_in: [DateTime!] = null
+  envelopeDate_not_lt: DateTime = null
+  envelopeDate_not_lte: DateTime = null
+  isTaxRelevant: Boolean = null
+  OR: [CustomerEnvelopeFilter!] = null
+}
+
+"A connection to a list of items."
+type CustomerEnvelopeConnection {
+  contractFilterEntries: [ContractFilterEntry!]!
+  contractNumbers: [String!]! @deprecated(reason: "Use contractFilterEntries instead")
+  "Translated"
+  documentCategories: [TranslatedResourceOfDocumentCategoryType!]!
+  "A list of edges."
+  edges: [CustomerEnvelopeEdge!]
+  "A flattened list of the nodes."
+  nodes: [CustomerEnvelope!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+scalar PaginationAmount
+
+enum FileFormat {
+  PDF
+  ZIP
+}
+
+interface Document {
+  contractId: String
+  contractNumber: String
+  documentCategory: String!
+  documentCategoryCode: DocumentCategoryType!
+  documentDate: DateTime!
+  documentId: String!
+  documentTitle: String!
+  documentType: String!
+  documentTypeCode: String!
+  id: ID!
+  isTaxRelevant: Boolean!
+}
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime
+
+enum DocumentCategoryType {
+  WERTDOKUMENTE
+  INKASSODOKUMENTE
+  KORRESPONDENZDOKUMENTE
+  LEISTUNGSDOKUMENTE
+  OFFERTDOKUMENTE
+  PERSONENDOKUMENTE
+  REPORT
+  SONSTIGE
+  STEUERDOKUMENTE
+  VERTRAGSANPASSUNGEN
+  VERTRAGSDOKUMENTE
+}
+
+type TranslatedResourceOfDocumentCategoryType {
+  key: DocumentCategoryType!
+  label: String!
+}
+
+type ContractFilterEntry {
+  key: String!
+  label: String!
+}
+
+enum TranslatableLanguage {
+  NOTSET
+  DE
+  FR
+  IT
+  EN
+}
+
+enum SortOperationKind {
+  ASC
+  DESC
+}
+
+input DocumentFilter {
+  AND: [DocumentFilter!] = null
+  contractId: String = null
+  contractId_contains: String = null
+  contractId_ends_with: String = null
+  contractId_in: [String] = null
+  contractId_not: String = null
+  contractId_not_contains: String = null
+  contractId_not_ends_with: String = null
+  contractId_not_in: [String] = null
+  contractId_not_starts_with: String = null
+  contractId_starts_with: String = null
+  contractNumber: String = null
+  contractNumber_contains: String = null
+  contractNumber_ends_with: String = null
+  contractNumber_in: [String] = null
+  contractNumber_not: String = null
+  contractNumber_not_contains: String = null
+  contractNumber_not_ends_with: String = null
+  contractNumber_not_in: [String] = null
+  contractNumber_not_starts_with: String = null
+  contractNumber_starts_with: String = null
+  documentCategoryType: DocumentCategoryType = null
+  documentCategoryType_gt: DocumentCategoryType = null
+  documentCategoryType_gte: DocumentCategoryType = null
+  documentCategoryType_in: [DocumentCategoryType!] = null
+  documentCategoryType_lt: DocumentCategoryType = null
+  documentCategoryType_lte: DocumentCategoryType = null
+  documentCategoryType_not: DocumentCategoryType = null
+  documentCategoryType_not_gt: DocumentCategoryType = null
+  documentCategoryType_not_gte: DocumentCategoryType = null
+  documentCategoryType_not_in: [DocumentCategoryType!] = null
+  documentCategoryType_not_lt: DocumentCategoryType = null
+  documentCategoryType_not_lte: DocumentCategoryType = null
+  documentDate: DateTime = null
+  documentDate_gt: DateTime = null
+  documentDate_gte: DateTime = null
+  documentDate_in: [DateTime!] = null
+  documentDate_lt: DateTime = null
+  documentDate_lte: DateTime = null
+  documentDate_not: DateTime = null
+  documentDate_not_gt: DateTime = null
+  documentDate_not_gte: DateTime = null
+  documentDate_not_in: [DateTime!] = null
+  documentDate_not_lt: DateTime = null
+  documentDate_not_lte: DateTime = null
+  documentId: String = null
+  documentId_contains: String = null
+  documentId_ends_with: String = null
+  documentId_in: [String] = null
+  documentId_not: String = null
+  documentId_not_contains: String = null
+  documentId_not_ends_with: String = null
+  documentId_not_in: [String] = null
+  documentId_not_starts_with: String = null
+  documentId_starts_with: String = null
+  documentTitle: String = null
+  documentTitle_contains: String = null
+  documentTitle_ends_with: String = null
+  documentTitle_in: [String] = null
+  documentTitle_not: String = null
+  documentTitle_not_contains: String = null
+  documentTitle_not_ends_with: String = null
+  documentTitle_not_in: [String] = null
+  documentTitle_not_starts_with: String = null
+  documentTitle_starts_with: String = null
+  documentType: String = null
+  documentType_contains: String = null
+  documentType_ends_with: String = null
+  documentType_in: [String] = null
+  documentType_not: String = null
+  documentType_not_contains: String = null
+  documentType_not_ends_with: String = null
+  documentType_not_in: [String] = null
+  documentType_not_starts_with: String = null
+  documentType_starts_with: String = null
+  envelopeId: String = null
+  envelopeId_contains: String = null
+  envelopeId_ends_with: String = null
+  envelopeId_in: [String] = null
+  envelopeId_not: String = null
+  envelopeId_not_contains: String = null
+  envelopeId_not_ends_with: String = null
+  envelopeId_not_in: [String] = null
+  envelopeId_not_starts_with: String = null
+  envelopeId_starts_with: String = null
+  envelopeOrder: Int = null
+  envelopeOrder_gt: Int = null
+  envelopeOrder_gte: Int = null
+  envelopeOrder_in: [Int!] = null
+  envelopeOrder_lt: Int = null
+  envelopeOrder_lte: Int = null
+  envelopeOrder_not: Int = null
+  envelopeOrder_not_gt: Int = null
+  envelopeOrder_not_gte: Int = null
+  envelopeOrder_not_in: [Int!] = null
+  envelopeOrder_not_lt: Int = null
+  envelopeOrder_not_lte: Int = null
+  filterId: String = null
+  filterId_contains: String = null
+  filterId_ends_with: String = null
+  filterId_in: [String] = null
+  filterId_not: String = null
+  filterId_not_contains: String = null
+  filterId_not_ends_with: String = null
+  filterId_not_in: [String] = null
+  filterId_not_starts_with: String = null
+  filterId_starts_with: String = null
+  hiddenFilterId: String = null
+  hiddenFilterId_contains: String = null
+  hiddenFilterId_ends_with: String = null
+  hiddenFilterId_in: [String] = null
+  hiddenFilterId_not: String = null
+  hiddenFilterId_not_contains: String = null
+  hiddenFilterId_not_ends_with: String = null
+  hiddenFilterId_not_in: [String] = null
+  hiddenFilterId_not_starts_with: String = null
+  hiddenFilterId_starts_with: String = null
+  isTaxRelevant: Boolean = null
+  isTaxRelevant_not: Boolean = null
+  OR: [DocumentFilter!] = null
+  portalCustomerId: String = null
+  portalCustomerId_contains: String = null
+  portalCustomerId_ends_with: String = null
+  portalCustomerId_in: [String] = null
+  portalCustomerId_not: String = null
+  portalCustomerId_not_contains: String = null
+  portalCustomerId_not_ends_with: String = null
+  portalCustomerId_not_in: [String] = null
+  portalCustomerId_not_starts_with: String = null
+  portalCustomerId_starts_with: String = null
+}
+
+"Information about pagination in a connection."
+type PageInfo {
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+  "When paginating backwards, the cursor to continue."
+  startCursor: String
+}
+
+"An edge in a connection."
+type CustomerEnvelopeEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: CustomerEnvelope!
+}
+
+
+
+
+directive @authorize("Defines when when the resolver shall be executed.By default the resolver is executed after the policy has determined that the current user is allowed to access the field." apply: ApplyPolicy! = BEFORE_RESOLVER "The name of the authorization policy that determines access to the annotated resource." policy: String = null "Roles that are allowed to access the annotated resource." roles: [String!] = null) repeatable on SCHEMA | OBJECT | FIELD_DEFINITION
+
+

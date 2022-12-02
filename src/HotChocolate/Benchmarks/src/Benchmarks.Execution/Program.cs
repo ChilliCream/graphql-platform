@@ -25,11 +25,9 @@ public static class Program
 
         Console.WriteLine("Warmup 1");
         await queryBench.Sessions_DataLoader_Large().ConfigureAwait(false);
-        ;
 
         Console.WriteLine("Warmup 2");
         await queryBench.Sessions_DataLoader_Large().ConfigureAwait(false);
-        ;
 
         Console.WriteLine("Run");
 

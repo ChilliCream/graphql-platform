@@ -7,7 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Types;
 
-public class FieldCollection<T> : IFieldCollection<T> where T : class, IField
+public sealed class FieldCollection<T> : IFieldCollection<T> where T : class, IField
 {
     private readonly Dictionary<string, T> _fieldsLookup;
     private readonly T[] _fields;
@@ -79,7 +79,7 @@ public class FieldCollection<T> : IFieldCollection<T> where T : class, IField
 
         public T Current { get; private set; } = default!;
 
-        object? IEnumerator.Current => Current;
+        object IEnumerator.Current => Current;
 
         public bool MoveNext()
         {

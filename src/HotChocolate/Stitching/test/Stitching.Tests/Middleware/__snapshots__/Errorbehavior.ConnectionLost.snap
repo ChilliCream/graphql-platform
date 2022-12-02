@@ -1,0 +1,17 @@
+﻿{
+  "Data": {
+    "createCustomer": null
+  },
+  "Extensions": {},
+  "Errors": [
+    {
+      "Message": "System.Net.Http.HttpRequestException",
+      "Code": null,
+      "Path": null,
+      "Locations": [],
+      "Exception": null,
+      "Extensions": {}
+    }
+  ],
+  "ContextData": {}
+}

@@ -2,148 +2,147 @@
 using System.Linq;
 using HotChocolate.StarWars.Models;
 
-namespace HotChocolate.StarWars.Data
+namespace HotChocolate.StarWars.Data;
+
+public class CharacterRepository
 {
-    public class CharacterRepository
+    private Dictionary<string, ICharacter> _characters;
+    private Dictionary<string, Starship> _starships;
+
+    public CharacterRepository()
     {
-        private Dictionary<string, ICharacter> _characters;
-        private Dictionary<string, Starship> _starships;
+        _characters = CreateCharacters().ToDictionary(t => t.Id);
+        _starships = CreateStarships().ToDictionary(t => t.Id);
+    }
 
-        public CharacterRepository()
+    public ICharacter GetHero(Episode episode)
+    {
+        if (episode == Episode.Empire)
         {
-            _characters = CreateCharacters().ToDictionary(t => t.Id);
-            _starships = CreateStarships().ToDictionary(t => t.Id);
+            return _characters["1000"];
+        }
+        return _characters["2001"];
+    }
+
+    public ICharacter GetCharacter(string id)
+    {
+        if (_characters.TryGetValue(id, out ICharacter c))
+        {
+            return c;
+        }
+        return null;
+    }
+
+    public Human GetHuman(string id)
+    {
+        if (_characters.TryGetValue(id, out ICharacter c)
+            && c is Human h)
+        {
+            return h;
+        }
+        return null;
+    }
+
+    public Droid GetDroid(string id)
+    {
+        if (_characters.TryGetValue(id, out ICharacter c)
+            && c is Droid d)
+        {
+            return d;
+        }
+        return null;
+    }
+
+    public IEnumerable<object> Search(string text)
+    {
+        IEnumerable<ICharacter> filteredCharacters = _characters.Values
+            .Where(t => t.Name.Contains(text));
+
+        foreach (ICharacter character in filteredCharacters)
+        {
+            yield return character;
         }
 
-        public ICharacter GetHero(Episode episode)
+        IEnumerable<Starship> filteredStarships = _starships.Values
+            .Where(t => t.Name.Contains(text));
+
+        foreach (Starship starship in filteredStarships)
         {
-            if (episode == Episode.Empire)
-            {
-                return _characters["1000"];
-            }
-            return _characters["2001"];
+            yield return starship;
         }
+    }
 
-        public ICharacter GetCharacter(string id)
+    private static IEnumerable<ICharacter> CreateCharacters()
+    {
+        yield return new Human
         {
-            if (_characters.TryGetValue(id, out ICharacter c))
-            {
-                return c;
-            }
-            return null;
-        }
+            Id = "1000",
+            Name = "Luke Skywalker",
+            Friends = new[] { "1002", "1003", "2000", "2001" },
+            AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
+            HomePlanet = "Tatooine"
+        };
 
-        public Human GetHuman(string id)
+        yield return new Human
         {
-            if (_characters.TryGetValue(id, out ICharacter c)
-                && c is Human h)
-            {
-                return h;
-            }
-            return null;
-        }
+            Id = "1001",
+            Name = "Darth Vader",
+            Friends = new[] { "1004" },
+            AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
+            HomePlanet = "Tatooine"
+        };
 
-        public Droid GetDroid(string id)
+        yield return new Human
         {
-            if (_characters.TryGetValue(id, out ICharacter c)
-                && c is Droid d)
-            {
-                return d;
-            }
-            return null;
-        }
+            Id = "1002",
+            Name = "Han Solo",
+            Friends = new[] { "1000", "1003", "2001" },
+            AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi }
+        };
 
-        public IEnumerable<object> Search(string text)
+        yield return new Human
         {
-            IEnumerable<ICharacter> filteredCharacters = _characters.Values
-                .Where(t => t.Name.Contains(text));
+            Id = "1003",
+            Name = "Leia Organa",
+            Friends = new[] { "1000", "1002", "2000", "2001" },
+            AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
+            HomePlanet = "Alderaan"
+        };
 
-            foreach (ICharacter character in filteredCharacters)
-            {
-                yield return character;
-            }
-
-            IEnumerable<Starship> filteredStarships = _starships.Values
-                .Where(t => t.Name.Contains(text));
-
-            foreach (Starship starship in filteredStarships)
-            {
-                yield return starship;
-            }
-        }
-
-        private static IEnumerable<ICharacter> CreateCharacters()
+        yield return new Human
         {
-            yield return new Human
-            {
-                Id = "1000",
-                Name = "Luke Skywalker",
-                Friends = new[] { "1002", "1003", "2000", "2001" },
-                AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
-                HomePlanet = "Tatooine"
-            };
+            Id = "1004",
+            Name = "Wilhuff Tarkin",
+            Friends = new[] { "1001" },
+            AppearsIn = new[] { Episode.NewHope }
+        };
 
-            yield return new Human
-            {
-                Id = "1001",
-                Name = "Darth Vader",
-                Friends = new[] { "1004" },
-                AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
-                HomePlanet = "Tatooine"
-            };
-
-            yield return new Human
-            {
-                Id = "1002",
-                Name = "Han Solo",
-                Friends = new[] { "1000", "1003", "2001" },
-                AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi }
-            };
-
-            yield return new Human
-            {
-                Id = "1003",
-                Name = "Leia Organa",
-                Friends = new[] { "1000", "1002", "2000", "2001" },
-                AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
-                HomePlanet = "Alderaan"
-            };
-
-            yield return new Human
-            {
-                Id = "1004",
-                Name = "Wilhuff Tarkin",
-                Friends = new[] { "1001" },
-                AppearsIn = new[] { Episode.NewHope }
-            };
-
-            yield return new Droid
-            {
-                Id = "2000",
-                Name = "C-3PO",
-                Friends = new[] { "1000", "1002", "1003", "2001" },
-                AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
-                PrimaryFunction = "Protocol"
-            };
-
-            yield return new Droid
-            {
-                Id = "2001",
-                Name = "R2-D2",
-                Friends = new[] { "1000", "1002", "1003" },
-                AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
-                PrimaryFunction = "Astromech"
-            };
-        }
-
-        private static IEnumerable<Starship> CreateStarships()
+        yield return new Droid
         {
-            yield return new Starship
-            {
-                Id = "3000",
-                Name = "TIE Advanced x1",
-                Length = 9.2
-            };
-        }
+            Id = "2000",
+            Name = "C-3PO",
+            Friends = new[] { "1000", "1002", "1003", "2001" },
+            AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
+            PrimaryFunction = "Protocol"
+        };
+
+        yield return new Droid
+        {
+            Id = "2001",
+            Name = "R2-D2",
+            Friends = new[] { "1000", "1002", "1003" },
+            AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
+            PrimaryFunction = "Astromech"
+        };
+    }
+
+    private static IEnumerable<Starship> CreateStarships()
+    {
+        yield return new Starship
+        {
+            Id = "3000",
+            Name = "TIE Advanced x1",
+            Length = 9.2
+        };
     }
 }
