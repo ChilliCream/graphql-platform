@@ -2,7 +2,7 @@ using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Data.Neo4J.Integration.Tests;
+namespace HotChocolate.Data.Neo4J.Integration.SchemaFirst;
 
 public class Neo4JFixture : Neo4JFixtureBase
 {
@@ -54,8 +54,8 @@ public class Neo4JFixture : Neo4JFixtureBase
         return await new ServiceCollection()
             .AddSingleton(database.Driver)
             .AddGraphQL()
-                .AddQueryType()
-                .AddMovieTypes()
+            .AddQueryType()
+            .AddMovieTypes()
             .Services
             .BuildServiceProvider()
             .GetRequiredService<IRequestExecutorResolver>()

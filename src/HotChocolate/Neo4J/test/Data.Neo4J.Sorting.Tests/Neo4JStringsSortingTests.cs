@@ -3,7 +3,7 @@ using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Data.Neo4J.Sorting.Tests;
+namespace HotChocolate.Data;
 
 [Collection(Neo4JDatabaseCollectionFixture.DefinitionName)]
 public class Neo4JStringsSortingTests : IClassFixture<Neo4JFixture>
@@ -17,9 +17,8 @@ public class Neo4JStringsSortingTests : IClassFixture<Neo4JFixture>
         _fixture = fixture;
     }
 
-    private string _fooEntitiesCypher = @"
-            CREATE (:FooString {Bar: 'testatest'}), (:FooString {Bar: 'testbtest'})
-        ";
+    private const string _fooEntitiesCypher =
+        @"CREATE (:FooString {Bar: 'testatest'}), (:FooString {Bar: 'testbtest'})";
 
     [Fact]
     public async Task StringSorting_SchemaSnapshot()
@@ -50,12 +49,10 @@ public class Neo4JStringsSortingTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(),
-                    res1, "StringSorting_ASC"),
-                res2, "StringSorting_DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "StringSorting_ASC")
+            .AddResult(res2, "StringSorting_DESC")
             .MatchAsync();
     }
 

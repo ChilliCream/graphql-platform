@@ -1,9 +1,9 @@
 ﻿using CookieCrumble;
-using HotChocolate.Data.Neo4J.Projections.Tests;
+using HotChocolate.Data.Neo4J;
 using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Data.Neo4J.Projections.Tests;
+namespace HotChocolate.Data;
 
 [Collection(Neo4JDatabaseCollectionFixture.DefinitionName)]
 public class Neo4JRelationshipProjectionTests : IClassFixture<Neo4JFixture>
@@ -47,9 +47,9 @@ public class Neo4JRelationshipProjectionTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -82,9 +82,9 @@ public class Neo4JRelationshipProjectionTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 

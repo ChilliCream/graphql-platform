@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using HotChocolate.Data.Neo4J;
-
-namespace HotChocolate.Data.Neo4J.Integration.AnnotationBased;
+namespace HotChocolate.Data.Neo4J.Integration.AnnotationBased.Models;
 
 [Neo4JNode("Actor")]
 public class Actor

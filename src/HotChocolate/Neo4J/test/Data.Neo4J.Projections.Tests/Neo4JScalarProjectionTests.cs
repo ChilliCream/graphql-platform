@@ -2,7 +2,7 @@
 using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Data.Neo4J.Projections.Tests;
+namespace HotChocolate.Data;
 
 [Collection(Neo4JDatabaseCollectionFixture.DefinitionName)]
 public class Neo4JScalarProjectionTest : IClassFixture<Neo4JFixture>
@@ -16,9 +16,8 @@ public class Neo4JScalarProjectionTest : IClassFixture<Neo4JFixture>
         _fixture = fixture;
     }
 
-    private const string FooEntitiesCypher = @"
-            CREATE (:FooScalar {Bar: true, Baz: 'a'}), (:FooScalar {Bar: false, Baz: 'b'})
-        ";
+    private const string FooEntitiesCypher =
+        @"CREATE (:FooScalar {Bar: true, Baz: 'a'}), (:FooScalar {Bar: false, Baz: 'b'})";
 
     [Fact]
     public async Task Scalar_Projection_Two_Properties()
@@ -33,9 +32,9 @@ public class Neo4JScalarProjectionTest : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -52,9 +51,9 @@ public class Neo4JScalarProjectionTest : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 

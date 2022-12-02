@@ -2,7 +2,7 @@ using CookieCrumble;
 using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Data.Neo4J.Paging.Tests;
+namespace HotChocolate.Data;
 
 [Collection(Neo4JDatabaseCollectionFixture.DefinitionName)]
 public class Neo4JOffsetPagingTests : IClassFixture<Neo4JFixture>
@@ -107,9 +107,8 @@ public class Neo4JOffsetPagingTests : IClassFixture<Neo4JFixture>
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot.Create()
+            .AddResult(result)
             .MatchAsync();
     }
 

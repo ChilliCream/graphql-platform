@@ -1,6 +1,7 @@
+using HotChocolate.Data.Neo4J.Language;
 using Shouldly;
 
-namespace HotChocolate.Data.Neo4J.Language;
+namespace HotChocolate.Data.LanguageTests;
 
 public class SymbolicNameTests
 {

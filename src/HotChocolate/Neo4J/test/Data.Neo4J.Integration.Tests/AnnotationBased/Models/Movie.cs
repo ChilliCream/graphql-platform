@@ -1,8 +1,4 @@
-using System.Collections.Generic;
-using HotChocolate.Data.Neo4J.Execution;
-using Neo4j.Driver;
-
-namespace HotChocolate.Data.Neo4J.Integration.AnnotationBased;
+namespace HotChocolate.Data.Neo4J.Integration.AnnotationBased.Models;
 
 [Neo4JNode("Movie")]
 public class Movie

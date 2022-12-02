@@ -2,7 +2,7 @@ using CookieCrumble;
 using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Data.Neo4J.Integration.Tests;
+namespace HotChocolate.Data.Neo4J.Integration.SchemaFirst;
 
 [Collection(Neo4JDatabaseCollectionFixture.DefinitionName)]
 public class SchemaIntegrationTests : IClassFixture<Neo4JFixture>

@@ -1,6 +1,6 @@
 using HotChocolate.Data.Neo4J.Testing;
 
-namespace HotChocolate.Data.Neo4J.Projections.Tests;
+namespace HotChocolate.Data;
 
 [CollectionDefinition(DefinitionName)]
 public class Neo4JDatabaseCollectionFixture : ICollectionFixture<Neo4JDatabase>

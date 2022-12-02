@@ -1,10 +1,11 @@
 using System.Collections.Concurrent;
-using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Data.Neo4J;
 using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Data.Neo4J.Paging.Tests;
+namespace HotChocolate.Data;
 
 public class Neo4JFixture : Neo4JFixtureBase
 {

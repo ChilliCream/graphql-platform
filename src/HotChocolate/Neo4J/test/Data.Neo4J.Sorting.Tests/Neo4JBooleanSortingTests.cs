@@ -3,8 +3,7 @@ using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 
-
-namespace HotChocolate.Data.Neo4J.Sorting.Tests;
+namespace HotChocolate.Data;
 
 [Collection(Neo4JDatabaseCollectionFixture.DefinitionName)]
 public class Neo4JBooleanSortingTests : IClassFixture<Neo4JFixture>
@@ -18,9 +17,8 @@ public class Neo4JBooleanSortingTests : IClassFixture<Neo4JFixture>
         _fixture = fixture;
     }
 
-    private string _fooEntitiesCypher = @"
-            CREATE (:FooBool {Bar: true}), (:FooBool {Bar: false})
-        ";
+    private const string _fooEntitiesCypher =
+        @"CREATE (:FooBool {Bar: true}), (:FooBool {Bar: false})";
 
     [Fact]
     public async Task BooleanSorting_SchemaSnapshot()
@@ -51,12 +49,10 @@ public class Neo4JBooleanSortingTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(),
-                    res1, "BooleanSorting_ASC"),
-                res2, "BooleanSorting_DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "BooleanSorting_ASC")
+            .AddResult(res2, "BooleanSorting_DESC")
             .MatchAsync();
     }
 

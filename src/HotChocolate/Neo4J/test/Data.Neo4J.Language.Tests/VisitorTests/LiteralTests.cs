@@ -1,6 +1,7 @@
 using CookieCrumble;
+using HotChocolate.Data.Neo4J.Language;
 
-namespace HotChocolate.Data.Neo4J.Language;
+namespace HotChocolate.Data.VisitorTests;
 
 public class LiteralTests
 {
@@ -19,7 +20,7 @@ public class LiteralTests
     {
         var visitor = new CypherVisitor();
 
-        var literal = Language.BooleanLiteral.True;
+        var literal = Neo4J.Language.BooleanLiteral.True;
         literal.Visit(visitor);
         visitor.Print().MatchSnapshot();
     }

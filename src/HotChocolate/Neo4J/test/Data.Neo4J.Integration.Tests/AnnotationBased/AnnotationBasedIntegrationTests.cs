@@ -2,15 +2,15 @@ using CookieCrumble;
 using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Data.Neo4J.Integration.Tests;
+namespace HotChocolate.Data.Neo4J.Integration.AnnotationBased;
 
 [Collection(Neo4JDatabaseCollectionFixture.DefinitionName)]
-public class AnnotationBasedIntegrationTests : IClassFixture<Neo4JFixture>
+public class AnnotationBasedIntegrationTests : IClassFixture<SchemaFirst.Neo4JFixture>
 {
     private readonly Neo4JDatabase _database;
-    private readonly Neo4JFixture _fixture;
+    private readonly SchemaFirst.Neo4JFixture _fixture;
 
-    public AnnotationBasedIntegrationTests(Neo4JDatabase database, Neo4JFixture fixture)
+    public AnnotationBasedIntegrationTests(Neo4JDatabase database, SchemaFirst.Neo4JFixture fixture)
     {
         _database = database;
         _fixture = fixture;

@@ -1,11 +1,12 @@
 using System.Collections.Concurrent;
+using HotChocolate.Data.Neo4J.Sorting;
 using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Data.Neo4J.Sorting.Tests;
+namespace HotChocolate.Data;
 
 public class Neo4JFixture : Neo4JFixtureBase
 {
