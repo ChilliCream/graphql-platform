@@ -3,7 +3,7 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Data.Neo4J.Filtering.Tests;
+namespace HotChocolate.Data.Neo4J.Filtering;
 
 [Collection(Neo4JDatabaseCollectionFixture.DefinitionName)]
 public class Neo4JListFilterTests : IClassFixture<Neo4JFixture>
@@ -72,9 +72,8 @@ public class Neo4JListFilterTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1, "all")
+        await Snapshot
+            .Create().AddResult(res1, "all")
             .MatchAsync();
     }
 

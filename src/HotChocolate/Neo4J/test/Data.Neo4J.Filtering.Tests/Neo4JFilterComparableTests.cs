@@ -4,7 +4,7 @@ using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 
-namespace HotChocolate.Data.Neo4J.Filtering.Tests;
+namespace HotChocolate.Data.Neo4J.Filtering;
 
 [Collection(Neo4JDatabaseCollectionFixture.DefinitionName)]
 public class Neo4JFilterComparableTests : IClassFixture<Neo4JFixture>
@@ -55,14 +55,11 @@ public class Neo4JFilterComparableTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1, "Short_Equal_12"),
-                    res2, "Short_Equal_13"),
-                res3, "Short_Equal_null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "Short_Equal_12")
+            .AddResult(res2, "Short_Equal_13")
+            .AddResult(res3, "Short_Equal_null")
             .MatchAsync();
     }
 
@@ -93,14 +90,11 @@ public class Neo4JFilterComparableTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1, "Short_NotEqual_12"),
-                    res2, "Short_NotEqual_13"),
-                res3, "Short_NotEqual_null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "Short_NotEqual_12")
+            .AddResult(res2, "Short_NotEqual_13")
+            .AddResult(res3, "Short_NotEqual_null")
             .MatchAsync();
     }
 
@@ -137,16 +131,12 @@ public class Neo4JFilterComparableTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1, "Short_GreaterThan_12"),
-                        res2, "Short_GreaterThan_13"),
-                    res3, "Short_GreaterThan_14"),
-                res4, "Short_GreaterThan_null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "Short_GreaterThan_12")
+            .AddResult(res2, "Short_GreaterThan_13")
+            .AddResult(res3, "Short_GreaterThan_14")
+            .AddResult(res4, "Short_GreaterThan_null")
             .MatchAsync();
     }
 
@@ -183,16 +173,12 @@ public class Neo4JFilterComparableTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1, "Short_NotGreaterThan_12"),
-                        res2, "Short_NotGreaterThan_13"),
-                    res3, "Short_NotGreaterThan_14"),
-                res4, "Short_NotGreaterThan_null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "Short_NotGreaterThan_12")
+            .AddResult(res2, "Short_NotGreaterThan_13")
+            .AddResult(res3, "Short_NotGreaterThan_14")
+            .AddResult(res4, "Short_NotGreaterThan_null")
             .MatchAsync();
     }
 
@@ -229,16 +215,12 @@ public class Neo4JFilterComparableTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1, "Short_GreaterThanOrEquals_12"),
-                        res2, "Short_GreaterThanOrEquals_13"),
-                    res3, "Short_GreaterThanOrEquals_14"),
-                res4, "Short_GreaterThanOrEquals_null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "Short_GreaterThanOrEquals_12")
+            .AddResult(res2, "Short_GreaterThanOrEquals_13")
+            .AddResult(res3, "Short_GreaterThanOrEquals_14")
+            .AddResult(res4, "Short_GreaterThanOrEquals_null")
             .MatchAsync();
     }
 
@@ -275,16 +257,12 @@ public class Neo4JFilterComparableTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1, "Short_NotGreaterThanOrEquals_12"),
-                        res2, "Short_NotGreaterThanOrEquals_13"),
-                    res3, "Short_NotGreaterThanOrEquals_14"),
-                res4, "Short_NotGreaterThanOrEquals_null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "Short_NotGreaterThanOrEquals_12")
+            .AddResult(res2, "Short_NotGreaterThanOrEquals_13")
+            .AddResult(res3, "Short_NotGreaterThanOrEquals_14")
+            .AddResult(res4, "Short_NotGreaterThanOrEquals_null")
             .MatchAsync();
     }
 
@@ -321,16 +299,12 @@ public class Neo4JFilterComparableTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1, "Short_LowerThan_12"),
-                        res2, "Short_LowerThan_13"),
-                    res3, "Short_LowerThan_14"),
-                res4, "Short_LowerThan_null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "Short_LowerThan_12")
+            .AddResult(res2, "Short_LowerThan_13")
+            .AddResult(res3, "Short_LowerThan_14")
+            .AddResult(res4, "Short_LowerThan_null")
             .MatchAsync();
     }
 
@@ -367,16 +341,12 @@ public class Neo4JFilterComparableTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1, "Short_NotLowerThan_12"),
-                        res2, "Short_NotLowerThan_13"),
-                    res3, "Short_NotLowerThan_14"),
-                res4, "Short_NotLowerThan_null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "Short_NotLowerThan_12")
+            .AddResult(res2, "Short_NotLowerThan_13")
+            .AddResult(res3, "Short_NotLowerThan_14")
+            .AddResult(res4, "Short_NotLowerThan_null")
             .MatchAsync();
     }
 
@@ -413,16 +383,12 @@ public class Neo4JFilterComparableTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1, "Short_LowerThanOrEquals_12"),
-                        res2, "Short_LowerThanOrEquals_13"),
-                    res3, "Short_LowerThanOrEquals_14"),
-                res4, "Short_LowerThanOrEquals_null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "Short_LowerThanOrEquals_12")
+            .AddResult(res2, "Short_LowerThanOrEquals_13")
+            .AddResult(res3, "Short_LowerThanOrEquals_14")
+            .AddResult(res4, "Short_LowerThanOrEquals_null")
             .MatchAsync();
     }
 
@@ -459,16 +425,12 @@ public class Neo4JFilterComparableTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1, "Short_NotLowerThanOrEquals_12"),
-                        res2, "Short_NotLowerThanOrEquals_13"),
-                    res3, "Short_NotLowerThanOrEquals_14"),
-                res4, "Short_NotLowerThanOrEquals_null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "Short_NotLowerThanOrEquals_12")
+            .AddResult(res2, "Short_NotLowerThanOrEquals_13")
+            .AddResult(res3, "Short_NotLowerThanOrEquals_14")
+            .AddResult(res4, "Short_NotLowerThanOrEquals_null")
             .MatchAsync();
     }
 
@@ -499,14 +461,11 @@ public class Neo4JFilterComparableTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1, "Short_In_12and13"),
-                    res2, "Short_In_13and14"),
-                res3, "Short_In_Nulland14")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "Short_In_12and13")
+            .AddResult(res2, "Short_In_13and14")
+            .AddResult(res3, "Short_In_Nulland14")
             .MatchAsync();
     }
 
@@ -537,14 +496,11 @@ public class Neo4JFilterComparableTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1, "Short_NotIn_12and13"),
-                    res2, "Short_NotIn_13and14"),
-                res3, "Short_NotIn_NullAnd14")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "Short_NotIn_12and13")
+            .AddResult(res2, "Short_NotIn_13and14")
+            .AddResult(res3, "Short_NotIn_NullAnd14")
             .MatchAsync();
     }
 
@@ -575,14 +531,11 @@ public class Neo4JFilterComparableTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1, "Nullable_Short_Equal_12"),
-                    res2, "Nullable_Short_Equal_13"),
-                res3, "Nullable_Short_Equal_null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "Nullable_Short_Equal_12")
+            .AddResult(res2, "Nullable_Short_Equal_13")
+            .AddResult(res3, "Nullable_Short_Equal_null")
             .MatchAsync();
     }
 
@@ -613,14 +566,11 @@ public class Neo4JFilterComparableTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1, "Nullable_Short_NotEqual_12"),
-                    res2, "Nullable_Short_NotEqual_13"),
-                res3, "Nullable_Short_NotEqual_null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "Nullable_Short_NotEqual_12")
+            .AddResult(res2, "Nullable_Short_NotEqual_13")
+            .AddResult(res3, "Nullable_Short_NotEqual_null")
             .MatchAsync();
     }
 
@@ -657,16 +607,12 @@ public class Neo4JFilterComparableTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1, "Nullable_Short_GreaterThan_12"),
-                        res2, "Nullable_Short_GreaterThan_13"),
-                    res3, "Nullable_Short_GreaterThan_14"),
-                res4, "Nullable_Short_GreaterThan_null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "Nullable_Short_GreaterThan_12")
+            .AddResult(res2, "Nullable_Short_GreaterThan_13")
+            .AddResult(res3, "Nullable_Short_GreaterThan_14")
+            .AddResult(res4, "Nullable_Short_GreaterThan_null")
             .MatchAsync();
     }
 
@@ -703,16 +649,12 @@ public class Neo4JFilterComparableTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1, "Nullable_Short_NotGreaterThan_12"),
-                        res2, "Nullable_Short_NotGreaterThan_13"),
-                    res3, "Nullable_Short_NotGreaterThan_14"),
-                res4, "Nullable_Short_NotGreaterThan_null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "Nullable_Short_NotGreaterThan_12")
+            .AddResult(res2, "Nullable_Short_NotGreaterThan_13")
+            .AddResult(res3, "Nullable_Short_NotGreaterThan_14")
+            .AddResult(res4, "Nullable_Short_NotGreaterThan_null")
             .MatchAsync();
     }
 
@@ -750,16 +692,12 @@ public class Neo4JFilterComparableTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1, "12"),
-                        res2, "13"),
-                    res3, "14"),
-                res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "14")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -797,16 +735,12 @@ public class Neo4JFilterComparableTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1, "12"),
-                        res2, "13"),
-                    res3, "14"),
-                res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "14")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -844,16 +778,12 @@ public class Neo4JFilterComparableTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1, "12"),
-                        res2, "13"),
-                    res3, "14"),
-                res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "14")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -891,16 +821,12 @@ public class Neo4JFilterComparableTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1, "12"),
-                        res2, "13"),
-                    res3, "14"),
-                res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "14")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -938,16 +864,12 @@ public class Neo4JFilterComparableTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1, "12"),
-                        res2, "13"),
-                    res3, "14"),
-                res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "14")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -985,16 +907,12 @@ public class Neo4JFilterComparableTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(),
-                            res1, "12"),
-                        res2, "13"),
-                    res3, "14"),
-                res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "14")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -1026,14 +944,11 @@ public class Neo4JFilterComparableTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1, "12and13"),
-                    res2, "13and14"),
-                res3, "13andNull")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12and13")
+            .AddResult(res2, "13and14")
+            .AddResult(res3, "13andNull")
             .MatchAsync();
     }
 
@@ -1065,14 +980,11 @@ public class Neo4JFilterComparableTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1, "12and13"),
-                    res2, "13and14"),
-                res3, "13andNull")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12and13")
+            .AddResult(res2, "13and14")
+            .AddResult(res3, "13andNull")
             .MatchAsync();
     }
 

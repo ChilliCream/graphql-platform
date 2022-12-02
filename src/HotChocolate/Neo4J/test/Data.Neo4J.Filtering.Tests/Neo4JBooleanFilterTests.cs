@@ -3,7 +3,7 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Data.Neo4J.Filtering.Tests;
+namespace HotChocolate.Data.Neo4J.Filtering;
 
 [Collection(Neo4JDatabaseCollectionFixture.DefinitionName)]
 public class Neo4JBooleanFilterTests : IClassFixture<Neo4JFixture>
@@ -67,11 +67,9 @@ public class Neo4JBooleanFilterTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot.Create(),
-                    res1, "BooleanFilter_Equal_True"),
-                res2, "BooleanFilter_Equal_False")
+        await Snapshot.Create()
+            .AddResult(res1, "BooleanFilter_Equal_True")
+            .AddResult(res2, "BooleanFilter_Equal_False")
             .MatchAsync();
     }
 
@@ -91,9 +89,9 @@ public class Neo4JBooleanFilterTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1, "BooleanFilter_Equal_And_Combinator")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "BooleanFilter_Equal_And_Combinator")
             .MatchAsync();
     }
 
@@ -113,9 +111,9 @@ public class Neo4JBooleanFilterTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1, "BooleanFilter_Equal_Or_Combinator")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "BooleanFilter_Equal_Or_Combinator")
             .MatchAsync();
     }
 
@@ -140,12 +138,10 @@ public class Neo4JBooleanFilterTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(),
-                    res1, "BooleanFilter_NotEqual_True"),
-                res2, "BooleanFilter_NotEqual_False")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "BooleanFilter_NotEqual_True")
+            .AddResult(res2, "BooleanFilter_NotEqual_False")
             .MatchAsync();
     }
 
@@ -176,14 +172,11 @@ public class Neo4JBooleanFilterTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1, "Nullable_BooleanFilter_Equal_True"),
-                    res2, "Nullable_BooleanFilter_Equal_False"),
-                res3, "Nullable_BooleanFilter_Equal_Null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "Nullable_BooleanFilter_Equal_True")
+            .AddResult(res2, "Nullable_BooleanFilter_Equal_False")
+            .AddResult(res3, "Nullable_BooleanFilter_Equal_Null")
             .MatchAsync();
     }
 
@@ -192,7 +185,9 @@ public class Neo4JBooleanFilterTests : IClassFixture<Neo4JFixture>
     {
         // arrange
         var tester =
-            await _fixture.Arrange<FooBoolNullable, FooBoolNullableFilterType>(_database, FooEntitiesCypher);
+            await _fixture.Arrange<FooBoolNullable, FooBoolNullableFilterType>(
+                _database,
+                FooEntitiesCypher);
 
         // act
         const string query1 = "{ root(where: { bar: { neq: true}}){ bar }}";
@@ -214,14 +209,11 @@ public class Neo4JBooleanFilterTests : IClassFixture<Neo4JFixture>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1, "Nullable_BooleanFilter_NotEqual_True"),
-                    res2, "Nullable_BooleanFilter_NotEqual_False"),
-                res3, "Nullable_BooleanFilter_NotEqual_null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "Nullable_BooleanFilter_NotEqual_True")
+            .AddResult(res2, "Nullable_BooleanFilter_NotEqual_False")
+            .AddResult(res3, "Nullable_BooleanFilter_NotEqual_null")
             .MatchAsync();
     }
 

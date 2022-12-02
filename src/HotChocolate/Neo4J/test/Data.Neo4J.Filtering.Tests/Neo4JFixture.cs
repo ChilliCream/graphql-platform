@@ -5,7 +5,7 @@ using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Data.Neo4J.Filtering.Tests;
+namespace HotChocolate.Data.Neo4J.Filtering;
 
 public class Neo4JFixture : Neo4JFixtureBase
 {

@@ -3,7 +3,7 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Testing;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Data.Neo4J.Filtering.Tests;
+namespace HotChocolate.Data.Neo4J.Filtering;
 
 [Collection(Neo4JDatabaseCollectionFixture.DefinitionName)]
 public class Neo4JFilterCombinatorTests : IClassFixture<Neo4JFixture>
@@ -29,7 +29,7 @@ public class Neo4JFilterCombinatorTests : IClassFixture<Neo4JFixture>
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { }){ bar }}")
                 .Create());
