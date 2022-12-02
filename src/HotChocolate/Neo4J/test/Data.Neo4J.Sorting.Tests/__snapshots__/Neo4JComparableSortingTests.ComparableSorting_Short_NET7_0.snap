@@ -1,4 +1,4 @@
-ComparablesSorting_Short_ASC Result:
+ComparableSorting_Short_ASC Result:
 ---------------
 {
   "data": {
@@ -17,12 +17,12 @@ ComparablesSorting_Short_ASC Result:
 }
 ---------------
 
-ComparablesSorting_Short_ASC Query:
+ComparableSorting_Short_ASC Query:
 ---------------
 MATCH (fooComp:FooComp) RETURN fooComp ORDER BY fooComp.Bar ASC
 ---------------
 
-ComparablesSorting_Short_DESC Result:
+ComparableSorting_Short_DESC Result:
 ---------------
 {
   "data": {
@@ -41,7 +41,7 @@ ComparablesSorting_Short_DESC Result:
 }
 ---------------
 
-ComparablesSorting_Short_DESC Query:
+ComparableSorting_Short_DESC Query:
 ---------------
 MATCH (fooComp:FooComp) RETURN fooComp ORDER BY fooComp.Bar DESC
 ---------------
