@@ -757,45 +757,44 @@ public class StarWarsCodeFirstTests
     {
         Snapshot.FullName();
         await ExpectError(
-            @"
-                query ExecutionDepthShouldNotLeadToEmptyObjects {
-                    hero(episode: NEW_HOPE) {
+            @"query ExecutionDepthShouldNotLeadToEmptyObjects {
+                hero(episode: NEW_HOPE) {
+                    __typename
+                    id
+                    name
+                    ... on Human {
                         __typename
-                        id
-                        name
-                        ... on Human {
+                        homePlanet
+                    }
+                    ... on Droid {
+                        __typename
+                        primaryFunction
+                    }
+                    friends {
+                        nodes {
                             __typename
-                            homePlanet
-                        }
-                        ... on Droid {
-                            __typename
-                            primaryFunction
-                        }
-                        friends {
-                            nodes {
+                            ... on Human {
                                 __typename
-                                ... on Human {
-                                    __typename
-                                    homePlanet
-                                    friends {
-                                        nodes {
-                                            __typename
-                                        }
+                                homePlanet
+                                friends {
+                                    nodes {
+                                        __typename
                                     }
                                 }
-                                ... on Droid {
-                                    __typename
-                                    primaryFunction
-                                    friends {
-                                        nodes {
-                                            __typename
-                                        }
+                            }
+                            ... on Droid {
+                                __typename
+                                primaryFunction
+                                friends {
+                                    nodes {
+                                        __typename
                                     }
                                 }
                             }
                         }
                     }
-                }",
+                }
+            }",
             configure: c =>
             {
                 AddDefaultConfiguration(c);
@@ -804,16 +803,202 @@ public class StarWarsCodeFirstTests
     }
 
     [Fact]
+    public async Task OverrideExecutionDepth()
+    {
+        Snapshot.FullName();
+        await ExpectValid(
+            @"query ExecutionDepthShouldNotLeadToEmptyObjects {
+                hero(episode: NEW_HOPE) {
+                    __typename
+                    id
+                    name
+                    ... on Human {
+                        __typename
+                        homePlanet
+                    }
+                    ... on Droid {
+                        __typename
+                        primaryFunction
+                    }
+                    friends {
+                        nodes {
+                            __typename
+                            ... on Human {
+                                __typename
+                                homePlanet
+                                friends {
+                                    nodes {
+                                        __typename
+                                    }
+                                }
+                            }
+                            ... on Droid {
+                                __typename
+                                primaryFunction
+                                friends {
+                                    nodes {
+                                        __typename
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }",
+            request: r =>
+            {
+                r.SetMaximumAllowedExecutionDepth(100);
+            },
+            configure: c =>
+            {
+                AddDefaultConfiguration(c);
+                c.AddMaxExecutionDepthRule(3, allowRequestOverrides: true);
+            });
+    }
+
+    [Fact]
+    public async Task SkipExecutionDepth()
+    {
+        Snapshot.FullName();
+        await ExpectValid(
+            @"query ExecutionDepthShouldNotLeadToEmptyObjects {
+                hero(episode: NEW_HOPE) {
+                    __typename
+                    id
+                    name
+                    ... on Human {
+                        __typename
+                        homePlanet
+                    }
+                    ... on Droid {
+                        __typename
+                        primaryFunction
+                    }
+                    friends {
+                        nodes {
+                            __typename
+                            ... on Human {
+                                __typename
+                                homePlanet
+                                friends {
+                                    nodes {
+                                        __typename
+                                    }
+                                }
+                            }
+                            ... on Droid {
+                                __typename
+                                primaryFunction
+                                friends {
+                                    nodes {
+                                        __typename
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }",
+            request: r =>
+            {
+                r.SkipExecutionDepthAnalysis();
+            },
+            configure: c =>
+            {
+                AddDefaultConfiguration(c);
+                c.AddMaxExecutionDepthRule(3, allowRequestOverrides: true);
+            });
+    }
+
+    // this test ensures that overriden depth validations are not cached.
+    [Fact]
+    public async Task Depth_Analysis_Overrides_Are_Not_Cached()
+    {
+        // arrange
+        const string queryText =
+            @"query ExecutionDepthShouldNotLeadToEmptyObjects {
+                hero(episode: NEW_HOPE) {
+                    __typename
+                    id
+                    name
+                    ... on Human {
+                        __typename
+                        homePlanet
+                    }
+                    ... on Droid {
+                        __typename
+                        primaryFunction
+                    }
+                    friends {
+                        nodes {
+                            __typename
+                            ... on Human {
+                                __typename
+                                homePlanet
+                                friends {
+                                    nodes {
+                                        __typename
+                                    }
+                                }
+                            }
+                            ... on Droid {
+                                __typename
+                                primaryFunction
+                                friends {
+                                    nodes {
+                                        __typename
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }";
+
+        var configurationA = new TestConfiguration
+        {
+            ConfigureRequest = r =>
+            {
+                r.SkipExecutionDepthAnalysis();
+            }
+        };
+        var configurationB = new TestConfiguration
+        {
+            ConfigureRequest = _ =>
+            {
+            }
+        };
+        var executor = await CreateExecutorAsync(
+            c =>
+            {
+                AddDefaultConfiguration(c);
+                c.AddMaxExecutionDepthRule(3, allowRequestOverrides: true);
+            });
+        var requestA = CreateRequest(configurationA, queryText);
+        var requestB = CreateRequest(configurationB, queryText);
+
+        // act
+        var resultA = await executor.ExecuteAsync(requestA);
+        var resultB = await executor.ExecuteAsync(requestB);
+
+        // assert
+        Assert.Null(Assert.IsType<QueryResult>(resultA).Errors);
+        Assert.NotNull(Assert.IsType<QueryResult>(resultB).Errors);
+    }
+
+    [Fact]
     public async Task Execution_Depth_Is_Skipped_For_Introspection()
     {
         Snapshot.FullName();
         await ExpectValid(
-            @"
-                query {
-                    __schema {
-                        types {
-                            fields {
-                                type {
+            @"query {
+                __schema {
+                    types {
+                        fields {
+                            type {
+                                kind
+                                name
+                                ofType {
                                     kind
                                     name
                                     ofType {
@@ -822,17 +1007,14 @@ public class StarWarsCodeFirstTests
                                         ofType {
                                             kind
                                             name
-                                            ofType {
-                                                kind
-                                                name
-                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                }",
+                }
+            }",
             configure: c =>
             {
                 AddDefaultConfiguration(c);

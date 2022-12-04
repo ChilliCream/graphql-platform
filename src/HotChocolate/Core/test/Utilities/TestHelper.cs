@@ -174,7 +174,7 @@ public static class TestHelper
             .GetRequestExecutorAsync();
     }
 
-    private static IQueryRequest CreateRequest(
+    public static IQueryRequest CreateRequest(
         TestConfiguration? configuration,
         string query)
     {

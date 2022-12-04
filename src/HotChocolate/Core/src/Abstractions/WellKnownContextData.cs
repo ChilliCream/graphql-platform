@@ -213,4 +213,14 @@ public static class WellKnownContextData
     /// The key to get check if a field is the nodes field.
     /// </summary>
     public const string IsNodesField = "HotChocolate.Relay.Node.IsNodeField";
+
+    /// <summary>
+    /// The key to override the max allowed execution depth.
+    /// </summary>
+    public const string MaxAllowedExecutionDepth = "HotChocolate.Execution.MaxAllowedDepth";
+
+    /// <summary>
+    /// The key to skip the execution depth analysis.
+    /// </summary>
+    public const string SkipDepthAnalysis = "HotChocolate.Execution.SkipDepthAnalysis";
 }
