@@ -92,7 +92,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
                     .UseMiddleware<ToolDefaultFileMiddleware>(fileProvider, path)
                     .UseMiddleware<ToolOptionsFileMiddleware>(path)
                     .UseMiddleware<ToolStaticFileMiddleware>(fileProvider, path)
-                    .UseMiddleware<HttpGetMiddleware>()
+                    .UseMiddleware<HttpGetMiddleware>(HotChocolate.Schema.DefaultName, path)
                     .Compile(sp);
 
             return new DefaultGraphQLRequestExecutor(pipeline, options);
