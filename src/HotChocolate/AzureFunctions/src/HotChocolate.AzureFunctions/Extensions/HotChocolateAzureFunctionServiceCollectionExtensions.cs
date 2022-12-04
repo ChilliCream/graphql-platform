@@ -1,3 +1,4 @@
+using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AzureFunctions;
 using HotChocolate.Execution.Configuration;
@@ -25,6 +26,9 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
     /// <param name="apiRoute">
     /// The API route that was used in the GraphQL Azure Function.
     /// </param>
+    /// <param name="schemaName">
+    /// The name of the schema that shall be used by this Azure Function.
+    /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
     /// </returns>
@@ -34,7 +38,8 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
     public static IRequestExecutorBuilder AddGraphQLFunction(
         this IServiceCollection services,
         int maxAllowedRequestSize = GraphQLAzureFunctionsConstants.DefaultMaxRequests,
-        string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute)
+        string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute,
+        string? schemaName = default)
     {
         if (services is null)
         {
@@ -57,7 +62,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
             ServiceDescriptor.Singleton<IExtensionConfigProvider, GraphQLExtensions>());
 
         // Add the Request Executor Dependency...
-        services.AddAzureFunctionsGraphQLRequestExecutorDependency(apiRoute);
+        services.AddAzureFunctionsGraphQLRequestExecutorDependency(apiRoute, schemaName);
 
         return executorBuilder;
     }
@@ -69,7 +74,8 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
     /// </summary>
     private static IServiceCollection AddAzureFunctionsGraphQLRequestExecutorDependency(
         this IServiceCollection services,
-        string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute
+        string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute,
+        string? schemaName = default
     )
     {
         services.AddSingleton<IGraphQLRequestExecutor>(sp =>
@@ -82,6 +88,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
             {
                 configure(options);
             }
+            var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
 
             var pipeline =
                 new PipelineBuilder()
@@ -92,7 +99,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
                     .UseMiddleware<ToolDefaultFileMiddleware>(fileProvider, path)
                     .UseMiddleware<ToolOptionsFileMiddleware>(path)
                     .UseMiddleware<ToolStaticFileMiddleware>(fileProvider, path)
-                    .UseMiddleware<HttpGetMiddleware>(HotChocolate.Schema.DefaultName, path)
+                    .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault, path)
                     .Compile(sp);
 
             return new DefaultGraphQLRequestExecutor(pipeline, options);
