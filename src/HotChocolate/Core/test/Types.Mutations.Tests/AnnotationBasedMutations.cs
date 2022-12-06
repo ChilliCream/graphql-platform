@@ -842,6 +842,42 @@ public class AnnotationBasedMutations
             .MatchSnapshotAsync();
     }
 
+    [Fact]
+    public async Task Payload_Override_With_Errors()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithPayloadOverride>()
+            .AddMutationConventions()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Payload_Override_With_Errors_Execution_On_Error()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithPayloadOverride>()
+            .AddMutationConventions()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                    doSomething2(input: { userId: null }) {
+                        userId
+                        errors {
+                            __typename
+                        }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
     public class SimpleMutation
     {
         public string DoSomething(string something)
@@ -1130,4 +1166,16 @@ public class AnnotationBasedMutations
 
         public string Message { get; }
     }
+
+    public class MutationWithPayloadOverride
+    {
+        [Error<CustomException>]
+        [Error<Custom2Exception>]
+        public DoSomething2Payload DoSomething2(int? userId)
+            => userId.HasValue
+                ? new DoSomething2Payload(userId)
+                : throw new CustomException();
+    }
+
+    public record DoSomething2Payload(int? UserId);
 }

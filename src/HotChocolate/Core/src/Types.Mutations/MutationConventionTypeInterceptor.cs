@@ -126,7 +126,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         }
     }
 
-    private void ApplyResultMiddleware(ObjectFieldDefinition mutation)
+    private static void ApplyResultMiddleware(ObjectFieldDefinition mutation)
     {
         var middlewareDef = new FieldMiddlewareDefinition(
             next => async context =>
@@ -229,18 +229,65 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             throw ThrowHelper.CannotResolvePayloadType();
         }
 
-        // if the mutation result type matches the payload type name pattern
-        // we expect it to be already a proper payload and will not transform the
-        // result type to a payload.
-        if (registration.Type.Name.EqualsOrdinal(payloadTypeName))
-        {
-            return;
-        }
-
         // before starting to build the payload type we first will look for error definitions
         // an the mutation.
         var errorDefinitions = GetErrorDefinitions(mutation);
         FieldDef? errorField = null;
+
+        // if the mutation result type matches the payload type name pattern
+        // we expect it to be already a proper payload and will not transform the
+        // result type to a payload. However, we will check if we need to add the
+        // errors field to it.
+        if (registration.Type.Name.EqualsOrdinal(payloadTypeName))
+        {
+            if (errorDefinitions.Count > 0)
+            {
+                var payloadType = _completionContext.GetType<IType>(typeRef);
+
+                if (payloadType.IsListType() || payloadType.NamedType() is not ObjectType obj)
+                {
+                    // todo : error resources and error code.
+                    _completionContext.ReportError(
+                        SchemaErrorBuilder.New()
+                            .SetMessage("The mutation payload type must be an object type.")
+                            .SetTypeSystemObject((ITypeSystemObject)payloadType.NamedType())
+                            .Build());
+                    return;
+                }
+
+                var payloadTypeDef = obj.Definition!;
+                mutation.Type = EnsureNonNull(mutation.Type!);
+
+                // create error type
+                var errorTypeName = options.FormatErrorTypeName(mutation.Name);
+                RegisterErrorType(CreateErrorType(errorTypeName, errorDefinitions), mutation.Name);
+                var errorListTypeRef = Parse($"[{errorTypeName}!]");
+                payloadTypeDef.Fields.Add(
+                    new ObjectFieldDefinition(
+                        options.PayloadErrorsFieldName,
+                    type: errorListTypeRef,
+                    resolver: ctx =>
+                    {
+                        ctx.ScopedContextData.TryGetValue(Errors, out var errors);
+                        return new ValueTask<object?>(errors);
+                    }));
+
+                // collect error factories for middleware
+                var errorFactories = errorDefinitions.Select(t => t.Factory).ToArray();
+
+                // create middleware
+                var errorMiddleware =
+                    new FieldMiddlewareDefinition(
+                        Create<ErrorMiddleware>(
+                            (typeof(IReadOnlyList<CreateError>), errorFactories)),
+                        key: MutationErrors,
+                        isRepeatable: false);
+
+                mutation.MiddlewareDefinitions.Insert(0, errorMiddleware);
+            }
+
+            return;
+        }
 
         // if this mutation has error definitions we will create the error middleware,
         // the payload error type and the error field definition that will be exposed
@@ -579,6 +626,18 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         }
 
         return Create(CreateTypeNode(nt.Type));
+    }
+
+    private ITypeReference EnsureNonNull(ITypeReference typeRef)
+    {
+        var type = _completionContext.GetType<IType>(typeRef);
+
+        if (type.Kind is TypeKind.NonNull)
+        {
+            return typeRef;
+        }
+
+        return Create(CreateTypeNode(new NonNullType(type)));
     }
 
     private ITypeNode CreateTypeNode(IType type)

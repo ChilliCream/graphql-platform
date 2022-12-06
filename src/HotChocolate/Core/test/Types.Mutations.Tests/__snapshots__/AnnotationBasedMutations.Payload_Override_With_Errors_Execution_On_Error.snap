@@ -1,0 +1,25 @@
+﻿{
+  "errors": [
+    {
+      "message": "The resolver parent type of field \u0060DoSomething2Payload.userId\u0060 is \u0060System.Object\u0060 but the resolver requested the type \u0060HotChocolate.Types.AnnotationBasedMutations\u002BDoSomething2Payload\u0060. The resolver was unable to cast the parent type to the requested type.",
+      "path": [
+        "doSomething2",
+        "userId"
+      ],
+      "extensions": {
+        "field": "DoSomething2Payload.userId",
+        "code": "HC0053"
+      }
+    }
+  ],
+  "data": {
+    "doSomething2": {
+      "userId": null,
+      "errors": [
+        {
+          "__typename": "CustomError"
+        }
+      ]
+    }
+  }
+}
