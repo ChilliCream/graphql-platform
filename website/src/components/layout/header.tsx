@@ -2,10 +2,11 @@ import { graphql, useStaticQuery } from "gatsby";
 import { GatsbyImage } from "gatsby-plugin-image";
 import React, {
   FC,
-  ReactElement,
+  MouseEventHandler,
   ReactNode,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -16,24 +17,27 @@ import {
   GetHeaderDataQuery,
   Maybe,
   SiteSiteMetadataTools,
-} from "../../../graphql-types";
-import AngleRightIconSvg from "../../images/angle-right.svg";
-import BarsIconSvg from "../../images/bars.svg";
-import LogoTextSvg from "../../images/chillicream-text.svg";
-import LogoIconSvg from "../../images/chillicream-winking.svg";
-import GithubIconSvg from "../../images/github.svg";
-import NewspaperIconSvg from "../../images/newspaper.svg";
-import SearchIconSvg from "../../images/search.svg";
-import SlackIconSvg from "../../images/slack.svg";
-import TimesIconSvg from "../../images/times.svg";
-import TwitterIconSvg from "../../images/twitter.svg";
-import YouTubeIconSvg from "../../images/youtube.svg";
-import { FONT_FAMILY_HEADING, THEME_COLORS } from "../../shared-style";
-import { useObservable } from "../../state";
-import { WorkshopNdcLondon } from "../images/workshop-ndc-london";
-import { IconContainer } from "../misc/icon-container";
-import { Link } from "../misc/link";
-import { SearchModal } from "../misc/search-modal";
+} from "@/graphql-types";
+import AngleRightIconSvg from "@/images/angle-right.svg";
+import BarsIconSvg from "@/images/bars.svg";
+import LogoTextSvg from "@/images/chillicream-text.svg";
+import LogoIconSvg from "@/images/chillicream-winking.svg";
+import GithubIconSvg from "@/images/github.svg";
+import NewspaperIconSvg from "@/images/newspaper.svg";
+import SearchIconSvg from "@/images/search.svg";
+import SlackIconSvg from "@/images/slack.svg";
+import TimesIconSvg from "@/images/times.svg";
+import TwitterIconSvg from "@/images/twitter.svg";
+import YouTubeIconSvg from "@/images/youtube.svg";
+import ArrowDownSvg from "@/images/arrow-down.svg";
+import ExternalLinkSvg from "@/images/external-link.svg";
+
+import { FONT_FAMILY_HEADING, THEME_COLORS } from "@/shared-style";
+import { useObservable } from "@/state";
+import { WorkshopNdcLondon } from "@/components/images/workshop-ndc-london";
+import { IconContainer } from "@/components/misc/icon-container";
+import { Link } from "@/components/misc/link";
+import { SearchModal } from "@/components/misc/search-modal";
 
 export const Header: FC = () => {
   const containerRef = useRef<HTMLHeadingElement>(null);
@@ -151,9 +155,9 @@ export const Header: FC = () => {
             </HamburgerCloseButton>
           </NavigationHeader>
           <Nav>
-            <ProductNavItem firstBlogPost={firstBlogPost} />
-            <SupportNavItem />
+            <ProductsNavItem firstBlogPost={firstBlogPost} />
             <DeveloperNavItem products={products} tools={tools!} />
+            <ServicesNavItem />
             <ShopNavItem shopLink={tools!.shop!} />
           </Nav>
         </Navigation>
@@ -303,6 +307,7 @@ const NavigationHeader = styled.div`
   display: flex;
   flex: 0 0 auto;
   flex-direction: row;
+  align-items: center;
   height: 60px;
 
   @media only screen and (min-width: 992px) {
@@ -348,43 +353,38 @@ const Nav = styled.ol`
   }
 `;
 
-interface ProductNavItemProps {
+interface ProductsNavItemProps {
   readonly firstBlogPost: any;
 }
 
-const ProductNavItem: FC<ProductNavItemProps> = ({ firstBlogPost }) => {
+const ProductsNavItem: FC<ProductsNavItemProps> = ({ firstBlogPost }) => {
   const featuredImage =
     firstBlogPost.frontmatter!.featuredImage?.childImageSharp?.gatsbyImageData;
 
-  const [subNav, showSubNav, hideSubNav] = useSubNav((hideSubNav) => (
+  const [subNav, navHandlers, linkHandlers] = useSubNav((hideSubNav) => (
     <>
       <SubNavMain>
-        <ProductLink
-          to="/products/bananacakepop"
-          onClick={() => {
-            hideSubNav();
-          }}
-        >
-          <ProductLinkTitle>Banana Cake Pop</ProductLinkTitle>
-          <ProductLinkDescription>
+        <TileLink to="/products/bananacakepop" onClick={hideSubNav}>
+          <TileLinkTitle>Banana Cake Pop</TileLinkTitle>
+          <TileLinkDescription>
             The IDE to create, explore, manage, and test <em>GraphQL</em> APIs
             with ease.
-          </ProductLinkDescription>
-        </ProductLink>
-        <ProductLink to="/docs/hotchocolate" onClick={hideSubNav}>
-          <ProductLinkTitle>Hot Chocolate</ProductLinkTitle>
-          <ProductLinkDescription>
-            The server to create high-performance <em>.NET</em> <em>GraphQL</em>{" "}
-            APIs in no time.
-          </ProductLinkDescription>
-        </ProductLink>
-        <ProductLink to="/docs/strawberryshake" onClick={hideSubNav}>
-          <ProductLinkTitle>Strawberry Shake</ProductLinkTitle>
-          <ProductLinkDescription>
+          </TileLinkDescription>
+        </TileLink>
+        <TileLink to="/docs/hotchocolate" onClick={hideSubNav}>
+          <TileLinkTitle>Hot Chocolate</TileLinkTitle>
+          <TileLinkDescription>
+            The server to create high-performance <em>.NET GraphQL</em> APIs in
+            no time.
+          </TileLinkDescription>
+        </TileLink>
+        <TileLink to="/docs/strawberryshake" onClick={hideSubNav}>
+          <TileLinkTitle>Strawberry Shake</TileLinkTitle>
+          <TileLinkDescription>
             The client to create modern <em>.NET</em> apps that consume{" "}
             <em>GraphQL</em> APIs effortless.
-          </ProductLinkDescription>
-        </ProductLink>
+          </TileLinkDescription>
+        </TileLink>
       </SubNavMain>
       <SubNavAdditionalInfo>
         <SubNavTitle>Latest Blog Post</SubNavTitle>
@@ -397,10 +397,10 @@ const ProductNavItem: FC<ProductNavItemProps> = ({ firstBlogPost }) => {
               />
             </TeaserImage>
           )}
-
           <TeaserMetadata>
-            {firstBlogPost.frontmatter!.date!} ・{" "}
-            {firstBlogPost.fields!.readingTime!.text!}
+            {firstBlogPost.frontmatter?.date}
+            {firstBlogPost?.readingTime?.text &&
+              " ・ " + firstBlogPost.readingTime.text}
           </TeaserMetadata>
           <TeaserTitle>{firstBlogPost.frontmatter!.title}</TeaserTitle>
         </TeaserLink>
@@ -409,29 +409,14 @@ const ProductNavItem: FC<ProductNavItemProps> = ({ firstBlogPost }) => {
   ));
 
   return (
-    <NavItemContainer onMouseOver={showSubNav} onMouseOut={hideSubNav}>
-      <NavLink
-        to="/products"
-        activeClassName="active"
-        partiallyActive
-        onClick={(event) => {
-          showSubNav();
-          event.preventDefault();
-        }}
-      >
+    <NavItemContainer {...navHandlers}>
+      <NavLink to="/products" {...linkHandlers}>
         Products
+        <IconContainer size={10}>
+          <ArrowDownSvg />
+        </IconContainer>
       </NavLink>
       {subNav}
-    </NavItemContainer>
-  );
-};
-
-const SupportNavItem: FC = () => {
-  return (
-    <NavItemContainer>
-      <NavLink to="/support" activeClassName="active" partiallyActive>
-        Support
-      </NavLink>
     </NavItemContainer>
   );
 };
@@ -449,13 +434,13 @@ interface DeveloperNavItemProps {
 }
 
 const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
-  const [subNav, showSubNav, hideSubNav] = useSubNav((hideSubNav) => (
+  const [subNav, navHandlers, linkHandlers] = useSubNav((hideSubNav) => (
     <>
       <SubNavMain>
         <SubNavTitle>Documentation</SubNavTitle>
         {products.map((product, index) => (
           <SubNavLink
-            key={`products-item-${index}`}
+            key={index}
             to={`/docs/${product!.path!}/`}
             onClick={hideSubNav}
           >
@@ -514,17 +499,69 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
   ));
 
   return (
-    <NavItemContainer onMouseOver={showSubNav} onMouseOut={hideSubNav}>
-      <NavLink
-        to="/docs"
-        activeClassName="active"
-        partiallyActive
-        onClick={(event) => {
-          showSubNav();
-          event.preventDefault();
-        }}
-      >
+    <NavItemContainer {...navHandlers}>
+      <NavLink to="/docs" {...linkHandlers}>
         Developers
+        <IconContainer size={10}>
+          <ArrowDownSvg />
+        </IconContainer>
+      </NavLink>
+      {subNav}
+    </NavItemContainer>
+  );
+};
+
+const ServicesNavItem: FC = () => {
+  const [subNav, navHandlers, linkHandlers] = useSubNav((hideSubNav) => (
+    <>
+      <SubNavMain>
+        <TileLink to="/services/advisory" onClick={hideSubNav}>
+          <TileLinkTitle>Advisory</TileLinkTitle>
+          <TileLinkDescription>
+            We're your gateway to move your projects faster and smarter than
+            ever before.
+          </TileLinkDescription>
+        </TileLink>
+        <TileLink to="/services/training" onClick={hideSubNav}>
+          <TileLinkTitle>Training</TileLinkTitle>
+          <TileLinkDescription>
+            Level up or upskill your teams on your own terms.
+          </TileLinkDescription>
+        </TileLink>
+        <TileLink to="/services/support" onClick={hideSubNav}>
+          <TileLinkTitle>Support</TileLinkTitle>
+          <TileLinkDescription>
+            Set your teams up for success with peace of mind.
+          </TileLinkDescription>
+        </TileLink>
+      </SubNavMain>
+      <SubNavAdditionalInfo>
+        <SubNavTitle>Get in Touch</SubNavTitle>
+        <TeaserLink to="mailto:contact@chillicream.com?subject=Services">
+          <TeaserHero>
+            Your technology journey.
+            <br />
+            Our expertise.
+          </TeaserHero>
+          <TeaserDescription>
+            <p>
+              <strong>ChilliCream</strong> helps you unlock the full potential
+              of your technology investments, fulfilling its promise to
+              transform your company.
+            </p>
+          </TeaserDescription>
+        </TeaserLink>
+      </SubNavAdditionalInfo>
+    </>
+  ));
+
+  return (
+    <NavItemContainer {...navHandlers}>
+      <NavLink to="/services" {...linkHandlers}>
+        Services
+        <IconContainer size={10}>
+          <ArrowDownSvg />
+        </IconContainer>
       </NavLink>
       {subNav}
     </NavItemContainer>
@@ -538,35 +575,70 @@ interface ShopNavItemProps {
 const ShopNavItem: FC<ShopNavItemProps> = ({ shopLink }) => {
   return (
     <NavItemContainer>
-      <NavLink to={shopLink}>Shop</NavLink>
+      <NavLink to={shopLink}>
+        Shop
+        <IconContainer size={10}>
+          <ExternalLinkSvg />
+        </IconContainer>
+      </NavLink>
     </NavItemContainer>
   );
 };
 
+function isTouchDevice() {
+  return (
+    window.PointerEvent &&
+    "maxTouchPoints" in navigator &&
+    navigator.maxTouchPoints > 0
+  );
+}
+
+type NavHandlers = Record<"onMouseEnter" | "onMouseLeave", MouseEventHandler>;
+type LinkHandlers = Record<"onClick", MouseEventHandler>;
+
 function useSubNav(
   children: (hideSubNav: () => void) => ReactNode
-): [ReactElement, () => void, () => void] {
-  const ref = useRef<HTMLDivElement>(null);
+): [subNav: ReactNode, navHandlers: NavHandlers, linkHandlers: LinkHandlers] {
+  const [show, setShow] = useState<boolean>(false);
 
-  const hideSubNav = useCallback(() => {
-    if (ref.current) {
-      ref.current.classList.remove("show");
-    }
+  const toggle = useCallback(() => {
+    setShow((state) => !state);
   }, []);
 
-  const showSubNav = useCallback(() => {
-    if (ref.current) {
-      ref.current.classList.add("show");
-    }
+  const hide = useCallback(() => {
+    setShow(false);
   }, []);
 
-  const subNavContainer = (
-    <SubNavContainer ref={ref}>
-      <SubNav>{children(hideSubNav)}</SubNav>
+  const subNav = show && (
+    <SubNavContainer>
+      <SubNav>{children(hide)}</SubNav>
     </SubNavContainer>
   );
 
-  return [subNavContainer, showSubNav, hideSubNav];
+  const navHandlers = useMemo<NavHandlers>(
+    () => ({
+      onMouseEnter: () => {
+        if (!isTouchDevice()) {
+          setShow(true);
+        }
+      },
+      onMouseLeave: hide,
+    }),
+    []
+  );
+
+  const linkHandlers = useMemo<LinkHandlers>(
+    () => ({
+      onClick: (event) => {
+        event.preventDefault();
+
+        toggle();
+      },
+    }),
+    []
+  );
+
+  return [subNav, navHandlers, linkHandlers];
 }
 
 const NavLink = styled(Link)`
@@ -588,40 +660,56 @@ const NavLink = styled(Link)`
   &:hover {
     background-color: ${THEME_COLORS.secondary};
   }
+
+  ${IconContainer} {
+    margin-bottom: 2px;
+    margin-left: 6px;
+
+    > svg {
+      fill: ${THEME_COLORS.textContrast};
+    }
+  }
+
+  @media only screen and (min-width: 284px) {
+    font-size: 1.5em;
+    font-weight: 400;
+    line-height: 2em;
+  }
+
+  @media only screen and (min-width: 992px) {
+    font-size: 0.833em;
+    font-weight: 500;
+    line-height: 1em;
+  }
 `;
 
 const SubNavContainer = styled.div`
   position: fixed;
-  z-index: 1;
-  top: 70px;
+  top: 60px;
   right: 20px;
   bottom: 20px;
   left: 20px;
-  display: none;
+  display: flex;
   flex-direction: column;
   align-items: center;
   overflow: visible;
 
-  &.show {
-    display: flex;
-  }
-
   @media only screen and (min-width: 992px) {
     top: 50px;
-    right: calc(50% - 350px);
+    right: calc(50vw - 350px);
     bottom: initial;
-    left: calc(50% - 350px);
+    left: calc(50vw - 350px);
+    padding-top: 4px;
   }
 `;
 
 const NavItemContainer = styled.li`
   flex: 0 0 auto;
-  margin: 0 4px;
-  padding: 0;
-  height: 50px;
+  margin: 0;
 
   @media only screen and (min-width: 992px) {
-    height: initial;
+    margin-top: 8px;
+    padding-bottom: 8px;
 
     &:hover ${NavLink} {
       background-color: ${THEME_COLORS.secondary};
@@ -632,13 +720,16 @@ const NavItemContainer = styled.li`
 const SubNav = styled.div`
   display: flex;
   flex: 1 1 auto;
-  flex-direction: row;
+  flex-direction: column;
   border-radius: var(--border-radius);
   background-color: ${THEME_COLORS.background};
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
 
+  @media only screen and (min-width: 600px) {
+    flex-direction: row;
+  }
+
   @media only screen and (min-width: 992px) {
-    margin-top: 2px;
     width: 700px;
   }
 `;
@@ -647,7 +738,7 @@ const SubNavMain = styled.div`
   display: flex;
   flex: 1 1 55%;
   flex-direction: column;
-  padding: 25px 0;
+  padding: 15px 0;
 `;
 
 const SubNavTitle = styled.h1`
@@ -660,7 +751,7 @@ const SubNavTitle = styled.h1`
 `;
 
 const SubNavSeparator = styled.div`
-  margin: 15px 30px;
+  margin: 10px 20px;
   height: 1px;
   background-color: ${THEME_COLORS.backgroundAlt};
 `;
@@ -692,14 +783,14 @@ const SubNavLink = styled(Link)`
   }
 `;
 
-const ProductLinkTitle = styled.h1`
+const TileLinkTitle = styled.h1`
   margin-bottom: 6px;
   font-size: 1em;
   line-height: 1.5em;
   transition: color 0.2s ease-in-out;
 `;
 
-const ProductLinkDescription = styled.p`
+const TileLinkDescription = styled.p`
   margin: 0;
   font-size: 0.833em;
   line-height: 1.5em;
@@ -707,22 +798,22 @@ const ProductLinkDescription = styled.p`
   transition: color 0.2s ease-in-out;
 `;
 
-const ProductLink = styled(Link)`
+const TileLink = styled(Link)`
   display: flex;
   flex-direction: column;
-  margin: 5px 30px;
+  margin: 5px 20px;
   border-radius: var(--border-radius);
   width: auto;
   min-height: 60px;
-  padding: 10px 15px;
+  padding: 10px;
   background-color: ${THEME_COLORS.background};
   transition: background-color 0.2s ease-in-out;
 
   &:hover {
     background-color: ${THEME_COLORS.primary};
 
-    ${ProductLinkTitle},
-    ${ProductLinkDescription} {
+    ${TileLinkTitle},
+    ${TileLinkDescription} {
       color: ${THEME_COLORS.background};
     }
   }
@@ -737,8 +828,29 @@ const SubNavAdditionalInfo = styled.div`
   background-color: ${THEME_COLORS.backgroundAlt};
 `;
 
+const TeaserHero = styled.h1`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 1em;
+  line-height: 1.5em;
+  max-width: 400px;
+  aspect-ratio: 16/9;
+  border-radius: var(--border-radius);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+  transition: box-shadow 0.2s ease-in-out;
+  color: ${THEME_COLORS.textContrast};
+  background-color: ${THEME_COLORS.primary};
+  background: linear-gradient(180deg, ${THEME_COLORS.primary} 0%, #3d5f9f 100%);
+`;
+
 const TeaserLink = styled(Link)`
   margin: 5px 30px;
+
+  .gatsby-image-wrapper {
+    pointer-events: none;
+  }
 
   &:hover {
     > * {
@@ -747,6 +859,11 @@ const TeaserLink = styled(Link)`
 
     .gatsby-image-wrapper {
       box-shadow: initial;
+    }
+
+    ${TeaserHero} {
+      color: ${THEME_COLORS.textContrast};
+      box-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
     }
   }
 `;
@@ -774,6 +891,17 @@ const TeaserMetadata = styled.div`
 const TeaserTitle = styled.h2`
   margin: 0 0 15px;
   font-size: 1em;
+  line-height: 1.5em;
+  color: ${THEME_COLORS.text};
+  transition: color 0.2s ease-in-out;
+`;
+
+const TeaserDescription = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin: 15px 0 7px;
+  font-size: 0.833em;
   line-height: 1.5em;
   color: ${THEME_COLORS.text};
   transition: color 0.2s ease-in-out;

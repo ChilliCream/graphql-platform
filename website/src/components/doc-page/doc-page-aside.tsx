@@ -1,4 +1,4 @@
-import React, { FC, useCallback } from "react";
+import React, { FC, PropsWithChildren, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 import { BoxShadow, IsSmallDesktop } from "../../shared-style";
@@ -7,7 +7,7 @@ import { toggleAside } from "../../state/common";
 import { BodyStyle, DocPageStickySideBarStyle } from "./doc-page-elements";
 import { DocPagePaneHeader } from "./doc-page-pane-header";
 
-export const DocPageAside: FC = ({ children }) => {
+export const DocPageAside: FC<PropsWithChildren> = ({ children }) => {
   const showAside = useSelector<State, boolean>(
     (state) => state.common.showAside
   );

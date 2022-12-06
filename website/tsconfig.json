@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
     "target": "ESNext",
     "module": "ESNext",
     "lib": ["dom", "es2019.array"],
@@ -12,6 +13,10 @@
     "noUnusedLocals": false,
     "skipLibCheck": true,
     "strict": true,
+    "paths": {
+      "@/package": ["package.json"],
+      "@/*": ["src/*", "./*"]
+    },
     "plugins": [
       {
         "name": "typescript-styled-plugin"
