@@ -1,5 +1,8 @@
 namespace HotChocolate.Types;
 
+/// <summary>
+/// This is a schema building directive for schema-first.
+/// </summary>
 internal sealed class MutationConventionDirective : ISchemaDirective
 {
     public string Name => "mutationConvention";
@@ -12,12 +15,9 @@ internal sealed class MutationConventionDirective : ISchemaDirective
     {
         if (definition is not ObjectFieldDefinition fieldDef)
         {
-            // TODD : Error details and resources
-            throw new SchemaException(
-                SchemaErrorBuilder.New()
-                    .SetMessage("The schema building directive `@mutationConvention` can only be applied on object fields.")
-                    .Build());
+            throw ThrowHelper.MutationConvDirective_In_Wrong_Location(directiveNode);
         }
+
         fieldDef.Configurations.Add(
             new CompleteConfiguration<ObjectFieldDefinition>(
                 (c, d) =>
@@ -44,43 +44,38 @@ internal sealed class MutationConventionDirective : ISchemaDirective
             switch (arg.Name.Value)
             {
                 case "inputTypeName":
-                    data.InputTypeName = GetStringValue(arg.Name.Value, arg.Value);
+                    data.InputTypeName = ExpectStringValue(arg.Name.Value, arg.Value);
                     break;
 
                 case "inputArgumentName":
-                    data.InputArgumentName = GetStringValue(arg.Name.Value, arg.Value);
+                    data.InputArgumentName = ExpectStringValue(arg.Name.Value, arg.Value);
                     break;
 
                 case "payloadFieldName":
-                    data.PayloadFieldName = GetStringValue(arg.Name.Value, arg.Value);
+                    data.PayloadFieldName = ExpectStringValue(arg.Name.Value, arg.Value);
                     break;
 
                 case "payloadTypeName":
-                    data.PayloadTypeName = GetStringValue(arg.Name.Value, arg.Value);
+                    data.PayloadTypeName = ExpectStringValue(arg.Name.Value, arg.Value);
                     break;
 
                 case "payloadPayloadErrorTypeName":
-                    data.PayloadPayloadErrorTypeName = GetStringValue(arg.Name.Value, arg.Value);
+                    data.PayloadPayloadErrorTypeName = ExpectStringValue(arg.Name.Value, arg.Value);
                     break;
 
                 case "payloadErrorsFieldName":
-                    data.PayloadErrorsFieldName = GetStringValue(arg.Name.Value, arg.Value);
+                    data.PayloadErrorsFieldName = ExpectStringValue(arg.Name.Value, arg.Value);
                     break;
 
                 case "enabled":
-                    if (!(GetBooleanValue(arg.Name.Value, arg.Value) ?? true))
+                    if (!(ExpectBooleanValue(arg.Name.Value, arg.Value) ?? true))
                     {
                         data.Enabled = false;
                     }
                     break;
 
                 default:
-                    // TODO : error resources
-                    throw new SchemaException(
-                        SchemaErrorBuilder.New()
-                            .SetMessage(
-                                $"`{arg.Name.Value}` is not a valid argument name of the directive `@mutationConvention`.")
-                            .Build());
+                    throw ThrowHelper.UnknownDirectiveArgument(arg.Name.Value);
             }
         }
 
@@ -94,7 +89,7 @@ internal sealed class MutationConventionDirective : ISchemaDirective
             data.PayloadErrorsFieldName,
             data.Enabled);
 
-        static string? GetStringValue(string argumentName, IValueNode literal)
+        static string? ExpectStringValue(string argumentName, IValueNode literal)
         {
             if (literal.Kind is SyntaxKind.StringValue)
             {
@@ -106,14 +101,10 @@ internal sealed class MutationConventionDirective : ISchemaDirective
                 return null;
             }
 
-            // TODO : error resources
-            throw new SchemaException(
-                SchemaErrorBuilder.New()
-                    .SetMessage($"Argument `{argumentName}` of the `@mutationConvention` directive must be null or a string value.")
-                    .Build());
+            throw ThrowHelper.DirectiveArgument_Unexpected_Value(argumentName, "string");
         }
 
-        static bool? GetBooleanValue(string argumentName, IValueNode literal)
+        static bool? ExpectBooleanValue(string argumentName, IValueNode literal)
         {
             if (literal.Kind is SyntaxKind.BooleanValue)
             {
@@ -125,11 +116,7 @@ internal sealed class MutationConventionDirective : ISchemaDirective
                 return null;
             }
 
-            // TODO : error resources
-            throw new SchemaException(
-                SchemaErrorBuilder.New()
-                    .SetMessage($"Argument `{argumentName}` of the `@mutationConvention` directive must be null or a boolean value.")
-                    .Build());
+            throw ThrowHelper.DirectiveArgument_Unexpected_Value(argumentName, "boolean");
         }
     }
 

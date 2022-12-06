@@ -43,4 +43,27 @@ internal static class ThrowHelper
             .SetTypeSystemObject((ITypeSystemObject)type)
             .SetCode(ErrorCodes.Schema.MutationPayloadMustBeObject)
             .Build();
+
+    public static SchemaException MutationConvDirective_In_Wrong_Location(
+        DirectiveNode directiveNode)
+        => new(SchemaErrorBuilder.New()
+            .SetMessage(ThrowHelper_MutationConvDirective_In_Wrong_Location)
+            .SetCode(ErrorCodes.Schema.MutationConvDirectiveWrongLocation)
+            .AddSyntaxNode(directiveNode)
+            .Build());
+
+    public static SchemaException DirectiveArgument_Unexpected_Value(
+        string argumentName,
+        string typeName)
+        => new(SchemaErrorBuilder.New()
+            .SetMessage(ThrowHelper_DirectiveArgument_Unexpected_Value, argumentName, typeName)
+            .SetCode(ErrorCodes.Schema.DirectiveArgumentUnexpectedValue)
+            .Build());
+
+    public static SchemaException UnknownDirectiveArgument(
+        string argumentName)
+        => new(SchemaErrorBuilder.New()
+            .SetMessage(ThrowHelper_UnknownDirectiveArgument, argumentName)
+            .SetCode(ErrorCodes.Schema.UnknownDirectiveArgument)
+            .Build());
 }
