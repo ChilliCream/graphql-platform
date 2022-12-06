@@ -42,7 +42,6 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
         PreserveSyntaxNodes = options.PreserveSyntaxNodes;
         EnableDirectiveIntrospection = options.EnableDirectiveIntrospection;
         DefaultDirectiveVisibility = options.DefaultDirectiveVisibility;
-        AllowInlining = options.AllowInlining;
         DefaultResolverStrategy = options.DefaultResolverStrategy;
         ValidatePipelineOrder = options.ValidatePipelineOrder;
         StrictRuntimeTypeValidation = options.StrictRuntimeTypeValidation;
@@ -121,11 +120,6 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
     /// The default directive visibility when directive introspection is enabled.
     /// </summary>
     public DirectiveVisibility DefaultDirectiveVisibility { get; }
-
-    /// <summary>
-    /// Defines if field inlining is allowed.
-    /// </summary>
-    public bool AllowInlining { get; }
 
     /// <summary>
     /// Defines that the default resolver execution strategy.

@@ -218,6 +218,27 @@ public static class ErrorCodes
         /// An object type implementing the node interface does not provide a node resolver.
         /// </summary>
         public const string NodeResolverMissing = "HC0068";
+
+        /// <summary>
+        /// A mutation payload type must be an object type.
+        /// </summary>
+        public const string MutationPayloadMustBeObject = "HC0069";
+
+        /// <summary>
+        /// The schema building directive `@mutation`
+        /// can only be applied on object fields.
+        /// </summary>
+        public const string MutationConvDirectiveWrongLocation = "HC0070";
+
+        /// <summary>
+        /// A schema building directive had an argument with an unexpected value.
+        /// </summary>
+        public const string DirectiveArgumentUnexpectedValue = "HC0071";
+
+        /// <summary>
+        /// The specified directive argument does not exist.
+        /// </summary>
+        public const string UnknownDirectiveArgument = "HC0072";
     }
 
     public static class Scalars
