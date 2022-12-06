@@ -854,6 +854,28 @@ public class AnnotationBasedMutations
     }
 
     [Fact]
+    public async Task Payload_Override_With_Errors_Execution_On_Success()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithPayloadOverride>()
+                .AddMutationConventions()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .ExecuteRequestAsync(
+                    @"mutation {
+                        doSomething2(input: { userId: 1 }) {
+                            userId
+                            errors {
+                                __typename
+                            }
+                        }
+                    }");
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Payload_Override_With_Errors_Execution_On_Error()
     {
         var result =
