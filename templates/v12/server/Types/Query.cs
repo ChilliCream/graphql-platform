@@ -3,13 +3,6 @@
 [QueryType]
 public static class Query
 {
-    public static Book GetBook() =>
-        new Book
-        {
-            Title = "C# in depth.",
-            Author = new Author
-            {
-                Name = "Jon Skeet"
-            }
-        };
+    public static Book GetBook()
+        => new Book("C# in depth.", new Author("Jon Skeet"));
 }
