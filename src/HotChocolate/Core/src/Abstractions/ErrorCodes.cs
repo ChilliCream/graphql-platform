@@ -225,7 +225,7 @@ public static class ErrorCodes
         public const string MutationPayloadMustBeObject = "HC0069";
 
         /// <summary>
-        /// The schema building directive `@mutationConvention`
+        /// The schema building directive `@mutation`
         /// can only be applied on object fields.
         /// </summary>
         public const string MutationConvDirectiveWrongLocation = "HC0070";

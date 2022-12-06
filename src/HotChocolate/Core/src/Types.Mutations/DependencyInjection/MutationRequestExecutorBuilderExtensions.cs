@@ -62,7 +62,7 @@ public static class MutationRequestExecutorBuilderExtensions
             .ConfigureSchema(c => c.ContextData[MutationContextDataKeys.Options] = options)
             .TryAddTypeInterceptor<MutationConventionTypeInterceptor>()
             .AddTypeDiscoveryHandler(c => new MutationResultTypeDiscoveryHandler(c.TypeInspector))
-            .ConfigureSchema(c => c.TryAddSchemaDirective(new MutationConventionDirective()));
+            .ConfigureSchema(c => c.TryAddSchemaDirective(new MutationDirective()));
 
         return builder;
     }

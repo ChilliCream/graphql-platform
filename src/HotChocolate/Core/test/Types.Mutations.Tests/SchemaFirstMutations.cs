@@ -40,7 +40,7 @@ public class SchemaFirstMutations
                 .AddDocumentFromString(@"
                     type Mutation {
                         doSomething(something: String) : String
-                            @mutationConvention(payloadFieldName: ""something"")
+                            @mutation(payloadFieldName: ""something"")
                     }")
                 .BindRuntimeType<Mutation>()
                 .AddMutationConventions(
@@ -63,7 +63,7 @@ public class SchemaFirstMutations
                 .AddDocumentFromString(@"
                     type Mutation {
                         doSomething(something: String) : String
-                            @mutationConvention(payloadFieldName: 123)
+                            @mutation(payloadFieldName: 123)
                     }")
                 .BindRuntimeType<Mutation>()
                 .AddMutationConventions(
@@ -87,7 +87,7 @@ public class SchemaFirstMutations
                 .AddDocumentFromString(@"
                     type Mutation {
                         doSomething(something: String) : String
-                            @mutationConvention(enabled: 123)
+                            @mutation(enabled: 123)
                     }")
                 .BindRuntimeType<Mutation>()
                 .AddMutationConventions(
@@ -111,7 +111,7 @@ public class SchemaFirstMutations
                 .AddDocumentFromString(@"
                     type Mutation {
                         doSomething(something: String) : String
-                            @mutationConvention(wrong: 123)
+                            @mutation(wrong: 123)
                     }")
                 .BindRuntimeType<Mutation>()
                 .AddMutationConventions(
@@ -134,7 +134,7 @@ public class SchemaFirstMutations
                 .AddGraphQL()
                 .AddDocumentFromString(@"
                     type Mutation {
-                        doSomething(something: String @mutationConvention) : String
+                        doSomething(something: String @mutation) : String
                     }")
                 .BindRuntimeType<Mutation>()
                 .AddMutationConventions(

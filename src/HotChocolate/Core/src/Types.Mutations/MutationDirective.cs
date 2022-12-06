@@ -3,9 +3,9 @@ namespace HotChocolate.Types;
 /// <summary>
 /// This is a schema building directive for schema-first.
 /// </summary>
-internal sealed class MutationConventionDirective : ISchemaDirective
+internal sealed class MutationDirective : ISchemaDirective
 {
-    public string Name => "mutationConvention";
+    public string Name => "mutation";
 
     public void ApplyConfiguration(
         IDescriptorContext context,

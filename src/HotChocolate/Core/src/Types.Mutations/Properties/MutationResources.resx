@@ -45,12 +45,12 @@ Check the attribute `[Input(TypeName= "{2}")]` or the method `.Input(typeName: "
     <value>The mutation payload type `{0}` must be an object type.</value>
   </data>
   <data name="ThrowHelper_MutationConvDirective_In_Wrong_Location" xml:space="preserve">
-    <value>The schema building directive `@mutationConvention` can only be applied on object fields.</value>
+    <value>The schema building directive `@mutation` can only be applied on object fields.</value>
   </data>
   <data name="ThrowHelper_DirectiveArgument_Unexpected_Value" xml:space="preserve">
-    <value>The argument `{0}` of the `@mutationConvention` directive must be null or a {1} value.</value>
+    <value>The argument `{0}` of the `@mutation` directive must be null or a {1} value.</value>
   </data>
   <data name="ThrowHelper_UnknownDirectiveArgument" xml:space="preserve">
-    <value>`{0}` is not a valid argument of the directive `@mutationConvention`.</value>
+    <value>`{0}` is not a valid argument of the directive `@mutation`.</value>
   </data>
 </root>
