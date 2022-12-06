@@ -1,34 +1,7 @@
-﻿{
-  "errors": [
-    {
-      "message": "The argument \u0060a\u0060 does not exist.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 24
-        }
-      ],
-      "extensions": {
-        "type": "Mutation",
-        "field": "doSomething",
-        "argument": "a",
-        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Required-Arguments"
-      }
-    },
-    {
-      "message": "The argument \u0060input\u0060 is required.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 12
-        }
-      ],
-      "extensions": {
-        "type": "Mutation",
-        "field": "doSomething",
-        "argument": "input",
-        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Required-Arguments"
-      }
+{
+  "data": {
+    "doSomething": {
+      "string": "abc"
     }
-  ]
+  }
 }
