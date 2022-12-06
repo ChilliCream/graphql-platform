@@ -218,8 +218,6 @@ public class SchemaFirstMutations
 
                 next = true;
             }
-
-
         }
     }
 }

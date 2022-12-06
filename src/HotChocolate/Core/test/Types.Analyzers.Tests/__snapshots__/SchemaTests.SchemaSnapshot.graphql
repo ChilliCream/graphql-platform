@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: Query
 }
 
@@ -15,7 +15,12 @@ type Person implements Entity {
 type Query {
   person: Entity
   enum: CustomEnum
+  book: SomeBook!
   staticField: String!
+}
+
+type SomeBook {
+  title: String
 }
 
 enum CustomEnum {
