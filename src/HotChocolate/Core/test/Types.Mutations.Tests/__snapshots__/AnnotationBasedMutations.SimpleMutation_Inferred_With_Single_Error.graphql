@@ -1,20 +1,25 @@
-﻿schema {
-  query: Query
-  mutation: SimpleMutation
+schema {
+  mutation: SimpleMutationWithSingleError
+}
+
+interface Error {
+  message: String!
+}
+
+type CustomError implements Error {
+  message: String!
 }
 
 type DoSomethingPayload {
   string: String
-  query: Query!
+  errors: [DoSomethingError!]
 }
 
-type Query {
-  abc: String
-}
-
-type SimpleMutation {
+type SimpleMutationWithSingleError {
   doSomething(input: DoSomethingInput!): DoSomethingPayload!
 }
+
+union DoSomethingError = CustomError
 
 input DoSomethingInput {
   something: String!

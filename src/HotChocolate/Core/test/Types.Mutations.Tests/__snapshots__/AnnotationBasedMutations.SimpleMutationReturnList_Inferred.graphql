@@ -1,12 +1,12 @@
-﻿schema {
-  mutation: SimpleMutation
+schema {
+  mutation: SimpleMutationReturnList
 }
 
 type DoSomethingPayload {
-  string: String
+  string: [String!]
 }
 
-type SimpleMutation {
+type SimpleMutationReturnList {
   doSomething(input: DoSomethingInput!): DoSomethingPayload!
 }
 

@@ -1,11 +1,9 @@
 using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
-using HotChocolate.Tests;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
-using SnapshotExtensions = CookieCrumble.SnapshotExtensions;
+using CookieCrumble;
 
 namespace HotChocolate.Types;
 
@@ -14,138 +12,138 @@ public class AnnotationBasedMutations
     [Fact]
     public async Task SimpleMutation_Inferred()
     {
-        Snapshot.FullName();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<SimpleMutation>()
+                .AddMutationConventions(
+                    new MutationConventionOptions { ApplyToAllMutations = true })
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<SimpleMutation>()
-            .AddMutationConventions(
-                new MutationConventionOptions { ApplyToAllMutations = true })
-            .ModifyOptions(o => o.StrictValidation = false)
-            .BuildSchemaAsync()
-            .MatchSnapshotAsync();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task SimpleMutationReturnList_Inferred()
     {
-        Snapshot.FullName();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<SimpleMutationReturnList>()
+                .AddMutationConventions(
+                    new MutationConventionOptions { ApplyToAllMutations = true })
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<SimpleMutationReturnList>()
-            .AddMutationConventions(
-                new MutationConventionOptions { ApplyToAllMutations = true })
-            .ModifyOptions(o => o.StrictValidation = false)
-            .BuildSchemaAsync()
-            .MatchSnapshotAsync();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task SimpleMutationReturnList_Inferred_Execute()
     {
-        Snapshot.FullName();
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<SimpleMutationReturnList>()
+                .AddMutationConventions(
+                    new MutationConventionOptions { ApplyToAllMutations = true })
+                .ModifyOptions(o => o.StrictValidation = false)
+                .ExecuteRequestAsync(
+                    @"mutation {
+                        doSomething(input: { something: ""abc"" }) {
+                            string
+                        }
+                    }");
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<SimpleMutationReturnList>()
-            .AddMutationConventions(
-                new MutationConventionOptions { ApplyToAllMutations = true })
-            .ModifyOptions(o => o.StrictValidation = false)
-            .ExecuteRequestAsync(
-                @"mutation {
-                    doSomething(input: { something: ""abc"" }) {
-                        string
-                    }
-                }")
-            .MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task SimpleMutation_Inferred_With_QueryField()
     {
-        Snapshot.FullName();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d.Field("abc").Resolve("def"))
+                .AddMutationType<SimpleMutation>()
+                .AddMutationConventions(
+                    new MutationConventionOptions { ApplyToAllMutations = true })
+                .AddQueryFieldToMutationPayloads()
+                .BuildSchemaAsync();
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(d => d.Field("abc").Resolve("def"))
-            .AddMutationType<SimpleMutation>()
-            .AddMutationConventions(
-                new MutationConventionOptions { ApplyToAllMutations = true })
-            .AddQueryFieldToMutationPayloads()
-            .BuildSchemaAsync()
-            .MatchSnapshotAsync();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task SimpleMutationExtension_Inferred()
     {
-        Snapshot.FullName();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType()
+                .AddTypeExtension<SimpleMutationExtension>()
+                .AddMutationConventions(
+                    new MutationConventionOptions { ApplyToAllMutations = true })
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType()
-            .AddTypeExtension<SimpleMutationExtension>()
-            .AddMutationConventions(
-                new MutationConventionOptions { ApplyToAllMutations = true })
-            .ModifyOptions(o => o.StrictValidation = false)
-            .BuildSchemaAsync()
-            .MatchSnapshotAsync();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task SimpleMutationExtension_Inferred_Execute()
     {
-        Snapshot.FullName();
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType()
+                .AddTypeExtension<SimpleMutationExtension>()
+                .AddMutationConventions(
+                    new MutationConventionOptions { ApplyToAllMutations = true })
+                .ModifyOptions(o => o.StrictValidation = false)
+                .ExecuteRequestAsync(
+                    @"mutation {
+                        doSomething(input: { something: ""abc"" }) {
+                            string
+                        }
+                    }");
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType()
-            .AddTypeExtension<SimpleMutationExtension>()
-            .AddMutationConventions(
-                new MutationConventionOptions { ApplyToAllMutations = true })
-            .ModifyOptions(o => o.StrictValidation = false)
-            .ExecuteRequestAsync(
-                @"mutation {
-                    doSomething(input: { something: ""abc"" }) {
-                        string
-                    }
-                }")
-            .MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Ensure_That_Directive_Middleware_Play_Nice()
     {
-        Snapshot.FullName();
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType()
+                .AddTypeExtension<SimpleMutationExtension>()
+                .AddDirectiveType(
+                    new DirectiveType(
+                        d =>
+                        {
+                            d.Name("foo");
+                            d.Location(DirectiveLocation.Field);
+                            d.Use(
+                                next => async context =>
+                                {
+                                    // this is just a dummy middleware
+                                    await next(context);
+                                });
+                        }))
+                .AddMutationConventions(
+                    new MutationConventionOptions { ApplyToAllMutations = true })
+                .ModifyOptions(o => o.StrictValidation = false)
+                .ExecuteRequestAsync(
+                    @"mutation {
+                        doSomething(input: { something: ""abc"" }) @foo {
+                            string
+                        }
+                    }");
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType()
-            .AddTypeExtension<SimpleMutationExtension>()
-            .AddDirectiveType(
-                new DirectiveType(
-                    d =>
-                    {
-                        d.Name("foo");
-                        d.Location(DirectiveLocation.Field);
-                        d.Use(
-                            next => async context =>
-                            {
-                                // this is just a dummy middleware
-                                await next(context);
-                            });
-                    }))
-            .AddMutationConventions(
-                new MutationConventionOptions { ApplyToAllMutations = true })
-            .ModifyOptions(o => o.StrictValidation = false)
-            .ExecuteRequestAsync(
-                @"mutation {
-                    doSomething(input: { something: ""abc"" }) @foo {
-                        string
-                    }
-                }")
-            .MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -165,376 +163,376 @@ public class AnnotationBasedMutations
     [Fact]
     public async Task SimpleMutation_Inferred_Execute()
     {
-        Snapshot.FullName();
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<SimpleMutation>()
+                .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .ExecuteRequestAsync(
+                    @"mutation {
+                        doSomething(input: { something: ""abc"" }) {
+                            string
+                        }
+                    }");
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<SimpleMutation>()
-            .AddMutationConventions(true)
-            .ModifyOptions(o => o.StrictValidation = false)
-            .ExecuteRequestAsync(
-                @"mutation {
-                    doSomething(input: { something: ""abc"" }) {
-                        string
-                    }
-                }")
-            .MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task SimpleMutation_Inferred_With_Single_Error()
     {
-        Snapshot.FullName();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<SimpleMutationWithSingleError>()
+                .AddMutationConventions(
+                    new MutationConventionOptions { ApplyToAllMutations = true })
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<SimpleMutationWithSingleError>()
-            .AddMutationConventions(
-                new MutationConventionOptions { ApplyToAllMutations = true })
-            .ModifyOptions(o => o.StrictValidation = false)
-            .BuildSchemaAsync()
-            .MatchSnapshotAsync();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task SimpleMutation_Inferred_With_Single_Error_Execute()
     {
-        Snapshot.FullName();
-
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<SimpleMutationWithSingleError>()
-            .AddMutationConventions(true)
-            .ModifyOptions(o => o.StrictValidation = false)
-            .ExecuteRequestAsync(
-                @"mutation {
-                    doSomething(input: { something: ""abc"" }) {
-                        string
-                        errors {
-                            ... on CustomError {
-                                message
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<SimpleMutationWithSingleError>()
+                .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .ExecuteRequestAsync(
+                    @"mutation {
+                        doSomething(input: { something: ""abc"" }) {
+                            string
+                            errors {
+                                ... on CustomError {
+                                    message
+                                }
                             }
                         }
-                    }
-                }")
-            .MatchSnapshotAsync();
+                    }");
+
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task SimpleMutation_Inferred_With_Two_Errors()
     {
-        Snapshot.FullName();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<SimpleMutationWithTwoErrors>()
+                .AddMutationConventions(
+                    new MutationConventionOptions { ApplyToAllMutations = true })
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<SimpleMutationWithTwoErrors>()
-            .AddMutationConventions(
-                new MutationConventionOptions { ApplyToAllMutations = true })
-            .ModifyOptions(o => o.StrictValidation = false)
-            .BuildSchemaAsync()
-            .MatchSnapshotAsync();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task SimpleMutation_Inferred_Defaults()
     {
-        Snapshot.FullName();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<SimpleMutationWithSingleError>()
+                .AddMutationConventions(
+                    new MutationConventionOptions
+                    {
+                        InputArgumentName = "inputArgument",
+                        InputTypeNamePattern = "{MutationName}In",
+                        PayloadTypeNamePattern = "{MutationName}Out",
+                        PayloadErrorTypeNamePattern = "{MutationName}Fault",
+                        ApplyToAllMutations = true
+                    })
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<SimpleMutationWithSingleError>()
-            .AddMutationConventions(
-                new MutationConventionOptions
-                {
-                    InputArgumentName = "inputArgument",
-                    InputTypeNamePattern = "{MutationName}In",
-                    PayloadTypeNamePattern = "{MutationName}Out",
-                    PayloadErrorTypeNamePattern = "{MutationName}Fault",
-                    ApplyToAllMutations = true
-                })
-            .ModifyOptions(o => o.StrictValidation = false)
-            .BuildSchemaAsync()
-            .MatchSnapshotAsync();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task SimpleMutation_Inferred_Attribute()
     {
-        Snapshot.FullName();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<SimpleMutationAttribute>()
+                .AddMutationConventions(
+                    new MutationConventionOptions { ApplyToAllMutations = true })
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<SimpleMutationAttribute>()
-            .AddMutationConventions(
-                new MutationConventionOptions { ApplyToAllMutations = true })
-            .ModifyOptions(o => o.StrictValidation = false)
-            .BuildSchemaAsync()
-            .MatchSnapshotAsync();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task SimpleMutation_Attribute()
     {
-        Snapshot.FullName();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<SimpleMutationAttribute>()
+                .AddMutationConventions(false)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<SimpleMutationAttribute>()
-            .AddMutationConventions(false)
-            .ModifyOptions(o => o.StrictValidation = false)
-            .BuildSchemaAsync()
-            .MatchSnapshotAsync();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task SimpleMutation_Attribute_OptOut()
     {
-        Snapshot.FullName();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<SimpleMutationAttributeOptOut>()
+                .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<SimpleMutationAttributeOptOut>()
-            .AddMutationConventions(true)
-            .ModifyOptions(o => o.StrictValidation = false)
-            .BuildSchemaAsync()
-            .MatchSnapshotAsync();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task SimpleMutation_Override_Payload()
     {
-        Snapshot.FullName();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<SimpleMutationPayloadOverride>()
+                .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<SimpleMutationPayloadOverride>()
-            .AddMutationConventions(true)
-            .ModifyOptions(o => o.StrictValidation = false)
-            .BuildSchemaAsync()
-            .MatchSnapshotAsync();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task SimpleMutation_Override_Input()
     {
-        Snapshot.FullName();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<SimpleMutationInputOverride>()
+                .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<SimpleMutationInputOverride>()
-            .AddMutationConventions(true)
-            .ModifyOptions(o => o.StrictValidation = false)
-            .BuildSchemaAsync()
-            .MatchSnapshotAsync();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task MultipleArgumentMutation_Inferred()
     {
-        Snapshot.FullName();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MultipleArgumentMutation>()
+                .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<MultipleArgumentMutation>()
-            .AddMutationConventions(true)
-            .ModifyOptions(o => o.StrictValidation = false)
-            .BuildSchemaAsync()
-            .MatchSnapshotAsync();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task Allow_Payload_Result_Field_To_Be_Null()
     {
-        Snapshot.FullName();
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithInputPayload>()
+                .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .ExecuteRequestAsync(
+                    @"mutation {
+                        doSomething(input: { userId: 1 }) {
+                            user { name }
+                        }
+                    }");
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<MutationWithInputPayload>()
-            .AddMutationConventions(true)
-            .ModifyOptions(o => o.StrictValidation = false)
-            .ExecuteRequestAsync(
-                @"mutation {
-                    doSomething(input: { userId: 1 }) {
-                        user { name }
-                    }
-                }")
-            .MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Allow_Id_Middleware()
     {
-        Snapshot.FullName();
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithIds>()
+                .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .AddGlobalObjectIdentification()
+                .ExecuteRequestAsync(
+                    @"mutation {
+                        doSomething(input: {
+                            id: ""Rm9vCmdhYWY1ZjAzNjk0OGU0NDRkYWRhNTM2ZTY1MTNkNTJjZA==""
+                        }) {
+                            user { name id }
+                        }
+                    }");
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<MutationWithIds>()
-            .AddMutationConventions(true)
-            .ModifyOptions(o => o.StrictValidation = false)
-            .AddGlobalObjectIdentification()
-            .ExecuteRequestAsync(
-                @"mutation {
-                    doSomething(input: {
-                        id: ""Rm9vCmdhYWY1ZjAzNjk0OGU0NDRkYWRhNTM2ZTY1MTNkNTJjZA==""
-                    }) {
-                        user { name id }
-                    }
-                }")
-            .MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Allow_InputObject_Middleware()
     {
-        Snapshot.FullName();
-
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<MutationWithInputObject>()
-            .AddMutationConventions(true)
-            .ModifyOptions(o => o.StrictValidation = false)
-            .ExecuteRequestAsync(
-                @"mutation {
-                    doSomething(input: {
-                        test: {
-                            name: ""foo""
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithInputObject>()
+                .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .ExecuteRequestAsync(
+                    @"mutation {
+                        doSomething(input: {
+                            test: {
+                                name: ""foo""
+                            }
+                        }) {
+                            user { name }
                         }
-                    }) {
-                        user { name }
-                    }
-                }")
-            .MatchSnapshotAsync();
+                    }");
+
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Union_Result_1()
     {
-        Snapshot.FullName();
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithUnionResult1>()
+                .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .ExecuteRequestAsync(
+                    @"mutation {
+                        doSomething(input: {
+                            something: ""abc""
+                        }) {
+                            errors { ... on Error { message } }
+                        }
+                    }");
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<MutationWithUnionResult1>()
-            .AddMutationConventions(true)
-            .ModifyOptions(o => o.StrictValidation = false)
-            .ExecuteRequestAsync(
-                @"mutation {
-                    doSomething(input: {
-                        something: ""abc""
-                    }) {
-                        errors { ... on Error { message } }
-                    }
-                }")
-            .MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Union_Result_1_Schema()
     {
-        Snapshot.FullName();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithUnionResult1>()
+                .AddMutationConventions()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<MutationWithUnionResult1>()
-            .AddMutationConventions()
-            .ModifyOptions(o => o.StrictValidation = false)
-            .BuildSchemaAsync()
-            .MatchSnapshotAsync();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task Union_Result_2()
     {
-        Snapshot.FullName();
-
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<MutationWithUnionResult2>()
-            .AddMutationConventions(true)
-            .ModifyOptions(o => o.StrictValidation = false)
-            .ExecuteRequestAsync(
-                @"mutation {
-                    doSomething(input: {
-                        something: ""abc""
-                    }) {
-                        string
-                        errors { ... on Error { message } }
-                    }
-                }")
-            .MatchSnapshotAsync();
-    }
-
-    [Fact]
-    public async Task Union_Result_2_Task()
-    {
-        Snapshot.FullName();
-
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType()
-            .AddTypeExtension<MutationWithUnionResult2_Task>()
-            .AddMutationConventions(true)
-            .ModifyOptions(o => o.StrictValidation = false)
-            .ExecuteRequestAsync(
-                @"mutation {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithUnionResult2>()
+                .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .ExecuteRequestAsync(
+                    @"mutation {
                         doSomething(input: {
                             something: ""abc""
                         }) {
                             string
                             errors { ... on Error { message } }
                         }
-                    }")
-            .MatchSnapshotAsync();
+                    }");
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Union_Result_2_Task()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType()
+                .AddTypeExtension<MutationWithUnionResult2_Task>()
+                .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .ExecuteRequestAsync(
+                    @"mutation {
+                            doSomething(input: {
+                                something: ""abc""
+                            }) {
+                                string
+                                errors { ... on Error { message } }
+                            }
+                        }");
+
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Union_Result_2_Success()
     {
-        Snapshot.FullName();
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithUnionResult2_Success>()
+                .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .ExecuteRequestAsync(
+                    @"mutation {
+                        doSomething(input: {
+                            something: ""abc""
+                        }) {
+                            string
+                            errors { ... on Error { message } }
+                        }
+                    }");
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<MutationWithUnionResult2_Success>()
-            .AddMutationConventions(true)
-            .ModifyOptions(o => o.StrictValidation = false)
-            .ExecuteRequestAsync(
-                @"mutation {
-                    doSomething(input: {
-                        something: ""abc""
-                    }) {
-                        string
-                        errors { ... on Error { message } }
-                    }
-                }")
-            .MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Union_Result_2_Schema()
     {
-        Snapshot.FullName();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithUnionResult2>()
+                .AddMutationConventions()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<MutationWithUnionResult2>()
-            .AddMutationConventions()
-            .ModifyOptions(o => o.StrictValidation = false)
-            .BuildSchemaAsync()
-            .MatchSnapshotAsync();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task Union_Result_2_Task_Schema()
     {
-        Snapshot.FullName();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType()
+                .AddTypeExtension<MutationWithUnionResult2_Task>()
+                .AddMutationConventions()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType()
-            .AddTypeExtension<MutationWithUnionResult2_Task>()
-            .AddMutationConventions()
-            .ModifyOptions(o => o.StrictValidation = false)
-            .BuildSchemaAsync()
-            .MatchSnapshotAsync();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -549,333 +547,332 @@ public class AnnotationBasedMutations
 
         var exception = await Assert.ThrowsAsync<SchemaException>(Error);
 
-        SnapshotExtensions.MatchSnapshot(exception.Message);
+        exception.Message.MatchSnapshot();
     }
 
     [Fact]
     public async Task Union_Result_3()
     {
-        Snapshot.FullName();
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithUnionResult3>()
+                .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .ExecuteRequestAsync(
+                    @"mutation {
+                        doSomething(input: {
+                            something: ""abc""
+                        }) {
+                            string
+                            errors { ... on Error { message } }
+                        }
+                    }");
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<MutationWithUnionResult3>()
-            .AddMutationConventions(true)
-            .ModifyOptions(o => o.StrictValidation = false)
-            .ExecuteRequestAsync(
-                @"mutation {
-                    doSomething(input: {
-                        something: ""abc""
-                    }) {
-                        string
-                        errors { ... on Error { message } }
-                    }
-                }")
-            .MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Union_Result_3_Success()
     {
-        Snapshot.FullName();
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithUnionResult3_Success>()
+                .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .ExecuteRequestAsync(
+                    @"mutation {
+                        doSomething(input: {
+                            something: ""abc""
+                        }) {
+                            string
+                            errors { ... on Error { message } }
+                        }
+                    }");
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<MutationWithUnionResult3_Success>()
-            .AddMutationConventions(true)
-            .ModifyOptions(o => o.StrictValidation = false)
-            .ExecuteRequestAsync(
-                @"mutation {
-                    doSomething(input: {
-                        something: ""abc""
-                    }) {
-                        string
-                        errors { ... on Error { message } }
-                    }
-                }")
-            .MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Union_Result_3_Schema()
     {
-        Snapshot.FullName();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithUnionResult3>()
+                .AddMutationConventions()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<MutationWithUnionResult3>()
-            .AddMutationConventions()
-            .ModifyOptions(o => o.StrictValidation = false)
-            .BuildSchemaAsync()
-            .MatchSnapshotAsync();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task Union_Result_4()
     {
-        Snapshot.FullName();
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithUnionResult4>()
+                .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .ExecuteRequestAsync(
+                    @"mutation {
+                        doSomething(input: {
+                            something: ""abc""
+                        }) {
+                            string
+                            errors { ... on Error { message } }
+                        }
+                    }");
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<MutationWithUnionResult4>()
-            .AddMutationConventions(true)
-            .ModifyOptions(o => o.StrictValidation = false)
-            .ExecuteRequestAsync(
-                @"mutation {
-                    doSomething(input: {
-                        something: ""abc""
-                    }) {
-                        string
-                        errors { ... on Error { message } }
-                    }
-                }")
-            .MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Union_Result_4_Success()
     {
-        Snapshot.FullName();
+        var result=
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithUnionResult4_Success>()
+                .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .ExecuteRequestAsync(
+                    @"mutation {
+                        doSomething(input: {
+                            something: ""abc""
+                        }) {
+                            string
+                            errors { ... on Error { message } }
+                        }
+                    }");
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<MutationWithUnionResult4_Success>()
-            .AddMutationConventions(true)
-            .ModifyOptions(o => o.StrictValidation = false)
-            .ExecuteRequestAsync(
-                @"mutation {
-                    doSomething(input: {
-                        something: ""abc""
-                    }) {
-                        string
-                        errors { ... on Error { message } }
-                    }
-                }")
-            .MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Union_Result_4_Schema()
     {
-        Snapshot.FullName();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithUnionResult4>()
+                .AddMutationConventions()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<MutationWithUnionResult4>()
-            .AddMutationConventions()
-            .ModifyOptions(o => o.StrictValidation = false)
-            .BuildSchemaAsync()
-            .MatchSnapshotAsync();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task Union_Result_5()
     {
-        Snapshot.FullName();
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithUnionResult5>()
+                .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .ExecuteRequestAsync(
+                    @"mutation {
+                        doSomething(input: {
+                            something: ""abc""
+                        }) {
+                            string
+                            errors { ... on Error { message } }
+                        }
+                    }");
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<MutationWithUnionResult5>()
-            .AddMutationConventions(true)
-            .ModifyOptions(o => o.StrictValidation = false)
-            .ExecuteRequestAsync(
-                @"mutation {
-                    doSomething(input: {
-                        something: ""abc""
-                    }) {
-                        string
-                        errors { ... on Error { message } }
-                    }
-                }")
-            .MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Union_Result_5_Success()
     {
-        Snapshot.FullName();
-
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<MutationWithUnionResult5_Success>()
-            .AddMutationConventions(true)
-            .ModifyOptions(o => o.StrictValidation = false)
-            .ExecuteRequestAsync(
-                @"mutation {
-                    doSomething(input: {
-                        something: ""abc""
-                    }) {
-                        string
-                        errors { ... on Error { message } }
-                    }
-                }")
-            .MatchSnapshotAsync();
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithUnionResult5_Success>()
+                .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .ExecuteRequestAsync(
+                    @"mutation {
+                        doSomething(input: {
+                            something: ""abc""
+                        }) {
+                            string
+                            errors { ... on Error { message } }
+                        }
+                    }");
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Union_Result_5_Schema()
     {
-        Snapshot.FullName();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithUnionResult5>()
+                .AddMutationConventions()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<MutationWithUnionResult5>()
-            .AddMutationConventions()
-            .ModifyOptions(o => o.StrictValidation = false)
-            .BuildSchemaAsync()
-            .MatchSnapshotAsync();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task Union_Result_6()
     {
-        Snapshot.FullName();
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithUnionResult6>()
+                .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .ExecuteRequestAsync(
+                    @"mutation {
+                        doSomething(input: {
+                            something: ""abc""
+                        }) {
+                            string
+                            errors { ... on Error { message } }
+                        }
+                    }");
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<MutationWithUnionResult6>()
-            .AddMutationConventions(true)
-            .ModifyOptions(o => o.StrictValidation = false)
-            .ExecuteRequestAsync(
-                @"mutation {
-                    doSomething(input: {
-                        something: ""abc""
-                    }) {
-                        string
-                        errors { ... on Error { message } }
-                    }
-                }")
-            .MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Union_Result_6_Success()
     {
-        Snapshot.FullName();
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithUnionResult6_Success>()
+                .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .ExecuteRequestAsync(
+                    @"mutation {
+                        doSomething(input: {
+                            something: ""abc""
+                        }) {
+                            string
+                            errors { ... on Error { message } }
+                        }
+                    }");
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<MutationWithUnionResult6_Success>()
-            .AddMutationConventions(true)
-            .ModifyOptions(o => o.StrictValidation = false)
-            .ExecuteRequestAsync(
-                @"mutation {
-                    doSomething(input: {
-                        something: ""abc""
-                    }) {
-                        string
-                        errors { ... on Error { message } }
-                    }
-                }")
-            .MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Union_Result_6_Schema()
     {
-        Snapshot.FullName();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithUnionResult6>()
+                .AddMutationConventions()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<MutationWithUnionResult6>()
-            .AddMutationConventions()
-            .ModifyOptions(o => o.StrictValidation = false)
-            .BuildSchemaAsync()
-            .MatchSnapshotAsync();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task Union_Result_7()
     {
-        Snapshot.FullName();
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithUnionResult7>()
+                .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .ExecuteRequestAsync(
+                    @"mutation {
+                        doSomething(input: {
+                            something: ""abc""
+                        }) {
+                            string
+                            errors { ... on Error { message } }
+                        }
+                    }");
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<MutationWithUnionResult7>()
-            .AddMutationConventions(true)
-            .ModifyOptions(o => o.StrictValidation = false)
-            .ExecuteRequestAsync(
-                @"mutation {
-                    doSomething(input: {
-                        something: ""abc""
-                    }) {
-                        string
-                        errors { ... on Error { message } }
-                    }
-                }")
-            .MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Union_Result_7_Success()
     {
-        Snapshot.FullName();
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithUnionResult7_Success>()
+                .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .ExecuteRequestAsync(
+                    @"mutation {
+                        doSomething(input: {
+                            something: ""abc""
+                        }) {
+                            string
+                            errors { ... on Error { message } }
+                        }
+                    }");
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<MutationWithUnionResult7_Success>()
-            .AddMutationConventions(true)
-            .ModifyOptions(o => o.StrictValidation = false)
-            .ExecuteRequestAsync(
-                @"mutation {
-                    doSomething(input: {
-                        something: ""abc""
-                    }) {
-                        string
-                        errors { ... on Error { message } }
-                    }
-                }")
-            .MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Union_Result_7_Schema()
     {
-        Snapshot.FullName();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithUnionResult7>()
+                .AddMutationConventions()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<MutationWithUnionResult7>()
-            .AddMutationConventions()
-            .ModifyOptions(o => o.StrictValidation = false)
-            .BuildSchemaAsync()
-            .MatchSnapshotAsync();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task Payload_Override_With_Errors()
     {
-        Snapshot.FullName();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithPayloadOverride>()
+                .AddMutationConventions()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<MutationWithPayloadOverride>()
-            .AddMutationConventions()
-            .ModifyOptions(o => o.StrictValidation = false)
-            .BuildSchemaAsync()
-            .MatchSnapshotAsync();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task Payload_Override_With_Errors_Execution_On_Error()
     {
-        Snapshot.FullName();
-
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddMutationType<MutationWithPayloadOverride>()
-            .AddMutationConventions()
-            .ModifyOptions(o => o.StrictValidation = false)
-            .ExecuteRequestAsync(
-                @"mutation {
-                    doSomething2(input: { userId: null }) {
-                        userId
-                        errors {
-                            __typename
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithPayloadOverride>()
+                .AddMutationConventions()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .ExecuteRequestAsync(
+                    @"mutation {
+                        doSomething2(input: { userId: null }) {
+                            userId
+                            errors {
+                                __typename
+                            }
                         }
-                    }
-                }")
-            .MatchSnapshotAsync();
+                    }");
+
+        result.MatchSnapshot();
     }
 
     public class SimpleMutation

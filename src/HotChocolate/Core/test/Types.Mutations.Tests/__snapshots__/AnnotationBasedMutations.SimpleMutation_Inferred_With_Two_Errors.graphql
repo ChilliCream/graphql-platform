@@ -1,5 +1,5 @@
-﻿schema {
-  mutation: MutationWithUnionResult3
+schema {
+  mutation: SimpleMutationWithTwoErrors
 }
 
 interface Error {
@@ -19,7 +19,7 @@ type DoSomethingPayload {
   errors: [DoSomethingError!]
 }
 
-type MutationWithUnionResult3 {
+type SimpleMutationWithTwoErrors {
   doSomething(input: DoSomethingInput!): DoSomethingPayload!
 }
 

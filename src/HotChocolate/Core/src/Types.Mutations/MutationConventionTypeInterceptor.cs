@@ -4,6 +4,7 @@ using static HotChocolate.Types.Descriptors.TypeReference;
 using static HotChocolate.Resolvers.FieldClassMiddlewareFactory;
 using static HotChocolate.Types.ErrorContextDataKeys;
 using static HotChocolate.Utilities.ThrowHelper;
+using static HotChocolate.WellKnownContextData;
 
 #nullable enable
 
@@ -21,6 +22,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
     private ITypeCompletionContext _completionContext = default!;
     private ITypeReference? _errorInterfaceTypeRef;
     private ObjectTypeDefinition? _mutationTypeDef;
+    private FieldMiddlewareDefinition? _errorNullMiddleware;
 
     internal override void InitializeContext(
         IDescriptorContext context,
@@ -240,31 +242,75 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         // errors field to it.
         if (registration.Type.Name.EqualsOrdinal(payloadTypeName))
         {
-            if (errorDefinitions.Count > 0)
+            if (errorDefinitions.Count <= 0)
             {
-                var payloadType = _completionContext.GetType<IType>(typeRef);
+                return;
+            }
 
-                if (payloadType.IsListType() || payloadType.NamedType() is not ObjectType obj)
+            // first we retrieve the payload type that was defined by the user.
+            var payloadType = _completionContext.GetType<IType>(typeRef);
+
+            // we ensure that the payload type is an object type; otherwise we raise an error.
+            if (payloadType.IsListType() || payloadType.NamedType() is not ObjectType obj)
+            {
+                // todo : error resources and error code.
+                _completionContext.ReportError(
+                    SchemaErrorBuilder.New()
+                        .SetMessage("The mutation payload type must be an object type.")
+                        .SetTypeSystemObject((ITypeSystemObject)payloadType.NamedType())
+                        .Build());
+                return;
+            }
+
+            // we grab the definition to mutate the payload type.
+            var payloadTypeDef = obj.Definition!;
+
+            // next we create a null middleware which will return null for any payload
+            // field that we have on the payload type if a mutation error was returned.
+            var nullMiddleware = _errorNullMiddleware ??=
+                new FieldMiddlewareDefinition(
+                    Create<ErrorNullMiddleware>(),
+                    key: MutationErrorNull,
+                    isRepeatable: false);
+
+            foreach (var resultField in payloadTypeDef.Fields)
+            {
+                // if the field is the query mutation field we will allow it to stay non-nullable
+                // since it does not need the parent.
+                if (resultField.CustomSettingExists(MutationQueryField))
                 {
-                    // todo : error resources and error code.
-                    _completionContext.ReportError(
-                        SchemaErrorBuilder.New()
-                            .SetMessage("The mutation payload type must be an object type.")
-                            .SetTypeSystemObject((ITypeSystemObject)payloadType.NamedType())
-                            .Build());
-                    return;
+                    continue;
                 }
 
-                var payloadTypeDef = obj.Definition!;
-                mutation.Type = EnsureNonNull(mutation.Type!);
+                // first we ensure that all fields on the mutation payload are nullable.
+                resultField.Type = EnsureNullable(resultField.Type);
 
-                // create error type
-                var errorTypeName = options.FormatErrorTypeName(mutation.Name);
-                RegisterErrorType(CreateErrorType(errorTypeName, errorDefinitions), mutation.Name);
-                var errorListTypeRef = Parse($"[{errorTypeName}!]");
-                payloadTypeDef.Fields.Add(
-                    new ObjectFieldDefinition(
-                        options.PayloadErrorsFieldName,
+                // next we will add the null middleware as the first middleware element
+                resultField.MiddlewareDefinitions.Insert(0, nullMiddleware);
+            }
+
+            // We will ensure that the mutation return value is actually not nullable.
+            // If there was an actual GraphQL error on the mutation it ensures that
+            // the next mutation execution is aborted.
+            //
+            // mutation {
+            //   currentMutationThatErrors <---
+            //   nextMutationWillNotBeInvoked
+            // }
+            //
+            // Mutations are executed sequentially and by having the payload
+            // non-nullable the complete result is erased (non-null propagation)
+            // which causes the execution to stop.
+            mutation.Type = EnsureNonNull(mutation.Type!);
+
+            // now that everything is put in place we will create the error types and
+            // the error middleware.
+            var errorTypeName = options.FormatErrorTypeName(mutation.Name);
+            RegisterErrorType(CreateErrorType(errorTypeName, errorDefinitions), mutation.Name);
+            var errorListTypeRef = Parse($"[{errorTypeName}!]");
+            payloadTypeDef.Fields.Add(
+                new ObjectFieldDefinition(
+                    options.PayloadErrorsFieldName,
                     type: errorListTypeRef,
                     resolver: ctx =>
                     {
@@ -272,20 +318,22 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                         return new ValueTask<object?>(errors);
                     }));
 
-                // collect error factories for middleware
-                var errorFactories = errorDefinitions.Select(t => t.Factory).ToArray();
+            // collect error factories for middleware
+            var errorFactories = errorDefinitions.Select(t => t.Factory).ToArray();
 
-                // create middleware
-                var errorMiddleware =
-                    new FieldMiddlewareDefinition(
-                        Create<ErrorMiddleware>(
-                            (typeof(IReadOnlyList<CreateError>), errorFactories)),
-                        key: MutationErrors,
-                        isRepeatable: false);
+            // create middleware
+            var errorMiddleware =
+                new FieldMiddlewareDefinition(
+                    Create<ErrorMiddleware>(
+                        (typeof(IReadOnlyList<CreateError>), errorFactories)),
+                    key: MutationErrors,
+                    isRepeatable: false);
 
-                mutation.MiddlewareDefinitions.Insert(0, errorMiddleware);
-            }
+            // last but not least we insert the error middleware to the mutation field.
+            mutation.MiddlewareDefinitions.Insert(0, errorMiddleware);
 
+            // we return here since we handled the case where the user has provided a custom
+            // payload type.
             return;
         }
 

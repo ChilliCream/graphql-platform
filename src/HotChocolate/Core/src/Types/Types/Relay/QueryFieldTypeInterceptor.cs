@@ -5,6 +5,7 @@ using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
+using static HotChocolate.WellKnownContextData;
 
 #nullable enable
 
@@ -51,6 +52,7 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
                 options.QueryFieldName ?? _defaultFieldName,
                 type: queryType,
                 resolver: ctx => new(ctx.GetQueryRoot<object>()));
+            _queryField.CustomSettings.Add(MutationQueryField);
 
             foreach (var field in _mutationDefinition.Fields)
             {

@@ -1,16 +1,16 @@
-﻿schema {
-  mutation: Mutation
+schema {
+  mutation: SimpleMutationAttribute
 }
 
-type DoSomethingPayload {
-  string: String
+type PayloadTypeName {
+  payloadFieldName: String
 }
 
-type Mutation {
-  doSomething(input: DoSomethingInput!): DoSomethingPayload!
+type SimpleMutationAttribute {
+  doSomething(inputArgumentName: InputTypeName!): PayloadTypeName!
 }
 
-input DoSomethingInput {
+input InputTypeName {
   something: String!
 }
 

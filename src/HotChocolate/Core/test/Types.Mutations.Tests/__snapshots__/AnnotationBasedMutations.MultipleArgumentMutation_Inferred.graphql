@@ -1,17 +1,18 @@
-﻿schema {
-  mutation: SimpleMutationAttribute
+schema {
+  mutation: MultipleArgumentMutation
 }
 
-type PayloadTypeName {
-  payloadFieldName: String
+type DoSomethingPayload {
+  string: String
 }
 
-type SimpleMutationAttribute {
-  doSomething(inputArgumentName: InputTypeName!): PayloadTypeName!
+type MultipleArgumentMutation {
+  doSomething(input: DoSomethingInput!): DoSomethingPayload!
 }
 
-input InputTypeName {
-  something: String!
+input DoSomethingInput {
+  something1: String!
+  something2: String!
 }
 
 "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."

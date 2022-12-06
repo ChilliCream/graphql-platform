@@ -1,25 +1,15 @@
-﻿schema {
-  mutation: SimpleMutationWithSingleError
-}
-
-interface Error {
-  message: String!
-}
-
-type CustomError implements Error {
-  message: String!
+schema {
+  mutation: SimpleMutationPayloadOverride
 }
 
 type DoSomethingPayload {
-  string: String
-  errors: [DoSomethingError!]
+  myResult1: String!
+  myResult2: String!
 }
 
-type SimpleMutationWithSingleError {
+type SimpleMutationPayloadOverride {
   doSomething(input: DoSomethingInput!): DoSomethingPayload!
 }
-
-union DoSomethingError = CustomError
 
 input DoSomethingInput {
   something: String!
