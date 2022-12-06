@@ -218,6 +218,11 @@ public static class ErrorCodes
         /// An object type implementing the node interface does not provide a node resolver.
         /// </summary>
         public const string NodeResolverMissing = "HC0068";
+
+        /// <summary>
+        /// A mutation payload type must be an object type.
+        /// </summary>
+        public const string MutationPayloadMustBeObject = "HC0069";
     }
 
     public static class Scalars

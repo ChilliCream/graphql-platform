@@ -3,6 +3,7 @@ using static HotChocolate.WellKnownMiddleware;
 using static HotChocolate.Types.Descriptors.TypeReference;
 using static HotChocolate.Resolvers.FieldClassMiddlewareFactory;
 using static HotChocolate.Types.ErrorContextDataKeys;
+using static HotChocolate.Types.ThrowHelper;
 using static HotChocolate.Utilities.ThrowHelper;
 using static HotChocolate.WellKnownContextData;
 
@@ -123,7 +124,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
             if (unprocessed.Count > 0)
             {
-                throw ThrowHelper.NonMutationFields(unprocessed);
+                throw NonMutationFields(unprocessed);
             }
         }
     }
@@ -228,7 +229,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         if (!_typeLookup.TryNormalizeReference(typeRef!, out typeRef) ||
             !_typeRegistry.TryGetType(typeRef, out var registration))
         {
-            throw ThrowHelper.CannotResolvePayloadType();
+            throw CannotResolvePayloadType();
         }
 
         // before starting to build the payload type we first will look for error definitions
@@ -253,12 +254,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             // we ensure that the payload type is an object type; otherwise we raise an error.
             if (payloadType.IsListType() || payloadType.NamedType() is not ObjectType obj)
             {
-                // todo : error resources and error code.
                 _completionContext.ReportError(
-                    SchemaErrorBuilder.New()
-                        .SetMessage("The mutation payload type must be an object type.")
-                        .SetTypeSystemObject((ITypeSystemObject)payloadType.NamedType())
-                        .Build());
+                    MutationPayloadMustBeObject(payloadType.NamedType()));
                 return;
             }
 

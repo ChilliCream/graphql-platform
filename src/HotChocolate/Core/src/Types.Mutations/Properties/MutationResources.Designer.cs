@@ -86,5 +86,11 @@ namespace HotChocolate.Types.Properties {
                 return ResourceManager.GetString("ThrowHelper_NonMutationFields", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_MutationPayloadMustBeObject {
+            get {
+                return ResourceManager.GetString("ThrowHelper_MutationPayloadMustBeObject", resourceCulture);
+            }
+        }
     }
 }

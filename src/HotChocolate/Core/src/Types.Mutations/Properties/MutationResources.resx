@@ -41,4 +41,7 @@ Check the attribute `[Input(TypeName= "{2}")]` or the method `.Input(typeName: "
   <data name="ThrowHelper_NonMutationFields" xml:space="preserve">
     <value>There are mutation annotations on non mutation fields. The mutation conventions can only be applied to fields of the mutation type.</value>
   </data>
+  <data name="ThrowHelper_MutationPayloadMustBeObject" xml:space="preserve">
+    <value>The mutation payload type `{0}` must be an object type.</value>
+  </data>
 </root>
