@@ -25,6 +25,21 @@ public class AnnotationBasedMutations
     }
 
     [Fact]
+    public async Task SimpleMutation_Inferred_Query_Field_Stays_NonNull()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d.Field("abc").Resolve("def"))
+                .AddMutationType<SimpleMutation>()
+                .AddMutationConventions()
+                .AddQueryFieldToMutationPayloads()
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task SimpleMutationReturnList_Inferred()
     {
         var schema =
@@ -189,6 +204,21 @@ public class AnnotationBasedMutations
                 .AddMutationConventions(
                     new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task SimpleMutation_Inferred_With_Single_Error_Query_Field_Stays_Non_Null()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d.Field("abc").Resolve("def"))
+                .AddMutationType<SimpleMutationWithSingleError>()
+                .AddMutationConventions()
+                .AddQueryFieldToMutationPayloads()
                 .BuildSchemaAsync();
 
         schema.MatchSnapshot();
@@ -895,6 +925,21 @@ public class AnnotationBasedMutations
                     }");
 
         result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Query_Filed_Stays_NonNull()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d.Field("abc").Resolve("def"))
+                .AddMutationType<MutationWithPayloadOverride>()
+                .AddMutationConventions()
+                .AddQueryFieldToMutationPayloads()
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
     }
 
     public class SimpleMutation
