@@ -1,6 +1,5 @@
-import React, { FC, ReactNode } from "react";
-import styled from "styled-components";
 import { Layout } from "@/components/layout";
+import { Link } from "@/components/misc/link";
 import {
   ContentContainer,
   EnvelopeIcon,
@@ -10,12 +9,12 @@ import {
   SectionTitle,
 } from "@/components/misc/marketing-elements";
 import { Hero, Intro, Teaser, Title } from "@/components/misc/page-elements";
-import { Link } from "@/components/misc/link";
 import { SEO } from "@/components/misc/seo";
-import ContactUsSvg from "@/images/contact-us.svg";
 import CheckSvg from "@/images/check.svg";
+import ContactUsSvg from "@/images/contact-us.svg";
 import NoneSvg from "@/images/none.svg";
-import ArrowDownSvg from "@/images/arrow-down.svg";
+import React, { FC } from "react";
+import styled from "styled-components";
 
 interface Plans {
   readonly title: string;
@@ -177,7 +176,7 @@ const SupportPage: FC = () => {
                 <strong>Starter</strong>
               </dd>
               <dd>
-                <strong>Proffesional</strong>
+                <strong>Professional</strong>
               </dd>
               <dd>
                 <strong>Business</strong>
