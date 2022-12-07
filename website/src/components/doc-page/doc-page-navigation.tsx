@@ -444,7 +444,11 @@ interface LinkProps {
   readonly active: boolean;
 }
 
-const ProductLink = styled(Link)<LinkProps>`
+const ProductLink = styled(Link).withConfig<LinkProps>({
+  shouldForwardProp(prop, defaultValidatorFn) {
+    return prop === "active" ? false : defaultValidatorFn(prop);
+  },
+})`
   flex: 0 0 auto;
   border: 1px solid ${THEME_COLORS.boxBorder};
   border-radius: var(--border-radius);

@@ -92,11 +92,6 @@ export const Footer: FC = () => {
             <NavLink to="/docs/hotchocolate">Hot Chocolate</NavLink>
             <NavLink to="/docs/strawberryshake">Strawberry Shake</NavLink>
           </Navigation>
-          <Title>Company</Title>
-          <Navigation>
-            <NavLink to="/support">Support</NavLink>
-            <NavLink to={tools!.shop!}>Shop</NavLink>
-          </Navigation>
         </Links>
         <Links>
           <Title>Developers</Title>
@@ -110,6 +105,14 @@ export const Footer: FC = () => {
               </NavLink>
             ))}
             <NavLink to="/blog">Blog</NavLink>
+          </Navigation>
+        </Links>
+        <Links>
+          <Title>Services</Title>
+          <Navigation>
+            <NavLink to="/services/advisory">Advisory</NavLink>
+            <NavLink to="/services/training">Training</NavLink>
+            <NavLink to="/services/support">Support</NavLink>
           </Navigation>
         </Links>
       </Section>
@@ -140,7 +143,7 @@ const Section = styled.div`
 
 const About = styled.div`
   display: flex;
-  flex: 5 1 auto;
+  flex: 6 1 auto;
   flex-direction: column;
   padding: 0 20px;
 `;
@@ -226,7 +229,8 @@ const Links = styled.div`
   display: none;
   flex: 2 1 auto;
   flex-direction: column;
-  padding: 0 20px;
+  padding: 0 10px;
+  min-width: 150px;
 
   @media only screen and (min-width: 768px) {
     display: flex;
@@ -258,7 +262,7 @@ const Title = styled.h3`
   margin: 15px 0 9px;
   font-size: 1em;
   font-weight: 600;
-  color: ${THEME_COLORS.footerText};
+  color: ${THEME_COLORS.textContrast};
 `;
 
 const Copyright = styled.div`

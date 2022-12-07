@@ -1,3 +1,4 @@
+/** @type import('gatsby').GatsbyConfig */
 module.exports = {
   siteMetadata: {
     title: `ChilliCream GraphQL Platform`,
@@ -19,6 +20,7 @@ module.exports = {
     `gatsby-plugin-graphql-codegen`,
     `gatsby-plugin-styled-components`,
     `gatsby-plugin-react-helmet`,
+    `gatsby-plugin-tsconfig-paths`,
     `gatsby-remark-reading-time`,
     {
       resolve: `gatsby-plugin-mdx`,
@@ -142,7 +144,14 @@ module.exports = {
         anonymize: true,
       },
     },
-    `gatsby-plugin-sitemap`,
+    {
+      resolve: `gatsby-plugin-sitemap`,
+      options: {
+        resolvePagePath({ path }) {
+          return `${path}/`.replace("//", "/");
+        },
+      },
+    },
     {
       resolve: `gatsby-plugin-feed`,
       options: {
