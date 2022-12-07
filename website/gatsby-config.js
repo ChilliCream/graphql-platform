@@ -144,7 +144,14 @@ module.exports = {
         anonymize: true,
       },
     },
-    `gatsby-plugin-sitemap`,
+    {
+      resolve: `gatsby-plugin-sitemap`,
+      options: {
+        resolvePagePath({ path }) {
+          return `${path}/`.replace("//", "/");
+        },
+      },
+    },
     {
       resolve: `gatsby-plugin-feed`,
       options: {
