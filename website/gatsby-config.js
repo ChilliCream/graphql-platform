@@ -11,7 +11,7 @@ module.exports = {
       bcp: `https://eat.bananacakepop.com`,
       github: `https://github.com/ChilliCream/hotchocolate`,
       shop: `https://store.chillicream.com`,
-      slack: `http://slack.chillicream.com/`,
+      slack: `https://slack.chillicream.com/`,
       twitter: `https://twitter.com/Chilli_Cream`,
       youtube: `https://www.youtube.com/c/ChilliCream`,
     },
