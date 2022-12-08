@@ -59,7 +59,7 @@ public class QueryableOffsetPagingHandler<TEntity>
             {
                 if (selections[i].Field.Name is "totalCount")
                 {
-                    totalCount = await Task.Run(query.Count, cancellationToken).ConfigureAwait(false);
+                    totalCount = await Task.Run(source.Count, cancellationToken).ConfigureAwait(false);
                     break;
                 }
             }
