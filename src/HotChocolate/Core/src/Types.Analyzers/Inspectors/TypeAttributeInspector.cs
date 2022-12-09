@@ -43,6 +43,33 @@ public class TypeAttributeInspector : ISyntaxInspector
                     if (TypeAttributes.Contains(fullName) &&
                         context.SemanticModel.GetDeclaredSymbol(possibleType) is { } type)
                     {
+                        if (fullName.Equals(QueryTypeAttribute))
+                        {
+                            syntaxInfo = new TypeExtensionInfo(
+                                type.ToDisplayString(),
+                                possibleType.Modifiers.Any(t => t.IsKind(SyntaxKind.StaticKeyword)),
+                                OperationType.Query);
+                            return true;
+                        }
+
+                        if (fullName.Equals(MutationTypeAttribute))
+                        {
+                            syntaxInfo = new TypeExtensionInfo(
+                                type.ToDisplayString(),
+                                possibleType.Modifiers.Any(t => t.IsKind(SyntaxKind.StaticKeyword)),
+                                OperationType.Mutation);
+                            return true;
+                        }
+
+                        if (fullName.Equals(SubscriptionTypeAttribute))
+                        {
+                            syntaxInfo = new TypeExtensionInfo(
+                                type.ToDisplayString(),
+                                possibleType.Modifiers.Any(t => t.IsKind(SyntaxKind.StaticKeyword)),
+                                OperationType.Subscription);
+                            return true;
+                        }
+
                         syntaxInfo = new TypeInfo(type.ToDisplayString());
                         return true;
                     }

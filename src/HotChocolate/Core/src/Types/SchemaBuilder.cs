@@ -30,6 +30,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     private readonly Dictionary<(Type, string?), List<CreateConvention>> _conventions = new();
     private readonly Dictionary<Type, (CreateRef, CreateRef)> _clrTypes = new();
     private readonly List<object> _schemaInterceptors = new();
+
     private readonly List<object> _typeInterceptors = new()
     {
         typeof(IntrospectionTypeInterceptor),
@@ -37,6 +38,7 @@ public partial class SchemaBuilder : ISchemaBuilder
         typeof(CostTypeInterceptor),
         typeof(MiddlewareValidationTypeInterceptor)
     };
+
     private SchemaOptions _options = new();
     private IsOfTypeFallback? _isOfType;
     private IServiceProvider? _services;
@@ -236,7 +238,7 @@ public partial class SchemaBuilder : ISchemaBuilder
         var context = SchemaTypeReference.InferTypeContext(schemaType);
         _clrTypes[runtimeType] =
             (ti => ti.GetTypeRef(runtimeType, context),
-            ti => ti.GetTypeRef(schemaType, context));
+                ti => ti.GetTypeRef(schemaType, context));
 
         return this;
     }
@@ -339,6 +341,25 @@ public partial class SchemaBuilder : ISchemaBuilder
         }
 
         var reference = TypeReference.Create(rootType);
+        _operations.Add(operation, _ => reference);
+        _types.Add(_ => reference);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public ISchemaBuilder TryAddRootType(Func<ObjectType> rootType, OperationType operation)
+    {
+        if (rootType is null)
+        {
+            throw new ArgumentNullException(nameof(rootType));
+        }
+
+        if (_operations.ContainsKey(operation))
+        {
+            return this;
+        }
+
+        var reference = TypeReference.Create(rootType());
         _operations.Add(operation, _ => reference);
         _types.Add(_ => reference);
         return this;

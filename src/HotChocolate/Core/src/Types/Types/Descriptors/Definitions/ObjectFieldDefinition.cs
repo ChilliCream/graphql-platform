@@ -482,4 +482,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
             }
         }
     }
+
+    internal bool CustomSettingExists(object? value)
+        => _customSettings is not null && _customSettings.Contains(value);
 }

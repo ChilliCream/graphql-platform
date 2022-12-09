@@ -1,10 +1,10 @@
-import React, { createRef, FC, useEffect } from "react";
+import React, { createRef, FC, PropsWithChildren, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import styled from "styled-components";
 import { DocPageDesktopGridColumns, IsSmallDesktop } from "../../shared-style";
 import { setArticleHeight } from "../../state/common";
 
-export const ArticleWrapper: FC = ({ children }) => {
+export const ArticleWrapper: FC<PropsWithChildren> = ({ children }) => {
   const ref = createRef<HTMLDivElement>();
   const dispatch = useDispatch();
 

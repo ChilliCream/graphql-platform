@@ -1,3 +1,5 @@
+using System.Data;
+
 namespace HotChocolate;
 
 /// <summary>
@@ -223,4 +225,10 @@ public static class WellKnownContextData
     /// The key to skip the execution depth analysis.
     /// </summary>
     public const string SkipDepthAnalysis = "HotChocolate.Execution.SkipDepthAnalysis";
+
+    /// <summary>
+    /// The key of the marker setting that a field on the mutation type represents
+    /// the query field.
+    /// </summary>
+    public const string MutationQueryField =  "HotChocolate.Relay.Mutations.QueryField";
 }

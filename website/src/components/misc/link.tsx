@@ -4,7 +4,6 @@ import React, { FC } from "react";
 
 export const Link: FC<GatsbyLinkProps<unknown>> = ({
   activeClassName,
-  children,
   partiallyActive,
   to,
   ref,
@@ -18,12 +17,13 @@ export const Link: FC<GatsbyLinkProps<unknown>> = ({
       activeClassName={activeClassName}
       partiallyActive={partiallyActive}
       {...rest}
-    >
-      {children}
-    </GatsbyLink>
+    />
   ) : (
-    <OutboundLink href={to} target="_blank" rel="noopener noreferrer" {...rest}>
-      {children}
-    </OutboundLink>
+    <OutboundLink
+      href={to}
+      target="_blank"
+      rel="noopener noreferrer"
+      {...rest}
+    />
   );
 };
