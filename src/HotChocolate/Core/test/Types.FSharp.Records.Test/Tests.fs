@@ -67,6 +67,7 @@ let ``Person can be fetched`` () =
     Assert.True((expected = actual), "The person was not returned correctly")
   }
 
+[<Fact>]
 let ``Fetching a person with an optional name works`` () =
   task {
     let! schema =
@@ -90,6 +91,7 @@ let ``Fetching a person with an optional name works`` () =
   }
 
 
+[<Fact>]
 let ``Fetching a person with no name works`` () =
   task {
     let! schema =
