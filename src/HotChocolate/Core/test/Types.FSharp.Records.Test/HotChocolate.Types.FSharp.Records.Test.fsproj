@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="__snapshots__\Tests.Schema can be resolved.snap" />
     <Compile Include="Tests.fs" />
   </ItemGroup>
 
@@ -21,6 +22,7 @@
     <ProjectReference Include="..\..\src\Abstractions\HotChocolate.Abstractions.csproj" />
     <ProjectReference Include="..\..\src\Core\HotChocolate.Core.csproj" />
     <ProjectReference Include="..\..\src\Execution\HotChocolate.Execution.csproj" />
+    <ProjectReference Include="..\Utilities\HotChocolate.Tests.Utilities.csproj" />
   </ItemGroup>
 
 </Project>
