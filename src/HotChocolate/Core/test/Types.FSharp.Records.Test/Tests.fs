@@ -3,20 +3,16 @@ module Tests
 open System.Text.Json
 open HotChocolate
 open HotChocolate.Execution
+open HotChocolate.Tests
 open Xunit
-open System
 open Microsoft.Extensions.DependencyInjection
-open System.Threading.Tasks
-open Xunit
 
 type Person =
-  { [<GraphQLType "ID">]
-    Id: int
+  { Id: int
     Name: string }
 
 type PersonWithOptionalName =
-  { [<GraphQLType "ID">]
-    Id: int
+  { Id: int
     OptionalName: string option }
 
 type Query() =
@@ -29,6 +25,7 @@ type Query() =
   member _.GetPersonWithNoName() =
     { Id = 3; OptionalName = None }
 
+
 [<Fact>]
 let ``Schema can be resolved`` () =
   task {
@@ -36,9 +33,9 @@ let ``Schema can be resolved`` () =
       ServiceCollection()
         .AddGraphQL()
         .AddQueryType<Query>()
-        .Services
-        .BuildServiceProvider()
+        .Services.BuildServiceProvider()
         .GetSchemaAsync()
+        .MatchSnapshotAsync()
 
     // If we got all the way here the schema resolved just fine
     Assert.True(true)
@@ -51,20 +48,17 @@ let ``Person can be fetched`` () =
       ServiceCollection()
         .AddGraphQL()
         .AddQueryType<Query>()
-        .Services
-        .BuildServiceProvider()
+        .Services.BuildServiceProvider()
         .GetSchemaAsync()
 
-    let! result =
-      schema.MakeExecutable().ExecuteAsync(
-        "query {person {id, name}}"
-        )
+    let! result = schema.MakeExecutable().ExecuteAsync("query {person {id, name}}")
 
     let opts = JsonSerializerOptions(PropertyNameCaseInsensitive = true)
-    let actual = JsonSerializer.Deserialize<Person>(result.ToJson(), opts)
+    let json = JsonSerializer.Deserialize<JsonElement>(result.ToJson(), opts)
+    let actual = json.GetProperty("data").GetProperty("person").Deserialize<Person>(opts)
     let expected = { Name = "Michael"; Id = 1 }
 
-    Assert.True((expected = actual), "The person was not returned correctly")
+    Assert.True((actual = expected), "The person was not returned correctly")
   }
 
 [<Fact>]
@@ -74,20 +68,26 @@ let ``Fetching a person with an optional name works`` () =
       ServiceCollection()
         .AddGraphQL()
         .AddQueryType<Query>()
-        .Services
-        .BuildServiceProvider()
+        .Services.BuildServiceProvider()
         .GetSchemaAsync()
 
     let! result =
-      schema.MakeExecutable().ExecuteAsync(
-        "query {personWithOptionalName {id, name}}"
-        )
+      schema
+        .MakeExecutable()
+        .ExecuteAsync("query {personWithOptionalName {id, optionalName}}")
 
     let opts = JsonSerializerOptions(PropertyNameCaseInsensitive = true)
-    let actual = JsonSerializer.Deserialize<PersonWithOptionalName>(result.ToJson(), opts)
-    let expected = { OptionalName = Some "Not Michael"; Id = 1 }
+    let json = JsonSerializer.Deserialize<JsonElement>(result.ToJson(), opts)
+    let actual = json.GetProperty("data").GetProperty("personWithOptionalName").Deserialize<PersonWithOptionalName>(opts)
 
-    Assert.True((expected = actual), "The person was not returned correctly")
+    let expected =
+      { OptionalName = Some "Not Michael"
+        Id = 1 }
+
+    Assert.True(
+      (expected = actual),
+      "The person was not returned correctly"
+    )
   }
 
 
@@ -98,18 +98,18 @@ let ``Fetching a person with no name works`` () =
       ServiceCollection()
         .AddGraphQL()
         .AddQueryType<Query>()
-        .Services
-        .BuildServiceProvider()
+        .Services.BuildServiceProvider()
         .GetSchemaAsync()
 
-    let! result =
-      schema.MakeExecutable().ExecuteAsync(
-        "query {personWithNoName {id, name}}"
-        )
+    let! result = schema.MakeExecutable().ExecuteAsync("query {personWithNoName {id, optionalName}}")
 
     let opts = JsonSerializerOptions(PropertyNameCaseInsensitive = true)
-    let actual = JsonSerializer.Deserialize<PersonWithOptionalName>(result.ToJson(), opts)
+    let json = JsonSerializer.Deserialize<JsonElement>(result.ToJson(), opts)
+    let actual = json.GetProperty("data").GetProperty("personWithNoName").Deserialize(opts)
     let expected = { OptionalName = None; Id = 1 }
 
-    Assert.True((expected = actual), "The person was not returned correctly")
+    Assert.True(
+      (expected = actual),
+      "The person was not returned correctly"
+    )
   }
