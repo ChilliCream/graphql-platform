@@ -1,0 +1,63 @@
+a Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testbtest"
+      }
+    ]
+  }
+}
+---------------
+
+a Query:
+---------------
+MATCH (fooStringNullable:FooStringNullable) WHERE NOT (fooStringNullable.Bar CONTAINS 'a') RETURN fooStringNullable {.Bar} ORDER BY fooStringNullable {.Bar} ASC
+---------------
+
+b Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testatest"
+      }
+    ]
+  }
+}
+---------------
+
+b Query:
+---------------
+MATCH (fooStringNullable:FooStringNullable) WHERE NOT (fooStringNullable.Bar CONTAINS 'b') RETURN fooStringNullable {.Bar} ORDER BY fooStringNullable {.Bar} ASC
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter \u0060ncontains\u0060 of type StringOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 35
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "String!",
+        "filterType": "StringOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": []
+  }
+}
+---------------

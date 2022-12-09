@@ -46,4 +46,6 @@ public abstract class TypedSubtree<T> : Visitable where T : IVisitable
     /// <param name="child">The current child element.</param>
     /// <returns>The visitable that has been prepared</returns>
     protected virtual IVisitable PrepareVisit(T child) => child;
+
+    internal IReadOnlyCollection<T> GetChildren() => Children.AsReadOnly();
 }

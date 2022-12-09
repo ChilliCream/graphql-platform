@@ -17,10 +17,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Neo4j.Driver" Version="4.2.0" />
-    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.1" />
-    <PackageReference Include="ServiceStack.Text" Version="5.10.4" />
-    <PackageReference Include="System.Linq.Async" Version="5.0.0" />
+    <PackageReference Include="Neo4j.Driver" Version="5.2.0" />
+    <PackageReference Include="ServiceStack.Text" Version="6.4.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>
