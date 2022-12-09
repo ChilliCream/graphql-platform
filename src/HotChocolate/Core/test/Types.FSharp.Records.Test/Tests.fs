@@ -20,7 +20,14 @@ type PersonWithOptionalName =
     OptionalName: string option }
 
 type Query() =
-  member _.GetPerson() = { Id = 1; Name = "Michael" }
+  member _.GetPerson() =
+    { Id = 1; Name = "Michael" }
+
+  member _.GetPersonWithOptionalName() =
+    { Id = 2; OptionalName = Some "Not Michael" }
+
+  member _.GetPersonWithNoName() =
+    { Id = 3; OptionalName = None }
 
 [<Fact>]
 let ``Schema can be resolved`` () =
@@ -56,6 +63,51 @@ let ``Person can be fetched`` () =
     let opts = JsonSerializerOptions(PropertyNameCaseInsensitive = true)
     let actual = JsonSerializer.Deserialize<Person>(result.ToJson(), opts)
     let expected = { Name = "Michael"; Id = 1 }
+
+    Assert.True((expected = actual), "The person was not returned correctly")
+  }
+
+let ``Fetching a person with an optional name works`` () =
+  task {
+    let! schema =
+      ServiceCollection()
+        .AddGraphQL()
+        .AddQueryType<Query>()
+        .Services
+        .BuildServiceProvider()
+        .GetSchemaAsync()
+
+    let! result =
+      schema.MakeExecutable().ExecuteAsync(
+        "query {personWithOptionalName {id, name}}"
+        )
+
+    let opts = JsonSerializerOptions(PropertyNameCaseInsensitive = true)
+    let actual = JsonSerializer.Deserialize<PersonWithOptionalName>(result.ToJson(), opts)
+    let expected = { OptionalName = Some "Not Michael"; Id = 1 }
+
+    Assert.True((expected = actual), "The person was not returned correctly")
+  }
+
+
+let ``Fetching a person with no name works`` () =
+  task {
+    let! schema =
+      ServiceCollection()
+        .AddGraphQL()
+        .AddQueryType<Query>()
+        .Services
+        .BuildServiceProvider()
+        .GetSchemaAsync()
+
+    let! result =
+      schema.MakeExecutable().ExecuteAsync(
+        "query {personWithNoName {id, name}}"
+        )
+
+    let opts = JsonSerializerOptions(PropertyNameCaseInsensitive = true)
+    let actual = JsonSerializer.Deserialize<PersonWithOptionalName>(result.ToJson(), opts)
+    let expected = { OptionalName = None; Id = 1 }
 
     Assert.True((expected = actual), "The person was not returned correctly")
   }
