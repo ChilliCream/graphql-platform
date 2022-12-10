@@ -48,7 +48,7 @@ let makeSchema () =
   ServiceCollection()
     .AddGraphQL()
     .AddQueryType<Query>()
-    .RegisterFSharpTypeConverters()
+    .AddFSharpTypeConverters()
     .Services.BuildServiceProvider()
     .GetRequiredService<IRequestExecutorResolver>()
     .GetRequestExecutorAsync()

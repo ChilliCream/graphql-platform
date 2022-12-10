@@ -7,6 +7,6 @@ open HotChocolate.Types.FSharp
 [<Extension>]
 type FSharpRequestExecutorBuilderExtensions() =
   [<Extension>]
-  static member RegisterFSharpTypeConverters(this: IRequestExecutorBuilder) =
+  static member AddFSharpTypeConverters(this: IRequestExecutorBuilder) =
     this.AddTypeConverter<OptionTypeConverter>()
 
