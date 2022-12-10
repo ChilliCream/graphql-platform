@@ -5,7 +5,8 @@ open HotChocolate.Utilities
 
 
 type OptionTypeConverter() =
-  let isOptionType (t: Type) = t.IsGenericType && t.GetGenericTypeDefinition() = typedefof<option<_>>
+  let ty = typedefof<option<_>>
+  let isOptionType (t: Type) = t.IsGenericType && t.GetGenericTypeDefinition() = ty
   let getUnderlyingType (t:Type) =
     if isOptionType t then
       t.GetGenericArguments() |> Array.tryHead
@@ -17,15 +18,16 @@ type OptionTypeConverter() =
   // to define generic type parameters in function declarations. So our only
   // solution is to rely on reflection trickery to unpack the internal obj
   // See https://stackoverflow.com/questions/6289761/how-to-downcast-from-obj-to-optionobj
-  let (|SomeObj|_|) =
-    let ty = typedefof<option<_>>
-    fun (a:obj) ->
-      let aty = a.GetType()
-      let v = aty.GetProperty("Value")
-      if aty.IsGenericType && aty.GetGenericTypeDefinition() = ty then
-        if a = null then None
-        else Some(v.GetValue(a, [| |]))
-      else None
+  let (|SomeObj|_|) (a:obj) =
+      if a = null then
+        None
+      else
+        let aty = a.GetType()
+        let v = aty.GetProperty("Value")
+        if aty.IsGenericType && aty.GetGenericTypeDefinition() = ty then
+          if a = null then None
+          else Some(v.GetValue(a, [| |]))
+        else None
 
   interface IChangeTypeProvider with
 
