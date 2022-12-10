@@ -22,6 +22,7 @@
     <ProjectReference Include="..\..\src\Abstractions\HotChocolate.Abstractions.csproj" />
     <ProjectReference Include="..\..\src\Core\HotChocolate.Core.csproj" />
     <ProjectReference Include="..\..\src\Execution\HotChocolate.Execution.csproj" />
+    <ProjectReference Include="..\..\src\Types.FSharp\HotChocolate.Types.FSharp.fsproj" />
     <ProjectReference Include="..\Utilities\HotChocolate.Tests.Utilities.csproj" />
   </ItemGroup>
 
