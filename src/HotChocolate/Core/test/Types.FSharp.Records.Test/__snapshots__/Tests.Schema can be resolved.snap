@@ -2,19 +2,15 @@
   query: Query
 }
 
-type FSharpOptionOfString {
-  get_Value: String
-  value: String
-}
-
 type Person {
   id: Int!
   name: String
+  aliases: [String]
 }
 
 type PersonWithOptionalName {
   id: Int!
-  optionalName: FSharpOptionOfString
+  optionalName: String
 }
 
 type Query {
