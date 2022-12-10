@@ -2,15 +2,19 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
+    <RootNamespace>HotChocolate.Types.FSharp.Records.Test</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
     <Content Include="__snapshots__\Tests.Schema can be resolved.snap" />
-    <Compile Include="Tests.fs" />
+    <Compile Include="SchemaTests.fs" />
+    <Compile Include="OptionConverterTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="FsCheck.Xunit" Version="3.0.0-beta2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
+    <PackageReference Include="Unquote" Version="6.1.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
