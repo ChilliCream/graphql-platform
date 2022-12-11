@@ -1,5 +1,6 @@
 module SchemaTests
 
+open System.Collections.Generic
 open System.Text.Json
 open HotChocolate
 open HotChocolate.Execution
@@ -17,6 +18,9 @@ type Person =
 type PersonWithOptionalName =
   { Id: int
     OptionalName: string option }
+
+type Mutation() =
+  member _.RegisterPerson(input: PersonWithOptionalName) = true
 
 type Query() =
   member _.GetPerson() =
@@ -48,6 +52,7 @@ let makeSchema () =
   ServiceCollection()
     .AddGraphQL()
     .AddQueryType<Query>()
+    .AddMutationType<Mutation>()
     .AddFSharpTypeConverters()
     .Services.BuildServiceProvider()
     .GetRequiredService<IRequestExecutorResolver>()
@@ -92,6 +97,54 @@ let ``Fetching a person with no name works`` () =
     let json = JsonSerializer.Deserialize<JsonElement>(result.ToJson(), opts)
     let actual = json.GetProperty("data").GetProperty("personWithNoName").Deserialize(opts)
     let expected = { OptionalName = None; Id = 3 }
+
+    test <@ actual = expected @>
+  }
+
+[<Fact>]
+let ``Registering a person with an no name works`` () =
+  task {
+    let! schema = makeSchema()
+    let! result = schema.ExecuteAsync("mutation {registerPerson(input: {optionalName: null, id: 5})}")
+
+    let opts = JsonSerializerOptions(PropertyNameCaseInsensitive = true)
+    let json = JsonSerializer.Deserialize<JsonElement>(result.ToJson(), opts)
+    let actual = json.GetProperty("data").GetProperty("registerPerson").Deserialize(opts)
+    let expected = true
+
+    test <@ actual = expected @>
+  }
+
+[<Fact>]
+let ``Registering a person with an optional name works`` () =
+  task {
+    let! schema = makeSchema()
+    let! result = schema.ExecuteAsync("mutation {registerPerson(input: {optionalName: \"Test\", id: 5})}")
+
+    let opts = JsonSerializerOptions(PropertyNameCaseInsensitive = true)
+    let json = JsonSerializer.Deserialize<JsonElement>(result.ToJson(), opts)
+    let actual = json.GetProperty("data").GetProperty("registerPerson").Deserialize(opts)
+    let expected = true
+
+    test <@ actual = expected @>
+  }
+
+[<Fact>]
+let ``Registering a person with an optional name with JSON variables`` () =
+  task {
+    let opts = JsonSerializerOptions(PropertyNameCaseInsensitive = true)
+    let! schema = makeSchema()
+    let variables = Dictionary<string, obj>()
+    variables["input"] <-
+      JsonSerializer.Deserialize<PersonWithOptionalName>("{\"optionalName\": null, \"id\": 3}", opts)
+
+    let! result =
+      schema.ExecuteAsync("mutation Register($input: PersonWithOptionalNameInput!) {registerPerson(input: $input)}",
+                          variableValues = variables)
+
+    let json = JsonSerializer.Deserialize<JsonElement>(result.ToJson(), opts)
+    let actual = json.GetProperty("data").GetProperty("registerPerson").Deserialize(opts)
+    let expected = true
 
     test <@ actual = expected @>
   }
