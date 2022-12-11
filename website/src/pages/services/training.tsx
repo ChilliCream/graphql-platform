@@ -108,7 +108,7 @@ const TrainingPage: FC = () => {
           ))}
         </CardsContainer>
         <WorkshopsContainer>
-          <WorkshopsHeader>Upcoming Workshops</WorkshopsHeader>
+          <WorkshopsHeader>Upcoming Public Workshops</WorkshopsHeader>
           <WorkshopsMatrix>
             {workshops.map(({ title, date, host, place, url }) => (
               <Link to={url}>
