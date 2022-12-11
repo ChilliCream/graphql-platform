@@ -266,7 +266,7 @@ const WorkshopsMatrix = styled.div`
     margin: 0;
     font-size: 0.825rem;
     line-height: 1;
-    color: #36313d;
+    color: #3d5f9f;
     text-align: center;
   }
 
