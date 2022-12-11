@@ -23,6 +23,7 @@
     <PropertyGroup>
       <GraphQLCodeGenerationRoot>$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\</GraphQLCodeGenerationRoot>
       <GraphQLQueryGenerationRoot>$(MSBuildProjectDirectory)\$(GraphQLPersistedQueryOutput)</GraphQLQueryGenerationRoot>
+      <GraphQLCodeGenerationRoot Condition="$([Path]::IsPathRooted(GraphQLPersistedQueryOutput))">$(GraphQLPersistedQueryOutput)</GraphQLCodeGenerationRoot>
     </PropertyGroup>
 
     <PropertyGroup>
