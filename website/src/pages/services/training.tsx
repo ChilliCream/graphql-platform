@@ -97,16 +97,6 @@ const TrainingPage: FC = () => {
         </Teaser>
       </Intro>
       <Section>
-        <CardsContainer>
-          {services.map(({ kind, description, perks }) => (
-            <SupportCard
-              key={kind}
-              name={kind}
-              description={description}
-              perks={perks}
-            />
-          ))}
-        </CardsContainer>
         <WorkshopsContainer>
           <WorkshopsHeader>Upcoming Public Workshops</WorkshopsHeader>
           <WorkshopsMatrix>
@@ -129,6 +119,16 @@ const TrainingPage: FC = () => {
           </WorkshopsMatrix>
           <WorkshopsFooter />
         </WorkshopsContainer>
+        <CardsContainer>
+          {services.map(({ kind, description, perks }) => (
+            <SupportCard
+              key={kind}
+              name={kind}
+              description={description}
+              perks={perks}
+            />
+          ))}
+        </CardsContainer>
       </Section>
       <Section>
         <SectionRow>
@@ -181,11 +181,14 @@ const WorkshopsContainer = styled.div`
   flex-direction: column;
   width: 100%;
   max-width: 960px;
+  margin-top: -1em;
   padding: 0 20px;
   box-sizing: border-box;
 
   @media only screen and (min-width: 400px) {
     padding: 0 40px;
+    margin-bottom: 40px;
+    overflow: visible;
   }
 `;
 
@@ -195,13 +198,9 @@ const WorkshopsHeader = styled.div`
   text-align: center;
   outline: none;
   padding: 0;
-  border: 0;
-  border-bottom: 1px solid #d2d2d7;
   color: var(--cc-text-color);
   font-size: 1.25em;
-  line-height: 2;
-  margin: 2em 0 0.5em;
-  padding: 0;
+  line-height: 1.5em;
   cursor: default;
 `;
 
@@ -212,16 +211,17 @@ const WorkshopsFooter = styled.div`
   outline: none;
   padding: 0;
   border: 0;
-  border-bottom: 1px solid #d2d2d7;
   color: var(--cc-text-color);
   font-size: 1.25em;
-  line-height: 2;
-  margin: 0.5em 0 0;
-  padding: 0;
+  line-height: 1.5em;
   cursor: default;
 `;
 
 const WorkshopsMatrix = styled.div`
+  border-top: 1px solid #d2d2d7;
+  border-bottom: 1px solid #d2d2d7;
+  padding: 0.5em 0;
+  margin: 0.5em 0;
   scroll-snap-type: x mandatory;
   overflow-x: scroll;
   overscroll-behavior-x: none;
