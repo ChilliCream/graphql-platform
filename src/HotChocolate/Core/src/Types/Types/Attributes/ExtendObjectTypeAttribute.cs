@@ -1,6 +1,8 @@
 using System;
+using System.Reflection;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using static System.Reflection.BindingFlags;
 
 #nullable enable
 
@@ -61,6 +63,10 @@ public sealed class ExtendObjectTypeAttribute
     /// </summary>
     public string[]? IgnoreProperties { get; set; }
 
+    public Type? IgnorePropertiesResolverType { get; set; }
+
+    public string? IgnorePropertiesResolver { get; set; }
+
     /// <summary>
     /// Applies the type extension configuration.
     /// </summary>
@@ -105,7 +111,41 @@ public sealed class ExtendObjectTypeAttribute
         {
             descriptor.Extend().OnBeforeCreate(d =>
             {
-                foreach (string fieldName in IgnoreProperties)
+                foreach (var fieldName in IgnoreProperties)
+                {
+                    d.FieldIgnores.Add(new ObjectFieldBinding(
+                        fieldName,
+                        ObjectFieldBindingType.Property));
+                }
+            });
+        }
+
+        if (IgnorePropertiesResolverType is not null &&
+            IgnorePropertiesResolver is not null)
+        {
+            descriptor.Extend().OnBeforeCreate(d =>
+            {
+                MethodInfo? method = IgnorePropertiesResolverType.GetMethod(
+                    IgnorePropertiesResolver,
+                    Instance | Static | Public | FlattenHierarchy);
+                if (method is null)
+                {
+                    throw new Exception("Couldn't find method, need to be public, etc.");
+                }
+                if (method.ReturnType != typeof(string[]))
+                {
+                    throw new Exception("Needs to return a string array.");
+                }
+
+                var inst = Activator.CreateInstance(IgnorePropertiesResolverType);
+
+                var resolverResult = method.Invoke(inst, new object[] { d.ExtendsType! });
+                if (resolverResult is not string[] ignoredFieldNames)
+                {
+                    throw new Exception("Couldn't get field names array.");
+                }
+
+                foreach (var fieldName in ignoredFieldNames)
                 {
                     d.FieldIgnores.Add(new ObjectFieldBinding(
                         fieldName,
