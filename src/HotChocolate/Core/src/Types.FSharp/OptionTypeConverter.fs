@@ -38,10 +38,18 @@ type OptionTypeConverter() =
     | SomeObj value -> inner value
     | _ -> null
 
-  let convertToOption (target: Type) inner (value: obj) =
+  let createTypedSome value =
+    ty.MakeGenericType(value.GetType()).GetMethod("Some").Invoke(null, [| value |])
+
+  let mapInner inner (value: obj) =
+    match value with
+    | SomeObj value -> createTypedSome (inner value) |> box
+    | _ -> box None
+
+  let convertToOption inner (value: obj) =
     match value with
     | null -> box None
-    | value -> ty.MakeGenericType(target).GetMethod("Some").Invoke(null, [| inner value |])
+    | value -> createTypedSome (inner value)
 
   interface IChangeTypeProvider with
 
@@ -50,16 +58,21 @@ type OptionTypeConverter() =
       let innerTarget = getUnderlyingType target
 
       match innerSource, innerTarget with
-      | Some source, _ when source = target ->
+      | Some source, Some target ->
+        match root.Invoke(source, target) with
+        | true, innerConverter ->
+          converter <- ChangeType(mapInner innerConverter.Invoke)
+          true
+      | Some source, None ->
         match root.Invoke(source, target) with
         | true, innerConverter ->
           converter <- ChangeType(convertToNullable innerConverter.Invoke)
           true
         | _ -> false
-      | _, Some target when source = target ->
+      | None, Some target ->
         match root.Invoke(source, target) with
         | true, innerConverter ->
-          converter <- ChangeType(convertToOption target innerConverter.Invoke)
+          converter <- ChangeType(convertToOption innerConverter.Invoke)
           true
         | _ -> false
       | _ -> false
