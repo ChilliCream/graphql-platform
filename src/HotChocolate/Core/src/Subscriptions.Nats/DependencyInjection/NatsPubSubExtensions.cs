@@ -39,7 +39,7 @@ public static class NatsPubSubExtensions
         }
 
         builder.AddSubscriptionDiagnostics();
-        AddNatsSubscriptions(builder.Services);
+        AddNatsSubscriptions(builder.Services, options);
         return builder;
     }
 
