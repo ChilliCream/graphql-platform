@@ -15,10 +15,8 @@ import { SupportCard } from "@/components/misc/support-card";
 import ContactUsSvg from "@/images/contact-us.svg";
 import { IsPhablet } from "@/shared-style";
 
-type ServiceKind = "Consulting" | "Production Support";
-
 interface Service {
-  readonly kind: ServiceKind;
+  readonly kind: "Consulting" | "Production Support";
   readonly description: string;
   readonly perks: string[];
 }
@@ -64,7 +62,7 @@ const AvisoryPage: FC = () => {
         </Teaser>
       </Intro>
       <Section>
-        <CardContainer>
+        <CardsContainer>
           {services.map(({ kind, description, perks }) => (
             <SupportCard
               key={kind}
@@ -73,7 +71,7 @@ const AvisoryPage: FC = () => {
               perks={perks}
             />
           ))}
-        </CardContainer>
+        </CardsContainer>
       </Section>
       <Section>
         <SectionRow>
@@ -99,7 +97,7 @@ const AvisoryPage: FC = () => {
 
 export default AvisoryPage;
 
-const CardContainer = styled.div`
+const CardsContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1.5rem;
