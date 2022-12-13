@@ -138,7 +138,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
         public override void OnAfterCompleteName(
             ITypeCompletionContext completionContext,
-            DefinitionBase? definition)
+            DefinitionBase definition)
         {
             if (!CanHandle(completionContext))
             {

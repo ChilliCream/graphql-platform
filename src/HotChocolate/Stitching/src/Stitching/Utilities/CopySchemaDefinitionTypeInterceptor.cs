@@ -7,7 +7,7 @@ internal sealed class CopySchemaDefinitionTypeInterceptor : TypeInterceptor
 {
     public override void OnAfterCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition)
+        DefinitionBase definition)
     {
         if (definition is SchemaTypeDefinition schemaTypeDef)
         {

@@ -20,7 +20,7 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
 
     public override void OnAfterInitialize(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase? definition)
+        DefinitionBase definition)
     {
         // we need to preserve the initialization context of all
         // interface types and object types.
@@ -100,7 +100,7 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition)
+        DefinitionBase definition)
     {
         if (definition is InterfaceTypeDefinition { Interfaces: { Count: > 0 } } typeDef)
         {

@@ -479,7 +479,7 @@ internal sealed class RequestExecutorResolver
 
         public override void OnBeforeCompleteName(
             ITypeCompletionContext completionContext,
-            DefinitionBase? definition)
+            DefinitionBase definition)
         {
             if (completionContext.IsSchema)
             {

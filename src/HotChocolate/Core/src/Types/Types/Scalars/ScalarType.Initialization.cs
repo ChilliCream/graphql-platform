@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
@@ -39,7 +37,7 @@ public abstract partial class ScalarType
     }
 
     protected override ScalarTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
-        => new() { Name = Name };
+        => new() { Name = Name, Description = Description};
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,

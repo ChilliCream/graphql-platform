@@ -55,7 +55,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
     public override void OnAfterInitialize(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase? definition)
+        DefinitionBase definition)
     {
         if (discoveryContext is { IsIntrospectionType: false, Type: IHasName namedType } &&
             definition is ITypeDefinition { NeedsNameCompletion: false } typeDef)
@@ -99,7 +99,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition)
+        DefinitionBase definition)
     {
         if (completionContext is { IsIntrospectionType: false, Type: IHasName namedType } &&
             definition is ITypeDefinition typeDef)

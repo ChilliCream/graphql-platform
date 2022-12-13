@@ -18,7 +18,7 @@ internal sealed class SchemaDefinitionTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition)
+        DefinitionBase definition)
     {
         // when we are visiting the query type we will add the schema definition field.
         if (_publishOnSchema &&

@@ -15,7 +15,7 @@ internal sealed class StitchingTypeInterceptor : TypeInterceptor
 
     public override void OnAfterInitialize(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase? definition)
+        DefinitionBase definition)
     {
         if (definition is ObjectTypeDefinition objectTypeDef)
         {
@@ -51,7 +51,7 @@ internal sealed class StitchingTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition)
+        DefinitionBase definition)
     {
         if (completionContext.Type is ObjectType objectType &&
             definition is ObjectTypeDefinition objectTypeDef)

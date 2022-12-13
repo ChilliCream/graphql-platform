@@ -11,7 +11,7 @@ internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
 {
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase? definition)
+        DefinitionBase definition)
     {
         if (discoveryContext.IsIntrospectionType)
         {

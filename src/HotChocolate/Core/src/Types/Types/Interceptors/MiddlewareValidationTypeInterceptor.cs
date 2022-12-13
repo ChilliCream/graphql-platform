@@ -13,7 +13,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
 {
     public override void OnValidateType(
         ITypeSystemObjectContext validationContext,
-        DefinitionBase? definition)
+        DefinitionBase definition)
     {
         if (validationContext.DescriptorContext.Options.ValidatePipelineOrder &&
             definition is ObjectTypeDefinition objectTypeDef)

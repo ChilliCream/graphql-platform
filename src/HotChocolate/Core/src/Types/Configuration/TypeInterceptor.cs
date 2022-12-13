@@ -64,7 +64,7 @@ public abstract class TypeInterceptor
     /// </param>
     public virtual void OnAfterInitialize(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase? definition)
+        DefinitionBase definition)
     {
     }
 
@@ -105,7 +105,7 @@ public abstract class TypeInterceptor
     /// </param>
     public virtual void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase? definition)
+        DefinitionBase definition)
     {
     }
 
@@ -121,7 +121,7 @@ public abstract class TypeInterceptor
     /// </param>
     public virtual void OnAfterRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase? definition)
+        DefinitionBase definition)
     {
     }
 
@@ -150,7 +150,7 @@ public abstract class TypeInterceptor
     /// </param>
     public virtual void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition)
+        DefinitionBase definition)
     {
     }
 
@@ -165,7 +165,7 @@ public abstract class TypeInterceptor
     /// </param>
     public virtual void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition)
+        DefinitionBase definition)
     {
     }
 
@@ -219,7 +219,7 @@ public abstract class TypeInterceptor
     /// </param>
     public virtual void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition)
+        DefinitionBase definition)
     {
     }
 
@@ -234,7 +234,7 @@ public abstract class TypeInterceptor
     /// </param>
     public virtual void OnAfterCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition)
+        DefinitionBase definition)
     {
     }
 
@@ -251,7 +251,7 @@ public abstract class TypeInterceptor
     /// </param>
     public virtual void OnValidateType(
         ITypeSystemObjectContext validationContext,
-        DefinitionBase? definition)
+        DefinitionBase definition)
     {
     }
 

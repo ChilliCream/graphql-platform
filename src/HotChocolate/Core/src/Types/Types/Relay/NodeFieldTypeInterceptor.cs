@@ -21,7 +21,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
 {
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition)
+        DefinitionBase definition)
     {
         if ((completionContext.IsQueryType ?? false) &&
             definition is ObjectTypeDefinition objectTypeDefinition)

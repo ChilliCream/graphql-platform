@@ -32,7 +32,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase? definition)
+        DefinitionBase definition)
     {
         if (definition is not FilterInputTypeDefinition { EntityType: { } } def)
         {
@@ -134,7 +134,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition)
+        DefinitionBase definition)
     {
         if (definition is not FilterInputTypeDefinition def)
         {
@@ -162,7 +162,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition)
+        DefinitionBase definition)
     {
         if (definition is not FilterInputTypeDefinition { EntityType: { } } def)
         {

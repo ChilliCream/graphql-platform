@@ -24,7 +24,7 @@ internal sealed class EntityTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition)
+        DefinitionBase definition)
     {
         if (completionContext.Type is IComplexOutputType outputType &&
             definition is not null)
