@@ -15,7 +15,9 @@ export const BlogArticleTags: FC<BlogArticleTagsProps> = ({ tags }) => {
         <Tags>
           {tags.map((tag) => (
             <Tag key={tag}>
-              <TagLink to={`/blog/tags/${tag}`}>{tag}</TagLink>
+              <TagLink to={`/blog/tags/${tag}`} className="content-tag">
+                {tag}
+              </TagLink>
             </Tag>
           ))}
         </Tags>

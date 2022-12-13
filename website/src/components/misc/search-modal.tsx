@@ -90,4 +90,8 @@ const DocSearchStyleOverwrite = createGlobalStyle`
   .DocSearch-Commands {
     display: none;
   }
+
+  .DocSearch-Hit {
+    margin: 0;
+  }
 `;
