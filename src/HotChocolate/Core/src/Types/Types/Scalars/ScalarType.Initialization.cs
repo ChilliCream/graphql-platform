@@ -38,56 +38,12 @@ public abstract partial class ScalarType
         Directives = default!;
     }
 
-    internal sealed override void Initialize(ITypeDiscoveryContext context)
-    {
-        context.TypeInterceptor.OnBeforeRegisterDependencies(context, null);
+    protected override ScalarTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+        => new() { Name = Name };
 
-        if (_specifiedBy is not null)
-        {
-            context.Dependencies.Add(
-                new TypeDependency(
-                    context.TypeInspector.GetTypeRef(typeof(SpecifiedByDirectiveType)),
-                    TypeDependencyKind.Completed));
-            context.RegisterDependency(
-                new ClrTypeDirectiveReference(typeof(SpecifiedByDirective)));
-        }
-
-        OnRegisterDependencies(context, _contextData);
-        context.TypeInterceptor.OnAfterRegisterDependencies(context, null);
-        base.Initialize(context);
-    }
-
-    protected virtual void OnRegisterDependencies(
-        ITypeDiscoveryContext context,
-        IDictionary<string, object?> contextData)
-    {
-    }
-
-    internal sealed override void CompleteName(ITypeCompletionContext context)
-    {
-        context.TypeInterceptor.OnBeforeCompleteName(context, null);
-        OnCompleteName(context, _contextData);
-        base.CompleteName(context);
-        context.TypeInterceptor.OnAfterCompleteName(context, null);
-    }
-
-    protected virtual void OnCompleteName(
+    protected override void OnCompleteType(
         ITypeCompletionContext context,
-        IDictionary<string, object?> contextData)
-    {
-    }
-
-    internal sealed override void CompleteType(ITypeCompletionContext context)
-    {
-        context.TypeInterceptor.OnBeforeCompleteType(context, null);
-        OnCompleteType(context, _contextData);
-        base.CompleteType(context);
-        context.TypeInterceptor.OnAfterCompleteType(context, null);
-    }
-
-    protected virtual void OnCompleteType(
-        ITypeCompletionContext context,
-        IDictionary<string, object?> contextData)
+        ScalarTypeDefinition definition)
     {
         _converter = context.Services.GetTypeConverter();
 
@@ -96,12 +52,11 @@ public abstract partial class ScalarType
                 ? Array.Empty<DirectiveDefinition>()
                 : new[]
                 {
-                        new DirectiveDefinition(
-                            new SpecifiedByDirective(_specifiedBy.ToString()),
-                            context.TypeInspector.GetTypeRef(typeof(SpecifiedByDirectiveType)))
+                    new DirectiveDefinition(
+                        new SpecifiedByDirective(_specifiedBy.ToString()),
+                        context.TypeInspector.GetTypeRef(typeof(SpecifiedByDirectiveType)))
                 };
 
-        Directives =
-            DirectiveCollection.CreateAndComplete(context, this, directiveDefinitions);
+        Directives = DirectiveCollection.CreateAndComplete(context, this, directiveDefinitions);
     }
 }

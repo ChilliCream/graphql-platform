@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate;
 using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -23,9 +22,9 @@ public class LeafTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         DefinitionBase? definition)
     {
-        if (completionContext.Type is ILeafType leafType)
+        if (completionContext.Type is ILeafType leafType && definition is not null)
         {
-            _leafTypes.Add(new LeafType(leafType, contextData));
+            _leafTypes.Add(new LeafType(leafType, definition.ContextData));
         }
     }
 

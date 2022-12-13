@@ -37,8 +37,6 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
                 BindingFlags.Static | BindingFlags.Public)!;
     private readonly List<ObjectType> _entityTypes = new();
 
-    public override bool TriggerAggregations => true;
-
     public override void OnAfterInitialize(
         ITypeDiscoveryContext discoveryContext,
         DefinitionBase? definition)
@@ -62,8 +60,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         }
     }
 
-    public override void OnTypesInitialized(
-        IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+    public override void OnTypesInitialized()
     {
         if (_entityTypes.Count == 0)
         {

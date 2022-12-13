@@ -274,8 +274,6 @@ public class TypeInitializerTests
         public InjectTypes(IEnumerable<ITypeReference> typeReferences)
             => _typeReferences = typeReferences.ToList();
 
-        public override bool TriggerAggregations => true;
-
         public override IEnumerable<ITypeReference> RegisterMoreTypes(
             IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
             => _typeReferences;

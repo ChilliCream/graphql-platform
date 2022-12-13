@@ -42,53 +42,6 @@ public class SchemaRequestExecutorBuilderExtensionsConventionsTests
     }
 
     [Fact]
-    public async Task AddConventionWithFactory()
-    {
-        var conventionCreated = false;
-
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
-            .AddConvention(typeof(Foo), _ =>
-            {
-                conventionCreated = true;
-                return new Foo();
-            })
-            .OnBeforeCompleteType((c, _, _) =>
-            {
-                c.DescriptorContext.GetConventionOrDefault<Foo>(
-                    () => throw new NotSupportedException());
-            })
-            .BuildSchemaAsync();
-
-        Assert.True(conventionCreated);
-    }
-
-    [Fact]
-    public async Task AddConventionWithFactoryAndScope()
-    {
-        var conventionCreated = false;
-
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
-            .AddConvention(typeof(Foo), _ =>
-            {
-                conventionCreated = true;
-                return new Foo();
-            }, "bar")
-            .OnBeforeCompleteType((c, _, _) =>
-            {
-                c.DescriptorContext.GetConventionOrDefault<Foo>(
-                    () => throw new NotSupportedException(),
-                    "bar");
-            })
-            .BuildSchemaAsync();
-
-        Assert.True(conventionCreated);
-    }
-
-    [Fact]
     public void AddConventionWithType_BuilderNull()
     {
         void Verify() => default(ServiceCollection)!
@@ -106,21 +59,6 @@ public class SchemaRequestExecutorBuilderExtensionsConventionsTests
             .AddConvention<IConvention>(default(Type)!);
 
         Assert.Throws<ArgumentNullException>(Verify);
-    }
-
-    [Fact]
-    public async Task AddConventionWithType()
-    {
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
-            .AddConvention<Foo>(typeof(Foo))
-            .OnBeforeCompleteType((c, _, _) =>
-            {
-                c.DescriptorContext.GetConventionOrDefault<Foo>(
-                    () => throw new NotSupportedException());
-            })
-            .BuildSchemaAsync();
     }
 
     [Fact]
@@ -151,53 +89,6 @@ public class SchemaRequestExecutorBuilderExtensionsConventionsTests
             .TryAddConvention(typeof(Foo), default(CreateConvention)!);
 
         Assert.Throws<ArgumentNullException>(Verify);
-    }
-
-    [Fact]
-    public async Task TryAddConventionWithFactory()
-    {
-        var conventionCreated = false;
-
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
-            .TryAddConvention(typeof(Foo), _ =>
-            {
-                conventionCreated = true;
-                return new Foo();
-            })
-            .OnBeforeCompleteType((c, _, _) =>
-            {
-                c.DescriptorContext.GetConventionOrDefault<Foo>(
-                    () => throw new NotSupportedException());
-            })
-            .BuildSchemaAsync();
-
-        Assert.True(conventionCreated);
-    }
-
-    [Fact]
-    public async Task TryAddConventionWithFactoryAndScope()
-    {
-        var conventionCreated = false;
-
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
-            .TryAddConvention(typeof(Foo), _ =>
-            {
-                conventionCreated = true;
-                return new Foo();
-            }, "bar")
-            .OnBeforeCompleteType((c, _, _) =>
-            {
-                c.DescriptorContext.GetConventionOrDefault<Foo>(
-                    () => throw new NotSupportedException(),
-                    "bar");
-            })
-            .BuildSchemaAsync();
-
-        Assert.True(conventionCreated);
     }
 
     public class Foo : IConvention

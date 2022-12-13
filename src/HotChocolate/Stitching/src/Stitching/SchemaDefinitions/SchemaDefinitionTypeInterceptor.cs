@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -9,7 +7,7 @@ using static HotChocolate.Stitching.SchemaDefinitions.SchemaDefinitionFieldNames
 
 namespace HotChocolate.Stitching.SchemaDefinitions;
 
-internal class SchemaDefinitionTypeInterceptor : TypeInterceptor
+internal sealed class SchemaDefinitionTypeInterceptor : TypeInterceptor
 {
     private readonly bool _publishOnSchema;
 
@@ -53,12 +51,12 @@ internal class SchemaDefinitionTypeInterceptor : TypeInterceptor
 
         // when we visit the schema definition we will copy over the schema definition list
         // that sits on the schema creation context.
-        else if (definition is SchemaTypeDefinition &&
+        else if (definition is SchemaTypeDefinition schemaTypeDef &&
             completionContext.ContextData.TryGetValue(
                 WellKnownContextData.SchemaDefinitions,
                 out var schemaDefinitions))
         {
-            contextData[WellKnownContextData.SchemaDefinitions] = schemaDefinitions;
+            schemaTypeDef.ContextData[WellKnownContextData.SchemaDefinitions] = schemaDefinitions;
         }
     }
 }

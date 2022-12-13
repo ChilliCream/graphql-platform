@@ -13,17 +13,12 @@ using static HotChocolate.Data.ThrowHelper;
 
 namespace HotChocolate.Data.Filters;
 
-public class FilterTypeInterceptor
-    : TypeInterceptor
+public sealed class FilterTypeInterceptor : TypeInterceptor
 {
     private readonly Dictionary<string, IFilterConvention> _conventions = new();
     private readonly Dictionary<ITypeSystemMember, FilterInputTypeDefinition> _definitions = new();
     private readonly List<Func<ITypeReference>> _typesToRegister = new();
     private TypeRegistry _typeRegistry = default!;
-
-    public override bool CanHandle(ITypeSystemObjectContext context) => true;
-
-    public override bool TriggerAggregations => true;
 
     internal override void InitializeContext(
         IDescriptorContext context,

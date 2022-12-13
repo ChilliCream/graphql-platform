@@ -137,13 +137,12 @@ internal class ConnectionType
 
     protected override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext context,
-        DefinitionBase definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
         context.Dependencies.Add(new(
             context.TypeInspector.GetOutputTypeRef(typeof(PageInfoType))));
 
-        base.OnBeforeRegisterDependencies(context, definition, contextData);
+        base.OnBeforeRegisterDependencies(context, definition);
     }
 
     private static ObjectTypeDefinition CreateTypeDefinition(

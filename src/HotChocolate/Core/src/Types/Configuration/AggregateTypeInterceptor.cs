@@ -39,7 +39,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, length).InitializeContext(
+            Unsafe.Add(ref first, i).InitializeContext(
                 context,
                 typeInitializer,
                 typeRegistry,
@@ -55,7 +55,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, length).OnBeforeDiscoverTypes();
+            Unsafe.Add(ref first, i).OnBeforeDiscoverTypes();
         }
     }
 
@@ -66,7 +66,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, length).OnAfterDiscoverTypes();
+            Unsafe.Add(ref first, i).OnAfterDiscoverTypes();
         }
     }
 
@@ -78,7 +78,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, length).OnBeforeInitialize(discoveryContext);
+            Unsafe.Add(ref first, i).OnBeforeInitialize(discoveryContext);
         }
     }
 
@@ -91,7 +91,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, length).OnAfterInitialize(discoveryContext, definition);
+            Unsafe.Add(ref first, i).OnAfterInitialize(discoveryContext, definition);
         }
     }
 
@@ -102,7 +102,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, length).OnTypeRegistered(discoveryContext);
+            Unsafe.Add(ref first, i).OnTypeRegistered(discoveryContext);
         }
     }
 
@@ -117,7 +117,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         for (var i = 0; i < length; i++)
         {
             _typeReferences.AddRange(
-                Unsafe.Add(ref first, length).RegisterMoreTypes(discoveryContexts));
+                Unsafe.Add(ref first, i).RegisterMoreTypes(discoveryContexts));
         }
 
         return _typeReferences;
@@ -130,7 +130,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, length).OnTypesInitialized();
+            Unsafe.Add(ref first, i).OnTypesInitialized();
         }
     }
 
@@ -143,7 +143,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, length).OnAfterRegisterDependencies(discoveryContext, definition);
+            Unsafe.Add(ref first, i).OnAfterRegisterDependencies(discoveryContext, definition);
         }
     }
 
@@ -156,8 +156,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, length)
-                .OnBeforeRegisterDependencies(discoveryContext, definition);
+            Unsafe.Add(ref first, i).OnBeforeRegisterDependencies(discoveryContext, definition);
         }
     }
 
@@ -168,7 +167,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, length).OnBeforeCompleteTypeNames();
+            Unsafe.Add(ref first, i).OnBeforeCompleteTypeNames();
         }
     }
 
@@ -179,7 +178,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, length).OnAfterCompleteTypeNames();
+            Unsafe.Add(ref first, i).OnAfterCompleteTypeNames();
         }
     }
 
@@ -192,7 +191,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, length).OnBeforeCompleteName(completionContext, definition);
+            Unsafe.Add(ref first, i).OnBeforeCompleteName(completionContext, definition);
         }
     }
 
@@ -205,7 +204,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, length).OnAfterCompleteName(completionContext, definition);
+            Unsafe.Add(ref first, i).OnAfterCompleteName(completionContext, definition);
         }
     }
 
@@ -219,7 +218,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, length).OnAfterResolveRootType(
+            Unsafe.Add(ref first, i).OnAfterResolveRootType(
                 completionContext,
                 definition,
                 operationType);
@@ -233,7 +232,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, length).OnTypesCompletedName();
+            Unsafe.Add(ref first, i).OnTypesCompletedName();
         }
     }
 
@@ -244,7 +243,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, length).OnBeforeMergeTypeExtensions();
+            Unsafe.Add(ref first, i).OnBeforeMergeTypeExtensions();
         }
     }
 
@@ -255,7 +254,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, length).OnAfterMergeTypeExtensions();
+            Unsafe.Add(ref first, i).OnAfterMergeTypeExtensions();
         }
     }
 
@@ -266,7 +265,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, length).OnBeforeCompleteTypes();
+            Unsafe.Add(ref first, i).OnBeforeCompleteTypes();
         }
     }
 
@@ -277,7 +276,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, length).OnAfterCompleteTypes();
+            Unsafe.Add(ref first, i).OnAfterCompleteTypes();
         }
     }
 
@@ -290,7 +289,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, length).OnBeforeCompleteType(completionContext, definition);
+            Unsafe.Add(ref first, i).OnBeforeCompleteType(completionContext, definition);
         }
     }
 
@@ -303,7 +302,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, length).OnAfterCompleteType(completionContext, definition);
+            Unsafe.Add(ref first, i).OnAfterCompleteType(completionContext, definition);
         }
     }
 
@@ -316,7 +315,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, length).OnValidateType(validationContext, definition);
+            Unsafe.Add(ref first, i).OnValidateType(validationContext, definition);
         }
     }
 
@@ -329,7 +328,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
         for (var i = 0; i < length; i++)
         {
-            if (Unsafe.Add(ref first, length).TryCreateScope(discoveryContext, out typeDeps))
+            if (Unsafe.Add(ref first, i).TryCreateScope(discoveryContext, out typeDeps))
             {
                 return true;
             }
@@ -346,7 +345,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
         for (var i = 0; i < length; i++)
         {
-            Unsafe.Add(ref first, length).OnTypesCompleted();
+            Unsafe.Add(ref first, i).OnTypesCompleted();
         }
     }
 
