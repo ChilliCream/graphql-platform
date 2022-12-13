@@ -168,6 +168,7 @@ export const DocPageGraphQLFragment = graphql`
         path
         title
         description
+        metaDescription
         latestStableVersion
       }
     }
@@ -184,11 +185,12 @@ interface ProductInformation {
   readonly name: string | null;
   readonly version: string;
   readonly stableVersion: string;
+  readonly description: string | null;
 }
 
 type Product = Pick<
   DocsJson,
-  "path" | "title" | "description" | "latestStableVersion"
+  "path" | "title" | "description" | "metaDescription" | "latestStableVersion"
 >;
 
 export function useProductInformation(
@@ -220,6 +222,7 @@ export function useProductInformation(
     name: selectedProduct?.title ?? "",
     version: selectedVersion,
     stableVersion,
+    description: selectedProduct?.metaDescription || null,
   };
 }
 
