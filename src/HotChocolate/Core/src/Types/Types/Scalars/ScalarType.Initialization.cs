@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Configuration;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
@@ -39,22 +40,25 @@ public abstract partial class ScalarType
     protected override ScalarTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         => new() { Name = Name, Description = Description};
 
+    protected override void OnRegisterDependencies(
+        ITypeDiscoveryContext context,
+        ScalarTypeDefinition definition)
+    {
+        base.OnRegisterDependencies(context, definition);
+
+        if (SpecifiedBy is not null)
+        {
+            context.RegisterDependency(
+                new ClrTypeDirectiveReference(typeof(SpecifiedByDirectiveType)));
+        }
+    }
+
     protected override void OnCompleteType(
         ITypeCompletionContext context,
         ScalarTypeDefinition definition)
     {
         _converter = context.Services.GetTypeConverter();
-
-        var directiveDefinitions =
-            _specifiedBy is null
-                ? Array.Empty<DirectiveDefinition>()
-                : new[]
-                {
-                    new DirectiveDefinition(
-                        new SpecifiedByDirective(_specifiedBy.ToString()),
-                        context.TypeInspector.GetTypeRef(typeof(SpecifiedByDirectiveType)))
-                };
-
+        var directiveDefinitions = Array.Empty<DirectiveDefinition>();
         Directives = DirectiveCollection.CreateAndComplete(context, this, directiveDefinitions);
     }
 }

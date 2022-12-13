@@ -2275,7 +2275,7 @@ public class SchemaBuilderTests
             ITypeCompletionContext completionContext,
             DefinitionBase definition)
         {
-            definition?.ContextData.Add("touched", true);
+            definition.ContextData.Add("touched", true);
         }
     }
 

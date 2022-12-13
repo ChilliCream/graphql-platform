@@ -42,8 +42,8 @@ public class AnyType : ScalarType
         ITypeCompletionContext context,
         ScalarTypeDefinition definition)
     {
-        _objectToDictConverter = new ObjectToDictionaryConverter(Converter);
         base.OnCompleteType(context, definition);
+        _objectToDictConverter = new ObjectToDictionaryConverter(Converter);
     }
 
     public override bool IsInstanceOfType(IValueNode literal)
