@@ -69,8 +69,7 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase? definition)
     {
         if (completionContext.Type is ObjectType objectType &&
             definition is ObjectTypeDefinition objectTypeDef &&

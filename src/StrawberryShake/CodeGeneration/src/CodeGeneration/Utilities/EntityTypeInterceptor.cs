@@ -24,8 +24,7 @@ public class EntityTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase? definition)
     {
         if (completionContext.Type is IComplexOutputType outputType)
         {

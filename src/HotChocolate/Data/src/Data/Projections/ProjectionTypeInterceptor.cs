@@ -13,8 +13,7 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase? definition)
     {
         if ((completionContext.IsQueryType ?? false) &&
             completionContext.Type is ObjectType { Fields: var fields })
@@ -54,8 +53,7 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase? definition)
     {
         if (definition is ObjectTypeDefinition objectTypeDefinition)
         {

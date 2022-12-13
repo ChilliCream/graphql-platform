@@ -90,8 +90,7 @@ public class TypeScopeInterceptorTests
 
         public override void OnBeforeRegisterDependencies(
             ITypeDiscoveryContext discoveryContext,
-            DefinitionBase definition,
-            IDictionary<string, object> contextData)
+            DefinitionBase definition)
         {
             if (definition is ObjectTypeDefinition def)
             {
@@ -107,8 +106,7 @@ public class TypeScopeInterceptorTests
 
         public override void OnBeforeCompleteName(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition,
-            IDictionary<string, object> contextData)
+            DefinitionBase definition)
         {
             definition.Name = completionContext.Scope + "_" + definition.Name;
         }

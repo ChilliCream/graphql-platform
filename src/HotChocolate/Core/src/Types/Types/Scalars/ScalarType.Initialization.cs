@@ -40,7 +40,7 @@ public abstract partial class ScalarType
 
     internal sealed override void Initialize(ITypeDiscoveryContext context)
     {
-        context.TypeInterceptor.OnBeforeRegisterDependencies(context, null, _contextData);
+        context.TypeInterceptor.OnBeforeRegisterDependencies(context, null);
 
         if (_specifiedBy is not null)
         {
@@ -53,7 +53,7 @@ public abstract partial class ScalarType
         }
 
         OnRegisterDependencies(context, _contextData);
-        context.TypeInterceptor.OnAfterRegisterDependencies(context, null, _contextData);
+        context.TypeInterceptor.OnAfterRegisterDependencies(context, null);
         base.Initialize(context);
     }
 
@@ -65,10 +65,10 @@ public abstract partial class ScalarType
 
     internal sealed override void CompleteName(ITypeCompletionContext context)
     {
-        context.TypeInterceptor.OnBeforeCompleteName(context, null, _contextData);
+        context.TypeInterceptor.OnBeforeCompleteName(context, null);
         OnCompleteName(context, _contextData);
         base.CompleteName(context);
-        context.TypeInterceptor.OnAfterCompleteName(context, null, _contextData);
+        context.TypeInterceptor.OnAfterCompleteName(context, null);
     }
 
     protected virtual void OnCompleteName(
@@ -79,10 +79,10 @@ public abstract partial class ScalarType
 
     internal sealed override void CompleteType(ITypeCompletionContext context)
     {
-        context.TypeInterceptor.OnBeforeCompleteType(context, null, _contextData);
+        context.TypeInterceptor.OnBeforeCompleteType(context, null);
         OnCompleteType(context, _contextData);
         base.CompleteType(context);
-        context.TypeInterceptor.OnAfterCompleteType(context, null, _contextData);
+        context.TypeInterceptor.OnAfterCompleteType(context, null);
     }
 
     protected virtual void OnCompleteType(

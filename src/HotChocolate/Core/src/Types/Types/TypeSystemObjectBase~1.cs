@@ -200,7 +200,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         IDictionary<string, object?> contextData)
     {
         context.TypeInterceptor.OnAfterInitialize(
-            context, definition, contextData);
+            context, definition);
     }
 
     protected virtual void OnBeforeRegisterDependencies(
@@ -209,7 +209,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         IDictionary<string, object?> contextData)
     {
         context.TypeInterceptor.OnBeforeRegisterDependencies(
-            context, definition, contextData);
+            context, definition);
     }
 
     protected virtual void OnAfterRegisterDependencies(
@@ -218,7 +218,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         IDictionary<string, object?> contextData)
     {
         context.TypeInterceptor.OnAfterRegisterDependencies(
-            context, definition, contextData);
+            context, definition);
     }
 
     protected virtual void OnBeforeCompleteName(
@@ -227,7 +227,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         IDictionary<string, object?> contextData)
     {
         context.TypeInterceptor.OnBeforeCompleteName(
-            context, definition, contextData);
+            context, definition);
     }
 
     protected virtual void OnAfterCompleteName(
@@ -236,7 +236,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         IDictionary<string, object?> contextData)
     {
         context.TypeInterceptor.OnAfterCompleteName(
-            context, definition, contextData);
+            context, definition);
     }
 
     protected virtual void OnBeforeCompleteType(
@@ -245,7 +245,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         IDictionary<string, object?> contextData)
     {
         context.TypeInterceptor.OnBeforeCompleteType(
-            context, definition, contextData);
+            context, definition);
     }
 
     protected virtual void OnAfterCompleteType(
@@ -254,7 +254,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         IDictionary<string, object?> contextData)
     {
         context.TypeInterceptor.OnAfterCompleteType(
-            context, definition, contextData);
+            context, definition);
     }
 
     protected virtual void OnValidateType(
@@ -263,7 +263,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         IDictionary<string, object?> contextData)
     {
         context.TypeInterceptor.OnValidateType(
-            context, definition, contextData);
+            context, definition);
     }
 
     private void AssertUninitialized()

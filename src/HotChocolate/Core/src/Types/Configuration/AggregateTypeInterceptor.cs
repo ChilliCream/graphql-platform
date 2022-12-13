@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -12,46 +14,18 @@ namespace HotChocolate.Configuration;
 
 internal sealed class AggregateTypeInterceptor : TypeInterceptor
 {
-    private readonly List<ITypeDiscoveryContext> _discoveryContexts = new();
-    private readonly List<ITypeCompletionContext> _completionContexts = new();
     private readonly List<ITypeReference> _typeReferences = new();
-    private IReadOnlyCollection<TypeInterceptor> _typeInterceptors;
-    private IReadOnlyCollection<ITypeInitializationInterceptor> _initInterceptors;
-    private IReadOnlyCollection<ITypeInitializationInterceptor> _agrInterceptors;
-    private IReadOnlyCollection<ITypeScopeInterceptor> _scopeInterceptors;
-    private IReadOnlyCollection<ITypeInitializationFlowInterceptor> _flowInterceptors;
-    private IReadOnlyCollection<ITypeRegistryInterceptor> _registryInterceptors;
-    private bool _triggerAggregations;
+    private TypeInterceptor[] _typeInterceptors;
 
     public AggregateTypeInterceptor()
     {
         _typeInterceptors = Array.Empty<TypeInterceptor>();
-        _initInterceptors = Array.Empty<ITypeInitializationInterceptor>();
-        _agrInterceptors = Array.Empty<ITypeInitializationInterceptor>();
-        _scopeInterceptors = Array.Empty<ITypeScopeInterceptor>();
-        _flowInterceptors = Array.Empty<ITypeInitializationFlowInterceptor>();
-        _registryInterceptors = Array.Empty<ITypeRegistryInterceptor>();
-        _triggerAggregations = false;
     }
 
     public void SetInterceptors(IReadOnlyCollection<object> interceptors)
     {
-        _discoveryContexts.Clear();
-        _completionContexts.Clear();
-        _typeReferences.Clear();
-
-        _typeInterceptors = interceptors.OfType<TypeInterceptor>().ToList();
-        _initInterceptors = interceptors.OfType<ITypeInitializationInterceptor>().ToList();
-        _agrInterceptors = _initInterceptors.Where(t => t.TriggerAggregations).ToList();
-        _scopeInterceptors = interceptors.OfType<ITypeScopeInterceptor>().ToList();
-        _flowInterceptors = interceptors.OfType<ITypeInitializationFlowInterceptor>().ToList();
-        _registryInterceptors = interceptors.OfType<ITypeRegistryInterceptor>().ToList();
-        _triggerAggregations = _agrInterceptors.Count > 0;
+        _typeInterceptors = interceptors.OfType<TypeInterceptor>().ToArray();
     }
-
-    public override bool TriggerAggregations => _triggerAggregations;
-
-    public override bool CanHandle(ITypeSystemObjectContext context) => true;
 
     internal override void InitializeContext(
         IDescriptorContext context,
@@ -60,9 +34,12 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         TypeLookup typeLookup,
         TypeReferenceResolver typeReferenceResolver)
     {
-        foreach (var interceptor in _typeInterceptors)
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
         {
-            interceptor.InitializeContext(
+            Unsafe.Add(ref first, length).InitializeContext(
                 context,
                 typeInitializer,
                 typeRegistry,
@@ -73,51 +50,59 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeDiscoverTypes()
     {
-        foreach (var interceptor in _flowInterceptors)
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
         {
-            interceptor.OnBeforeDiscoverTypes();
+            Unsafe.Add(ref first, length).OnBeforeDiscoverTypes();
         }
     }
 
     public override void OnAfterDiscoverTypes()
     {
-        foreach (var interceptor in _flowInterceptors)
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
         {
-            interceptor.OnAfterDiscoverTypes();
+            Unsafe.Add(ref first, length).OnAfterDiscoverTypes();
         }
     }
 
     public override void OnBeforeInitialize(
         ITypeDiscoveryContext discoveryContext)
     {
-        foreach (var interceptor in _initInterceptors)
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
         {
-            if (interceptor.CanHandle(discoveryContext))
-            {
-                interceptor.OnBeforeInitialize(discoveryContext);
-            }
+            Unsafe.Add(ref first, length).OnBeforeInitialize(discoveryContext);
         }
     }
 
     public override void OnAfterInitialize(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase? definition)
     {
-        foreach (var interceptor in _initInterceptors)
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
         {
-            if (interceptor.CanHandle(discoveryContext))
-            {
-                interceptor.OnAfterInitialize(discoveryContext, definition, contextData);
-            }
+            Unsafe.Add(ref first, length).OnAfterInitialize(discoveryContext, definition);
         }
     }
 
     public override void OnTypeRegistered(ITypeDiscoveryContext discoveryContext)
     {
-        foreach (var interceptor in _registryInterceptors)
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
         {
-            interceptor.OnTypeRegistered(discoveryContext);
+            Unsafe.Add(ref first, length).OnTypeRegistered(discoveryContext);
         }
     }
 
@@ -126,125 +111,101 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
     {
         _typeReferences.Clear();
 
-        if (_agrInterceptors.Count > 0)
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
         {
-            foreach (var interceptor in _agrInterceptors)
-            {
-                _discoveryContexts.Clear();
-
-                foreach (var discoveryContext in discoveryContexts)
-                {
-                    if (interceptor.CanHandle(discoveryContext))
-                    {
-                        _discoveryContexts.Add(discoveryContext);
-                    }
-                }
-
-                _typeReferences.AddRange(
-                    interceptor.RegisterMoreTypes(_discoveryContexts).Distinct());
-            }
-
-            _discoveryContexts.Clear();
+            _typeReferences.AddRange(
+                Unsafe.Add(ref first, length).RegisterMoreTypes(discoveryContexts));
         }
 
         return _typeReferences;
     }
 
-    public override void OnTypesInitialized(
-        IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+    public override void OnTypesInitialized()
     {
-        if (_agrInterceptors.Count > 0)
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
         {
-            foreach (var interceptor in _agrInterceptors)
-            {
-                _discoveryContexts.Clear();
-
-                foreach (var discoveryContext in discoveryContexts)
-                {
-                    if (interceptor.CanHandle(discoveryContext))
-                    {
-                        _discoveryContexts.Add(discoveryContext);
-                    }
-                }
-
-                interceptor.OnTypesInitialized(_discoveryContexts);
-            }
-
-            _discoveryContexts.Clear();
+            Unsafe.Add(ref first, length).OnTypesInitialized();
         }
     }
 
     public override void OnAfterRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase? definition)
     {
-        foreach (var interceptor in _initInterceptors)
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
         {
-            if (interceptor.CanHandle(discoveryContext))
-            {
-                interceptor.OnAfterRegisterDependencies(
-                    discoveryContext, definition, contextData);
-            }
+            Unsafe.Add(ref first, length).OnAfterRegisterDependencies(discoveryContext, definition);
         }
     }
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase? definition)
     {
-        foreach (var interceptor in _initInterceptors)
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
         {
-            if (interceptor.CanHandle(discoveryContext))
-            {
-                interceptor.OnBeforeRegisterDependencies(
-                    discoveryContext, definition, contextData);
-            }
+            Unsafe.Add(ref first, length)
+                .OnBeforeRegisterDependencies(discoveryContext, definition);
         }
     }
 
     public override void OnBeforeCompleteTypeNames()
     {
-        foreach (var interceptor in _flowInterceptors)
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
         {
-            interceptor.OnBeforeCompleteTypeNames();
+            Unsafe.Add(ref first, length).OnBeforeCompleteTypeNames();
         }
     }
 
     public override void OnAfterCompleteTypeNames()
     {
-        foreach (var interceptor in _flowInterceptors)
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
         {
-            interceptor.OnAfterCompleteTypeNames();
+            Unsafe.Add(ref first, length).OnAfterCompleteTypeNames();
         }
     }
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase? definition)
     {
-        foreach (var interceptor in _initInterceptors)
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
         {
-            if (interceptor.CanHandle(completionContext))
-            {
-                interceptor.OnBeforeCompleteName(completionContext, definition, contextData);
-            }
+            Unsafe.Add(ref first, length).OnBeforeCompleteName(completionContext, definition);
         }
     }
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase? definition)
     {
-        foreach (var interceptor in _initInterceptors)
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
         {
-            if (interceptor.CanHandle(completionContext))
-            {
-                interceptor.OnAfterCompleteName(completionContext, definition, contextData);
-            }
+            Unsafe.Add(ref first, length).OnAfterCompleteName(completionContext, definition);
         }
     }
 
@@ -253,153 +214,148 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         DefinitionBase definition,
         OperationType operationType)
     {
-        foreach (var interceptor in _typeInterceptors)
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
         {
-            if (interceptor.CanHandle(completionContext))
-            {
-                interceptor.OnAfterResolveRootType(
-                    completionContext,
-                    definition,
-                    operationType);
-            }
+            Unsafe.Add(ref first, length).OnAfterResolveRootType(
+                completionContext,
+                definition,
+                operationType);
         }
     }
 
-    public override void OnTypesCompletedName(
-        IReadOnlyCollection<ITypeCompletionContext> completionContexts)
+    public override void OnTypesCompletedName()
     {
-        if (_agrInterceptors.Count > 0)
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
         {
-            foreach (var interceptor in _agrInterceptors)
-            {
-                _completionContexts.Clear();
-
-                foreach (var completionContext in completionContexts)
-                {
-                    if (interceptor.CanHandle(completionContext))
-                    {
-                        _completionContexts.Add(completionContext);
-                    }
-                }
-
-                interceptor.OnTypesCompletedName(_completionContexts);
-            }
-
-            _completionContexts.Clear();
+            Unsafe.Add(ref first, length).OnTypesCompletedName();
         }
     }
 
     public override void OnBeforeMergeTypeExtensions()
     {
-        foreach (var interceptor in _flowInterceptors)
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
         {
-            interceptor.OnBeforeMergeTypeExtensions();
+            Unsafe.Add(ref first, length).OnBeforeMergeTypeExtensions();
         }
     }
 
     public override void OnAfterMergeTypeExtensions()
     {
-        foreach (var interceptor in _flowInterceptors)
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
         {
-            interceptor.OnAfterMergeTypeExtensions();
+            Unsafe.Add(ref first, length).OnAfterMergeTypeExtensions();
         }
     }
 
     public override void OnBeforeCompleteTypes()
     {
-        foreach (var interceptor in _flowInterceptors)
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
         {
-            interceptor.OnBeforeCompleteTypes();
+            Unsafe.Add(ref first, length).OnBeforeCompleteTypes();
         }
     }
 
     public override void OnAfterCompleteTypes()
     {
-        foreach (var interceptor in _flowInterceptors)
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
         {
-            interceptor.OnAfterCompleteTypes();
+            Unsafe.Add(ref first, length).OnAfterCompleteTypes();
         }
     }
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase? definition)
     {
-        foreach (var interceptor in _initInterceptors)
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
         {
-            if (interceptor.CanHandle(completionContext))
-            {
-                interceptor.OnBeforeCompleteType(completionContext, definition, contextData);
-            }
+            Unsafe.Add(ref first, length).OnBeforeCompleteType(completionContext, definition);
         }
     }
 
     public override void OnAfterCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase? definition)
     {
-        foreach (var interceptor in _initInterceptors)
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
         {
-            if (interceptor.CanHandle(completionContext))
-            {
-                interceptor.OnAfterCompleteType(completionContext, definition, contextData);
-            }
+            Unsafe.Add(ref first, length).OnAfterCompleteType(completionContext, definition);
         }
     }
 
     public override void OnValidateType(
         ITypeSystemObjectContext validationContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase? definition)
     {
-        foreach (var interceptor in _initInterceptors)
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
         {
-            if (interceptor.CanHandle(validationContext))
-            {
-                interceptor.OnValidateType(validationContext, definition, contextData);
-            }
+            Unsafe.Add(ref first, length).OnValidateType(validationContext, definition);
         }
     }
 
     public override bool TryCreateScope(
         ITypeDiscoveryContext discoveryContext,
-        [NotNullWhen(true)] out IReadOnlyList<TypeDependency>? typeDependencies)
+        [NotNullWhen(true)] out IReadOnlyList<TypeDependency>? typeDeps)
     {
-        foreach (var interceptor in _scopeInterceptors)
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
         {
-            if (interceptor.TryCreateScope(discoveryContext, out typeDependencies))
+            if (Unsafe.Add(ref first, length).TryCreateScope(discoveryContext, out typeDeps))
             {
                 return true;
             }
         }
 
-        typeDependencies = null;
+        typeDeps = null;
         return false;
     }
 
-    public override void OnTypesCompleted(
-        IReadOnlyCollection<ITypeCompletionContext> completionContexts)
+    public override void OnTypesCompleted()
     {
-        if (_agrInterceptors.Count > 0)
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
         {
-            foreach (var interceptor in _agrInterceptors)
-            {
-                _completionContexts.Clear();
-
-                foreach (var completionContext in completionContexts)
-                {
-                    if (interceptor.CanHandle(completionContext))
-                    {
-                        _completionContexts.Add(completionContext);
-                    }
-                }
-
-                interceptor.OnTypesCompleted(_completionContexts);
-            }
-
-            _completionContexts.Clear();
+            Unsafe.Add(ref first, length).OnTypesCompleted();
         }
+    }
+
+    private ref TypeInterceptor GetReference()
+    {
+#if NET6_0_OR_GREATER
+        return ref MemoryMarshal.GetArrayDataReference(_typeInterceptors);
+#else
+        return ref MemoryMarshal.GetReference(_typeInterceptors.AsSpan());
+#endif
     }
 }

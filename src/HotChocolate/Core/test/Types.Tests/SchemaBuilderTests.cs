@@ -2299,8 +2299,7 @@ public class SchemaBuilderTests
     {
         public override void OnAfterCompleteType(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition,
-            IDictionary<string, object> contextData)
+            DefinitionBase definition)
         {
             contextData.Add("touched", true);
         }

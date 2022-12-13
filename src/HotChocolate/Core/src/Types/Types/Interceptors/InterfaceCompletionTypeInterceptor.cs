@@ -9,7 +9,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Interceptors;
 
-internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
+internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
 {
     private readonly Dictionary<ITypeSystemObject, TypeInfo> _typeInfos = new();
     private readonly Dictionary<Type, TypeInfo> _allInterfaceRuntimeTypes = new();
@@ -18,12 +18,9 @@ internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
     private readonly HashSet<string> _completedFields = new();
     private readonly Queue<InterfaceType> _backlog = new();
 
-    public override bool TriggerAggregations => true;
-
     public override void OnAfterInitialize(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase? definition)
     {
         // we need to preserve the initialization context of all
         // interface types and object types.
@@ -33,8 +30,7 @@ internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
         }
     }
 
-    public override void OnTypesInitialized(
-        IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+    public override void OnTypesInitialized()
     {
         // after all types have been initialized we will index the runtime
         // types of all interfaces.
@@ -104,8 +100,7 @@ internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase? definition)
     {
         if (definition is InterfaceTypeDefinition { Interfaces: { Count: > 0 } } typeDef)
         {

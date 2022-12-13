@@ -40,8 +40,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase? definition)
     {
         // first we need to get a handle on the error interface.
         _errorInterfaceTypeRef ??= CreateErrorTypeRef(discoveryContext);

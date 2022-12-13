@@ -37,10 +37,6 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
         _runtimeTypes = runtimeTypes;
     }
 
-    public override bool TriggerAggregations => true;
-
-    public override bool CanHandle(ITypeSystemObjectContext context) => true;
-
     internal override void InitializeContext(
         IDescriptorContext context,
         TypeInitializer typeInitializer,
@@ -59,15 +55,12 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
     public override void OnAfterInitialize(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase? definition)
     {
-        if (!discoveryContext.IsIntrospectionType &&
-            discoveryContext.Type is IHasName namedType &&
+        if (discoveryContext is { IsIntrospectionType: false, Type: IHasName namedType } &&
             definition is ITypeDefinition { NeedsNameCompletion: false } typeDef)
         {
             if (typeDef.RuntimeType == typeof(object) &&
-                typeDef.Name is not null &&
                 _runtimeTypes.TryGetValue(typeDef.Name, out var type))
             {
                 typeDef.RuntimeType = type;
@@ -106,15 +99,12 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase? definition)
     {
-        if (!completionContext.IsIntrospectionType &&
-            completionContext.Type is IHasName namedType &&
+        if (completionContext is { IsIntrospectionType: false, Type: IHasName namedType } &&
             definition is ITypeDefinition typeDef)
         {
             if (typeDef.RuntimeType == typeof(object) &&
-                typeDef.Name is not null &&
                 _runtimeTypes.TryGetValue(typeDef.Name, out var type))
             {
                 typeDef.RuntimeType = type;
@@ -349,7 +339,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
     private void CollectSourceMembers(CompletionContext context, Type runtimeType)
     {
-        foreach (var member in _typeInspector.GetMembers(runtimeType, false))
+        foreach (var member in _typeInspector.GetMembers(runtimeType))
         {
             var name = _naming.GetMemberName(member, MemberKind.ObjectField);
             context.Members[name] = member;
@@ -479,7 +469,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
         public CompletionContext(List<ITypeDefinition> typeDefs)
         {
-            TypeDefs = typeDefs.ToLookup(t => t.Name!);
+            TypeDefs = typeDefs.ToLookup(t => t.Name);
         }
     }
 }

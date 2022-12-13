@@ -8,8 +8,7 @@ public class CopySchemaDefinitionTypeInterceptor : TypeInterceptor
 {
     public override void OnAfterCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase? definition)
     {
         if (definition is SchemaTypeDefinition)
         {

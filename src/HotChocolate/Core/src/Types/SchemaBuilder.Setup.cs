@@ -36,7 +36,7 @@ public partial class SchemaBuilder
             try
             {
                 var schemaInterceptors = new List<ISchemaInterceptor>();
-                var typeInterceptors = new List<ITypeInitializationInterceptor>();
+                var typeInterceptors = new List<TypeInterceptor>();
 
                 if (context.Options.StrictRuntimeTypeValidation &&
                     !builder._typeInterceptors.Contains(typeof(TypeValidationTypeInterceptor)))
@@ -325,8 +325,8 @@ public partial class SchemaBuilder
 
                 if (typeRef is ExtendedTypeReference cr)
                 {
-                    return cr.Type == typeInspector.GetType(objectType.GetType())
-                        || cr.Type == typeInspector.GetType(objectType.RuntimeType);
+                    return cr.Type.Equals(typeInspector.GetType(objectType.GetType()))
+                        || cr.Type.Equals(typeInspector.GetType(objectType.RuntimeType));
                 }
 
                 if (typeRef is SyntaxTypeReference str)

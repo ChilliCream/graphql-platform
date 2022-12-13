@@ -408,7 +408,7 @@ public partial class SchemaBuilder : ISchemaBuilder
             throw new ArgumentNullException(nameof(interceptor));
         }
 
-        if (!typeof(ITypeInitializationInterceptor).IsAssignableFrom(interceptor))
+        if (!typeof(TypeInterceptor).IsAssignableFrom(interceptor))
         {
             throw new ArgumentException(
                 TypeResources.SchemaBuilder_Interceptor_NotSuppported,
@@ -424,7 +424,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     }
 
     /// <inheritdoc />
-    public ISchemaBuilder TryAddTypeInterceptor(ITypeInitializationInterceptor interceptor)
+    public ISchemaBuilder TryAddTypeInterceptor(TypeInterceptor interceptor)
     {
         if (interceptor is null)
         {

@@ -41,8 +41,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     public override void OnAfterInitialize(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase? definition)
     {
         if (discoveryContext.Type is ObjectType objectType &&
             definition is ObjectTypeDefinition objectTypeDefinition)
@@ -74,8 +73,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase? definition)
     {
         AddMemberTypesToTheEntityUnionType(
             completionContext,
@@ -88,8 +86,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase? definition)
     {
         if (completionContext.Type is ObjectType type &&
             definition is ObjectTypeDefinition typeDef)

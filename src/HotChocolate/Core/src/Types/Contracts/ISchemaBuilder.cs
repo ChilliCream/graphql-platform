@@ -181,7 +181,7 @@ public interface ISchemaBuilder
 
     ISchemaBuilder TryAddTypeInterceptor(Type interceptor);
 
-    ISchemaBuilder TryAddTypeInterceptor(ITypeInitializationInterceptor interceptor);
+    ISchemaBuilder TryAddTypeInterceptor(TypeInterceptor interceptor);
 
     ISchemaBuilder TryAddSchemaInterceptor(Type interceptor);
 
