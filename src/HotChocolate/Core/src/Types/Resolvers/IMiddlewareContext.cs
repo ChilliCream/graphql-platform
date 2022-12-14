@@ -66,6 +66,18 @@ public interface IMiddlewareContext : IResolverContext
         IReadOnlyDictionary<string, ArgumentValue> newArgumentValues);
 
     /// <summary>
+    /// Replaces the argument values for the current field execution pipeline.
+    /// </summary>
+    /// <param name="replace">
+    /// A delegate that gets the current argument values and returns the new ones.
+    /// </param>
+    /// <returns>
+    /// Returns the original argument values map so that a middleware is able to conserve them
+    /// and restore the initial state of the context after it finished to execute.
+    /// </returns>
+    IReadOnlyDictionary<string, ArgumentValue> ReplaceArguments(ReplaceArguments replace);
+
+    /// <summary>
     /// Replaces a single argument of the current middleware context.
     /// </summary>
     /// <param name="argumentName">

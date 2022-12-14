@@ -321,6 +321,10 @@ public static class ProjectionObjectFieldDescriptorExtensions
             IReadOnlyDictionary<string, ArgumentValue> newArgumentValues)
             => _context.ReplaceArguments(newArgumentValues);
 
+        public IReadOnlyDictionary<string, ArgumentValue> ReplaceArguments(
+            ReplaceArguments replace)
+            => _context.ReplaceArguments(replace);
+
         public ArgumentValue ReplaceArgument(string argumentName, ArgumentValue newArgumentValue)
             => _context.ReplaceArgument(argumentName, newArgumentValue);
 
