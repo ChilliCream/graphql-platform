@@ -27,6 +27,19 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         _typeInterceptors = interceptors.OfType<TypeInterceptor>().ToArray();
     }
 
+    public override void OnBeforeCreateSchema(
+        IDescriptorContext context,
+        ISchemaBuilder schemaBuilder)
+    {
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
+        {
+            Unsafe.Add(ref first, i).OnBeforeCreateSchema(context, schemaBuilder);
+        }
+    }
+
     internal override void InitializeContext(
         IDescriptorContext context,
         TypeInitializer typeInitializer,
@@ -349,6 +362,28 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         }
     }
 
+    public override void OnAfterCreateSchema(IDescriptorContext context, ISchema schema)
+    {
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
+        {
+            Unsafe.Add(ref first, i).OnAfterCreateSchema(context, schema);
+        }
+    }
+
+    public override void OnCreateSchemaError(IDescriptorContext context, Exception error)
+    {
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
+        {
+            Unsafe.Add(ref first, i).OnCreateSchemaError(context, error);
+        }
+    }
+
     private ref TypeInterceptor GetReference()
     {
 #if NET6_0_OR_GREATER
@@ -358,3 +393,4 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 #endif
     }
 }
+

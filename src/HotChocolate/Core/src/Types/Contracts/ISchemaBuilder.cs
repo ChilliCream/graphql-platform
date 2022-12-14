@@ -183,10 +183,6 @@ public interface ISchemaBuilder
 
     ISchemaBuilder TryAddTypeInterceptor(TypeInterceptor interceptor);
 
-    ISchemaBuilder TryAddSchemaInterceptor(Type interceptor);
-
-    ISchemaBuilder TryAddSchemaInterceptor(ISchemaInterceptor interceptor);
-
     ISchemaBuilder AddConvention(
         Type convention,
         CreateConvention factory,
