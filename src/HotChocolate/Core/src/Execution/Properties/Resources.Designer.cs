@@ -458,5 +458,11 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("Operation_GetPossibleTypes_NoSelectionSet", resourceCulture);
             }
         }
+        
+        internal static string MiddlewareContext_ReplaceArguments_NullNotAllowed {
+            get {
+                return ResourceManager.GetString("MiddlewareContext_ReplaceArguments_NullNotAllowed", resourceCulture);
+            }
+        }
     }
 }

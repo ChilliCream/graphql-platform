@@ -1,3 +1,4 @@
+import { SrOnly } from "@/components/misc/sr-only";
 import { OutboundLink } from "gatsby-plugin-google-analytics";
 import React, {
   FC,
@@ -179,10 +180,10 @@ const DownloadButton: FC<DownloadButtonProps> = ({
           <thead>
             <tr>
               <th className="os" scope="col">
-                <span className="sr-only">OS</span>
+                <SrOnly>OS</SrOnly>
               </th>
               <th className="type" scope="col">
-                <span className="sr-only">Type</span>
+                <SrOnly>Type</SrOnly>
               </th>
               <th className="stable" scope="col">
                 Stable
@@ -214,7 +215,7 @@ const DownloadButton: FC<DownloadButtonProps> = ({
             </tr>
             <tr>
               <td className="os" scope="row">
-                <span className="sr-only">macOS x64</span>
+                <SrOnly>macOS x64</SrOnly>
               </td>
               <td className="type">Silicon</td>
               <td className="stable">
@@ -232,7 +233,7 @@ const DownloadButton: FC<DownloadButtonProps> = ({
             </tr>
             <tr>
               <td className="os" scope="row">
-                <span className="sr-only">macOS x64</span>
+                <SrOnly>macOS x64</SrOnly>
               </td>
               <td className="type">Intel</td>
               <td className="stable">

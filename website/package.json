@@ -24,7 +24,7 @@
     "build-storybook": "build-storybook"
   },
   "dependencies": {
-    "@docsearch/react": "^3.0.0-alpha.42",
+    "@docsearch/react": "^3.3.0",
     "@mdx-js/mdx": "^1.6.22",
     "@mdx-js/react": "^1.6.22",
     "algoliasearch": "^4.9.1",

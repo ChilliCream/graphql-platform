@@ -1909,7 +1909,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@docsearch/react@npm:^3.0.0-alpha.42":
+"@docsearch/react@npm:^3.3.0":
   version: 3.3.0
   resolution: "@docsearch/react@npm:3.3.0"
   dependencies:
@@ -8071,7 +8071,7 @@ __metadata:
   resolution: "chillicream-website@workspace:."
   dependencies:
     "@babel/core": ^7.14.3
-    "@docsearch/react": ^3.0.0-alpha.42
+    "@docsearch/react": ^3.3.0
     "@mdx-js/mdx": ^1.6.22
     "@mdx-js/react": ^1.6.22
     "@storybook/addon-actions": ^6.2.9
