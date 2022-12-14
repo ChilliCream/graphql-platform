@@ -2271,6 +2271,13 @@ public class SchemaBuilderTests
 
     public class MyInterceptor : TypeInterceptor
     {
+        public override void OnBeforeCompleteType(
+            ITypeCompletionContext completionContext,
+            DefinitionBase definition)
+        {
+            definition.TouchContextData();
+        }
+
         public override void OnAfterCompleteType(
             ITypeCompletionContext completionContext,
             DefinitionBase definition)

@@ -436,7 +436,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
 
                 foreach (var def in definitions)
                 {
-                    if (!def.IsRepeatable && def.Key is not null)
+                    if (def is { IsRepeatable: false, Key: not null })
                     {
                         nonRepeatable++;
                     }
@@ -483,6 +483,6 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
         }
     }
 
-    internal bool CustomSettingExists(object? value)
+    internal bool CustomSettingExists(object value)
         => _customSettings is not null && _customSettings.Contains(value);
 }

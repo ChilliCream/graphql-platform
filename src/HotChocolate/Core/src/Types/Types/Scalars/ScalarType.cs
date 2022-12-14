@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -54,11 +53,9 @@ public abstract partial class ScalarType
         }
     }
 
-    public override IReadOnlyDictionary<string, object?> ContextData => _contextData;
-
     public IDirectiveCollection Directives { get; private set; }
 
-    public ScalarTypeDefinitionNode? SyntaxNode => null;
+    public ScalarTypeDefinitionNode? SyntaxNode { get; private set; }
 
     ISyntaxNode? IHasSyntaxNode.SyntaxNode => SyntaxNode;
 

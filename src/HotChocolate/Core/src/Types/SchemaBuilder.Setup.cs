@@ -485,7 +485,7 @@ public partial class SchemaBuilder
                 return trimmer.Trim();
             }
 
-            return typeRegistry.Types.Select(t => t.Type).ToList();
+            return typeRegistry.Types.Select(t => t.Type).ToArray();
         }
     }
 }

@@ -58,9 +58,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
 
     protected virtual void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        TDefinition definition)
-    {
-    }
+        TDefinition definition) { }
 
     internal sealed override void CompleteName(ITypeCompletionContext context)
     {
@@ -79,13 +77,14 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
 
         if (string.IsNullOrEmpty(Name))
         {
-            context.ReportError(SchemaErrorBuilder.New()
-                .SetMessage(
-                    TypeResources.TypeSystemObjectBase_NameIsNull,
-                    GetType().FullName)
-                .SetCode(ErrorCodes.Schema.NoName)
-                .SetTypeSystemObject(this)
-                .Build());
+            context.ReportError(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        TypeResources.TypeSystemObjectBase_NameIsNull,
+                        GetType().FullName)
+                    .SetCode(ErrorCodes.Schema.NoName)
+                    .SetTypeSystemObject(this)
+                    .Build());
         }
 
         OnAfterCompleteName(context, definition);
@@ -131,9 +130,17 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
     {
         // if the ExtensionData object has no data we will release it so it can be
         // collected by the GC.
-        if (_contextData!.Count == 0)
+        if (_contextData!.Count == 0 && _contextData is not ImmutableDictionary<string, object?>)
         {
             _contextData = ImmutableDictionary<string, object?>.Empty;
+        }
+
+        // if contextData is still wrapped we will unwrap it here so that access is faster without
+        // any null checking.
+        else if (_contextData is ExtensionData extensionData &&
+            extensionData.TryGetInnerDictionary(out var dictionary))
+        {
+            _contextData = dictionary;
         }
 
         MarkFinalized();
@@ -141,9 +148,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
 
     protected virtual void OnCompleteType(
         ITypeCompletionContext context,
-        TDefinition definition)
-    {
-    }
+        TDefinition definition) { }
 
     private void RegisterConfigurationDependencies(
         ITypeDiscoveryContext context,
