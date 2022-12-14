@@ -15,9 +15,9 @@ using static HotChocolate.Stitching.DirectiveFieldNames;
 
 namespace HotChocolate.Stitching.Utilities;
 
-internal class StitchingSchemaInterceptor : SchemaInterceptor
+internal sealed class StitchingSchemaInterceptor : TypeInterceptor
 {
-    public override void OnBeforeCreate(
+    public override void OnBeforeCreateSchema(
         IDescriptorContext context,
         ISchemaBuilder schemaBuilder)
     {
@@ -167,8 +167,7 @@ internal class StitchingSchemaInterceptor : SchemaInterceptor
         DocumentNode document,
         ICollection<string> schemaNames)
     {
-        Dictionary<(string Type, string TargetSchema), string> nameLookup =
-            new Dictionary<(string, string), string>();
+        Dictionary<(string Type, string TargetSchema), string> nameLookup = new();
 
         foreach (var type in document.Definitions.OfType<INamedSyntaxNode>())
         {
