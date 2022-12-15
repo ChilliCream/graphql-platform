@@ -114,7 +114,7 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
         return AddRemoteSchema(
             builder,
             schemaName,
-            (_, __) =>
+            (_, _) =>
                 new ValueTask<RemoteSchemaDefinition>(
                     new RemoteSchemaDefinition(
                         schemaName,
@@ -235,7 +235,7 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
 
                 schemaBuilder
                     .AddRemoteExecutor(schemaName, autoProxy)
-                    .TryAddSchemaInterceptor<StitchingSchemaInterceptor>()
+                    .TryAddTypeInterceptor<StitchingSchemaInterceptor>()
                     .TryAddTypeInterceptor<StitchingTypeInterceptor>();
 
                 var schemaDefinition =
@@ -371,7 +371,7 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
 
                 schemaBuilder
                     .AddRemoteExecutor(schemaName, autoProxy)
-                    .TryAddSchemaInterceptor<StitchingSchemaInterceptor>()
+                    .TryAddTypeInterceptor<StitchingSchemaInterceptor>()
                     .TryAddTypeInterceptor<StitchingTypeInterceptor>();
 
                 schemaBuilder.AddTypeRewriter(
@@ -676,11 +676,7 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
                     throw RequestExecutorBuilder_ResourceNotFound(key);
                 }
 
-#if NET5_0 || NET6_0
                 await using (stream)
-#else
-                    using (stream)
-#endif
                 {
                     var buffer = new byte[stream.Length];
                     await stream.ReadAsync(buffer, 0, buffer.Length, ct).ConfigureAwait(false);
@@ -721,8 +717,7 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
             throw new ArgumentNullException(nameof(rewrite));
         }
 
-        return builder.ConfigureSchema(
-            s => s.AddMergedDocRewriter(rewrite));
+        return builder.ConfigureSchema(s => s.AddMergedDocRewriter(rewrite));
     }
 
     /// <summary>

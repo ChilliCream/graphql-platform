@@ -29,7 +29,6 @@ public class DescriptorContextTests
             conventions,
             new Dictionary<string, object>(),
             new SchemaBuilder.LazySchema(),
-            new AggregateSchemaInterceptor(),
             new AggregateTypeInterceptor());
 
         // assert
@@ -50,7 +49,9 @@ public class DescriptorContextTests
                 new NoOpStringBuilderPool()));
         var conventions = new Dictionary<(Type, string), List<CreateConvention>>
         {
-            { (typeof(INamingConventions), null), new List<CreateConvention>{s => naming} }
+            {
+                (typeof(INamingConventions), null), new List<CreateConvention>{_ => naming}
+            }
         };
 
         // act
@@ -60,7 +61,6 @@ public class DescriptorContextTests
             conventions,
             new Dictionary<string, object>(),
             new SchemaBuilder.LazySchema(),
-            new AggregateSchemaInterceptor(),
             new AggregateTypeInterceptor());
 
         // assert
@@ -87,7 +87,6 @@ public class DescriptorContextTests
             conventions,
             new Dictionary<string, object>(),
             new SchemaBuilder.LazySchema(),
-            new AggregateSchemaInterceptor(),
             new AggregateTypeInterceptor());
 
         // assert
@@ -111,6 +110,6 @@ public class DescriptorContextTests
 
     private sealed class Convention : Descriptors.Convention
     {
-        public static Convention Default { get; } = new Convention();
+        public static Convention Default { get; } = new();
     }
 }

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Internal;
 using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -20,14 +19,14 @@ internal sealed class TypeDiscoverer
     private readonly TypeRegistry _typeRegistry;
     private readonly TypeRegistrar _typeRegistrar;
     private readonly ITypeRegistrarHandler[] _handlers;
-    private readonly ITypeInterceptor _interceptor;
+    private readonly TypeInterceptor _interceptor;
 
     public TypeDiscoverer(
         IDescriptorContext context,
         TypeRegistry typeRegistry,
         TypeLookup typeLookup,
         IEnumerable<ITypeReference> initialTypes,
-        ITypeInterceptor interceptor,
+        TypeInterceptor interceptor,
         bool includeSystemTypes = true)
     {
         if (context is null)

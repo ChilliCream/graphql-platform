@@ -5,6 +5,7 @@ using System.Globalization;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -15,7 +16,6 @@ public class AnyType : ScalarType
 {
     private readonly ObjectValueToDictionaryConverter _objectValueToDictConverter = new();
     private ObjectToDictionaryConverter _objectToDictConverter = default!;
-    private ITypeConverter _converter = default!;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AnyType"/> class.
@@ -40,11 +40,10 @@ public class AnyType : ScalarType
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        IDictionary<string, object?> contextData)
+        ScalarTypeDefinition definition)
     {
-        _converter = context.Services.GetTypeConverter();
-        _objectToDictConverter = new ObjectToDictionaryConverter(_converter);
-        base.OnCompleteType(context, contextData);
+        base.OnCompleteType(context, definition);
+        _objectToDictConverter = new ObjectToDictionaryConverter(Converter);
     }
 
     public override bool IsInstanceOfType(IValueNode literal)
@@ -142,7 +141,7 @@ public class AnyType : ScalarType
 
         var type = value.GetType();
 
-        if (type.IsValueType && _converter.TryConvert(
+        if (type.IsValueType && Converter.TryConvert(
             type, typeof(string), value, out var converted)
             && converted is string c)
         {
@@ -211,7 +210,7 @@ public class AnyType : ScalarType
                 var type = runtimeValue.GetType();
 
                 if (type.IsValueType &&
-                    _converter.TryConvert(type, typeof(string), runtimeValue, out var c) &&
+                    Converter.TryConvert(type, typeof(string), runtimeValue, out var c) &&
                     c is string casted)
                 {
                     resultValue = casted;

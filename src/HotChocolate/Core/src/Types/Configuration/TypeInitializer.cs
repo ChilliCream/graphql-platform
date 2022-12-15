@@ -60,7 +60,9 @@ internal sealed class TypeInitializer
         var typeInspector = descriptorContext.TypeInspector;
         _typeLookup = new TypeLookup(typeInspector, _typeRegistry);
         _typeReferenceResolver = new TypeReferenceResolver(
-            typeInspector, _typeRegistry, _typeLookup);
+            typeInspector,
+            _typeRegistry,
+            _typeLookup);
 
         _interceptor.InitializeContext(
             descriptorContext,
@@ -102,9 +104,10 @@ internal sealed class TypeInitializer
         // if we do not have any errors we will validate the types for spec violations.
         if (_errors.Count == 0)
         {
-            _errors.AddRange(SchemaValidator.Validate(
-                _typeRegistry.Types.Select(t => t.Type),
-                _options));
+            _errors.AddRange(
+                SchemaValidator.Validate(
+                    _typeRegistry.Types.Select(t => t.Type),
+                    _options));
         }
 
         if (_errors.Count > 0)
@@ -130,11 +133,7 @@ internal sealed class TypeInitializer
         }
 
         // lets tell the type interceptors what types we have initialized.
-        if (_interceptor.TriggerAggregations)
-        {
-            _interceptor.OnTypesInitialized(_typeRegistry.Types);
-        }
-
+        _interceptor.OnTypesInitialized();
         _interceptor.OnAfterDiscoverTypes();
     }
 
@@ -192,10 +191,9 @@ internal sealed class TypeInitializer
     {
         _interceptor.OnBeforeCompleteTypeNames();
 
-        if (ProcessTypes(TypeDependencyKind.Named, type => CompleteTypeName(type)) &&
-            _interceptor.TriggerAggregations)
+        if (ProcessTypes(TypeDependencyKind.Named, type => CompleteTypeName(type)))
         {
-            _interceptor.OnTypesCompletedName(_typeRegistry.Types);
+            _interceptor.OnTypesCompletedName();
         }
 
         EnsureNoErrors();
@@ -289,6 +287,7 @@ internal sealed class TypeInitializer
                 .Distinct())
             {
                 var type = types.Find(t => t.Type.Name.EqualsOrdinal(typeName));
+
                 if (type?.Type is INamedType namedType)
                 {
                     MergeTypeExtension(
@@ -312,9 +311,10 @@ internal sealed class TypeInitializer
                     extensionArray[0] = extension;
 
                     foreach (var possibleMatchingType in types
-                        .Where(t =>
-                            t.Type is INamedType n &&
-                            n.Kind == namedTypeExtension.Kind))
+                        .Where(
+                            t =>
+                                t.Type is INamedType n &&
+                                n.Kind == namedTypeExtension.Kind))
 
                     {
                         if (isSchemaType &&
@@ -358,13 +358,15 @@ internal sealed class TypeInitializer
             {
                 if (m.Kind != namedType.Kind)
                 {
-                    throw new SchemaException(SchemaErrorBuilder.New()
-                        .SetMessage(string.Format(
-                            CultureInfo.InvariantCulture,
-                            TypeInitializer_Merge_KindDoesNotMatch,
-                            namedType.Name))
-                        .SetTypeSystemObject((ITypeSystemObject)namedType)
-                        .Build());
+                    throw new SchemaException(
+                        SchemaErrorBuilder.New()
+                            .SetMessage(
+                                string.Format(
+                                    CultureInfo.InvariantCulture,
+                                    TypeInitializer_Merge_KindDoesNotMatch,
+                                    namedType.Name))
+                            .SetTypeSystemObject((ITypeSystemObject)namedType)
+                            .Build());
                 }
 
                 // merge
@@ -395,11 +397,7 @@ internal sealed class TypeInitializer
         ProcessTypes(TypeDependencyKind.Completed, CompleteType);
         EnsureNoErrors();
 
-        if (_interceptor.TriggerAggregations)
-        {
-            _interceptor.OnTypesCompleted(_typeRegistry.Types);
-        }
-
+        _interceptor.OnTypesCompleted();
         _interceptor.OnAfterCompleteTypes();
     }
 
@@ -422,9 +420,7 @@ internal sealed class TypeInitializer
         var batch = new List<RegisteredType>(GetInitialBatch(kind));
         var failed = false;
 
-        while (!failed
-            && processed.Count < _typeRegistry.Count
-            && batch.Count > 0)
+        while (!failed && processed.Count < _typeRegistry.Count && batch.Count > 0)
         {
             foreach (var registeredType in batch)
             {
@@ -456,7 +452,8 @@ internal sealed class TypeInitializer
                 var name = type.Type.Name ?? type.References[0].ToString()!;
 
                 IReadOnlyList<ITypeReference> needed =
-                    TryNormalizeDependencies(type.Conditionals,
+                    TryNormalizeDependencies(
+                        type.Conditionals,
                         out var normalized,
                         out var notFound)
                         ? normalized.Except(processed).ToArray()
@@ -464,21 +461,23 @@ internal sealed class TypeInitializer
 
                 if (notFound != null)
                 {
-                    _errors.Add(SchemaErrorBuilder.New()
-                        .SetMessage(
-                            TypeInitializer_CannotFindType,
-                            string.Join(", ", notFound.Reverse()))
-                        .SetTypeSystemObject(type.Type)
-                        .Build());
+                    _errors.Add(
+                        SchemaErrorBuilder.New()
+                            .SetMessage(
+                                TypeInitializer_CannotFindType,
+                                string.Join(", ", notFound.Reverse()))
+                            .SetTypeSystemObject(type.Type)
+                            .Build());
                 }
 
-                _errors.Add(SchemaErrorBuilder.New()
-                    .SetMessage(
-                        TypeInitializer_CannotResolveDependency,
-                        name,
-                        string.Join(", ", needed))
-                    .SetTypeSystemObject(type.Type)
-                    .Build());
+                _errors.Add(
+                    SchemaErrorBuilder.New()
+                        .SetMessage(
+                            TypeInitializer_CannotResolveDependency,
+                            name,
+                            string.Join(", ", needed))
+                        .SetTypeSystemObject(type.Type)
+                        .Build());
             }
 
             return false;
@@ -522,7 +521,8 @@ internal sealed class TypeInitializer
     {
         foreach (var type in _next)
         {
-            if (TryNormalizeDependencies(type.Conditionals,
+            if (TryNormalizeDependencies(
+                    type.Conditionals,
                     out var normalized,
                     out var _) &&
                 processed.IsSupersetOf(GetTypeRefsExceptSelfRefs(type, normalized)))
