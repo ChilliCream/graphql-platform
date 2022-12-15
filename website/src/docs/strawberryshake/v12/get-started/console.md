@@ -79,7 +79,7 @@ When using the HTTP protocol we also need the HttpClientFactory and the Microsof
 dotnet add Demo package Microsoft.Extensions.DependencyInjection
 ```
 
-3. Add the `Microsoft.Extensions.Http` package to your project in order to add our code generation.
+4. Add the `Microsoft.Extensions.Http` package to your project in order to add our code generation.
 
 ```bash
 dotnet add Demo package Microsoft.Extensions.Http
