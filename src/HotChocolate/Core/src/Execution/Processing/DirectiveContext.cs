@@ -27,6 +27,8 @@ internal sealed class DirectiveContext : IDirectiveContext
 
     public IOperation Operation => _middlewareContext.Operation;
 
+    public IOperationResultBuilder OperationResult => _middlewareContext.OperationResult;
+
     public ISelection Selection => _middlewareContext.Selection;
 
     public IVariableValueCollection Variables => _middlewareContext.Variables;
