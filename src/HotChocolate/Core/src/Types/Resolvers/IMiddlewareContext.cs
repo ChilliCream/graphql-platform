@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using HotChocolate.Execution;
 using HotChocolate.Types;
 
 #nullable enable
@@ -29,6 +28,11 @@ public interface IMiddlewareContext : IResolverContext
     /// </summary>
     /// <value></value>
     bool IsResultModified { get; }
+
+    /// <summary>
+    /// Allows to modify some aspects of the overall operation result.
+    /// </summary>
+    IOperationResultBuilder OperationResult { get; }
 
     /// <summary>
     /// Executes the field resolver and returns its result.

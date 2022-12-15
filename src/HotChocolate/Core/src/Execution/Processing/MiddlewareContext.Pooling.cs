@@ -24,6 +24,7 @@ internal partial class MiddlewareContext
         IImmutableDictionary<string, object?> scopedContextData)
     {
         _operationContext = operationContext;
+        _operationResultBuilder.Context = _operationContext;
         _services = operationContext.Services;
         _selection = selection;
         ParentResult = parentResult;
@@ -49,6 +50,7 @@ internal partial class MiddlewareContext
         _hasResolverResult = false;
         _result = default;
         _parser = default!;
+        _operationResultBuilder.Context = default!;
 
         Path = default!;
         ScopedContextData = default!;
