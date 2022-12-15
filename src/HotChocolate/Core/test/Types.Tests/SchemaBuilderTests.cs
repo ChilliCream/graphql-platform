@@ -2286,16 +2286,14 @@ public class SchemaBuilderTests
         }
     }
 
-    public class DummySchemaInterceptor : SchemaInterceptor
+    public class DummySchemaInterceptor : TypeInterceptor
     {
         private readonly Action<IDescriptorContext> _onBeforeCreate;
 
         public DummySchemaInterceptor(Action<IDescriptorContext> onBeforeCreate)
-        {
-            _onBeforeCreate = onBeforeCreate;
-        }
+            => _onBeforeCreate = onBeforeCreate;
 
-        public override void OnBeforeCreate(
+        public override void OnBeforeCreateSchema(
             IDescriptorContext context,
             ISchemaBuilder schemaBuilder) =>
             _onBeforeCreate(context);

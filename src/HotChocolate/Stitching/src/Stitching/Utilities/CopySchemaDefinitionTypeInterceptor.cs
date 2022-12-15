@@ -5,6 +5,16 @@ namespace HotChocolate.Stitching.Utilities;
 
 internal sealed class CopySchemaDefinitionTypeInterceptor : TypeInterceptor
 {
+    public override void OnBeforeCompleteType(
+        ITypeCompletionContext completionContext,
+        DefinitionBase definition)
+    {
+        if (definition is SchemaTypeDefinition schemaTypeDef)
+        {
+            schemaTypeDef.TouchContextData();
+        }
+    }
+
     public override void OnAfterCompleteType(
         ITypeCompletionContext completionContext,
         DefinitionBase definition)

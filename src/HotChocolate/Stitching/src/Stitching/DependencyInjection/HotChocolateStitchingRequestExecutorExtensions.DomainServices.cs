@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Stitching.SchemaDefinitions;
 
@@ -19,9 +18,9 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
         builder
             .AddType<SchemaDefinitionType>()
             .TryAddTypeInterceptor(typeInterceptor)
-            .TryAddSchemaInterceptor(schemaInterceptor)
+            .TryAddTypeInterceptor(schemaInterceptor)
             .ConfigureOnRequestExecutorCreatedAsync(
-                async (sp, executor, ct) => await descriptor
+                async (sp, _, ct) => await descriptor
                     .PublishAsync(sp, ct)
                     .ConfigureAwait(false));
 
