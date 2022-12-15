@@ -8,6 +8,13 @@ namespace HotChocolate.Execution.Serialization;
 /// The JSON query result formatter will take the inner <see cref="Value"/>
 /// and writes it without validation to the JSON response object.
 /// </summary>
+/// <remarks>
+/// The downside of this helper is that we bind it explicitly to JSON.
+/// If there were alternative query formatter that use different formats we would get
+/// into trouble with this.
+///
+/// This is also the reason for keeping this internal.
+/// </remarks>
 internal readonly struct RawJsonValue
 {
     /// <summary>
@@ -26,27 +33,3 @@ internal readonly struct RawJsonValue
     /// </summary>
     public ReadOnlyMemory<byte> Value { get; }
 }
-
-/// <summary>
-/// This helper class allows us to indicate to the formatters that the inner value
-/// has a custom formatter.
-/// </summary>
-internal abstract class NeedsFormatting
-{
-    public abstract void FormatValue(Utf8JsonWriter writer, JsonSerializerOptions options);
-}
-
-internal sealed class NeedsFormatting<TValue> : NeedsFormatting
-{
-    private readonly TValue _value;
-
-    public NeedsFormatting(TValue value)
-    {
-        _value = value;
-    }
-
-    public override void FormatValue(Utf8JsonWriter writer, JsonSerializerOptions options)
-        => JsonSerializer.Serialize(writer, _value, options);
-}
-
-
