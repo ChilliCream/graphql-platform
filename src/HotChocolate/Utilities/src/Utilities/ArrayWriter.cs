@@ -25,14 +25,7 @@ internal sealed class ArrayWriter
     public ReadOnlyMemory<byte> Body => _buffer.AsMemory().Slice(0, _start);
 
     public byte[] GetInternalBuffer() => _buffer;
-
-    public byte[] ToArray()
-    {
-        var buffer = new byte[_start];
-        _buffer.AsSpan().Slice(0, _start).CopyTo(buffer);
-        return buffer;
-    }
-
+    
     public void Advance(int count)
     {
         _start += count;
