@@ -18,7 +18,7 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
     }
 
     public override void OnBeforeCompleteType(ITypeCompletionContext completionContext,
-        DefinitionBase? definition, IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
         if (!_cacheControlOptions.Enable || !_cacheControlOptions.ApplyDefaults)
         {

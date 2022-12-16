@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Types;
@@ -9,7 +8,7 @@ namespace HotChocolate.Caching;
 internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
 {
     public override void OnValidateType(ITypeSystemObjectContext validationContext,
-        DefinitionBase? definition, IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
         if (validationContext.IsIntrospectionType)
         {

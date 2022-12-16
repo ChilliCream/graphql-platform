@@ -33,7 +33,7 @@ public static class QueryCacheRequestExecutorBuilderExtensions
         }
 
         return builder
-            .UseInstrumentations()
+            .UseInstrumentation()
             .UseExceptions()
             .UseTimeout()
             .UseDocumentCache()
