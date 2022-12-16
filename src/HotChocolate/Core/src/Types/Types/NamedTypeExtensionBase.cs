@@ -33,10 +33,9 @@ public abstract class NamedTypeExtensionBase<TDefinition>
 
     protected override void OnAfterCompleteName(
         ITypeCompletionContext context,
-        DefinitionBase definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
         ExtendsType = Definition?.ExtendsType;
-        base.OnAfterCompleteName(context, definition, contextData);
+        base.OnAfterCompleteName(context, definition);
     }
 }

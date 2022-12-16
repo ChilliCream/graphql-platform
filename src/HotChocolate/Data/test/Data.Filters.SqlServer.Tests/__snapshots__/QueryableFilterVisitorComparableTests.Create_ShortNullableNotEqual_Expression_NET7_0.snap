@@ -23,7 +23,7 @@
 
 SELECT "d"."Id", "d"."BarShort"
 FROM "Data" AS "d"
-WHERE "d"."BarShort" <> @__p_0 OR "d"."BarShort" IS NULL
+WHERE "d"."BarShort" <> @__p_0 OR ("d"."BarShort" IS NULL)
 ---------------
 
 13 Result:
@@ -51,7 +51,7 @@ WHERE "d"."BarShort" <> @__p_0 OR "d"."BarShort" IS NULL
 
 SELECT "d"."Id", "d"."BarShort"
 FROM "Data" AS "d"
-WHERE "d"."BarShort" <> @__p_0 OR "d"."BarShort" IS NULL
+WHERE "d"."BarShort" <> @__p_0 OR ("d"."BarShort" IS NULL)
 ---------------
 
 null Result:

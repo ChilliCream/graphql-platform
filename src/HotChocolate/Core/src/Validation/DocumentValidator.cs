@@ -26,6 +26,7 @@ public sealed class DocumentValidator : IDocumentValidator
     /// <param name="rules">
     /// The validation rules.
     /// </param>
+    /// <param name="errorOptionsAccessor"></param>
     /// <exception cref="ArgumentNullException"></exception>
     public DocumentValidator(
         DocumentValidatorContextPool contextPool,

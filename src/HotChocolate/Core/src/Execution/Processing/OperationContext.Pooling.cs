@@ -6,7 +6,9 @@ using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
+using HotChocolate.Types;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing;
@@ -29,6 +31,7 @@ internal sealed partial class OperationContext
     private IServiceProvider _services = default!;
     private Func<object?> _resolveQueryRootValue = default!;
     private IBatchDispatcher _batchDispatcher = default!;
+    private InputParser _inputParser = default!;
     private object? _rootValue;
     private bool _isInitialized;
 
@@ -66,6 +69,7 @@ internal sealed partial class OperationContext
         _operation = operation;
         _variables = variables;
         _services = scopedServices;
+        _inputParser = scopedServices.GetRequiredService<InputParser>();
         _rootValue = rootValue;
         _resolveQueryRootValue = resolveQueryRootValue;
         _batchDispatcher = batchDispatcher;
@@ -88,6 +92,7 @@ internal sealed partial class OperationContext
         _operation = context._operation;
         _variables = context._variables;
         _services = context._services;
+        _inputParser = context._inputParser;
         _rootValue = context._rootValue;
         _resolveQueryRootValue = context._resolveQueryRootValue;
         _batchDispatcher = context._batchDispatcher;

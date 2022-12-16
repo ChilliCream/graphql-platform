@@ -37,7 +37,7 @@ internal partial class MiddlewareContext
             _parent = parent;
             _argumentValues = selection.Arguments;
 
-            if (selection.Arguments.IsFinalNoErrors)
+            if (selection.Arguments.IsFullyCoercedNoErrors)
             {
                 return true;
             }
@@ -72,14 +72,16 @@ internal partial class MiddlewareContext
 
         public Path Path => _path;
 
+        public IReadOnlyDictionary<string, object?> ScopedContextData
+            => _parentContext.ScopedContextData;
+
         public IVariableValueCollection Variables => _parentContext.Variables;
 
         public IDictionary<string, object?> ContextData
             => _parentContext.ContextData;
 
         public T Parent<T>()
-        {
-            return _parent switch
+            => _parent switch
             {
                 T casted => casted,
                 null => default!,
@@ -89,7 +91,6 @@ internal partial class MiddlewareContext
                     typeof(T),
                     _parent.GetType())
             };
-        }
 
         public T ArgumentValue<T>(string name)
         {

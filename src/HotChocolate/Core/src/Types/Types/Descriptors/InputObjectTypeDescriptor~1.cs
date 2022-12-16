@@ -5,7 +5,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 
@@ -33,20 +32,10 @@ public class InputObjectTypeDescriptor<T>
 
     protected override void OnCompleteFields(
         IDictionary<string, InputFieldDefinition> fields,
-        ISet<PropertyInfo> handledProperties)
+        ISet<MemberInfo> handledMembers)
     {
-        if (Definition.Fields.IsImplicitBinding())
-        {
-            FieldDescriptorUtilities.AddImplicitFields(
-                this,
-                p => InputFieldDescriptor
-                    .New(Context, p)
-                    .CreateDefinition(),
-                fields,
-                handledProperties);
-        }
-
-        base.OnCompleteFields(fields, handledProperties);
+        InferFieldsFromFieldBindingType(fields, handledMembers);
+        base.OnCompleteFields(fields, handledMembers);
     }
 
     public new IInputObjectTypeDescriptor<T> SyntaxNode(

@@ -18,9 +18,7 @@ Authorization on the other hand is something Hot Chocolate can provide some valu
 
 But let's start at the beginning with this. In order to add authorization capabilities to our schema add the following package to our project:
 
-```bash
-dotnet add package HotChocolate.AspNetCore.Authorization
-```
+<PackageInstallation packageName="HotChocolate.AspNetCore.Authorization" />
 
 In order to use the `@authorize`-directive we have to register it like the following with our schema:
 

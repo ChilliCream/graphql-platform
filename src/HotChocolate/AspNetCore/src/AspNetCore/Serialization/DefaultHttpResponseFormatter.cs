@@ -141,8 +141,10 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             var responseStream = (IResponseStream)result;
             var statusCode = (int)GetStatusCode(responseStream, format, proposedStatusCode);
 
+            response.Headers.Add(HttpHeaderKeys.CacheControl, HttpHeaderValues.NoCache);
             response.ContentType = format.ContentType;
             response.StatusCode = statusCode;
+            await response.Body.FlushAsync(cancellationToken);
 
             await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
         }
@@ -193,10 +195,17 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 var contextData = result.ContextData;
 
                 // first we check if there is an explicit HTTP status code override by the user.
-                if (contextData.TryGetValue(WellKnownContextData.HttpStatusCode, out var value) &&
-                    value is HttpStatusCode statusCode)
+                if (contextData.TryGetValue(WellKnownContextData.HttpStatusCode, out var value))
                 {
-                    return statusCode;
+                    if (value is HttpStatusCode statusCode)
+                    {
+                        return statusCode;
+                    }
+
+                    if (value is int statusCodeInt)
+                    {
+                        return (HttpStatusCode)statusCodeInt;
+                    }
                 }
 
                 // next we check if the validation of the request failed.
@@ -263,15 +272,15 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         formatInfo = default;
 
         // if the request does not specify the accept header then we will
-        // use the `application/json` response content-type,
-        // which is the legacy behavior.
+        // use the `application/graphql-response+json` response content-type,
+        // which is the new response content-type.
         if (acceptMediaTypes.Length == 0)
         {
             if (result.Kind is SingleResult)
             {
                 formatInfo = new FormatInfo(
-                    ContentType.Json,
-                    ResponseContentType.Json,
+                    ContentType.GraphQLResponse,
+                    ResponseContentType.GraphQLResponse,
                     _jsonFormatter);
                 return true;
             }
@@ -314,7 +323,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             var mediaType = acceptMediaTypes[0];
 
             if (resultKind is ResultKind.Single &&
-                mediaType.Kind is ApplicationGraphQL or AllApplication)
+                mediaType.Kind is ApplicationGraphQL or AllApplication or All)
             {
                 formatInfo = new FormatInfo(
                     ContentType.GraphQLResponse,
@@ -324,7 +333,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             }
 
             if (resultKind is ResultKind.Single &&
-                mediaType.Kind is ApplicationJson or All)
+                mediaType.Kind is ApplicationJson)
             {
                 formatInfo = new FormatInfo(
                     ContentType.Json,
@@ -365,7 +374,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             var mediaType = Unsafe.Add(ref searchSpace, i);
 
             if (resultKind is ResultKind.Single &&
-                mediaType.Kind is ApplicationGraphQL or AllApplication)
+                mediaType.Kind is ApplicationGraphQL or AllApplication or All)
             {
                 formatInfo = new FormatInfo(
                     ContentType.GraphQLResponse,
@@ -375,7 +384,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             }
 
             if (resultKind is ResultKind.Single &&
-                mediaType.Kind is ApplicationJson or All)
+                mediaType.Kind is ApplicationJson)
             {
                 // application/json is a legacy response content-type.
                 // We will create a formatInfo but keep on validating for

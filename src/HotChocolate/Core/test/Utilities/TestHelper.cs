@@ -8,6 +8,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace HotChocolate.Tests;
 
@@ -23,9 +24,7 @@ public static class TestHelper
             query,
             new TestConfiguration
             {
-                ConfigureRequest = request,
-                Configure = configure,
-                Services = requestServices,
+                ConfigureRequest = request, Configure = configure, Services = requestServices,
             });
     }
 
@@ -75,9 +74,7 @@ public static class TestHelper
             query,
             new TestConfiguration
             {
-                Configure = configure,
-                ConfigureRequest = request,
-                Services = requestServices
+                Configure = configure, ConfigureRequest = request, Services = requestServices
             },
             elementInspectors);
     }
@@ -109,10 +106,11 @@ public static class TestHelper
     public static async Task<T> CreateTypeAsync<T>()
         where T : INamedType
     {
-        var schema = await CreateSchemaAsync(c => c
-            .AddQueryType(d => d.Name("Query").Field("foo").Resolve("result"))
-            .AddType<T>()
-            .ModifyOptions(o => o.StrictValidation = false));
+        var schema = await CreateSchemaAsync(
+            c => c
+                .AddQueryType(d => d.Name("Query").Field("foo").Resolve("result"))
+                .AddType<T>()
+                .ModifyOptions(o => o.StrictValidation = false));
         return schema.Types.OfType<T>().Single();
     }
 
@@ -126,37 +124,38 @@ public static class TestHelper
     public static Task<ISchema> CreateSchemaAsync(
         INamedType type)
     {
-        return CreateSchemaAsync(c => c
-            .AddQueryType(d => d.Name("Query").Field("foo").Resolve("result"))
-            .AddType(type)
-            .ModifyOptions(o => o.StrictValidation = false));
+        return CreateSchemaAsync(
+            c => c
+                .AddQueryType(d => d.Name("Query").Field("foo").Resolve("result"))
+                .AddType(type)
+                .ModifyOptions(o => o.StrictValidation = false));
     }
 
     public static async Task<ISchema> CreateSchemaAsync(
         Action<IRequestExecutorBuilder> configure,
         bool strict = false)
     {
-        var executor = await CreateExecutorAsync(c =>
-        {
-            configure.Invoke(c);
-            c.ModifyOptions(o => o.StrictValidation = strict);
-        });
+        var executor = await CreateExecutorAsync(
+            c =>
+            {
+                configure.Invoke(c);
+                c.ModifyOptions(o => o.StrictValidation = strict);
+            });
         return executor.Schema;
     }
 
     public static async Task<IRequestExecutor> CreateExecutorAsync(
-        Action<IRequestExecutorBuilder>? configure = null)
+        Action<IRequestExecutorBuilder>? configure = null,
+        ITestOutputHelper? output = null)
     {
-        var configuration = new TestConfiguration
-        {
-            Configure = configure,
-        };
+        var configuration = new TestConfiguration { Configure = configure, };
 
-        return await CreateExecutorAsync(configuration);
+        return await CreateExecutorAsync(configuration, output);
     }
 
     private static async ValueTask<IRequestExecutor> CreateExecutorAsync(
-        TestConfiguration? configuration)
+        TestConfiguration? configuration,
+        ITestOutputHelper? output = null)
     {
         var builder = new ServiceCollection().AddGraphQL();
 
@@ -166,7 +165,7 @@ public static class TestHelper
         }
         else
         {
-            AddDefaultConfiguration(builder);
+            AddDefaultConfiguration(builder, output);
         }
 
         return await builder.Services
@@ -175,8 +174,9 @@ public static class TestHelper
             .GetRequestExecutorAsync();
     }
 
-    private static IQueryRequest CreateRequest(
-        TestConfiguration? configuration, string query)
+    public static IQueryRequest CreateRequest(
+        TestConfiguration? configuration,
+        string query)
     {
         configuration ??= new TestConfiguration();
 
@@ -195,8 +195,15 @@ public static class TestHelper
         return builder.Create();
     }
 
-    public static void AddDefaultConfiguration(IRequestExecutorBuilder builder)
+    public static void AddDefaultConfiguration(
+        IRequestExecutorBuilder builder,
+        ITestOutputHelper? output = null)
     {
+        if (output is not null)
+        {
+            builder.AddDiagnosticEventListener(_ => new SubscriptionTestDiagnostics(output));
+        }
+
         builder
             .AddStarWarsTypes()
             .AddInMemorySubscriptions()
@@ -228,6 +235,7 @@ public static class TestHelper
             wait *= 2;
         }
 
+        // ReSharper disable once VariableHidesOuterVariable
         async Task<bool> ExecuteAsync(int attempt)
         {
             using var cts = new CancellationTokenSource(timeout);

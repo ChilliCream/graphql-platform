@@ -4,30 +4,26 @@ import React, { FC } from "react";
 
 export const Link: FC<GatsbyLinkProps<unknown>> = ({
   activeClassName,
-  children,
-  className,
   partiallyActive,
   to,
+  ref,
+  ...rest
 }) => {
   const internal = /^\/(?!\/)/.test(to);
 
   return internal ? (
     <GatsbyLink
       to={to}
-      className={className}
       activeClassName={activeClassName}
       partiallyActive={partiallyActive}
-    >
-      {children}
-    </GatsbyLink>
+      {...rest}
+    />
   ) : (
     <OutboundLink
       href={to}
       target="_blank"
       rel="noopener noreferrer"
-      className={className}
-    >
-      {children}
-    </OutboundLink>
+      {...rest}
+    />
   );
 };

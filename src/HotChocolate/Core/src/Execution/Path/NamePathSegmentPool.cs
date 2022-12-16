@@ -9,26 +9,26 @@ internal sealed class NamePathSegmentPool : DefaultObjectPool<PathSegmentBuffer<
     {
     }
 
-    private sealed class BufferPolicy : IPooledObjectPolicy<PathSegmentBuffer<NamePathSegment>>
+    private sealed class BufferPolicy : PooledObjectPolicy<PathSegmentBuffer<NamePathSegment>>
     {
         private static readonly NamePathSegmentPolicy _policy = new();
 
-        public PathSegmentBuffer<NamePathSegment> Create() => new(256, _policy);
+        public override PathSegmentBuffer<NamePathSegment> Create() => new(256, _policy);
 
-        public bool Return(PathSegmentBuffer<NamePathSegment> obj)
+        public override bool Return(PathSegmentBuffer<NamePathSegment> obj)
         {
             obj.Reset();
             return true;
         }
     }
 
-    private sealed class NamePathSegmentPolicy : IPooledObjectPolicy<NamePathSegment>
+    private sealed class NamePathSegmentPolicy : PooledObjectPolicy<NamePathSegment>
     {
         private readonly string _default = "default";
 
-        public NamePathSegment Create() => new();
+        public override NamePathSegment Create() => new();
 
-        public bool Return(NamePathSegment segment)
+        public override bool Return(NamePathSegment segment)
         {
             segment.Name = _default;
             segment.Parent = Path.Root;

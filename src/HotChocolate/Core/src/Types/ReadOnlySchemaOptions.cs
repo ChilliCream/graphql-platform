@@ -42,12 +42,12 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
         PreserveSyntaxNodes = options.PreserveSyntaxNodes;
         EnableDirectiveIntrospection = options.EnableDirectiveIntrospection;
         DefaultDirectiveVisibility = options.DefaultDirectiveVisibility;
-        AllowInlining = options.AllowInlining;
         DefaultResolverStrategy = options.DefaultResolverStrategy;
         ValidatePipelineOrder = options.ValidatePipelineOrder;
         StrictRuntimeTypeValidation = options.StrictRuntimeTypeValidation;
         DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck;
         EnableOneOf = options.EnableOneOf;
+        EnsureAllNodesCanBeResolved = options.EnsureAllNodesCanBeResolved;
     }
 
     /// <summary>
@@ -122,11 +122,6 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
     public DirectiveVisibility DefaultDirectiveVisibility { get; }
 
     /// <summary>
-    /// Defines if field inlining is allowed.
-    /// </summary>
-    public bool AllowInlining { get; }
-
-    /// <summary>
     /// Defines that the default resolver execution strategy.
     /// </summary>
     public ExecutionStrategy DefaultResolverStrategy { get; }
@@ -149,4 +144,7 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
 
     /// <inheritdoc />
     public bool EnableOneOf { get; }
+
+    /// <inheritdoc />
+    public bool EnsureAllNodesCanBeResolved { get; }
 }

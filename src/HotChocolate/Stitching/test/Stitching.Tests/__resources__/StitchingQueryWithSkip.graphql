@@ -1,0 +1,17 @@
+query withSkip($skip: Boolean) {
+  customer(id: "Q3VzdG9tZXIKZDE=") {
+    name
+    consultant @skip(if: $skip) {
+      name
+    }
+    contracts {
+      id
+      ... on LifeInsuranceContract {
+        premium
+      }
+      ... on SomeOtherContract {
+        expiryDate
+      }
+    }
+  }
+}

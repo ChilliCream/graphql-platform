@@ -9,10 +9,9 @@ namespace HotChocolate.Execution.Options;
 /// </summary>
 public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
 {
-    private const int _minQueryCacheSize = 10;
     private static readonly TimeSpan _minExecutionTimeout = TimeSpan.FromMilliseconds(100);
     private TimeSpan _executionTimeout;
-    private int _queryCacheSize = 100;
+    private IError _onlyPersistedQueriesAreAllowedError = ErrorHelper.OnlyPersistedQueriesAreAllowed();
 
     /// <summary>
     /// <para>Initializes a new instance of <see cref="RequestExecutorOptions"/>.</para>
@@ -57,30 +56,25 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
     public ComplexityAnalyzerSettings Complexity { get; } = new();
 
     /// <summary>
-    /// Gets or sets the maximum amount of compiled queries that can be cached. The
-    /// default value is <c>100</c>. The minimum allowed value is
-    /// <c>10</c>.
+    /// Specifies if only persisted queries are allowed when using
+    /// the persisted query pipeline.
+    ///
+    /// The default is <c>false</c>.
     /// </summary>
-    [Obsolete("Use AddDocumentCache or AddOperationCache on the IServiceCollection.", true)]
-    public int QueryCacheSize
-    {
-        get => _queryCacheSize;
-        set
-        {
-            _queryCacheSize = value < _minQueryCacheSize
-                ? _minQueryCacheSize
-                : value;
-        }
-    }
+    public bool OnlyAllowPersistedQueries { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a value indicating whether tracing for performance
-    /// measurement of query requests is enabled. The default value is
-    /// <see cref="HotChocolate.Execution.Options.TracingPreference.Never"/>.
+    /// The error that will be thrown when only persisted
+    /// queries are allowed and a normal query is issued.
     /// </summary>
-    [Obsolete("Use AddApolloTracing on the IRequestExecutorBuilder.", true)]
-    public TracingPreference TracingPreference { get; set; }
-
-    [Obsolete("Use Complexity", true)]
-    public bool? UseComplexityMultipliers { get; set; }
+    public IError OnlyPersistedQueriesAreAllowedError
+    {
+        get => _onlyPersistedQueriesAreAllowedError;
+        set
+        {
+            _onlyPersistedQueriesAreAllowedError = value
+                ?? throw new ArgumentNullException(
+                    nameof(OnlyPersistedQueriesAreAllowedError));
+        }
+    }
 }

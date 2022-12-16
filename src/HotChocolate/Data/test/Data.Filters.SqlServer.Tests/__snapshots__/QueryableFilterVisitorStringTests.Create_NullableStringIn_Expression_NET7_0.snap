@@ -41,7 +41,7 @@ testbtestAndNull SQL:
 ---------------
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE "d"."Bar" = 'testbtest' OR "d"."Bar" IS NULL
+WHERE "d"."Bar" = 'testbtest' OR ("d"."Bar" IS NULL)
 ---------------
 
 testatest Result:

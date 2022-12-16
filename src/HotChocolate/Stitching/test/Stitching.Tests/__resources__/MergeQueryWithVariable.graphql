@@ -1,0 +1,21 @@
+query customer_query($fields_customerId: ID!, $global: ID!) {
+  customer(id: $customerId) {
+    name
+    consultant(id: $global) {
+      name
+    }
+    contracts {
+      id
+      ...life
+      ...other
+    }
+  }
+}
+
+fragment life on LifeInsuranceContract {
+  premium
+}
+
+fragment other on SomeOtherContract {
+  expiryDate
+}

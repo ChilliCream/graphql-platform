@@ -1,6 +1,6 @@
 namespace HotChocolate.AspNetCore;
 
-internal class HttpMultipartRequest
+internal sealed class HttpMultipartRequest
 {
     public HttpMultipartRequest(string operations, IDictionary<string, IFile> fileMap)
     {

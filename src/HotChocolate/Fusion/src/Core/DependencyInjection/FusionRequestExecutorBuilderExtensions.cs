@@ -86,7 +86,7 @@ public static class FusionRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder)
     {
         return builder
-            .UseInstrumentations()
+            .UseInstrumentation()
             .UseExceptions()
             .UseTimeout()
             .UseDocumentCache()

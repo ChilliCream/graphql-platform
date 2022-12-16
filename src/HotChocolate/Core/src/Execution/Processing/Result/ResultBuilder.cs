@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Properties;
 
@@ -9,14 +10,12 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed partial class ResultBuilder
 {
-    private readonly object _syncErrors = new();
     private readonly List<IError> _errors = new();
     private readonly HashSet<ISelection> _fieldErrors = new();
     private readonly List<NonNullViolation> _nonNullViolations = new();
     private readonly HashSet<uint> _removedResults = new();
     private readonly HashSet<uint> _patchIds = new();
 
-    private readonly object _syncExtensions = new();
     private readonly Dictionary<string, object?> _extensions = new();
     private readonly Dictionary<string, object?> _contextData = new();
     private readonly List<Func<ValueTask>> _cleanupTasks = new();
@@ -54,7 +53,7 @@ internal sealed partial class ResultBuilder
 
     public void SetExtension(string key, object? value)
     {
-        lock (_syncExtensions)
+        lock (_extensions)
         {
             _extensions[key] = value;
         }
@@ -62,7 +61,7 @@ internal sealed partial class ResultBuilder
 
     public void SetContextData(string key, object? value)
     {
-        lock (_syncExtensions)
+        lock (_contextData)
         {
             _contextData[key] = value;
         }
@@ -76,7 +75,7 @@ internal sealed partial class ResultBuilder
     /// </param>
     public void RegisterForCleanup(Func<ValueTask> action)
     {
-        lock (_syncExtensions)
+        lock (_cleanupTasks)
         {
             _cleanupTasks.Add(action);
         }
@@ -84,7 +83,7 @@ internal sealed partial class ResultBuilder
 
     public void RegisterForCleanup<T>(T state, Func<T, ValueTask> action)
     {
-        lock (_syncExtensions)
+        lock (_cleanupTasks)
         {
             _cleanupTasks.Add(() => action(state));
         }
@@ -101,10 +100,10 @@ internal sealed partial class ResultBuilder
 
     public void AddError(IError error, ISelection? selection = null)
     {
-        lock (_syncErrors)
+        lock (_errors)
         {
             _errors.Add(error);
-            if (selection is { })
+            if (selection is not null)
             {
                 _fieldErrors.Add(selection);
             }
@@ -113,15 +112,17 @@ internal sealed partial class ResultBuilder
 
     public void AddNonNullViolation(ISelection selection, Path path, ObjectResult parent)
     {
-        lock (_syncErrors)
+        var violation = new NonNullViolation(selection, path.Clone(), parent);
+
+        lock (_errors)
         {
-            _nonNullViolations.Add(new NonNullViolation(selection, path, parent));
+            _nonNullViolations.Add(violation);
         }
     }
 
     public void AddRemovedResult(ResultData result)
     {
-        lock (_syncErrors)
+        lock (_errors)
         {
             if (result.PatchId > 0)
             {
@@ -132,12 +133,14 @@ internal sealed partial class ResultBuilder
 
     public void AddPatchId(uint patchId)
     {
-        lock (_syncExtensions)
+        lock (_patchIds)
         {
             _patchIds.Add(patchId);
         }
     }
 
+    // ReSharper disable InconsistentlySynchronizedField
+    //
     public IQueryResult BuildResult()
     {
         if (!ApplyNonNullViolations(_errors, _nonNullViolations, _fieldErrors))
@@ -149,8 +152,7 @@ internal sealed partial class ResultBuilder
 
         if (_data is null && _items is null && _errors.Count == 0 && _hasNext is not false)
         {
-            throw new InvalidOperationException(
-                Resources.ResultHelper_BuildResult_InvalidResult);
+            throw new InvalidOperationException(Resources.ResultHelper_BuildResult_InvalidResult);
         }
 
         if (_errors.Count > 0)
@@ -194,8 +196,10 @@ internal sealed partial class ResultBuilder
 
         return result;
     }
+    // ReSharper restore InconsistentlySynchronizedField
 
-    private static IReadOnlyDictionary<string, object?>? CreateExtensionData(
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static ImmutableDictionary<string, object?>? CreateExtensionData(
         Dictionary<string, object?> data)
     {
         if (data.Count == 0)

@@ -1,4 +1,6 @@
-# Introduction
+---
+title: Introduction
+---
 
 > We are still working on the documentation for Strawberry Shake so help us by finding typos, missing things or write some additional docs with us.
 
@@ -12,4 +14,4 @@ You can use Strawberry Shake to:
 - Interact with local and remote data through GraphQL.
 - Use reactive APIs to interact with your state.
 
-Let's [get started](/docs/strawberryshake/get-started) with Strawberry Shake!
+Let's [get started](/docs/strawberryshake/v12/get-started) with Strawberry Shake!

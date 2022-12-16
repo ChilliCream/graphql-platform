@@ -960,9 +960,6 @@ Type: `{0}`</value>
   <data name="ThrowHelper_NodeAttribute_IdFieldNotFound" xml:space="preserve">
     <value>The specified id field `{0}` does not exist on `{1}`.</value>
   </data>
-  <data name="ThrowHelper_NodeAttribute_NodeResolverNotFound" xml:space="preserve">
-    <value>The specified node resolver `{0}` does not exist on `{1}`.</value>
-  </data>
   <data name="ThrowHelper_TypeCompletionContext_UnableToResolveType" xml:space="preserve">
     <value>Unable to resolve type reference `{0}`.</value>
   </data>
@@ -974,9 +971,6 @@ Type: `{0}`</value>
   </data>
   <data name="ThrowHelper_SubscribeAttribute_SubscribeResolverNotFound" xml:space="preserve">
     <value>Unable to find the subscribe resolver `{2}` defined on {0}.{1}. The subscribe resolver bust be a method that is public, non-static and on the same type as the resolver. (SubscribeAttribute)</value>
-  </data>
-  <data name="ThrowHelper_SubscribeAttribute_TopicOnParameterAndMethod" xml:space="preserve">
-    <value>The topic is declared multiple times on {0}.{1}. (TopicAttribute)</value>
   </data>
   <data name="ThrowHelper_SubscribeAttribute_TopicTypeUnspecified" xml:space="preserve">
     <value>You need to specify the topic type on {0}.{1}. (SubscribeAttribute)</value>
@@ -1064,5 +1058,8 @@ Type: `{0}`</value>
   </data>
   <data name="ThrowHelper_MutationDuplicateErrorName" xml:space="preserve">
     <value>Mutation conventions infer the error name from the mutation. In this case the error union was inferred from the mutation `{0}` as `{1}`, but the type initialization encountered another object with the name `{1}`. Either rename the error object or specify a naming exception for this particular mutation. You can do that by using the `UseMutationConventionAttribute` for instance.</value>
+  </data>
+  <data name="ErrorHelper_NodeResolverMissing" xml:space="preserve">
+    <value>The type `{0}` implements the node interface but does not provide a node resolver for re-fetching.</value>
   </data>
 </root>

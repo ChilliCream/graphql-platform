@@ -1,119 +1,45 @@
-﻿using System;
-using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Execution;
-using HotChocolate.Types;
 using Squadron;
-using StackExchange.Redis;
-using Xunit;
+using Xunit.Abstractions;
 
 namespace HotChocolate.Subscriptions.Redis;
 
-public class RedisIntegrationTests
-    : IClassFixture<RedisResource>
+public class RedisIntegrationTests : SubscriptionIntegrationTestBase, IClassFixture<RedisResource>
 {
-    private readonly ConnectionMultiplexer _connection;
+    private readonly RedisResource _redisResource;
 
-    public RedisIntegrationTests(RedisResource redisResource)
+    public RedisIntegrationTests(RedisResource redisResource, ITestOutputHelper output)
+        : base(output)
     {
-        _connection = redisResource.GetConnection();
+        _redisResource = redisResource;
     }
 
     [Fact]
-    public async Task SubscribeAndComplete()
-    {
-        // arrange
-        IServiceProvider services = new ServiceCollection()
-            .AddGraphQL()
-            .AddRedisSubscriptions(_ => _connection)
-            .AddQueryType(d => d
-                .Name("foo")
-                .Field("a")
-                .Resolve("b"))
-            .AddSubscriptionType<Subscription>()
-            .Services
-            .BuildServiceProvider();
-
-        var sender = services.GetRequiredService<ITopicEventSender>();
-        var executorResolver = services.GetRequiredService<IRequestExecutorResolver>();
-        var executor = await executorResolver.GetRequestExecutorAsync();
-
-        var cts = new CancellationTokenSource(10000);
-
-        // act
-        var result = (IResponseStream)await executor.ExecuteAsync(
-            "subscription { onMessage }",
-            cts.Token);
-
-        // assert
-        await sender.SendAsync("OnMessage", "bar", cts.Token);
-        await sender.CompleteAsync("OnMessage");
-
-        await foreach (var response in result.ReadResultsAsync()
-            .WithCancellation(cts.Token))
-        {
-            Assert.Null(response.Errors);
-            Assert.Equal("bar", response.Data!["onMessage"]);
-        }
-
-        await result.DisposeAsync();
-    }
+    public override Task Subscribe_Infer_Topic()
+        => base.Subscribe_Infer_Topic();
 
     [Fact]
-    public async Task SubscribeAndComplete_GetMultiPlexerFromId()
-    {
-        // arrange
-        IServiceProvider services = new ServiceCollection()
-            .AddSingleton<IConnectionMultiplexer>(_connection)
-            .AddGraphQL()
-            .AddRedisSubscriptions()
-            .AddQueryType(d => d
-                .Name("foo")
-                .Field("a")
-                .Resolve("b"))
-            .AddSubscriptionType<Subscription>()
-            .Services
-            .BuildServiceProvider();
+    public override Task Subscribe_Static_Topic()
+        => base.Subscribe_Static_Topic();
 
-        var sender = services.GetRequiredService<ITopicEventSender>();
-        var executorResolver = services.GetRequiredService<IRequestExecutorResolver>();
-        var executor = await executorResolver.GetRequestExecutorAsync();
+    [Fact]
+    public override Task Subscribe_Topic_With_Arguments()
+        => base.Subscribe_Topic_With_Arguments();
 
-        var cts = new CancellationTokenSource(10000);
+    [Fact]
+    public override Task Subscribe_Topic_With_Arguments_2_Subscriber()
+        => base.Subscribe_Topic_With_Arguments_2_Subscriber();
 
-        // act
-        var result = (IResponseStream)await executor.ExecuteAsync(
-            "subscription { onMessage }",
-            cts.Token);
+    [Fact]
+    public override Task Subscribe_Topic_With_Arguments_2_Topics()
+        => base.Subscribe_Topic_With_Arguments_2_Topics();
 
-        // assert
-        await sender.SendAsync("OnMessage", "bar", cts.Token);
-        await sender.CompleteAsync("OnMessage");
+    [Fact]
+    public override Task Subscribe_Topic_With_2_Arguments()
+        => base.Subscribe_Topic_With_2_Arguments();
 
-        await foreach (var response in result.ReadResultsAsync()
-            .WithCancellation(cts.Token))
-        {
-            Assert.Null(response.Errors);
-            Assert.Equal("bar", response.Data!["onMessage"]);
-        }
-
-        await result.DisposeAsync();
-    }
-
-    public class FooType : InputObjectType
-    {
-        protected override void Configure(
-            IInputObjectTypeDescriptor descriptor)
-        {
-            descriptor.Name("Abc");
-            descriptor.Field("def").Type<StringType>();
-        }
-    }
-
-    public class Subscription
-    {
-        [Subscribe]
-        public string OnMessage([EventMessage] string message) => message;
-    }
+    protected override void ConfigurePubSub(IRequestExecutorBuilder graphqlBuilder)
+        => graphqlBuilder.AddRedisSubscriptions(_ => _redisResource.GetConnection());
 }

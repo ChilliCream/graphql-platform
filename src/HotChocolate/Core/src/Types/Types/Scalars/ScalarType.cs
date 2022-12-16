@@ -1,7 +1,7 @@
 using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -14,7 +14,7 @@ namespace HotChocolate.Types;
 /// the leaves on these trees are GraphQL scalars.
 /// </summary>
 public abstract partial class ScalarType
-    : TypeSystemObjectBase
+    : TypeSystemObjectBase<ScalarTypeDefinition>
     , ILeafType
     , IHasDirectives
 {
@@ -53,13 +53,13 @@ public abstract partial class ScalarType
         }
     }
 
-    public override IReadOnlyDictionary<string, object?> ContextData => _contextData;
-
     public IDirectiveCollection Directives { get; private set; }
 
-    public ScalarTypeDefinitionNode? SyntaxNode => null;
+    public ScalarTypeDefinitionNode? SyntaxNode { get; private set; }
 
     ISyntaxNode? IHasSyntaxNode.SyntaxNode => SyntaxNode;
+
+    protected ITypeConverter Converter => _converter;
 
     public bool IsAssignableFrom(INamedType type) => ReferenceEquals(type, this);
 

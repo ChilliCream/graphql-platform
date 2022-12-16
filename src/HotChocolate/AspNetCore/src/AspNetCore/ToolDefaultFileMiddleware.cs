@@ -11,7 +11,7 @@ namespace HotChocolate.AspNetCore;
 /// If so the file name is appended to the path and execution continues.
 /// Note we don't just serve the file because it may require interpretation.
 /// </summary>
-public class ToolDefaultFileMiddleware
+public sealed class ToolDefaultFileMiddleware
 {
     private const string _defaultFile = "index.html";
     private readonly IFileProvider _fileProvider;

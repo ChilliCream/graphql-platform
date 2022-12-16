@@ -242,6 +242,18 @@ public class TestGeneration
                 }
             }");
 
+    [Fact]
+    public void StarWarsOnReviewSubNoStore() =>
+        AssertStarWarsResult(
+            CreateIntegrationTest(noStore: true),
+            @"subscription OnReviewSub {
+                onReview(episode: NEW_HOPE) {
+                    __typename
+                    stars
+                    commentary
+                }
+            }");
+
     /*
     [Fact]
     public void StarWarsGetFriendsDeferredData() =>

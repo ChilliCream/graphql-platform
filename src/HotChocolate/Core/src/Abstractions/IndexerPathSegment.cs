@@ -31,7 +31,7 @@ public sealed class IndexerPathSegment : Path
         }
 
         if (other is IndexerPathSegment indexer &&
-            Depth.Equals(indexer.Depth) &&
+            Length.Equals(indexer.Length) &&
             Index.Equals(indexer.Index) &&
             Parent.Equals(indexer.Parent))
         {
@@ -43,11 +43,16 @@ public sealed class IndexerPathSegment : Path
 
     /// <inheritdoc />
     public override Path Clone()
-        => new IndexerPathSegment { Depth = Depth, Index = Index, Parent = Parent.Clone() };
+        => new IndexerPathSegment
+        {
+            Length = Length,
+            Index = Index,
+            Parent = Parent.Clone()
+        };
 
     /// <inheritdoc />
     public override int GetHashCode()
         // ReSharper disable NonReadonlyMemberInGetHashCode
-        => HashCode.Combine(Parent, Depth, Index);
+        => HashCode.Combine(Parent, Length, Index);
         // ReSharper restore NonReadonlyMemberInGetHashCode
 }

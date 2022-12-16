@@ -1,0 +1,13 @@
+﻿{
+  "Data": {
+    "createCustomer": {
+      "customer": {
+        "name": "abc",
+        "contracts": []
+      }
+    }
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
+}

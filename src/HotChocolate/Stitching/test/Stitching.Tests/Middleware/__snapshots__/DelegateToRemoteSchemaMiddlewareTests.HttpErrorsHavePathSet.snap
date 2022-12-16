@@ -1,0 +1,45 @@
+﻿{
+  "Data": {
+    "customer": null
+  },
+  "Errors": [
+    {
+      "Message": "Unexpected Execution Error",
+      "Code": "STITCHING_HTTP_REQUEST_EXCEPTION",
+      "Path": [
+        "customer"
+      ],
+      "Locations": [
+        {
+          "Line": 3,
+          "Column": 29
+        }
+      ],
+      "Exception": {
+        "StackTrace": "   at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()\n   at HotChocolate.Stitching.Utilities.HttpQueryClient.FetchInternalAsync(HttpContent requestContent, HttpClient httpClient) in /Users/michael/local/hc/src/HotChocolate/Stitching/src/Stitching/Utilities/HttpQueryClient.cs:line 151\n   at HotChocolate.Stitching.Utilities.HttpQueryClient.FetchAsync(IQueryRequest request, HttpContent requestContent, HttpClient httpClient, IEnumerable`1 interceptors, CancellationToken cancellationToken) in /Users/michael/local/hc/src/HotChocolate/Stitching/src/Stitching/Utilities/HttpQueryClient.cs:line 69\n   at HotChocolate.Stitching.Utilities.HttpQueryClient.FetchAsync(IQueryRequest request, HttpClient httpClient, IEnumerable`1 interceptors, CancellationToken cancellationToken) in /Users/michael/local/hc/src/HotChocolate/Stitching/src/Stitching/Utilities/HttpQueryClient.cs:line 53\n   at HotChocolate.Stitching.Delegation.RemoteQueryMiddleware.InvokeAsync(IQueryContext context) in /Users/michael/local/hc/src/HotChocolate/Stitching/src/Stitching/Delegation/RemoteQueryMiddleware.cs:line 39",
+        "Message": "Response status code does not indicate success: 503 (Service Unavailable).",
+        "Data": {},
+        "InnerException": null,
+        "HelpLink": null,
+        "Source": "System.Net.Http",
+        "HResult": -2146233088
+      },
+      "Extensions": {
+        "code": "STITCHING_HTTP_REQUEST_EXCEPTION",
+        "remote": {
+          "Message": "Unexpected Execution Error",
+          "Code": "STITCHING_HTTP_REQUEST_EXCEPTION",
+          "Path": null,
+          "Locations": [],
+          "Exception": null,
+          "Extensions": {
+            "code": "STITCHING_HTTP_REQUEST_EXCEPTION"
+          }
+        },
+        "schemaName": "customer"
+      }
+    }
+  ],
+  "Extensions": null,
+  "ContextData": null
+}

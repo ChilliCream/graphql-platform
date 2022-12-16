@@ -24,7 +24,7 @@ internal sealed partial class RegisteredType : ITypeDiscoveryContext
 
     public ITypeInspector TypeInspector => DescriptorContext.TypeInspector;
 
-    public ITypeInterceptor TypeInterceptor { get; }
+    public TypeInterceptor TypeInterceptor { get; }
 
     IList<TypeDependency> ITypeDiscoveryContext.Dependencies => Dependencies;
 

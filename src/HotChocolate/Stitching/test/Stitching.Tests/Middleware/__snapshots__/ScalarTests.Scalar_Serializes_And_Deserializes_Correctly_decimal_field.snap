@@ -1,0 +1,10 @@
+﻿{
+  "Data": {
+    "contract": {
+      "decimal_field": 123.123
+    }
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
+}

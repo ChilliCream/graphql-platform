@@ -1,13 +1,14 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Configuration.Validation;
 
-internal class InterfaceHasAtLeastOneImplementationRule : ISchemaValidationRule
+internal sealed class InterfaceHasAtLeastOneImplementationRule : ISchemaValidationRule
 {
     public void Validate(
-        IReadOnlyList<ITypeSystemObject> typeSystemObjects,
+        ReadOnlySpan<ITypeSystemObject> typeSystemObjects,
         IReadOnlySchemaOptions options,
         ICollection<ISchemaError> errors)
     {
@@ -22,7 +23,7 @@ internal class InterfaceHasAtLeastOneImplementationRule : ISchemaValidationRule
         // first we get all interface types and add them to the interface type list.
         // we will strike from this list all the items that we find being implemented by
         // object types.
-        for (var i = 0; i < typeSystemObjects.Count; i++)
+        for (var i = 0; i < typeSystemObjects.Length; i++)
         {
             if (typeSystemObjects[i] is InterfaceType interfaceType)
             {
@@ -32,7 +33,7 @@ internal class InterfaceHasAtLeastOneImplementationRule : ISchemaValidationRule
 
         // next we go through all the object types and strike the interfaces from the interface
         // list that we find being implemented.
-        for (var i = 0; i < typeSystemObjects.Count; i++)
+        for (var i = 0; i < typeSystemObjects.Length; i++)
         {
             if (typeSystemObjects[i] is ObjectType objectType)
             {

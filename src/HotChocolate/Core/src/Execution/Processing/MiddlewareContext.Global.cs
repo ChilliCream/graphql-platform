@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Properties;
+using HotChocolate.Execution.Serialization;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,6 +13,7 @@ namespace HotChocolate.Execution.Processing;
 
 internal partial class MiddlewareContext : IMiddlewareContext
 {
+    private readonly OperationResultBuilderFacade _operationResultBuilder = new();
     private readonly List<Func<ValueTask>> _cleanupTasks = new();
     private OperationContext _operationContext = default!;
     private IServiceProvider _services = default!;
@@ -28,9 +31,14 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public IOperation Operation => _operationContext.Operation;
 
+    public IOperationResultBuilder OperationResult => _operationResultBuilder;
+
     public IDictionary<string, object?> ContextData => _operationContext.ContextData;
 
     public IVariableValueCollection Variables => _operationContext.Variables;
+
+    IReadOnlyDictionary<string, object?> IPureResolverContext.ScopedContextData
+        => ScopedContextData;
 
     public CancellationToken RequestAborted { get; private set; }
 
@@ -53,16 +61,20 @@ internal partial class MiddlewareContext : IMiddlewareContext
             return Array.Empty<ISelection>();
         }
 
-        var fields = _operationContext.CollectFields(selection, typeContext);
+        var selectionSet = _operationContext.CollectFields(selection, typeContext);
 
-        if (fields.IsConditional)
+        if (selectionSet.IsConditional)
         {
+            var operationIncludeFlags = _operationContext.IncludeFlags;
+            var selectionCount = selectionSet.Selections.Count;
+            ref var selectionRef = ref ((SelectionSet)selectionSet).GetSelectionsReference();
             var finalFields = new List<ISelection>();
 
-            for (var i = 0; i < fields.Selections.Count; i++)
+            for (var i = 0; i < selectionCount; i++)
             {
-                var childSelection = fields.Selections[i];
-                if (childSelection.IsIncluded(_operationContext.IncludeFlags, allowInternals))
+                var childSelection = Unsafe.Add(ref selectionRef, i);
+
+                if (childSelection.IsIncluded(operationIncludeFlags, allowInternals))
                 {
                     finalFields.Add(childSelection);
                 }
@@ -71,7 +83,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
             return finalFields;
         }
 
-        return fields.Selections;
+        return selectionSet.Selections;
     }
 
     public void ReportError(string errorMessage)
@@ -83,11 +95,12 @@ internal partial class MiddlewareContext : IMiddlewareContext
                 nameof(errorMessage));
         }
 
-        ReportError(ErrorBuilder.New()
-            .SetMessage(errorMessage)
-            .SetPath(Path)
-            .AddLocation(_selection.SyntaxNode)
-            .Build());
+        ReportError(
+            ErrorBuilder.New()
+                .SetMessage(errorMessage)
+                .SetPath(Path)
+                .AddLocation(_selection.SyntaxNode)
+                .Build());
     }
 
     public void ReportError(Exception exception, Action<IErrorBuilder>? configure = null)
@@ -175,7 +188,9 @@ internal partial class MiddlewareContext : IMiddlewareContext
             _hasResolverResult = true;
         }
 
-        return _resolverResult is null ? default! : (T)_resolverResult;
+        return _resolverResult is null
+            ? default!
+            : (T)_resolverResult;
     }
 
     public T Resolver<T>() =>
@@ -250,4 +265,15 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     IResolverContext IResolverContext.Clone()
         => Clone();
+
+    private sealed class OperationResultBuilderFacade : IOperationResultBuilder
+    {
+        public OperationContext Context { get; set; } = default!;
+
+        public void SetResultState(string key, object? value)
+            => Context.Result.SetContextData(key, value);
+
+        public void SetExtension<TValue>(string key, TValue value)
+            => Context.Result.SetExtension(key, new NeedsFormatting<TValue>(value));
+    }
 }

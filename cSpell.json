@@ -1,0 +1,71 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "Blazor",
+    "BSON",
+    "Cakepop",
+    "chillicream",
+    "Contoso",
+    "customizability",
+    "dataloaders",
+    "discoverability",
+    "entityframework",
+    "evolvability",
+    "fastify",
+    "fetchable",
+    "FIPS",
+    "Hasura",
+    "hotchocolate",
+    "jetbrains",
+    "JWTs",
+    "Linq",
+    "microservices",
+    "middlewares",
+    "NodaTime",
+    "OWIN",
+    "pageable",
+    "protobuf",
+    "roadmap",
+    "runbooks",
+    "struct",
+    "Swashbuckle",
+    "traversion",
+    "Websockets",
+    "Newtonsoft"
+  ],
+  "ignoreWords": [
+    "Specwise",
+    "strawberryshake",
+    "refactorings",
+    "mercurius",
+    "Giroux",
+    "graphyne",
+    "greendonut",
+    "Andi",
+    "aspnetcore",
+    "bananacakepop",
+    "Marek",
+    "Kellner",
+    "Kydne",
+    "GraphiQL",
+    "Tengler",
+    "Staib",
+    "shoooe",
+    "Senn",
+    "Snapshooter",
+    "relayjs",
+    "Rgba",
+    "Postgraphile",
+    "Normen"
+  ],
+  "ignoreRegExpList": [
+    "\\((.*)\\)", // Markdown links
+    "```[a-z]*\n[\\s\\S]*?\n```", // Markdown code blocks. h/t https://coderwall.com/p/r6b4xg/regex-to-match-github-s-markdown-code-blocks,
+    "\\`([^\\`].*?)\\`", // inline code blocks. h/t https://stackoverflow.com/questions/41274241/how-to-capture-inline-markdown-code-but-not-a-markdown-code-fence-with-regex
+    "\\<a(.*)\\>", // link contents
+    "-- snippet:(.*)", // snippet references
+    "\\<\\[sample:(.*)", // another kind of snippet reference
+    "/^\\s*```[\\s\\S]*?^\\s*```/gm" // ignoring multi-line code blocks
+  ]
+}

@@ -1,9 +1,7 @@
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
@@ -12,7 +10,7 @@ namespace HotChocolate.AspNetCore;
 /// <summary>
 /// Enables serving static files for a given request path
 /// </summary>
-public class ToolStaticFileMiddleware
+public sealed class ToolStaticFileMiddleware
 {
     private readonly IContentTypeProvider _contentTypeProvider;
     private readonly IFileProvider _fileProvider;
@@ -20,12 +18,8 @@ public class ToolStaticFileMiddleware
     private readonly RequestDelegate _next;
 
     /// <summary>
-    /// Creates a new instance of the StaticFileMiddleware.
+    /// Creates a new instance of the ToolStaticFileMiddleware.
     /// </summary>
-    /// <param name="next">The next middleware in the pipeline.</param>
-    /// <param name="hostingEnv">The <see cref="IWebHostEnvironment"/> used by this middleware.</param>
-    /// <param name="options">The configuration options.</param>
-    /// <param name="loggerFactory">An <see cref="ILoggerFactory"/> instance used to create loggers.</param>
     public ToolStaticFileMiddleware(
         RequestDelegate next,
         IFileProvider fileProvider,
@@ -50,8 +44,6 @@ public class ToolStaticFileMiddleware
     /// <summary>
     /// Processes a request to determine if it matches a known file, and if so, serves it.
     /// </summary>
-    /// <param name="context"></param>
-    /// <returns></returns>
     public Task Invoke(HttpContext context)
     {
         if (context.Request.IsGetOrHeadMethod() &&
@@ -105,7 +97,7 @@ public class ToolStaticFileMiddleware
         return false;
     }
 
-    private async Task SendAsync(HttpContext context, StaticFileInfo fileInfo)
+    private static async Task SendAsync(HttpContext context, StaticFileInfo fileInfo)
     {
         SetCompressionMode(context);
         context.Response.StatusCode = 200;
@@ -131,7 +123,7 @@ public class ToolStaticFileMiddleware
         }
     }
 
-    private void SetCompressionMode(HttpContext context)
+    private static void SetCompressionMode(HttpContext context)
     {
         if (context.Features.Get<IHttpsCompressionFeature>() is { } c)
         {

@@ -428,5 +428,41 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("ResultBuilder_DataAndItemsNotAllowed", resourceCulture);
             }
         }
+        
+        internal static string ErrorHelper_PersistedQueryNotFound {
+            get {
+                return ResourceManager.GetString("ErrorHelper_PersistedQueryNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_OnlyPersistedQueriesAreAllowed {
+            get {
+                return ResourceManager.GetString("ErrorHelper_OnlyPersistedQueriesAreAllowed", resourceCulture);
+            }
+        }
+        
+        internal static string MiddlewareContext_ReplaceArgument_InvalidKey {
+            get {
+                return ResourceManager.GetString("MiddlewareContext_ReplaceArgument_InvalidKey", resourceCulture);
+            }
+        }
+        
+        internal static string VariableValueOrLiteral_NullNotAllowed {
+            get {
+                return ResourceManager.GetString("VariableValueOrLiteral_NullNotAllowed", resourceCulture);
+            }
+        }
+        
+        internal static string Operation_GetPossibleTypes_NoSelectionSet {
+            get {
+                return ResourceManager.GetString("Operation_GetPossibleTypes_NoSelectionSet", resourceCulture);
+            }
+        }
+        
+        internal static string MiddlewareContext_ReplaceArguments_NullNotAllowed {
+            get {
+                return ResourceManager.GetString("MiddlewareContext_ReplaceArguments_NullNotAllowed", resourceCulture);
+            }
+        }
     }
 }

@@ -10,9 +10,7 @@ If you want to build GraphQL tooling for .NET or your own type system and query-
 
 In order to use the parser, install the following package:
 
-```bash
-dotnet add package HotChocolate.Language
-```
+<PackageInstallation packageName="HotChocolate.Language" />
 
 In order to parse a GraphQL schema or query use it like the following:
 

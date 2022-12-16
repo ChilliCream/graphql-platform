@@ -224,11 +224,9 @@ Schema.Create(c =>
 
 We now support NuGet source code link. This means that you can debug into the Hot Chocolate source. This is often a great help when you are struggling with a bug or do want to check whats happening.
 
-## What`s comming next
+## What`s coming next
 
 Version 7 was a big release with a lot of new features that make it very easy to setup a GraphQL schema in .Net. With this release out we now focus on Version 8 which will focus on schema stitching. We will introduce capabilities like auto-stitching and auto-mocking. We already started working on the new schema stitching stories and if you think you would like to contribute ideas or code or documentation just feel free to talk to us. We are quite happy for any help.
 
 After the schema stitching enhancements we will focus on the new schema builder with Version 9. The schema builder will bring in completely new capabilities that let you extend the schema building process. We are basically opening up the schema building process like we did with the execution engine.
 
-[hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/hotchocolate

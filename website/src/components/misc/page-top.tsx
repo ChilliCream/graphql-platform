@@ -38,8 +38,8 @@ export const PageTop: FC<PageTopProps> = ({ onTopScroll }) => {
 const JumpToTop = styled.button`
   display: none;
   position: fixed;
-  right: 50px;
-  bottom: 50px;
+  right: 24px;
+  bottom: 24px;
   z-index: 29;
   display: none;
   border-radius: 50%;

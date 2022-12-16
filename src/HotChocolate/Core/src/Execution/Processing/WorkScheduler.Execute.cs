@@ -8,6 +8,9 @@ internal sealed partial class WorkScheduler
 {
     private readonly IExecutionTask?[] _buffer = new IExecutionTask?[ProcessorCount * 2];
 
+    /// <summary>
+    /// Execute the work.
+    /// </summary>
     public async Task ExecuteAsync()
     {
         AssertNotPooled();

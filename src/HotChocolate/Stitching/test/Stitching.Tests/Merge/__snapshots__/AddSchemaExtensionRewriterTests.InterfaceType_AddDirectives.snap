@@ -1,0 +1,5 @@
+interface Foo @foo {
+  bar: String
+}
+
+directive @foo on INTERFACE

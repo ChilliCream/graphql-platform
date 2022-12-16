@@ -6,6 +6,7 @@ using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
 using HotChocolate.Transport.Sockets.Client;
 using Microsoft.Extensions.DependencyInjection;
+using Xunit.Abstractions;
 
 #nullable enable
 
@@ -13,9 +14,12 @@ namespace HotChocolate.Transport.Sockets.GraphQLOverWebSocket;
 
 public class WebSocketClientProtocolTests : SubscriptionTestBase
 {
-    public WebSocketClientProtocolTests(TestServerFactory serverFactory)
+    private readonly ITestOutputHelper _output;
+
+    public WebSocketClientProtocolTests(TestServerFactory serverFactory, ITestOutputHelper output)
         : base(serverFactory)
     {
+        _output = output;
     }
 
     [Fact]
@@ -23,7 +27,7 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
         => TryTest(async ct =>
         {
             // arrange
-            using var testServer = CreateStarWarsServer();
+            using var testServer = CreateStarWarsServer(output: _output);
             var webSocketClient = CreateWebSocketClient(testServer);
             using var webSocket = await webSocketClient.ConnectAsync(SubscriptionUri, ct);
 
@@ -58,7 +62,7 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
                     }"
             };
 
-            using var testServer = CreateStarWarsServer();
+            using var testServer = CreateStarWarsServer(output: _output);
             var webSocketClient = CreateWebSocketClient(testServer);
             using var webSocket = await webSocketClient.ConnectAsync(SubscriptionUri, ct);
 
@@ -95,7 +99,7 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
             var subscriptionRequest = new OperationRequest(
                 "subscription { onReview(episode: NEW_HOPE) { stars } }");
 
-            using var testServer = CreateStarWarsServer();
+            using var testServer = CreateStarWarsServer(output: _output);
             var webSocketClient = CreateWebSocketClient(testServer);
             using var webSocket = await webSocketClient.ConnectAsync(SubscriptionUri, ct);
             var client = await SocketClient.ConnectAsync(webSocket, ct);
@@ -127,7 +131,7 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
             var subscriptionRequest = new OperationRequest(
                 "subscription { onReview(episode: NEW_HOPE) { 123 } }");
 
-            using var testServer = CreateStarWarsServer();
+            using var testServer = CreateStarWarsServer(output: _output);
             var webSocketClient = CreateWebSocketClient(testServer);
             using var webSocket = await webSocketClient.ConnectAsync(SubscriptionUri, ct);
             var client = await SocketClient.ConnectAsync(webSocket, ct);
@@ -159,7 +163,7 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
             var subscriptionRequest = new OperationRequest(
                 "subscription { onReview(episode: NEW_HOPE) { ____ } }");
 
-            using var testServer = CreateStarWarsServer();
+            using var testServer = CreateStarWarsServer(output: _output);
             var webSocketClient = CreateWebSocketClient(testServer);
             using var webSocket = await webSocketClient.ConnectAsync(SubscriptionUri, ct);
             var client = await SocketClient.ConnectAsync(webSocket, ct);
@@ -189,7 +193,8 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
             using var testServer = CreateStarWarsServer(
                 configureServices: s => s
                     .AddGraphQLServer()
-                    .AddSocketSessionInterceptor(_ => interceptor));
+                    .AddSocketSessionInterceptor(_ => interceptor),
+                output: _output);
             var webSocketClient = CreateWebSocketClient(testServer);
             using var webSocket = await webSocketClient.ConnectAsync(SubscriptionUri, ct);
 
@@ -209,7 +214,8 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
             using var testServer = CreateStarWarsServer(
                 configureServices: s => s
                     .AddGraphQLServer()
-                    .AddSocketSessionInterceptor(_ => interceptor));
+                    .AddSocketSessionInterceptor(_ => interceptor),
+                output: _output);
             var webSocketClient = CreateWebSocketClient(testServer);
             using var webSocket = await webSocketClient.ConnectAsync(SubscriptionUri, ct);
 

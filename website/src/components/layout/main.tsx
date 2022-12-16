@@ -1,11 +1,11 @@
-import React, { FC, useEffect, useRef } from "react";
+import React, { FC, PropsWithChildren, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import styled from "styled-components";
 import { hasScrolled } from "../../state/common";
 import { PageTop } from "../misc/page-top";
 import { Footer } from "./footer";
 
-export const Main: FC = ({ children }) => {
+export const Main: FC<PropsWithChildren> = ({ children }) => {
   const ref = useRef<HTMLDivElement>(null);
   const dispatch = useDispatch();
 

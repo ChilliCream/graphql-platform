@@ -6,11 +6,7 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
-#if NETCOREAPP2_1
-using Snapshooter;
-#endif
 using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 
@@ -758,6 +754,17 @@ public class InputObjectTypeTests : TypeTestBase
             .MatchSnapshot();
     }
 
+    [Fact]
+    public void Ignore_Methods()
+    {
+        SchemaBuilder.New()
+            .AddInputObjectType<FooWithMethod>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create()
+            .Print()
+            .MatchSnapshot();
+    }
+
     public class FieldNameInput
     {
         public string? YourFieldName { get; set; }
@@ -904,6 +911,13 @@ public class InputObjectTypeTests : TypeTestBase
         public bool IsBarSet { get; set; }
         public string? Bar { get; set; }
         public string? Baz { get; set; }
+    }
+
+    public class FooWithMethod
+    {
+        public bool IsBarSet { get; set; }
+
+        public string? Bar() => null;
     }
 
     public class QueryWithImmutables

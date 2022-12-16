@@ -5,7 +5,6 @@ using HotChocolate.Tests;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types;
 
@@ -175,6 +174,75 @@ public class NodeTypeTests : TypeTestBase
             .MatchSnapshotAsync();
     }
 
+    [Fact]
+    public async Task Node_Attribute_Does_Not_Throw_With_NodeResolver_On_Query()
+    {
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query7>()
+            .AddGlobalObjectIdentification()
+            .BuildSchemaAsync();
+
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Node_Attribute_Does_Not_Throw_With_NodeResolver_On_Query_2()
+    {
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query8>()
+            .AddTypeExtension<Foo2>()
+            .AddGlobalObjectIdentification()
+            .BuildSchemaAsync();
+
+        schema.ToString().MatchSnapshot();
+    }
+
+
+    [Fact]
+    public async Task Node_Attribute_Does_Not_Throw_Execute_Query()
+    {
+        var serializer = new IdSerializer();
+        var id = serializer.Serialize("Foo1", 123);
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query8>()
+            .AddTypeExtension<Foo2>()
+            .AddGlobalObjectIdentification()
+            .ExecuteRequestAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"query ($id: ID!) {
+                            node(id: $id) {
+                                id
+                                __typename
+                                ... on Foo1 {
+                                    clearTextId
+                                }
+                            }
+                        }")
+                    .SetVariableValue("id", id)
+                    .Create())
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task NodeResolver_Is_Missing()
+    {
+        async Task Error() => await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query9>()
+            .ModifyOptions(o => o.EnsureAllNodesCanBeResolved = true)
+            .AddGlobalObjectIdentification()
+            .BuildSchemaAsync();
+
+        var error = await Assert.ThrowsAsync<SchemaException>(Error);
+
+        error.Message.MatchSnapshot();
+    }
+
     public class Query
     {
         [NodeResolver]
@@ -250,5 +318,57 @@ public class NodeTypeTests : TypeTestBase
         public int Id1 { get; }
 
         public int ClearTextId => Id1;
+    }
+
+    public class Query7
+    {
+        [NodeResolver]
+        public Qux GetBarById(string id)
+            => new Qux(id);
+    }
+
+    [Node]
+    public class Qux
+    {
+        public Qux(string id)
+        {
+            Id = id;
+        }
+
+        public string Id { get; }
+
+        public string ClearTextId => Id;
+    }
+
+    public class Query8
+    {
+        [NodeResolver]
+        public Foo1 GetBarById(string id)
+            => new Foo1(id);
+    }
+
+    public class Foo1
+    {
+        public Foo1(string id)
+        {
+            Id = id;
+        }
+
+        public string Id { get; }
+
+        public string ClearTextId => Id;
+    }
+
+    [Node]
+    [ExtendObjectType(typeof(Foo1))]
+    public class Foo2
+    {
+
+    }
+
+    public class Query9
+    {
+        public Qux GetBarById(string id)
+            => new Qux(id);
     }
 }

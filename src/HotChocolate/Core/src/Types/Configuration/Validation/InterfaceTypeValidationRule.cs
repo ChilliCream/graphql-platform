@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Types;
 using static HotChocolate.Configuration.Validation.TypeValidationHelper;
 
@@ -7,21 +7,24 @@ using static HotChocolate.Configuration.Validation.TypeValidationHelper;
 
 namespace HotChocolate.Configuration.Validation;
 
-public class InterfaceTypeValidationRule : ISchemaValidationRule
+internal sealed class InterfaceTypeValidationRule : ISchemaValidationRule
 {
     public void Validate(
-        IReadOnlyList<ITypeSystemObject> typeSystemObjects,
+        ReadOnlySpan<ITypeSystemObject> typeSystemObjects,
         IReadOnlySchemaOptions options,
         ICollection<ISchemaError> errors)
     {
         if (options.StrictValidation)
         {
-            foreach (var type in typeSystemObjects.OfType<InterfaceType>())
+            foreach (var type in typeSystemObjects)
             {
-                EnsureTypeHasFields(type, errors);
-                EnsureFieldNamesAreValid(type, errors);
-                EnsureInterfacesAreCorrectlyImplemented(type, errors);
-                EnsureArgumentDeprecationIsValid(type, errors);
+                if (type is InterfaceType interfaceType)
+                {
+                    EnsureTypeHasFields(interfaceType, errors);
+                    EnsureFieldNamesAreValid(interfaceType, errors);
+                    EnsureInterfacesAreCorrectlyImplemented(interfaceType, errors);
+                    EnsureArgumentDeprecationIsValid(interfaceType, errors);
+                }
             }
         }
     }

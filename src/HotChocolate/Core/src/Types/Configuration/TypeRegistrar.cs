@@ -18,13 +18,13 @@ internal sealed class TypeRegistrar : ITypeRegistrar
     private readonly TypeRegistry _typeRegistry;
     private readonly TypeLookup _typeLookup;
     private readonly IDescriptorContext _context;
-    private readonly ITypeInterceptor _interceptor;
+    private readonly TypeInterceptor _interceptor;
 
     public TypeRegistrar(
         IDescriptorContext context,
         TypeRegistry typeRegistry,
         TypeLookup typeLookup,
-        ITypeInterceptor typeInterceptor)
+        TypeInterceptor typeInterceptor)
     {
         _context = context ??
             throw new ArgumentNullException(nameof(context));

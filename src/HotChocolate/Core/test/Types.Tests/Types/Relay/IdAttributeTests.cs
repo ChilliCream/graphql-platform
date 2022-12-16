@@ -511,8 +511,7 @@ public class IdAttributeTests
 
         public override void OnValidateType(
             ITypeSystemObjectContext validationContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
+            DefinitionBase definition)
         {
             if (validationContext.Type.Name.EqualsOrdinal("Query") &&
                 definition is ObjectTypeDefinition typeDef)

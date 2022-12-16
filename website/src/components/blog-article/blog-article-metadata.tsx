@@ -17,8 +17,9 @@ export const BlogArticleMetadata: FC<BlogArticleMetadataProps> = ({
       <AuthorLink to={frontmatter!.authorUrl!}>
         <AuthorImage src={frontmatter!.authorImageUrl!} />
         {frontmatter!.author!}
-      </AuthorLink>{" "}
-      ・ {frontmatter!.date!} ・ {fields!.readingTime!.text!}
+      </AuthorLink>
+      {frontmatter?.date && " ・ " + frontmatter.date}
+      {fields?.readingTime?.text && " ・ " + fields.readingTime.text}
     </Metadata>
   );
 };

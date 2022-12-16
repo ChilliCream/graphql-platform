@@ -1,11 +1,7 @@
-import React, { FC } from "react";
+import React from "react";
 import styled from "styled-components";
 
-export const Article: FC = ({ children }) => {
-  return <ArticleElement>{children}</ArticleElement>;
-};
-
-const ArticleElement = styled.article`
+export const Article = styled.article`
   overflow: hidden;
   display: flex;
   flex: 1 1 auto;

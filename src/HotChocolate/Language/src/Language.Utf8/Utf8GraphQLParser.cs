@@ -10,8 +10,10 @@ public ref partial struct Utf8GraphQLParser
 {
     private readonly bool _createLocation;
     private readonly bool _allowFragmentVars;
+    private readonly int _maxAllowedNodes;
     private Utf8GraphQLReader _reader;
     private StringValueNode? _description;
+    private int _parsedNodes;
 
     public Utf8GraphQLParser(
         ReadOnlySpan<byte> graphQLData,
@@ -25,7 +27,8 @@ public ref partial struct Utf8GraphQLParser
         options ??= ParserOptions.Default;
         _createLocation = !options.NoLocations;
         _allowFragmentVars = options.Experimental.AllowFragmentVariables;
-        _reader = new Utf8GraphQLReader(graphQLData);
+        _maxAllowedNodes = options.MaxAllowedNodes;
+        _reader = new Utf8GraphQLReader(graphQLData, options.MaxAllowedTokens);
         _description = null;
     }
 
@@ -41,12 +44,30 @@ public ref partial struct Utf8GraphQLParser
         options ??= ParserOptions.Default;
         _createLocation = !options.NoLocations;
         _allowFragmentVars = options.Experimental.AllowFragmentVariables;
+        _maxAllowedNodes = options.MaxAllowedNodes;
         _reader = reader;
         _description = null;
     }
 
+    /// <summary>
+    /// Gets the number of parsed syntax nodes.
+    /// </summary>
+    public int ParsedSyntaxNodes => _parsedNodes;
+
+    /// <summary>
+    /// Defines if the parser reached the end of the source text.
+    /// </summary>
+    public bool IsEndOfFile => _reader.Kind is TokenKind.EndOfFile;
+
+    // note: we added this internal access for legacy stitching.
+    /// <summary>
+    /// Provides internal access to the underlying GraphQL reader.
+    /// </summary>
+    internal Utf8GraphQLReader Reader => _reader;
+
     public DocumentNode Parse()
     {
+        _parsedNodes = 0;
         var definitions = new List<IDefinitionNode>();
 
         var start = Start();
@@ -60,7 +81,7 @@ public ref partial struct Utf8GraphQLParser
 
         var location = CreateLocation(in start);
 
-        return new DocumentNode(location, definitions);
+        return new DocumentNode(location, definitions, _parsedNodes);
     }
 
     private IDefinitionNode ParseDefinition()
@@ -155,7 +176,7 @@ public ref partial struct Utf8GraphQLParser
 #endif
         Parse(sourceText, ParserOptions.Default);
 
-    public static unsafe DocumentNode Parse(
+    public static DocumentNode Parse(
 #if NET7_0_OR_GREATER
         [StringSyntax("graphql")] string sourceText,
 #else
