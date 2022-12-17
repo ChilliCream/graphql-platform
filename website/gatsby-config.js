@@ -20,6 +20,7 @@ module.exports = {
     `gatsby-plugin-graphql-codegen`,
     `gatsby-plugin-styled-components`,
     `gatsby-plugin-react-helmet`,
+    `gatsby-plugin-robots-txt`,
     `gatsby-plugin-tsconfig-paths`,
     `gatsby-remark-reading-time`,
     {
