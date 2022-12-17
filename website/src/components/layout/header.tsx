@@ -410,7 +410,7 @@ const ProductsNavItem: FC<ProductsNavItemProps> = ({ firstBlogPost }) => {
 
   return (
     <NavItemContainer {...navHandlers}>
-      <NavLink to="/products" {...linkHandlers}>
+      <NavLink to="/products" prefetch={false} {...linkHandlers}>
         Products
         <IconContainer size={10}>
           <ArrowDownSvg />
@@ -504,7 +504,7 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
 
   return (
     <NavItemContainer {...navHandlers}>
-      <NavLink to="/docs" {...linkHandlers}>
+      <NavLink to="/docs" prefetch={false} {...linkHandlers}>
         Developers
         <IconContainer size={10}>
           <ArrowDownSvg />
@@ -558,7 +558,7 @@ const ServicesNavItem: FC = () => {
 
   return (
     <NavItemContainer {...navHandlers}>
-      <NavLink to="/services" {...linkHandlers}>
+      <NavLink to="/services" prefetch={false} {...linkHandlers}>
         Services
         <IconContainer size={10}>
           <ArrowDownSvg />
