@@ -21,7 +21,7 @@ public interface IIdSerializer
     /// <exception cref="IdSerializationException">
     /// Unable to create a schema unique ID string.
     /// </exception>
-    string Serialize<T>(NameString schemaName, NameString typeName, T id);
+    string? Serialize<T>(string? schemaName, string typeName, T id);
 
     /// <summary>
     /// Deserializes a schema unique identifier to reveal the source

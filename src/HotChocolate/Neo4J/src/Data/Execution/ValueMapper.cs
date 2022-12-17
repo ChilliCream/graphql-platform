@@ -1,6 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using Neo4j.Driver;
 using ServiceStack;
 
@@ -10,7 +8,7 @@ internal static class ValueMapper
 {
     public static T MapValue<T>(object cypherValue)
     {
-        Type targetType = typeof(T);
+        var targetType = typeof(T);
 
         if (typeof(IEnumerable).IsAssignableFrom(targetType))
         {
@@ -26,8 +24,8 @@ internal static class ValueMapper
                 return enumerable.As<T>();
             }
 
-            Type elementType = targetType.GetGenericArguments()[0];
-            Type genericType = typeof(CollectionMapper<>).MakeGenericType(elementType);
+            var elementType = targetType.GetGenericArguments()[0];
+            var genericType = typeof(CollectionMapper<>).MakeGenericType(elementType);
             var collectionMapper = (ICollectionMapper)genericType.CreateInstance();
 
             return (T)collectionMapper.MapValues(enumerable, targetType);

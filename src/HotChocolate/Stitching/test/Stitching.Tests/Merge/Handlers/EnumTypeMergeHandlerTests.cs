@@ -1,11 +1,9 @@
-using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
-using HotChocolate.Stitching.SchemaBuilding;
-using HotChocolate.Stitching.SchemaBuilding.Handlers;
-using Snapshooter.Xunit;
 using Xunit;
+using Snapshooter.Xunit;
 
 namespace HotChocolate.Stitching.Merge.Handlers;
 
@@ -15,20 +13,20 @@ public class EnumTypeMergeHandlerTests
     public void MergeIdenticalEnums()
     {
         // arrange
-        DocumentNode schema_a =
+        var schema_a =
             Utf8GraphQLParser.Parse("enum Foo { BAR BAZ }");
-        DocumentNode schema_b =
+        var schema_b =
             Utf8GraphQLParser.Parse("enum Foo { BAR BAZ }");
 
         var types = new List<ITypeInfo>
-            {
-                TypeInfo.Create(
-                    schema_a.Definitions.OfType<ITypeDefinitionNode>().First(),
-                    new SchemaInfo("Schema_A", schema_a)),
-                TypeInfo.Create(
-                    schema_b.Definitions.OfType<ITypeDefinitionNode>().First(),
-                    new SchemaInfo("Schema_B", schema_b))
-            };
+        {
+            TypeInfo.Create(
+                schema_a.Definitions.OfType<ITypeDefinitionNode>().First(),
+                new SchemaInfo("Schema_A", schema_a)),
+            TypeInfo.Create(
+                schema_b.Definitions.OfType<ITypeDefinitionNode>().First(),
+                new SchemaInfo("Schema_B", schema_b))
+        };
 
         var context = new SchemaMergeContext();
 
@@ -46,20 +44,20 @@ public class EnumTypeMergeHandlerTests
     public void MergeIdenticalEnumsTakeDescriptionFromSecondType()
     {
         // arrange
-        DocumentNode schema_a =
+        var schema_a =
             Utf8GraphQLParser.Parse("enum Foo { BAR BAZ }");
-        DocumentNode schema_b =
+        var schema_b =
             Utf8GraphQLParser.Parse(@"""Foo Bar"" enum Foo { BAR BAZ }");
 
         var types = new List<ITypeInfo>
-            {
-                TypeInfo.Create(
-                    schema_a.Definitions.OfType<ITypeDefinitionNode>().First(),
-                    new SchemaInfo("Schema_A", schema_a)),
-                TypeInfo.Create(
-                    schema_b.Definitions.OfType<ITypeDefinitionNode>().First(),
-                    new SchemaInfo("Schema_B", schema_b))
-            };
+        {
+            TypeInfo.Create(
+                schema_a.Definitions.OfType<ITypeDefinitionNode>().First(),
+                new SchemaInfo("Schema_A", schema_a)),
+            TypeInfo.Create(
+                schema_b.Definitions.OfType<ITypeDefinitionNode>().First(),
+                new SchemaInfo("Schema_B", schema_b))
+        };
 
         var context = new SchemaMergeContext();
 
@@ -78,25 +76,25 @@ public class EnumTypeMergeHandlerTests
     public void MergeNonIdenticalEnums()
     {
         // arrange
-        DocumentNode schema_a =
+        var schema_a =
             Utf8GraphQLParser.Parse("enum Foo { BAR BAZ }");
-        DocumentNode schema_b =
+        var schema_b =
             Utf8GraphQLParser.Parse("enum Foo { BAR BAZ }");
-        DocumentNode schema_c =
+        var schema_c =
             Utf8GraphQLParser.Parse("enum Foo { BAR BAZ QUX }");
 
         var types = new List<ITypeInfo>
-            {
-                TypeInfo.Create(
-                    schema_a.Definitions.OfType<ITypeDefinitionNode>().First(),
-                    new SchemaInfo("Schema_A", schema_a)),
-                TypeInfo.Create(
-                    schema_b.Definitions.OfType<ITypeDefinitionNode>().First(),
-                    new SchemaInfo("Schema_B", schema_b)),
-                TypeInfo.Create(
-                    schema_c.Definitions.OfType<ITypeDefinitionNode>().First(),
-                    new SchemaInfo("Schema_C", schema_c))
-            };
+        {
+            TypeInfo.Create(
+                schema_a.Definitions.OfType<ITypeDefinitionNode>().First(),
+                new SchemaInfo("Schema_A", schema_a)),
+            TypeInfo.Create(
+                schema_b.Definitions.OfType<ITypeDefinitionNode>().First(),
+                new SchemaInfo("Schema_B", schema_b)),
+            TypeInfo.Create(
+                schema_c.Definitions.OfType<ITypeDefinitionNode>().First(),
+                new SchemaInfo("Schema_C", schema_c))
+        };
 
         var context = new SchemaMergeContext();
 
@@ -115,25 +113,25 @@ public class EnumTypeMergeHandlerTests
     public void MergeNonIdenticalEnums2()
     {
         // arrange
-        DocumentNode schema_a =
+        var schema_a =
             Utf8GraphQLParser.Parse("enum Foo { BAR BAZ }");
-        DocumentNode schema_b =
+        var schema_b =
             Utf8GraphQLParser.Parse("enum Foo { BAR BAZ QUX }");
-        DocumentNode schema_c =
+        var schema_c =
             Utf8GraphQLParser.Parse("enum Foo { BAR BAZ QUX }");
 
         var types = new List<ITypeInfo>
-            {
-                TypeInfo.Create(
-                    schema_a.Definitions.OfType<ITypeDefinitionNode>().First(),
-                    new SchemaInfo("Schema_A", schema_a)),
-                TypeInfo.Create(
-                    schema_b.Definitions.OfType<ITypeDefinitionNode>().First(),
-                    new SchemaInfo("Schema_B", schema_b)),
-                TypeInfo.Create(
-                    schema_c.Definitions.OfType<ITypeDefinitionNode>().First(),
-                    new SchemaInfo("Schema_C", schema_c))
-            };
+        {
+            TypeInfo.Create(
+                schema_a.Definitions.OfType<ITypeDefinitionNode>().First(),
+                new SchemaInfo("Schema_A", schema_a)),
+            TypeInfo.Create(
+                schema_b.Definitions.OfType<ITypeDefinitionNode>().First(),
+                new SchemaInfo("Schema_B", schema_b)),
+            TypeInfo.Create(
+                schema_c.Definitions.OfType<ITypeDefinitionNode>().First(),
+                new SchemaInfo("Schema_C", schema_c))
+        };
 
         var context = new SchemaMergeContext();
 
@@ -152,20 +150,20 @@ public class EnumTypeMergeHandlerTests
     public void Merge_DifferentTypes_InputMergesLeftoversArePassed()
     {
         // arrange
-        DocumentNode schema_a =
+        var schema_a =
             Utf8GraphQLParser.Parse("input A { b: String }");
-        DocumentNode schema_b =
+        var schema_b =
             Utf8GraphQLParser.Parse("enum A { B C }");
 
         var types = new List<ITypeInfo>
-            {
-                TypeInfo.Create(
-                    schema_a.Definitions.OfType<ITypeDefinitionNode>().First(),
-                    new SchemaInfo("Schema_A", schema_a)),
-                TypeInfo.Create(
-                    schema_b.Definitions.OfType<ITypeDefinitionNode>().First(),
-                    new SchemaInfo("Schema_B", schema_b)),
-            };
+        {
+            TypeInfo.Create(
+                schema_a.Definitions.OfType<ITypeDefinitionNode>().First(),
+                new SchemaInfo("Schema_A", schema_a)),
+            TypeInfo.Create(
+                schema_b.Definitions.OfType<ITypeDefinitionNode>().First(),
+                new SchemaInfo("Schema_B", schema_b)),
+        };
 
         var context = new SchemaMergeContext();
 
@@ -181,9 +179,9 @@ public class EnumTypeMergeHandlerTests
             t => Assert.IsType<InputObjectTypeInfo>(t));
 
         Snapshot.Match(new List<object>
-            {
-                context.CreateSchema().Print(),
-                leftovers
-            });
+        {
+            context.CreateSchema().Print(),
+            leftovers
+        });
     }
 }

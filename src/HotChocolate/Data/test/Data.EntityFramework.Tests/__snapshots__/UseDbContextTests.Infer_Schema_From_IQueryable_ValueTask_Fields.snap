@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: QueryValueTask
 }
 
@@ -6,13 +6,6 @@ type Author {
   id: Int!
   name: String!
   books: [Book!]!
-}
-
-type AuthorCollectionSegment {
-  items: [Author!]
-  "Information to aid in pagination."
-  pageInfo: CollectionSegmentInfo!
-  totalCount: Int!
 }
 
 "A connection to a list of items."
@@ -23,6 +16,7 @@ type AuthorCursorPagingConnection {
   edges: [AuthorCursorPagingEdge!]
   "A flattened list of the nodes."
   nodes: [Author!]
+  "Identifies the total count of items in the connection."
   totalCount: Int!
 }
 
@@ -42,6 +36,7 @@ type AuthorCursorPagingExecutableConnection {
   edges: [AuthorCursorPagingExecutableEdge!]
   "A flattened list of the nodes."
   nodes: [Author!]
+  "Identifies the total count of items in the connection."
   totalCount: Int!
 }
 
@@ -51,6 +46,24 @@ type AuthorCursorPagingExecutableEdge {
   cursor: String!
   "The item at the end of the edge."
   node: Author!
+}
+
+"A segment of a collection."
+type AuthorOffsetPagingCollectionSegment {
+  "Information to aid in pagination."
+  pageInfo: CollectionSegmentInfo!
+  "A flattened list of the items."
+  items: [Author!]
+  totalCount: Int!
+}
+
+"A segment of a collection."
+type AuthorOffsetPagingExecutableCollectionSegment {
+  "Information to aid in pagination."
+  pageInfo: CollectionSegmentInfo!
+  "A flattened list of the items."
+  items: [Author!]
+  totalCount: Int!
 }
 
 type Book {
@@ -82,8 +95,8 @@ type PageInfo {
 
 type QueryValueTask {
   authors: [Author!]!
-  authorOffsetPaging(skip: Int take: Int where: AuthorFilterInput order: [AuthorSortInput!]): AuthorCollectionSegment
-  authorOffsetPagingExecutable(skip: Int take: Int where: AuthorFilterInput order: [AuthorSortInput!]): AuthorCollectionSegment
+  authorOffsetPaging(skip: Int take: Int where: AuthorFilterInput order: [AuthorSortInput!]): AuthorOffsetPagingCollectionSegment
+  authorOffsetPagingExecutable(skip: Int take: Int where: AuthorFilterInput order: [AuthorSortInput!]): AuthorOffsetPagingExecutableCollectionSegment
   authorCursorPagingExecutable("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: AuthorFilterInput order: [AuthorSortInput!]): AuthorCursorPagingExecutableConnection
   authorCursorPaging("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): AuthorCursorPagingConnection
 }

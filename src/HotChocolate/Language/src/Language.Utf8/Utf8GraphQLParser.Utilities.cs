@@ -8,12 +8,13 @@ namespace HotChocolate.Language;
 
 public ref partial struct Utf8GraphQLParser
 {
+    // note: this is internal for legacy stitching
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private NameNode ParseName()
+    internal NameNode ParseName()
     {
-        TokenInfo start = Start();
+        var start = Start();
         var name = ExpectName();
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new NameNode
         (
@@ -22,18 +23,30 @@ public ref partial struct Utf8GraphQLParser
         );
     }
 
+    // note: this is internal for legacy stitching
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private bool MoveNext() => _reader.MoveNext();
+    internal bool MoveNext() => _reader.MoveNext();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private TokenInfo Start() =>
-        _createLocation
+    private TokenInfo Start()
+    {
+        if (++_parsedNodes > _maxAllowedNodes)
+        {
+            throw new SyntaxException(
+                _reader,
+                string.Format(
+                    Utf8GraphQLParser_Start_MaxAllowedNodesReached,
+                    _maxAllowedNodes));
+        }
+
+        return _createLocation
             ? new TokenInfo(
                 _reader.Start,
                 _reader.End,
                 _reader.Line,
                 _reader.Column)
             : default;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Location? CreateLocation(in TokenInfo start) =>
@@ -58,11 +71,13 @@ public ref partial struct Utf8GraphQLParser
         throw new SyntaxException(_reader, Parser_InvalidToken, TokenKind.Name, _reader.Kind);
     }
 
+    // note: this is internal for legacy stitching
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void ExpectColon() => Expect(TokenKind.Colon);
+    internal void ExpectColon() => Expect(TokenKind.Colon);
 
+    // note: this is internal for the stitching legacy layer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void ExpectDollar() => Expect(TokenKind.Dollar);
+    internal void ExpectDollar() => Expect(TokenKind.Dollar);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ExpectAt() => Expect(TokenKind.At);
@@ -86,8 +101,9 @@ public ref partial struct Utf8GraphQLParser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ExpectSpread() => Expect(TokenKind.Spread);
 
+    // note: this is internal for legacy stitching
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void ExpectRightParenthesis() => Expect(TokenKind.RightParenthesis);
+    internal void ExpectRightParenthesis() => Expect(TokenKind.RightParenthesis);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ExpectRightBrace() => Expect(TokenKind.RightBrace);
@@ -164,7 +180,7 @@ public ref partial struct Utf8GraphQLParser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private StringValueNode? TakeDescription()
     {
-        StringValueNode? description = _description;
+        var description = _description;
         _description = null;
         return description;
     }

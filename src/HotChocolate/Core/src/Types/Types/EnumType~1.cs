@@ -26,9 +26,7 @@ namespace HotChocolate.Types;
 /// }
 /// </code>
 /// </summary>
-public class EnumType<T>
-    : EnumType
-    , IEnumType<T>
+public class EnumType<T> : EnumType, IEnumType<T>
 {
     private Action<IEnumTypeDescriptor<T>>? _configure;
 
@@ -53,7 +51,7 @@ public class EnumType<T>
     }
 
     /// <inheritdoc />
-    public bool TryGetRuntimeValue(NameString name, [NotNullWhen(true)] out T runtimeValue)
+    public bool TryGetRuntimeValue(string name, [NotNullWhen(true)] out T runtimeValue)
     {
         if (base.TryGetRuntimeValue(name, out var rv) &&
             rv is T casted)

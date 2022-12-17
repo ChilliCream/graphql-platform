@@ -1,14 +1,10 @@
-﻿using System;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
-using Snapshooter;
 using Snapshooter.Xunit;
 using Squadron;
 using StackExchange.Redis;
-using Xunit;
 
 namespace HotChocolate.PersistedQueries.Redis;
 
@@ -25,7 +21,7 @@ public class RedisQueryStorageTests
     [Fact]
     public Task Write_Query_To_Storage()
     {
-        SnapshotFullName snapshotName = Snapshot.FullName();
+        var snapshotName = Snapshot.FullName();
         var queryId = Guid.NewGuid().ToString("N");
 
         return TryTest(async () =>
@@ -81,7 +77,7 @@ public class RedisQueryStorageTests
     [Fact]
     public Task Read_Query_From_Storage()
     {
-        SnapshotFullName snapshotName = Snapshot.FullName();
+        var snapshotName = Snapshot.FullName();
         var queryId = Guid.NewGuid().ToString("N");
 
         return TryTest(async () =>
@@ -92,11 +88,11 @@ public class RedisQueryStorageTests
                 await _database.StringSetAsync(queryId, buffer);
 
                 // act
-                QueryDocument query = await storage.TryReadQueryAsync(queryId);
+                var query = await storage.TryReadQueryAsync(queryId);
 
                 // assert
                 Assert.NotNull(query);
-                query.Document.Print().MatchSnapshot(snapshotName);
+                query!.Document.Print().MatchSnapshot(snapshotName);
             },
             () => _database.KeyDeleteAsync(queryId));
     }
@@ -120,7 +116,7 @@ public class RedisQueryStorageTests
 
     private static async Task TryTest(
         Func<Task> action,
-        Func<Task> cleanup = null)
+        Func<Task>? cleanup = null)
     {
         // we will try four times ....
         var count = 0;

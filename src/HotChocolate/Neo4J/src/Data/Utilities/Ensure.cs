@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using HotChocolate.Data.Neo4J.Extensions;
 using HotChocolate.Data.Neo4J.Language;
 

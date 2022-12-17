@@ -19,7 +19,7 @@ public sealed class ResultBuilderDescriptor : ICodeDescriptor
         ValueParsers = valueParsers;
     }
 
-    public NameString Name => RuntimeType.Name;
+    public string Name => RuntimeType.Name;
 
     public RuntimeTypeInfo RuntimeType { get; }
 

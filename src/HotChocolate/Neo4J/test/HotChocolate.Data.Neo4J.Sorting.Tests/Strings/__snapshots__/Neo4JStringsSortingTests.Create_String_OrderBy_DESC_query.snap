@@ -1,1 +1,0 @@
-﻿MATCH (fooString:FooString) RETURN fooString ORDER BY fooString.Bar DESC

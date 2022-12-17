@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using HotChocolate.Types;
 
 namespace HotChocolate.Stitching;
@@ -8,7 +7,7 @@ internal static class HasDirectiveExtensions
 {
     public static bool TryGetSourceDirective(
         this IHasDirectives hasDirectives,
-        NameString schemaName,
+        string schemaName,
         [NotNullWhen(true)] out SourceDirective? sourceDirective)
     {
         sourceDirective = hasDirectives.Directives[DirectiveNames.Source]
@@ -19,10 +18,10 @@ internal static class HasDirectiveExtensions
 
     public static bool TryGetSourceName(
         this IHasDirectives hasDirectives,
-        NameString schemaName,
-        [NotNullWhen(true)] out NameString? sourceName)
+        string schemaName,
+        [NotNullWhen(true)] out string? sourceName)
     {
-        if (TryGetSourceDirective(hasDirectives, schemaName, out SourceDirective? sd))
+        if (TryGetSourceDirective(hasDirectives, schemaName, out var sd))
         {
             sourceName = sd.Name;
             return true;

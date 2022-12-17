@@ -63,7 +63,7 @@ public class ScalarTypeTestBase
         where TType : ScalarType
     {
         // arrange
-        ScalarType scalar = CreateType<TType>();
+        var scalar = CreateType<TType>();
 
         // act
         var result = scalar.IsInstanceOfType(valueSyntax);
@@ -78,7 +78,7 @@ public class ScalarTypeTestBase
         where TType : ScalarType
     {
         // arrange
-        ScalarType scalar = CreateType<TType>();
+        var scalar = CreateType<TType>();
 
         // act
         var result = scalar.IsInstanceOfType(runtimeValue);
@@ -93,10 +93,10 @@ public class ScalarTypeTestBase
         where TType : ScalarType
     {
         // arrange
-        ScalarType scalar = CreateType<TType>();
+        var scalar = CreateType<TType>();
 
         // act
-        object? result = scalar.ParseLiteral(valueSyntax);
+        var result = scalar.ParseLiteral(valueSyntax);
 
         // assert
         Assert.Equal(expectedResult, result);
@@ -107,10 +107,10 @@ public class ScalarTypeTestBase
         where TType : ScalarType
     {
         // arrange
-        ScalarType scalar = CreateType<TType>();
+        var scalar = CreateType<TType>();
 
         // act
-        Exception? result = Record.Exception(() => scalar.ParseLiteral(valueSyntax));
+        var result = Record.Exception(() => scalar.ParseLiteral(valueSyntax));
 
         // assert
         Assert.IsType<SerializationException>(result);
@@ -122,10 +122,10 @@ public class ScalarTypeTestBase
         where TType : ScalarType
     {
         // arrange
-        ScalarType scalar = CreateType<TType>();
+        var scalar = CreateType<TType>();
 
         // act
-        IValueNode result = scalar.ParseValue(valueSyntax);
+        var result = scalar.ParseValue(valueSyntax);
 
         // assert
         Assert.Equal(type, result.GetType());
@@ -135,10 +135,10 @@ public class ScalarTypeTestBase
         where TType : ScalarType
     {
         // arrange
-        ScalarType scalar = CreateType<TType>();
+        var scalar = CreateType<TType>();
 
         // act
-        Exception? result = Record.Exception(() => scalar.ParseValue(runtimeValue));
+        var result = Record.Exception(() => scalar.ParseValue(runtimeValue));
 
         // assert
         Assert.IsType<SerializationException>(result);
@@ -150,10 +150,10 @@ public class ScalarTypeTestBase
         where TType : ScalarType
     {
         // arrange
-        ScalarType scalar = CreateType<TType>();
+        var scalar = CreateType<TType>();
 
         // act
-        object? result = scalar.Serialize(runtimeValue);
+        var result = scalar.Serialize(runtimeValue);
 
         // assert
         Assert.Equal(resultValue, result);
@@ -165,10 +165,10 @@ public class ScalarTypeTestBase
         where TType : ScalarType
     {
         // arrange
-        ScalarType scalar = CreateType<TType>();
+        var scalar = CreateType<TType>();
 
         // act
-        object? result = scalar.Deserialize(resultValue);
+        var result = scalar.Deserialize(resultValue);
 
         // assert
         Assert.Equal(resultValue, runtimeValue);
@@ -178,10 +178,10 @@ public class ScalarTypeTestBase
         where TType : ScalarType
     {
         // arrange
-        ScalarType scalar = CreateType<TType>();
+        var scalar = CreateType<TType>();
 
         // act
-        Exception? result = Record.Exception(() => scalar.Serialize(runtimeValue));
+        var result = Record.Exception(() => scalar.Serialize(runtimeValue));
 
         // assert
         Assert.IsType<SerializationException>(result);
@@ -191,10 +191,10 @@ public class ScalarTypeTestBase
         where TType : ScalarType
     {
         // arrange
-        ScalarType scalar = CreateType<TType>();
+        var scalar = CreateType<TType>();
 
         // act
-        Exception? result = Record.Exception(() => scalar.Deserialize(runtimeValue));
+        var result = Record.Exception(() => scalar.Deserialize(runtimeValue));
 
         // assert
         Assert.IsType<SerializationException>(result);
@@ -206,10 +206,10 @@ public class ScalarTypeTestBase
         where TType : ScalarType
     {
         // arrange
-        ScalarType scalar = CreateType<TType>();
+        var scalar = CreateType<TType>();
 
         // act
-        IValueNode result = scalar.ParseResult(valueSyntax);
+        var result = scalar.ParseResult(valueSyntax);
 
         // assert
         Assert.Equal(type, result.GetType());
@@ -219,10 +219,10 @@ public class ScalarTypeTestBase
         where TType : ScalarType
     {
         // arrange
-        ScalarType scalar = CreateType<TType>();
+        var scalar = CreateType<TType>();
 
         // act
-        Exception? result = Record.Exception(() => scalar.ParseResult(runtimeValue));
+        var result = Record.Exception(() => scalar.ParseResult(runtimeValue));
 
         // assert
         Assert.IsType<SerializationException>(result);
@@ -234,7 +234,7 @@ public class ScalarTypeTestBase
     {
         // arrange
         // act
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<TDefaultClass>()
             .AddType<TType>()

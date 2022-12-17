@@ -1,40 +1,39 @@
-using System.Threading.Tasks;
+using CookieCrumble;
+using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using NetTopologySuite.Geometries;
 using Squadron;
-using Xunit;
 
-namespace HotChocolate.Data.Filters.Spatial;
+namespace HotChocolate.Data.Spatial.Filters;
 
-public class QueryableFilterVisitorWithinTests
-    : SchemaCache
-    , IClassFixture<PostgreSqlResource<PostgisConfig>>
+[Collection("Postgres")]
+public class QueryableFilterVisitorWithinTests : SchemaCache
 {
     private static readonly Polygon _truePolygon =
-        new Polygon(new LinearRing(new[]
+        new(new LinearRing(new[]
         {
-                new Coordinate(20, 20),
-                new Coordinate(20, 100),
-                new Coordinate(120, 100),
-                new Coordinate(140, 20),
-                new Coordinate(20, 20),
+            new Coordinate(20, 20),
+            new Coordinate(20, 100),
+            new Coordinate(120, 100),
+            new Coordinate(140, 20),
+            new Coordinate(20, 20),
         }));
 
     private static readonly Polygon _falsePolygon =
-        new Polygon(new LinearRing(new[]
+        new(new LinearRing(new[]
         {
-                new Coordinate(1000, 1000),
-                new Coordinate(100000, 1000),
-                new Coordinate(100000, 100000),
-                new Coordinate(1000, 100000),
-                new Coordinate(1000, 1000),
+            new Coordinate(1000, 1000),
+            new Coordinate(100000, 1000),
+            new Coordinate(100000, 100000),
+            new Coordinate(1000, 100000),
+            new Coordinate(1000, 1000),
         }));
 
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { Id = 1, Bar = _truePolygon },
-            new Foo { Id = 2, Bar = _falsePolygon }
-        };
+        new() { Id = 1, Bar = _truePolygon },
+        new() { Id = 2, Bar = _falsePolygon }
+    };
 
     public QueryableFilterVisitorWithinTests(PostgreSqlResource<PostgisConfig> resource)
         : base(resource)
@@ -45,67 +44,69 @@ public class QueryableFilterVisitorWithinTests
     public async Task Create_Within_Query()
     {
         // arrange
-        IRequestExecutor tester = await CreateSchemaAsync<Foo, FooFilterType>(_fooEntities);
+        var tester = await CreateSchemaAsync<Foo, FooFilterType>(_fooEntities);
 
         // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"{
+                        root(where: {
+                            bar: {
+                                within: {
+                                    geometry: {
+                                        type: Polygon,
+                                        coordinates: [
+                                            [
+                                                [20 20],
+                                                [140 20],
+                                                [120 100],
+                                                [20 100 ],
+                                                [20 20]
+                                            ]
+                                        ]
+                                    }
+                                }
+                            }
+                        }){
+                            id
+                        }
+                    }")
+                .Create());
+
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"{
+                        root(where: {
+                            bar: {
+                                nwithin: {
+                                    geometry: {
+                                        type: Polygon,
+                                        coordinates: [
+                                            [
+                                                [20 20],
+                                                [140 20],
+                                                [120 100],
+                                                [20 100 ],
+                                                [20 20]
+                                            ]
+                                        ]
+                                    }
+                                }
+                            }
+                        }){
+                            id
+                        }
+                    }")
+                .Create());
+
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
-                    @"{
-                            root(where: {
-                                bar: {
-                                    within: {
-                                        geometry: {
-                                            type: Polygon,
-                                            coordinates: [
-                                                [
-                                                    [20 20],
-                                                    [140 20],
-                                                    [120 100],
-                                                    [20 100 ],
-                                                    [20 20]
-                                                ]
-                                            ]
-                                        }
-                                    }
-                                }
-                            }){
-                                id
-                            }
-                        }")
-                .Create());
-
-        res1.MatchSqlSnapshot("true");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
-                    @"{
-                            root(where: {
-                                bar: {
-                                    nwithin: {
-                                        geometry: {
-                                            type: Polygon,
-                                            coordinates: [
-                                                [
-                                                    [20 20],
-                                                    [140 20],
-                                                    [120 100],
-                                                    [20 100 ],
-                                                    [20 20]
-                                                ]
-                                            ]
-                                        }
-                                    }
-                                }
-                            }){
-                                id
-                            }
-                        }")
-                .Create());
-
-        res2.MatchSqlSnapshot("false");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "true"), res2, "false")
+            .MatchAsync();
     }
 
     public class Foo
@@ -115,8 +116,7 @@ public class QueryableFilterVisitorWithinTests
         public Polygon Bar { get; set; } = null!;
     }
 
-    public class FooFilterType
-        : FilterInputType<Foo>
+    public class FooFilterType : FilterInputType<Foo>
     {
     }
 }

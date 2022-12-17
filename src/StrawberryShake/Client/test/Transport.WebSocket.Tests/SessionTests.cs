@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Language;
 using Moq;
-using Snapshooter.Xunit;
 using StrawberryShake.Transport.WebSockets.Messages;
-using Xunit;
 using static HotChocolate.Tests.TestHelper;
 
 namespace StrawberryShake.Transport.WebSockets;
@@ -21,7 +20,7 @@ public class SessionTests
         var client = new SocketClientStub { Protocol = new Mock<ISocketProtocol>().Object };
 
         // act
-        Exception? exception = Record.Exception(() => new Session(client));
+        var exception = Record.Exception(() => new Session(client));
 
         // assert
         Assert.Null(exception);
@@ -34,7 +33,7 @@ public class SessionTests
         ISocketClient client = null!;
 
         // act
-        Exception? exception = Record.Exception(() => new Session(client));
+        var exception = Record.Exception(() => new Session(client));
 
         // assert
         Assert.IsType<ArgumentNullException>(exception);
@@ -43,6 +42,8 @@ public class SessionTests
     [Fact]
     public async Task OpenSessionAsync_NoProtocolNegotiated_ThrowException()
     {
+        var snapshot = new Snapshot();
+
         await TryTest(async ct =>
         {
             // arrange
@@ -50,11 +51,13 @@ public class SessionTests
             var manager = new Session(client);
 
             // act
-            Exception? exception = await Record.ExceptionAsync(
+            var exception = await Record.ExceptionAsync(
             () => manager.OpenSessionAsync(ct));
 
             // assert
-            Assert.IsType<SocketOperationException>(exception).Message.MatchSnapshot();
+            await snapshot
+                .Add(Assert.IsType<SocketOperationException>(exception).Message)
+                .MatchAsync(ct);
         });
     }
 
@@ -129,7 +132,7 @@ public class SessionTests
             await manager.OpenSessionAsync(ct);
 
             // act
-            Exception? exception = await Record.ExceptionAsync(
+            var exception = await Record.ExceptionAsync(
             () => manager.StartOperationAsync(request, ct));
 
             // assert
@@ -140,6 +143,8 @@ public class SessionTests
     [Fact]
     public async Task StartOperationAsync_SocketCloses_ThrowException()
     {
+        var snapshot = new Snapshot();
+
         await TryTest(async ct =>
         {
             // arrange
@@ -149,11 +154,13 @@ public class SessionTests
             var manager = new Session(client);
 
             // act
-            Exception? exception =
+            var exception =
             await Record.ExceptionAsync(() => manager.StartOperationAsync(request, ct));
 
             // assert
-            Assert.IsType<SocketOperationException>(exception).Message.MatchSnapshot();
+            await snapshot
+                .Add(Assert.IsType<SocketOperationException>(exception).Message)
+                .MatchAsync(ct);
         });
     }
 
@@ -235,7 +242,7 @@ public class SessionTests
                 .Returns(Task.CompletedTask);
 
             // act
-            ISocketOperation operation = await manager.StartOperationAsync(request, ct);
+            var operation = await manager.StartOperationAsync(request, ct);
             protocolMock
                 .Setup(x => x.StopOperationAsync(operation.Id, It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
@@ -249,6 +256,8 @@ public class SessionTests
     [Fact]
     public async Task StopOperationAsync_SocketCloses_ThrowException()
     {
+        var snapshot = new Snapshot();
+
         await TryTest(async ct =>
         {
             // arrange
@@ -257,11 +266,13 @@ public class SessionTests
             var manager = new Session(client);
 
             // act
-            Exception? exception = await Record.ExceptionAsync(
+            var exception = await Record.ExceptionAsync(
             () => manager.StopOperationAsync("123", ct));
 
             // assert
-            Assert.IsType<SocketOperationException>(exception).Message.MatchSnapshot();
+            await snapshot
+                .Add(Assert.IsType<SocketOperationException>(exception).Message)
+                .MatchAsync(ct);
         });
     }
 
@@ -279,7 +290,7 @@ public class SessionTests
             List<OperationMessage> messages = new();
 
             // act
-            ISocketOperation operation = await manager.StartOperationAsync(request, ct);
+            var operation = await manager.StartOperationAsync(request, ct);
             await manager.StopOperationAsync(operation.Id, ct);
 
             // should return immediately
@@ -311,7 +322,7 @@ public class SessionTests
             List<OperationMessage> messages = new();
 
             // act
-            ISocketOperation operation = await manager.StartOperationAsync(request, ct);
+            var operation = await manager.StartOperationAsync(request, ct);
             await listener(operation.Id, ErrorOperationMessage.ConnectionInitializationError, ct);
 
             await foreach (var elm in operation.ReadAsync().WithCancellation(ct))
@@ -356,7 +367,7 @@ public class SessionTests
             OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
             var manager = new Session(client);
             await manager.OpenSessionAsync(ct);
-            ISocketOperation operation = await manager.StartOperationAsync(request, ct);
+            var operation = await manager.StartOperationAsync(request, ct);
             List<OperationMessage> messages = new();
 
             // act

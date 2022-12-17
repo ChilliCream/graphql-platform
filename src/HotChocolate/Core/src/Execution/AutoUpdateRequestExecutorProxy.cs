@@ -24,7 +24,7 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor
         _executorProxy = requestExecutorProxy;
         _executor = initialExecutor;
 
-        _executorProxy.ExecutorEvicted += (sender, args) => BeginUpdateExecutor();
+        _executorProxy.ExecutorEvicted += (_, _) => BeginUpdateExecutor();
 
         BeginUpdateExecutor();
     }
@@ -55,7 +55,7 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor
             throw new ArgumentNullException(nameof(requestExecutorProxy));
         }
 
-        IRequestExecutor executor = await requestExecutorProxy
+        var executor = await requestExecutorProxy
             .GetRequestExecutorAsync(cancellationToken)
             .ConfigureAwait(false);
 
@@ -146,10 +146,9 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor
     /// Returns a stream of query results.
     /// </returns>
     public Task<IResponseStream> ExecuteBatchAsync(
-        IEnumerable<IQueryRequest> requestBatch,
-        bool allowParallelExecution = false,
+        IReadOnlyList<IQueryRequest> requestBatch,
         CancellationToken cancellationToken = default) =>
-        _executor.ExecuteBatchAsync(requestBatch, allowParallelExecution, cancellationToken);
+        _executor.ExecuteBatchAsync(requestBatch, cancellationToken);
 
     private void BeginUpdateExecutor() =>
         Task.Run(UpdateExecutorAsync);
@@ -160,7 +159,7 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor
 
         try
         {
-            IRequestExecutor executor = await _executorProxy
+            var executor = await _executorProxy
                 .GetRequestExecutorAsync(default)
                 .ConfigureAwait(false);
             _executor = executor;

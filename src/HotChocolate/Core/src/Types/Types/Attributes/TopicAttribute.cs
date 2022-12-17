@@ -4,7 +4,7 @@ using System;
 
 namespace HotChocolate.Types;
 
-[AttributeUsage(AttributeTargets.Method | AttributeTargets.Parameter)]
+[AttributeUsage(AttributeTargets.Method)]
 public sealed class TopicAttribute : Attribute
 {
     public TopicAttribute(string? name = null)

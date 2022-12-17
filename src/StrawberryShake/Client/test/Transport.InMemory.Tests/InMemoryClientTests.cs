@@ -8,7 +8,6 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Xunit;
 
 namespace StrawberryShake.Transport.InMemory;
 
@@ -18,10 +17,10 @@ public class InMemoryClientTests
     public void Constructor_AllArgs_NoException()
     {
         // arrange
-        string name = "Foo";
+        var name = "Foo";
 
         // act
-        Exception? ex = Record.Exception(() => new InMemoryClient(name));
+        var ex = Record.Exception(() => new InMemoryClient(name));
 
         // assert
         Assert.Null(ex);
@@ -34,7 +33,7 @@ public class InMemoryClientTests
         string name = null!;
 
         // act
-        Exception? ex = Record.Exception(() => new InMemoryClient(name));
+        var ex = Record.Exception(() => new InMemoryClient(name));
 
         // assert
         Assert.IsType<ArgumentException>(ex);
@@ -47,7 +46,7 @@ public class InMemoryClientTests
         var client = new InMemoryClient("Foo");
 
         // act
-        Exception? ex =
+        var ex =
             await Record.ExceptionAsync(async () => await client.ExecuteAsync(null!));
 
         // assert
@@ -63,7 +62,7 @@ public class InMemoryClientTests
             new OperationRequest("foo", new StubDocument());
 
         // act
-        Exception? ex =
+        var ex =
             await Record.ExceptionAsync(async () =>
                 await client.ExecuteAsync(operationRequest));
 
@@ -139,26 +138,24 @@ public class InMemoryClientTests
         }
 
         public Task<IResponseStream> ExecuteBatchAsync(
-            IEnumerable<IQueryRequest> requestBatch,
-            bool allowParallelExecution = false,
+            IReadOnlyList<IQueryRequest> requestBatch,
             CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
-        public ISchema Schema { get; } = null!;
+        public ISchema Schema => null!;
 
-        public IServiceProvider Services { get; } = new ServiceCollection()
-            .AddSingleton(ApplicationServiceProvider)
-            .BuildServiceProvider();
+        public IServiceProvider Services { get; } =
+            new ServiceCollection()
+                .AddSingleton(ApplicationServiceProvider)
+                .BuildServiceProvider();
 
         public static IApplicationServiceProvider ApplicationServiceProvider { get; } =
             new DefaultApplicationServiceProvider(
-                new ServiceCollection().BuildServiceProvider());
+                new ServiceCollection()
+                    .BuildServiceProvider());
     }
 
-    private sealed class DefaultApplicationServiceProvider
-        : IApplicationServiceProvider
+    private sealed class DefaultApplicationServiceProvider : IApplicationServiceProvider
     {
         private readonly IServiceProvider _applicationServices;
 

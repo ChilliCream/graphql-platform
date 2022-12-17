@@ -1,31 +1,20 @@
 #nullable enable
 
+using System;
+
 namespace HotChocolate;
 
 /// <summary>
-/// An <see cref="IndexerPathSegment" /> represents a pointer to 
+/// An <see cref="IndexerPathSegment" /> represents a pointer to
 /// an list element in the result structure.
 /// </summary>
 public sealed class IndexerPathSegment : Path
 {
-    internal IndexerPathSegment(Path parent, int index)
-    {
-        Parent = parent;
-        Depth = parent.Depth + 1;
-        Index = index;
-    }
-
-    /// <inheritdoc />
-    public override Path Parent { get; }
-
-    /// <inheritdoc />
-    public override int Depth { get; }
-
     /// <summary>
-    /// Gets the <see cref="Index"/> which represents the position an element in a 
+    /// Gets the <see cref="Index"/> which represents the position an element in a
     /// list of the result structure.
     /// </summary>
-    public int Index { get; }
+    public int Index { get; internal set; }
 
     /// <inheritdoc />
     public override string Print()
@@ -42,7 +31,7 @@ public sealed class IndexerPathSegment : Path
         }
 
         if (other is IndexerPathSegment indexer &&
-            Depth.Equals(indexer.Depth) &&
+            Length.Equals(indexer.Length) &&
             Index.Equals(indexer.Index) &&
             Parent.Equals(indexer.Parent))
         {
@@ -53,14 +42,17 @@ public sealed class IndexerPathSegment : Path
     }
 
     /// <inheritdoc />
-    public override int GetHashCode()
-    {
-        unchecked
+    public override Path Clone()
+        => new IndexerPathSegment
         {
-            var hash = Parent.GetHashCode() * 3;
-            hash ^= Depth.GetHashCode() * 7;
-            hash ^= Index.GetHashCode() * 11;
-            return hash;
-        }
-    }
+            Length = Length,
+            Index = Index,
+            Parent = Parent.Clone()
+        };
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+        // ReSharper disable NonReadonlyMemberInGetHashCode
+        => HashCode.Combine(Parent, Length, Index);
+        // ReSharper restore NonReadonlyMemberInGetHashCode
 }

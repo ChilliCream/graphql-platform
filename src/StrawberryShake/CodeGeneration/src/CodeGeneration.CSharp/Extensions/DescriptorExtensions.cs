@@ -1,5 +1,4 @@
 using System;
-using HotChocolate;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
@@ -11,23 +10,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions;
 
 public static class DescriptorExtensions
 {
-    public static NameString ExtractMapperName(this INamedTypeDescriptor descriptor)
-    {
-        return descriptor.Kind == TypeKind.Entity
-            ? CreateEntityMapperName(
-                descriptor.RuntimeType.Name,
-                descriptor.Name)
-            : CreateDataMapperName(
-                descriptor.RuntimeType.Name,
-                descriptor.Name);
-    }
+    public static string ExtractMapperName(this INamedTypeDescriptor descriptor)
+        => descriptor.Kind == TypeKind.Entity
+            ? CreateEntityMapperName(descriptor.RuntimeType.Name, descriptor.Name)
+            : CreateDataMapperName(descriptor.RuntimeType.Name, descriptor.Name);
 
-    public static RuntimeTypeInfo ExtractType(
-        this INamedTypeDescriptor descriptor)
+    public static RuntimeTypeInfo ExtractType(this INamedTypeDescriptor descriptor)
     {
         return descriptor.IsEntity()
             ? CreateEntityType(descriptor.Name, descriptor.RuntimeType.NamespaceWithoutGlobal)
-            : new (descriptor.Name, descriptor.RuntimeType.NamespaceWithoutGlobal);
+            : new(descriptor.Name, descriptor.RuntimeType.NamespaceWithoutGlobal);
     }
 
     public static TypeSyntax ToTypeSyntax(
@@ -37,15 +29,16 @@ public static class DescriptorExtensions
 
     public static TypeReferenceBuilder ToTypeReference(
         this ITypeDescriptor typeReferenceDescriptor,
-        TypeReferenceBuilder? builder = null)
+        TypeReferenceBuilder? builder = null,
+        bool nonNull = false)
     {
-        TypeReferenceBuilder actualBuilder = builder ?? TypeReferenceBuilder.New();
+        var actualBuilder = builder ?? TypeReferenceBuilder.New();
 
         if (typeReferenceDescriptor is NonNullTypeDescriptor n)
         {
             typeReferenceDescriptor = n.InnerType;
         }
-        else
+        else if (!nonNull)
         {
             actualBuilder.SetIsNullable(true);
         }
@@ -77,7 +70,7 @@ public static class DescriptorExtensions
         this ITypeDescriptor typeDescriptor,
         TypeReferenceBuilder? builder = null)
     {
-        TypeReferenceBuilder actualBuilder = builder ?? TypeReferenceBuilder.New();
+        var actualBuilder = builder ?? TypeReferenceBuilder.New();
 
         if (typeDescriptor is NonNullTypeDescriptor n)
         {
@@ -102,7 +95,7 @@ public static class DescriptorExtensions
             INamedTypeDescriptor { Kind: TypeKind.EntityOrData } =>
                 actualBuilder.SetName(TypeNames.EntityIdOrData),
 
-            ComplexTypeDescriptor { ParentRuntimeType: { } parentRuntimeType }  =>
+            ComplexTypeDescriptor { ParentRuntimeType: { } parentRuntimeType } =>
                 actualBuilder.SetName(parentRuntimeType.ToString()),
 
             INamedTypeDescriptor { Kind: TypeKind.Data } d =>

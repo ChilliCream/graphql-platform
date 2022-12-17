@@ -23,7 +23,7 @@ public partial class JsonResultBuilderGenerator
                 resultNamedType.ImplementedBy.First().RuntimeType.Name);
 
         // protected override IOperationResultDataInfo BuildData(JsonElement dataProp)
-        MethodBuilder buildDataMethod = classBuilder
+        var buildDataMethod = classBuilder
             .AddMethod()
             .SetProtected()
             .SetOverride()
@@ -58,7 +58,7 @@ public partial class JsonResultBuilderGenerator
 
         if (settings.IsStoreEnabled())
         {
-            foreach (PropertyDescriptor property in
+            foreach (var property in
                      resultNamedType.Properties.Where(prop => prop.Type.IsOrContainsEntity()))
             {
                 var variableName = $"{GetParameterName(property.Name)}Id";
@@ -113,11 +113,11 @@ public partial class JsonResultBuilderGenerator
         InterfaceTypeDescriptor resultNamedType,
         string concreteType)
     {
-        MethodCallBuilder resultInfoConstructor = MethodCallBuilder
+        var resultInfoConstructor = MethodCallBuilder
             .Inline()
             .SetMethodName($"new {concreteType}");
 
-        foreach (PropertyDescriptor property in resultNamedType.Properties)
+        foreach (var property in resultNamedType.Properties)
         {
             if (property.Type.IsOrContainsEntity())
             {

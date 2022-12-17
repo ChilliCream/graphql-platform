@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunk_banana_cake_pop_main=self.webpackChunk_banana_cake_pop_main||[]).push([[7062],{97062:function(a,n,e){e.r(n),e.d(n,{default:function(){return u.Xr}});var u=e(36947)}}]);

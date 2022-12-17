@@ -7,9 +7,12 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types;
 
+/// <summary>
+/// The cost directive can be used to express the expected
+/// cost that a resolver incurs on the system.
+/// </summary>
 [Serializable]
-public sealed class CostDirective
-    : ISerializable
+public sealed class CostDirective : ISerializable
 {
     [NonSerialized]
     private readonly int _complexity;
@@ -113,11 +116,11 @@ public sealed class CostDirective
         }
         else
         {
-            ArgumentNode complexityArgument = node.Arguments
+            var complexityArgument = node.Arguments
                 .FirstOrDefault(t => t.Name.Value == "complexity");
-            ArgumentNode multipliersArgument = node.Arguments
+            var multipliersArgument = node.Arguments
                 .FirstOrDefault(t => t.Name.Value == "multipliers");
-            ArgumentNode defaultMultiplierArgument = node.Arguments
+            var defaultMultiplierArgument = node.Arguments
                 .FirstOrDefault(t => t.Name.Value == "defaultMultiplier");
 
             _complexity = complexityArgument is { Value: IntValueNode iv }

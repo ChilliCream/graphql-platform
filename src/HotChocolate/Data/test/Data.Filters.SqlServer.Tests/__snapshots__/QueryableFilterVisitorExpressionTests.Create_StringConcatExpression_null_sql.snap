@@ -1,3 +1,0 @@
-﻿SELECT "d"."Id", "d"."LastName", "d"."Name"
-FROM "Data" AS "d"
-WHERE ((("d"."Name" || ' ') || "d"."LastName") = @__p_0) OR (("d"."Name" IS NULL OR "d"."LastName" IS NULL) AND @__p_0 IS NULL)

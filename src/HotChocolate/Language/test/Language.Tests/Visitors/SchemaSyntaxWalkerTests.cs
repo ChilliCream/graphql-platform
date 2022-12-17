@@ -9,8 +9,8 @@ public class SchemaSyntaxWalkerTests
     public void Visit_KitchenSinkSchema_AllVisitMethodsAreHit()
     {
         // arrange
-        string query = FileResource.Open("schema-kitchen-sink.graphql");
-        DocumentNode document = Utf8GraphQLParser.Parse(query);
+        var query = FileResource.Open("schema-kitchen-sink.graphql");
+        var document = Utf8GraphQLParser.Parse(query);
 
         // act
         var walker = new DummySchemaSyntaxWalker();

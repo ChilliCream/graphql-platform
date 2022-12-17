@@ -1,34 +1,55 @@
 using System;
+using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using static System.IO.Path;
 
-namespace HotChocolate.Analyzers
+namespace HotChocolate.Analyzers;
+
+public partial class Neo4JSourceGenerator
 {
-    public partial class Neo4JSourceGenerator
+    private const string _dll = ".dll";
+
+    private static string _location =
+        GetFullPath(GetDirectoryName(typeof(Neo4JSourceGenerator).Assembly.Location)!);
+
+    private static readonly ShadowCopyAnalyzerAssemblyLoader _loader;
+
+    static Neo4JSourceGenerator()
     {
-        private const string _dll = ".dll";
-        private static string _location = 
-            GetDirectoryName(typeof(Neo4JSourceGenerator).Assembly.Location)!;
+        _loader = new ShadowCopyAnalyzerAssemblyLoader();
 
-        static Neo4JSourceGenerator()
-        {
-            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainOnAssemblyResolve;
-        }
+        AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainOnAssemblyResolve;
+    }
 
-        private static Assembly? CurrentDomainOnAssemblyResolve(
-            object sender,
-            ResolveEventArgs args)
+    private static Assembly? CurrentDomainOnAssemblyResolve(
+        object sender,
+        ResolveEventArgs args)
+    {
+        var path = default(string);
+        try
         {
-            try
-            {
-                var assemblyName = new AssemblyName(args.Name);
-                var path = Combine(_location, assemblyName.Name + _dll);
-                return Assembly.LoadFrom(path);
-            }
-            catch
+            var assemblyName = new AssemblyName(args.Name);
+            path = Combine(_location, assemblyName.Name + _dll);
+
+            if (!File.Exists(path))
             {
                 return null;
             }
+
+            Debug.WriteLine(path);
+            var shadowCopyPath = _loader.GetPathToLoad(path);
+            if (!File.Exists(shadowCopyPath))
+            {
+                return null;
+            }
+
+            return Assembly.LoadFrom(shadowCopyPath);
+        }
+        catch(Exception ex)
+        {
+            Debug.WriteLine($@"Failure for {path}: {ex}");
+            throw;
         }
     }
 }

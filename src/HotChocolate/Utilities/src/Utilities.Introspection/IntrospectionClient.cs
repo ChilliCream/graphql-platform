@@ -46,7 +46,7 @@ namespace HotChocolate.Utilities.Introspection
                 throw new ArgumentNullException(nameof(stream));
             }
 
-            DocumentNode document = await DownloadSchemaAsync(
+            var document = await DownloadSchemaAsync(
                 client, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -64,13 +64,13 @@ namespace HotChocolate.Utilities.Introspection
                 throw new ArgumentNullException(nameof(client));
             }
 
-            ISchemaFeatures features = await GetSchemaFeaturesAsync(
+            var features = await GetSchemaFeaturesAsync(
                 client, cancellationToken)
                 .ConfigureAwait(false);
 
-            HttpQueryRequest request = IntrospectionQueryHelper.CreateIntrospectionQuery(features);
+            var request = IntrospectionQueryHelper.CreateIntrospectionQuery(features);
 
-            IntrospectionResult result = await ExecuteIntrospectionAsync(
+            var result = await ExecuteIntrospectionAsync(
                 client, request, cancellationToken)
                 .ConfigureAwait(false);
             EnsureNoGraphQLErrors(result);
@@ -87,9 +87,9 @@ namespace HotChocolate.Utilities.Introspection
                 throw new ArgumentNullException(nameof(client));
             }
 
-            HttpQueryRequest request = IntrospectionQueryHelper.CreateFeatureQuery();
+            var request = IntrospectionQueryHelper.CreateFeatureQuery();
 
-            IntrospectionResult result = await ExecuteIntrospectionAsync(
+            var result = await ExecuteIntrospectionAsync(
                 client, request, cancellationToken)
                 .ConfigureAwait(false);
             EnsureNoGraphQLErrors(result);
@@ -121,7 +121,7 @@ namespace HotChocolate.Utilities.Introspection
             HttpQueryRequest request,
             CancellationToken cancellationToken)
         {
-            byte[] serializedRequest = JsonSerializer.SerializeToUtf8Bytes(
+            var serializedRequest = JsonSerializer.SerializeToUtf8Bytes(
                 request, _serializerOptions);
 
             var content = new ByteArrayContent(serializedRequest);
@@ -132,12 +132,12 @@ namespace HotChocolate.Utilities.Introspection
                 Content = content
             };
 
-            using HttpResponseMessage httpResponse =
+            using var httpResponse =
                 await client.SendAsync(httpRequest, cancellationToken)
                     .ConfigureAwait(false);
             httpResponse.EnsureSuccessStatusCode();
 
-            using Stream stream =
+            using var stream =
                 await httpResponse.Content.ReadAsStreamAsync()
                     .ConfigureAwait(false);
 

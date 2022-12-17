@@ -1,22 +1,21 @@
 using HotChocolate.Types;
 
-namespace HotChocolate.CodeGeneration.Types
+namespace HotChocolate.CodeGeneration.Types;
+
+public class TypeNameDirectiveType : DirectiveType<TypeNameDirective>
 {
-    public class TypeNameDirectiveType : DirectiveType<TypeNameDirective>
+    protected override void Configure(IDirectiveTypeDescriptor<TypeNameDirective> descriptor)
     {
-        protected override void Configure(IDirectiveTypeDescriptor<TypeNameDirective> descriptor)
-        {
-            descriptor
-                .Name("typeName")
-                .Location(DirectiveLocation.Object);
+        descriptor
+            .Name("typeName")
+            .Location(DirectiveLocation.Object);
 
-            descriptor
-                .Argument(t => t.Name)
-                .Type<NonNullType<StringType>>();
+        descriptor
+            .Argument(t => t.Name)
+            .Type<NonNullType<StringType>>();
 
-            descriptor
-                .Argument(t => t.PluralName)
-                .Type<StringType>();
-        }
+        descriptor
+            .Argument(t => t.PluralName)
+            .Type<StringType>();
     }
 }

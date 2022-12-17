@@ -41,7 +41,7 @@ internal static class SubscribeExpressionHelper
             return null;
         }
 
-        IAsyncEnumerable<T> enumerable = await task.ConfigureAwait(false);
+        var enumerable = await task.ConfigureAwait(false);
         return ConvertEnumerable(enumerable);
     }
 
@@ -53,7 +53,7 @@ internal static class SubscribeExpressionHelper
             return null;
         }
 
-        IEnumerable<T> enumerable = await task.ConfigureAwait(false);
+        var enumerable = await task.ConfigureAwait(false);
         return ConvertEnumerable(enumerable);
     }
 
@@ -77,7 +77,7 @@ internal static class SubscribeExpressionHelper
             return null;
         }
 
-        IObservable<T> enumerable = await task.ConfigureAwait(false);
+        var enumerable = await task.ConfigureAwait(false);
         return ConvertObservable(enumerable);
     }
 
@@ -90,14 +90,14 @@ internal static class SubscribeExpressionHelper
     public static async ValueTask<ISourceStream> AwaitValueTaskAsyncEnumerable<T>(
         ValueTask<IAsyncEnumerable<T>> task)
     {
-        IAsyncEnumerable<T> enumerable = await task.ConfigureAwait(false);
+        var enumerable = await task.ConfigureAwait(false);
         return ConvertEnumerable(enumerable);
     }
 
     public static async ValueTask<ISourceStream> AwaitValueTaskEnumerable<T>(
         ValueTask<IEnumerable<T>> task)
     {
-        IEnumerable<T> enumerable = await task.ConfigureAwait(false);
+        var enumerable = await task.ConfigureAwait(false);
         return ConvertEnumerable(enumerable);
     }
 
@@ -111,7 +111,7 @@ internal static class SubscribeExpressionHelper
     public static async ValueTask<ISourceStream> AwaitValueTaskObservable<T>(
         ValueTask<IObservable<T>> task)
     {
-        IObservable<T> enumerable = await task.ConfigureAwait(false);
+        var enumerable = await task.ConfigureAwait(false);
         return ConvertObservable(enumerable);
     }
 
@@ -165,7 +165,7 @@ internal static class SubscribeExpressionHelper
         public async IAsyncEnumerator<object> GetAsyncEnumerator(
             CancellationToken cancellationToken = default)
         {
-            await foreach (T item in
+            await foreach (var item in
                 _enumerable.WithCancellation(cancellationToken).ConfigureAwait(false))
             {
                 yield return item;

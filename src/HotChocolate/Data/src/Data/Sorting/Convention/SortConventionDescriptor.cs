@@ -6,8 +6,7 @@ using static HotChocolate.Data.DataResources;
 
 namespace HotChocolate.Data.Sorting;
 
-public class SortConventionDescriptor
-    : ISortConventionDescriptor
+public class SortConventionDescriptor : ISortConventionDescriptor
 {
     private readonly Dictionary<int, SortOperationConventionDescriptor> _operations =
         new Dictionary<int, SortOperationConventionDescriptor>();
@@ -20,13 +19,12 @@ public class SortConventionDescriptor
 
     protected IDescriptorContext Context { get; }
 
-    protected SortConventionDefinition Definition { get; } =
-        new SortConventionDefinition();
+    protected SortConventionDefinition Definition { get; } = new();
 
     public SortConventionDefinition CreateDefinition()
     {
         // collect all operation configurations and add them to the convention definition.
-        foreach (SortOperationConventionDescriptor operation in _operations.Values)
+        foreach (var operation in _operations.Values)
         {
             Definition.Operations.Add(operation.CreateDefinition());
         }
@@ -39,7 +37,7 @@ public class SortConventionDescriptor
     {
         if (_operations.TryGetValue(
             operationId,
-            out SortOperationConventionDescriptor? descriptor))
+            out var descriptor))
         {
             return descriptor;
         }
@@ -118,7 +116,7 @@ public class SortConventionDescriptor
         ConfigureSortEnumType configure)
         where TSortEnumType : SortEnumType
     {
-        ExtendedTypeReference typeReference =
+        var typeReference =
             Context.TypeInspector.GetTypeRef(
                 typeof(TSortEnumType),
                 TypeContext.None,
@@ -126,7 +124,7 @@ public class SortConventionDescriptor
 
         if (!Definition.EnumConfigurations.TryGetValue(
             typeReference,
-            out List<ConfigureSortEnumType>? configurations))
+            out var configurations))
         {
             configurations = new List<ConfigureSortEnumType>();
             Definition.EnumConfigurations.Add(typeReference, configurations);
@@ -142,7 +140,7 @@ public class SortConventionDescriptor
     {
         if (!Definition.Configurations.TryGetValue(
             typeReference,
-            out List<ConfigureSortInputType>? configurations))
+            out var configurations))
         {
             configurations = new List<ConfigureSortInputType>();
             Definition.Configurations.Add(typeReference, configurations);
@@ -186,7 +184,7 @@ public class SortConventionDescriptor
     }
 
     /// <inheritdoc />
-    public ISortConventionDescriptor ArgumentName(NameString argumentName)
+    public ISortConventionDescriptor ArgumentName(string argumentName)
     {
         Definition.ArgumentName = argumentName;
         return this;
@@ -211,6 +209,6 @@ public class SortConventionDescriptor
     /// </summary>
     /// <param name="context">The descriptor context.</param>
     /// <param name="scope">The scope</param>
-    public static SortConventionDescriptor New(IDescriptorContext context, string? scope) =>
-        new SortConventionDescriptor(context, scope);
+    public static SortConventionDescriptor New(IDescriptorContext context, string? scope)
+        => new(context, scope);
 }

@@ -441,6 +441,12 @@ namespace HotChocolate.Data {
             }
         }
         
+        internal static string ProjectionConvention_NodeFieldWasInInvalidState {
+            get {
+                return ResourceManager.GetString("ProjectionConvention_NodeFieldWasInInvalidState", resourceCulture);
+            }
+        }
+        
         internal static string ProjectionVisitor_NodeFieldWasNotFound {
             get {
                 return ResourceManager.GetString("ProjectionVisitor_NodeFieldWasNotFound", resourceCulture);
@@ -494,13 +500,13 @@ namespace HotChocolate.Data {
                 return ResourceManager.GetString("QueryableFiltering_ExpressionParameterInvalid", resourceCulture);
             }
         }
-
+        
         internal static string QueryableFilterProvider_ExpressionParameterInvalid {
             get {
                 return ResourceManager.GetString("QueryableFilterProvider_ExpressionParameterInvalid", resourceCulture);
             }
         }
-
+        
         internal static string QueryableFiltering_NoMemberDeclared {
             get {
                 return ResourceManager.GetString("QueryableFiltering_NoMemberDeclared", resourceCulture);

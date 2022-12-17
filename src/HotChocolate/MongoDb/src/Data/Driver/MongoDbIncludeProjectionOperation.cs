@@ -22,8 +22,8 @@ public sealed class MongoDbIncludeProjectionOperation : MongoDbProjectionDefinit
         StringFieldDefinitionHelper.Resolve(
             _path,
             documentSerializer,
-            out string? resolvedFieldName,
-            out IBsonSerializer? _);
+            out var resolvedFieldName,
+            out var _);
 
         return new BsonDocument(resolvedFieldName ?? _path, 1);
     }

@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "ms-dotnettools.csharp",
+    "EditorConfig.EditorConfig",
+    "k--kato.docomment",
+    "dbaeumer.vscode-eslint",
+    "josefpihrt-vscode.roslynator"
+  ]
+}

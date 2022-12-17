@@ -26,7 +26,7 @@ internal sealed class InputObjectTypeUsageAnalyzer : QuerySyntaxWalker<object?>
     protected override void VisitOperationDefinition(
         OperationDefinitionNode node, object? context)
     {
-        ObjectType operationType = _schema.GetOperationType(node.Operation)!;
+        var operationType = _schema.GetOperationType(node.Operation)!;
 
         VisitMany(
             node.VariableDefinitions,
@@ -40,7 +40,7 @@ internal sealed class InputObjectTypeUsageAnalyzer : QuerySyntaxWalker<object?>
     {
         if (_schema.TryGetType<INamedType>(
                 node.Type.NamedType().Name.Value,
-                out INamedType? type)
+                out var type)
             && type is IInputType inputType)
         {
             VisitInputType(inputType);

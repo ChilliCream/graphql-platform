@@ -21,7 +21,7 @@ public class TimeSpanSerializer : ScalarSerializer<string, TimeSpan>
 
     public override TimeSpan Parse(string serializedValue)
     {
-        if (TryDeserializeFromString(serializedValue, _format, out TimeSpan? timeSpan))
+        if (TryDeserializeFromString(serializedValue, _format, out var timeSpan))
         {
             return timeSpan!.Value;
         }
@@ -84,7 +84,7 @@ public class TimeSpanSerializer : ScalarSerializer<string, TimeSpan>
 
     private static bool TryDeserializeDotNet(string serialized, out TimeSpan? value)
     {
-        if (TimeSpan.TryParse(serialized, out TimeSpan timeSpan))
+        if (TimeSpan.TryParse(serialized, out var timeSpan))
         {
             value = timeSpan;
             return true;

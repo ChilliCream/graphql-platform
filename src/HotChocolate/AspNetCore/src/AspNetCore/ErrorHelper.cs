@@ -19,44 +19,45 @@ internal static class ErrorHelper
             .SetCode(ErrorCodes.Server.RequestInvalid)
             .Build();
 
-    public static IQueryResult ResponseTypeNotSupported()
-        => QueryResultBuilder.CreateError(
-            ErrorBuilder.New()
-                .SetMessage(AspNetCoreResources.ErrorHelper_ResponseTypeNotSupported)
-                .Build());
-
-    public static IQueryResult UnknownSubscriptionError(Exception ex)
-        => QueryResultBuilder.CreateError(
-            ErrorBuilder
-                .New()
-                .SetException(ex)
-                .SetCode(ErrorCodes.Execution.TaskProcessingError)
-                .SetMessage(AspNetCoreResources.Subscription_SendResultsAsync)
-                .Build());
+    public static IError NoSupportedAcceptMediaType()
+        => ErrorBuilder.New()
+            .SetMessage(AspNetCoreResources.ErrorHelper_NoSupportedAcceptMediaType)
+            .SetCode(ErrorCodes.Server.NoSupportedAcceptMediaType)
+            .Build();
 
     public static IQueryResult TypeNameIsEmpty()
         => QueryResultBuilder.CreateError(
             new Error(
-                "The specified types argument is empty.",
+                AspNetCoreResources.ErrorHelper_TypeNameIsEmpty,
                 code: ErrorCodes.Server.TypeParameterIsEmpty));
 
     public static IQueryResult InvalidTypeName(string typeName)
         => QueryResultBuilder.CreateError(
             new Error(
-                "The type name is invalid.",
+                AspNetCoreResources.ErrorHelper_InvalidTypeName,
                 code: ErrorCodes.Server.InvalidTypeName,
                 extensions: new Dictionary<string, object?>
                 {
-                    { "typeName", typeName }
+                    { nameof(typeName), typeName }
                 }));
 
     public static IQueryResult TypeNotFound(string typeName)
         => QueryResultBuilder.CreateError(
             new Error(
-                $"The type `{typeName}` does not exist.",
+                string.Format(AspNetCoreResources.ErrorHelper_TypeNotFound, typeName),
                 code: ErrorCodes.Server.TypeDoesNotExist,
                 extensions: new Dictionary<string, object?>
                 {
-                    { "typeName", typeName }
+                    { nameof(typeName), typeName }
+                }));
+
+    public static IQueryResult InvalidAcceptMediaType(string headerValue)
+        => QueryResultBuilder.CreateError(
+            new Error(
+                string.Format(AspNetCoreResources.ErrorHelper_InvalidAcceptMediaType, headerValue),
+                code: ErrorCodes.Server.InvalidAcceptHeaderValue,
+                extensions: new Dictionary<string, object?>
+                {
+                    { nameof(headerValue), headerValue }
                 }));
 }

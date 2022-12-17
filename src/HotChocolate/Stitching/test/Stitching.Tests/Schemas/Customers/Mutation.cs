@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace HotChocolate.Stitching.Schemas.Customers;
 
 public class Mutation
@@ -32,7 +29,7 @@ public class Mutation
     {
         var results = new List<CreateCustomerPayload>();
 
-        foreach (CreateCustomerInput input in inputs)
+        foreach (var input in inputs)
         {
             results.Add(CreateCustomer(input));
         }

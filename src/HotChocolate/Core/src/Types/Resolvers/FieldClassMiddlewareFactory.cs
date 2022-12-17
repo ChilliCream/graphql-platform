@@ -12,7 +12,7 @@ public static class FieldClassMiddlewareFactory
     private static readonly MethodInfo _createGeneric =
         typeof(FieldClassMiddlewareFactory)
         .GetTypeInfo().DeclaredMethods.First(t =>
-            t.Name.EqualsOrdinal(nameof(FieldClassMiddlewareFactory.Create)) &&
+            t.Name.EqualsOrdinal(nameof(Create)) &&
             t.IsGenericMethod);
 
     private static readonly PropertyInfo _services =
@@ -31,18 +31,18 @@ public static class FieldClassMiddlewareFactory
         {
             var parameters = new List<IParameterHandler>();
 
-            foreach ((Type Service, object Instance) service in services)
+            foreach (var service in services)
             {
                 parameters.Add(new TypeParameterHandler(
                     service.Service,
                     Expression.Constant(service.Instance)));
             }
 
-            MiddlewareFactory<TMiddleware, IServiceProvider, FieldDelegate> factory =
+            var factory =
                 MiddlewareCompiler<TMiddleware>.CompileFactory<IServiceProvider, FieldDelegate>(
-                    (services, next) =>
+                    (sp, _) =>
                     {
-                        parameters.Add(new ServiceParameterHandler(services));
+                        parameters.Add(new ServiceParameterHandler(sp));
                         return parameters;
                     });
 
@@ -79,11 +79,11 @@ public static class FieldClassMiddlewareFactory
         var sync = new object();
         TMiddleware middleware = null;
 
-        ClassQueryDelegate<TMiddleware, IMiddlewareContext> compiled =
+        var compiled =
             MiddlewareCompiler<TMiddleware>.CompileDelegate<IMiddlewareContext>(
-                (context, middleware) => new List<IParameterHandler>
+                (context, _) => new List<IParameterHandler>
                 {
-                        new ServiceParameterHandler(Expression.Property(context, _services))
+                    new ServiceParameterHandler(Expression.Property(context, _services))
                 });
 
         return context =>

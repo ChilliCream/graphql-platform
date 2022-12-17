@@ -1,21 +1,21 @@
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HotChocolate.Validation
-{
-    public class AllVariablesUsedRuleTests
-        : DocumentValidatorVisitorTestBase
-    {
-        public AllVariablesUsedRuleTests()
-            : base(builder => builder.AddVariableRules())
-        {
-        }
+namespace HotChocolate.Validation;
 
-        [Fact]
-        public void VariableUnused()
-        {
-            // arrange
-            ExpectErrors(@"
+public class AllVariablesUsedRuleTests
+    : DocumentValidatorVisitorTestBase
+{
+    public AllVariablesUsedRuleTests()
+        : base(builder => builder.AddVariableRules())
+    {
+    }
+
+    [Fact]
+    public void VariableUnused()
+    {
+        // arrange
+        ExpectErrors(@"
                 query variableUnused($atOtherHomes: Boolean) {
                     dog {
                         isHouseTrained
@@ -25,12 +25,12 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 "The following variables were not used: " +
                 "atOtherHomes.", t.Message));
-        }
+    }
 
-        [Fact]
-        public void VariableUsedInFragment()
-        {
-           ExpectValid(@"
+    [Fact]
+    public void VariableUsedInFragment()
+    {
+        ExpectValid(@"
                 query variableUsedInFragment($atOtherHomes: Boolean) {
                     dog {
                         ...isHousetrainedFragment
@@ -41,12 +41,12 @@ namespace HotChocolate.Validation
                     isHouseTrained(atOtherHomes: $atOtherHomes)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void VariableUsedInSecondLevelFragment()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void VariableUsedInSecondLevelFragment()
+    {
+        ExpectValid(@"
                 query variableUsedInFragment($atOtherHomes: Boolean) {
                     dog {
                         ...isHousetrainedFragment
@@ -61,12 +61,12 @@ namespace HotChocolate.Validation
                     isHouseTrained(atOtherHomes: $atOtherHomes)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void VariableUsedInDirective()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void VariableUsedInDirective()
+    {
+        ExpectValid(@"
                 query variableUsedInFragment($atOtherHomes: Boolean!) {
                     dog {
                         ...isHousetrainedFragment
@@ -78,7 +78,7 @@ namespace HotChocolate.Validation
                 }
             ");
 
-            ExpectValid(@"
+        ExpectValid(@"
                 query variableUsedInFragment($atOtherHomes: Boolean!) {
                     dog {
                         ...isHousetrainedFragment @skip(if: $atOtherHomes)
@@ -89,13 +89,13 @@ namespace HotChocolate.Validation
                     isHouseTrained
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void VariableNotUsedWithinFragment()
-        {
-            // arrange
-            ExpectErrors(@"
+    [Fact]
+    public void VariableNotUsedWithinFragment()
+    {
+        // arrange
+        ExpectErrors(@"
                 query variableNotUsedWithinFragment($atOtherHomes: Boolean) {
                     dog {
                         ...isHousetrainedWithoutVariableFragment
@@ -109,12 +109,12 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 "The following variables were not used: " +
                 "atOtherHomes.", t.Message));
-        }
+    }
 
-        [Fact]
-        public void QueryWithExtraVar()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void QueryWithExtraVar()
+    {
+        ExpectErrors(@"
                 query queryWithUsedVar($atOtherHomes: Boolean) {
                     dog {
                         ...isHousetrainedFragment
@@ -134,62 +134,62 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 "The following variables were not used: " +
                 "extra.", t.Message));
-        }
+    }
 
-        [Fact]
-        public void VariableUsedAndDeclared()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void VariableUsedAndDeclared()
+    {
+        ExpectValid(@"
                 query variableIsDefined($atOtherHomes: Boolean)
                 {
                     dog {
                         isHouseTrained(atOtherHomes: $atOtherHomes)
                     }
                 }");
-        }
+    }
 
-        [Fact]
-        public void VariableUsedInComplexInput()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void VariableUsedInComplexInput()
+    {
+        ExpectValid(@"
                 query queryWithComplexInput($name: String)
                 {
                     findDog(complex: { name: $name }) {
                         name
                     }
                 }");
-        }
+    }
 
-        [Fact]
-        public void VariableUsedInListInput()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void VariableUsedInListInput()
+    {
+        ExpectValid(@"
                 query queryWithListInput($value: Boolean!)
                 {
                     booleanList(booleanListArg: [ $value ])
                 }");
-        }
+    }
 
-        [Fact]
-        public void VariableUsedAndNotDeclared()
-        {
-            // arrange
-            ExpectErrors(@"
+    [Fact]
+    public void VariableUsedAndNotDeclared()
+    {
+        // arrange
+        ExpectErrors(@"
                 query variableIsDefined
                 {
                     dog {
                         isHouseTrained(atOtherHomes: $atOtherHomes)
                     }
                 }",
-                t => Assert.Equal(
-                    "The following variables were not declared: " +
-                    "atOtherHomes.", t.Message));
-        }
+            t => Assert.Equal(
+                "The following variables were not declared: " +
+                "atOtherHomes.", t.Message));
+    }
 
-        [Fact]
-        public void VariableUsedAndNotDeclared2()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void VariableUsedAndNotDeclared2()
+    {
+        ExpectErrors(@"
                 query variableIsNotDefinedUsedInNestedFragment {
                     dog {
                         ...outerHousetrainedFragment
@@ -203,15 +203,15 @@ namespace HotChocolate.Validation
                 fragment isHousetrainedFragment on Dog {
                     isHouseTrained(atOtherHomes: $atOtherHomes)
                 }",
-                t => Assert.Equal(
-                    "The following variables were not declared: " +
-                    "atOtherHomes.", t.Message));
-        }
+            t => Assert.Equal(
+                "The following variables were not declared: " +
+                "atOtherHomes.", t.Message));
+    }
 
-        [Fact]
-        public void VarsMustBeDefinedInAllOperationsInWhichAFragmentIsUsed()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void VarsMustBeDefinedInAllOperationsInWhichAFragmentIsUsed()
+    {
+        ExpectValid(@"
                 query housetrainedQueryOne($atOtherHomes: Boolean) {
                     dog {
                         ...isHousetrainedFragment
@@ -233,12 +233,12 @@ namespace HotChocolate.Validation
                 fragment isHousetrainedFragment on Dog {
                     isHouseTrained(atOtherHomes: $atOtherHomes)
                 }");
-        }
+    }
 
-        [Fact]
-        public void VarsMustBeDefinedInAllOperationsInWhichAFragmentIsUsedErr()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void VarsMustBeDefinedInAllOperationsInWhichAFragmentIsUsedErr()
+    {
+        ExpectErrors(@"
                 query variableIsNotDefinedUsedInNestedFragment {
                     dog {
                         ...outerHousetrainedFragment
@@ -252,9 +252,8 @@ namespace HotChocolate.Validation
                 fragment isHousetrainedFragment on Dog {
                     isHouseTrained(atOtherHomes: $atOtherHomes)
                 }",
-                t => Assert.Equal(
-                    "The following variables were not declared: " +
-                    "atOtherHomes.", t.Message));
-        }
+            t => Assert.Equal(
+                "The following variables were not declared: " +
+                "atOtherHomes.", t.Message));
     }
 }

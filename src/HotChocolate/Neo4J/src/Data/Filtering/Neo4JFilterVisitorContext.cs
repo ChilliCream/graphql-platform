@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Internal;
@@ -6,8 +5,7 @@ using HotChocolate.Internal;
 namespace HotChocolate.Data.Neo4J.Filtering;
 
 /// <inheritdoc />
-public class Neo4JFilterVisitorContext
-    : FilterVisitorContext<Condition>
+public class Neo4JFilterVisitorContext : FilterVisitorContext<Condition>
 {
     public Neo4JFilterVisitorContext(IFilterInputType initialType)
         : base(initialType)

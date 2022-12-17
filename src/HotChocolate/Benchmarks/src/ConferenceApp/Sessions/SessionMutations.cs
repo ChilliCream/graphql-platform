@@ -35,7 +35,7 @@ namespace HotChocolate.ConferencePlanner.Sessions
                 Abstract = input.Abstract,
             };
 
-            foreach (int speakerId in input.SpeakerIds)
+            foreach (var speakerId in input.SpeakerIds)
             {
                 session.SessionSpeakers.Add(new SessionSpeaker
                 {
@@ -61,8 +61,8 @@ namespace HotChocolate.ConferencePlanner.Sessions
                     new UserError("endTime has to be larger than startTime.", "END_TIME_INVALID"));
             }
 
-            Session session = await context.Sessions.FindAsync(input.SessionId);
-            int? initialTrackId = session.TrackId;
+            var session = await context.Sessions.FindAsync(input.SessionId);
+            var initialTrackId = session.TrackId;
 
             if (session is null)
             {
@@ -89,7 +89,7 @@ namespace HotChocolate.ConferencePlanner.Sessions
             [ScopedService] ApplicationDbContext context,
             [Service]ITopicEventSender eventSender)
         {
-            Session session = await context.Sessions.FindAsync(input.SessionId);
+            var session = await context.Sessions.FindAsync(input.SessionId);
 
             if (session is null)
             {

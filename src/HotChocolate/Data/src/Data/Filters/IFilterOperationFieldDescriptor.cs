@@ -11,7 +11,7 @@ public interface IFilterOperationFieldDescriptor
     IFilterOperationFieldDescriptor SyntaxNode(
         InputValueDefinitionNode inputValueDefinitionNode);
 
-    IFilterOperationFieldDescriptor Name(NameString value);
+    IFilterOperationFieldDescriptor Name(string value);
 
     IFilterOperationFieldDescriptor Description(string value);
 
@@ -40,7 +40,7 @@ public interface IFilterOperationFieldDescriptor
         where T : class, new();
 
     IFilterOperationFieldDescriptor Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments);
 
     IFilterOperationFieldDescriptor AllowOperation(int operation);

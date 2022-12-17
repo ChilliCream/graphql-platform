@@ -1,24 +1,25 @@
-using System.Threading;
+using System;
+using System.Diagnostics;
 using Microsoft.Extensions.ObjectPool;
+using static System.Threading.Interlocked;
 
 namespace HotChocolate.Execution.Processing.Tasks;
 
 /// <summary>
 ///  A pool of objects. Buffers a set of objects to ensure fast, thread safe object pooling
 /// </summary>
-internal sealed class ExecutionTaskPool<T> : ObjectPool<T> where T : class, IExecutionTask
+internal sealed class ExecutionTaskPool<T, TPolicy> : ObjectPool<T>
+    where T : class, IExecutionTask
+    where  TPolicy : ExecutionTaskPoolPolicy<T>
 {
-    private readonly ExecutionTaskPoolPolicy<T> _policy;
-    private readonly T?[] _buffer;
-    private readonly int _capacity;
-    private int _index = -1;
-    private int _sync;
+    private readonly ObjectWrapper[] _items;
+    private readonly TPolicy _policy;
+    private T? _firstItem;
 
-    public ExecutionTaskPool(ExecutionTaskPoolPolicy<T> policy, int maximumRetained = 256)
+    public ExecutionTaskPool(TPolicy policy, int maximumRetained = 256)
     {
-        _policy = policy;
-        _buffer = new T?[maximumRetained];
-        _capacity = maximumRetained - 1;
+        _policy = policy ?? throw new ArgumentNullException(nameof(policy));
+        _items = new ObjectWrapper[maximumRetained - 1];
     }
 
     /// <summary>
@@ -28,32 +29,24 @@ internal sealed class ExecutionTaskPool<T> : ObjectPool<T> where T : class, IExe
     /// <returns>A <see cref="ResolverTask"/>.</returns>
     public override T Get()
     {
-        var current = Thread.CurrentThread.ManagedThreadId;
-        T? resolverTask = null;
-        SpinWait spin = default;
-
-        while (true)
+        var item = _firstItem;
+        if (item == null || CompareExchange(ref _firstItem, null, item) != item)
         {
-            if (Interlocked.CompareExchange(ref _sync, current, 0) == 0)
+            var items = _items;
+            for (var i = 0; i < items.Length; i++)
             {
-                if (_index < _capacity)
+                item = items[i].Element;
+                if (item != null &&
+                    CompareExchange(ref items[i].Element, null, item) == item)
                 {
-                    resolverTask = _buffer[++_index];
+                    return item;
                 }
-
-                Interlocked.Exchange(ref _sync, 0);
-                break;
             }
 
-#if NETSTANDARD2_0
-                spin.SpinOnce();
-#else
-            spin.SpinOnce(sleep1Threshold: -1);
-#endif
+            item = _policy.Create(this);
         }
 
-        resolverTask ??= _policy.Create(this);
-        return resolverTask;
+        return item;
     }
 
     /// <summary>
@@ -64,27 +57,23 @@ internal sealed class ExecutionTaskPool<T> : ObjectPool<T> where T : class, IExe
     {
         if (_policy.Reset(obj))
         {
-            var current = Thread.CurrentThread.ManagedThreadId;
-            SpinWait spin = default;
-
-            while (true)
+            if (_firstItem != null || CompareExchange(ref _firstItem, obj, null) != null)
             {
-                if (Interlocked.CompareExchange(ref _sync, current, 0) == 0)
+                var items = _items;
+                for (var i = 0;
+                    i < items.Length && CompareExchange(ref items[i].Element, obj, null) != null;
+                    ++i)
                 {
-                    if (_index > -1)
-                    {
-                        _buffer[_index--] = obj;
-                    }
-                    Interlocked.Exchange(ref _sync, 0);
-                    break;
                 }
-
-#if NETSTANDARD2_0
-                    spin.SpinOnce();
-#else
-                spin.SpinOnce(sleep1Threshold: -1);
-#endif
             }
         }
+    }
+
+    // PERF: the struct wrapper avoids array-covariance-checks from the runtime
+    // when assigning to elements of the array.
+    [DebuggerDisplay("{Element}")]
+    private struct ObjectWrapper
+    {
+        public T? Element;
     }
 }

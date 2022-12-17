@@ -8,230 +8,272 @@ using Xunit;
 
 #nullable enable
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+public class ScalarExecutionErrorTests
 {
-    public class ScalarExecutionErrorTests
+    [Fact]
+    public async Task OutputType_ClrValue_CannotBeConverted()
     {
-        [Fact]
-        public async Task OutputType_ClrValue_CannotBeConverted()
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType<QueryType>()
+            .Create();
+
+        var executor = schema.MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ stringToName(name: \"  \") }");
+
+        // assert
+        await result.MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task OutputType_ClrValue_CannotBeParsed()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType<QueryType>()
+            .Create();
+
+        var executor = schema.MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ stringToFoo(name: \"  \") }");
+
+        // assert
+        await result.MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task InputType_Literal_CannotBeParsed()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType<QueryType>()
+            .Create();
+
+        var executor = schema.MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ nameToString(name: \"  \") }");
+
+        // assert
+        await result.MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task InputType_Variable_CannotBeDeserialized()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType<QueryType>()
+            .Create();
+
+        var executor = schema.MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "query a($a: Foo) { fooToString(name: $a) }",
+            new Dictionary<string, object?>
+            {
+                {"a", " "}
+            });
+
+        // assert
+        await result.MatchSnapshotAsync();
+    }
+
+    public class Query
+    {
+        public string StringToName(string name) => name;
+
+        public string NameToString(string name) => name;
+
+        public string StringToFoo(string name) => name;
+
+        public string FooToString(string name) => name;
+    }
+
+    public class QueryType : ObjectType<Query>
+    {
+        protected override void Configure(
+            IObjectTypeDescriptor<Query> descriptor)
         {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType<QueryType>()
-                .Create();
+            descriptor.Field(t => t.StringToName(default!))
+                .Argument("name", a => a.Type<StringType>())
+                .Type<NameType>();
 
-            IRequestExecutor executor = schema.MakeExecutable();
+            descriptor.Field(t => t.NameToString(default!))
+                .Argument("name", a => a.Type<NameType>())
+                .Type<StringType>();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                "{ stringToName(name: \"  \") }");
+            descriptor.Field(t => t.StringToFoo(default!))
+                .Argument("name", a => a.Type<StringType>())
+                .Type<FooType>();
 
-            // assert
-            result.MatchSnapshot();
+            descriptor.Field(t => t.FooToString(default!))
+                .Argument("name", a => a.Type<FooType>())
+                .Type<StringType>();
+        }
+    }
+
+    public class FooType : ScalarType
+    {
+        public FooType() : base("Foo")
+        {
         }
 
-        [Fact]
-        public async Task OutputType_ClrValue_CannotBeParsed()
+        public override Type RuntimeType => typeof(string);
+
+        public override bool IsInstanceOfType(IValueNode literal)
         {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType<QueryType>()
-                .Create();
+            if (literal is null)
+            {
+                throw new ArgumentNullException(nameof(literal));
+            }
 
-            IRequestExecutor executor = schema.MakeExecutable();
+            if (literal is NullValueNode)
+            {
+                return true;
+            }
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                "{ stringToFoo(name: \"  \") }");
-
-            // assert
-            result.MatchSnapshot();
+            return literal is StringValueNode { Value: "a" };
         }
 
-        [Fact]
-        public async Task InputType_Literal_CannotBeParsed()
+        public override bool IsInstanceOfType(object? value)
         {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType<QueryType>()
-                .Create();
+            if (value is null)
+            {
+                return true;
+            }
 
-            IRequestExecutor executor = schema.MakeExecutable();
-
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                "{ nameToString(name: \"  \") }");
-
-            // assert
-            result.MatchSnapshot();
+            return value is "a";
         }
 
-        [Fact]
-        public async Task InputType_Variable_CannotBeDeserialized()
+        public override object? ParseLiteral(IValueNode literal)
         {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType<QueryType>()
-                .Create();
+            if (literal is null)
+            {
+                throw new ArgumentNullException(nameof(literal));
+            }
 
-            IRequestExecutor executor = schema.MakeExecutable();
+            if (literal is NullValueNode)
+            {
+                return null;
+            }
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                "query a($a: Foo) { fooToString(name: $a) }",
-                new Dictionary<string, object?>
-                {
-                    {"a", " "}
-                });
+            if (literal is StringValueNode { Value: "a" })
+            {
+                return "a";
+            }
 
-            // assert
-            result.MatchSnapshot();
+            throw new SerializationException("StringValue is not a.", this);
         }
 
-        public class Query
+        public override IValueNode ParseValue(object? value)
         {
-            public string StringToName(string name) => name;
+            if (value is null)
+            {
+                return NullValueNode.Default;
+            }
 
-            public string NameToString(string name) => name;
+            if (value is "a")
+            {
+                return new StringValueNode("a");
+            }
 
-            public string StringToFoo(string name) => name;
-
-            public string FooToString(string name) => name;
+            throw new SerializationException("String is not a.", this);
         }
 
-        public class QueryType : ObjectType<Query>
+        public override IValueNode ParseResult(object? resultValue)
+            => ParseValue(resultValue);
+
+        public override bool TrySerialize(
+            object? runtimeValue,
+            out object? resultValue)
         {
-            protected override void Configure(
-                IObjectTypeDescriptor<Query> descriptor)
+            if (runtimeValue is null)
             {
-                descriptor.Field(t => t.StringToName(default!))
-                    .Argument("name", a => a.Type<StringType>())
-                    .Type<NameType>();
-
-                descriptor.Field(t => t.NameToString(default!))
-                    .Argument("name", a => a.Type<NameType>())
-                    .Type<StringType>();
-
-                descriptor.Field(t => t.StringToFoo(default!))
-                    .Argument("name", a => a.Type<StringType>())
-                    .Type<FooType>();
-
-                descriptor.Field(t => t.FooToString(default!))
-                    .Argument("name", a => a.Type<FooType>())
-                    .Type<StringType>();
-            }
-        }
-
-        public class FooType : ScalarType
-        {
-            public FooType() : base("Foo")
-            {
-            }
-
-            public override Type RuntimeType => typeof(string);
-
-            public override bool IsInstanceOfType(IValueNode literal)
-            {
-                if (literal is null)
-                {
-                    throw new ArgumentNullException(nameof(literal));
-                }
-
-                if (literal is NullValueNode)
-                {
-                    return true;
-                }
-
-                return literal is StringValueNode { Value: "a" };
-            }
-
-            public override bool IsInstanceOfType(object? value)
-            {
-                if (value is null)
-                {
-                    return true;
-                }
-
-                return value is "a";
-            }
-
-            public override object? ParseLiteral(IValueNode literal)
-            {
-                if (literal is null)
-                {
-                    throw new ArgumentNullException(nameof(literal));
-                }
-
-                if (literal is NullValueNode)
-                {
-                    return null;
-                }
-
-                if (literal is StringValueNode { Value: "a" })
-                {
-                    return "a";
-                }
-
-                throw new SerializationException("StringValue is not a.", this);
-            }
-
-            public override IValueNode ParseValue(object? value)
-            {
-                if (value is null)
-                {
-                    return NullValueNode.Default;
-                }
-
-                if (value is "a")
-                {
-                    return new StringValueNode("a");
-                }
-
-                throw new SerializationException("String is not a.", this);
-            }
-
-            public override IValueNode ParseResult(object? resultValue) 
-                => ParseValue(resultValue);
-
-            public override bool TrySerialize(
-                object? runtimeValue, 
-                out object? resultValue)
-            {
-                if (runtimeValue is null)
-                {
-                    resultValue = null;
-                    return true;
-                }
-
-                if (runtimeValue is string and "a")
-                {
-                    resultValue = new StringValueNode("a");
-                    return true;
-                }
-
                 resultValue = null;
-                return false;
+                return true;
             }
 
-            public override bool TryDeserialize(
-                object? resultValue, 
-                out object?runtimeValue)
+            if (runtimeValue is "a")
             {
-                if (resultValue is null)
-                {
-                    runtimeValue = null;
-                    return true;
-                }
-
-                if (resultValue is "a")
-                {
-                    runtimeValue = "a";
-                    return true;
-                }
-
-                runtimeValue = null;
-                return false;
+                resultValue = new StringValueNode("a");
+                return true;
             }
+
+            resultValue = null;
+            return false;
         }
+
+        public override bool TryDeserialize(
+            object? resultValue,
+            out object?runtimeValue)
+        {
+            if (resultValue is null)
+            {
+                runtimeValue = null;
+                return true;
+            }
+
+            if (resultValue is "a")
+            {
+                runtimeValue = "a";
+                return true;
+            }
+
+            runtimeValue = null;
+            return false;
+        }
+    }
+}
+
+public sealed class NameType : ScalarType<string, StringValueNode>
+{
+    public NameType() : base("Name", bind: BindingBehavior.Implicit)
+    {
+    }
+
+    protected override bool IsInstanceOfType(StringValueNode valueSyntax)
+    {
+        if (string.IsNullOrWhiteSpace(valueSyntax.Value))
+        {
+            return false;
+        }
+
+        return base.IsInstanceOfType(valueSyntax);
+    }
+
+    protected override string ParseLiteral(StringValueNode valueSyntax)
+    {
+        if (string.IsNullOrWhiteSpace(valueSyntax.Value))
+        {
+            throw new SerializationException("Not a valid name.", this);
+        }
+
+        return valueSyntax.Value;
+    }
+
+    protected override StringValueNode ParseValue(string runtimeValue)
+        => new(runtimeValue);
+
+    public override IValueNode ParseResult(object? resultValue)
+        => ParseValue(resultValue);
+
+    public override object? Serialize(object? runtimeValue)
+    {
+        if (runtimeValue is not string s || string.IsNullOrWhiteSpace(s))
+        {
+            throw new SerializationException("Name cannot serialize the given value.", this);
+        }
+
+        return base.Serialize(runtimeValue);
     }
 }

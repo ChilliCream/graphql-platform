@@ -1,12 +1,7 @@
-using System;
-using System.Linq;
-using System.Reflection;
 using HotChocolate.Data.MongoDb;
 using HotChocolate.Data.MongoDb.Paging;
-using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 using MongoDB.Driver;
-using Xunit;
 
 namespace HotChocolate.Data;
 
@@ -23,8 +18,8 @@ public class MongoDbCursorPagingProviderTests
     {
         // arrange
         var provider = new MongoDbCursorPagingProvider();
-        MethodInfo member = typeof(MongoDbCursorPagingProviderTests).GetMethod(methodName)!;
-        IExtendedType type = new DefaultTypeInspector().GetReturnType(member);
+        var member = typeof(MongoDbCursorPagingProviderTests).GetMethod(methodName)!;
+        var type = new DefaultTypeInspector().GetReturnType(member);
 
         // act
         var result = provider.CanHandle(type);
@@ -33,23 +28,17 @@ public class MongoDbCursorPagingProviderTests
         Assert.Equal(expected, result);
     }
 
-    public IAggregateFluent<Foo> AggregateFluent() =>
-        throw new InvalidOperationException();
+    public IAggregateFluent<Foo> AggregateFluent() => throw new InvalidOperationException();
 
-    public IFindFluent<Foo, Foo> FindFluent() =>
-        throw new InvalidOperationException();
+    public IFindFluent<Foo, Foo> FindFluent() => throw new InvalidOperationException();
 
-    public IMongoCollection<Foo> MongoCollection() =>
-        throw new InvalidOperationException();
+    public IMongoCollection<Foo> MongoCollection() => throw new InvalidOperationException();
 
-    public IMongoDbExecutable IMongoDbExecutable() =>
-        throw new InvalidOperationException();
+    public IMongoDbExecutable IMongoDbExecutable() => throw new InvalidOperationException();
 
-    public IExecutable IExecutable() =>
-        throw new InvalidOperationException();
+    public IExecutable IExecutable() => throw new InvalidOperationException();
 
-    public IQueryable<Foo> IQueryable() =>
-        throw new InvalidOperationException();
+    public IQueryable<Foo> IQueryable() => throw new InvalidOperationException();
 
     public class Foo
     {

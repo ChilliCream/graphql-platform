@@ -18,7 +18,7 @@ public class Query
 
     public IContract GetContract(string contractId)
     {
-        IdValue value = _idSerializer.Deserialize(contractId);
+        var value = _idSerializer.Deserialize(contractId);
 
         if (value.TypeName == nameof(LifeInsuranceContract))
         {
@@ -36,7 +36,7 @@ public class Query
 
     public IEnumerable<IContract> GetContracts(string customerId)
     {
-        IdValue value = _idSerializer.Deserialize(customerId);
+        var value = _idSerializer.Deserialize(customerId);
 
         return _contractStorage.Contracts
             .Where(t => t.CustomerId.Equals(value.Value));

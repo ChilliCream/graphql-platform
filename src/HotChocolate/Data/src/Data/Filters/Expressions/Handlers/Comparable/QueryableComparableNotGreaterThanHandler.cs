@@ -25,7 +25,7 @@ public class QueryableComparableNotGreaterThanHandler
         IValueNode value,
         object? parsedValue)
     {
-        Expression property = context.GetInstance();
+        var property = context.GetInstance();
         parsedValue = ParseValue(value, parsedValue, field.Type, context);
 
         if (parsedValue is null)

@@ -20,7 +20,7 @@ public partial class TypeMapperGenerator
         HashSet<string> processed,
         bool isNonNullable)
     {
-        RuntimeTypeInfo typeInfo = complexTypeDescriptor.ParentRuntimeType
+        var typeInfo = complexTypeDescriptor.ParentRuntimeType
                                    ?? throw new InvalidOperationException();
 
         method
@@ -70,12 +70,12 @@ public partial class TypeMapperGenerator
             return;
         }
 
-        ObjectTypeDescriptor[] dataTypes =
+        var dataTypes =
             interfaceTypeDescriptor.ImplementedBy.Where(x => x.IsData()).ToArray();
 
-        IfBuilder ifChain = generator(dataTypes.First());
+        var ifChain = generator(dataTypes.First());
 
-        foreach (ObjectTypeDescriptor objectTypeDescriptor in dataTypes.Skip(1))
+        foreach (var objectTypeDescriptor in dataTypes.Skip(1))
         {
             ifChain.AddIfElse(generator(objectTypeDescriptor).SkipIndents());
         }
@@ -100,12 +100,12 @@ public partial class TypeMapperGenerator
 
         var block = CodeBlockBuilder.New();
 
-        MethodCallBuilder constructorCall = MethodCallBuilder
+        var constructorCall = MethodCallBuilder
             .Inline()
             .SetNew()
             .SetMethodName(objectTypeDescriptor.RuntimeType.ToString());
 
-        foreach (PropertyDescriptor prop in objectTypeDescriptor.Properties)
+        foreach (var prop in objectTypeDescriptor.Properties)
         {
             if (prop.Type.IsEntity() || prop.Type.IsData())
             {

@@ -218,13 +218,13 @@ public class ErrorBuilder : IErrorBuilder
             throw new ArgumentNullException(nameof(dict));
         }
 
-        ErrorBuilder builder = New();
+        var builder = New();
         builder.SetMessage((string)dict["message"]!);
 
         if (dict.TryGetValue("extensions", out var obj) &&
             obj is IDictionary<string, object> extensions)
         {
-            foreach (KeyValuePair<string, object> item in extensions)
+            foreach (var item in extensions)
             {
                 builder.SetExtension(item.Key, item.Value);
             }
@@ -237,8 +237,7 @@ public class ErrorBuilder : IErrorBuilder
 
         if (dict.TryGetValue("locations", out obj) && obj is IList<object> locations)
         {
-            foreach (IDictionary<string, object> loc in locations
-                .OfType<IDictionary<string, object>>())
+            foreach (var loc in locations.OfType<IDictionary<string, object>>())
             {
                 builder.AddLocation(new Location(
                     Convert.ToInt32(loc["line"]),

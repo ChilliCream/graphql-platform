@@ -74,17 +74,17 @@ public sealed class ObjectTypeDefinitionNode : ComplexTypeDefinitionNodeBase, IT
 
         yield return Name;
 
-        foreach (NamedTypeNode interfaceName in Interfaces)
+        foreach (var interfaceName in Interfaces)
         {
             yield return interfaceName;
         }
 
-        foreach (DirectiveNode directive in Directives)
+        foreach (var directive in Directives)
         {
             yield return directive;
         }
 
-        foreach (FieldDefinitionNode field in Fields)
+        foreach (var field in Fields)
         {
             yield return field;
         }

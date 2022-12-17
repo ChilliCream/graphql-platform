@@ -1,6 +1,9 @@
 #nullable enable
 
 using System;
+using System.Buffers;
+using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
@@ -29,6 +32,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
 
     private readonly TypeCache _typeCache = new();
     private readonly Dictionary<MemberInfo, ExtendedMethodInfo> _methods = new();
+    private readonly ConcurrentDictionary<(Type, bool, bool), MemberInfo[]> _memberCache = new();
 
     public DefaultTypeInspector(bool ignoreRequiredAttribute = false)
     {
@@ -41,17 +45,45 @@ public class DefaultTypeInspector : Convention, ITypeInspector
     public bool IgnoreRequiredAttribute { get; protected set; }
 
     /// <inheritdoc />
-    public virtual IEnumerable<MemberInfo> GetMembers(Type type) => GetMembers(type, false);
-
-    /// <inheritdoc />
-    public virtual IEnumerable<MemberInfo> GetMembers(Type type, bool includeIgnored)
+    public ReadOnlySpan<MemberInfo> GetMembers(
+        Type type,
+        bool includeIgnored = false,
+        bool includeStatic = false)
     {
         if (type is null)
         {
             throw new ArgumentNullException(nameof(type));
         }
 
-        return GetMembersInternal(type, includeIgnored);
+        var cacheKey = (type, includeIgnored, includeStatic);
+        if (_memberCache.TryGetValue(cacheKey, out var cached))
+        {
+            return cached;
+        }
+
+        var members = includeStatic
+            ? type.GetMembers(Instance | Static | Public)
+            : type.GetMembers(Instance | Public);
+
+        var temp = ArrayPool<MemberInfo>.Shared.Rent(members.Length);
+        var next = 0;
+
+        foreach (var member in members)
+        {
+            if (CanBeHandled(member, includeIgnored))
+            {
+                temp[next++] = member;
+            }
+        }
+
+        var span = temp.AsSpan().Slice(0, next);
+        var selectedMembers = new MemberInfo[next];
+        span.CopyTo(selectedMembers);
+        span.Clear();
+        _memberCache.TryAdd(cacheKey, selectedMembers);
+
+        ArrayPool<MemberInfo>.Shared.Return(temp);
+        return selectedMembers;
     }
 
     /// <inheritdoc />
@@ -64,10 +96,6 @@ public class DefaultTypeInspector : Convention, ITypeInspector
 
         return member.IsDefined(typeof(GraphQLIgnoreAttribute));
     }
-
-    private IEnumerable<MemberInfo> GetMembersInternal(Type type, bool includeIgnored) =>
-        type.GetMembers(Instance | Public)
-            .Where(m => CanBeHandled(m, includeIgnored));
 
     /// <inheritdoc />
     public virtual ITypeReference GetReturnTypeRef(
@@ -148,7 +176,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
             throw new ArgumentNullException(nameof(parameter));
         }
 
-        IExtendedType argumentType = GetArgumentTypeInternal(parameter);
+        var argumentType = GetArgumentTypeInternal(parameter);
         return ignoreAttributes
             ? argumentType
             : ApplyTypeAttributes(argumentType, parameter);
@@ -158,7 +186,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
     {
         var method = (MethodInfo)parameter.Member;
 
-        if (!_methods.TryGetValue(method, out ExtendedMethodInfo? info))
+        if (!_methods.TryGetValue(method, out var info))
         {
             info = ExtendedType.FromMethod(method, _typeCache);
             _methods[method] = info;
@@ -244,7 +272,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
             throw new ArgumentNullException(nameof(value));
         }
 
-        Type enumType = value.GetType();
+        var enumType = value.GetType();
 
         if (enumType.IsEnum)
         {
@@ -261,17 +289,22 @@ public class DefaultTypeInspector : Convention, ITypeInspector
             throw new ArgumentNullException(nameof(type));
         }
 
-        return GetMembers(type)
-            .FirstOrDefault(
-                member =>
-                    member.Name.Equals("Id", StringComparison.OrdinalIgnoreCase) ||
-                    member.Name.Equals("GetId", StringComparison.OrdinalIgnoreCase) ||
-                    member.Name.Equals("GetIdAsync", StringComparison.OrdinalIgnoreCase));
+        foreach (var member in GetMembers(type))
+        {
+            if (member.Name.Equals("Id", StringComparison.OrdinalIgnoreCase) ||
+                member.Name.Equals("GetId", StringComparison.OrdinalIgnoreCase) ||
+                member.Name.Equals("GetIdAsync", StringComparison.OrdinalIgnoreCase))
+            {
+                return member;
+            }
+        }
+
+        return null;
     }
 
     public virtual MethodInfo? GetNodeResolverMethod(Type nodeType, Type? resolverType = null)
     {
-        if (nodeType == null)
+        if (nodeType is null)
         {
             throw new ArgumentNullException(nameof(nodeType));
         }
@@ -280,19 +313,30 @@ public class DefaultTypeInspector : Convention, ITypeInspector
         // not need to include the node name.
         if (resolverType is null)
         {
-            return nodeType
-                .GetMembers(Static | Public | FlattenHierarchy)
-                .OfType<MethodInfo>()
-                .FirstOrDefault(m => IsPossibleNodeResolver(m, nodeType));
+            foreach (var member in nodeType.GetMembers(Static | Public | FlattenHierarchy))
+            {
+                if (member is MethodInfo m && IsPossibleNodeResolver(m, nodeType))
+                {
+                    return m;
+                }
+            }
+
+            return null;
         }
 
         // if we have a resolver type on the other hand the load method must
         // include the type name and can be an instance method.
         // first we will check for static load methods.
-        MethodInfo? method = resolverType
-            .GetMembers(Static | Public | FlattenHierarchy)
-            .OfType<MethodInfo>()
-            .FirstOrDefault(m => IsPossibleExternalNodeResolver(m, nodeType));
+        MethodInfo? method = null;
+
+        foreach (var member in resolverType.GetMembers(Static | Public | FlattenHierarchy))
+        {
+            if (member is MethodInfo m && IsPossibleExternalNodeResolver(m, nodeType))
+            {
+                method = m;
+                break;
+            }
+        }
 
         if (method is not null)
         {
@@ -301,21 +345,23 @@ public class DefaultTypeInspector : Convention, ITypeInspector
 
         // if there is no static load method we will move on the check
         // for instance load methods.
-        return GetMembers(resolverType)
-            .OfType<MethodInfo>()
-            .FirstOrDefault(m => IsPossibleExternalNodeResolver(m, nodeType));
+        foreach (var member in GetMembers(resolverType))
+        {
+            if (member is MethodInfo m && IsPossibleExternalNodeResolver(m, nodeType))
+            {
+                return m;
+            }
+        }
+
+        return null;
     }
 
     private static bool IsPossibleNodeResolver(
         MemberInfo member,
         Type nodeType) =>
         member.IsDefined(typeof(NodeResolverAttribute)) ||
-        member.Name.Equals(
-            "Get",
-            StringComparison.OrdinalIgnoreCase) ||
-        member.Name.Equals(
-            "GetAsync",
-            StringComparison.OrdinalIgnoreCase) ||
+        member.Name.Equals("Get", StringComparison.OrdinalIgnoreCase) ||
+        member.Name.Equals("GetAsync", StringComparison.OrdinalIgnoreCase) ||
         IsPossibleExternalNodeResolver(member, nodeType);
 
     private static bool IsPossibleExternalNodeResolver(
@@ -362,11 +408,53 @@ public class DefaultTypeInspector : Convention, ITypeInspector
         IDescriptor descriptor,
         ICustomAttributeProvider attributeProvider)
     {
-        foreach (DescriptorAttribute attr in
-            GetCustomAttributes<DescriptorAttribute>(attributeProvider, true)
-                .OrderBy(t => t.Order))
+        var attributes = attributeProvider.GetCustomAttributes(true);
+        var temp = ArrayPool<DescriptorAttribute>.Shared.Rent(attributes.Length);
+        var i = 0;
+
+        foreach (var attribute in attributeProvider.GetCustomAttributes(true))
         {
-            attr.TryConfigure(context, descriptor, attributeProvider);
+            if (attribute is DescriptorAttribute casted)
+            {
+                temp[i++] = casted;
+            }
+        }
+
+        Array.Sort(temp, 0, i, DescriptorAttributeComparer.Default);
+
+        var span = temp.AsSpan().Slice(0, i);
+
+        foreach (var attribute in span)
+        {
+            attribute.TryConfigure(context, descriptor, attributeProvider);
+        }
+
+        span.Clear();
+        ArrayPool<DescriptorAttribute>.Shared.Return(temp);
+    }
+
+    private sealed class DescriptorAttributeComparer : IComparer
+    {
+        public static DescriptorAttributeComparer Default { get; } = new();
+
+        public int Compare(object? x, object? y)
+        {
+            if (ReferenceEquals(x, y))
+            {
+                return 0;
+            }
+
+            if (y is not DescriptorAttribute attr2)
+            {
+                return 1;
+            }
+
+            if (x is not DescriptorAttribute attr1)
+            {
+                return -1;
+            }
+
+            return attr1.Order.CompareTo(attr2.Order);
         }
     }
 
@@ -534,7 +622,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
         IExtendedType type,
         [NotNullWhen(true)] out ITypeInfo? typeInfo)
     {
-        if (TypeInfo.TryCreate(type, _typeCache, out TypeInfo? t))
+        if (TypeInfo.TryCreate(type, _typeCache, out var t))
         {
             typeInfo = t;
             return true;
@@ -548,7 +636,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
         IExtendedType type,
         ICustomAttributeProvider attributeProvider)
     {
-        IExtendedType resultType = type;
+        var resultType = type;
 
         var hasGraphQLTypeAttribute = false;
 
@@ -574,18 +662,21 @@ public class DefaultTypeInspector : Convention, ITypeInspector
         return resultType;
     }
 
-    private bool TryGetAttribute<T>(
+    private static bool TryGetAttribute<T>(
         ICustomAttributeProvider attributeProvider,
         [NotNullWhen(true)] out T? attribute)
         where T : Attribute
     {
         if (attributeProvider.IsDefined(typeof(T), true))
         {
-            attribute = attributeProvider
-                .GetCustomAttributes(typeof(T), true)
-                .OfType<T>()
-                .First();
-            return true;
+            foreach (var item in attributeProvider.GetCustomAttributes(typeof(T), true))
+            {
+                if (item is T casted)
+                {
+                    attribute = casted;
+                    return true;
+                }
+            }
         }
 
         attribute = null;
@@ -622,10 +713,16 @@ public class DefaultTypeInspector : Convention, ITypeInspector
                 property.GetIndexParameters().Length == 0;
         }
 
-        if (member is MethodInfo method &&
-            CanHandleReturnType(member, method.ReturnType) &&
-            method.GetParameters().All(CanHandleParameter))
+        if (member is MethodInfo method && CanHandleReturnType(member, method.ReturnType))
         {
+            foreach (var parameter in method.GetParameters())
+            {
+                if (!CanHandleParameter(parameter))
+                {
+                    return false;
+                }
+            }
+
             return true;
         }
 
@@ -652,7 +749,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
         {
             if (returnType.IsGenericType)
             {
-                Type returnTypeDefinition = returnType.GetGenericTypeDefinition();
+                var returnTypeDefinition = returnType.GetGenericTypeDefinition();
 
                 if (returnTypeDefinition == typeof(ValueTask<>) ||
                     returnTypeDefinition == typeof(Task<>))
@@ -698,31 +795,33 @@ public class DefaultTypeInspector : Convention, ITypeInspector
     {
         // schema, object type and object field can be injected into a resolver, so
         // we allow these as parameter type.
-        if (typeof(ISchema).IsAssignableFrom(parameter.ParameterType) ||
-            typeof(IObjectType).IsAssignableFrom(parameter.ParameterType) ||
-            typeof(IOutputField).IsAssignableFrom(parameter.ParameterType))
+        var parameterType = parameter.ParameterType;
+
+        if (typeof(ISchema).IsAssignableFrom(parameterType) ||
+            typeof(IObjectType).IsAssignableFrom(parameterType) ||
+            typeof(IOutputField).IsAssignableFrom(parameterType))
         {
             return true;
         }
 
         // All other types may cause errors and need to have an explicit configuration.
-        if (typeof(ITypeSystemMember).IsAssignableFrom(parameter.ParameterType) ||
-            parameter.ParameterType == typeof(object))
+        if (parameterType == typeof(object) ||
+            typeof(ITypeSystemMember).IsAssignableFrom(parameterType))
         {
             return HasConfiguration(parameter);
         }
 
         // Async results are not allowed.
-        if (parameter.ParameterType == typeof(ValueTask) ||
-            parameter.ParameterType == typeof(Task) ||
-            typeof(IAsyncResult).IsAssignableFrom(parameter.ParameterType))
+        if (parameterType == typeof(ValueTask) ||
+            parameterType == typeof(Task) ||
+            typeof(IAsyncResult).IsAssignableFrom(parameterType))
         {
             return false;
         }
 
-        if (parameter.ParameterType.IsGenericType)
+        if (parameterType.IsGenericType)
         {
-            Type parameterTypeDefinition = parameter.ParameterType.GetGenericTypeDefinition();
+            var parameterTypeDefinition = parameterType.GetGenericTypeDefinition();
 
             if (parameterTypeDefinition == typeof(ValueTask<>) ||
                 parameterTypeDefinition == typeof(Task<>))
@@ -732,13 +831,13 @@ public class DefaultTypeInspector : Convention, ITypeInspector
         }
 
         // reflection types should also be excluded by default.
-        if (typeof(ICustomAttributeProvider).IsAssignableFrom(parameter.ParameterType))
+        if (typeof(ICustomAttributeProvider).IsAssignableFrom(parameterType))
         {
             return HasConfiguration(parameter);
         }
 
         // by ref and out will never be allowed
-        if (parameter.ParameterType.IsByRef ||
+        if (parameterType.IsByRef ||
 #if !NETSTANDARD2_0
             parameter.ParameterType.IsByRefLike ||
 #endif
@@ -747,7 +846,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
             return false;
         }
 
-        if (typeof(Delegate).IsAssignableFrom(parameter.ParameterType))
+        if (typeof(Delegate).IsAssignableFrom(parameterType))
         {
             return HasConfiguration(parameter);
         }
@@ -766,40 +865,29 @@ public class DefaultTypeInspector : Convention, ITypeInspector
             element.IsDefined(typeof(DescriptorAttribute), true);
 
     private static bool IsSystemMember(MemberInfo member)
-        => IsCloneMember(member) ||
-            IsToString(member) ||
-            IsGetHashCode(member) ||
-            IsEquals(member);
+    {
+        if (member is MethodInfo m &&
+            (m.Name.EqualsOrdinal(_toString) ||
+                m.Name.EqualsOrdinal(_getHashCode) ||
+                m.Name.EqualsOrdinal(_equals) ||
+                m.Name.EqualsOrdinal(_clone)))
+        {
+            return true;
+        }
 
-    private static bool IsToString(MemberInfo member)
-        => member is MethodInfo { Name: _toString };
-
-    private static bool IsGetHashCode(MemberInfo member)
-        => member is MethodInfo { Name: _getHashCode } m &&
-            m.GetParameters().Length == 0;
-
-    private static bool IsEquals(MemberInfo member)
-        => member is MethodInfo { Name: _equals };
-
-    private static bool IsCloneMember(MemberInfo member)
-        => member.Name.EqualsOrdinal(_clone);
-
-    private IEnumerable<T> GetCustomAttributes<T>(
-        ICustomAttributeProvider attributeProvider,
-        bool inherit)
-        where T : Attribute
-        => attributeProvider.GetCustomAttributes(inherit).OfType<T>();
+        return false;
+    }
 
     private bool TryGetDefaultValueFromConstructor(
         PropertyInfo property,
         out object? defaultValue)
     {
         defaultValue = null;
-        ConstructorInfo[] constructors = property.DeclaringType!.GetConstructors();
+        var constructors = property.DeclaringType!.GetConstructors();
 
         if (constructors.Length == 1)
         {
-            foreach (ParameterInfo parameter in constructors[0].GetParameters())
+            foreach (var parameter in constructors[0].GetParameters())
             {
                 if (parameter.Name.EqualsOrdinal(property.Name))
                 {

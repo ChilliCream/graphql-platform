@@ -1,0 +1,57 @@
+User Request
+---------------
+query GetPersonById {
+  personById(id: 1) {
+    name
+    friends {
+      name
+      bio
+    }
+  }
+}
+---------------
+
+Query Plan
+---------------
+{
+  "document": "query GetPersonById {\n  personById(id: 1) {\n    name\n    friends {\n      name\n      bio\n    }\n  }\n}",
+  "operation": "GetPersonById",
+  "rootNode": {
+    "type": "Serial",
+    "nodes": [
+      {
+        "type": "Fetch",
+        "schemaName": "a",
+        "document": "query GetPersonById_1 {\n  personById(id: 1) {\n    name\n    friends {\n      name\n      __fusion_exports__1: id\n    }\n  }\n}",
+        "selectionSetId": 0
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          0
+        ]
+      },
+      {
+        "type": "Fetch",
+        "schemaName": "b",
+        "document": "query GetPersonById_2($__fusion_exports__1: ID!) {\n  node(id: $__fusion_exports__1) {\n    ... on Person {\n      bio\n    }\n  }\n}",
+        "selectionSetId": 2,
+        "path": [
+          "node"
+        ],
+        "requires": [
+          {
+            "variable": "__fusion_exports__1"
+          }
+        ]
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          2
+        ]
+      }
+    ]
+  }
+}
+---------------

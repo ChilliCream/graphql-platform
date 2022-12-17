@@ -2,36 +2,35 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
-namespace HotChocolate.Types.Filters.Expressions
+namespace HotChocolate.Types.Filters.Expressions;
+
+[Obsolete("Use HotChocolate.Data.")]
+public sealed class StringStartsWithOperationHandler
+    : StringOperationHandlerBase
 {
-    [Obsolete("Use HotChocolate.Data.")]
-    public sealed class StringStartsWithOperationHandler
-        : StringOperationHandlerBase
+    protected override bool TryCreateExpression(
+        FilterOperation operation,
+        Expression property,
+        object parsedValue,
+        [NotNullWhen(true)] out Expression? expression)
     {
-        protected override bool TryCreateExpression(
-            FilterOperation operation,
-            Expression property,
-            object parsedValue,
-            [NotNullWhen(true)] out Expression? expression)
+        switch (operation.Kind)
         {
-            switch (operation.Kind)
-            {
-                case FilterOperationKind.StartsWith:
-                    expression = FilterExpressionBuilder.StartsWith(
-                        property, parsedValue);
-                    return true;
+            case FilterOperationKind.StartsWith:
+                expression = FilterExpressionBuilder.StartsWith(
+                    property, parsedValue);
+                return true;
 
-                case FilterOperationKind.NotStartsWith:
-                    expression = FilterExpressionBuilder.Not(
-                        FilterExpressionBuilder.StartsWith(
-                            property, parsedValue)
-                    );
-                    return true;
+            case FilterOperationKind.NotStartsWith:
+                expression = FilterExpressionBuilder.Not(
+                    FilterExpressionBuilder.StartsWith(
+                        property, parsedValue)
+                );
+                return true;
 
-                default:
-                    expression = null;
-                    return false;
-            }
+            default:
+                expression = null;
+                return false;
         }
     }
 }

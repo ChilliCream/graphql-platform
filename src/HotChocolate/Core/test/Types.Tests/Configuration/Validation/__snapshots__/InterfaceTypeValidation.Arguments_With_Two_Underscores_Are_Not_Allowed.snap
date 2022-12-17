@@ -1,5 +1,5 @@
 ﻿{
-  "message": "Argument names starting with `__` are reserved for  the GraphQL specification.",
+  "message": "Argument names starting with `__` are reserved for the GraphQL specification.",
   "type": "Foo",
   "extensions": {
     "argument": "__bar",
@@ -9,7 +9,7 @@
 }
 
 {
-  "message": "Argument names starting with `__` are reserved for  the GraphQL specification.",
+  "message": "Argument names starting with `__` are reserved for the GraphQL specification.",
   "type": "FooInterface",
   "extensions": {
     "argument": "__bar",

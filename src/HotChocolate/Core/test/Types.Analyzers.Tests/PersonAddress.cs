@@ -11,4 +11,3 @@ public class PersonAddress
         CancellationToken cancellationToken)
         => dataLoader.LoadAsync("abc", cancellationToken);
 }
-

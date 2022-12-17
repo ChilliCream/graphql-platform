@@ -48,10 +48,10 @@ public partial class StorelessOperationExecutor<TData, TResult>
         }
 
         IOperationResult<TResult>? result = null;
-        IOperationResultBuilder<TData, TResult> resultBuilder = _resultBuilder();
-        IResultPatcher<TData> resultPatcher = _resultPatcher();
+        var resultBuilder = _resultBuilder();
+        var resultPatcher = _resultPatcher();
 
-        await foreach (Response<TData> response in
+        await foreach (var response in
             _connection.ExecuteAsync(request)
                 .WithCancellation(cancellationToken)
                 .ConfigureAwait(false))

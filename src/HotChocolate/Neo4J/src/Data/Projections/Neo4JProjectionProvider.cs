@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Data.Neo4J.Execution;
 using HotChocolate.Data.Projections;
 using HotChocolate.Resolvers;
@@ -41,11 +39,11 @@ public class Neo4JProjectionProvider
                 var visitor = new ProjectionVisitor<Neo4JProjectionVisitorContext>();
                 visitor.Visit(visitorContext);
 
-                if (!visitorContext.TryCreateQuery(out object[]? projections) ||
+                if (!visitorContext.TryCreateQuery(out var projections) ||
                     visitorContext.Errors.Count > 0)
                 {
                     context.Result = Array.Empty<TEntityType>();
-                    foreach (IError error in visitorContext.Errors)
+                    foreach (var error in visitorContext.Errors)
                     {
                         context.ReportError(error.WithPath(context.Path));
                     }

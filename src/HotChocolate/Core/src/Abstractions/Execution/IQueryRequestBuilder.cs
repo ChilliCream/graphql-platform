@@ -41,9 +41,6 @@ public interface IQueryRequestBuilder
     IQueryRequestBuilder SetVariableValue(
         string name, object? value);
 
-    IQueryRequestBuilder SetInitialValue(
-        object? initialValue);
-
     [Obsolete("Use `InitializeGlobalState`")]
     IQueryRequestBuilder SetProperties(
         Dictionary<string, object?>? properties);
@@ -169,8 +166,8 @@ public interface IQueryRequestBuilder
     IQueryRequestBuilder TrySetServices(
         IServiceProvider? services);
 
-    IQueryRequestBuilder SetAllowedOperations(
-        OperationType[]? allowedOperations);
+    IQueryRequestBuilder SetFlags(
+        GraphQLRequestFlags flags);
 
-    IReadOnlyQueryRequest Create();
+    IQueryRequest Create();
 }

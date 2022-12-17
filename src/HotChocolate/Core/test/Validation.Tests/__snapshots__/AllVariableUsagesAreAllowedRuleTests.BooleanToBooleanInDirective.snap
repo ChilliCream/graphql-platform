@@ -3,9 +3,14 @@
     "Message": "The variable `boolVar` is not compatible with the type of the current location.",
     "Code": null,
     "Path": {
-      "Parent": null,
-      "Depth": 0,
-      "Name": "dog"
+      "Name": "dog",
+      "Parent": {
+        "Parent": null,
+        "Length": -1,
+        "IsRoot": true
+      },
+      "Length": 0,
+      "IsRoot": false
     },
     "Locations": [
       {

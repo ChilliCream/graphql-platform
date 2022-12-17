@@ -3,9 +3,14 @@
     "Message": "The specified directive `unknown` is not supported by the current schema.",
     "Code": null,
     "Path": {
-      "Parent": null,
-      "Depth": 0,
-      "Name": "dog"
+      "Name": "dog",
+      "Parent": {
+        "Parent": null,
+        "Length": -1,
+        "IsRoot": true
+      },
+      "Length": 0,
+      "IsRoot": false
     },
     "Locations": [
       {
@@ -73,9 +78,14 @@
     "Message": "The specified directive `unknown` is not supported by the current schema.",
     "Code": null,
     "Path": {
-      "Parent": null,
-      "Depth": 0,
-      "Name": "human"
+      "Name": "human",
+      "Parent": {
+        "Parent": null,
+        "Length": -1,
+        "IsRoot": true
+      },
+      "Length": 0,
+      "IsRoot": false
     },
     "Locations": [
       {
@@ -143,13 +153,19 @@
     "Message": "The specified directive `unknown` is not supported by the current schema.",
     "Code": null,
     "Path": {
+      "Name": "pets",
       "Parent": {
-        "Parent": null,
-        "Depth": 0,
-        "Name": "human"
+        "Name": "human",
+        "Parent": {
+          "Parent": null,
+          "Length": -1,
+          "IsRoot": true
+        },
+        "Length": 0,
+        "IsRoot": false
       },
-      "Depth": 1,
-      "Name": "pets"
+      "Length": 1,
+      "IsRoot": false
     },
     "Locations": [
       {

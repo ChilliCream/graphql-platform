@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Data.Filters;
 
 namespace HotChocolate.Data.Neo4J.Filtering;

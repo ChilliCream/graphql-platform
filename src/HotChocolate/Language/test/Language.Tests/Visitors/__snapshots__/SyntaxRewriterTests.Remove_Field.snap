@@ -1,0 +1,15 @@
+﻿schema {
+  query: QueryType
+  mutation: MutationType
+}
+
+type Foo {
+  one: String!
+  three: String!
+}
+
+type Bar {
+  one: String!
+  two: Int
+  three: String!
+}

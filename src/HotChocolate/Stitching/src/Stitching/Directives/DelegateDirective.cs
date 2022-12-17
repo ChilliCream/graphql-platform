@@ -4,5 +4,5 @@ public sealed class DelegateDirective
 {
     public string? Path { get; set; }
 
-    public NameString Schema { get; set; }
+    public string Schema { get; set; }
 }

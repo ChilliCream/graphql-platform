@@ -1,9 +1,8 @@
 using System;
 using System.Linq;
+using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data.Tests;
 
@@ -16,43 +15,43 @@ public class ExtensionTests
         // act
         var convention = new FilterConvention(
             x => x.UseMock()
-                .Configure<StringOperationFilterInputType>(
-                    y => y.Operation(DefaultFilterOperations.Like).Type<StringType>())
+                .Configure<StringOperationFilterInputType>(y => y
+                    .Operation(DefaultFilterOperations.Like)
+                    .Type<StringType>())
                 .Operation(DefaultFilterOperations.Like)
                 .Name("like"));
 
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddConvention<IFilterConvention>(convention)
             .TryAddTypeInterceptor<FilterTypeInterceptor>()
-            .AddQueryType(
-                c =>
-                    c.Name("Query")
-                        .Field("foo")
-                        .Type<StringType>()
-                        .Resolve("bar")
-                        .Argument("test", x => x.Type<TestFilter>()));
+            .AddQueryType(c => c
+                .Name("Query")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("bar")
+                .Argument("test", x => x.Type<TestFilter>()));
 
-        ISchema schema = builder.Create();
+        var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public void ObjectField_UseFiltering()
     {
         // arrange
-        // act
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddFiltering()
             .AddQueryType<Query>(
                 c =>
                     c.Field(x => x.GetFoos()).UseFiltering());
 
-        ISchema schema = builder.Create();
+        // act
+        var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -60,16 +59,16 @@ public class ExtensionTests
     {
         // arrange
         // act
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddFiltering()
-            .AddQueryType<Query>(
-                c =>
-                    c.Field(x => x.GetFoos()).UseFiltering<Bar>());
+            .AddQueryType<Query>(c => c
+                .Field(x => x.GetFoos())
+                .UseFiltering<Bar>());
 
-        ISchema schema = builder.Create();
+        var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -77,16 +76,14 @@ public class ExtensionTests
     {
         // arrange
         // act
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddFiltering()
-            .AddQueryType<Query>(
-                c =>
-                    c.Field(x => x.GetFoos()).UseFiltering<BarFilterInput>());
+            .AddQueryType<Query>(c => c.Field(x => x.GetFoos()).UseFiltering<BarFilterInput>());
 
-        ISchema schema = builder.Create();
+        var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -94,16 +91,14 @@ public class ExtensionTests
     {
         // arrange
         // act
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddFiltering()
-            .AddQueryType<Query>(
-                c =>
-                    c.Field(x => x.GetFoos()).UseFiltering(typeof(Bar)));
+            .AddQueryType<Query>(c => c.Field(x => x.GetFoos()).UseFiltering(typeof(Bar)));
 
-        ISchema schema = builder.Create();
+        var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -111,16 +106,16 @@ public class ExtensionTests
     {
         // arrange
         // act
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddFiltering()
             .AddQueryType<Query>(
                 c =>
                     c.Field(x => x.GetFoos()).UseFiltering(typeof(BarFilterInput)));
 
-        ISchema schema = builder.Create();
+        var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -128,18 +123,17 @@ public class ExtensionTests
     {
         // arrange
         // act
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddFiltering()
-            .AddQueryType<Query>(
-                c =>
-                    c.Field(x => x.GetFoos())
-                        .UseFiltering<Bar>(
-                            x => x.Name("foo").Field(x => x.Foo)));
+            .AddQueryType<Query>(c => c
+                .Field(a => a.GetFoos())
+                .UseFiltering<Bar>(b => b
+                    .Name("foo").Field(d => d.Foo)));
 
-        ISchema schema = builder.Create();
+        var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     public class TestFilter : FilterInputType

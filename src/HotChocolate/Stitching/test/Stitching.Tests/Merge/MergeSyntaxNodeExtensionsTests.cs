@@ -1,7 +1,6 @@
 using System;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
-using HotChocolate.Stitching.SchemaBuilding;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -26,28 +25,28 @@ public class MergeSyntaxNodeExtensionsTests
             new NameNode("bar"),
             new[]
             {
-                    new ArgumentNode("baz",
-                        new ScopedVariableNode(
-                            null,
-                            new NameNode("qux"),
-                            new NameNode("quux")))
+                new ArgumentNode("baz",
+                    new ScopedVariableNode(
+                        null,
+                        new NameNode("qux"),
+                        new NameNode("quux")))
             });
 
         fieldNode = fieldNode.AddDelegationPath("schemName", path);
 
         // assert
         var schema = new DocumentNode(new[]
-            {
-                    new ObjectTypeDefinitionNode
-                    (
-                        null,
-                        new NameNode("Object"),
-                        null,
-                        Array.Empty<DirectiveNode>(),
-                        Array.Empty<NamedTypeNode>(),
-                        new[] { fieldNode }
-                    )
-                });
+        {
+            new ObjectTypeDefinitionNode
+            (
+                null,
+                new NameNode("Object"),
+                null,
+                Array.Empty<DirectiveNode>(),
+                Array.Empty<NamedTypeNode>(),
+                new[] { fieldNode }
+            )
+        });
         schema.Print().MatchSnapshot();
     }
 
@@ -68,29 +67,29 @@ public class MergeSyntaxNodeExtensionsTests
             new NameNode("bar"),
             new[]
             {
-                    new ArgumentNode("baz",
-                        new ScopedVariableNode(
-                            null,
-                            new NameNode("qux"),
-                            new NameNode("quux"))),
-                    new ArgumentNode("value_arg", "value")
+                new ArgumentNode("baz",
+                    new ScopedVariableNode(
+                        null,
+                        new NameNode("qux"),
+                        new NameNode("quux"))),
+                new ArgumentNode("value_arg", "value")
             });
 
         fieldNode = fieldNode.AddDelegationPath("schemName", path);
 
         // assert
         var schema = new DocumentNode(new[]
-            {
-                    new ObjectTypeDefinitionNode
-                    (
-                        null,
-                        new NameNode("Object"),
-                        null,
-                        Array.Empty<DirectiveNode>(),
-                        Array.Empty<NamedTypeNode>(),
-                        new[] { fieldNode }
-                    )
-                });
+        {
+            new ObjectTypeDefinitionNode
+            (
+                null,
+                new NameNode("Object"),
+                null,
+                Array.Empty<DirectiveNode>(),
+                Array.Empty<NamedTypeNode>(),
+                new[] { fieldNode }
+            )
+        });
         schema.Print().MatchSnapshot();
     }
 
@@ -111,11 +110,11 @@ public class MergeSyntaxNodeExtensionsTests
             new NameNode("bar"),
             new[]
             {
-                    new ArgumentNode("baz",
-                        new ScopedVariableNode(
-                            null,
-                            new NameNode("qux"),
-                            new NameNode("quux")))
+                new ArgumentNode("baz",
+                    new ScopedVariableNode(
+                        null,
+                        new NameNode("qux"),
+                        new NameNode("quux")))
             });
 
         void Action() => fieldNode.AddDelegationPath(default, path);
@@ -160,22 +159,22 @@ public class MergeSyntaxNodeExtensionsTests
             new NameNode("bar"),
             new[]
             {
-                    new ArgumentNode("baz",
-                        new ScopedVariableNode(
-                            null,
-                            new NameNode("qux"),
-                            new NameNode("quux")))
+                new ArgumentNode("baz",
+                    new ScopedVariableNode(
+                        null,
+                        new NameNode("qux"),
+                        new NameNode("quux")))
             });
 
         var b = new SelectionPathComponent(
             new NameNode("bar2"),
             new[]
             {
-                    new ArgumentNode("baz2",
-                        new ScopedVariableNode(
-                            null,
-                            new NameNode("qux2"),
-                            new NameNode("quux2")))
+                new ArgumentNode("baz2",
+                    new ScopedVariableNode(
+                        null,
+                        new NameNode("qux2"),
+                        new NameNode("quux2")))
             });
 
         fieldNode = fieldNode.AddDelegationPath(
@@ -183,17 +182,17 @@ public class MergeSyntaxNodeExtensionsTests
 
         // assert
         var schema = new DocumentNode(new[]
-            {
-                    new ObjectTypeDefinitionNode
-                    (
-                        null,
-                        new NameNode("Object"),
-                        null,
-                        Array.Empty<DirectiveNode>(),
-                        Array.Empty<NamedTypeNode>(),
-                        new[] { fieldNode }
-                    )
-                });
+        {
+            new ObjectTypeDefinitionNode
+            (
+                null,
+                new NameNode("Object"),
+                null,
+                Array.Empty<DirectiveNode>(),
+                Array.Empty<NamedTypeNode>(),
+                new[] { fieldNode }
+            )
+        });
         schema.Print().MatchSnapshot();
     }
 
@@ -214,11 +213,11 @@ public class MergeSyntaxNodeExtensionsTests
             new NameNode("bar"),
             new[]
             {
-                    new ArgumentNode("baz",
-                        new ScopedVariableNode(
-                            null,
-                            new NameNode("qux"),
-                            new NameNode("quux")))
+                new ArgumentNode("baz",
+                    new ScopedVariableNode(
+                        null,
+                        new NameNode("qux"),
+                        new NameNode("quux")))
             });
 
         fieldNode = fieldNode.AddDelegationPath(
@@ -226,17 +225,17 @@ public class MergeSyntaxNodeExtensionsTests
 
         // assert
         var schema = new DocumentNode(new[]
-            {
-                    new ObjectTypeDefinitionNode
-                    (
-                        null,
-                        new NameNode("Object"),
-                        null,
-                        Array.Empty<DirectiveNode>(),
-                        Array.Empty<NamedTypeNode>(),
-                        new[] { fieldNode }
-                    )
-                });
+        {
+            new ObjectTypeDefinitionNode
+            (
+                null,
+                new NameNode("Object"),
+                null,
+                Array.Empty<DirectiveNode>(),
+                Array.Empty<NamedTypeNode>(),
+                new[] { fieldNode }
+            )
+        });
         schema.Print().MatchSnapshot();
     }
 
@@ -258,17 +257,17 @@ public class MergeSyntaxNodeExtensionsTests
 
         // assert
         var schema = new DocumentNode(new[]
-            {
-                    new ObjectTypeDefinitionNode
-                    (
-                        null,
-                        new NameNode("Object"),
-                        null,
-                        Array.Empty<DirectiveNode>(),
-                        Array.Empty<NamedTypeNode>(),
-                        new[] { fieldNode }
-                    )
-                });
+        {
+            new ObjectTypeDefinitionNode
+            (
+                null,
+                new NameNode("Object"),
+                null,
+                Array.Empty<DirectiveNode>(),
+                Array.Empty<NamedTypeNode>(),
+                new[] { fieldNode }
+            )
+        });
         schema.Print().MatchSnapshot();
     }
 
@@ -289,14 +288,14 @@ public class MergeSyntaxNodeExtensionsTests
             new NameNode("bar"),
             new[]
             {
-                    new ArgumentNode("baz",
-                        new ScopedVariableNode(
-                            null,
-                            new NameNode("qux"),
-                            new NameNode("quux")))
+                new ArgumentNode("baz",
+                    new ScopedVariableNode(
+                        null,
+                        new NameNode("qux"),
+                        new NameNode("quux")))
             });
 
-        void Action() => fieldNode.AddDelegationPath(default, new[] { path });
+        void Action() => fieldNode.AddDelegationPath(default, new[] {path});
 
         // assert
         Assert.Throws<ArgumentException>(Action);
@@ -338,11 +337,11 @@ public class MergeSyntaxNodeExtensionsTests
             new NameNode("bar"),
             new[]
             {
-                    new ArgumentNode("baz",
-                        new ScopedVariableNode(
-                            null,
-                            new NameNode("qux"),
-                            new NameNode("quux")))
+                new ArgumentNode("baz",
+                    new ScopedVariableNode(
+                        null,
+                        new NameNode("qux"),
+                        new NameNode("quux")))
             });
 
         fieldNode = fieldNode.AddDelegationPath("schemName", path);
@@ -357,17 +356,17 @@ public class MergeSyntaxNodeExtensionsTests
 
         // assert
         var schema = new DocumentNode(new[]
-            {
-                    new ObjectTypeDefinitionNode
-                    (
-                        null,
-                        new NameNode("Object"),
-                        null,
-                        Array.Empty<DirectiveNode>(),
-                        Array.Empty<NamedTypeNode>(),
-                        new[] { fieldNode }
-                    )
-                });
+        {
+            new ObjectTypeDefinitionNode
+            (
+                null,
+                new NameNode("Object"),
+                null,
+                Array.Empty<DirectiveNode>(),
+                Array.Empty<NamedTypeNode>(),
+                new[] { fieldNode }
+            )
+        });
         schema.Print().MatchSnapshot();
     }
 }

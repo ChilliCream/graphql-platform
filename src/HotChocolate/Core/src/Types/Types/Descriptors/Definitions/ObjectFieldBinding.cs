@@ -1,3 +1,5 @@
+using HotChocolate.Utilities;
+
 namespace HotChocolate.Types.Descriptors.Definitions;
 
 /// <summary>
@@ -18,11 +20,11 @@ public readonly struct ObjectFieldBinding
     /// Defines if the bound property shall be replaced.
     /// </param>
     public ObjectFieldBinding(
-        NameString name,
+        string name,
         ObjectFieldBindingType type,
         bool replace = true)
     {
-        Name = name;
+        Name = name.EnsureGraphQLName();
         Type = type;
         Replace = replace;
     }
@@ -30,7 +32,7 @@ public readonly struct ObjectFieldBinding
     /// <summary>
     /// Gets the binding name.
     /// </summary>
-    public NameString Name { get; }
+    public string Name { get; }
 
     /// <summary>
     /// Gets the binding type.

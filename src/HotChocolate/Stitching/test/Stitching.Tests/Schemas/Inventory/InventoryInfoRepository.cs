@@ -11,9 +11,9 @@ public class InventoryInfoRepository
     {
         _infos = new InventoryInfo[]
         {
-                new InventoryInfo(1, true),
-                new InventoryInfo(2, false),
-                new InventoryInfo(3, true)
+            new InventoryInfo(1, true),
+            new InventoryInfo(2, false),
+            new InventoryInfo(3, true)
         }.ToDictionary(t => t.Upc);
     }
 

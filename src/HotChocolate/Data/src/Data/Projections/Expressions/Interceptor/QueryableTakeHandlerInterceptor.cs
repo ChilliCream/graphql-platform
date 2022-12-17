@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -7,6 +6,7 @@ using HotChocolate.Data.Projections.Expressions.Handlers;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Data.Projections.Handlers;
 
 public abstract class QueryableTakeHandlerInterceptor
@@ -29,12 +29,12 @@ public abstract class QueryableTakeHandlerInterceptor
         QueryableProjectionContext context,
         ISelection selection)
     {
-        IObjectField? field = selection.Field;
+        var field = selection.Field;
         if (field.ContextData.ContainsKey(_contextDataKey) &&
             selection.Type.InnerType() is ListType lt &&
             lt.ElementType.InnerType() is { } elementType)
         {
-            Expression instance = context.PopInstance();
+            var instance = context.PopInstance();
 
             context.PushInstance(
                 Expression.Call(

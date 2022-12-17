@@ -1,5 +1,4 @@
 using System.Linq;
-using Xunit;
 
 namespace StrawberryShake.Serialization;
 
@@ -28,7 +27,7 @@ public class ByteSerializerTests
         // arrange
 
         // act
-        object? result = Serializer.Format(null);
+        var result = Serializer.Format(null);
 
         // assert
         Assert.Null(result);
@@ -41,7 +40,7 @@ public class ByteSerializerTests
         byte value = 1;
 
         // act
-        object? result = Serializer.Format(value);
+        var result = Serializer.Format(value);
 
         // assert
         Assert.Equal(value, result);
@@ -51,7 +50,7 @@ public class ByteSerializerTests
     public void Format_Exception()
     {
         // arrange
-        string value = "1";
+        var value = "1";
 
         // act
         void Action() => Serializer.Format(value);
@@ -68,7 +67,7 @@ public class ByteSerializerTests
         // arrange
 
         // act
-        string typeName = Serializer.TypeName;
+        var typeName = Serializer.TypeName;
 
         // assert
         Assert.Equal("Byte", typeName);
@@ -80,7 +79,7 @@ public class ByteSerializerTests
         // arrange
 
         // act
-        string typeName = CustomSerializer.TypeName;
+        var typeName = CustomSerializer.TypeName;
 
         // assert
         Assert.Equal("Abc", typeName);

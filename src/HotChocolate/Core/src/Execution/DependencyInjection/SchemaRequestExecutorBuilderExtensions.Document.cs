@@ -5,6 +5,7 @@ using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class SchemaRequestExecutorBuilderExtensions
@@ -25,7 +26,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
         return builder.ConfigureSchemaAsync(async (sp, b, ct) =>
         {
-            DocumentNode document = await loadDocumentAsync(sp, ct).ConfigureAwait(false);
+            var document = await loadDocumentAsync(sp, ct).ConfigureAwait(false);
             b.AddDocument(document);
         });
     }
@@ -78,9 +79,9 @@ public static partial class SchemaRequestExecutorBuilderExtensions
             throw new ArgumentException(nameof(filePath));
         }
 
-        return builder.AddDocument(async (sp, ct) =>
+        return builder.AddDocument(async (_, ct) =>
         {
-            byte[] buffer = await Task
+            var buffer = await Task
                 .Run(() => File.ReadAllBytes(filePath), ct)
                 .ConfigureAwait(false);
             return Utf8GraphQLParser.Parse(buffer);

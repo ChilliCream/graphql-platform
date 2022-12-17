@@ -11,7 +11,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors;
 public sealed class ClientDescriptor : ICodeDescriptor
 {
     public ClientDescriptor(
-        NameString name,
+        string name,
         string @namespace,
         List<OperationDescriptor> operations)
     {
@@ -25,7 +25,7 @@ public sealed class ClientDescriptor : ICodeDescriptor
     /// Gets the client name
     /// </summary>
     /// <value></value>
-    public NameString Name => RuntimeType.Name;
+    public string Name => RuntimeType.Name;
 
     /// <summary>
     /// The name of the client
