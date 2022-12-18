@@ -32,11 +32,11 @@ public class ResultFromEntityTypeMapperGenerator : ClassBaseGenerator<ResultFrom
         fileName = descriptor.ExtractMapperName();
         path = State;
         ns = CreateStateNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal);
-        RuntimeTypeInfo entityType = CreateEntityType(
+        var entityType = CreateEntityType(
             descriptor.Name,
             descriptor.RuntimeType.NamespaceWithoutGlobal);
 
-        ClassBuilder classBuilder = ClassBuilder
+        var classBuilder = ClassBuilder
             .New()
             .AddImplements(
                 IEntityMapper.WithGeneric(
@@ -44,7 +44,7 @@ public class ResultFromEntityTypeMapperGenerator : ClassBaseGenerator<ResultFrom
                     descriptor.RuntimeType.Name))
             .SetName(fileName);
 
-        ConstructorBuilder constructorBuilder = ConstructorBuilder
+        var constructorBuilder = ConstructorBuilder
             .New()
             .SetTypeName(descriptor.Name);
 
@@ -56,7 +56,7 @@ public class ResultFromEntityTypeMapperGenerator : ClassBaseGenerator<ResultFrom
             constructorBuilder);
 
         // Define map method
-        MethodBuilder mapMethod = MethodBuilder
+        var mapMethod = MethodBuilder
             .New()
             .SetName(_map)
             .SetAccessModifier(AccessModifier.Public)
@@ -67,7 +67,7 @@ public class ResultFromEntityTypeMapperGenerator : ClassBaseGenerator<ResultFrom
                     .SetType(
                         descriptor.Kind is TypeKind.Entity
                             ? entityType.FullName
-                            : descriptor.Name.Value)
+                            : descriptor.Name)
                     .SetName(_entity))
             .AddParameter(
                 _snapshot,
@@ -85,14 +85,14 @@ public class ResultFromEntityTypeMapperGenerator : ClassBaseGenerator<ResultFrom
             .AddEmptyLine();
 
         // creates the instance of the model that is being mapped.
-        MethodCallBuilder createModelCall =
+        var createModelCall =
             MethodCallBuilder
                 .New()
                 .SetReturn()
                 .SetNew()
                 .SetMethodName(descriptor.RuntimeType.Name);
 
-        foreach (PropertyDescriptor property in descriptor.Properties)
+        foreach (var property in descriptor.Properties)
         {
             createModelCall.AddArgument(BuildMapMethodCall(settings, _entity, property));
         }
@@ -111,7 +111,7 @@ public class ResultFromEntityTypeMapperGenerator : ClassBaseGenerator<ResultFrom
             constructorBuilder,
             processed);
 
-        foreach (DeferredFragmentDescriptor deferred in descriptor.Deferred)
+        foreach (var deferred in descriptor.Deferred)
         {
             createModelCall.AddArgument(
                 MethodCallBuilder

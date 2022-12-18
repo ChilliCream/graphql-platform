@@ -213,4 +213,13 @@
   <data name="ExecutionResultExtensions_ExpectQueryResult_NotQueryResult" xml:space="preserve">
     <value>The specified result is expected to be a IQueryResult.</value>
   </data>
+  <data name="NameUtils_InvalidGraphQLName" xml:space="preserve">
+    <value>The specified name is not a valid GraphQL name.</value>
+  </data>
+  <data name="MutationResult_ErrorElementIsNull" xml:space="preserve">
+    <value>Errors are not allowed to be null</value>
+  </data>
+  <data name="MutationResult_ErrorsIsEmpty" xml:space="preserve">
+    <value>The errors collection must at least specify one error.</value>
+  </data>
 </root>

@@ -2,8 +2,6 @@
 title: Projections
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 Every GraphQL request specifies exactly what data should be returned. Over or under fetching can be reduced
 or even eliminated. Hot Chocolate projections leverage this concept and directly projects incoming queries
 to the database.
@@ -32,11 +30,9 @@ LEFT JOIN "Address" AS "a" ON "u"."AddressId" = "a"."Id"
 
 # Getting Started
 
-Filtering is part of the `HotChocolate.Data` package. You can add the dependency with the `dotnet` cli
+Filtering is part of the `HotChocolate.Data` package.
 
-```bash
-  dotnet add package HotChocolate.Data
-```
+<PackageInstallation packageName="HotChocolate.Data" />
 
 To use projections with your GraphQL endpoint you have to register projections on the schema:
 

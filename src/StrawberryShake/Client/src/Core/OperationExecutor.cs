@@ -56,17 +56,17 @@ public partial class OperationExecutor<TData, TResult>
         }
 
         IOperationResult<TResult>? result = null;
-        IOperationResultBuilder<TData, TResult> resultBuilder = _resultBuilder();
-        IResultPatcher<TData> resultPatcher = _resultPatcher();
+        var resultBuilder = _resultBuilder();
+        var resultPatcher = _resultPatcher();
 
-        await foreach (Response<TData> response in
+        await foreach (var response in
             _connection.ExecuteAsync(request)
                 .WithCancellation(cancellationToken)
                 .ConfigureAwait(false))
         {
             if (response.IsPatch)
             {
-                Response<TData> patched = resultPatcher.PatchResponse(response);
+                var patched = resultPatcher.PatchResponse(response);
                 result = resultBuilder.Build(patched);
                 _operationStore.Set(request, result);
             }

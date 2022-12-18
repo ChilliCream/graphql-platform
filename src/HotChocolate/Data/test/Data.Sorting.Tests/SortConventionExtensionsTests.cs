@@ -197,7 +197,7 @@ public class SortConventionExtensionsTests
 
         // assert
         Assert.NotNull(convention.DefinitionAccessor);
-        List<ConfigureSortInputType> configuration =
+        var configuration =
             Assert.Single(convention.DefinitionAccessor!.Configurations.Values)!;
         Assert.Equal(2, configuration.Count);
     }
@@ -247,7 +247,7 @@ public class SortConventionExtensionsTests
 
         // assert
         Assert.NotNull(convention.DefinitionAccessor);
-        List<ConfigureSortEnumType> configuration =
+        var configuration =
             Assert.Single(convention.DefinitionAccessor!.EnumConfigurations.Values)!;
         Assert.Equal(2, configuration.Count);
     }
@@ -351,12 +351,12 @@ public class SortConventionExtensionsTests
         public IReadOnlyCollection<ISortFieldHandler> FieldHandlers { get; } = null!;
         public IReadOnlyCollection<ISortOperationHandler> OperationHandlers { get; } = null!;
 
-        public FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
+        public FieldMiddleware CreateExecutor<TEntityType>(string argumentName)
         {
             throw new NotImplementedException();
         }
 
-        public void ConfigureField(NameString argumentName, IObjectFieldDescriptor descriptor)
+        public void ConfigureField(string argumentName, IObjectFieldDescriptor descriptor)
         {
             throw new NotImplementedException();
         }
@@ -369,8 +369,7 @@ public class SortConventionExtensionsTests
 
     private sealed class MockSortConvention : SortConvention
     {
-        public MockSortConvention(
-            Action<ISortConventionDescriptor> configure)
+        public MockSortConvention(Action<ISortConventionDescriptor> configure)
             : base(configure)
         {
         }

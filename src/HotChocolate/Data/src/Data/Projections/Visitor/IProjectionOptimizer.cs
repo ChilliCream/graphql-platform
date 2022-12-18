@@ -23,6 +23,6 @@ public interface IProjectionOptimizer
     /// Returns either the original <paramref name="selection"/> or a rewritten version of it
     /// </returns>
     Selection RewriteSelection(
-        SelectionOptimizerContext context,
+        SelectionSetOptimizerContext context,
         Selection selection);
 }

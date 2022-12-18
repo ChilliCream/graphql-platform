@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate;
 
@@ -10,7 +11,7 @@ namespace HotChocolate;
     AttributeTargets.Property |
     AttributeTargets.Method |
     AttributeTargets.Parameter)]
-public sealed class GraphQLTypeAttribute : Attribute
+public class GraphQLTypeAttribute : Attribute
 {
     /// <summary>
     /// Specifies the GraphQL type.
@@ -51,3 +52,19 @@ public sealed class GraphQLTypeAttribute : Attribute
     /// </summary>
     public ITypeNode? TypeSyntax { get; }
 }
+
+#if NET6_0_OR_GREATER
+/// <summary>
+/// Specifies the GraphQL type.
+/// </summary>
+[AttributeUsage(
+    AttributeTargets.Property |
+    AttributeTargets.Method |
+    AttributeTargets.Parameter)]
+public sealed class GraphQLTypeAttribute<T> : GraphQLTypeAttribute where T : IType
+{
+    public GraphQLTypeAttribute() : base(typeof(T))
+    {
+    }
+}
+#endif

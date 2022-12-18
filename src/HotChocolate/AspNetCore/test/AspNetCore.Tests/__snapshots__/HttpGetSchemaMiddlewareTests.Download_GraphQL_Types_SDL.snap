@@ -1,4 +1,4 @@
-﻿type Query {
+type Query {
   hero(episode: Episode! = NEW_HOPE): Character
   heroes(episodes: [Episode!]): [Character!]
   character(characterIds: [String]): [Character!]!
@@ -7,4 +7,5 @@
   droid(id: String): Droid
   time: Long!
   evict: Boolean!
+  wait(m: Int!): Boolean!
 }

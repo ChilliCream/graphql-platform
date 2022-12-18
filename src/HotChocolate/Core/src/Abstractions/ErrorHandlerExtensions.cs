@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace HotChocolate;
 
@@ -22,11 +21,11 @@ public static class ErrorHandlerExtensions
 
         var result = new List<IError>();
 
-        foreach (IError error in errors)
+        foreach (var error in errors)
         {
             if (error is AggregateError aggregateError)
             {
-                foreach (IError? innerError in aggregateError.Errors)
+                foreach (var innerError in aggregateError.Errors)
                 {
                     AddProcessed(errorHandler.Handle(innerError));
                 }
@@ -43,7 +42,7 @@ public static class ErrorHandlerExtensions
         {
             if (error is AggregateError aggregateError)
             {
-                foreach (IError? innerError in aggregateError.Errors)
+                foreach (var innerError in aggregateError.Errors)
                 {
                     result.Add(innerError);
                 }

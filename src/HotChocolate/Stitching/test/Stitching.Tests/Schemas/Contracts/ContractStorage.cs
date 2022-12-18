@@ -5,7 +5,7 @@ namespace HotChocolate.Stitching.Schemas.Contracts;
 
 public class ContractStorage
 {
-    public List<IContract> Contracts { get; } = new()
+    public List<IContract> Contracts { get; } = new List<IContract>
     {
         new LifeInsuranceContract
         {

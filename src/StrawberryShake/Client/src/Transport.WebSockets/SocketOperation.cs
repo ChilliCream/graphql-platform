@@ -54,6 +54,22 @@ public sealed class SocketOperation : ISocketOperation
     public IAsyncEnumerable<OperationMessage> ReadAsync()
         => new MessageStream(this, _channel);
 
+    /// <inheritdoc />
+    public async ValueTask CompleteAsync(CancellationToken cancellationToken)
+    {
+        if (!_disposed)
+        {
+            try
+            {
+                await _channel.Writer.WriteAsync(CompleteOperationMessage.Default, cancellationToken).ConfigureAwait(false);
+            }
+            catch (ChannelClosedException)
+            {
+                // if the channel is closed we will move on.
+            }
+        }
+    }
+
     private sealed class MessageStream : IAsyncEnumerable<OperationMessage>
     {
         private readonly SocketOperation _operation;

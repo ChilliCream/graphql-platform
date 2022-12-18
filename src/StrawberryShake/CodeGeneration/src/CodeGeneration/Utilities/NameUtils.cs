@@ -22,17 +22,12 @@ public static class NameUtils
         return GetPropertyName(typeName);
     }
 
-    public static string GetClassName(NameString typeName)
-    {
-        return GetPropertyName(typeName);
-    }
-
     public static string GetPathName(Path path)
     {
         var builder = new StringBuilder();
-        Path? current = path;
+        var current = path;
 
-        while (current != null)
+        while (current is not null or { IsRoot: false })
         {
             if (current is NamePathSegment nameSegment)
             {

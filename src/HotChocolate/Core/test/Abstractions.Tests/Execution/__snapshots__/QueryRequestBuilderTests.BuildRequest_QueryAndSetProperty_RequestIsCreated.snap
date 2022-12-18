@@ -11,6 +11,5 @@
     "one": "bar"
   },
   "Services": null,
-  "InitialValue": null,
-  "AllowedOperations": null
+  "Flags": "AllowAll"
 }

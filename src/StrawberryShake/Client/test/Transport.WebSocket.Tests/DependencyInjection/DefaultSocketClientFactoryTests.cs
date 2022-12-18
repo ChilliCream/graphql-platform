@@ -4,7 +4,6 @@ using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
-using Xunit;
 
 namespace StrawberryShake.Transport.WebSockets;
 
@@ -14,13 +13,11 @@ public class DefaultSocketClientFactoryTests
     public void Constructor_AllArgs_CreateObject()
     {
         // arrange
-        IOptionsMonitor<SocketClientFactoryOptions> optionsMonitor =
-            new Mock<IOptionsMonitor<SocketClientFactoryOptions>>().Object;
-        IEnumerable<ISocketProtocolFactory> protocolFactories =
-            Enumerable.Empty<ISocketProtocolFactory>();
+        var optionsMonitor = new Mock<IOptionsMonitor<SocketClientFactoryOptions>>().Object;
+        var protocolFactories = Enumerable.Empty<ISocketProtocolFactory>();
 
         // act
-        Exception? exception = Record.Exception(() =>
+        var exception = Record.Exception(() =>
             new DefaultSocketClientFactory(optionsMonitor, protocolFactories));
 
         // assert
@@ -32,11 +29,11 @@ public class DefaultSocketClientFactoryTests
     {
         // arrange
         IOptionsMonitor<SocketClientFactoryOptions> optionsMonitor = null!;
-        IEnumerable<ISocketProtocolFactory> protocolFactories =
+        var protocolFactories =
             Enumerable.Empty<ISocketProtocolFactory>();
 
         // act
-        Exception? exception = Record.Exception(() =>
+        var exception = Record.Exception(() =>
             new DefaultSocketClientFactory(optionsMonitor, protocolFactories));
 
         // assert
@@ -47,12 +44,12 @@ public class DefaultSocketClientFactoryTests
     public void Constructor_FactoriesNull_CreateObject()
     {
         // arrange
-        IOptionsMonitor<SocketClientFactoryOptions> optionsMonitor =
+        var optionsMonitor =
             new Mock<IOptionsMonitor<SocketClientFactoryOptions>>().Object;
         IEnumerable<ISocketProtocolFactory> protocolFactories = null!;
 
         // act
-        Exception? exception = Record.Exception(() =>
+        var exception = Record.Exception(() =>
             new DefaultSocketClientFactory(optionsMonitor, protocolFactories));
 
         // assert
@@ -63,19 +60,19 @@ public class DefaultSocketClientFactoryTests
     public void CreateClient_OptionsRegistered_CreateClient()
     {
         // arrange
-        ServiceProvider sp = new ServiceCollection()
+        var sp = new ServiceCollection()
             .Configure<SocketClientFactoryOptions>(
                 "Foo",
                 x => { })
             .BuildServiceProvider();
-        IOptionsMonitor<SocketClientFactoryOptions> optionsMonitor =
+        var optionsMonitor =
             sp.GetRequiredService<IOptionsMonitor<SocketClientFactoryOptions>>();
-        IEnumerable<ISocketProtocolFactory> protocolFactories =
+        var protocolFactories =
             Enumerable.Empty<ISocketProtocolFactory>();
         var factory = new DefaultSocketClientFactory(optionsMonitor, protocolFactories);
 
         // act
-        ISocketClient? client = factory.CreateClient("Foo");
+        var client = factory.CreateClient("Foo");
 
         // assert
         Assert.IsType<WebSocketClient>(client);
@@ -86,19 +83,19 @@ public class DefaultSocketClientFactoryTests
     {
         // arrange
         var uri = new Uri("wss://localhost:123");
-        ServiceProvider sp = new ServiceCollection()
+        var sp = new ServiceCollection()
             .Configure<SocketClientFactoryOptions>(
                 "Foo",
                 x => x.SocketClientActions.Add(x => x.Uri = uri))
             .BuildServiceProvider();
-        IOptionsMonitor<SocketClientFactoryOptions> optionsMonitor =
+        var optionsMonitor =
             sp.GetRequiredService<IOptionsMonitor<SocketClientFactoryOptions>>();
-        IEnumerable<ISocketProtocolFactory> protocolFactories =
+        var protocolFactories =
             Enumerable.Empty<ISocketProtocolFactory>();
         var factory = new DefaultSocketClientFactory(optionsMonitor, protocolFactories);
 
         // act
-        ISocketClient? client = factory.CreateClient("Foo");
+        var client = factory.CreateClient("Foo");
 
         // assert
         Assert.Equal(uri, client.Uri);
@@ -108,19 +105,19 @@ public class DefaultSocketClientFactoryTests
     public void CreateClient_NoOptionsRegistered_CreateClient()
     {
         // arrange
-        ServiceProvider sp = new ServiceCollection()
+        var sp = new ServiceCollection()
             .Configure<SocketClientFactoryOptions>(
                 "Foo",
                 x => { })
             .BuildServiceProvider();
-        IOptionsMonitor<SocketClientFactoryOptions> optionsMonitor =
+        var optionsMonitor =
             sp.GetRequiredService<IOptionsMonitor<SocketClientFactoryOptions>>();
-        IEnumerable<ISocketProtocolFactory> protocolFactories =
+        var protocolFactories =
             Enumerable.Empty<ISocketProtocolFactory>();
         var factory = new DefaultSocketClientFactory(optionsMonitor, protocolFactories);
 
         // act
-        ISocketClient? client = factory.CreateClient("Baz");
+        var client = factory.CreateClient("Baz");
 
         // assert
         Assert.IsType<WebSocketClient>(client);

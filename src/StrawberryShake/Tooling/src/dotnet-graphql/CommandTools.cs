@@ -15,7 +15,7 @@ namespace StrawberryShake.Tools
         {
             var message = new StringBuilder();
 
-            foreach (HCError error in errors)
+            foreach (var error in errors)
             {
                 Write(error, message);
             }
@@ -37,7 +37,7 @@ namespace StrawberryShake.Tools
 
             if (error.Locations is { } && error.Locations.Count > 0)
             {
-                HotChocolate.Location location = error.Locations[0];
+                var location = error.Locations[0];
                 message.Append($"({location.Line},{location.Column}): ");
             }
             message.Append($"error {error.Code ?? "GQL"}: {error.Message}");

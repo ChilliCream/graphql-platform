@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Neo4j.Driver;
 
 namespace HotChocolate.Data.Neo4J;

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Types.Descriptors;
 
@@ -8,7 +9,7 @@ namespace HotChocolate.Types;
 /// </summary>
 public static class Directives
 {
-    private static readonly HashSet<NameString> _directiveNames =
+    private static readonly HashSet<string> _directiveNames =
         new()
         {
             WellKnownDirectives.Skip,
@@ -22,7 +23,7 @@ public static class Directives
     internal static IReadOnlyList<ITypeReference> CreateReferences(
         IDescriptorContext descriptorContext)
     {
-        ITypeInspector typeInspector = descriptorContext.TypeInspector;
+        var typeInspector = descriptorContext.TypeInspector;
 
         if (descriptorContext.Options.EnableOneOf)
         {
@@ -51,6 +52,13 @@ public static class Directives
     /// <summary>
     /// Checks if the specified directive represents a built-in directive.
     /// </summary>
-    public static bool IsBuiltIn(NameString typeName)
-        => _directiveNames.Contains(typeName.Value);
+    public static bool IsBuiltIn(string typeName)
+    {
+        if (string.IsNullOrEmpty(typeName))
+        {
+            throw new ArgumentNullException(nameof(typeName));
+        }
+
+        return _directiveNames.Contains(typeName);
+    }
 }

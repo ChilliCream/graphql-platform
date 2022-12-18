@@ -7,22 +7,32 @@ public sealed class ConfigureRequestExecutorSetup : IConfigureRequestExecutorSet
     private readonly Action<RequestExecutorSetup> _configure;
 
     public ConfigureRequestExecutorSetup(
-        NameString schemaName,
+        string schemaName,
         Action<RequestExecutorSetup> configure)
     {
-        SchemaName = schemaName.EnsureNotEmpty(nameof(schemaName));
+        if (string.IsNullOrWhiteSpace(schemaName))
+        {
+            throw new ArgumentNullException(nameof(schemaName));
+        }
+
+        SchemaName = schemaName;
         _configure = configure ?? throw new ArgumentNullException(nameof(configure));
     }
 
     public ConfigureRequestExecutorSetup(
-        NameString schemaName,
+        string schemaName,
         RequestExecutorSetup options)
     {
-        SchemaName = schemaName.EnsureNotEmpty(nameof(schemaName));
+        if (string.IsNullOrWhiteSpace(schemaName))
+        {
+            throw new ArgumentNullException(nameof(schemaName));
+        }
+
+        SchemaName = schemaName;
         _configure = options.CopyTo;
     }
 
-    public NameString SchemaName { get; }
+    public string SchemaName { get; }
 
     public void Configure(RequestExecutorSetup options)
     {

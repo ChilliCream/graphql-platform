@@ -97,12 +97,12 @@ namespace HotChocolate.Analyzers.Diagnostics
             this GeneratorExecutionContext context,
             IError error)
         {
-            string title =
+            var title =
                 error.Extensions is not null &&
                 error.Extensions.TryGetValue(ErrorHelper.Title, out var value) &&
                 value is string s ? s : nameof(ErrorCodes.Unexpected);
 
-            string code = error.Code ?? ErrorCodes.Unexpected;
+            var code = error.Code ?? ErrorCodes.Unexpected;
 
             if (error is { Locations: { Count: > 0 } locations } &&
                 error.Extensions is not null &&

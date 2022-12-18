@@ -44,7 +44,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Listings, other.Listings));
+            return (global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Listings, other.Listings));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -128,7 +128,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Amenities1, other.Amenities1)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Amenities2, other.Amenities2) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Amenities3, other.Amenities3) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Amenities4, other.Amenities4) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Amenities5, other.Amenities5) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Amenities6, other.Amenities6) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Amenities7, other.Amenities7);
+            return (global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Amenities1, other.Amenities1)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Amenities2, other.Amenities2) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Amenities3, other.Amenities3) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Amenities4, other.Amenities4) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Amenities5, other.Amenities5) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Amenities6, other.Amenities6) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Amenities7, other.Amenities7);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)

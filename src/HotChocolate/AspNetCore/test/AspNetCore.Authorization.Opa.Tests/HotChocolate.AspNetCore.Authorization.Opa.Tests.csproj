@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.AspNetCore.Authorization.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.AspNetCore.Authorization</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\test\Utilities\HotChocolate.Tests.Utilities.csproj" />
+    <ProjectReference Include="..\..\src\AspNetCore.Authorization.Opa\HotChocolate.AspNetCore.Authorization.Opa.csproj" />
+    <ProjectReference Include="..\AspNetCore.Tests\HotChocolate.AspNetCore.Tests.csproj" />
+    <ProjectReference Include="..\..\..\Core\test\StarWars\HotChocolate.StarWars.Tests.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Opa.Native" Version="0.41.0" PrivateAssets="Compile" IncludeAssets="Compile;Runtime;Native" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Policies/*.rego" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="$(MSBuildProjectDirectory)\__resources__\*.*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="$(MSBuildProjectDirectory)\xunit.runner.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

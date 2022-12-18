@@ -1,0 +1,11 @@
+{
+  "data": {
+    "doSomething": {
+      "errors": [
+        {
+          "message": "Hello2"
+        }
+      ]
+    }
+  }
+}

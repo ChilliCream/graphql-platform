@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using Nuke.Common;
 using Nuke.Common.IO;
@@ -9,7 +8,8 @@ using Nuke.Common.Tools.NuGet;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Helpers;
 using static Nuke.Common.Tools.NuGet.NuGetTasks;
-
+using Nuke.Common.Utilities.Collections;
+using System.Linq;
 
 partial class Build
 {
@@ -26,7 +26,7 @@ partial class Build
         .Requires(() => Configuration.Equals(Release))
         .Executes(() =>
         {
-            IReadOnlyCollection<AbsolutePath> packages = PackageDirectory.GlobFiles("*.nupkg");
+            var packages = PackageDirectory.GlobFiles("*.*.nupkg");
 
             DotNetNuGetPush(
                 _ => _
@@ -57,6 +57,9 @@ partial class Build
             projFile = File.ReadAllText(EmptyAzf12Proj);
             File.WriteAllText(EmptyAzf12Proj, projFile.Replace("11.1.0", GitVersion.SemVer));
 
+            projFile = File.ReadAllText(EmptyAzfUp12Proj);
+            File.WriteAllText(EmptyAzfUp12Proj, projFile.Replace("11.1.0", GitVersion.SemVer));
+
             DotNetBuildSonarSolution(
                 PackSolutionFile,
                 include: file =>
@@ -64,26 +67,6 @@ partial class Build
                         .EndsWith("tests", StringComparison.OrdinalIgnoreCase));
 
             DotNetRestore(c => c.SetProjectFile(PackSolutionFile));
-
-            DotNetBuild(c => c
-                .SetNoRestore(true)
-                .SetProjectFile(RootDirectory / "src/StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp.Server/StrawberryShake.CodeGeneration.CSharp.Server.csproj")
-                .SetOutputDirectory(RootDirectory / "src/StrawberryShake/Tooling/src/.server")
-                .SetConfiguration(Configuration)
-                .SetAssemblyVersion(GitVersion.AssemblySemVer)
-                .SetFileVersion(GitVersion.AssemblySemFileVer)
-                .SetInformationalVersion(GitVersion.InformationalVersion)
-                .SetVersion(GitVersion.SemVer));
-
-            DotNetBuild(c => c
-                .SetNoRestore(true)
-                .SetProjectFile(RootDirectory / "src/StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp.Server/StrawberryShake.CodeGeneration.CSharp.Server.csproj")
-                .SetOutputDirectory(RootDirectory / "src/StrawberryShake/SourceGenerator/src/.server")
-                .SetConfiguration(Configuration)
-                .SetAssemblyVersion(GitVersion.AssemblySemVer)
-                .SetFileVersion(GitVersion.AssemblySemFileVer)
-                .SetInformationalVersion(GitVersion.InformationalVersion)
-                .SetVersion(GitVersion.SemVer));
 
             DotNetBuild(c => c
                 .SetNoRestore(true)
@@ -123,7 +106,7 @@ partial class Build
         .Requires(() => Configuration.Equals(Release))
         .Executes(() =>
         {
-            IReadOnlyCollection<AbsolutePath> packages = PackageDirectory.GlobFiles("*.nupkg");
+            var packages = PackageDirectory.GlobFiles("*.*.nupkg");
 
             DotNetNuGetPush(
                 _ => _

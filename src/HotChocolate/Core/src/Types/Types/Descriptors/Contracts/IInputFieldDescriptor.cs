@@ -28,7 +28,7 @@ public interface IInputFieldDescriptor
     /// </code>
     /// </example>
     /// </summary>
-    IInputFieldDescriptor Name(NameString value);
+    IInputFieldDescriptor Name(string value);
 
     /// <summary>
     /// Marks the field as deprecated
@@ -252,6 +252,6 @@ public interface IInputFieldDescriptor
     /// <param name="name">The name of the directive</param>
     /// <param name="arguments">The arguments of the directive</param>
     IInputFieldDescriptor Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments);
 }

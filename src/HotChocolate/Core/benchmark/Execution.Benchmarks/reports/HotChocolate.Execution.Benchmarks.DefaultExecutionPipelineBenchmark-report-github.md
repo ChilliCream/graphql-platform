@@ -36,3 +36,4 @@ V12
 | GetTwoHeroesWithFriendsFiveParallelRequests | 10,794.1 μs | 202.93 μs | 199.30 μs | 10,852.7 μs |    8 |   78.1250 |  31.2500 |     - |   891.41 KB |
 |                                  LargeQuery | 16,435.2 μs | 309.37 μs | 274.25 μs | 16,501.5 μs |    9 |  281.2500 | 125.0000 |     - |  2917.47 KB |
 |              LargeQueryFiveParallelRequests | 37,167.1 μs | 702.93 μs | 809.50 μs | 37,067.3 μs |   10 | 1461.5385 | 692.3077 |     - | 14809.84 KB |
+

@@ -29,7 +29,7 @@ public partial class DefaultTypeConverter : ITypeConverter
 
     public object? Convert(Type from, Type to, object? source)
     {
-        if (!TryConvert(from, to, source, out object? converted))
+        if (!TryConvert(from, to, source, out var converted))
         {
             throw new NotSupportedException(
                 string.Format(
@@ -66,7 +66,7 @@ public partial class DefaultTypeConverter : ITypeConverter
 
         try
         {
-            Type fromInternal = from == typeof(object)
+            var fromInternal = from == typeof(object)
                 ? source.GetType()
                 : from;
 
@@ -89,7 +89,7 @@ public partial class DefaultTypeConverter : ITypeConverter
             return true;
         }
 
-        if (TryGetOrCreateConverter(from, to, out ChangeType? converter))
+        if (TryGetOrCreateConverter(from, to, out var converter))
         {
             converted = converter(source);
             return true;
@@ -124,7 +124,7 @@ public partial class DefaultTypeConverter : ITypeConverter
     {
         if (_changeTypeProvider.Count > 0)
         {
-            foreach (IChangeTypeProvider provider in _changeTypeProvider)
+            foreach (var provider in _changeTypeProvider)
             {
                 if (provider.TryCreateConverter(
                     source, target, TryGetOrCreateConverter, out converter))

@@ -1,27 +1,21 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Pipeline;
 using HotChocolate.Stitching.SchemaDefinitions;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
-using static HotChocolate.Stitching.Execution.RemoteRequestHelper;
 
 namespace HotChocolate.Stitching.Utilities;
 
-internal sealed class IntrospectionHelper
+public class IntrospectionHelper
 {
     private readonly HttpClient _httpClient;
-    private readonly NameString _configuration;
+    private readonly string _configuration;
 
-    public IntrospectionHelper(HttpClient httpClient, NameString configuration)
+    public IntrospectionHelper(HttpClient httpClient, string configuration)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-        _configuration = configuration.EnsureNotEmpty(nameof(configuration));
+        _configuration = configuration.EnsureGraphQLName(nameof(configuration));
     }
 
     public async Task<RemoteSchemaDefinition> GetSchemaDefinitionAsync(
@@ -30,7 +24,7 @@ internal sealed class IntrospectionHelper
         // The introspection client will do all the hard work to negotiate
         // the features this schema supports and convert the introspection
         // result into a parsed GraphQL SDL document.
-        DocumentNode schemaDocument = await new IntrospectionClient()
+        var schemaDocument = await new IntrospectionClient()
             .DownloadSchemaAsync(_httpClient, cancellationToken)
             .ConfigureAwait(false);
 
@@ -39,7 +33,7 @@ internal sealed class IntrospectionHelper
         {
             // if a schema definition with the requested configuration name is
             // available we will use it instead of the introspection result.
-            RemoteSchemaDefinition? schemaDefinition =
+            var schemaDefinition =
                 await FetchSchemaDefinitionAsync(cancellationToken)
                     .ConfigureAwait(false);
             if (schemaDefinition is not null)
@@ -58,10 +52,10 @@ internal sealed class IntrospectionHelper
 
     private static bool ProvidesSchemaDefinition(DocumentNode schemaDocument)
     {
-        SchemaDefinitionNode? schemaDefinition = schemaDocument.Definitions
+        var schemaDefinition = schemaDocument.Definitions
             .OfType<SchemaDefinitionNode>().SingleOrDefault();
 
-        OperationTypeDefinitionNode? operation =
+        var operation =
             schemaDefinition?.OperationTypes.FirstOrDefault(
                 t => t.Operation == OperationType.Query);
 
@@ -70,7 +64,7 @@ internal sealed class IntrospectionHelper
             return false;
         }
 
-        ObjectTypeDefinitionNode? queryType = schemaDocument.Definitions
+        var queryType = schemaDocument.Definitions
             .OfType<ObjectTypeDefinitionNode>()
             .FirstOrDefault(t => t.Name.Value.EqualsOrdinal(operation.Type.Name.Value));
 
@@ -79,13 +73,14 @@ internal sealed class IntrospectionHelper
             return false;
         }
 
-        FieldDefinitionNode? schemaDefinitionField = queryType.Fields
+        var schemaDefinitionField = queryType.Fields
             .FirstOrDefault(t => t.Name.Value.EqualsOrdinal(
                 SchemaDefinitionFieldNames.SchemaDefinitionField));
 
-        return schemaDefinitionField != null &&
-            schemaDefinitionField.Arguments.Any(
-                t => t.Name.Value.EqualsOrdinal(SchemaDefinitionFieldNames.ConfigurationArgument));
+        return schemaDefinitionField?.Arguments
+                .Any(t => t.Name.Value.EqualsOrdinal(
+                    SchemaDefinitionFieldNames.ConfigurationArgument)) ??
+            false;
     }
 
     private async ValueTask<RemoteSchemaDefinition?> FetchSchemaDefinitionAsync(
@@ -93,7 +88,7 @@ internal sealed class IntrospectionHelper
     {
         using var writer = new ArrayWriter();
 
-        IQueryRequest request =
+        var request =
             QueryRequestBuilder.New()
                 .SetQuery(
                     $@"query GetSchemaDefinition($c: String!) {{
@@ -103,20 +98,20 @@ internal sealed class IntrospectionHelper
                                 extensionDocuments
                             }}
                         }}")
-                .SetVariableValue("c", new StringValueNode(_configuration.Value))
+                .SetVariableValue("c", new StringValueNode(_configuration))
                 .Create();
 
-        HttpRequestMessage requestMessage =
-            await CreateRequestMessageAsync(writer, request, cancellationToken)
-                .ConfigureAwait(false);
+        var requestMessage = await HttpRequestClient
+            .CreateRequestMessageAsync(writer, request, cancellationToken)
+            .ConfigureAwait(false);
 
-        HttpResponseMessage responseMessage = await _httpClient
+        var responseMessage = await _httpClient
             .SendAsync(requestMessage, cancellationToken)
             .ConfigureAwait(false);
 
-        IQueryResult result =
-            await ParseResponseMessageAsync(responseMessage, cancellationToken)
-                .ConfigureAwait(false);
+        var result = await HttpRequestClient
+            .ParseResponseMessageAsync(responseMessage, cancellationToken)
+            .ConfigureAwait(false);
 
         if (result.Errors is { Count: > 1 })
         {

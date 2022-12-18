@@ -5,14 +5,13 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using StrawberryShake.Transport.WebSockets.Protocols;
-using Xunit;
 
 namespace StrawberryShake.Transport.InMemory;
 
@@ -27,7 +26,7 @@ public class IntegrationTests : ServerTestBase
     public async Task Simple_Request()
     {
         // arrange
-        CancellationToken ct = new CancellationTokenSource(20_000).Token;
+        var ct = new CancellationTokenSource(20_000).Token;
         var serviceCollection = new ServiceCollection();
 
         serviceCollection
@@ -47,14 +46,14 @@ public class IntegrationTests : ServerTestBase
         MockDocument document = new("query Foo { hero { name } }");
         OperationRequest request = new("Foo", document);
 
-        IInMemoryClientFactory factory = services
+        var factory = services
             .GetRequiredService<IInMemoryClientFactory>();
 
         // act
         var connection =
             new InMemoryConnection(async abort => await factory.CreateAsync("Foo", abort));
 
-        await foreach (Response<JsonDocument> response in
+        await foreach (var response in
             connection.ExecuteAsync(request).WithCancellation(ct))
         {
             if (response.Body is not null)
@@ -71,7 +70,7 @@ public class IntegrationTests : ServerTestBase
     public async Task Configure_SchemaName()
     {
         // arrange
-        CancellationToken ct = new CancellationTokenSource(20_000).Token;
+        var ct = new CancellationTokenSource(20_000).Token;
         var serviceCollection = new ServiceCollection();
 
         serviceCollection
@@ -93,14 +92,14 @@ public class IntegrationTests : ServerTestBase
         MockDocument document = new("query Foo { hero { name } }");
         OperationRequest request = new("Foo", document);
 
-        IInMemoryClientFactory factory = services
+        var factory = services
             .GetRequiredService<IInMemoryClientFactory>();
 
         // act
         var connection =
             new InMemoryConnection(async abort => await factory.CreateAsync("Foo", abort));
 
-        await foreach (Response<JsonDocument> response in
+        await foreach (var response in
             connection.ExecuteAsync(request).WithCancellation(ct))
         {
             if (response.Body is not null)
@@ -117,7 +116,7 @@ public class IntegrationTests : ServerTestBase
     public async Task Interceptor_Set_ContextData()
     {
         // arrange
-        CancellationToken ct = new CancellationTokenSource(20_000).Token;
+        var ct = new CancellationTokenSource(20_000).Token;
         var serviceCollection = new ServiceCollection();
 
         string? result = null!;
@@ -145,14 +144,14 @@ public class IntegrationTests : ServerTestBase
         MockDocument document = new("query Foo { hero { name } }");
         OperationRequest request = new("Foo", document);
 
-        IInMemoryClientFactory factory = services
+        var factory = services
             .GetRequiredService<IInMemoryClientFactory>();
 
         // act
         var connection =
             new InMemoryConnection(async abort => await factory.CreateAsync("Foo", abort));
 
-        await foreach (Response<JsonDocument> response in
+        await foreach (var response in
             connection.ExecuteAsync(request).WithCancellation(ct))
         {
             if (response.Body is not null)
@@ -170,7 +169,7 @@ public class IntegrationTests : ServerTestBase
     public async Task Subscription_Result()
     {
         // arrange
-        CancellationToken ct = new CancellationTokenSource(20_000).Token;
+        var ct = new CancellationTokenSource(20_000).Token;
         var serviceCollection = new ServiceCollection();
 
         serviceCollection
@@ -192,14 +191,14 @@ public class IntegrationTests : ServerTestBase
         MockDocument document = new("subscription Test { onTest(id:1) }");
         OperationRequest request = new("Test", document);
 
-        IInMemoryClientFactory factory = services
+        var factory = services
             .GetRequiredService<IInMemoryClientFactory>();
 
         // act
         var connection = new InMemoryConnection(
             async abort => await factory.CreateAsync("Foo", abort));
 
-        await foreach (Response<JsonDocument> response in
+        await foreach (var response in
             connection.ExecuteAsync(request).WithCancellation(ct))
         {
             if (response.Body is not null)

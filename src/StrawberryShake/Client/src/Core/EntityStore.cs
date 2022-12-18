@@ -34,9 +34,7 @@ public sealed partial class EntityStore : IEntityStore
             action(session);
 
             _snapshot = session.CurrentSnapshot;
-            _updates.Writer.TryWrite(new EntityUpdate(
-                session.CurrentSnapshot,
-                session.UpdatedEntityIds));
+            _updates.Writer.TryWrite(new EntityUpdate(_snapshot, session.UpdatedEntityIds));
         }
     }
 

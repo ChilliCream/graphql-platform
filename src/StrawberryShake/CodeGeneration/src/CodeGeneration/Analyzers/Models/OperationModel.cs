@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models;
 
@@ -13,7 +13,7 @@ public class OperationModel
     private readonly IReadOnlyDictionary<SelectionSetInfo, SelectionSetNode> _selectionSets;
 
     public OperationModel(
-        NameString name,
+        string name,
         ObjectType type,
         DocumentNode document,
         OperationType operationType,
@@ -24,24 +24,24 @@ public class OperationModel
         IReadOnlyList<OutputTypeModel> outputTypeModels,
         IReadOnlyDictionary<SelectionSetInfo, SelectionSetNode> selectionSets)
     {
-        Name = name.EnsureNotEmpty(nameof(name));
+        Name = name.EnsureGraphQLName();
         Type = type ??
-               throw new ArgumentNullException(nameof(type));
+            throw new ArgumentNullException(nameof(type));
         Document = document ??
-                   throw new ArgumentNullException(nameof(document));
+            throw new ArgumentNullException(nameof(document));
         OperationType = operationType;
         Arguments = arguments ??
-                    throw new ArgumentNullException(nameof(arguments));
+            throw new ArgumentNullException(nameof(arguments));
         ResultType = resultType ??
-                     throw new ArgumentNullException(nameof(resultType));
+            throw new ArgumentNullException(nameof(resultType));
         LeafTypes = leafTypes ??
-                    throw new ArgumentNullException(nameof(leafTypes));
+            throw new ArgumentNullException(nameof(leafTypes));
         InputObjectTypes = inputObjectTypes ??
-                           throw new ArgumentNullException(nameof(inputObjectTypes));
+            throw new ArgumentNullException(nameof(inputObjectTypes));
         OutputTypes = outputTypeModels ??
-                      throw new ArgumentNullException(nameof(outputTypeModels));
+            throw new ArgumentNullException(nameof(outputTypeModels));
         _selectionSets = selectionSets ??
-                         throw new ArgumentNullException(nameof(selectionSets));
+            throw new ArgumentNullException(nameof(selectionSets));
     }
 
     public string Name { get; }
@@ -100,8 +100,8 @@ public class OperationModel
         }
 
         if(!_selectionSets.TryGetValue(
-               new SelectionSetInfo(fieldNamedType, fieldSyntax.SelectionSet!),
-               out SelectionSetNode? selectionSetNode))
+           new SelectionSetInfo(fieldNamedType, fieldSyntax.SelectionSet!),
+           out var selectionSetNode))
         {
             selectionSetNode = fieldSyntax.SelectionSet;
         }

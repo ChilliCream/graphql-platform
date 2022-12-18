@@ -23,19 +23,19 @@ namespace HotChocolate.Utilities.Introspection
 
         public static HttpQueryRequest CreateIntrospectionQuery(ISchemaFeatures features)
         {
-            DocumentNode document = CreateIntrospectionQueryDocument(features);
-            string sourceText = document.Print(false);
+            var document = CreateIntrospectionQueryDocument(features);
+            var sourceText = document.Print(false);
             return new HttpQueryRequest(sourceText, "introspection_phase_2");
         }
 
         private static DocumentNode CreateIntrospectionQueryDocument(ISchemaFeatures features)
         {
-            DocumentNode query = Utf8GraphQLParser.Parse(GetIntrospectionQuery());
+            var query = Utf8GraphQLParser.Parse(GetIntrospectionQuery());
 
-            OperationDefinitionNode operation =
+            var operation =
                 query.Definitions.OfType<OperationDefinitionNode>().First();
 
-            FieldNode schema =
+            var schema =
                 operation.SelectionSet.Selections.OfType<FieldNode>().First();
 
             if (schema.SelectionSet is null)
@@ -43,7 +43,7 @@ namespace HotChocolate.Utilities.Introspection
                 throw new IntrospectionException();
             }
 
-            FieldNode directives =
+            var directives =
                 schema.SelectionSet.Selections.OfType<FieldNode>().First(t =>
                     t.Name.Value.Equals(_directivesField, StringComparison.Ordinal));
 
@@ -55,7 +55,7 @@ namespace HotChocolate.Utilities.Introspection
             var selections = directives.SelectionSet.Selections.ToList();
             AddDirectiveFeatures(features, selections);
 
-            FieldNode newField = directives.WithSelectionSet(
+            var newField = directives.WithSelectionSet(
                 directives.SelectionSet.WithSelections(selections));
 
             selections = schema.SelectionSet.Selections.ToList();
@@ -71,7 +71,7 @@ namespace HotChocolate.Utilities.Introspection
             selections.Remove(schema);
             selections.Add(newField);
 
-            OperationDefinitionNode newOp = operation.WithSelectionSet(
+            var newOp = operation.WithSelectionSet(
                 operation.SelectionSet.WithSelections(selections));
 
             var definitions = query.Definitions.ToList();
@@ -108,7 +108,7 @@ namespace HotChocolate.Utilities.Introspection
         {
             if (!features.HasSubscriptionSupport)
             {
-                FieldNode subscriptionField = selections.OfType<FieldNode>()
+                var subscriptionField = selections.OfType<FieldNode>()
                     .First(t => t.Name.Value.Equals(
                         SchemaFeatures.SubscriptionType,
                         StringComparison.Ordinal));
@@ -132,7 +132,7 @@ namespace HotChocolate.Utilities.Introspection
         private static string GetQueryFile(string fileName)
         {
 #pragma warning disable CS8600
-            Stream? stream = typeof(IntrospectionClient).Assembly
+            var stream = typeof(IntrospectionClient).Assembly
                 .GetManifestResourceStream($"{_resourceNamespace}.{fileName}");
 #pragma warning restore CS8600
 

@@ -128,7 +128,7 @@ public class DocumentNodeTests
         var document = new DocumentNode(new IDefinitionNode[] { });
 
         // act
-        void Action() => document.WithDefinitions(null);
+        void Action() => document.WithDefinitions(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);

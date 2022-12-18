@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Types;
 using static HotChocolate.Data.Projections.Expressions.ProjectionExpressionBuilder;
 
 namespace HotChocolate.Data.Projections.Expressions.Handlers;
@@ -20,7 +19,7 @@ public class QueryableProjectionFieldHandler
         ISelection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
-        IObjectField field = selection.Field;
+        var field = selection.Field;
         Expression nestedProperty;
         Type memberType;
 
@@ -51,7 +50,7 @@ public class QueryableProjectionFieldHandler
         ISelection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
-        IObjectField field = selection.Field;
+        var field = selection.Field;
 
         if (field.Member is null)
         {
@@ -59,8 +58,8 @@ public class QueryableProjectionFieldHandler
             return false;
         }
 
-        // Deque last
-        ProjectionScope<Expression> scope = context.PopScope();
+        // Dequeue last
+        var scope = context.PopScope();
 
         if (scope is not QueryableProjectionScope queryableScope)
         {
@@ -68,9 +67,9 @@ public class QueryableProjectionFieldHandler
             return false;
         }
 
-        Expression memberInit = queryableScope.CreateMemberInit();
+        var memberInit = queryableScope.CreateMemberInit();
 
-        if (!context.TryGetQueryableScope(out QueryableProjectionScope? parentScope))
+        if (!context.TryGetQueryableScope(out var parentScope))
         {
             throw ThrowHelper.ProjectionVisitor_InvalidState_NoParentScope();
         }

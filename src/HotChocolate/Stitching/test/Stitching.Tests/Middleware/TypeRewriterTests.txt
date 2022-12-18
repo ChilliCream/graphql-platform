@@ -51,7 +51,7 @@ namespace HotChocolate.Stitching
 
             using (IServiceScope scope = services.CreateScope())
             {
-                IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                IQueryRequest request = QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .AddProperty("foo_a", "bar")
                     .SetServices(scope.ServiceProvider)

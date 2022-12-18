@@ -129,12 +129,12 @@ public class EnumTypeExtension : NamedTypeExtensionBase<EnumTypeDefinition>
         EnumTypeDefinition extension,
         EnumTypeDefinition type)
     {
-        foreach (EnumValueDefinition enumValue in
+        foreach (var enumValue in
             extension.Values.Where(t => t.RuntimeValue != null))
         {
             if (type.RuntimeType.IsInstanceOfType(enumValue.RuntimeValue))
             {
-                EnumValueDefinition? existingValue = type.Values.FirstOrDefault(
+                var existingValue = type.Values.FirstOrDefault(
                     t => Equals(enumValue.RuntimeValue, t.RuntimeValue));
 
                 if (existingValue is null)

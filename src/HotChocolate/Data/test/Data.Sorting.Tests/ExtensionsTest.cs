@@ -1,9 +1,8 @@
 using System;
 using System.Linq;
+using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data.Tests;
 
@@ -19,7 +18,7 @@ public class ExtensionTests
                 .ConfigureEnum<DefaultSortEnumType>(y => y.Operation(123))
                 .Operation(123).Name("test"));
 
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddConvention<ISortConvention>(convention)
             .TryAddTypeInterceptor<SortTypeInterceptor>()
             .AddQueryType(c =>
@@ -29,10 +28,10 @@ public class ExtensionTests
                     .Resolve("bar")
                     .Argument("test", x => x.Type<TestSort>()));
 
-        ISchema schema = builder.Create();
+        var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -45,7 +44,7 @@ public class ExtensionTests
                 .ConfigureEnum<DefaultSortEnumType>(
                     y => y.Operation(DefaultSortOperations.Ascending).Description("asc")));
 
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddConvention<ISortConvention>(convention)
             .TryAddTypeInterceptor<SortTypeInterceptor>()
             .AddQueryType(c =>
@@ -55,10 +54,10 @@ public class ExtensionTests
                     .Resolve("bar")
                     .Argument("test", x => x.Type<TestSort>()));
 
-        ISchema schema = builder.Create();
+        var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -72,7 +71,7 @@ public class ExtensionTests
                     y => y.Field("foo").Type<DefaultSortEnumType>())
                 .Operation(123).Name("test"));
 
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddConvention<ISortConvention>(convention)
             .TryAddTypeInterceptor<SortTypeInterceptor>()
             .AddQueryType(c =>
@@ -82,10 +81,10 @@ public class ExtensionTests
                     .Resolve("bar")
                     .Argument("test", x => x.Type<TestSort>()));
 
-        ISchema schema = builder.Create();
+        var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -99,7 +98,7 @@ public class ExtensionTests
                     y => y.Field("test").Description("test"))
                 .Operation(123).Name("test"));
 
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddConvention<ISortConvention>(convention)
             .TryAddTypeInterceptor<SortTypeInterceptor>()
             .AddQueryType(c =>
@@ -109,10 +108,10 @@ public class ExtensionTests
                     .Resolve("bar")
                     .Argument("test", x => x.Type<TestSort>()));
 
-        ISchema schema = builder.Create();
+        var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -120,16 +119,16 @@ public class ExtensionTests
     {
         // arrange
         // act
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddSorting()
             .AddQueryType<Query>(
                 c =>
                     c.Field(x => x.GetFoos()).UseSorting());
 
-        ISchema schema = builder.Create();
+        var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -137,16 +136,16 @@ public class ExtensionTests
     {
         // arrange
         // act
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddSorting()
             .AddQueryType<Query>(
                 c =>
                     c.Field(x => x.GetFoos()).UseSorting<Bar>());
 
-        ISchema schema = builder.Create();
+        var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -154,16 +153,16 @@ public class ExtensionTests
     {
         // arrange
         // act
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddSorting()
             .AddQueryType<Query>(
                 c =>
                     c.Field(x => x.GetFoos()).UseSorting<BarSortType>());
 
-        ISchema schema = builder.Create();
+        var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -171,16 +170,16 @@ public class ExtensionTests
     {
         // arrange
         // act
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddSorting()
             .AddQueryType<Query>(
                 c =>
                     c.Field(x => x.GetFoos()).UseSorting(typeof(Bar)));
 
-        ISchema schema = builder.Create();
+        var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -188,16 +187,16 @@ public class ExtensionTests
     {
         // arrange
         // act
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddSorting()
             .AddQueryType<Query>(
                 c =>
                     c.Field(x => x.GetFoos()).UseSorting(typeof(BarSortType)));
 
-        ISchema schema = builder.Create();
+        var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     private sealed class TestSort : SortInputType

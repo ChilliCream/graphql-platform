@@ -147,7 +147,7 @@ public sealed partial class SyntaxSerializer
         {
             VisitDefinition(node.Definitions[0], writer);
 
-            for (int i = 1; i < node.Definitions.Count; i++)
+            for (var i = 1; i < node.Definitions.Count; i++)
             {
                 if (_indented)
                 {

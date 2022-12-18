@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
@@ -99,7 +97,7 @@ public class FilterInputType
             index++;
         }
 
-        foreach (InputFieldDefinition fieldDefinition in
+        foreach (var fieldDefinition in
             definition.Fields.Where(t => !t.Ignore))
         {
             switch (fieldDefinition)
@@ -144,7 +142,7 @@ public class FilterInputType
             throw new ArgumentNullException(nameof(filterType));
         }
 
-        FilterInputTypeDefinition filterTypeDefinition = explicitDefinition ?? new()
+        var filterTypeDefinition = explicitDefinition ?? new()
         {
             EntityType = typeof(object)
         };
@@ -153,7 +151,7 @@ public class FilterInputType
         // to declare the types of operations
         foreach (var field in sourceTypeDefinition.Fields.OfType<FilterOperationFieldDefinition>())
         {
-            FilterOperationFieldDefinition? userDefinedField = filterTypeDefinition.Fields
+            var userDefinedField = filterTypeDefinition.Fields
                 .OfType<FilterOperationFieldDefinition>()
                 .FirstOrDefault(x => x.Id == field.Id);
 
@@ -190,7 +188,7 @@ public class FilterInputType
             new CompleteConfiguration<FilterInputTypeDefinition>(
                 CreateNamingConfiguration,
                 filterTypeDefinition,
-                ApplyConfigurationOn.Naming,
+                ApplyConfigurationOn.BeforeNaming,
                 new TypeDependency[] {
                     new(filterOperationType, TypeDependencyKind.Named) ,
                     new(filterType, TypeDependencyKind.Named)
@@ -199,54 +197,49 @@ public class FilterInputType
             new CompleteConfiguration<FilterInputTypeDefinition>(
                 CreateOperationFieldConfiguration,
                 filterTypeDefinition,
-                ApplyConfigurationOn.Naming,
+                ApplyConfigurationOn.BeforeNaming,
                 new TypeDependency[] {
                     new(filterOperationType, TypeDependencyKind.Named),
                     new(filterType, TypeDependencyKind.Named)
                 }
             ));
 
-        /// <summary>
-        /// Creates the configuration for the naming process of the inline filter types.
-        /// It uses the parent type name and the name of the field on which the new is applied,
-        /// to create a new typename
-        /// <example>
-        /// ParentTypeName: AuthorFilterInputType
-        /// Field: friends
-        /// Result: AuthorFriendsFilterInputType
-        /// </example>
-        /// </summary>
+        // Creates the configuration for the naming process of the inline filter types.
+        // It uses the parent type name and the name of the field on which the new is applied,
+        // to create a new typename
+        //
+        // ParentTypeName: AuthorFilterInputType
+        // Field: friends
+        // Result: AuthorFriendsFilterInputType
+        //
         void CreateNamingConfiguration(
             ITypeCompletionContext context,
             FilterInputTypeDefinition definition)
         {
-            if (definition.Name.HasValue)
+            if (definition.IsNamed)
             {
                 return;
             }
 
-            IFilterInputType parentFilterType = context.GetType<IFilterInputType>(filterType);
-            IFilterConvention convention = context.GetFilterConvention(context.Scope);
+            var parentFilterType = context.GetType<IFilterInputType>(filterType);
+            var convention = context.GetFilterConvention(context.Scope);
             definition.Name = convention.GetTypeName(parentFilterType, fieldDefinition);
         }
 
-        /// <summary>
-        /// This configuration copies over the operations of the actual operation filter input to
-        /// the new one with the subset of the operations
-        /// </summary>
+        //
+        // This configuration copies over the operations of the actual operation filter input to
+        // the new one with the subset of the operations
+        //
         void CreateOperationFieldConfiguration(
             ITypeCompletionContext context,
             FilterInputTypeDefinition definition)
         {
-            IFilterInputType sourceType =
-                context.GetType<IFilterInputType>(filterOperationType);
-
             // the handlers of the operations are attached to the original type. We have
             // to copy them to the stripped down type
             foreach (var userDefinedField in
                     filterTypeDefinition.Fields.OfType<FilterOperationFieldDefinition>())
             {
-                FilterOperationFieldDefinition? sourceField = sourceTypeDefinition.Fields
+                var sourceField = sourceTypeDefinition.Fields
                     .OfType<FilterOperationFieldDefinition>()
                     .FirstOrDefault(x => x.Id == userDefinedField.Id);
 
@@ -261,7 +254,7 @@ public class FilterInputType
             // this does not make sense
             if (definition.Fields.Count == 0 && definition is { UseAnd: false, UseOr: false })
             {
-                IFilterInputType parentType = context.GetType<IFilterInputType>(filterType);
+                var parentType = context.GetType<IFilterInputType>(filterType);
                 context.ReportError(
                     ErrorHelper.Filtering_InlineFilterTypeHadNoFields(
                         definition,
@@ -270,7 +263,7 @@ public class FilterInputType
                         parentType));
             }
 
-            /// we copy over the entity type of the type source.
+            // we copy over the entity type of the type source.
             definition.EntityType = sourceTypeDefinition.EntityType;
         }
     }

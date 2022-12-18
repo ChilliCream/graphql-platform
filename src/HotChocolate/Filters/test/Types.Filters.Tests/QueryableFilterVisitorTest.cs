@@ -3,141 +3,140 @@ using HotChocolate.Types.Filters.Expressions;
 using HotChocolate.Utilities;
 using Xunit;
 
-namespace HotChocolate.Types.Filters
+namespace HotChocolate.Types.Filters;
+
+[Obsolete]
+public class QueryableFilterVisitorContextTests
+    : TypeTestBase
 {
-    [Obsolete]
-    public class QueryableFilterVisitorContextTests
-        : TypeTestBase
+    [Fact]
+    public void Create_Should_Throw_IfOperationHandlersIsNull()
     {
-        [Fact]
-        public void Create_Should_Throw_IfOperationHandlersIsNull()
+        // arrange
+
+        var fooType = CreateType(new FooFilterType());
+
+        var action = () =>
         {
-            // arrange
+            new QueryableFilterVisitorContext(
+                fooType,
+                typeof(Foo),
+                null!,
+                ExpressionFieldHandlers.All,
+                DefaultTypeConverter.Default,
+                true,
+                new(new DefaultTypeConverter()));
+        };
 
-            FooFilterType fooType = CreateType(new FooFilterType());
+        // act
+        // assert
+        Assert.Throws<ArgumentNullException>(action);
+    }
 
-            Action action = () =>
-            {
-                new QueryableFilterVisitorContext(
-                    fooType,
-                    typeof(Foo),
-                    null!,
-                    ExpressionFieldHandlers.All,
-                    DefaultTypeConverter.Default,
-                    true,
-                    new(new DefaultTypeConverter()));
-            };
+    [Fact]
+    public void Create_Should_Throw_IfFieldHandlersIsNull()
+    {
+        // arrange
 
-            // act
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
+        var fooType = CreateType(new FooFilterType());
 
-        [Fact]
-        public void Create_Should_Throw_IfFieldHandlersIsNull()
+        var action = () =>
         {
-            // arrange
+            new QueryableFilterVisitorContext(
+                fooType,
+                typeof(Foo),
+                ExpressionOperationHandlers.All,
+                null!,
+                DefaultTypeConverter.Default,
+                true,
+                new(new DefaultTypeConverter()));
+        };
 
-            FooFilterType fooType = CreateType(new FooFilterType());
+        // act
+        // assert
+        Assert.Throws<ArgumentNullException>(action);
+    }
 
-            Action action = () =>
-            {
-                new QueryableFilterVisitorContext(
-                    fooType,
-                    typeof(Foo),
-                    ExpressionOperationHandlers.All,
-                    null!,
-                    DefaultTypeConverter.Default,
-                    true,
-                    new(new DefaultTypeConverter()));
-            };
+    [Fact]
+    public void Create_Should_Throw_IfTypeConversionIsNull()
+    {
+        // arrange
 
-            // act
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
+        var fooType = CreateType(new FooFilterType());
 
-        [Fact]
-        public void Create_Should_Throw_IfTypeConversionIsNull()
+        var action = () =>
         {
-            // arrange
+            new QueryableFilterVisitorContext(
+                fooType,
+                typeof(Foo),
+                null!,
+                true,
+                new(new DefaultTypeConverter()));
+        };
 
-            FooFilterType fooType = CreateType(new FooFilterType());
+        // act
+        // assert
+        Assert.Throws<ArgumentNullException>(action);
+    }
 
-            Action action = () =>
-            {
-                new QueryableFilterVisitorContext(
-                    fooType,
-                    typeof(Foo),
-                    null!,
-                    true,
-                    new(new DefaultTypeConverter()));
-            };
+    [Fact]
+    public void Create_Should_Throw_IfTypeIsNull()
+    {
+        // arrange
 
-            // act
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
+        var fooType = CreateType(new FooFilterType());
 
-        [Fact]
-        public void Create_Should_Throw_IfTypeIsNull()
+        var action = () =>
         {
-            // arrange
+            new QueryableFilterVisitorContext(
+                fooType,
+                null!,
+                DefaultTypeConverter.Default,
+                true,
+                new(new DefaultTypeConverter()));
+        };
 
-            FooFilterType fooType = CreateType(new FooFilterType());
+        // act
+        // assert
+        Assert.Throws<ArgumentNullException>(action);
+    }
 
-            Action action = () =>
-            {
-                new QueryableFilterVisitorContext(
-                    fooType,
-                    null!,
-                    DefaultTypeConverter.Default,
-                    true,
-                    new(new DefaultTypeConverter()));
-            };
+    [Fact]
+    public void Create_Should_Throw_IfInputTypeIsNull()
+    {
+        // arrange
 
-            // act
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
-
-        [Fact]
-        public void Create_Should_Throw_IfInputTypeIsNull()
+        var action = () =>
         {
-            // arrange
+            new QueryableFilterVisitorContext(
+                null!,
+                typeof(Foo),
+                DefaultTypeConverter.Default,
+                true,
+                new(new DefaultTypeConverter()));
+        };
 
-            Action action = () =>
-            {
-                new QueryableFilterVisitorContext(
-                    null!,
-                    typeof(Foo),
-                    DefaultTypeConverter.Default,
-                    true,
-                    new(new DefaultTypeConverter()));
-            };
+        // act
+        // assert
+        Assert.Throws<ArgumentNullException>(action);
+    }
 
-            // act
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
+    public class Foo
+    {
+        public bool Bar { get; set; }
+    }
 
-        public class Foo
+
+    public class FooFilterType
+        : FilterInputType<Foo>
+    {
+        protected override void Configure(
+            IFilterInputTypeDescriptor<Foo> descriptor)
         {
-            public bool Bar { get; set; }
-        }
-
-
-        public class FooFilterType
-            : FilterInputType<Foo>
-        {
-            protected override void Configure(
-                IFilterInputTypeDescriptor<Foo> descriptor)
-            {
-                descriptor.Filter(t => t.Bar)
-                    .AllowEquals()
-                    .And()
-                    .AllowNotEquals();
-            }
+            descriptor.Filter(t => t.Bar)
+                .AllowEquals()
+                .And()
+                .AllowNotEquals();
         }
     }
 }

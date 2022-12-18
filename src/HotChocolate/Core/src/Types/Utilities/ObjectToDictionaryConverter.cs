@@ -9,8 +9,7 @@ namespace HotChocolate.Utilities;
 internal class ObjectToDictionaryConverter
 {
     private readonly ITypeConverter _converter;
-    private readonly ConcurrentDictionary<Type, List<PropertyInfo>> _properties =
-        new ConcurrentDictionary<Type, List<PropertyInfo>>();
+    private readonly ConcurrentDictionary<Type, List<PropertyInfo>> _properties = new();
 
     public ObjectToDictionaryConverter(ITypeConverter converter)
     {
@@ -60,17 +59,16 @@ internal class ObjectToDictionaryConverter
                 return;
         }
 
-        Type type = obj.GetType();
+        var type = obj.GetType();
 
-        if (type.IsValueType && _converter.TryConvert(
-            type, typeof(string), obj, out object converted)
-            && converted is string s)
+        if (type.IsValueType &&
+            _converter.TryConvert(type, typeof(string), obj, out var converted) &&
+            converted is string s)
         {
             setValue(s);
-            return;
         }
-        else if (!typeof(IReadOnlyDictionary<string, object>).IsAssignableFrom(type)
-            && obj is ICollection list)
+        else if (!typeof(IReadOnlyDictionary<string, object>).IsAssignableFrom(type) &&
+            obj is ICollection list)
         {
             VisitList(list, setValue, processed);
         }
@@ -92,7 +90,7 @@ internal class ObjectToDictionaryConverter
 
             if (obj is IReadOnlyDictionary<string, object> d)
             {
-                foreach (KeyValuePair<string, object> item in d)
+                foreach (var item in d)
                 {
                     Action<object> setField = v => dict[item.Key] = v;
                     VisitValue(item.Value, setField, processed);
@@ -100,10 +98,10 @@ internal class ObjectToDictionaryConverter
             }
             else
             {
-                foreach (PropertyInfo property in GetProperties(obj))
+                foreach (var property in GetProperties(obj))
                 {
-                    string name = property.GetGraphQLName();
-                    object value = property.GetValue(obj);
+                    var name = property.GetGraphQLName();
+                    var value = property.GetValue(obj);
                     Action<object> setField = v => dict[name] = v;
                     VisitValue(value, setField, processed);
                 }
@@ -121,7 +119,7 @@ internal class ObjectToDictionaryConverter
 
         Action<object> addItem = item => valueList.Add(item);
 
-        foreach (object element in list)
+        foreach (var element in list)
         {
             VisitValue(element, addItem, processed);
         }
@@ -129,8 +127,8 @@ internal class ObjectToDictionaryConverter
 
     private IReadOnlyList<PropertyInfo> GetProperties(object value)
     {
-        Type type = value.GetType();
-        if (!_properties.TryGetValue(type, out List<PropertyInfo> properties))
+        var type = value.GetType();
+        if (!_properties.TryGetValue(type, out var properties))
         {
             properties = new List<PropertyInfo>(
                 ReflectionUtils.GetProperties(type).Values);

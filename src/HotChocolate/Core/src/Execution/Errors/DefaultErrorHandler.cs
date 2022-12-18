@@ -44,9 +44,9 @@ internal sealed class DefaultErrorHandler : IErrorHandler
             throw new ArgumentNullException(nameof(error));
         }
 
-        IError current = error;
+        var current = error;
 
-        foreach (IErrorFilter filter in _filters)
+        foreach (var filter in _filters)
         {
             current = filter.OnError(current);
 
@@ -72,7 +72,7 @@ internal sealed class DefaultErrorHandler : IErrorHandler
 
     private IErrorBuilder CreateErrorFromException(Exception exception)
     {
-        IErrorBuilder builder = ErrorBuilder.New()
+        var builder = ErrorBuilder.New()
             .SetMessage("Unexpected Execution Error")
             .SetException(exception);
 

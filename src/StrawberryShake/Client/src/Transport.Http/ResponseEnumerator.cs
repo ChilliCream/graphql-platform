@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,24 +43,23 @@ internal sealed class ResponseEnumerator : IAsyncEnumerator<Response<JsonDocumen
 
         if (_context is null || _reader is null)
         {
-            HttpClient client = _createClient();
-            HttpRequestMessage request = _createRequest();
-            HttpResponseMessage response =
+            var client = _createClient();
+            var request = _createRequest();
+            var response =
                 await client.SendAsync(request, ResponseHeadersRead, _abort).ConfigureAwait(false);
 
 #if NET5_0_OR_GREATER
-            Stream stream = await response.Content.ReadAsStreamAsync(_abort).ConfigureAwait(false);
+            var stream = await response.Content.ReadAsStreamAsync(_abort).ConfigureAwait(false);
 #else
-            Stream stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 #endif
-
             _context = new ConnectionContext(client, request, response, stream);
 
             if (response.Content.Headers.ContentType is { } contentType &&
                 string.Equals(contentType.MediaType, "multipart/mixed"))
             {
-                NameValueHeaderValue boundary =
-                    contentType.Parameters.First(t => string.Equals(t.Name, "boundary", Ordinal));
+                var boundary = contentType.Parameters.First(
+                    t => string.Equals(t.Name, "boundary", Ordinal));
                 _reader = new MultipartReader(boundary.Value!.Trim('"'), stream);
             }
             else
@@ -72,9 +70,7 @@ internal sealed class ResponseEnumerator : IAsyncEnumerator<Response<JsonDocumen
             }
         }
 
-        MultipartSection? multipartSection =
-            await _reader.ReadNextSectionAsync(_abort).ConfigureAwait(false);
-
+        var multipartSection = await _reader.ReadNextSectionAsync(_abort).ConfigureAwait(false);
         if (multipartSection is null)
         {
             Current = default!;
@@ -82,9 +78,9 @@ internal sealed class ResponseEnumerator : IAsyncEnumerator<Response<JsonDocumen
         }
 
 #if NETCOREAPP3_1_OR_GREATER
-        await using Stream body = multipartSection.Body;
+        await using var body = multipartSection.Body;
 #else
-        using Stream body = multipartSection.Body;
+        using var body = multipartSection.Body;
 #endif
 
         Current = await body.TryParseResponse(_abort).ConfigureAwait(false);

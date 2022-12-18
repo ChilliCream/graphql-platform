@@ -6,6 +6,7 @@ using HotChocolate.Internal;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -21,8 +22,7 @@ namespace HotChocolate.Types;
 /// which is itself an extension of another GraphQL service.
 /// </para>
 /// </summary>
-public class ObjectTypeExtension
-    : NamedTypeExtensionBase<ObjectTypeDefinition>
+public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeDefinition>
 {
     private Action<IObjectTypeDescriptor>? _configure;
 
@@ -122,19 +122,19 @@ public class ObjectTypeExtension
         ObjectTypeDefinition extensionDef,
         ObjectTypeDefinition typeDef)
     {
-        IReadOnlyList<ObjectFieldBinding> fieldIgnores = extensionDef.GetFieldIgnores();
+        var fieldIgnores = extensionDef.GetFieldIgnores();
 
         if (fieldIgnores.Count > 0)
         {
             var fields = new List<ObjectFieldDefinition>();
 
-            foreach (ObjectFieldBinding binding in fieldIgnores)
+            foreach (var binding in fieldIgnores)
             {
                 switch (binding.Type)
                 {
                     case ObjectFieldBindingType.Field:
                         if (typeDef.Fields.FirstOrDefault(
-                            t => t.Name.Equals(binding.Name)) is { } f)
+                            t => t.Name.EqualsOrdinal(binding.Name)) is { } f)
                         {
                             fields.Add(f);
                         }
@@ -143,7 +143,7 @@ public class ObjectTypeExtension
                     case ObjectFieldBindingType.Property:
                         if (typeDef.Fields.FirstOrDefault(
                             t => t.Member != null &&
-                                binding.Name.Equals(t.Member.Name)) is { } p)
+                                binding.Name.EqualsOrdinal(t.Member.Name)) is { } p)
                         {
                             fields.Add(p);
                         }
@@ -151,10 +151,39 @@ public class ObjectTypeExtension
                 }
             }
 
-            foreach (ObjectFieldDefinition? field in fields)
+            foreach (var field in fields)
             {
                 typeDef.Fields.Remove(field);
             }
         }
+    }
+}
+
+/// <summary>
+/// This helper class is used to allow static type extensions.
+/// </summary>
+internal sealed class StaticObjectTypeExtension : ObjectTypeExtension
+{
+    private readonly Type _staticRuntimeType;
+
+    public StaticObjectTypeExtension(Type staticRuntimeType)
+        => _staticRuntimeType = staticRuntimeType;
+
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        var definition = descriptor.Extend().Definition;
+
+        // we set the static type as runtime type. Since this is not the actual runtime
+        // type and is replaced by the actual runtime type of the GraphQL type
+        // we do not run into any conflicts here.
+        definition.RuntimeType = _staticRuntimeType;
+
+        // next we set the binding flags to only infer static members.
+        definition.FieldBindingFlags = FieldBindingFlags.Static;
+
+        // last we use an internal helper to force infer the GraphQL fields from the
+        // field binding type which is at this moment the runtime type that we have
+        // set above.
+        ((ObjectTypeDescriptor)descriptor).InferFieldsFromFieldBindingType();
     }
 }

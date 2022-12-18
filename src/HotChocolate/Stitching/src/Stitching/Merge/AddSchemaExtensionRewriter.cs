@@ -1,0 +1,549 @@
+using System.Globalization;
+using HotChocolate.Execution;
+using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
+using HotChocolate.Stitching.Properties;
+using static HotChocolate.Stitching.Merge.AddSchemaExtensionRewriter;
+
+namespace HotChocolate.Stitching.Merge;
+
+public partial class AddSchemaExtensionRewriter : SyntaxRewriter<MergeContext>
+{
+    private readonly Dictionary<string, DirectiveDefinitionNode> _globalDirectives;
+
+    public AddSchemaExtensionRewriter()
+    {
+        _globalDirectives = new Dictionary<string, DirectiveDefinitionNode>();
+    }
+
+    public AddSchemaExtensionRewriter(IEnumerable<DirectiveDefinitionNode> globalDirectives)
+    {
+        if (globalDirectives is null)
+        {
+            throw new ArgumentNullException(nameof(globalDirectives));
+        }
+
+        _globalDirectives = globalDirectives.ToDictionary(t => t.Name.Value);
+    }
+
+    public DocumentNode AddExtensions(
+        DocumentNode schema,
+        DocumentNode extensions)
+    {
+        if (schema == null)
+        {
+            throw new ArgumentNullException(nameof(schema));
+        }
+
+        if (extensions == null)
+        {
+            throw new ArgumentNullException(nameof(extensions));
+        }
+
+        var newTypes = extensions.Definitions.OfType<ITypeDefinitionNode>().ToList();
+        var newDirectives = extensions.Definitions.OfType<DirectiveDefinitionNode>().ToList();
+
+        var current = schema;
+
+        if (newTypes.Count > 0 || newDirectives.Count > 0)
+        {
+            current = RemoveDirectives(current, newDirectives.Select(t => t.Name.Value));
+            current = RemoveTypes(current, newTypes.Select(t => t.Name.Value));
+
+            var definitions = schema.Definitions.ToList();
+            definitions.AddRange(newTypes);
+            definitions.AddRange(newDirectives);
+            current = current.WithDefinitions(definitions);
+        }
+
+        var context = new MergeContext(current, extensions);
+        current = RewriteDocument(current, context);
+
+        if (current is null)
+        {
+            throw new InvalidOperationException("The current node was removed.");
+        }
+
+        if (context.Extensions.Count > 0)
+        {
+            var definitions = current.Definitions.ToList();
+
+            foreach (var notProcessed in context.Extensions.Keys.Except(
+                current.Definitions.OfType<ITypeDefinitionNode>().Select(t => t.Name.Value)))
+            {
+                definitions.Add(context.Extensions[notProcessed]);
+            }
+
+            return current.WithDefinitions(definitions);
+        }
+
+        return current;
+    }
+
+    private static DocumentNode RemoveDirectives(
+        DocumentNode document,
+        IEnumerable<string> directiveNames)
+    {
+        return RemoveDefinitions(
+            document,
+            d => d.Definitions.OfType<DirectiveDefinitionNode>()
+                .ToDictionary(t => t.Name.Value, t => (IDefinitionNode)t),
+            directiveNames);
+    }
+
+    private static DocumentNode RemoveTypes(
+        DocumentNode document,
+        IEnumerable<string> directiveNames)
+    {
+        return RemoveDefinitions(
+            document,
+            d => d.Definitions.OfType<ITypeDefinitionNode>()
+                .ToDictionary(t => t.Name.Value, t => (IDefinitionNode)t),
+            directiveNames);
+    }
+
+    private static DocumentNode RemoveDefinitions(
+        DocumentNode document,
+        Func<DocumentNode, Dictionary<string, IDefinitionNode>> toDict,
+        IEnumerable<string> names)
+    {
+        var definitions = document.Definitions.ToList();
+        var directives = toDict(document);
+
+        foreach (var name in names)
+        {
+            if (directives.TryGetValue(name, out var directive))
+            {
+                definitions.Remove(directive);
+            }
+        }
+
+        return document.WithDefinitions(definitions);
+    }
+
+    protected override UnionTypeDefinitionNode? RewriteUnionTypeDefinition(
+        UnionTypeDefinitionNode node,
+        MergeContext context)
+    {
+        var current = node;
+
+        if (context.Extensions.TryGetValue(current.Name.Value, out var extension))
+        {
+            if (extension is UnionTypeExtensionNode unionTypeExtension)
+            {
+                current = AddTypes(current, unionTypeExtension);
+
+                var captured = current;
+                current = AddDirectives(
+                    current,
+                    unionTypeExtension,
+                    d => captured.WithDirectives(d),
+                    context);
+            }
+            else
+            {
+                throw new SchemaMergeException(
+                    current,
+                    extension,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        StitchingResources.AddSchemaExtensionRewriter_TypeMismatch,
+                        node.Name.Value,
+                        node.Kind,
+                        extension.Kind));
+            }
+        }
+
+        return base.RewriteUnionTypeDefinition(current, context);
+    }
+
+    private static UnionTypeDefinitionNode AddTypes(
+        UnionTypeDefinitionNode typeDefinition,
+        UnionTypeExtensionNode typeExtension)
+    {
+        if (typeExtension.Types.Count == 0)
+        {
+            return typeDefinition;
+        }
+
+        var types = new OrderedDictionary<string, NamedTypeNode>();
+
+        foreach (var type in typeDefinition.Types)
+        {
+            types[type.Name.Value] = type;
+        }
+
+        foreach (var type in typeExtension.Types)
+        {
+            types[type.Name.Value] = type;
+        }
+
+        return typeDefinition.WithTypes(types.Values.ToList());
+    }
+
+    protected override ObjectTypeDefinitionNode? RewriteObjectTypeDefinition(
+        ObjectTypeDefinitionNode node,
+        MergeContext context)
+    {
+        var current = node;
+
+        if (context.Extensions.TryGetValue(
+            current.Name.Value,
+            out var extension))
+        {
+            if (extension is ObjectTypeExtensionNode objectTypeExtension)
+            {
+
+                current = AddInterfaces(current, objectTypeExtension);
+                current = AddFields(current, objectTypeExtension);
+
+                var captured = current;
+                current = AddDirectives(
+                    current,
+                    objectTypeExtension,
+                    d => captured.WithDirectives(d),
+                    context);
+            }
+            else
+            {
+                throw new SchemaMergeException(
+                    current,
+                    extension,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        StitchingResources
+                            .AddSchemaExtensionRewriter_TypeMismatch,
+                        node.Name.Value,
+                        node.Kind,
+                        extension.Kind));
+            }
+        }
+
+        return base.RewriteObjectTypeDefinition(current, context);
+    }
+
+    private static ObjectTypeDefinitionNode AddFields(
+        ObjectTypeDefinitionNode typeDefinition,
+        ObjectTypeExtensionNode typeExtension)
+    {
+        var fields = AddFields(typeDefinition.Fields, typeExtension.Fields);
+
+        return Equals(fields, typeDefinition.Fields)
+            ? typeDefinition
+            : typeDefinition.WithFields(fields);
+    }
+
+    private static ObjectTypeDefinitionNode AddInterfaces(
+        ObjectTypeDefinitionNode typeDefinition,
+        ObjectTypeExtensionNode typeExtension)
+    {
+        if (typeExtension.Interfaces.Count == 0)
+        {
+            return typeDefinition;
+        }
+
+        var interfaces = new HashSet<string>(
+            typeDefinition.Interfaces.Select(t => t.Name.Value));
+
+        foreach (var interfaceName in
+            typeExtension.Interfaces.Select(t => t.Name.Value))
+        {
+            interfaces.Add(interfaceName);
+        }
+
+        if (interfaces.Count == typeDefinition.Interfaces.Count)
+        {
+            return typeDefinition;
+        }
+
+        return typeDefinition.WithInterfaces(
+            interfaces.Select(n => new NamedTypeNode(new NameNode(n)))
+                .ToList());
+    }
+
+    protected override InterfaceTypeDefinitionNode? RewriteInterfaceTypeDefinition(
+        InterfaceTypeDefinitionNode node,
+        MergeContext context)
+    {
+        var current = node;
+
+        if (context.Extensions.TryGetValue(
+            current.Name.Value,
+            out var extension))
+        {
+            if (extension is InterfaceTypeExtensionNode ite)
+            {
+                current = AddFields(current, ite);
+
+                var captured = current;
+                current = AddDirectives(
+                    current,
+                    ite,
+                    d => captured.WithDirectives(d),
+                    context);
+            }
+            else
+            {
+                throw new SchemaMergeException(
+                    current,
+                    extension,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        StitchingResources.AddSchemaExtensionRewriter_TypeMismatch,
+                        node.Name.Value,
+                        node.Kind,
+                        extension.Kind));
+            }
+        }
+
+        return base.RewriteInterfaceTypeDefinition(current, context);
+    }
+
+    private static InterfaceTypeDefinitionNode AddFields(
+        InterfaceTypeDefinitionNode typeDefinition,
+        InterfaceTypeExtensionNode typeExtension)
+    {
+        var fields = AddFields(typeDefinition.Fields, typeExtension.Fields);
+
+        return Equals(fields, typeDefinition.Fields)
+            ? typeDefinition
+            : typeDefinition.WithFields(fields);
+    }
+
+    private static IReadOnlyList<FieldDefinitionNode> AddFields(
+        IReadOnlyList<FieldDefinitionNode> typeDefinitionFields,
+        IReadOnlyList<FieldDefinitionNode> typeExtensionFields)
+    {
+        if (typeExtensionFields.Count == 0)
+        {
+            return typeDefinitionFields;
+        }
+
+        var fields = new OrderedDictionary<string, FieldDefinitionNode>();
+
+        foreach (var field in typeDefinitionFields)
+        {
+            fields[field.Name.Value] = field;
+        }
+
+        foreach (var field in typeExtensionFields)
+        {
+            // we allow an extension to override fields.
+            fields[field.Name.Value] = field;
+        }
+
+        return fields.Values.ToList();
+    }
+
+    protected override InputObjectTypeDefinitionNode? RewriteInputObjectTypeDefinition(
+        InputObjectTypeDefinitionNode node,
+        MergeContext context)
+    {
+        var current = node;
+
+        if (context.Extensions.TryGetValue(
+            current.Name.Value,
+            out var extension))
+        {
+            if (extension is InputObjectTypeExtensionNode typeExtension)
+            {
+                current = AddInputFields(current, typeExtension);
+
+                var captured = current;
+                current = AddDirectives(
+                    current,
+                    typeExtension,
+                    d => captured.WithDirectives(d),
+                    context);
+            }
+            else
+            {
+                throw new SchemaMergeException(
+                    current,
+                    extension,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        StitchingResources.AddSchemaExtensionRewriter_TypeMismatch,
+                        node.Name.Value,
+                        node.Kind,
+                        extension.Kind));
+            }
+        }
+
+        return base.RewriteInputObjectTypeDefinition(current, context);
+    }
+
+    private static InputObjectTypeDefinitionNode AddInputFields(
+        InputObjectTypeDefinitionNode typeDefinition,
+        InputObjectTypeExtensionNode typeExtension)
+    {
+        if (typeExtension.Fields.Count == 0)
+        {
+            return typeDefinition;
+        }
+
+        var fields = new OrderedDictionary<string, InputValueDefinitionNode>();
+
+        foreach (var field in typeDefinition.Fields)
+        {
+            fields[field.Name.Value] = field;
+        }
+
+        foreach (var field in typeExtension.Fields)
+        {
+            // we allow an extension to override fields.
+            fields[field.Name.Value] = field;
+        }
+
+        return typeDefinition.WithFields(fields.Values.ToList());
+    }
+
+    protected override EnumTypeDefinitionNode? RewriteEnumTypeDefinition(
+        EnumTypeDefinitionNode node,
+        MergeContext context)
+    {
+        var current = node;
+
+        if (context.Extensions.TryGetValue(
+            current.Name.Value,
+            out var extension))
+        {
+            if (extension is EnumTypeExtensionNode ete)
+            {
+                current = AddEnumValues(current, ete);
+
+                var captured = current;
+                current = AddDirectives(
+                    current,
+                    ete,
+                    d => captured.WithDirectives(d),
+                    context);
+            }
+            else
+            {
+                throw new SchemaMergeException(
+                    current,
+                    extension,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        StitchingResources.AddSchemaExtensionRewriter_TypeMismatch,
+                        node.Name.Value,
+                        node.Kind,
+                        extension.Kind));
+            }
+        }
+
+        return base.RewriteEnumTypeDefinition(current, context);
+    }
+
+    private static EnumTypeDefinitionNode AddEnumValues(
+        EnumTypeDefinitionNode typeDefinition,
+        EnumTypeExtensionNode typeExtension)
+    {
+        if (typeExtension.Values.Count == 0)
+        {
+            return typeDefinition;
+        }
+
+        var values =
+            new OrderedDictionary<string, EnumValueDefinitionNode>();
+
+        foreach (var value in typeDefinition.Values)
+        {
+            values[value.Name.Value] = value;
+        }
+
+        foreach (var value in typeExtension.Values)
+        {
+            // we allow an extension to override values.
+            values[value.Name.Value] = value;
+        }
+
+        return typeDefinition.WithValues(values.Values.ToList());
+    }
+
+    protected override ScalarTypeDefinitionNode? RewriteScalarTypeDefinition(
+        ScalarTypeDefinitionNode node,
+        MergeContext context)
+    {
+        var current = node;
+
+        if (context.Extensions.TryGetValue(
+            current.Name.Value,
+            out var extension))
+        {
+            if (extension is ScalarTypeExtensionNode ste)
+            {
+                var captured = current;
+                current = AddDirectives(
+                    current,
+                    ste,
+                    d => captured.WithDirectives(d),
+                    context);
+            }
+            else
+            {
+                throw new SchemaMergeException(
+                    current,
+                    extension,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        StitchingResources.AddSchemaExtensionRewriter_TypeMismatch,
+                        node.Name.Value,
+                        node.Kind,
+                        extension.Kind));
+            }
+        }
+
+        return base.RewriteScalarTypeDefinition(current, context);
+    }
+
+    private TDefinition AddDirectives<TDefinition, TExtension>(
+        TDefinition typeDefinition,
+        TExtension typeExtension,
+        Func<IReadOnlyList<DirectiveNode>, TDefinition> withDirectives,
+        MergeContext context)
+        where TDefinition : NamedSyntaxNode, ITypeDefinitionNode
+        where TExtension : NamedSyntaxNode, ITypeExtensionNode
+    {
+        if (typeExtension.Directives.Count == 0)
+        {
+            return typeDefinition;
+        }
+
+        var alreadyDeclared = new HashSet<string>(
+            typeDefinition.Directives.Select(t => t.Name.Value));
+        var directives = new List<DirectiveNode>();
+
+        foreach (var directive in typeExtension.Directives)
+        {
+            if (!_globalDirectives.TryGetValue(directive.Name.Value,
+                    out var directiveDefinition)
+                && !context.Directives.TryGetValue(directive.Name.Value,
+                    out directiveDefinition))
+            {
+                throw new SchemaMergeException(
+                    typeDefinition, typeExtension,
+                    string.Format(
+                        CultureInfo.InvariantCulture, StitchingResources
+                            .AddSchemaExtensionRewriter_DirectiveDoesNotExist,
+                        directive.Name.Value));
+            }
+
+            if (!alreadyDeclared.Add(directive.Name.Value)
+                && !directiveDefinition.IsRepeatable)
+            {
+                throw new SchemaMergeException(
+                    typeDefinition, typeExtension,
+                    string.Format(
+                        CultureInfo.InvariantCulture, StitchingResources
+                            .AddSchemaExtensionRewriter_DirectiveIsUnique,
+                        directive.Name.Value));
+            }
+
+            directives.Add(directive);
+        }
+
+        return withDirectives.Invoke(directives);
+    }
+}

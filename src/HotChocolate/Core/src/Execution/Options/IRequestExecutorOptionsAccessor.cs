@@ -7,9 +7,8 @@ namespace HotChocolate.Execution.Options;
 /// execution engine itself.
 /// </summary>
 public interface IRequestExecutorOptionsAccessor
-    : IInstrumentationOptionsAccessor
-    , IErrorHandlerOptionsAccessor
-    , IDocumentCacheSizeOptionsAccessor
+    : IErrorHandlerOptionsAccessor
     , IRequestTimeoutOptionsAccessor
     , IComplexityAnalyzerOptionsAccessor
+    , IPersistedQueryOptionsAccessor
 { }

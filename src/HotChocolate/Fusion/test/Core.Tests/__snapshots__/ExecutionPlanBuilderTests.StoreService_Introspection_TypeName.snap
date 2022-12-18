@@ -1,0 +1,60 @@
+User Request
+---------------
+query Me {
+  me {
+    name
+    reviews {
+      nodes {
+        product {
+          __typename
+        }
+      }
+    }
+  }
+}
+---------------
+
+Query Plan
+---------------
+{
+  "document": "query Me {\n  me {\n    name\n    reviews {\n      nodes {\n        product {\n          __typename\n        }\n      }\n    }\n  }\n}",
+  "operation": "Me",
+  "rootNode": {
+    "type": "Serial",
+    "nodes": [
+      {
+        "type": "Fetch",
+        "schemaName": "reviews",
+        "document": "query Me_1 {\n  me: authorById(id: 1) {\n    reviews {\n      nodes {\n        product {\n          __typename\n        }\n      }\n    }\n    __fusion_exports__1: id\n  }\n}",
+        "selectionSetId": 0
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          0
+        ]
+      },
+      {
+        "type": "Fetch",
+        "schemaName": "accounts",
+        "document": "query Me_2($__fusion_exports__1: Int!) {\n  user(id: $__fusion_exports__1) {\n    name\n  }\n}",
+        "selectionSetId": 1,
+        "path": [
+          "user"
+        ],
+        "requires": [
+          {
+            "variable": "__fusion_exports__1"
+          }
+        ]
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          1
+        ]
+      }
+    ]
+  }
+}
+---------------

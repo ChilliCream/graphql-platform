@@ -1,18 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Properties;
-using HotChocolate.Language;
+using HotChocolate.Execution.Serialization;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Processing;
 
-internal partial class MiddlewareContext
+internal partial class MiddlewareContext : IMiddlewareContext
 {
-    private IOperationContext _operationContext = default!;
+    private readonly OperationResultBuilderFacade _operationResultBuilder = new();
+    private readonly List<Func<ValueTask>> _cleanupTasks = new();
+    private OperationContext _operationContext = default!;
     private IServiceProvider _services = default!;
     private InputParser _parser = default!;
     private object? _resolverResult;
@@ -26,21 +29,24 @@ internal partial class MiddlewareContext
 
     public ISchema Schema => _operationContext.Schema;
 
-    public IObjectType RootType => _operationContext.Operation.RootType;
+    public IOperation Operation => _operationContext.Operation;
 
-    public DocumentNode Document => _operationContext.Operation.Document;
-
-    public OperationDefinitionNode Operation => _operationContext.Operation.Definition;
+    public IOperationResultBuilder OperationResult => _operationResultBuilder;
 
     public IDictionary<string, object?> ContextData => _operationContext.ContextData;
 
     public IVariableValueCollection Variables => _operationContext.Variables;
 
+    IReadOnlyDictionary<string, object?> IPureResolverContext.ScopedContextData
+        => ScopedContextData;
+
     public CancellationToken RequestAborted { get; private set; }
 
-    public IReadOnlyList<IFieldSelection> GetSelections(
-        ObjectType typeContext,
-        SelectionSetNode? selectionSet = null,
+    public bool HasCleanupTasks => _cleanupTasks.Count > 0;
+
+    public IReadOnlyList<ISelection> GetSelections(
+        IObjectType typeContext,
+        ISelection? selection = null,
         bool allowInternals = false)
     {
         if (typeContext is null)
@@ -48,33 +54,36 @@ internal partial class MiddlewareContext
             throw new ArgumentNullException(nameof(typeContext));
         }
 
-        selectionSet ??= _selection.SelectionSet;
+        selection ??= _selection;
 
-        if (selectionSet is null)
+        if (selection.SelectionSet is null)
         {
-            return Array.Empty<IFieldSelection>();
+            return Array.Empty<ISelection>();
         }
 
-        ISelectionSet fields =
-            _operationContext.CollectFields(selectionSet, typeContext);
+        var selectionSet = _operationContext.CollectFields(selection, typeContext);
 
-        if (fields.IsConditional)
+        if (selectionSet.IsConditional)
         {
-            var finalFields = new List<IFieldSelection>();
+            var operationIncludeFlags = _operationContext.IncludeFlags;
+            var selectionCount = selectionSet.Selections.Count;
+            ref var selectionRef = ref ((SelectionSet)selectionSet).GetSelectionsReference();
+            var finalFields = new List<ISelection>();
 
-            for (var i = 0; i < fields.Selections.Count; i++)
+            for (var i = 0; i < selectionCount; i++)
             {
-                ISelection selection = fields.Selections[i];
-                if (selection.IsIncluded(_operationContext.Variables, allowInternals))
+                var childSelection = Unsafe.Add(ref selectionRef, i);
+
+                if (childSelection.IsIncluded(operationIncludeFlags, allowInternals))
                 {
-                    finalFields.Add(selection);
+                    finalFields.Add(childSelection);
                 }
             }
 
             return finalFields;
         }
 
-        return fields.Selections;
+        return selectionSet.Selections;
     }
 
     public void ReportError(string errorMessage)
@@ -86,11 +95,12 @@ internal partial class MiddlewareContext
                 nameof(errorMessage));
         }
 
-        ReportError(ErrorBuilder.New()
-            .SetMessage(errorMessage)
-            .SetPath(Path)
-            .AddLocation(_selection.SyntaxNode)
-            .Build());
+        ReportError(
+            ErrorBuilder.New()
+                .SetMessage(errorMessage)
+                .SetPath(Path)
+                .AddLocation(_selection.SyntaxNode)
+                .Build());
     }
 
     public void ReportError(Exception exception, Action<IErrorBuilder>? configure = null)
@@ -102,21 +112,21 @@ internal partial class MiddlewareContext
 
         if (exception is GraphQLException graphQLException)
         {
-            foreach (IError error in graphQLException.Errors)
+            foreach (var error in graphQLException.Errors)
             {
                 ReportError(error);
             }
         }
         else if (exception is AggregateException aggregateException)
         {
-            foreach (Exception innerException in aggregateException.InnerExceptions)
+            foreach (var innerException in aggregateException.InnerExceptions)
             {
                 ReportError(innerException);
             }
         }
         else
         {
-            IErrorBuilder errorBuilder = _operationContext.ErrorHandler
+            var errorBuilder = _operationContext.ErrorHandler
                 .CreateUnexpectedError(exception)
                 .SetPath(Path)
                 .AddLocation(_selection.SyntaxNode);
@@ -136,7 +146,7 @@ internal partial class MiddlewareContext
 
         if (error is AggregateError aggregateError)
         {
-            foreach (IError? innerError in aggregateError.Errors)
+            foreach (var innerError in aggregateError.Errors)
             {
                 ReportSingle(innerError);
             }
@@ -148,25 +158,23 @@ internal partial class MiddlewareContext
 
         void ReportSingle(IError singleError)
         {
-            AddProcessedError(_operationContext.ErrorHandler.Handle(singleError));
-            HasErrors = true;
-        }
+            var handled = _operationContext.ErrorHandler.Handle(singleError);
 
-        void AddProcessedError(IError processed)
-        {
-            if (processed is AggregateError ar)
+            if (handled is AggregateError ar)
             {
-                foreach (IError? ie in ar.Errors)
+                foreach (var ie in ar.Errors)
                 {
-                    _operationContext.Result.AddError(ie, _selection.SyntaxNode);
+                    _operationContext.Result.AddError(ie, _selection);
                     _operationContext.DiagnosticEvents.ResolverError(this, ie);
                 }
             }
             else
             {
-                _operationContext.Result.AddError(processed, _selection.SyntaxNode);
-                _operationContext.DiagnosticEvents.ResolverError(this, processed);
+                _operationContext.Result.AddError(handled, _selection);
+                _operationContext.DiagnosticEvents.ResolverError(this, handled);
             }
+
+            HasErrors = true;
         }
     }
 
@@ -180,7 +188,9 @@ internal partial class MiddlewareContext
             _hasResolverResult = true;
         }
 
-        return _resolverResult is null ? default! : (T)_resolverResult;
+        return _resolverResult is null
+            ? default!
+            : (T)_resolverResult;
     }
 
     public T Resolver<T>() =>
@@ -198,9 +208,72 @@ internal partial class MiddlewareContext
         return Services.GetRequiredService(service);
     }
 
-    public void RegisterForCleanup(Action action) =>
-        _operationContext.RegisterForCleanup(action);
+    public void RegisterForCleanup(
+        Func<ValueTask> action,
+        CleanAfter cleanAfter = CleanAfter.Resolver)
+    {
+        if (action is null)
+        {
+            throw new ArgumentNullException(nameof(action));
+        }
 
-    public T GetQueryRoot<T>() =>
-        _operationContext.GetQueryRoot<T>();
+        if (cleanAfter is CleanAfter.Request)
+        {
+            _operationContext.Result.RegisterForCleanup(action);
+        }
+        else
+        {
+            _cleanupTasks.Add(action);
+        }
+    }
+
+    public async ValueTask ExecuteCleanupTasksAsync()
+    {
+        foreach (var task in _cleanupTasks)
+        {
+            await task.Invoke().ConfigureAwait(false);
+        }
+    }
+
+    public T GetQueryRoot<T>()
+        => _operationContext.GetQueryRoot<T>();
+
+    public IMiddlewareContext Clone()
+    {
+        // The middleware context is bound to a resolver task,
+        // so we need to create a resolver task in order to clone
+        // this context.
+        var resolverTask =
+            _operationContext.CreateResolverTask(
+                Selection,
+                _parent,
+                ParentResult,
+                ResponseIndex,
+                Path,
+                ScopedContextData);
+
+        // We need to manually copy the local state.
+        resolverTask.Context.LocalContextData = LocalContextData;
+
+        // Since resolver tasks are pooled and returned to the pool after they are executed
+        // we need to complete the task manually when the resolver task of the current context
+        // is completed.
+        RegisterForCleanup(() => resolverTask.CompleteUnsafeAsync());
+
+        return resolverTask.Context;
+    }
+
+    IResolverContext IResolverContext.Clone()
+        => Clone();
+
+    private sealed class OperationResultBuilderFacade : IOperationResultBuilder
+    {
+        public OperationContext Context { get; set; } = default!;
+
+        public void SetResultState(string key, object? value)
+            => Context.Result.SetContextData(key, value);
+
+        public void SetExtension<TValue>(string key, TValue value)
+            => Context.Result.SetExtension(key, new NeedsFormatting<TValue>(value));
+    }
 }

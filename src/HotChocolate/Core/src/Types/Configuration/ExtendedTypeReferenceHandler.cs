@@ -24,7 +24,7 @@ internal sealed class ExtendedTypeReferenceHandler : ITypeRegistrarHandler
     {
         var typeRef = (ExtendedTypeReference)typeReference;
 
-        if (_typeInspector.TryCreateTypeInfo(typeRef.Type, out ITypeInfo? typeInfo) &&
+        if (_typeInspector.TryCreateTypeInfo(typeRef.Type, out var typeInfo) &&
             !ExtendedType.Tools.IsNonGenericBaseType(typeInfo.NamedType))
         {
             if (typeInfo.NamedType == typeof(IExecutable))
@@ -32,11 +32,11 @@ internal sealed class ExtendedTypeReferenceHandler : ITypeRegistrarHandler
                 throw ThrowHelper.NonGenericExecutableNotAllowed();
             }
 
-            Type namedType = typeInfo.NamedType;
+            var namedType = typeInfo.NamedType;
             if (IsTypeSystemObject(namedType))
             {
-                IExtendedType extendedType = _typeInspector.GetType(namedType);
-                ExtendedTypeReference namedTypeReference = typeRef.With(extendedType);
+                var extendedType = _typeInspector.GetType(namedType);
+                var namedTypeReference = typeRef.With(extendedType);
 
                 if (!typeRegistrar.IsResolved(namedTypeReference))
                 {
@@ -66,7 +66,7 @@ internal sealed class ExtendedTypeReferenceHandler : ITypeRegistrarHandler
         ExtendedTypeReference? normalizedTypeRef = null;
         var resolved = false;
 
-        foreach (TypeComponent component in typeInfo.Components)
+        foreach (var component in typeInfo.Components)
         {
             normalizedTypeRef = TypeReference.Create(
                 component.Type,

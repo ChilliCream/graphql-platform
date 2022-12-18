@@ -25,7 +25,7 @@ public static class ActivityTestHelper
 
                 if (a.Parent is null && 
                     a.OperationName.EqualsOrdinal("ExecuteHttpRequest") && 
-                    lookup.TryGetValue(rootActivity, out OrderedDictionary? parentData))
+                    lookup.TryGetValue(rootActivity, out var parentData))
                 {
                     RegisterActivity(a, parentData);
                     lookup[a] = (OrderedDictionary)a.GetCustomProperty("test.data")!;

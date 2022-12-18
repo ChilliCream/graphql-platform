@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate;
 using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models;
@@ -29,7 +28,7 @@ public sealed class EnumTypeModel : LeafTypeModel
     /// The enum values.
     /// </param>
     public EnumTypeModel(
-        NameString name,
+        string name,
         string? description,
         IEnumType type,
         string? underlyingType,

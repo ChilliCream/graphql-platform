@@ -29,7 +29,7 @@ namespace HotChocolate.ConferencePlanner.Tracks
             [ScopedService] ApplicationDbContext context,
             CancellationToken cancellationToken)
         {
-            Track track = await context.Tracks.FindAsync(input.Id);
+            var track = await context.Tracks.FindAsync(input.Id);
             track.Name = input.Name;
 
             await context.SaveChangesAsync(cancellationToken);

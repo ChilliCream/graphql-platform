@@ -412,7 +412,7 @@ public static class MutationObjectFieldDescriptorExtensions
 
         void ConfigureField(IDescriptorContext c, ObjectFieldDefinition d)
         {
-            IReadOnlyList<ErrorDefinition> definitions = ErrorFactoryCompiler.Compile(errorType);
+            var definitions = ErrorFactoryCompiler.Compile(errorType);
 
             if (!d.ContextData.TryGetValue(ErrorDefinitions, out var value) ||
                 value is not List<ErrorDefinition> errorFactories)
@@ -423,9 +423,9 @@ public static class MutationObjectFieldDescriptorExtensions
 
             errorFactories.AddRange(definitions);
 
-            foreach (ErrorDefinition definition in definitions)
+            foreach (var definition in definitions)
             {
-                ExtendedTypeReference typeRef = c.TypeInspector.GetTypeRef(definition.SchemaType);
+                var typeRef = c.TypeInspector.GetTypeRef(definition.SchemaType);
                 d.Dependencies.Add(new TypeDependency(typeRef));
             }
         }

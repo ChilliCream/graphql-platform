@@ -26,6 +26,7 @@ public sealed class DocumentValidator : IDocumentValidator
     /// <param name="rules">
     /// The validation rules.
     /// </param>
+    /// <param name="errorOptionsAccessor"></param>
     /// <exception cref="ArgumentNullException"></exception>
     public DocumentValidator(
         DocumentValidatorContextPool contextPool,
@@ -79,14 +80,14 @@ public sealed class DocumentValidator : IDocumentValidator
             return DocumentValidatorResult.Ok;
         }
 
-        DocumentValidatorContext context = _contextPool.Get();
-        IDocumentValidatorRule[] rules = onlyNonCacheable ? _nonCacheableRules : _allRules;
+        var context = _contextPool.Get();
+        var rules = onlyNonCacheable ? _nonCacheableRules : _allRules;
 
         try
         {
             PrepareContext(schema, document, context, contextData);
 
-            foreach (IDocumentValidatorRule? rule in rules)
+            foreach (var rule in rules)
             {
                 rule.Validate(context, document);
             }
@@ -116,7 +117,7 @@ public sealed class DocumentValidator : IDocumentValidator
 
         for (var i = 0; i < document.Definitions.Count; i++)
         {
-            IDefinitionNode definitionNode = document.Definitions[i];
+            var definitionNode = document.Definitions[i];
             if (definitionNode.Kind is SyntaxKind.FragmentDefinition)
             {
                 var fragmentDefinition = (FragmentDefinitionNode)definitionNode;

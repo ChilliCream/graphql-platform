@@ -49,7 +49,7 @@ public static class LiteralExtensions
 
     public static ValueKind GetValueKind(this IValueNode literal)
     {
-        if (TryGetValueKind(literal, out ValueKind kind))
+        if (TryGetValueKind(literal, out var kind))
         {
             return kind;
         }

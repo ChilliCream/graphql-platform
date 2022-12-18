@@ -12,7 +12,7 @@ public class SignedByteTypeTests : ScalarTypeTestBase
     public void Schema_WithScalar_IsMatch()
     {
         // arrange
-        ISchema schema = BuildSchema<IntType>();
+        var schema = BuildSchema<IntType>();
 
         // act
         // assert
@@ -36,7 +36,7 @@ public class SignedByteTypeTests : ScalarTypeTestBase
         bool expected)
     {
         // arrange
-        IValueNode valueNode = CreateValueNode(type, value);
+        var valueNode = CreateValueNode(type, value);
 
         // act
         // assert
@@ -75,7 +75,7 @@ public class SignedByteTypeTests : ScalarTypeTestBase
         object expected)
     {
         // arrange
-        IValueNode valueNode = CreateValueNode(type, value);
+        var valueNode = CreateValueNode(type, value);
 
         // act
         // assert
@@ -90,7 +90,7 @@ public class SignedByteTypeTests : ScalarTypeTestBase
     public void ParseLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
     {
         // arrange
-        IValueNode valueNode = CreateValueNode(type, value);
+        var valueNode = CreateValueNode(type, value);
 
         // act
         // assert

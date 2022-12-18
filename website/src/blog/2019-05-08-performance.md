@@ -26,9 +26,9 @@ Each time we use the V8 parser to parse a _GraphQL_ request we basically created
 
 With version 9 we wrote the parser from scratch to be allocation free. This means that we only use memory to create our GraphQL document tree but not for the actual parsing.
 
-In order to do that we are no longer parsing using a string but a `ReadOnlySpan<byte>`. With spans on byte we can basically read the query from a binary stream and produce the GraphQL document without producing string objects. Also, the span allows us to slice the incoming data and create new windows on the underlying memory. So, each time we slice the data, we no longer create new string objects that the GC has to get rid of. All of the GraphQL keywords in a GraphQL document that is being parsed are never transformed to a string representation, but will only be represented to the parser as one byte on which the parser makes a decision on what the parsed token means. Also, comments and descriptions will only become strings if they are consumed saving us from unescaping those and more. On a production GraphQL server we do not have the need to consume comment tokens for instance, so we can just skip over them.
+In order to do that we are no longer parsing using a string but a `ReadOnlySpan<byte>`. With spans on byte we can basically read the query from a binary stream and produce the GraphQL document without producing string objects. Also, the span allows us to slice the incoming data and create new windows on the underlying memory. So, each time we slice the data, we no longer create new string objects that the GC has to get rid of. All of the GraphQL keywords in a GraphQL document that is being parsed are never transformed to a string representation, but will only be represented to the parser as one byte on which the parser makes a decision on what the parsed token means. Also, comments and descriptions will only become strings if they are consumed saving us from un-escaping those and more. On a production GraphQL server we do not have the need to consume comment tokens for instance, so we can just skip over them.
 
-Furthermore, unescaping strings is now much more efficient since we create the string representation just once, all the escape logic is done on the span. We still have to get a second array on which we insert the escaped data but this second byte array can be rented if to large or in the best of cases be allocated on the stack with stackaloc.
+Furthermore, un-escaping strings is now much more efficient since we create the string representation just once, all the escape logic is done on the span. We still have to get a second array on which we insert the escaped data but this second byte array can be rented if to large or in the best of cases be allocated on the stack with `stackalloc`.
 
 But again the parser will only escape a string sequence and create an actual string object if needed.
 
@@ -68,7 +68,7 @@ With version 9.1 we will further optimize the resolver compilation by allowing l
 
 ## Execution Engine
 
-We have updated our execution engine to use less memory and execute faster. The new execution engine is at least 2.3 times faster and uses half of the memory GraphQL-DotNet does to execute a query. If you are using schema first we are actually seeing 8.9 times faster executon of queries with Hot Chocolate compared to GraphQL-DotNet.
+We have updated our execution engine to use less memory and execute faster. The new execution engine is at least 2.3 times faster and uses half of the memory GraphQL-DotNet does to execute a query. If you are using schema first we are actually seeing 8.9 times faster execution of queries with Hot Chocolate compared to GraphQL-DotNet.
 
 GraphQL-DotNet is still faster when validating queries, but this is offset since we are caching validation results. Validation will be one of the things we will work on for version 9.1. So, expect improvements here.
 
@@ -82,7 +82,7 @@ The serialization of query results is one of the areas we want to improve. Micro
 
 ## Summary
 
-We are investing heavily in performance and stability and see perfomance as feature. One other area we are working on is the subscription implementation. We will replace the current implementation with one built on top of the Microsoft pipeline API, this is why we are moving again subscription stitching to the next version.
+We are investing heavily in performance and stability and see performance as feature. One other area we are working on is the subscription implementation. We will replace the current implementation with one built on top of the Microsoft pipeline API, this is why we are moving again subscription stitching to the next version.
 
 Stitching is also one area we will start to improve performance-wise once we have the execution plan feature implemented.
 
@@ -90,7 +90,4 @@ The bottom line here is that if you go with Hot Chocolate you will get the most 
 
 Each time a GraphQL spec element hits draft status we will go ahead and implement it with Hot Chocolate, this means that with Hot Chocolate you will always get the latest GraphQL features.
 
-Also, we are working to have all the benchmarkings ready with GraphQL-Bench. This will make it more transparant what we are testing and will let us more easily assess where we are heading performance wise.
-
-[hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/hotchocolate
+Also, we are working to have all the benchmarking ready with GraphQL-Bench. This will make it more transparent what we are testing and will let us more easily assess where we are heading performance wise.

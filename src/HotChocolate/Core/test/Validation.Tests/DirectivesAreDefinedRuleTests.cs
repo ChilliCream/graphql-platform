@@ -1,32 +1,32 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HotChocolate.Validation
-{
-    public class DirectivesAreDefinedRuleTests
-        : DocumentValidatorVisitorTestBase
-    {
-        public DirectivesAreDefinedRuleTests()
-            : base(builder => builder.AddDirectiveRules())
-        {
-        }
+namespace HotChocolate.Validation;
 
-        [Fact]
-        public void SupportedDirective()
-        {
-            ExpectValid(@"
+public class DirectivesAreDefinedRuleTests
+    : DocumentValidatorVisitorTestBase
+{
+    public DirectivesAreDefinedRuleTests()
+        : base(builder => builder.AddDirectiveRules())
+    {
+    }
+
+    [Fact]
+    public void SupportedDirective()
+    {
+        ExpectValid(@"
                 {
                     dog {
                         name @skip(if: true)
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void UnsupportedDirective()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void UnsupportedDirective()
+    {
+        ExpectErrors(@"
                 {
                     dog {
                         name @foo(bar: true)
@@ -37,12 +37,12 @@ namespace HotChocolate.Validation
                 "The specified directive `foo` " +
                 "is not supported by the current schema.",
                 t.Message));
-        }
+    }
 
-        [Fact]
-        public void SkipDirectiveIsInTheWrongPlace()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void SkipDirectiveIsInTheWrongPlace()
+    {
+        ExpectErrors(@"
                 query @skip(if: $foo) {
                     field
                 }
@@ -50,22 +50,22 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 "The specified directive is not valid the " +
                 "current location.", t.Message));
-        }
+    }
 
-        [Fact]
-        public void SkipDirectiveIsInTheRightPlace()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void SkipDirectiveIsInTheRightPlace()
+    {
+        ExpectValid(@"
                 query a {
                     field @skip(if: $foo)
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void DuplicateSkipDirectives()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void DuplicateSkipDirectives()
+    {
+        ExpectErrors(@"
                 query ($foo: Boolean = true, $bar: Boolean = false) {
                     field @skip(if: $foo) @skip(if: $bar)
                 }
@@ -73,12 +73,12 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 "Only one of each directive is allowed per location.",
                 t.Message));
-        }
+    }
 
-        [Fact]
-        public void SkipOnTwoDifferentFields()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void SkipOnTwoDifferentFields()
+    {
+        ExpectValid(@"
                 query ($foo: Boolean = true, $bar: Boolean = false) {
                     field @skip(if: $foo) {
                         subfieldA
@@ -88,12 +88,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void WithNoDirectives()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void WithNoDirectives()
+    {
+        ExpectValid(@"
                 query Foo {
                     name
                     ...Frag
@@ -102,12 +102,12 @@ namespace HotChocolate.Validation
                     name
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void WithKnownDirectives()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void WithKnownDirectives()
+    {
+        ExpectValid(@"
                  {
                     dog @include(if: true) {
                         name
@@ -117,24 +117,24 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void WithUnknownDirectives()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void WithUnknownDirectives()
+    {
+        ExpectErrors(@"
                  {
                     dog @unknown(directive: ""value"") {
                         name
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void WithManyUnknownDirectives()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void WithManyUnknownDirectives()
+    {
+        ExpectErrors(@"
                 {
                     dog @unknown(directive: ""value"") {
                         name
@@ -147,12 +147,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void WithWellPlacedDirectives()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void WithWellPlacedDirectives()
+    {
+        ExpectValid(@"
                 query ($var: Boolean) @onQuery {
                     name @include(if: $var)
                     ...Frag @include(if: true)
@@ -175,82 +175,82 @@ namespace HotChocolate.Validation
                     someField
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void WithWellPlacedVariableDefinitionDirective()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void WithWellPlacedVariableDefinitionDirective()
+    {
+        ExpectValid(@"
                 query Foo($var: Boolean @onVariableDefinition) {
                     name
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void WithMisplacedDirectiveOnQuery()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void WithMisplacedDirectiveOnQuery()
+    {
+        ExpectErrors(@"
                 query Foo($var: Boolean) @include(if: true) {
                     name   
                 } 
             ");
-        }
+    }
 
-        [Fact]
-        public void WithMisplacedDirectivesOnField()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void WithMisplacedDirectivesOnField()
+    {
+        ExpectErrors(@"
                  query Foo($var: Boolean)  {
                     name @onQuery   
                 } 
             ");
-        }
+    }
 
-        [Fact]
-        public void WithMisplacedDirectivesOnFieldRepeatedly()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void WithMisplacedDirectivesOnFieldRepeatedly()
+    {
+        ExpectErrors(@"
                  query Foo($var: Boolean)  {
                     name @onQuery @include(if: $var) 
                 } 
             ");
-        }
+    }
 
-        [Fact]
-        public void WithMisplacedDirectivesOnMutation()
-        {
-            ExpectErrors(@" 
+    [Fact]
+    public void WithMisplacedDirectivesOnMutation()
+    {
+        ExpectErrors(@" 
                 mutation Bar @onQuery {
                     someField
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void WithMisplacedDirectivesOnSubscription()
-        {
-            ExpectErrors(@" 
+    [Fact]
+    public void WithMisplacedDirectivesOnSubscription()
+    {
+        ExpectErrors(@" 
                 subscription Bar @onQuery {
                     someField
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void WithMisplacedDirectivesOnVariableDefinition()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void WithMisplacedDirectivesOnVariableDefinition()
+    {
+        ExpectErrors(@"
                 query Foo($var: Boolean @onQuery(if: true))  {
                     name  
                 } 
             ");
-        }
+    }
 
-        [Fact]
-        public void WithMisplacedDirectivesOnFragemnt()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void WithMisplacedDirectivesOnFragemnt()
+    {
+        ExpectErrors(@"
                  query Foo($var: Boolean)  { 
                     ...Frag @onQuery
                 }
@@ -258,22 +258,22 @@ namespace HotChocolate.Validation
                     name
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void WithMisplacedVariableDefinitionDirective()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void WithMisplacedVariableDefinitionDirective()
+    {
+        ExpectErrors(@"
                 query Foo($var: Boolean @onField) {
                     name
                 }
             ");
-        }
+    }
         
-        [Fact]
-        public void NoDirectives()
-        {
-            ExpectValid(@"  
+    [Fact]
+    public void NoDirectives()
+    {
+        ExpectValid(@"  
                 {
                     ...Test
                 }
@@ -281,12 +281,12 @@ namespace HotChocolate.Validation
                     name
                 } 
             ");
-        }
+    }
 
-        [Fact]
-        public void UniqueDirectivesInDifferentLocations()
-        {
-            ExpectValid(@"  
+    [Fact]
+    public void UniqueDirectivesInDifferentLocations()
+    {
+        ExpectValid(@"  
                 {
                     ...Test
                 }
@@ -294,12 +294,12 @@ namespace HotChocolate.Validation
                     field @directiveB
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void UniqueDirectivesInSameLocations()
-        {
-            ExpectValid(@"  
+    [Fact]
+    public void UniqueDirectivesInSameLocations()
+    {
+        ExpectValid(@"  
                 {
                     ...Test
                 }
@@ -307,12 +307,12 @@ namespace HotChocolate.Validation
                     field @directiveA @directiveB
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void SameDirectivesInDifferentLocations()
-        {
-            ExpectValid(@"  
+    [Fact]
+    public void SameDirectivesInDifferentLocations()
+    {
+        ExpectValid(@"  
                 {
                     ...Test
                 }
@@ -320,12 +320,12 @@ namespace HotChocolate.Validation
                     field @directiveA
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void SameDirectivesInSimilarLocations()
-        {
-            ExpectValid(@"  
+    [Fact]
+    public void SameDirectivesInSimilarLocations()
+    {
+        ExpectValid(@"  
                 {
                     ...Test
                 }
@@ -334,12 +334,12 @@ namespace HotChocolate.Validation
                     field @directiveA
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void RepeatableDirectivesInSameLocation()
-        {
-            ExpectValid(@"  
+    [Fact]
+    public void RepeatableDirectivesInSameLocation()
+    {
+        ExpectValid(@"  
                 {
                     ...Test
                 }
@@ -347,12 +347,12 @@ namespace HotChocolate.Validation
                     field @repeatable @repeatable
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void DuplicateDirectivesInOneLocation()
-        {
-            ExpectErrors(@"  
+    [Fact]
+    public void DuplicateDirectivesInOneLocation()
+    {
+        ExpectErrors(@"  
                 {
                     ...Test
                 }
@@ -360,12 +360,12 @@ namespace HotChocolate.Validation
                     field @directiveA @directiveA
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void ManyDuplicateDirectivesInOneLocation()
-        {
-            ExpectErrors(@"  
+    [Fact]
+    public void ManyDuplicateDirectivesInOneLocation()
+    {
+        ExpectErrors(@"  
                 {
                     ...Test
                 }
@@ -373,12 +373,12 @@ namespace HotChocolate.Validation
                     field @directiveA @directiveA @directiveA
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void DifferentDuplicateDirectivesInOneLocation()
-        {
-            ExpectErrors(@"  
+    [Fact]
+    public void DifferentDuplicateDirectivesInOneLocation()
+    {
+        ExpectErrors(@"  
                 {
                     ...Test
                 }
@@ -386,12 +386,12 @@ namespace HotChocolate.Validation
                     field @directiveA @directiveB @directiveA @directiveB
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void DuplicateDirectivesInManyLocations()
-        {
-            ExpectErrors(@"  
+    [Fact]
+    public void DuplicateDirectivesInManyLocations()
+    {
+        ExpectErrors(@"  
                 {
                     ...Test
                 }
@@ -399,6 +399,5 @@ namespace HotChocolate.Validation
                     field @directiveA @directiveA
                 }
             ");
-        }
     }
 }

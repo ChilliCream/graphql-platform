@@ -11,18 +11,14 @@ namespace HotChocolate.Types.Interceptors;
 
 internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
 {
-    public override bool CanHandle(ITypeSystemObjectContext context)
-        => context.DescriptorContext.Options.ValidatePipelineOrder &&
-           context.Type is ObjectType;
-
     public override void OnValidateType(
         ITypeSystemObjectContext validationContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
-        if (definition is ObjectTypeDefinition objectTypeDef)
+        if (validationContext.DescriptorContext.Options.ValidatePipelineOrder &&
+            definition is ObjectTypeDefinition objectTypeDef)
         {
-            foreach (ObjectFieldDefinition field in objectTypeDef.Fields)
+            foreach (var field in objectTypeDef.Fields)
             {
                 if (field.MiddlewareDefinitions.Count > 1)
                 {
@@ -48,7 +44,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
         var useSorting = false;
         var error = false;
 
-        foreach (FieldMiddlewareDefinition definition in middlewareDefinitions)
+        foreach (var definition in middlewareDefinitions)
         {
             if (definition.Key is not null)
             {
@@ -108,7 +104,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
         var next = false;
         var other = false;
 
-        foreach (FieldMiddlewareDefinition definition in middlewareDefinitions)
+        foreach (var definition in middlewareDefinitions)
         {
             if (definition.Key is not null)
             {

@@ -11,7 +11,7 @@ export const Intro = styled.header`
   background-color: ${THEME_COLORS.primary};
   background: linear-gradient(
     180deg,
-    ${THEME_COLORS.primary} 70%,
+    ${THEME_COLORS.primary} 0%,
     #3d5f9f 100%
   ); //before: ff892a
 
@@ -25,7 +25,6 @@ export const Title = styled.h3`
   font-size: 1em;
   text-align: center;
   color: ${THEME_COLORS.quaternary};
-  text-transform: uppercase;
 `;
 
 export const Hero = styled.h1`

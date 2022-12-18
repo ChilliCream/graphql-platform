@@ -1,1 +1,0 @@
-﻿find({ }, { "Foo.BarEnum" : 1, "Number" : 1 })

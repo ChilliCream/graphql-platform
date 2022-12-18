@@ -80,7 +80,7 @@ public class TupleBuilder : ICode
 
             using (writer.IncreaseIndent())
             {
-                for (int i = 0; i < _members.Count; i++)
+                for (var i = 0; i < _members.Count; i++)
                 {
                     writer.WriteIndent();
                     _members[i].Build(writer);

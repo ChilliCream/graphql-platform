@@ -1,20 +1,20 @@
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HotChocolate.Validation
-{
-    public class FragmentNameUniquenessRuleTests
-        : DocumentValidatorVisitorTestBase
-    {
-        public FragmentNameUniquenessRuleTests()
-            : base(builder => builder.AddFragmentRules())
-        {
-        }
+namespace HotChocolate.Validation;
 
-        [Fact]
-        public void UniqueFragments()
-        {
-            ExpectValid(@"
+public class FragmentNameUniquenessRuleTests
+    : DocumentValidatorVisitorTestBase
+{
+    public FragmentNameUniquenessRuleTests()
+        : base(builder => builder.AddFragmentRules())
+    {
+    }
+
+    [Fact]
+    public void UniqueFragments()
+    {
+        ExpectValid(@"
                 {
                     dog {
                         ...fragmentOne
@@ -32,12 +32,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void DuplicateFragments()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void DuplicateFragments()
+    {
+        ExpectErrors(@"
                 {
                     dog {
                         ...fragmentOne
@@ -54,16 +54,16 @@ namespace HotChocolate.Validation
                     }
                 }
             ",
-             t => Assert.Equal(
+            t => Assert.Equal(
                 "There are multiple fragments with the name `fragmentOne`.",
                 t.Message));
-        }
+    }
 
-        [Fact]
-        public void OneFragment()
-        {
-            // arrange
-            ExpectValid(@"
+    [Fact]
+    public void OneFragment()
+    {
+        // arrange
+        ExpectValid(@"
                 {
                     ...fragA
                 }
@@ -74,13 +74,13 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void ManyFragments()
-        {
-            // arrange
-            ExpectValid(@"
+    [Fact]
+    public void ManyFragments()
+    {
+        // arrange
+        ExpectValid(@"
                 {
                     ...fragA
                     ...fragB
@@ -103,13 +103,13 @@ namespace HotChocolate.Validation
                     anyArg
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void InlineFragmentsAreAlwaysUnique()
-        {
-            // arrange
-            ExpectValid(@"
+    [Fact]
+    public void InlineFragmentsAreAlwaysUnique()
+    {
+        // arrange
+        ExpectValid(@"
                 {
                     ...on Query {
                         arguments { 
@@ -123,13 +123,13 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void FragmentAndOperationNamedTheSame()
-        {
-            // arrange
-            ExpectValid(@"
+    [Fact]
+    public void FragmentAndOperationNamedTheSame()
+    {
+        // arrange
+        ExpectValid(@"
                 query Foo {
                     ...Foo
                 }
@@ -140,13 +140,13 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void FragmentsNamedTheSame()
-        {
-            // arrange
-            ExpectErrors(@"
+    [Fact]
+    public void FragmentsNamedTheSame()
+    {
+        // arrange
+        ExpectErrors(@"
                 {
                     ...fragA
                 }
@@ -163,13 +163,13 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void FragmentsNamedTheSameWithoutBeingReferenced()
-        {
-            // arrange
-            ExpectErrors(@"
+    [Fact]
+    public void FragmentsNamedTheSameWithoutBeingReferenced()
+    {
+        // arrange
+        ExpectErrors(@"
                 fragment fragA on Query {
                     arguments { 
                         idArgField
@@ -182,6 +182,5 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
     }
 }

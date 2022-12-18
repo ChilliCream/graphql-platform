@@ -24,8 +24,8 @@ namespace HotChocolate.Analyzers
             {
                 try
                 {
-                    string json = File.ReadAllText(configLocation);
-                    GraphQLConfig config = GraphQLConfig.FromJson(json);
+                    var json = File.ReadAllText(configLocation);
+                    var config = GraphQLConfig.FromJson(json);
                     config.Location = configLocation;
                     list.Add(config);
                 }
@@ -62,7 +62,7 @@ namespace HotChocolate.Analyzers
             var rootDirectory = GetDirectoryName(config.Location) + DirectorySeparatorChar;
             var glob = Glob.Parse(config.Documents);
 
-            foreach (string file in context.AdditionalFiles
+            foreach (var file in context.AdditionalFiles
                 .Select(t => t.Path)
                 .Where(t => GetExtension(t).Equals(
                     GraphQLExtension,
@@ -71,7 +71,7 @@ namespace HotChocolate.Analyzers
             {
                 try
                 {
-                    DocumentNode document = Utf8GraphQLParser.Parse(File.ReadAllBytes(file));
+                    var document = Utf8GraphQLParser.Parse(File.ReadAllBytes(file));
 
                     if (!document.Definitions.OfType<IExecutableDefinitionNode>().Any())
                     {

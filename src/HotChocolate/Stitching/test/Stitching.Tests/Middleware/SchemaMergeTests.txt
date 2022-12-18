@@ -47,7 +47,7 @@ namespace HotChocolate.Stitching
             using (IServiceScope scope = services.CreateScope())
             {
                 // some query to trigger the merging of the schemas
-                IReadOnlyQueryRequest request =
+                IQueryRequest request =
                     QueryRequestBuilder.New()
                         .SetQuery($@"
                             query a($contractId: ID!) {{
@@ -100,7 +100,7 @@ namespace HotChocolate.Stitching
             using (IServiceScope scope = services.CreateScope())
             {
                 // some query to trigger the merging of the schemas
-                IReadOnlyQueryRequest request =
+                IQueryRequest request =
                     QueryRequestBuilder.New()
                         .SetQuery($@"
                             query a($contractId: ID!) {{
