@@ -1,6 +1,8 @@
 import React, { FC } from "react";
 import styled from "styled-components";
-import TimesIconSvg from "../../images/times.svg";
+
+// Icons
+import TimesIconSvg from "@/images/times.svg";
 
 export interface DocPagePaneHeaderProps {
   readonly showWhenScreenWidthIsSmallerThan: number;

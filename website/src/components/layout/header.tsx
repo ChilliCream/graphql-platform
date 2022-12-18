@@ -11,6 +11,12 @@ import React, {
   useState,
 } from "react";
 import styled, { createGlobalStyle } from "styled-components";
+
+import { WorkshopNdcLondon } from "@/components/images/workshop-ndc-london";
+import { IconContainer } from "@/components/misc/icon-container";
+import { Link } from "@/components/misc/link";
+import { Logo } from "@/components/misc/logo";
+import { SearchModal } from "@/components/misc/search-modal";
 import {
   DocsJson,
   DocsJsonVersions,
@@ -18,10 +24,14 @@ import {
   Maybe,
   SiteSiteMetadataTools,
 } from "@/graphql-types";
+import { FONT_FAMILY_HEADING, THEME_COLORS } from "@/shared-style";
+import { useObservable } from "@/state";
+
+// Icons
 import AngleRightIconSvg from "@/images/angle-right.svg";
+import ArrowDownSvg from "@/images/arrow-down.svg";
 import BarsIconSvg from "@/images/bars.svg";
-import LogoTextSvg from "@/images/chillicream-text.svg";
-import LogoIconSvg from "@/images/chillicream-winking.svg";
+import ExternalLinkSvg from "@/images/external-link.svg";
 import GithubIconSvg from "@/images/github.svg";
 import NewspaperIconSvg from "@/images/newspaper.svg";
 import SearchIconSvg from "@/images/search.svg";
@@ -29,15 +39,10 @@ import SlackIconSvg from "@/images/slack.svg";
 import TimesIconSvg from "@/images/times.svg";
 import TwitterIconSvg from "@/images/twitter.svg";
 import YouTubeIconSvg from "@/images/youtube.svg";
-import ArrowDownSvg from "@/images/arrow-down.svg";
-import ExternalLinkSvg from "@/images/external-link.svg";
 
-import { FONT_FAMILY_HEADING, THEME_COLORS } from "@/shared-style";
-import { useObservable } from "@/state";
-import { WorkshopNdcLondon } from "@/components/images/workshop-ndc-london";
-import { IconContainer } from "@/components/misc/icon-container";
-import { Link } from "@/components/misc/link";
-import { SearchModal } from "@/components/misc/search-modal";
+// Logos
+import LogoTextSvg from "@/images/logo/chillicream-text.svg";
+import LogoIconSvg from "@/images/logo/chillicream-winking.svg";
 
 export const Header: FC = () => {
   const containerRef = useRef<HTMLHeadingElement>(null);
@@ -141,14 +146,14 @@ export const Header: FC = () => {
       <BodyStyle disableScrolling={topNavOpen} />
       <ContainerWrapper>
         <LogoLink to="/">
-          <LogoIcon />
-          <LogoText />
+          <LogoIcon {...LogoIconSvg} />
+          <LogoText {...LogoTextSvg} />
         </LogoLink>
         <Navigation open={topNavOpen}>
           <NavigationHeader>
             <LogoLink to="/">
-              <LogoIcon />
-              <LogoText />
+              <LogoIcon {...LogoIconSvg} />
+              <LogoText {...LogoTextSvg} />
             </LogoLink>
             <HamburgerCloseButton onClick={handleTopNavClose}>
               <HamburgerCloseIcon />
@@ -233,13 +238,13 @@ const LogoLink = styled(Link)`
   height: 60px;
 `;
 
-const LogoIcon = styled(LogoIconSvg)`
+const LogoIcon = styled(Logo)`
   height: 40px;
   fill: ${THEME_COLORS.textContrast};
   transition: fill 0.2s ease-in-out;
 `;
 
-const LogoText = styled(LogoTextSvg)`
+const LogoText = styled(Logo)`
   display: none;
   padding-left: 15px;
   height: 24px;

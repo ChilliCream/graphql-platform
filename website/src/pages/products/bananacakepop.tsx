@@ -10,18 +10,17 @@ import React, {
 } from "react";
 import styled, { css } from "styled-components";
 import { parse } from "yaml";
-import { BananaCakePop } from "../../components/images/banana-cake-pop";
-import { Layout } from "../../components/layout";
-import { Link } from "../../components/misc/link";
-import { Intro } from "../../components/misc/page-elements";
-import { SEO } from "../../components/misc/seo";
-import { Spinner } from "../../components/misc/spinner";
+
+import { BananaCakePop } from "@/components/images/banana-cake-pop";
+import { Layout } from "@/components/layout";
+import { Link } from "@/components/misc/link";
+import { Intro } from "@/components/misc/page-elements";
+import { SEO } from "@/components/misc/seo";
+import { Spinner } from "@/components/misc/spinner";
 import {
   CompaniesSection,
   MostRecentBcpBlogPostsSection,
-} from "../../components/widgets";
-import ArrowDownIconSvg from "../../images/arrow-down.svg";
-import CircleDownIconSvg from "../../images/circle-down.svg";
+} from "@/components/widgets";
 import {
   FONT_FAMILY_HEADING,
   IsDesktop,
@@ -30,7 +29,11 @@ import {
   IsSmallTablet,
   IsTablet,
   THEME_COLORS,
-} from "../../shared-style";
+} from "@/shared-style";
+
+// Icons
+import ArrowDownIconSvg from "@/images/arrow-down.svg";
+import CircleDownIconSvg from "@/images/circle-down.svg";
 
 const DOWNLOAD_STABLE_BASE_URL =
   "https://download.chillicream.com/bananacakepop/";

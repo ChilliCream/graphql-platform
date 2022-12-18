@@ -3,14 +3,15 @@ import { GatsbyImage } from "gatsby-plugin-image";
 import { MDXRenderer } from "gatsby-plugin-mdx";
 import React, { FC } from "react";
 import styled from "styled-components";
-import { BlogArticleFragment } from "../../../graphql-types";
-import { Article } from "../articles/article";
-import { ArticleComments } from "../articles/article-comments";
+
+import { Article } from "@/components/articles/article";
+import { ArticleComments } from "@/components/articles/article-comments";
 import {
   ArticleContent,
   ArticleHeader,
   ArticleTitle,
-} from "../articles/article-elements";
+} from "@/components/articles/article-elements";
+import { BlogArticleFragment } from "@/graphql-types";
 import { BlogArticleMetadata } from "./blog-article-metadata";
 import { BlogArticleSharebar } from "./blog-article-sharebar";
 import { BlogArticleTags } from "./blog-article-tags";

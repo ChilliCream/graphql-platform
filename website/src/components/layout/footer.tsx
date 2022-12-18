@@ -1,16 +1,22 @@
 import { graphql, useStaticQuery } from "gatsby";
 import React, { FC } from "react";
 import styled from "styled-components";
-import { GetFooterDataQuery } from "../../../graphql-types";
-import LogoTextSvg from "../../images/chillicream-text.svg";
-import LogoIconSvg from "../../images/chillicream.svg";
-import GithubIconSvg from "../../images/github.svg";
-import SlackIconSvg from "../../images/slack.svg";
-import TwitterIconSvg from "../../images/twitter.svg";
-import YouTubeIconSvg from "../../images/youtube.svg";
-import { FONT_FAMILY_HEADING, THEME_COLORS } from "../../shared-style";
-import { IconContainer } from "../misc/icon-container";
-import { Link } from "../misc/link";
+
+import { IconContainer } from "@/components/misc/icon-container";
+import { Link } from "@/components/misc/link";
+import { Logo } from "@/components/misc/logo";
+import { GetFooterDataQuery } from "@/graphql-types";
+import { FONT_FAMILY_HEADING, THEME_COLORS } from "@/shared-style";
+
+// Icons
+import GithubIconSvg from "@/images/github.svg";
+import SlackIconSvg from "@/images/slack.svg";
+import TwitterIconSvg from "@/images/twitter.svg";
+import YouTubeIconSvg from "@/images/youtube.svg";
+
+// Logos
+import LogoTextSvg from "@/images/logo/chillicream-text.svg";
+import LogoIconSvg from "@/images/logo/chillicream.svg";
 
 export const Footer: FC = () => {
   const data = useStaticQuery<GetFooterDataQuery>(graphql`
@@ -47,10 +53,10 @@ export const Footer: FC = () => {
     <Container>
       <Section>
         <About>
-          <Logo>
-            <LogoIcon />
-            <LogoText />
-          </Logo>
+          <LogoContainer>
+            <LogoIcon {...LogoIconSvg} />
+            <LogoText {...LogoTextSvg} />
+          </LogoContainer>
           <Description>
             We at ChilliCream build the ultimate GraphQL platform.
             <br />
@@ -148,7 +154,7 @@ const About = styled.div`
   padding: 0 20px;
 `;
 
-const Logo = styled.div`
+const LogoContainer = styled.div`
   display: flex;
   flex: 0 0 auto;
   flex-direction: row;
@@ -156,12 +162,12 @@ const Logo = styled.div`
   margin-bottom: 10px;
 `;
 
-const LogoIcon = styled(LogoIconSvg)`
+const LogoIcon = styled(Logo)`
   height: 40px;
   fill: ${THEME_COLORS.footerText};
 `;
 
-const LogoText = styled(LogoTextSvg)`
+const LogoText = styled(Logo)`
   padding-left: 15px;
   height: 24px;
   fill: ${THEME_COLORS.footerText};

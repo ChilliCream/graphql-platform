@@ -5,11 +5,12 @@ import { useDispatch } from "react-redux";
 import { asyncScheduler } from "rxjs";
 import { throttleTime } from "rxjs/operators";
 import styled, { css } from "styled-components";
-import { ArticleSectionsFragment } from "../../../graphql-types";
-import { THEME_COLORS } from "../../shared-style";
-import { useObservable } from "../../state";
-import { closeAside } from "../../state/common";
-import { MostProminentSection } from "../doc-page/doc-page-elements";
+
+import { MostProminentSection } from "@/components/doc-page/doc-page-elements";
+import { ArticleSectionsFragment } from "@/graphql-types";
+import { THEME_COLORS } from "@/shared-style";
+import { useObservable } from "@/state";
+import { closeAside } from "@/state/common";
 
 const MAX_TOC_DEPTH = 2;
 

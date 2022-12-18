@@ -1,12 +1,15 @@
 import { graphql } from "gatsby";
 import React, { FC } from "react";
 import styled from "styled-components";
-import { DocPageCommunityFragment } from "../../../graphql-types";
-import GitHubIconSvg from "../../images/github.svg";
-import SlackIconSvg from "../../images/slack.svg";
-import { THEME_COLORS } from "../../shared-style";
-import { IconContainer } from "../misc/icon-container";
-import { Link } from "../misc/link";
+
+import { IconContainer } from "@/components/misc/icon-container";
+import { Link } from "@/components/misc/link";
+import { DocPageCommunityFragment } from "@/graphql-types";
+import { THEME_COLORS } from "@/shared-style";
+
+// Icons
+import GitHubIconSvg from "@/images/github.svg";
+import SlackIconSvg from "@/images/slack.svg";
 
 export interface DocPageCommunityProps {
   readonly data: DocPageCommunityFragment;
