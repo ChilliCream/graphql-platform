@@ -2,13 +2,14 @@ import { graphql, useStaticQuery } from "gatsby";
 import React, { FC } from "react";
 import { Carousel } from "react-responsive-carousel";
 import styled from "styled-components";
-import { GetIndexPageDataQuery } from "../../graphql-types";
-import { BananaCakePop } from "../components/images/banana-cake-pop";
-import { BlogPostBananaCakePopCloud } from "../components/images/blog-post-banana-cake-pop-cloud";
-import { BlogPostEFMeetsGraphQL } from "../components/images/blog-post-ef-meets-graphql";
-import { BlogPostHotChocolate12 } from "../components/images/blog-post-hot-chocolate-12";
-import { Layout } from "../components/layout";
-import { Link } from "../components/misc/link";
+
+import { BananaCakePop } from "@/components/images/banana-cake-pop";
+import { BlogPostBananaCakePopCloud } from "@/components/images/blog-post-banana-cake-pop-cloud";
+import { BlogPostEFMeetsGraphQL } from "@/components/images/blog-post-ef-meets-graphql";
+import { BlogPostHotChocolate12 } from "@/components/images/blog-post-hot-chocolate-12";
+import { Layout } from "@/components/layout";
+import { Artwork } from "@/components/misc/artwork";
+import { Link } from "@/components/misc/link";
 import {
   ContentContainer,
   EnvelopeIcon,
@@ -17,18 +18,20 @@ import {
   SectionRow,
   SectionTitle,
   SlackIcon,
-} from "../components/misc/marketing-elements";
-import { Hero, Intro } from "../components/misc/page-elements";
-import { SEO } from "../components/misc/seo";
+} from "@/components/misc/marketing-elements";
+import { Hero, Intro } from "@/components/misc/page-elements";
+import { SEO } from "@/components/misc/seo";
 import {
   CompaniesSection,
   MostRecentBlogPostsSection,
-} from "../components/widgets";
-// Images
-import ContactUsSvg from "../images/contact-us.svg";
-import DashboardSvg from "../images/dashboard.svg";
-import GetStartedSvg from "../images/get-started.svg";
-import { THEME_COLORS } from "../shared-style";
+} from "@/components/widgets";
+import { GetIndexPageDataQuery } from "@/graphql-types";
+import { THEME_COLORS } from "@/shared-style";
+
+// Artwork
+import ContactUsSvg from "@/images/artwork/contact-us.svg";
+import DashboardSvg from "@/images/artwork/dashboard.svg";
+import GetStartedSvg from "@/images/artwork/get-started.svg";
 
 const IndexPage: FC = () => {
   const data = useStaticQuery<GetIndexPageDataQuery>(graphql`
@@ -52,7 +55,9 @@ const IndexPage: FC = () => {
           autoPlay
           infiniteLoop
           swipeable
+          emulateTouch
           interval={15000}
+          showArrows={false}
           showStatus={false}
           showThumbs={false}
         >
@@ -94,7 +99,7 @@ const IndexPage: FC = () => {
       <Section>
         <SectionRow>
           <ImageContainer>
-            <DashboardSvg />
+            <Artwork {...DashboardSvg} />
           </ImageContainer>
           <ContentContainer>
             <SectionTitle>
@@ -112,7 +117,7 @@ const IndexPage: FC = () => {
       <Section>
         <SectionRow>
           <ImageContainer>
-            <GetStartedSvg />
+            <Artwork {...GetStartedSvg} />
           </ImageContainer>
           <ContentContainer>
             <SectionTitle>Get Started</SectionTitle>
@@ -130,7 +135,7 @@ const IndexPage: FC = () => {
       <Section>
         <SectionRow>
           <ImageContainer>
-            <ContactUsSvg />
+            <Artwork {...ContactUsSvg} />
           </ImageContainer>
           <ContentContainer>
             <SectionTitle>What's your story?</SectionTitle>
@@ -141,9 +146,9 @@ const IndexPage: FC = () => {
                 <EnvelopeIcon />
               </a>{" "}
               or chat with us on{" "}
-              <a href={data.site!.siteMetadata!.tools!.slack!}>
+              <Link to={data.site!.siteMetadata!.tools!.slack!}>
                 <SlackIcon />
-              </a>{" "}
+              </Link>{" "}
               to get in touch with us!
             </p>
           </ContentContainer>
@@ -164,11 +169,6 @@ const Slideshow = styled(Carousel)`
 
   > .carousel {
     position: relative;
-
-    > .control-next,
-    > .control-prev {
-      display: none;
-    }
 
     .control-dots {
       position: absolute;

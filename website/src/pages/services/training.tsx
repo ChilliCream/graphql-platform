@@ -1,6 +1,8 @@
 import React, { FC } from "react";
 import styled, { css } from "styled-components";
+
 import { Layout } from "@/components/layout";
+import { Artwork } from "@/components/misc/artwork";
 import { Link } from "@/components/misc/link";
 import {
   ContentContainer,
@@ -13,8 +15,10 @@ import {
 import { Hero, Intro, Teaser, Title } from "@/components/misc/page-elements";
 import { SEO } from "@/components/misc/seo";
 import { SupportCard } from "@/components/misc/support-card";
-import ContactUsSvg from "@/images/contact-us.svg";
 import { IsPhablet } from "@/shared-style";
+
+// Artwork
+import ContactUsSvg from "@/images/artwork/contact-us.svg";
 
 interface Service {
   readonly kind: "Corporate Training" | "Corporate Workshop";
@@ -133,7 +137,7 @@ const TrainingPage: FC = () => {
       <Section>
         <SectionRow>
           <ImageContainer>
-            <ContactUsSvg />
+            <Artwork {...ContactUsSvg} />
           </ImageContainer>
           <ContentContainer>
             <SectionTitle>Get in Touch</SectionTitle>

@@ -2,9 +2,12 @@ import { graphql } from "gatsby";
 import React, { FC } from "react";
 import { LinkedinShareButton, TwitterShareButton } from "react-share";
 import styled from "styled-components";
-import { BlogArticleSharebarFragment } from "../../../graphql-types";
-import LinkedinIconSvg from "../../images/linkedin-square.svg";
-import TwitterIconSvg from "../../images/twitter-square.svg";
+
+import { BlogArticleSharebarFragment } from "@/graphql-types";
+
+// Icons
+import LinkedinIconSvg from "@/images/linkedin-square.svg";
+import TwitterIconSvg from "@/images/twitter-square.svg";
 
 export interface BlogArticleSharebarProps {
   readonly data: BlogArticleSharebarFragment;

@@ -1,4 +1,8 @@
+import React, { FC } from "react";
+import styled from "styled-components";
+
 import { Layout } from "@/components/layout";
+import { Artwork } from "@/components/misc/artwork";
 import { Link } from "@/components/misc/link";
 import {
   ContentContainer,
@@ -10,11 +14,13 @@ import {
 } from "@/components/misc/marketing-elements";
 import { Hero, Intro, Teaser, Title } from "@/components/misc/page-elements";
 import { SEO } from "@/components/misc/seo";
+
+// Artwork
+import ContactUsSvg from "@/images/artwork/contact-us.svg";
+
+// Icons
 import CheckSvg from "@/images/check.svg";
-import ContactUsSvg from "@/images/contact-us.svg";
 import NoneSvg from "@/images/none.svg";
-import React, { FC } from "react";
-import styled from "styled-components";
 
 interface Plans {
   readonly title: string;
@@ -379,7 +385,7 @@ const SupportPage: FC = () => {
       <Section>
         <SectionRow>
           <ImageContainer>
-            <ContactUsSvg />
+            <Artwork {...ContactUsSvg} />
           </ImageContainer>
           <ContentContainer>
             <SectionTitle>Get in Touch</SectionTitle>

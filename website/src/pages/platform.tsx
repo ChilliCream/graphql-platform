@@ -1,18 +1,22 @@
 import React, { FC } from "react";
-import { BananaCakePop } from "../components/images/banana-cake-pop";
-import { HotChocolate } from "../components/images/hot-chocolate";
-import { Layout } from "../components/layout";
-import { Link } from "../components/misc/link";
+
+import { BananaCakePop } from "@/components/images/banana-cake-pop";
+import { HotChocolate } from "@/components/images/hot-chocolate";
+import { Layout } from "@/components/layout";
+import { Artwork } from "@/components/misc/artwork";
+import { Link } from "@/components/misc/link";
 import {
   ContentContainer,
   ImageContainer,
   Section,
   SectionRow,
   SectionTitle,
-} from "../components/misc/marketing-elements";
-import { Hero, Intro, Teaser, Title } from "../components/misc/page-elements";
-import { SEO } from "../components/misc/seo";
-import UnderConstructionSvg from "../images/under-construction.svg";
+} from "@/components/misc/marketing-elements";
+import { Hero, Intro, Teaser, Title } from "@/components/misc/page-elements";
+import { SEO } from "@/components/misc/seo";
+
+// Artwork
+import UnderConstructionSvg from "@/images/artwork/under-construction.svg";
 
 const PlatformPage: FC = () => {
   return (
@@ -65,13 +69,13 @@ const PlatformPage: FC = () => {
       <Section>
         <SectionRow>
           <ImageContainer>
-            <UnderConstructionSvg />
+            <Artwork {...UnderConstructionSvg} />
           </ImageContainer>
           <ContentContainer>
             <SectionTitle>Strawberry Shake</SectionTitle>
             <p>
-              Strawberry Shake is a tool that generates custom .Net
-              clients for any GraphQL endpoint.
+              Strawberry Shake is a tool that generates custom .Net clients for
+              any GraphQL endpoint.
             </p>
             <Link to="/docs/strawberryshake">Learn more</Link>
           </ContentContainer>

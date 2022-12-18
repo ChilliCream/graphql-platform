@@ -1,5 +1,6 @@
 import styled, { css } from "styled-components";
-import { IsMobile, IsSmallDesktop, THEME_COLORS } from "../../shared-style";
+
+import { IsMobile, IsSmallDesktop, THEME_COLORS } from "@/shared-style";
 
 export const Intro = styled.header`
   display: flex;

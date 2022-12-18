@@ -100,6 +100,15 @@ module.exports = {
       options: {
         rule: {
           include: /images/,
+          exclude: /images\/(artwork|companies|logo)/,
+        },
+      },
+    },
+    {
+      resolve: require.resolve(`./plugins/gatsby-plugin-svg-sprite`),
+      options: {
+        rule: {
+          include: /images\/(artwork|companies|logo)/,
         },
       },
     },

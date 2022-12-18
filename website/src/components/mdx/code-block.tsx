@@ -2,7 +2,8 @@ import Highlight, { Language } from "prism-react-renderer";
 import Prism from "prismjs";
 import React, { FC } from "react";
 import styled from "styled-components";
-import { FONT_FAMILY_CODE } from "../../shared-style";
+
+import { FONT_FAMILY_CODE } from "@/shared-style";
 import { Copy } from "./copy";
 
 export interface CodeBlockProps {

@@ -1,8 +1,11 @@
 import styled from "styled-components";
-import CheckIconSvg from "../../images/check.svg";
-import EnvelopeIconSvg from "../../images/envelope.svg";
-import SlackIconSvg from "../../images/slack.svg";
-import { THEME_COLORS } from "../../shared-style";
+
+import { THEME_COLORS } from "@/shared-style";
+
+// Icons
+import CheckIconSvg from "@/images/check.svg";
+import EnvelopeIconSvg from "@/images/envelope.svg";
+import SlackIconSvg from "@/images/slack.svg";
 
 export const SectionRow = styled.div`
   display: flex;
