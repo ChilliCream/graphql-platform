@@ -33,6 +33,7 @@ import ArrowDownSvg from "@/images/arrow-down.svg";
 import BarsIconSvg from "@/images/bars.svg";
 import ExternalLinkSvg from "@/images/external-link.svg";
 import GithubIconSvg from "@/images/github.svg";
+import LinkedInIconSvg from "@/images/linkedin.svg";
 import NewspaperIconSvg from "@/images/newspaper.svg";
 import SearchIconSvg from "@/images/search.svg";
 import SlackIconSvg from "@/images/slack.svg";
@@ -56,6 +57,7 @@ export const Header: FC = () => {
           tools {
             bcp
             github
+            linkedIn
             shop
             slack
             twitter
@@ -434,7 +436,7 @@ interface DeveloperNavItemProps {
   >[];
   readonly tools: Pick<
     SiteSiteMetadataTools,
-    "bcp" | "github" | "shop" | "slack" | "twitter" | "youtube"
+    "bcp" | "github" | "linkedIn" | "shop" | "slack" | "twitter" | "youtube"
   >;
 }
 
@@ -489,6 +491,12 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
               <GithubIconSvg />
             </IconContainer>
             GitHub
+          </SubNavLink>
+          <SubNavLink to={tools.linkedIn!} onClick={hideSubNav}>
+            <IconContainer size={20}>
+              <LinkedInIconSvg />
+            </IconContainer>
+            LinkedIn
           </SubNavLink>
         </SubNavGroup>
       </SubNavMain>

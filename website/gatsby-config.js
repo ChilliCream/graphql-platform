@@ -10,6 +10,7 @@ module.exports = {
     tools: {
       bcp: `https://eat.bananacakepop.com`,
       github: `https://github.com/ChilliCream/hotchocolate`,
+      linkedIn: `https://www.linkedin.com/company/chillicream`,
       shop: `https://store.chillicream.com`,
       slack: `https://slack.chillicream.com/`,
       twitter: `https://twitter.com/Chilli_Cream`,

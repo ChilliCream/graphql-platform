@@ -10,6 +10,7 @@ import { FONT_FAMILY_HEADING, THEME_COLORS } from "@/shared-style";
 
 // Icons
 import GithubIconSvg from "@/images/github.svg";
+import LinkedInIconSvg from "@/images/linkedin.svg";
 import SlackIconSvg from "@/images/slack.svg";
 import TwitterIconSvg from "@/images/twitter.svg";
 import YouTubeIconSvg from "@/images/youtube.svg";
@@ -25,6 +26,7 @@ export const Footer: FC = () => {
         siteMetadata {
           tools {
             github
+            linkedIn
             shop
             slack
             twitter
@@ -88,6 +90,12 @@ export const Footer: FC = () => {
                 <TwitterIcon />
               </IconContainer>{" "}
               to stay up-to-date
+            </ConnectLink>
+            <ConnectLink to={tools!.linkedIn!}>
+              <IconContainer>
+                <LinkedInIcon />
+              </IconContainer>{" "}
+              to connect
             </ConnectLink>
           </Connect>
         </About>
@@ -213,6 +221,11 @@ const ConnectLink = styled(Link)`
 
 const GithubIcon = styled(GithubIconSvg)`
   height: 26px;
+  fill: ${THEME_COLORS.footerText};
+`;
+
+const LinkedInIcon = styled(LinkedInIconSvg)`
+  height: 22px;
   fill: ${THEME_COLORS.footerText};
 `;
 
