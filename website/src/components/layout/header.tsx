@@ -12,11 +12,10 @@ import React, {
 } from "react";
 import styled, { createGlobalStyle } from "styled-components";
 
-import { WorkshopNdcLondon } from "@/components/images/workshop-ndc-london";
 import { IconContainer } from "@/components/misc/icon-container";
 import { Link } from "@/components/misc/link";
-import { Logo } from "@/components/misc/logo";
 import { SearchModal } from "@/components/misc/search-modal";
+import { Brand, Logo } from "@/components/sprites";
 import {
   DocsJson,
   DocsJsonVersions,
@@ -27,19 +26,24 @@ import {
 import { FONT_FAMILY_HEADING, THEME_COLORS } from "@/shared-style";
 import { useObservable } from "@/state";
 
+// Brands
+import GithubIconSvg from "@/images/brands/github.svg";
+import LinkedInIconSvg from "@/images/brands/linkedin.svg";
+import SlackIconSvg from "@/images/brands/slack.svg";
+import TwitterIconSvg from "@/images/brands/twitter.svg";
+import YouTubeIconSvg from "@/images/brands/youtube.svg";
+
 // Icons
 import AngleRightIconSvg from "@/images/angle-right.svg";
 import ArrowDownSvg from "@/images/arrow-down.svg";
 import BarsIconSvg from "@/images/bars.svg";
 import ExternalLinkSvg from "@/images/external-link.svg";
-import GithubIconSvg from "@/images/github.svg";
-import LinkedInIconSvg from "@/images/linkedin.svg";
 import NewspaperIconSvg from "@/images/newspaper.svg";
 import SearchIconSvg from "@/images/search.svg";
-import SlackIconSvg from "@/images/slack.svg";
 import TimesIconSvg from "@/images/times.svg";
-import TwitterIconSvg from "@/images/twitter.svg";
-import YouTubeIconSvg from "@/images/youtube.svg";
+
+// Images
+import { WorkshopNdcLondon } from "@/components/images/workshop-ndc-london";
 
 // Logos
 import LogoTextSvg from "@/images/logo/chillicream-text.svg";
@@ -468,33 +472,33 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
             </IconContainer>
             Blog
           </SubNavLink>
-          <SubNavLink to={tools.slack!} onClick={hideSubNav}>
-            <IconContainer size={20}>
-              <SlackIconSvg />
-            </IconContainer>
-            Slack / Community
-          </SubNavLink>
-          <SubNavLink to={tools.twitter!} onClick={hideSubNav}>
-            <IconContainer size={20}>
-              <TwitterIconSvg />
-            </IconContainer>
-            Twitter
-          </SubNavLink>
-          <SubNavLink to={tools.youtube!} onClick={hideSubNav}>
-            <IconContainer size={20}>
-              <YouTubeIconSvg />
-            </IconContainer>
-            YouTube Channel
-          </SubNavLink>
           <SubNavLink to={tools.github!} onClick={hideSubNav}>
             <IconContainer size={20}>
-              <GithubIconSvg />
+              <Brand {...GithubIconSvg} />
             </IconContainer>
             GitHub
           </SubNavLink>
+          <SubNavLink to={tools.slack!} onClick={hideSubNav}>
+            <IconContainer size={20}>
+              <Brand {...SlackIconSvg} />
+            </IconContainer>
+            Slack / Community
+          </SubNavLink>
+          <SubNavLink to={tools.youtube!} onClick={hideSubNav}>
+            <IconContainer size={20}>
+              <Brand {...YouTubeIconSvg} />
+            </IconContainer>
+            YouTube Channel
+          </SubNavLink>
+          <SubNavLink to={tools.twitter!} onClick={hideSubNav}>
+            <IconContainer size={20}>
+              <Brand {...TwitterIconSvg} />
+            </IconContainer>
+            Twitter
+          </SubNavLink>
           <SubNavLink to={tools.linkedIn!} onClick={hideSubNav}>
             <IconContainer size={20}>
-              <LinkedInIconSvg />
+              <Brand {...LinkedInIconSvg} />
             </IconContainer>
             LinkedIn
           </SubNavLink>
@@ -782,7 +786,7 @@ const SubNavSeparator = styled.div`
   background-color: ${THEME_COLORS.backgroundAlt};
 
   @media only screen and ((min-width: 600px) and (min-height: 430px)) {
-    margin: 5px 20px;
+    margin: -5px 20px;
   }
 `;
 

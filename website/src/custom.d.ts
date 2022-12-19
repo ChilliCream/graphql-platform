@@ -3,18 +3,25 @@ declare module "*.svg" {
   export default content;
 }
 
+type Sprite = Record<string, unknown> & Record<"id", string>;
+
 declare module "@/images/artwork/*.svg" {
-  const content: Record<string, unknown>;
+  const content: Sprite;
+  export default content;
+}
+
+declare module "@/images/brands/*.svg" {
+  const content: Sprite;
   export default content;
 }
 
 declare module "@/images/companies/*.svg" {
-  const content: Record<string, unknown>;
+  const content: Sprite;
   export default content;
 }
 
 declare module "@/images/logo/*.svg" {
-  const content: Record<string, unknown>;
+  const content: Sprite;
   export default content;
 }
 

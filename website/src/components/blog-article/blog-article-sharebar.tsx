@@ -3,11 +3,12 @@ import React, { FC } from "react";
 import { LinkedinShareButton, TwitterShareButton } from "react-share";
 import styled from "styled-components";
 
+import { Brand } from "@/components/sprites";
 import { BlogArticleSharebarFragment } from "@/graphql-types";
 
-// Icons
-import LinkedinIconSvg from "@/images/linkedin-square.svg";
-import TwitterIconSvg from "@/images/twitter-square.svg";
+// Brands
+import LinkedInIconSvg from "@/images/brands/linkedin-square.svg";
+import TwitterIconSvg from "@/images/brands/twitter-square.svg";
 
 export interface BlogArticleSharebarProps {
   readonly data: BlogArticleSharebarFragment;
@@ -78,10 +79,10 @@ const ShareButtons = styled.aside`
   }
 `;
 
-const TwitterIcon = styled(TwitterIconSvg)`
+const TwitterIcon = styled(Brand).attrs(TwitterIconSvg)`
   fill: #1da0f2;
 `;
 
-const LinkedinIcon = styled(LinkedinIconSvg)`
+const LinkedinIcon = styled(Brand).attrs(LinkedInIconSvg)`
   fill: #0073b0;
 `;

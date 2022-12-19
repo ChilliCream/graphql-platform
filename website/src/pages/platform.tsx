@@ -3,7 +3,6 @@ import React, { FC } from "react";
 import { BananaCakePop } from "@/components/images/banana-cake-pop";
 import { HotChocolate } from "@/components/images/hot-chocolate";
 import { Layout } from "@/components/layout";
-import { Artwork } from "@/components/misc/artwork";
 import { Link } from "@/components/misc/link";
 import {
   ContentContainer,
@@ -14,6 +13,7 @@ import {
 } from "@/components/misc/marketing-elements";
 import { Hero, Intro, Teaser, Title } from "@/components/misc/page-elements";
 import { SEO } from "@/components/misc/seo";
+import { Artwork } from "@/components/sprites";
 
 // Artwork
 import { SrOnly } from "@/components/misc/sr-only";
