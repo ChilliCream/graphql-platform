@@ -29,6 +29,7 @@ import { GetIndexPageDataQuery } from "@/graphql-types";
 import { THEME_COLORS } from "@/shared-style";
 
 // Artwork
+import { SrOnly } from "@/components/misc/sr-only";
 import ContactUsSvg from "@/images/artwork/contact-us.svg";
 import DashboardSvg from "@/images/artwork/dashboard.svg";
 import GetStartedSvg from "@/images/artwork/get-started.svg";
@@ -110,7 +111,9 @@ const IndexPage: FC = () => {
               from server to client. Fetch once with no more under- or
               over-fetching, just the right amount.
             </p>
-            <Link to="/platform">Learn more</Link>
+            <Link to="/platform">
+              Learn more<SrOnly> about the ChilliCream GraphQL platform</SrOnly>
+            </Link>
           </ContentContainer>
         </SectionRow>
       </Section>
@@ -122,11 +125,13 @@ const IndexPage: FC = () => {
           <ContentContainer>
             <SectionTitle>Get Started</SectionTitle>
             <p>
-              Creating a GraphQL API with Hot Chocolate is very easy. Check out
-              our startup guide and see how simple it is to create your first
-              API.
+              Creating a GraphQL .NET API with Hot Chocolate is very easy. Check
+              out our startup guide and see how simple it is to create your
+              first API.
             </p>
-            <Link to="/docs/hotchocolate">Learn more</Link>
+            <Link to="/docs/hotchocolate">
+              Learn more<SrOnly> on how to build GraphQL .NET APIs</SrOnly>
+            </Link>
           </ContentContainer>
         </SectionRow>
       </Section>
