@@ -8,7 +8,6 @@ import { BlogPostBananaCakePopCloud } from "@/components/images/blog-post-banana
 import { BlogPostEFMeetsGraphQL } from "@/components/images/blog-post-ef-meets-graphql";
 import { BlogPostHotChocolate12 } from "@/components/images/blog-post-hot-chocolate-12";
 import { Layout } from "@/components/layout";
-import { Artwork } from "@/components/misc/artwork";
 import { Link } from "@/components/misc/link";
 import {
   ContentContainer,
@@ -21,6 +20,7 @@ import {
 } from "@/components/misc/marketing-elements";
 import { Hero, Intro } from "@/components/misc/page-elements";
 import { SEO } from "@/components/misc/seo";
+import { Artwork } from "@/components/sprites";
 import {
   CompaniesSection,
   MostRecentBlogPostsSection,
@@ -145,16 +145,17 @@ const IndexPage: FC = () => {
           <ContentContainer>
             <SectionTitle>What's your story?</SectionTitle>
             <p>
-              We would be thrilled to hear your customer success story with Hot
-              Chocolate! Write us an{" "}
+              {
+                "We would be thrilled to hear your customer success story with Hot Chocolate! Write us an "
+              }
               <a href="mailto:contact@chillicream.com">
                 <EnvelopeIcon />
-              </a>{" "}
-              or chat with us on{" "}
+              </a>
+              {" or chat with us on "}
               <Link to={data.site!.siteMetadata!.tools!.slack!}>
                 <SlackIcon />
-              </Link>{" "}
-              to get in touch with us!
+              </Link>
+              {" to get in touch with us!"}
             </p>
           </ContentContainer>
         </SectionRow>

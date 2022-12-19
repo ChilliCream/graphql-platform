@@ -2,7 +2,6 @@ import React, { FC } from "react";
 import styled, { css } from "styled-components";
 
 import { Layout } from "@/components/layout";
-import { Artwork } from "@/components/misc/artwork";
 import { Link } from "@/components/misc/link";
 import {
   ContentContainer,
@@ -15,6 +14,7 @@ import {
 import { Hero, Intro, Teaser, Title } from "@/components/misc/page-elements";
 import { SEO } from "@/components/misc/seo";
 import { SupportCard } from "@/components/misc/support-card";
+import { Artwork } from "@/components/sprites";
 import { IsPhablet } from "@/shared-style";
 
 // Artwork

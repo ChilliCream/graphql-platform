@@ -1,7 +1,6 @@
 import React, { FC } from "react";
 import styled from "styled-components";
 
-import { Company } from "@/components/misc/company";
 import { Link } from "@/components/misc/link";
 import {
   ContentContainer,
@@ -9,6 +8,7 @@ import {
   SectionRow,
   SectionTitle,
 } from "@/components/misc/marketing-elements";
+import { Company } from "@/components/sprites";
 import { THEME_COLORS } from "@/shared-style";
 
 // Logos

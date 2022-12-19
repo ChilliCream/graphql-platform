@@ -4,16 +4,16 @@ import styled from "styled-components";
 
 import { IconContainer } from "@/components/misc/icon-container";
 import { Link } from "@/components/misc/link";
-import { Logo } from "@/components/misc/logo";
+import { Brand, Logo } from "@/components/sprites";
 import { GetFooterDataQuery } from "@/graphql-types";
 import { FONT_FAMILY_HEADING, THEME_COLORS } from "@/shared-style";
 
-// Icons
-import GithubIconSvg from "@/images/github.svg";
-import LinkedInIconSvg from "@/images/linkedin.svg";
-import SlackIconSvg from "@/images/slack.svg";
-import TwitterIconSvg from "@/images/twitter.svg";
-import YouTubeIconSvg from "@/images/youtube.svg";
+// Brands
+import GithubIconSvg from "@/images/brands/github.svg";
+import LinkedInIconSvg from "@/images/brands/linkedin.svg";
+import SlackIconSvg from "@/images/brands/slack.svg";
+import TwitterIconSvg from "@/images/brands/twitter.svg";
+import YouTubeIconSvg from "@/images/brands/youtube.svg";
 
 // Logos
 import LogoTextSvg from "@/images/logo/chillicream-text.svg";
@@ -56,8 +56,8 @@ export const Footer: FC = () => {
       <Section>
         <About>
           <LogoContainer>
-            <LogoIcon {...LogoIconSvg} />
-            <LogoText {...LogoTextSvg} />
+            <LogoIcon />
+            <LogoText />
           </LogoContainer>
           <Description>
             We at ChilliCream build the ultimate GraphQL platform.
@@ -70,32 +70,32 @@ export const Footer: FC = () => {
             <ConnectLink to={tools!.github!}>
               <IconContainer>
                 <GithubIcon />
-              </IconContainer>{" "}
-              to work with us on the platform
+              </IconContainer>
+              {" to work with us on the platform"}
             </ConnectLink>
             <ConnectLink to={tools!.slack!}>
               <IconContainer>
                 <SlackIcon />
-              </IconContainer>{" "}
-              to get in touch with us
+              </IconContainer>
+              {" to get in touch with us"}
             </ConnectLink>
             <ConnectLink to={tools!.youtube!}>
               <IconContainer>
                 <YouTubeIcon />
-              </IconContainer>{" "}
-              to learn new stuff
+              </IconContainer>
+              {" to learn new stuff"}
             </ConnectLink>
             <ConnectLink to={tools!.twitter!}>
               <IconContainer>
                 <TwitterIcon />
-              </IconContainer>{" "}
-              to stay up-to-date
+              </IconContainer>
+              {" to stay up-to-date"}
             </ConnectLink>
             <ConnectLink to={tools!.linkedIn!}>
               <IconContainer>
                 <LinkedInIcon />
-              </IconContainer>{" "}
-              to connect
+              </IconContainer>
+              {" to connect"}
             </ConnectLink>
           </Connect>
         </About>
@@ -170,12 +170,12 @@ const LogoContainer = styled.div`
   margin-bottom: 10px;
 `;
 
-const LogoIcon = styled(Logo)`
+const LogoIcon = styled(Logo).attrs(LogoIconSvg)`
   height: 40px;
   fill: ${THEME_COLORS.footerText};
 `;
 
-const LogoText = styled(Logo)`
+const LogoText = styled(Logo).attrs(LogoTextSvg)`
   padding-left: 15px;
   height: 24px;
   fill: ${THEME_COLORS.footerText};
@@ -219,27 +219,27 @@ const ConnectLink = styled(Link)`
   }
 `;
 
-const GithubIcon = styled(GithubIconSvg)`
+const GithubIcon = styled(Brand).attrs(GithubIconSvg)`
   height: 26px;
   fill: ${THEME_COLORS.footerText};
 `;
 
-const LinkedInIcon = styled(LinkedInIconSvg)`
+const SlackIcon = styled(Brand).attrs(SlackIconSvg)`
   height: 22px;
   fill: ${THEME_COLORS.footerText};
 `;
 
-const SlackIcon = styled(SlackIconSvg)`
+const YouTubeIcon = styled(Brand).attrs(YouTubeIconSvg)`
   height: 22px;
   fill: ${THEME_COLORS.footerText};
 `;
 
-const TwitterIcon = styled(TwitterIconSvg)`
+const TwitterIcon = styled(Brand).attrs(TwitterIconSvg)`
   height: 22px;
   fill: ${THEME_COLORS.footerText};
 `;
 
-const YouTubeIcon = styled(YouTubeIconSvg)`
+const LinkedInIcon = styled(Brand).attrs(LinkedInIconSvg)`
   height: 22px;
   fill: ${THEME_COLORS.footerText};
 `;

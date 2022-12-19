@@ -101,7 +101,7 @@ module.exports = {
       options: {
         rule: {
           include: /images/,
-          exclude: /images\/(artwork|companies|logo)/,
+          exclude: /images\/(artwork|brands|companies|logo)/,
         },
       },
     },
@@ -109,7 +109,7 @@ module.exports = {
       resolve: require.resolve(`./plugins/gatsby-plugin-svg-sprite`),
       options: {
         rule: {
-          include: /images\/(artwork|companies|logo)/,
+          include: /images\/(artwork|brands|companies|logo)/,
         },
       },
     },
