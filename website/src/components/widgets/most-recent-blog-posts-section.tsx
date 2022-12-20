@@ -49,7 +49,7 @@ export const MostRecentBlogPostsSection: FC = () => {
     <Section>
       <SectionRow>
         <ContentContainer noImage>
-          <SectionTitle centerAlways>From our Blog</SectionTitle>
+          <SectionTitle centerAlways>From Our Blog</SectionTitle>
           <Articles>
             {data.allMdx.edges.map(({ node }) => {
               const featuredImage =
