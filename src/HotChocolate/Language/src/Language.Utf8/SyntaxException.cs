@@ -1,25 +1,19 @@
 using System;
-using System.Text;
 
 namespace HotChocolate.Language;
 
 [Serializable]
 public class SyntaxException : Exception
 {
-    private const int _sourceTextRangeSize = 512;
-
     internal SyntaxException(Utf8GraphQLReader reader, string message) : base(message)
     {
         Position = reader.Position;
         Line = reader.Line;
         Column = reader.Column;
-        SourceTextOffset = CalculateSourceTextOffset(reader);
-        SourceText = SliceSourceText(reader, SourceTextOffset);
     }
 
-    internal SyntaxException(Utf8GraphQLReader reader, string message, params object[] args) : this(
-        reader,
-        string.Format(message, args))
+    internal SyntaxException(Utf8GraphQLReader reader, string message, params object[] args)
+        : this(reader, string.Format(message, args))
     {
     }
 
@@ -28,6 +22,7 @@ public class SyntaxException : Exception
     public int Line { get; }
 
     public int Column { get; }
+<<<<<<< Updated upstream
 
     public string SourceText { get; }
 
@@ -63,4 +58,6 @@ public class SyntaxException : Exception
 
         return Encoding.UTF8.GetString(slice);
     }
+=======
+>>>>>>> Stashed changes
 }
