@@ -3,7 +3,7 @@ declare module "*.svg" {
   export default content;
 }
 
-type Sprite = Record<string, unknown> & Record<"id", string>;
+type Sprite = Record<"id" | "viewBox", string>;
 
 declare module "@/images/artwork/*.svg" {
   const content: Sprite;
