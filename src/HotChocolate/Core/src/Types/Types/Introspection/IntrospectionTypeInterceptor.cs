@@ -9,8 +9,7 @@ internal sealed class IntrospectionTypeInterceptor : TypeInterceptor
 {
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition,
-        IDictionary<string, object> contextData)
+        DefinitionBase definition)
     {
         if (definition is ObjectTypeDefinition objectTypeDefinition)
         {

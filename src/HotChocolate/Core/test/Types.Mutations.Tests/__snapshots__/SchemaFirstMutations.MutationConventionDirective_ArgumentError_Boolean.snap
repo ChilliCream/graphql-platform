@@ -1,0 +1,2 @@
+The argument `enabled` of the `@mutation` directive must be null or a boolean value.
+code: HC0071

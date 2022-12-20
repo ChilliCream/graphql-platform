@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Data.Sorting;
 
 namespace HotChocolate.Data.Neo4J.Sorting;

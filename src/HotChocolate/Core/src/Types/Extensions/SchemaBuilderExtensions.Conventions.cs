@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Properties;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
@@ -282,7 +284,7 @@ public static partial class SchemaBuilderExtensions
         where TConcreteConvention : class, TConvention =>
         builder.TryAddConvention(typeof(TConvention), typeof(TConcreteConvention), scope);
 
-    public static ISchemaBuilder AddSchemaDirective(
+    public static ISchemaBuilder TryAddSchemaDirective(
         this ISchemaBuilder builder,
         ISchemaDirective directive)
     {
@@ -293,7 +295,11 @@ public static partial class SchemaBuilderExtensions
             builder.ContextData[SchemaDirectives] = directives;
         }
 
-        directives.Add(directive);
+        if (directives.All(t => !t.Name.EqualsOrdinal(directive.Name)))
+        {
+            directives.Add(directive);
+        }
+
         return builder;
     }
 }

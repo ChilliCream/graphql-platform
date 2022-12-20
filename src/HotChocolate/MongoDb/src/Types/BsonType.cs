@@ -17,8 +17,6 @@ namespace HotChocolate.Types.MongoDb;
 /// </summary>
 public class BsonType : ScalarType
 {
-    private ITypeConverter _converter = default!;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="BsonType"/> class.
     /// </summary>
@@ -45,15 +43,6 @@ public class BsonType : ScalarType
 
     /// <inheritdoc />
     public override Type RuntimeType => typeof(BsonValue);
-
-    /// <inheritdoc />
-    protected override void OnCompleteType(
-        ITypeCompletionContext context,
-        IDictionary<string, object?> contextData)
-    {
-        _converter = context.Services.GetTypeConverter();
-        base.OnCompleteType(context, contextData);
-    }
 
     /// <inheritdoc />
     public override bool IsInstanceOfType(IValueNode valueSyntax)
@@ -93,7 +82,7 @@ public class BsonType : ScalarType
                 when double.TryParse(fvn.Value,
                     NumberStyles.Float | NumberStyles.Integer,
                     CultureInfo.InvariantCulture,
-                    out double f):
+                    out var f):
                 return new BsonDouble(f);
 
             case FloatValueNode fvn:
@@ -114,7 +103,7 @@ public class BsonType : ScalarType
 
             case ObjectValueNode ovn:
                 BsonDocument document = new();
-                foreach (ObjectFieldNode field in ovn.Fields)
+                foreach (var field in ovn.Fields)
                 {
                     document.Add(field.Name.Value, ParseLiteralToBson(field.Value));
                 }
@@ -163,7 +152,7 @@ public class BsonType : ScalarType
                 return new FloatValueNode(f.Value);
 
             // The range of Decimal128 is different. Therefor we have to serialize
-            // it as a string, or else information loss could occure
+            // it as a string, or else information loss could occur
             // see https://jira.mongodb.org/browse/CSHARP-2210
             case BsonDecimal128 d:
                 return new StringValueNode(d.Value.ToString());
@@ -174,9 +163,9 @@ public class BsonType : ScalarType
             case BsonObjectId s:
                 return new StringValueNode(s.Value.ToString());
 
-            case BsonDateTime dateTime when _converter
-                .TryConvert(dateTime.ToNullableUniversalTime(), out string formatedDateTime):
-                return new StringValueNode(formatedDateTime);
+            case BsonDateTime dateTime when Converter
+                .TryConvert(dateTime.ToNullableUniversalTime(), out string formattedDateTime):
+                return new StringValueNode(formattedDateTime);
 
             case BsonBinaryData bd:
                 return new StringValueNode(Convert.ToBase64String(bd.Bytes));
@@ -188,7 +177,7 @@ public class BsonType : ScalarType
         if (value is BsonDocument doc)
         {
             List<ObjectFieldNode> fields = new();
-            foreach (BsonElement field in doc)
+            foreach (var field in doc)
             {
                 fields.Add(new ObjectFieldNode(field.Name, ParseValue(field.Value)));
             }
@@ -199,7 +188,7 @@ public class BsonType : ScalarType
         if (value is BsonArray arr)
         {
             List<IValueNode> valueList = new();
-            foreach (BsonValue element in arr)
+            foreach (var element in arr)
             {
                 valueList.Add(ParseValue(element));
             }
@@ -208,10 +197,10 @@ public class BsonType : ScalarType
         }
 
         var mappedValue = BsonTypeMapper.MapToDotNetValue(value);
-        Type type = mappedValue.GetType();
+        var type = mappedValue.GetType();
 
         if (type.IsValueType &&
-            _converter.TryConvert(type, typeof(string), mappedValue, out object? converted) &&
+            Converter.TryConvert(type, typeof(string), mappedValue, out var converted) &&
             converted is string c)
         {
             return new StringValueNode(c);
@@ -235,7 +224,7 @@ public class BsonType : ScalarType
         switch (runtimeValue)
         {
             case BsonArray arr:
-                object?[] res = new object?[arr.Count];
+                var res = new object?[arr.Count];
                 for (var i = 0; i < arr.Count; i++)
                 {
                     if (!TrySerialize(arr[i], out var s))
@@ -251,7 +240,7 @@ public class BsonType : ScalarType
 
             case BsonDocument doc:
                 Dictionary<string, object?> docRes = new();
-                foreach (BsonElement element in doc)
+                foreach (var element in doc)
                 {
                     if (!TrySerialize(element.Value, out var s))
                     {
@@ -265,10 +254,10 @@ public class BsonType : ScalarType
                 return true;
 
             case BsonDateTime dateTime:
-                DateTime? parsedDateTime = dateTime.ToNullableUniversalTime();
-                if (_converter.TryConvert(parsedDateTime, out string? formatedDateTime))
+                var parsedDateTime = dateTime.ToNullableUniversalTime();
+                if (Converter.TryConvert(parsedDateTime, out string? formattedDateTime))
                 {
-                    resultValue = formatedDateTime;
+                    resultValue = formattedDateTime;
                     return true;
                 }
 
@@ -303,7 +292,7 @@ public class BsonType : ScalarType
                 return true;
 
             // The range of Decimal128 is different. Therefor we have to serialize
-            // it as a string, or else information loss could occure
+            // it as a string, or else information loss could occur
             // see https://jira.mongodb.org/browse/CSHARP-2210
             case BsonDecimal128 d:
                 resultValue = d.Value.ToString();
@@ -316,10 +305,10 @@ public class BsonType : ScalarType
             case BsonValue a:
                 var dotNetValue = BsonTypeMapper.MapToDotNetValue(a);
 
-                Type type = dotNetValue.GetType();
+                var type = dotNetValue.GetType();
 
                 if (type.IsValueType &&
-                    _converter.TryConvert(type, typeof(string), dotNetValue, out object? c) &&
+                    Converter.TryConvert(type, typeof(string), dotNetValue, out var c) &&
                     c is string casted)
                 {
                     resultValue = casted;
@@ -349,7 +338,7 @@ public class BsonType : ScalarType
             case IDictionary<string, object> dictionary:
                 {
                     var result = new BsonDocument();
-                    foreach (KeyValuePair<string, object> element in dictionary)
+                    foreach (var element in dictionary)
                     {
                         if (TryDeserialize(element.Value, out elementValue))
                         {

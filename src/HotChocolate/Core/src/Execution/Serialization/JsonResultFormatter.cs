@@ -4,14 +4,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Utilities;
+using static HotChocolate.Execution.Serialization.JsonNullIgnoreCondition;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Serialization;
@@ -22,19 +21,22 @@ namespace HotChocolate.Execution.Serialization;
 public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecutionResultFormatter
 {
     private readonly JsonWriterOptions _options;
+    private readonly JsonSerializerOptions _serializerOptions;
+    private readonly bool _stripNullProps;
+    private readonly bool _stripNullElements;
 
     /// <summary>
     /// Initializes a new instance of <see cref="JsonResultFormatter"/>.
     /// </summary>
-    /// <param name="indented">
-    /// Defines if the resulting JSON string will contain indentations.
+    /// <param name="options">
+    /// The JSON result formatter options
     /// </param>
-    /// <param name="encoder">
-    /// The JavaScript encoder.
-    /// </param>
-    public JsonResultFormatter(bool indented = false, JavaScriptEncoder? encoder = null)
+    public JsonResultFormatter(JsonResultFormatterOptions options = default)
     {
-        _options = new JsonWriterOptions { Indented = indented, Encoder = encoder };
+        _options = options.CreateWriterOptions();
+        _serializerOptions = options.CreateSerializerOptions();
+        _stripNullProps = options.NullIgnoreCondition is Fields or All;
+        _stripNullElements = options.NullIgnoreCondition is Lists or All;
     }
 
     /// <inheritdoc cref="IExecutionResultFormatter.FormatAsync"/>
@@ -441,6 +443,11 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
 
         foreach (var item in dict)
         {
+            if (item.Value is null && _stripNullProps)
+            {
+                continue;
+            }
+
             writer.WritePropertyName(item.Key);
             WriteFieldValue(writer, item.Value);
         }
@@ -456,6 +463,11 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
 
         foreach (var item in dict)
         {
+            if (item.Value is null && _stripNullProps)
+            {
+                continue;
+            }
+
             writer.WritePropertyName(item.Key);
             WriteFieldValue(writer, item.Value);
         }
@@ -475,11 +487,13 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
         {
             var field = Unsafe.Add(ref searchSpace, i);
 
-            if (field.IsInitialized)
+            if (!field.IsInitialized || (field.Value is null && _stripNullProps))
             {
-                writer.WritePropertyName(field.Name);
-                WriteFieldValue(writer, field.Value);
+                continue;
             }
+
+            writer.WritePropertyName(field.Name);
+            WriteFieldValue(writer, field.Value);
         }
 
         writer.WriteEndObject();
@@ -496,6 +510,12 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
         for (var i = 0; i < list.Count; i++)
         {
             var element = Unsafe.Add(ref searchSpace, i);
+
+            if (element is null && _stripNullElements)
+            {
+                continue;
+            }
+
             WriteFieldValue(writer, element);
         }
 
@@ -510,7 +530,14 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
 
         for (var i = 0; i < list.Count; i++)
         {
-            WriteFieldValue(writer, list[i]);
+            var element = list[i];
+
+            if (element is null && _stripNullElements)
+            {
+                continue;
+            }
+
+            WriteFieldValue(writer, element);
         }
 
         writer.WriteEndArray();
@@ -564,6 +591,11 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
 
         foreach (var item in element.EnumerateObject())
         {
+            if (item.Value.ValueKind is JsonValueKind.Null && _stripNullProps)
+            {
+                continue;
+            }
+
             writer.WritePropertyName(item.Name);
             WriteJsonElement(writer, item.Value);
         }
@@ -579,6 +611,11 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
 
         foreach (var item in element.EnumerateArray())
         {
+            if (item.ValueKind is JsonValueKind.Null && _stripNullElements)
+            {
+                continue;
+            }
+
             WriteJsonElement(writer, item);
         }
 
@@ -606,7 +643,7 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
                 WriteListResult(writer, resultMapList);
                 break;
 
-#if NET5_0_OR_GREATER
+#if NET6_0_OR_GREATER
             case JsonElement element:
                 WriteJsonElement(writer, element);
                 break;
@@ -615,6 +652,10 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
                 writer.WriteRawValue(rawJsonValue.Value.Span, true);
                 break;
 #endif
+            case NeedsFormatting unformatted:
+                unformatted.FormatValue(writer, _serializerOptions);
+                break;
+
             case Dictionary<string, object?> dict:
                 WriteDictionary(writer, dict);
                 break;

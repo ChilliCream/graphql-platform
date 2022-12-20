@@ -233,45 +233,41 @@ public class IntrospectionTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddDocumentFromString(
-                @"
-                        type Query {
-                            foo: String
-                                @foo
-                                @bar(baz: ""ABC"")
-                                @bar(baz: null)
-                                @bar(quox: { a: ""ABC"" })
-                                @bar(quox: { })
-                                @bar
-                        }
+                @"type Query {
+                    foo: String
+                        @foo
+                        @bar(baz: ""ABC"")
+                        @bar(baz: null)
+                        @bar(quox: { a: ""ABC"" })
+                        @bar(quox: { })
+                        @bar
+                }
 
-                        input SomeInput {
-                            a: String!
-                        }
+                input SomeInput {
+                    a: String!
+                }
 
-                        directive @foo on FIELD_DEFINITION
+                directive @foo on FIELD_DEFINITION
 
-                        directive @bar(baz: String quox: SomeInput) repeatable on FIELD_DEFINITION
-                    ")
+                directive @bar(baz: String quox: SomeInput) repeatable on FIELD_DEFINITION")
             .UseField(next => next)
             .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
             .ExecuteRequestAsync(
-                @"
-                        {
-                            __schema {
-                                types {
-                                    fields {
-                                        appliedDirectives {
-                                            name
-                                            args {
-                                                name
-                                                value
-                                            }
-                                        }
+                @"{
+                    __schema {
+                        types {
+                            fields {
+                                appliedDirectives {
+                                    name
+                                    args {
+                                        name
+                                        value
                                     }
                                 }
                             }
                         }
-                    ")
+                    }
+                }")
             .MatchSnapshotAsync();
     }
 

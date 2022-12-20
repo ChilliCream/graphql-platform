@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
@@ -8,16 +7,17 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Interceptors;
 
-internal class TypeValidationTypeInterceptor : TypeInterceptor
+internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
 {
-    public override bool CanHandle(ITypeSystemObjectContext context)
-        => !context.IsIntrospectionType;
-
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
+        if (discoveryContext.IsIntrospectionType)
+        {
+            return;
+        }
+
         switch (definition)
         {
             case ObjectTypeDefinition od:

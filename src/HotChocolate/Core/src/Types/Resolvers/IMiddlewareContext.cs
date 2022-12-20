@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using HotChocolate.Execution;
 using HotChocolate.Types;
 
 #nullable enable
@@ -29,6 +28,11 @@ public interface IMiddlewareContext : IResolverContext
     /// </summary>
     /// <value></value>
     bool IsResultModified { get; }
+
+    /// <summary>
+    /// Allows to modify some aspects of the overall operation result.
+    /// </summary>
+    IOperationResultBuilder OperationResult { get; }
 
     /// <summary>
     /// Executes the field resolver and returns its result.
@@ -64,6 +68,18 @@ public interface IMiddlewareContext : IResolverContext
     /// </returns>
     IReadOnlyDictionary<string, ArgumentValue> ReplaceArguments(
         IReadOnlyDictionary<string, ArgumentValue> newArgumentValues);
+
+    /// <summary>
+    /// Replaces the argument values for the current field execution pipeline.
+    /// </summary>
+    /// <param name="replace">
+    /// A delegate that gets the current argument values and returns the new ones.
+    /// </param>
+    /// <returns>
+    /// Returns the original argument values map so that a middleware is able to conserve them
+    /// and restore the initial state of the context after it finished to execute.
+    /// </returns>
+    IReadOnlyDictionary<string, ArgumentValue> ReplaceArguments(ReplaceArguments replace);
 
     /// <summary>
     /// Replaces a single argument of the current middleware context.

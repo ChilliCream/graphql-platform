@@ -139,30 +139,28 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
-    /// Adds a validation rule that inspects if a GraphQL query document
-    /// exceeds the maximum allowed operation depth.
+    /// Adds a validation rule that restricts the depth of a GraphQL request.
     /// </summary>
-    public static IRequestExecutorBuilder AddMaxExecutionDepthRule(
-        this IRequestExecutorBuilder builder,
-        int maxAllowedExecutionDepth)
-    {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        ConfigureValidation(builder, b => b.AddMaxExecutionDepthRule(maxAllowedExecutionDepth));
-        return builder;
-    }
-
-    /// <summary>
-    /// Adds a validation rule that inspects if a GraphQL query document
-    /// exceeds the maximum allowed operation depth.
-    /// </summary>
+    /// <param name="builder">
+    /// The GraphQL configuration builder.
+    /// </param>
+    /// <param name="maxAllowedExecutionDepth">
+    /// The max allowed GraphQL request depth.
+    /// </param>
+    /// <param name="skipIntrospectionFields">
+    /// Specifies if depth analysis is skipped for introspection queries.
+    /// </param>
+    /// <param name="allowRequestOverrides">
+    /// Defines if request depth overrides are allowed on a per request basis.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> for configuration chaining.
+    /// </returns>
     public static IRequestExecutorBuilder AddMaxExecutionDepthRule(
         this IRequestExecutorBuilder builder,
         int maxAllowedExecutionDepth,
-        bool skipIntrospectionFields)
+        bool skipIntrospectionFields = false,
+        bool allowRequestOverrides = false)
     {
         if (builder is null)
         {
@@ -171,7 +169,10 @@ public static partial class RequestExecutorBuilderExtensions
 
         ConfigureValidation(
             builder,
-            b => b.AddMaxExecutionDepthRule(maxAllowedExecutionDepth, skipIntrospectionFields));
+            b => b.AddMaxExecutionDepthRule(
+                maxAllowedExecutionDepth,
+                skipIntrospectionFields,
+                allowRequestOverrides));
         return builder;
     }
 

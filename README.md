@@ -37,7 +37,7 @@ Our GraphQL client to fetch data from any GraphQL endpoint.
 
 Our DataLoader to solve the N+1 problem.
 
-[Documentation](https://chillicream.com/docs/greendonut/)
+[Documentation](https://chillicream.com/docs/hotchocolate/fetching-data/dataloader/)
 
 ## Roadmap
 

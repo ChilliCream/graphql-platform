@@ -1,12 +1,11 @@
+import { SrOnly } from "@/components/misc/sr-only";
 import { graphql } from "gatsby";
 import React, { FC } from "react";
-import { DocPageFragment } from "../../graphql-types";
-import {
-  DocPage,
-  useProductInformation,
-} from "../components/doc-page/doc-page";
-import { Layout } from "../components/layout";
-import { SEO } from "../components/misc/seo";
+
+import { DocPage, useProductInformation } from "@/components/doc-page/doc-page";
+import { Layout } from "@/components/layout";
+import { SEO } from "@/components/misc/seo";
+import { DocPageFragment } from "@/graphql-types";
 
 export interface DocPageTemplateProps {
   readonly data: DocPageFragment;
@@ -33,7 +32,13 @@ const DocPageTemplate: FC<DocPageTemplateProps> = ({ data, pageContext }) => {
 
   return (
     <Layout>
-      <SEO title={title} />
+      <SEO title={title} description={product?.description || undefined} />
+      {product && (
+        <>
+          <SrOnly className="product-name">{product.name}</SrOnly>
+          <SrOnly className="product-version">{product.version}</SrOnly>
+        </>
+      )}
       <DocPage data={data} originPath={pageContext.originPath} />
     </Layout>
   );

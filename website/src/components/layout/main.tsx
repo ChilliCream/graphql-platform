@@ -1,11 +1,12 @@
-import React, { FC, useEffect, useRef } from "react";
+import React, { FC, PropsWithChildren, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import styled from "styled-components";
-import { hasScrolled } from "../../state/common";
-import { PageTop } from "../misc/page-top";
+
+import { PageTop } from "@/components/misc/page-top";
+import { hasScrolled } from "@/state/common";
 import { Footer } from "./footer";
 
-export const Main: FC = ({ children }) => {
+export const Main: FC<PropsWithChildren<unknown>> = ({ children }) => {
   const ref = useRef<HTMLDivElement>(null);
   const dispatch = useDispatch();
 
@@ -28,7 +29,8 @@ export const Main: FC = ({ children }) => {
       );
     };
 
-    ref.current?.addEventListener("scroll", handleScroll);
+    ref.current?.addEventListener("scroll", handleScroll, { passive: true });
+
     return () => {
       ref.current?.removeEventListener("scroll", handleScroll);
     };

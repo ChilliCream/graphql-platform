@@ -1,8 +1,8 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using static HotChocolate.Properties.AbstractionResources;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 #nullable enable
 
@@ -12,12 +12,9 @@ public sealed class ExtensionData
     : IDictionary<string, object?>
     , IReadOnlyDictionary<string, object?>
 {
-    private ImmutableDictionary<string, object?> _dict =
-        ImmutableDictionary<string, object?>.Empty;
+    private Dictionary<string, object?>? _dict;
 
-    public ExtensionData()
-    {
-    }
+    public ExtensionData() { }
 
     public ExtensionData(ExtensionData extensionData)
     {
@@ -26,209 +23,135 @@ public sealed class ExtensionData
 
     public ExtensionData(IReadOnlyDictionary<string, object?> extensionData)
     {
-        var builder =
-            ImmutableDictionary.CreateBuilder<string, object?>();
-        builder.AddRange(extensionData);
-        _dict = builder.ToImmutableDictionary();
+#if NET6_0_OR_GREATER
+        _dict = new Dictionary<string, object?>(extensionData);
+#else
+        _dict = new Dictionary<string, object?>();
+
+        foreach (var item in extensionData)
+        {
+            _dict.Add(item.Key, item.Value);
+        }
+#endif
     }
 
     public object? this[string key]
     {
-        get => _dict[key];
-        set => _dict = _dict.SetItem(key, value);
+        get
+        {
+            if (_dict is null)
+            {
+                throw new KeyNotFoundException($"The key {key} does not exist.");
+            }
+
+            return _dict[key];
+        }
+        set => Dict()[key] = value;
     }
 
-    object? IReadOnlyDictionary<string, object?>.this[string key] => _dict[key];
+    object? IReadOnlyDictionary<string, object?>.this[string key] => this[key];
 
-    public ICollection<string> Keys => new ExtensionDataKeyCollection(_dict);
+    public ICollection<string> Keys
+        => _dict?.Keys ?? (ICollection<string>)ImmutableList<string>.Empty;
 
-    IEnumerable<string> IReadOnlyDictionary<string, object?>.Keys => _dict.Keys;
+    IEnumerable<string> IReadOnlyDictionary<string, object?>.Keys
+        => Keys;
 
-    public ICollection<object?> Values => new ExtensionDataValueCollection(_dict);
+    public ICollection<object?> Values
+        => _dict?.Values ?? (ICollection<object?>)ImmutableList<object?>.Empty;
 
-    IEnumerable<object?> IReadOnlyDictionary<string, object?>.Values => _dict.Values;
+    IEnumerable<object?> IReadOnlyDictionary<string, object?>.Values
+        => Values;
 
-    public int Count => _dict.Count;
+    public int Count => _dict?.Count ?? 0;
 
     public bool IsReadOnly => false;
 
     public void Add(string key, object? value)
-    {
-        _dict = _dict.Add(key, value);
-    }
+        => Dict().Add(key, value);
 
     public void Add(KeyValuePair<string, object?> item)
-    {
-        _dict = _dict.Add(item.Key, item.Value);
-    }
+        => Dict().Add(item.Key, item.Value);
 
     public void AddRange(IEnumerable<KeyValuePair<string, object?>> pairs)
     {
-        _dict = _dict.AddRange(pairs);
+        foreach (var pair in pairs)
+        {
+            Dict().Add(pair.Key, pair.Value);
+        }
     }
 
     public bool Remove(string key)
-    {
-        var contains = _dict.ContainsKey(key);
-        _dict = _dict.Remove(key);
-        return contains;
-    }
+        => _dict?.Remove(key) ?? false;
 
     public bool Remove(KeyValuePair<string, object?> item)
+        => _dict?.Remove(item.Key) ?? false;
+
+    public bool TryGetValue(string key, out object? value)
     {
-        var contains = _dict.ContainsKey(item.Key);
-        _dict = _dict.Remove(item.Key);
-        return contains;
+        if (_dict?.TryGetValue(key, out value) ?? false)
+        {
+            return true;
+        }
+
+        value = null;
+        return false;
     }
 
-    public bool TryGetValue(string key, out object? value) =>
-        _dict.TryGetValue(key, out value);
+    bool IReadOnlyDictionary<string, object?>.TryGetValue(string key, out object? value)
+    {
+        if (_dict?.TryGetValue(key, out value) ?? false)
+        {
+            return true;
+        }
 
-    bool IReadOnlyDictionary<string, object?>.TryGetValue(string key, out object? value) =>
-        TryGetValue(key, out value);
+        value = null;
+        return false;
+    }
 
     public bool Contains(KeyValuePair<string, object?> item)
-    {
-        return _dict.Contains(item);
-    }
+        => (_dict?.TryGetValue(item.Key, out var value) ?? false) &&
+            Equals(item.Value, value);
 
     public bool ContainsKey(string key)
-    {
-        return _dict.ContainsKey(key);
-    }
+        => _dict?.ContainsKey(key) ?? false;
 
-    bool IReadOnlyDictionary<string, object?>.ContainsKey(string key) =>
-        _dict.ContainsKey(key);
+    bool IReadOnlyDictionary<string, object?>.ContainsKey(string key)
+        => _dict?.ContainsKey(key) ?? false;
 
     public void CopyTo(KeyValuePair<string, object?>[] array, int arrayIndex)
     {
-        ((ICollection<KeyValuePair<string, object?>>)_dict).CopyTo(array, arrayIndex);
+        if (_dict is not null)
+        {
+            ((ICollection<KeyValuePair<string, object?>>)_dict).CopyTo(array, arrayIndex);
+        }
     }
 
     public void Clear()
-    {
-        _dict = ImmutableDictionary<string, object?>.Empty;
-    }
+        => _dict?.Clear();
 
     public IEnumerator<KeyValuePair<string, object?>> GetEnumerator()
-    {
-        return _dict.GetEnumerator();
-    }
+        => _dict?.GetEnumerator() ??
+            (IEnumerator<KeyValuePair<string, object?>>)
+                ImmutableDictionary<string, object?>.Empty.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()
+        => GetEnumerator();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private Dictionary<string, object?> Dict()
+        => _dict ??= new Dictionary<string, object?>();
+
+    internal bool TryGetInnerDictionary(
+        [NotNullWhen(true)] out Dictionary<string, object?>? dictionary)
     {
-        return GetEnumerator();
-    }
-
-    private sealed class ExtensionDataKeyCollection : ExtensionDataCollection<string>
-    {
-        private readonly ImmutableDictionary<string, object?> _dict;
-
-        public ExtensionDataKeyCollection(ImmutableDictionary<string, object?> dict)
-            : base(dict)
+        if (_dict is null)
         {
-            _dict = dict;
+            dictionary = null;
+            return false;
         }
 
-        public override bool Contains(string item) =>
-            _dict.ContainsKey(item);
-
-        public override void CopyTo(string[] array, int arrayIndex)
-        {
-            if (array.Length - arrayIndex < _dict.Count)
-            {
-                throw new ArgumentException(
-                    ExtensionDataKeyCollection_CopyTo_ArrayNotBigEnough,
-                    nameof(array));
-            }
-
-            var i = arrayIndex;
-
-            foreach (var key in _dict.Keys)
-            {
-                array[i++] = key;
-            }
-        }
-
-        public override IEnumerator<string> GetEnumerator()
-        {
-            return _dict.Keys.GetEnumerator();
-        }
-    }
-
-    private sealed class ExtensionDataValueCollection : ExtensionDataCollection<object?>
-    {
-        private readonly ImmutableDictionary<string, object?> _dict;
-
-        public ExtensionDataValueCollection(ImmutableDictionary<string, object?> dict)
-            : base(dict)
-        {
-            _dict = dict;
-        }
-
-        public override bool Contains(object? item) =>
-            _dict.ContainsValue(item);
-
-        public override void CopyTo(object?[] array, int arrayIndex)
-        {
-            if (array.Length - arrayIndex < _dict.Count)
-            {
-                throw new ArgumentException(
-                    ExtensionDataKeyCollection_CopyTo_ArrayNotBigEnough,
-                    nameof(array));
-            }
-
-            var i = arrayIndex;
-
-            foreach (var value in _dict.Values)
-            {
-                array[i++] = value;
-            }
-        }
-
-        public override IEnumerator<object?> GetEnumerator()
-        {
-            return _dict.Keys.GetEnumerator();
-        }
-    }
-
-    private abstract class ExtensionDataCollection<T> : ICollection<T>
-    {
-        private readonly ImmutableDictionary<string, object?> _dict;
-
-        protected ExtensionDataCollection(ImmutableDictionary<string, object?> dict)
-        {
-            _dict = dict;
-        }
-
-        public int Count => _dict.Count;
-
-        public bool IsReadOnly => true;
-
-        public void Add(T item)
-        {
-            throw new InvalidOperationException(ExtensionDataCollection_CollectionIsReadOnly);
-        }
-
-        public bool Remove(T item)
-        {
-            throw new InvalidOperationException(ExtensionDataCollection_CollectionIsReadOnly);
-        }
-
-        public void Clear()
-        {
-            throw new InvalidOperationException(ExtensionDataCollection_CollectionIsReadOnly);
-        }
-
-        public abstract bool Contains(T item);
-
-        public abstract void CopyTo(T[] array, int arrayIndex);
-
-        public abstract IEnumerator<T> GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        dictionary = _dict;
+        return true;
     }
 }

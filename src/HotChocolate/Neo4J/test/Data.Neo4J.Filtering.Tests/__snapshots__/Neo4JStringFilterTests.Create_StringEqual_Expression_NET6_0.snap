@@ -1,0 +1,63 @@
+testatest Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testatest"
+      }
+    ]
+  }
+}
+---------------
+
+testatest Query:
+---------------
+MATCH (fooString:FooString) WHERE fooString.Bar = 'testatest' RETURN fooString {.Bar} ORDER BY fooString {.Bar} ASC
+---------------
+
+testbtest Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testbtest"
+      }
+    ]
+  }
+}
+---------------
+
+testbtest Query:
+---------------
+MATCH (fooString:FooString) WHERE fooString.Bar = 'testbtest' RETURN fooString {.Bar} ORDER BY fooString {.Bar} ASC
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter \u0060eq\u0060 of type StringOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 28
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "String!",
+        "filterType": "StringOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": []
+  }
+}
+---------------

@@ -18,9 +18,9 @@ internal sealed class TypeRegistry
         new(new ExtendedTypeReferenceEqualityComparer());
     private readonly Dictionary<string, ITypeReference> _nameRefs = new(StringComparer.Ordinal);
     private readonly List<RegisteredType> _types = new();
-    private readonly ITypeRegistryInterceptor _typeRegistryInterceptor;
+    private readonly TypeInterceptor _typeRegistryInterceptor;
 
-    public TypeRegistry(ITypeRegistryInterceptor typeRegistryInterceptor)
+    public TypeRegistry(TypeInterceptor typeRegistryInterceptor)
     {
         _typeRegistryInterceptor = typeRegistryInterceptor ??
             throw new ArgumentNullException(nameof(typeRegistryInterceptor));

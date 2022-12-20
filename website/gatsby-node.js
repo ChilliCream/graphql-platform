@@ -2,6 +2,7 @@ const { createFilePath } = require("gatsby-source-filesystem");
 const path = require("path");
 const git = require("simple-git/promise");
 
+/** @type import('gatsby').GatsbyNode["createPages"] */
 exports.createPages = async ({ actions, graphql, reporter }) => {
   const { createPage, createRedirect } = actions;
 

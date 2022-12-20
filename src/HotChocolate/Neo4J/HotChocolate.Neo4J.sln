@@ -25,17 +25,19 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Utilities", ".
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Abstractions", "..\Core\src\Abstractions\HotChocolate.Abstractions.csproj", "{384C2579-EBEF-44DC-8F54-2B9558E07ADB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Neo4J.Language.Tests", "test\HotChocolate.Data.Neo4J.Language.Tests\HotChocolate.Data.Neo4J.Language.Tests.csproj", "{8325D43F-3F12-4C4F-8887-5FA714AA8EC7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Neo4J.Language.Tests", "test\Data.Neo4J.Language.Tests\HotChocolate.Data.Neo4J.Language.Tests.csproj", "{8325D43F-3F12-4C4F-8887-5FA714AA8EC7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Neo4J.Filtering.Tests", "test\HotChocolate.Data.Neo4J.Filtering.Tests\HotChocolate.Data.Neo4J.Filtering.Tests.csproj", "{81EC7457-71A6-4E87-943A-DBA5059599F7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Neo4J.Filtering.Tests", "test\Data.Neo4J.Filtering.Tests\HotChocolate.Data.Neo4J.Filtering.Tests.csproj", "{81EC7457-71A6-4E87-943A-DBA5059599F7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Neo4J.Sorting.Tests", "test\HotChocolate.Data.Neo4J.Sorting.Tests\HotChocolate.Data.Neo4J.Sorting.Tests.csproj", "{FE82E164-96FE-4C44-B241-D19C2387A2C9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Neo4J.Sorting.Tests", "test\Data.Neo4J.Sorting.Tests\HotChocolate.Data.Neo4J.Sorting.Tests.csproj", "{FE82E164-96FE-4C44-B241-D19C2387A2C9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Neo4J.Projections.Tests", "test\HotChocolate.Data.Neo4J.Projections.Tests\HotChocolate.Data.Neo4J.Projections.Tests.csproj", "{B8CDE36A-9FD3-479E-AB8A-245082523D00}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Neo4J.Projections.Tests", "test\Data.Neo4J.Projections.Tests\HotChocolate.Data.Neo4J.Projections.Tests.csproj", "{B8CDE36A-9FD3-479E-AB8A-245082523D00}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Neo4J.Paging.Tests", "test\HotChocolate.Data.Neo4J.Paging.Tests\HotChocolate.Data.Neo4J.Paging.Tests.csproj", "{2A4849BE-4105-4068-B1FD-D875094EE619}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Neo4J.Paging.Tests", "test\Data.Neo4J.Paging.Tests\HotChocolate.Data.Neo4J.Paging.Tests.csproj", "{2A4849BE-4105-4068-B1FD-D875094EE619}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Neo4J.Integration.Tests", "test\HotChocolate.Data.Neo4J.Integration.Tests\HotChocolate.Data.Neo4J.Integration.Tests.csproj", "{2AB0B430-5150-4983-B62E-E7DD7FABBB3B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Neo4J.Integration.Tests", "test\Data.Neo4J.Integration.Tests\HotChocolate.Data.Neo4J.Integration.Tests.csproj", "{2AB0B430-5150-4983-B62E-E7DD7FABBB3B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Neo4J.Testing", "test\Data.Neo4J.Testing\HotChocolate.Data.Neo4J.Testing.csproj", "{E6631F91-84AC-4C01-8A9A-1586378F27C1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -218,6 +220,18 @@ Global
 		{2AB0B430-5150-4983-B62E-E7DD7FABBB3B}.Release|x64.Build.0 = Release|Any CPU
 		{2AB0B430-5150-4983-B62E-E7DD7FABBB3B}.Release|x86.ActiveCfg = Release|Any CPU
 		{2AB0B430-5150-4983-B62E-E7DD7FABBB3B}.Release|x86.Build.0 = Release|Any CPU
+		{E6631F91-84AC-4C01-8A9A-1586378F27C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E6631F91-84AC-4C01-8A9A-1586378F27C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E6631F91-84AC-4C01-8A9A-1586378F27C1}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E6631F91-84AC-4C01-8A9A-1586378F27C1}.Debug|x64.Build.0 = Debug|Any CPU
+		{E6631F91-84AC-4C01-8A9A-1586378F27C1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E6631F91-84AC-4C01-8A9A-1586378F27C1}.Debug|x86.Build.0 = Debug|Any CPU
+		{E6631F91-84AC-4C01-8A9A-1586378F27C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E6631F91-84AC-4C01-8A9A-1586378F27C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E6631F91-84AC-4C01-8A9A-1586378F27C1}.Release|x64.ActiveCfg = Release|Any CPU
+		{E6631F91-84AC-4C01-8A9A-1586378F27C1}.Release|x64.Build.0 = Release|Any CPU
+		{E6631F91-84AC-4C01-8A9A-1586378F27C1}.Release|x86.ActiveCfg = Release|Any CPU
+		{E6631F91-84AC-4C01-8A9A-1586378F27C1}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{5219FDEE-0427-4429-BDBE-76DC00742027} = {381E7519-8284-4D97-A28C-AF8B1F79C11B}
@@ -234,5 +248,6 @@ Global
 		{B8CDE36A-9FD3-479E-AB8A-245082523D00} = {828618C0-B8D0-4AEC-984C-99B759FA523F}
 		{2A4849BE-4105-4068-B1FD-D875094EE619} = {828618C0-B8D0-4AEC-984C-99B759FA523F}
 		{2AB0B430-5150-4983-B62E-E7DD7FABBB3B} = {828618C0-B8D0-4AEC-984C-99B759FA523F}
+		{E6631F91-84AC-4C01-8A9A-1586378F27C1} = {828618C0-B8D0-4AEC-984C-99B759FA523F}
 	EndGlobalSection
 EndGlobal

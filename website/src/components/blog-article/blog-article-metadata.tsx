@@ -1,9 +1,10 @@
 import { graphql } from "gatsby";
 import React, { FC } from "react";
 import styled from "styled-components";
-import { BlogArticleMetadataFragment } from "../../../graphql-types";
-import { THEME_COLORS } from "../../shared-style";
-import { Link } from "../misc/link";
+
+import { Link } from "@/components/misc/link";
+import { BlogArticleMetadataFragment } from "@/graphql-types";
+import { THEME_COLORS } from "@/shared-style";
 
 export interface BlogArticleMetadataProps {
   readonly data: BlogArticleMetadataFragment;
@@ -17,8 +18,9 @@ export const BlogArticleMetadata: FC<BlogArticleMetadataProps> = ({
       <AuthorLink to={frontmatter!.authorUrl!}>
         <AuthorImage src={frontmatter!.authorImageUrl!} />
         {frontmatter!.author!}
-      </AuthorLink>{" "}
-      ・ {frontmatter!.date!} ・ {fields!.readingTime!.text!}
+      </AuthorLink>
+      {frontmatter?.date && " ・ " + frontmatter.date}
+      {fields?.readingTime?.text && " ・ " + fields.readingTime.text}
     </Metadata>
   );
 };

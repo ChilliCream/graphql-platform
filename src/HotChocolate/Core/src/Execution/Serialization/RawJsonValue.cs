@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json;
 
 namespace HotChocolate.Execution.Serialization;
 
@@ -7,6 +8,13 @@ namespace HotChocolate.Execution.Serialization;
 /// The JSON query result formatter will take the inner <see cref="Value"/>
 /// and writes it without validation to the JSON response object.
 /// </summary>
+/// <remarks>
+/// The downside of this helper is that we bind it explicitly to JSON.
+/// If there were alternative query formatter that use different formats we would get
+/// into trouble with this.
+///
+/// This is also the reason for keeping this internal.
+/// </remarks>
 internal readonly struct RawJsonValue
 {
     /// <summary>

@@ -20,7 +20,7 @@ internal sealed partial class RegisteredType : IHasRuntimeType
         TypeRegistry typeRegistry,
         TypeLookup typeLookup,
         IDescriptorContext descriptorContext,
-        ITypeInterceptor typeInterceptor,
+        TypeInterceptor typeInterceptor,
         string? scope)
     {
         Type = type;

@@ -3,7 +3,7 @@ using System.Text;
 
 namespace CookieCrumble;
 
-internal static class WriterExtensions
+public static class WriterExtensions
 {
     private static readonly Encoding _utf8 = Encoding.UTF8;
 

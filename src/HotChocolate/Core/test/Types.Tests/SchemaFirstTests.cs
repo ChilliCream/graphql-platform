@@ -493,7 +493,7 @@ public class SchemaFirstTests
                 .AddDocumentFromString(sdl)
                 .AddQueryType<QueryCodeFirst>()
                 .BindRuntimeType<Person>()
-                .ConfigureSchema(sb => sb.AddSchemaDirective(new CustomDescriptionDirective()))
+                .ConfigureSchema(sb => sb.TryAddSchemaDirective(new CustomDescriptionDirective()))
                 .BuildSchemaAsync();
 
         // assert

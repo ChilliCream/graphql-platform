@@ -2,13 +2,13 @@ import { graphql, useStaticQuery } from "gatsby";
 import React, { FC } from "react";
 import { Carousel } from "react-responsive-carousel";
 import styled from "styled-components";
-import { GetIndexPageDataQuery } from "../../graphql-types";
-import { BananaCakePop } from "../components/images/banana-cake-pop";
-import { BlogPostBananaCakePopCloud } from "../components/images/blog-post-banana-cake-pop-cloud";
-import { BlogPostEFMeetsGraphQL } from "../components/images/blog-post-ef-meets-graphql";
-import { BlogPostHotChocolate12 } from "../components/images/blog-post-hot-chocolate-12";
-import { Layout } from "../components/layout";
-import { Link } from "../components/misc/link";
+
+import { BananaCakePop } from "@/components/images/banana-cake-pop";
+import { BlogPostBananaCakePopCloud } from "@/components/images/blog-post-banana-cake-pop-cloud";
+import { BlogPostEFMeetsGraphQL } from "@/components/images/blog-post-ef-meets-graphql";
+import { BlogPostHotChocolate12 } from "@/components/images/blog-post-hot-chocolate-12";
+import { Layout } from "@/components/layout";
+import { Link } from "@/components/misc/link";
 import {
   ContentContainer,
   EnvelopeIcon,
@@ -17,18 +17,22 @@ import {
   SectionRow,
   SectionTitle,
   SlackIcon,
-} from "../components/misc/marketing-elements";
-import { Hero, Intro } from "../components/misc/page-elements";
-import { SEO } from "../components/misc/seo";
+} from "@/components/misc/marketing-elements";
+import { Hero, Intro } from "@/components/misc/page-elements";
+import { SEO } from "@/components/misc/seo";
+import { Artwork } from "@/components/sprites";
 import {
   CompaniesSection,
   MostRecentBlogPostsSection,
-} from "../components/widgets";
-// Images
-import ContactUsSvg from "../images/contact-us.svg";
-import DashboardSvg from "../images/dashboard.svg";
-import GetStartedSvg from "../images/get-started.svg";
-import { THEME_COLORS } from "../shared-style";
+} from "@/components/widgets";
+import { GetIndexPageDataQuery } from "@/graphql-types";
+import { THEME_COLORS } from "@/shared-style";
+
+// Artwork
+import { SrOnly } from "@/components/misc/sr-only";
+import ContactUsSvg from "@/images/artwork/contact-us.svg";
+import DashboardSvg from "@/images/artwork/dashboard.svg";
+import GetStartedSvg from "@/images/artwork/get-started.svg";
 
 const IndexPage: FC = () => {
   const data = useStaticQuery<GetIndexPageDataQuery>(graphql`
@@ -52,7 +56,9 @@ const IndexPage: FC = () => {
           autoPlay
           infiniteLoop
           swipeable
+          emulateTouch
           interval={15000}
+          showArrows={false}
           showStatus={false}
           showThumbs={false}
         >
@@ -82,7 +88,7 @@ const IndexPage: FC = () => {
             <Link to="/blog/2020/03/18/entity-framework">
               <BlogPostEFMeetsGraphQL />
               <SlideContent>
-                <SlideTitle>Entity Framework meets GraphQL</SlideTitle>
+                <SlideTitle>Entity Framework Meets GraphQL</SlideTitle>
                 <SlideDescription>
                   Get started with Hot Chocolate and Entity Framework
                 </SlideDescription>
@@ -94,34 +100,38 @@ const IndexPage: FC = () => {
       <Section>
         <SectionRow>
           <ImageContainer>
-            <DashboardSvg />
+            <Artwork {...DashboardSvg} />
           </ImageContainer>
           <ContentContainer>
             <SectionTitle>
-              What is the ChilliCream GraphQL platform?
+              What Is the ChilliCream GraphQL Platform?
             </SectionTitle>
             <p>
               It's a new way of defining modern APIs which are strongly typed
               from server to client. Fetch once with no more under- or
               over-fetching, just the right amount.
             </p>
-            <Link to="/platform">Learn more</Link>
+            <Link to="/platform">
+              Learn more<SrOnly> about the ChilliCream GraphQL platform</SrOnly>
+            </Link>
           </ContentContainer>
         </SectionRow>
       </Section>
       <Section>
         <SectionRow>
           <ImageContainer>
-            <GetStartedSvg />
+            <Artwork {...GetStartedSvg} />
           </ImageContainer>
           <ContentContainer>
             <SectionTitle>Get Started</SectionTitle>
             <p>
-              Creating a GraphQL API with Hot Chocolate is very easy. Check out
-              our startup guide and see how simple it is to create your first
-              API.
+              Creating a GraphQL .NET API with Hot Chocolate is very easy. Check
+              out our startup guide and see how simple it is to create your
+              first API.
             </p>
-            <Link to="/docs/hotchocolate">Learn more</Link>
+            <Link to="/docs/hotchocolate">
+              Learn more<SrOnly> on how to build GraphQL .NET APIs</SrOnly>
+            </Link>
           </ContentContainer>
         </SectionRow>
       </Section>
@@ -130,21 +140,22 @@ const IndexPage: FC = () => {
       <Section>
         <SectionRow>
           <ImageContainer>
-            <ContactUsSvg />
+            <Artwork {...ContactUsSvg} />
           </ImageContainer>
           <ContentContainer>
-            <SectionTitle>What's your story?</SectionTitle>
+            <SectionTitle>What’s Your Story?</SectionTitle>
             <p>
-              We would be thrilled to hear your customer success story with Hot
-              Chocolate! Write us an{" "}
+              {
+                "We would be thrilled to hear your customer success story with Hot Chocolate! Write us an "
+              }
               <a href="mailto:contact@chillicream.com">
                 <EnvelopeIcon />
-              </a>{" "}
-              or chat with us on{" "}
-              <a href={data.site!.siteMetadata!.tools!.slack!}>
+              </a>
+              {" or chat with us on "}
+              <Link to={data.site!.siteMetadata!.tools!.slack!}>
                 <SlackIcon />
-              </a>{" "}
-              to get in touch with us!
+              </Link>
+              {" to get in touch with us!"}
             </p>
           </ContentContainer>
         </SectionRow>
@@ -164,11 +175,6 @@ const Slideshow = styled(Carousel)`
 
   > .carousel {
     position: relative;
-
-    > .control-next,
-    > .control-prev {
-      display: none;
-    }
 
     .control-dots {
       position: absolute;

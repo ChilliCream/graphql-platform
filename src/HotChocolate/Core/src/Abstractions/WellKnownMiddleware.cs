@@ -76,6 +76,12 @@ public static class WellKnownMiddleware
     public const string MutationErrors = "HotChocolate.Types.Mutations.Errors";
 
     /// <summary>
+    /// This key identifies the mutation convention middleware
+    /// that nulls fields when an error was detected.
+    /// </summary>
+    public const string MutationErrorNull = "HotChocolate.Types.Mutations.Errors.Null";
+
+    /// <summary>
     ///The key identifies the mutation result middleware.
     /// </summary>
     public const string MutationResult = "HotChocolate.Types.Mutations.Result";

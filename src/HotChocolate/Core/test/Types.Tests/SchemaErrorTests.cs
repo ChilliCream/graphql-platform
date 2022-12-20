@@ -6,7 +6,6 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate;
 
@@ -142,7 +141,7 @@ public class SchemaErrorTests
 
         // act
         void Action() => SchemaBuilder.New()
-            .TryAddSchemaInterceptor(errorInterceptor)
+            .TryAddTypeInterceptor(errorInterceptor)
             .Create();
 
         // assert
@@ -171,13 +170,11 @@ public class SchemaErrorTests
         ex.Errors.First().Message.MatchSnapshot();
     }
 
-    private sealed class ErrorInterceptor : SchemaInterceptor
+    private sealed class ErrorInterceptor : TypeInterceptor
     {
         public List<Exception> Exceptions { get; } = new();
 
-        public override void OnError(IDescriptorContext context, Exception exception)
-        {
-            Exceptions.Add(exception);
-        }
+        public override void OnCreateSchemaError(IDescriptorContext context, Exception error)
+            => Exceptions.Add(error);
     }
 }
