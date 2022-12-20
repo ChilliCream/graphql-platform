@@ -3,7 +3,7 @@ using System;
 namespace HotChocolate.Language;
 
 [Serializable]
-public class SyntaxException : Exception
+public sealed class SyntaxException : Exception
 {
     internal SyntaxException(Utf8GraphQLReader reader, string message) : base(message)
     {
