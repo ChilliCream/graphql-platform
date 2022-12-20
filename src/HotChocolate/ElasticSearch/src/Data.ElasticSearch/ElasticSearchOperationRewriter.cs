@@ -61,9 +61,55 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
     }
 
     /// <inheritdoc />
-    protected override IQuery Rewrite(RangeOperation operation)
+    protected override IQuery Rewrite(RangeOperation<double> operation)
     {
-        throw new System.NotImplementedException();
+        return new NumericRangeQuery
+        {
+            Field = operation.Path,
+            GreaterThan = operation.GreaterThan,
+            LessThan = operation.LowerThan,
+            GreaterThanOrEqualTo = operation.GreaterThanOrEquals,
+            LessThanOrEqualTo = operation.LowerThanOrEquals
+        };
+    }
+
+    /// <inheritdoc />
+    protected override IQuery Rewrite(RangeOperation<long> operation)
+    {
+        return new LongRangeQuery
+        {
+            Field = operation.Path,
+            GreaterThan = operation.GreaterThan,
+            LessThan = operation.LowerThan,
+            GreaterThanOrEqualTo = operation.GreaterThanOrEquals,
+            LessThanOrEqualTo = operation.LowerThanOrEquals
+        };
+    }
+
+    /// <inheritdoc />
+    protected override IQuery Rewrite(RangeOperation<string> operation)
+    {
+        return new TermRangeQuery
+        {
+            Field = operation.Path,
+            GreaterThan = operation.GreaterThan,
+            LessThan = operation.LowerThan,
+            GreaterThanOrEqualTo = operation.GreaterThanOrEquals,
+            LessThanOrEqualTo = operation.LowerThanOrEquals
+        };
+    }
+
+    /// <inheritdoc />
+    protected override IQuery Rewrite(RangeOperation<DateTime> operation)
+    {
+        return new DateRangeQuery
+        {
+            Field = operation.Path,
+            GreaterThan = operation.GreaterThan,
+            LessThan = operation.LowerThan,
+            GreaterThanOrEqualTo = operation.GreaterThanOrEquals,
+            LessThanOrEqualTo = operation.LowerThanOrEquals
+        };
     }
 
     /// <inheritdoc />
