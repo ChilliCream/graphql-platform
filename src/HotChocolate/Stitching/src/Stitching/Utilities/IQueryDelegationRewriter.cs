@@ -27,10 +27,10 @@ public interface IQueryDelegationRewriter
     /// The field selection syntax node.
     /// </param>
     FieldNode OnRewriteField(
-       NameString targetSchemaName,
-       IOutputType outputType,
-       IOutputField outputField,
-       FieldNode field);
+        string targetSchemaName,
+        IOutputType outputType,
+        IOutputField outputField,
+        FieldNode field);
 
     /// <summary>
     /// This method will be called after the stitching layer
@@ -50,7 +50,7 @@ public interface IQueryDelegationRewriter
     /// The list of selections that shall be added to the delegation query.
     /// </param>
     SelectionSetNode OnRewriteSelectionSet(
-        NameString targetSchemaName,
+        string targetSchemaName,
         IOutputType outputType,
         IOutputField outputField,
         SelectionSetNode selectionSet);

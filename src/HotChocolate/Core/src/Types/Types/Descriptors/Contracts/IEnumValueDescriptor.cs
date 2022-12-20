@@ -20,7 +20,7 @@ public interface IEnumValueDescriptor
     /// <paramref name="value"/> is <c>null</c> or
     /// <see cref="string.Empty"/>.
     /// </exception>
-    IEnumValueDescriptor Name(NameString value);
+    IEnumValueDescriptor Name(string value);
 
     /// <summary>
     /// Adds explanatory text to the <see cref="EnumValue"/>
@@ -64,6 +64,6 @@ public interface IEnumValueDescriptor
         where T : class, new();
 
     IEnumValueDescriptor Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments);
 }

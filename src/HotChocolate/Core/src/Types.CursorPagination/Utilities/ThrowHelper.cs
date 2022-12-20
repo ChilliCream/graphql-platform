@@ -1,6 +1,7 @@
 using HotChocolate.Types;
 using static HotChocolate.Types.Properties.CursorResources;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Utilities;
 
 internal static class ThrowHelper
@@ -28,7 +29,7 @@ internal static class ThrowHelper
             ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_PagingHandler_NoBoundariesSet,
-                    field.Type.NamedType().Name.Value)
+                    field.Type.TypeName())
                 .SetCode(ErrorCodes.Paging.NoPagingBoundaries)
                 .SetPath(path)
                 .SetSyntaxNode(field.SyntaxNode)

@@ -32,7 +32,7 @@ public class ByteType : IntegerTypeBase<byte>
     /// Initializes a new instance of the <see cref="ByteType"/> class.
     /// </summary>
     public ByteType(
-        NameString name,
+        string name,
         string? description = null,
         byte min = byte.MinValue,
         byte max = byte.MaxValue,

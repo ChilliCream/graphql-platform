@@ -1,9 +1,12 @@
+#nullable enable
+
 using System;
 using System.Buffers;
 using System.Buffers.Text;
 using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using static System.Buffers.Text.Base64;
 
 namespace HotChocolate.Types.Relay;
 
@@ -29,20 +32,24 @@ public sealed class IdSerializer : IIdSerializer
         _includeSchemaName = includeSchemaName;
     }
 
-    public string Serialize<T>(NameString typeName, T id) =>
+    public string? Serialize<T>(string typeName, T id) =>
         Serialize(default, typeName, id);
 
-    public string Serialize<T>(NameString schemaName, NameString typeName, T id)
+    public string? Serialize<T>(string? schemaName, string typeName, T id)
     {
         if (id is null)
         {
             return null;
         }
 
-        typeName.EnsureNotEmpty(nameof(typeName));
-        schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
+        if (string.IsNullOrEmpty(typeName))
+        {
+            throw new ArgumentNullException(nameof(typeName));
+        }
 
-        string idString = null;
+        schemaName ??= Schema.DefaultName;
+
+        string? idString = null;
 
         switch (id)
         {
@@ -57,15 +64,15 @@ public sealed class IdSerializer : IIdSerializer
                 break;
 
             default:
-                idString = id.ToString();
+                idString = id.ToString()!;
                 break;
         }
 
         var schemaSize = _includeSchemaName
-            ? GetAllocationSize(schemaName.Value)
+            ? GetAllocationSize(schemaName)
             : 0;
 
-        var nameSize = GetAllocationSize(typeName.Value);
+        var nameSize = GetAllocationSize(typeName);
 
         var idSize = idString is null
             ? GetAllocationSize(in id)
@@ -73,11 +80,11 @@ public sealed class IdSerializer : IIdSerializer
 
         var serializedSize = ((schemaSize + nameSize + idSize + 16) / 3) * 4;
 
-        byte[] serializedArray = null;
+        byte[]? serializedArray = null;
 
-        Span<byte> serialized = serializedSize <= _stackallocThreshold
+        var serialized = serializedSize <= _stackallocThreshold
             ? stackalloc byte[serializedSize]
-            : (serializedArray = ArrayPool<byte>.Shared.Rent(serializedSize));
+            : serializedArray = ArrayPool<byte>.Shared.Rent(serializedSize);
 
         try
         {
@@ -86,16 +93,14 @@ public sealed class IdSerializer : IIdSerializer
             if (_includeSchemaName)
             {
                 serialized[position++] = _schema;
-                position += CopyString(schemaName.Value,
-                    serialized.Slice(position, schemaSize));
+                position += CopyString(schemaName, serialized.Slice(position, schemaSize));
                 serialized[position++] = _separator;
             }
 
-            position += CopyString(typeName.Value,
-                serialized.Slice(position, nameSize));
+            position += CopyString(typeName, serialized.Slice(position, nameSize));
             serialized[position++] = _separator;
 
-            Span<byte> value = serialized.Slice(position + 1);
+            var value = serialized.Slice(position + 1);
 
             int bytesWritten;
             switch (id)
@@ -126,12 +131,11 @@ public sealed class IdSerializer : IIdSerializer
 
                 default:
                     serialized[position++] = _default;
-                    position += CopyString(idString, value);
+                    position += CopyString(idString!, value);
                     break;
             }
 
-            OperationStatus operationStatus =
-                Base64.EncodeToUtf8InPlace(serialized, position, out bytesWritten);
+            var operationStatus = EncodeToUtf8InPlace(serialized, position, out bytesWritten);
 
             if (operationStatus != OperationStatus.Done)
             {
@@ -185,19 +189,19 @@ public sealed class IdSerializer : IIdSerializer
 
         var serializedSize = GetAllocationSize(serializedId);
 
-        byte[] serializedArray = null;
+        byte[]? serializedArray = null;
 
-        Span<byte> serialized = serializedSize <= _stackallocThreshold
+        var serialized = serializedSize <= _stackallocThreshold
             ? stackalloc byte[serializedSize]
-            : (serializedArray = ArrayPool<byte>.Shared.Rent(serializedSize));
+            : serializedArray = ArrayPool<byte>.Shared.Rent(serializedSize);
 
         try
         {
             var bytesWritten = CopyString(serializedId, serialized);
             serialized = serialized.Slice(0, bytesWritten);
 
-            OperationStatus operationStatus =
-                Base64.DecodeFromUtf8InPlace(serialized, out bytesWritten);
+            var operationStatus =
+                DecodeFromUtf8InPlace(serialized, out bytesWritten);
 
             if (operationStatus != OperationStatus.Done)
             {
@@ -209,9 +213,9 @@ public sealed class IdSerializer : IIdSerializer
 
             int nextSeparator;
 
-            Span<byte> decoded = serialized.Slice(0, bytesWritten);
+            var decoded = serialized.Slice(0, bytesWritten);
 
-            NameString schemaName = null;
+            string? schemaName = null;
 
             if (decoded[0] == _schema)
             {
@@ -222,7 +226,7 @@ public sealed class IdSerializer : IIdSerializer
             }
 
             nextSeparator = NextSeparator(decoded);
-            NameString typeName = CreateString(decoded.Slice(0, nextSeparator));
+            var typeName = CreateString(decoded.Slice(0, nextSeparator));
             decoded = decoded.Slice(nextSeparator + 1);
 
             object value;

@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Net.WebSockets;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.Language;
@@ -99,7 +94,7 @@ public static class WebSocketExtensions
     {
         var buffer = new byte[SocketDefaults.BufferSize];
 
-        await using Stream stream = message.CreateMessageStream(largeMessage);
+        await using var stream = message.CreateMessageStream(largeMessage);
         int read;
 
         do
@@ -151,7 +146,7 @@ public static class WebSocketExtensions
         return new MemoryStream(Encoding.UTF8.GetBytes(json));
     }
 
-    public static async Task<IReadOnlyDictionary<string, object>> ReceiveServerMessageAsync(
+    public static async Task<IReadOnlyDictionary<string, object?>?> ReceiveServerMessageAsync(
         this WebSocket webSocket,
         CancellationToken cancellationToken)
     {
@@ -182,13 +177,12 @@ public static class WebSocketExtensions
             return null;
         }
 
-        return (IReadOnlyDictionary<string, object>)ParseJson(stream.ToArray());
+        return (IReadOnlyDictionary<string, object?>?)ParseJson(stream.ToArray())!;
     }
 
     private sealed class HelperOperationMessage : OperationMessage
     {
-        public HelperOperationMessage(
-            string type, string id, object payload)
+        public HelperOperationMessage(string type, string id, object payload)
             : base(type)
         {
             Id = id;

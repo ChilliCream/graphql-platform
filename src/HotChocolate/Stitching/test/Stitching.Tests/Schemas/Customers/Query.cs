@@ -1,6 +1,3 @@
-#nullable enable
-
-using System;
 using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Stitching.Schemas.Customers;
@@ -18,17 +15,17 @@ public class Query
 
     public Customer? GetCustomer(string id)
     {
-        IdValue value = _idSerializer.Deserialize(id);
-        return _repository.Customers.Find(t => t.Id.Equals(value.Value));
+        var value = _idSerializer.Deserialize(id);
+        return _repository.Customers.Find(t => t.Id?.Equals(value.Value) ?? false);
     }
 
-    public Customer?[] GetCustomers(string[] ids)
+    public Customer[] GetCustomers(string[] ids)
     {
-        var customers = new Customer?[ids.Length];
+        var customers = new Customer[ids.Length];
 
-        for (var i = 0; i < ids.Length; i++)
+        for(var i = 0; i < ids.Length; i++)
         {
-            customers[i] = GetCustomer(ids[i]);
+            customers[i] = GetCustomer(ids[i])!;
         }
 
         return customers;
@@ -39,18 +36,16 @@ public class Query
 
     public Consultant? GetConsultant(string id)
     {
-        IdValue value = _idSerializer.Deserialize(id);
-        return _repository.Consultants.Find(t => t.Id.Equals(value.Value));
+        var value = _idSerializer.Deserialize(id);
+        return _repository.Consultants.Find(t => t.Id?.Equals(value.Value) ?? false);
     }
 
     public ICustomerOrConsultant? GetCustomerOrConsultant(string id)
     {
-        IdValue value = _idSerializer.Deserialize(id);
+        var value = _idSerializer.Deserialize(id);
         return value.TypeName == "Consultant" ? GetConsultant(id) : GetCustomer(id);
     }
 
     public Customer? GetCustomer(CustomerKind kind)
-    {
-        return _repository.Customers.Find(t => t.Kind == kind);
-    }
+    => _repository.Customers.Find(t => t.Kind == kind);
 }

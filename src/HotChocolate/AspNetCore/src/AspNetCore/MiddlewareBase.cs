@@ -1,8 +1,10 @@
 using System.Net;
+using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
@@ -13,33 +15,34 @@ namespace HotChocolate.AspNetCore;
 public class MiddlewareBase : IDisposable
 {
     private readonly RequestDelegate _next;
-    private readonly IHttpResultSerializer _resultSerializer;
+    private readonly IHttpResponseFormatter _responseFormatter;
     private bool _disposed;
+    private readonly RequestExecutorProxy _executorProxy;
 
     protected MiddlewareBase(
         RequestDelegate next,
         IRequestExecutorResolver executorResolver,
-        IHttpResultSerializer resultSerializer,
-        NameString schemaName)
+        IHttpResponseFormatter responseFormatter,
+        string schemaName)
     {
-        if (executorResolver == null)
+        if (executorResolver is null)
         {
             throw new ArgumentNullException(nameof(executorResolver));
         }
 
         _next = next ??
             throw new ArgumentNullException(nameof(next));
-        _resultSerializer = resultSerializer ??
-            throw new ArgumentNullException(nameof(resultSerializer));
+        _responseFormatter = responseFormatter ??
+            throw new ArgumentNullException(nameof(responseFormatter));
         SchemaName = schemaName;
-        IsDefaultSchema = SchemaName.Equals(Schema.DefaultName);
-        ExecutorProxy = new RequestExecutorProxy(executorResolver, schemaName);
+        IsDefaultSchema = SchemaName.EqualsOrdinal(Schema.DefaultName);
+        _executorProxy = new RequestExecutorProxy(executorResolver, schemaName);
     }
 
     /// <summary>
     /// Gets the name of the schema that this middleware serves up.
     /// </summary>
-    protected NameString SchemaName { get; }
+    protected string SchemaName { get; }
 
     /// <summary>
     /// Specifies if this middleware handles the default schema.
@@ -49,7 +52,7 @@ public class MiddlewareBase : IDisposable
     /// <summary>
     /// Gets the request executor proxy.
     /// </summary>
-    protected RequestExecutorProxy ExecutorProxy { get; }
+    protected RequestExecutorProxy ExecutorProxy => _executorProxy;
 
     /// <summary>
     /// Invokes the next middleware in line.
@@ -69,7 +72,7 @@ public class MiddlewareBase : IDisposable
     /// Returns the request executor for this middleware.
     /// </returns>
     protected ValueTask<IRequestExecutor> GetExecutorAsync(CancellationToken cancellationToken)
-        => ExecutorProxy.GetRequestExecutorAsync(cancellationToken);
+        => _executorProxy.GetRequestExecutorAsync(cancellationToken);
 
     /// <summary>
     /// Gets the schema for this middleware.
@@ -80,28 +83,24 @@ public class MiddlewareBase : IDisposable
     /// <returns>
     /// Returns the schema for this middleware.
     /// </returns>
-    protected async ValueTask<ISchema> GetSchemaAsync(CancellationToken cancellationToken)
-    {
-        IRequestExecutor requestExecutor = await GetExecutorAsync(cancellationToken);
-        return requestExecutor.Schema;
-    }
+    protected ValueTask<ISchema> GetSchemaAsync(CancellationToken cancellationToken)
+        => _executorProxy.GetSchemaAsync(cancellationToken);
 
     protected ValueTask WriteResultAsync(
         HttpContext context,
         IExecutionResult result,
+        AcceptMediaType[] acceptMediaTypes,
         HttpStatusCode? statusCode = null)
-        => WriteResultAsync(context.Response, result, statusCode, context.RequestAborted);
+        => _responseFormatter.FormatAsync(
+            context.Response,
+            result,
+            acceptMediaTypes,
+            statusCode,
+            context.RequestAborted);
 
-    protected async ValueTask WriteResultAsync(
-        HttpResponse response,
-        IExecutionResult result,
-        HttpStatusCode? statusCode,
-        CancellationToken cancellationToken)
-    {
-        response.ContentType = _resultSerializer.GetContentType(result);
-        response.StatusCode = (int)(statusCode ?? _resultSerializer.GetStatusCode(result));
-        await _resultSerializer.SerializeAsync(result, response.Body, cancellationToken);
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    protected GraphQLRequestFlags CreateRequestFlags(AcceptMediaType[] acceptMediaTypes)
+        => _responseFormatter.CreateRequestFlags(acceptMediaTypes);
 
     protected static async Task<IExecutionResult> ExecuteSingleAsync(
         HttpContext context,
@@ -109,18 +108,22 @@ public class MiddlewareBase : IDisposable
         IHttpRequestInterceptor requestInterceptor,
         IServerDiagnosticEvents diagnosticEvents,
         GraphQLRequest request,
-        OperationType[]? allowedOperations = null)
+        GraphQLRequestFlags flags)
     {
         diagnosticEvents.StartSingleRequest(context, request);
 
         var requestBuilder = QueryRequestBuilder.From(request);
-        requestBuilder.SetAllowedOperations(allowedOperations);
+        requestBuilder.SetFlags(flags);
 
         await requestInterceptor.OnCreateAsync(
-            context, requestExecutor, requestBuilder, context.RequestAborted);
+            context,
+            requestExecutor,
+            requestBuilder,
+            context.RequestAborted);
 
         return await requestExecutor.ExecuteAsync(
-            requestBuilder.Create(), context.RequestAborted);
+            requestBuilder.Create(),
+            context.RequestAborted);
     }
 
     protected static async Task<IResponseStream> ExecuteOperationBatchAsync(
@@ -129,25 +132,31 @@ public class MiddlewareBase : IDisposable
         IHttpRequestInterceptor requestInterceptor,
         IServerDiagnosticEvents diagnosticEvents,
         GraphQLRequest request,
+        GraphQLRequestFlags flags,
         IReadOnlyList<string> operationNames)
     {
         diagnosticEvents.StartOperationBatchRequest(context, request, operationNames);
 
-        var requestBatch = new IReadOnlyQueryRequest[operationNames.Count];
+        var requestBatch = new IQueryRequest[operationNames.Count];
 
         for (var i = 0; i < operationNames.Count; i++)
         {
             var requestBuilder = QueryRequestBuilder.From(request);
             requestBuilder.SetOperation(operationNames[i]);
+            requestBuilder.SetFlags(flags);
 
             await requestInterceptor.OnCreateAsync(
-                context, requestExecutor, requestBuilder, context.RequestAborted);
+                context,
+                requestExecutor,
+                requestBuilder,
+                context.RequestAborted);
 
             requestBatch[i] = requestBuilder.Create();
         }
 
         return await requestExecutor.ExecuteBatchAsync(
-            requestBatch, cancellationToken: context.RequestAborted);
+            requestBatch,
+            cancellationToken: context.RequestAborted);
     }
 
     protected static async Task<IResponseStream> ExecuteBatchAsync(
@@ -155,59 +164,56 @@ public class MiddlewareBase : IDisposable
         IRequestExecutor requestExecutor,
         IHttpRequestInterceptor requestInterceptor,
         IServerDiagnosticEvents diagnosticEvents,
-        IReadOnlyList<GraphQLRequest> requests)
+        IReadOnlyList<GraphQLRequest> requests,
+        GraphQLRequestFlags flags)
     {
         diagnosticEvents.StartBatchRequest(context, requests);
 
-        var requestBatch = new IReadOnlyQueryRequest[requests.Count];
+        var requestBatch = new IQueryRequest[requests.Count];
 
         for (var i = 0; i < requests.Count; i++)
         {
             var requestBuilder = QueryRequestBuilder.From(requests[i]);
+            requestBuilder.SetFlags(flags);
 
             await requestInterceptor.OnCreateAsync(
-                context, requestExecutor, requestBuilder, context.RequestAborted);
+                context,
+                requestExecutor,
+                requestBuilder,
+                context.RequestAborted);
 
             requestBatch[i] = requestBuilder.Create();
         }
 
         return await requestExecutor.ExecuteBatchAsync(
-            requestBatch, cancellationToken: context.RequestAborted);
+            requestBatch,
+            cancellationToken: context.RequestAborted);
     }
 
-    protected static AllowedContentType ParseContentType(HttpContext context)
+    protected static RequestContentType ParseContentType(HttpContext context)
     {
-        if (context.Items.TryGetValue(nameof(AllowedContentType), out var value) &&
-            value is AllowedContentType contentType)
+        if (context.Items.TryGetValue(nameof(RequestContentType), out var value) &&
+            value is RequestContentType contentType)
         {
             return contentType;
         }
 
-        ReadOnlySpan<char> span = context.Request.ContentType.AsSpan();
+        var span = context.Request.ContentType.AsSpan();
 
-        for (var i = 0; i < span.Length; i++)
+        if (span.StartsWith(ContentType.JsonSpan()))
         {
-            if (span[i] == ';')
-            {
-                span = span[..i];
-                break;
-            }
+            context.Items[nameof(RequestContentType)] = RequestContentType.Json;
+            return RequestContentType.Json;
         }
 
-        if (span.SequenceEqual(ContentType.JsonSpan()))
+        if (span.StartsWith(ContentType.MultiPartFormSpan()))
         {
-            context.Items[nameof(AllowedContentType)] = AllowedContentType.Json;
-            return AllowedContentType.Json;
+            context.Items[nameof(RequestContentType)] = RequestContentType.Form;
+            return RequestContentType.Form;
         }
 
-        if (span.SequenceEqual(ContentType.MultiPartSpan()))
-        {
-            context.Items[nameof(AllowedContentType)] = AllowedContentType.Form;
-            return AllowedContentType.Form;
-        }
-
-        context.Items[nameof(AllowedContentType)] = AllowedContentType.None;
-        return AllowedContentType.None;
+        context.Items[nameof(RequestContentType)] = RequestContentType.None;
+        return RequestContentType.None;
     }
 
     public void Dispose()

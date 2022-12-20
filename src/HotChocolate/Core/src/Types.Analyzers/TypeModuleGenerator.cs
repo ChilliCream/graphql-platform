@@ -57,7 +57,7 @@ public class TypeModuleGenerator : IIncrementalGenerator
     {
         for (var i = 0; i < _inspectors.Length; i++)
         {
-            if (_inspectors[i].TryHandle(context, out ISyntaxInfo? syntaxInfo))
+            if (_inspectors[i].TryHandle(context, out var syntaxInfo))
             {
                 return syntaxInfo;
             }
@@ -87,7 +87,7 @@ public class TypeModuleGenerator : IIncrementalGenerator
             }
         }
 
-        foreach (ISyntaxGenerator syntaxGenerator in _generators)
+        foreach (var syntaxGenerator in _generators)
         {
             // capture the current list of infos
             current = all;

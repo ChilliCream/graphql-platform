@@ -1,6 +1,7 @@
 import React, { FC, useState } from "react";
 import styled from "styled-components";
-import { FONT_FAMILY, THEME_COLORS } from "../../shared-style";
+
+import { FONT_FAMILY, THEME_COLORS } from "@/shared-style";
 
 function copyToClipboard(content: string): void {
   const el = document.createElement(`textarea`);
@@ -59,7 +60,7 @@ const CopySuccessToast: FC = () => {
 const ToastText = styled.div`
   font-size: 1.25rem;
   font-family: ${FONT_FAMILY};
-  font-weight: bold;
+  font-weight: 600;
   color: ${THEME_COLORS.textContrast};
 `;
 

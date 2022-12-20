@@ -5,7 +5,9 @@ namespace HotChocolate.Validation.Options;
 /// <summary>
 /// The validation options.
 /// </summary>
-public class ValidationOptions : IMaxExecutionDepthOptionsAccessor, IErrorOptionsAccessor
+public class ValidationOptions
+    : IMaxExecutionDepthOptionsAccessor
+    , IErrorOptionsAccessor
 {
     private int? _maxAllowedExecutionDepth;
     private int _maxErrors = 5;

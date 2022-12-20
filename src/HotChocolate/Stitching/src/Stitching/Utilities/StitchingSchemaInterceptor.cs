@@ -1,40 +1,38 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Stitching.SchemaBuilding;
-using HotChocolate.Stitching.SchemaBuilding.Rewriters;
+using HotChocolate.Stitching.Merge;
+using HotChocolate.Stitching.Merge.Rewriters;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
-using static HotChocolate.Stitching.DirectiveFieldNames;
+using static HotChocolate.Language.SyntaxKind;
 using IHasName = HotChocolate.Types.IHasName;
+using static HotChocolate.Stitching.DirectiveFieldNames;
 
 namespace HotChocolate.Stitching.Utilities;
 
-internal sealed class StitchingSchemaInterceptor : SchemaInterceptor
+internal sealed class StitchingSchemaInterceptor : TypeInterceptor
 {
-    public override void OnBeforeCreate(
+    public override void OnBeforeCreateSchema(
         IDescriptorContext context,
         ISchemaBuilder schemaBuilder)
     {
-        var allSchemas = new OrderedDictionary<NameString, DocumentNode>();
+        var allSchemas = new OrderedDictionary<string, DocumentNode>();
 
-        foreach (KeyValuePair<NameString, IRequestExecutor> executor in
+        foreach (var executor in
             context.GetRemoteExecutors())
         {
             allSchemas.Add(executor.Key, executor.Value.Schema.ToDocument(true));
         }
 
-        IReadOnlyList<DocumentNode> typeExtensions = context.GetTypeExtensions();
+        var typeExtensions = context.GetTypeExtensions();
 
         // merge schemas
-        DocumentNode mergedSchema = MergeSchemas(context, allSchemas);
+        var mergedSchema = MergeSchemas(context, allSchemas);
         mergedSchema = AddExtensions(mergedSchema, typeExtensions);
         mergedSchema = RewriteMerged(context, mergedSchema);
         mergedSchema = mergedSchema.RemoveBuiltInTypes();
@@ -53,31 +51,31 @@ internal sealed class StitchingSchemaInterceptor : SchemaInterceptor
 
     private static DocumentNode MergeSchemas(
         IDescriptorContext context,
-        IDictionary<NameString, DocumentNode> schemas)
+        IDictionary<string, DocumentNode> schemas)
     {
         var merger = new SchemaMerger();
 
-        foreach (NameString name in schemas.Keys)
+        foreach (var name in schemas.Keys)
         {
             merger.AddSchema(name, schemas[name]);
         }
 
-        foreach (MergeTypeRuleFactory handler in context.GetTypeMergeRules())
+        foreach (var handler in context.GetTypeMergeRules())
         {
             merger.AddTypeMergeRule(handler);
         }
 
-        foreach (MergeDirectiveRuleFactory handler in context.GetDirectiveMergeRules())
+        foreach (var handler in context.GetDirectiveMergeRules())
         {
             merger.AddDirectiveMergeRule(handler);
         }
 
-        foreach (IDocumentRewriter rewriter in context.GetDocumentRewriter())
+        foreach (var rewriter in context.GetDocumentRewriter())
         {
             merger.AddDocumentRewriter(rewriter);
         }
 
-        foreach (ITypeRewriter rewriter in context.GetTypeRewriter())
+        foreach (var rewriter in context.GetTypeRewriter())
         {
             merger.AddTypeRewriter(rewriter);
         }
@@ -95,12 +93,13 @@ internal sealed class StitchingSchemaInterceptor : SchemaInterceptor
         }
 
         var rewriter = new AddSchemaExtensionRewriter();
-        DocumentNode currentSchema = schema;
+        var currentSchema = schema;
 
-        foreach (DocumentNode extension in typeExtensions)
+        foreach (var extension in typeExtensions)
         {
             currentSchema = rewriter.AddExtensions(
-                currentSchema, extension);
+                currentSchema,
+                extension);
         }
 
         return currentSchema;
@@ -108,7 +107,7 @@ internal sealed class StitchingSchemaInterceptor : SchemaInterceptor
 
     private static DocumentNode RewriteMerged(IDescriptorContext context, DocumentNode schema)
     {
-        IReadOnlyList<Func<DocumentNode, DocumentNode>> mergedDocRewriter =
+        var mergedDocRewriter =
             context.GetMergedDocRewriter();
 
         if (mergedDocRewriter.Count == 0)
@@ -116,9 +115,9 @@ internal sealed class StitchingSchemaInterceptor : SchemaInterceptor
             return schema;
         }
 
-        DocumentNode current = schema;
+        var current = schema;
 
-        foreach (Func<DocumentNode, DocumentNode> rewriter in mergedDocRewriter)
+        foreach (var rewriter in mergedDocRewriter)
         {
             current = rewriter.Invoke(current);
         }
@@ -128,7 +127,7 @@ internal sealed class StitchingSchemaInterceptor : SchemaInterceptor
 
     private static void VisitMerged(IDescriptorContext context, DocumentNode schema)
     {
-        foreach (Action<DocumentNode> visitor in context.GetMergedDocVisitors())
+        foreach (var visitor in context.GetMergedDocVisitors())
         {
             visitor.Invoke(schema);
         }
@@ -136,23 +135,26 @@ internal sealed class StitchingSchemaInterceptor : SchemaInterceptor
 
     private static void MarkExternalFields(ISchemaBuilder schemaBuilder, DocumentNode document)
     {
-        var externalFieldLookup = new Dictionary<NameString, ISet<NameString>>();
+        var externalFieldLookup =
+            new Dictionary<string, ISet<string>>();
 
-        foreach (ComplexTypeDefinitionNodeBase objectType in
-            document.Definitions.OfType<ComplexTypeDefinitionNodeBase>())
+        foreach (var objectType in document.Definitions)
         {
-            if (objectType.Kind == SyntaxKind.ObjectTypeDefinition ||
-                objectType.Kind == SyntaxKind.ObjectTypeExtension)
+            if (objectType.Kind is ObjectTypeDefinition or SyntaxKind.ObjectTypeExtension)
             {
                 if (!externalFieldLookup.TryGetValue(
-                    objectType.Name.Value,
-                    out ISet<NameString>? externalFields))
+                    ((ComplexTypeDefinitionNodeBase)objectType).Name.Value,
+                    out var externalFields))
                 {
-                    externalFields = new HashSet<NameString>();
-                    externalFieldLookup.Add(objectType.Name.Value, externalFields);
+                    externalFields = new HashSet<string>();
+                    externalFieldLookup.Add(
+                        ((ComplexTypeDefinitionNodeBase)objectType).Name.Value,
+                        externalFields);
                 }
 
-                MarkExternalFields(objectType.Fields, externalFields);
+                MarkExternalFields(
+                    ((ComplexTypeDefinitionNodeBase)objectType).Fields,
+                    externalFields);
             }
         }
 
@@ -163,21 +165,21 @@ internal sealed class StitchingSchemaInterceptor : SchemaInterceptor
         IDescriptorContext context,
         ISchemaBuilder schemaBuilder,
         DocumentNode document,
-        ICollection<NameString> schemaNames)
+        ICollection<string> schemaNames)
     {
-        Dictionary<(NameString Type, NameString TargetSchema), NameString> nameLookup = new();
+        Dictionary<(string Type, string TargetSchema), string> nameLookup = new();
 
-        foreach (INamedSyntaxNode type in document.Definitions.OfType<INamedSyntaxNode>())
+        foreach (var type in document.Definitions.OfType<INamedSyntaxNode>())
         {
-            foreach (DirectiveNode directive in type.Directives
+            foreach (var directive in type.Directives
                 .Where(t => t.Name.Value.EqualsOrdinal(DirectiveNames.Source)))
             {
                 if (directive.Arguments.FirstOrDefault(
-                    t => t.Name.Value.EqualsOrdinal(Source_Schema))?.Value
+                            t => t.Name.Value.EqualsOrdinal(Source_Schema))?.Value
                         is StringValueNode schema &&
                     directive.Arguments.FirstOrDefault(
-                        t => t.Name.Value.EqualsOrdinal(Source_Name))?.Value
-                            is StringValueNode name &&
+                            t => t.Name.Value.EqualsOrdinal(Source_Name))?.Value
+                        is StringValueNode name &&
                     !name.Value.EqualsOrdinal(type.Name.Value))
                 {
                     nameLookup[(type.Name.Value, schema.Value)] = name.Value;
@@ -185,12 +187,12 @@ internal sealed class StitchingSchemaInterceptor : SchemaInterceptor
             }
         }
 
-        foreach (RenameTypeRewriter rewriter in
+        foreach (var rewriter in
             context.GetTypeRewriter().OfType<RenameTypeRewriter>())
         {
             if (rewriter.SchemaName is null)
             {
-                foreach (NameString schemaName in schemaNames)
+                foreach (var schemaName in schemaNames)
                 {
                     nameLookup[(rewriter.NewTypeName, schemaName)] =
                         rewriter.OriginalTypeName;
@@ -198,7 +200,7 @@ internal sealed class StitchingSchemaInterceptor : SchemaInterceptor
             }
             else
             {
-                nameLookup[(rewriter.NewTypeName, rewriter.SchemaName.Value)] =
+                nameLookup[(rewriter.NewTypeName, rewriter.SchemaName)] =
                     rewriter.OriginalTypeName;
             }
         }
@@ -208,9 +210,9 @@ internal sealed class StitchingSchemaInterceptor : SchemaInterceptor
 
     private static void MarkExternalFields(
         IReadOnlyList<FieldDefinitionNode> fields,
-        ISet<NameString> externalFields)
+        ISet<string> externalFields)
     {
-        foreach (FieldDefinitionNode field in fields)
+        foreach (var field in fields)
         {
             if (field.Directives.Count == 0 ||
                 field.Directives.All(t => !t.Name.Value.EqualsOrdinal(DirectiveNames.Computed)))
@@ -231,9 +233,11 @@ internal sealed class StitchingSchemaInterceptor : SchemaInterceptor
                 TryDeserializeTypeName(value, out var typeName))
             {
                 if (objectType.Directives.Contains(DirectiveNames.Source) &&
-                    context.ScopedContextData.TryGetValue(WellKnownContextData.SchemaName, out var o) &&
-                    o is NameString schemaName &&
-                    objectType.TryGetSourceDirective(schemaName, out SourceDirective? source))
+                    context.ScopedContextData.TryGetValue(
+                        WellKnownContextData.SchemaName,
+                        out var o) &&
+                    o is string schemaName &&
+                    objectType.TryGetSourceDirective(schemaName, out var source))
                 {
                     return source.Name.Equals(typeName);
                 }

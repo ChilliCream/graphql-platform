@@ -46,6 +46,11 @@ public interface ITypeSystemObjectContext
     bool IsSchema { get; }
 
     /// <summary>
+    /// Defines if <see cref="Type" /> was inferred from a runtime type.
+    /// </summary>
+    bool IsInferred { get; }
+
+    /// <summary>
     /// The schema level services.
     /// </summary>
     IServiceProvider Services { get; }
@@ -59,7 +64,7 @@ public interface ITypeSystemObjectContext
     /// The type initialization interceptor that allows to intercept
     /// objects that er being initialized.
     /// </summary>
-    ITypeInterceptor TypeInterceptor { get; }
+    TypeInterceptor TypeInterceptor { get; }
 
     /// <summary>
     /// Gets the type inspector.

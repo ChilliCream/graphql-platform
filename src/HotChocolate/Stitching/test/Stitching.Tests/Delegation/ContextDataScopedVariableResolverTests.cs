@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Stitching.Processing.ScopedVariables;
+using HotChocolate.Stitching.Delegation.ScopedVariables;
 using HotChocolate.Types;
 using Moq;
 using Xunit;
@@ -17,7 +17,7 @@ public class ContextDataScopedVariableResolverTests
         // arrange
         var inputFormatter = new InputFormatter();
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString("type Query { foo(a: String = \"bar\") : String }")
             .Use(_ => _)
             .ModifyOptions(o => o.StrictValidation = false)
@@ -36,7 +36,7 @@ public class ContextDataScopedVariableResolverTests
 
         // act
         var resolver = new ContextDataScopedVariableResolver();
-        ScopedVariableValue value = resolver.Resolve(
+        var value = resolver.Resolve(
             context.Object,
             scopedVariable,
             schema.GetType<StringType>("String"));
@@ -54,7 +54,7 @@ public class ContextDataScopedVariableResolverTests
         // arrange
         var inputFormatter = new InputFormatter();
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString("type Query { foo(a: String = \"bar\") : String }")
             .Use(_ => _)
             .ModifyOptions(o => o.StrictValidation = false)
@@ -73,7 +73,7 @@ public class ContextDataScopedVariableResolverTests
 
         // act
         var resolver = new ContextDataScopedVariableResolver();
-        ScopedVariableValue value = resolver.Resolve(
+        var value = resolver.Resolve(
             context.Object,
             scopedVariable,
             schema.GetType<StringType>("String"));
@@ -90,7 +90,7 @@ public class ContextDataScopedVariableResolverTests
     public void ContextIsNull()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString("type Query { foo(a: String = \"bar\") : String }")
             .Use(_ => _)
             .ModifyOptions(o => o.StrictValidation = false)
@@ -116,7 +116,7 @@ public class ContextDataScopedVariableResolverTests
     public void ScopedVariableIsNull()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString("type Query { foo(a: String = \"bar\") : String }")
             .Use(_ => _)
             .ModifyOptions(o => o.StrictValidation = false)
@@ -158,7 +158,7 @@ public class ContextDataScopedVariableResolverTests
     public void InvalidScope()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString("type Query { foo(a: String = \"bar\") : String }")
             .Use(_ => _)
             .ModifyOptions(o => o.StrictValidation = false)

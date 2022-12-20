@@ -112,7 +112,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Id.Equals(other.Id)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Books, other.Books) && ((Search is null && other.Search is null) || Search != null && Search.Equals(other.Search));
+            return (Id.Equals(other.Id)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Books, other.Books) && ((Search is null && other.Search is null) || Search != null && Search.Equals(other.Search));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)

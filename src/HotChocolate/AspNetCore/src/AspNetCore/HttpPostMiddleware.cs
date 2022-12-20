@@ -9,14 +9,14 @@ public sealed class HttpPostMiddleware : HttpPostMiddlewareBase
     public HttpPostMiddleware(
         HttpRequestDelegate next,
         IRequestExecutorResolver executorResolver,
-        IHttpResultSerializer resultSerializer,
+        IHttpResponseFormatter responseFormatter,
         IHttpRequestParser requestParser,
         IServerDiagnosticEvents diagnosticEvents,
-        NameString schemaName)
+        string schemaName)
         : base(
             next,
             executorResolver,
-            resultSerializer,
+            responseFormatter,
             requestParser,
             diagnosticEvents,
             schemaName)

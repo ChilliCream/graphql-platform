@@ -1,7 +1,7 @@
 using System;
-using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models;
 
@@ -18,12 +18,12 @@ public sealed class ArgumentModel
     /// <param name="variable">The variable declaration from the query syntax tree.</param>
     /// <param name="defaultValue">The default value.</param>
     public ArgumentModel(
-        NameString name,
+        string name,
         IInputType type,
         VariableDefinitionNode variable,
         IValueNode? defaultValue)
     {
-        Name = name.EnsureNotEmpty(nameof(name));
+        Name = name.EnsureGraphQLName();
         Type = type ?? throw new ArgumentNullException(nameof(type));
         Variable = variable ?? throw new ArgumentNullException(nameof(variable));
         DefaultValue = defaultValue;
@@ -32,7 +32,7 @@ public sealed class ArgumentModel
     /// <summary>
     /// Gets the name of the argument.
     /// </summary>
-    public NameString Name { get; }
+    public string Name { get; }
 
     /// <summary>
     /// Gets the GraphQL schema type of the argument.

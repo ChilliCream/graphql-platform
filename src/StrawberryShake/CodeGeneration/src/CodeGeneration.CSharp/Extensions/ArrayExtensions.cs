@@ -11,7 +11,7 @@ internal static class ArrayExtensions
         IEnumerable<T> enumerable,
         Action<ArrayBuilder, T> configure)
     {
-        foreach (T element in enumerable)
+        foreach (var element in enumerable)
         {
             configure(arrayBuilder, element);
         }

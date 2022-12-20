@@ -1,8 +1,6 @@
 using System;
 using System.Linq.Expressions;
-using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Resolvers;
 
 #nullable enable
 
@@ -11,7 +9,7 @@ namespace HotChocolate.Types;
 public static class ResolveWithObjectFieldDescriptorExtensions
 {
     /// <summary>
-    /// Resolve a <typeparamref name="TResult"/> using the <paramref name="propertyOrMethod"/> 
+    /// Resolve a <typeparamref name="TResult"/> using the <paramref name="propertyOrMethod"/>
     /// member selector on <typeparamref name="TResolver"/>.
     /// </summary>
     /// <param name="descriptor">
@@ -41,7 +39,7 @@ public static class ResolveWithObjectFieldDescriptorExtensions
             throw new ArgumentNullException(nameof(propertyOrMethod));
         }
 
-        UnaryExpression? convertedBody = Expression.Convert(propertyOrMethod.Body, typeof(object));
+        var convertedBody = Expression.Convert(propertyOrMethod.Body, typeof(object));
         var newExpression = Expression.Lambda<Func<TResolver, object?>>(convertedBody,
             propertyOrMethod.Parameters);
 
@@ -49,7 +47,7 @@ public static class ResolveWithObjectFieldDescriptorExtensions
     }
 
     /// <summary>
-    /// Asynchronously resolve a <typeparamref name="TResult"/> using the 
+    /// Asynchronously resolve a <typeparamref name="TResult"/> using the
     /// <paramref name="propertyOrMethod"/> member selector on <typeparamref name="TResolver"/>.
     /// </summary>
     /// <param name="descriptor">
@@ -79,7 +77,7 @@ public static class ResolveWithObjectFieldDescriptorExtensions
             throw new ArgumentNullException(nameof(propertyOrMethod));
         }
 
-        UnaryExpression? convertedBody = Expression.Convert(propertyOrMethod.Body, typeof(object));
+        var convertedBody = Expression.Convert(propertyOrMethod.Body, typeof(object));
         var newExpression = Expression.Lambda<Func<TResolver, object?>>(convertedBody,
             propertyOrMethod.Parameters);
 

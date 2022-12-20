@@ -1,75 +1,35 @@
-using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing;
 
-public class Fragment : IFragment
+internal sealed class Fragment : IFragment
 {
-    private readonly int _fragmentId;
-    private readonly SelectionIncludeCondition? _includeCondition;
+    private readonly long _includeCondition;
+    private readonly long _deferIfCondition;
 
     public Fragment(
-        int fragmentId,
+        int id,
         IObjectType typeCondition,
-        InlineFragmentNode inlineFragment,
+        ISyntaxNode syntaxNode,
+        IReadOnlyList<DirectiveNode> directives,
         ISelectionSet selectionSet,
-        bool internalFragment,
-        SelectionIncludeCondition? includeCondition)
+        long includeCondition,
+        long deferIfCondition,
+        bool isInternal = false)
     {
+        Id = id;
         TypeCondition = typeCondition;
-        SyntaxNode = inlineFragment;
+        SyntaxNode = syntaxNode;
+        Directives = directives;
         SelectionSet = selectionSet;
-        Directives = inlineFragment.Directives;
-        IsInternal = internalFragment;
-        IsConditional = includeCondition is not null;
-        _fragmentId = fragmentId;
         _includeCondition = includeCondition;
-
-        InclusionKind = internalFragment
-            ? SelectionInclusionKind.Internal
-            : SelectionInclusionKind.Always;
-
-        if (IsConditional)
-        {
-            InclusionKind = internalFragment
-                ? SelectionInclusionKind.InternalConditional
-                : SelectionInclusionKind.Conditional;
-        }
+        _deferIfCondition = deferIfCondition;
+        IsInternal = isInternal;
     }
 
-    public Fragment(
-        int fragmentId,
-        IObjectType typeCondition,
-        FragmentSpreadNode fragmentSpread,
-        FragmentDefinitionNode fragmentDefinition,
-        ISelectionSet selectionSet,
-        bool internalFragment,
-        SelectionIncludeCondition? includeCondition)
-    {
-        TypeCondition = typeCondition;
-        SyntaxNode = fragmentDefinition;
-        SelectionSet = selectionSet;
-        Directives = fragmentSpread.Directives;
-        IsInternal = internalFragment;
-        IsConditional = includeCondition is not null;
-        _fragmentId = fragmentId;
-        _includeCondition = includeCondition;
-
-        InclusionKind = internalFragment
-            ? SelectionInclusionKind.Internal
-            : SelectionInclusionKind.Always;
-
-        if (IsConditional)
-        {
-            InclusionKind = internalFragment
-                ? SelectionInclusionKind.InternalConditional
-                : SelectionInclusionKind.Conditional;
-        }
-    }
-
-    public int Id => _fragmentId;
+    public int Id { get; }
 
     public IObjectType TypeCondition { get; }
 
@@ -79,28 +39,15 @@ public class Fragment : IFragment
 
     public ISelectionSet SelectionSet { get; }
 
-    public string? GetLabel(IVariableValueCollection variables) =>
-        Directives.GetDeferDirective(variables)?.Label;
-
-    public SelectionInclusionKind InclusionKind { get; }
-
     public bool IsInternal { get; }
 
-    public bool IsConditional { get; }
+    public bool IsConditional => _includeCondition is not 0 || _deferIfCondition is not 0;
 
-    public bool IsIncluded(IVariableValueCollection variableValues, bool allowInternals = false)
-    {
-        return InclusionKind switch
-        {
-            SelectionInclusionKind.Always => true,
-            SelectionInclusionKind.Conditional => EvaluateConditions(variableValues),
-            SelectionInclusionKind.Internal => allowInternals,
-            SelectionInclusionKind.InternalConditional =>
-                allowInternals && EvaluateConditions(variableValues),
-            _ => throw new NotSupportedException()
-        };
-    }
+    public string? GetLabel(IVariableValueCollection variables)
+        => Directives.GetDeferDirective(variables)?.Label;
 
-    private bool EvaluateConditions(IVariableValueCollection variableValues) =>
-        _includeCondition?.IsTrue(variableValues) ?? true;
+    public bool IsIncluded(long includeFlags, bool allowInternals = false)
+        => (includeFlags & _includeCondition) == _includeCondition &&
+            (_deferIfCondition is 0 || (includeFlags & _deferIfCondition) != _deferIfCondition) &&
+            (!IsInternal || allowInternals);
 }

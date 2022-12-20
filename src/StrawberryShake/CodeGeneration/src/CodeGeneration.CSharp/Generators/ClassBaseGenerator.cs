@@ -18,7 +18,7 @@ public abstract class ClassBaseGenerator<T> : CodeGenerator<T> where T : ICodeDe
             .SetName(fieldName)
             .SetType(type);
 
-        AssignmentBuilder assignment = AssignmentBuilder
+        var assignment = AssignmentBuilder
             .New()
             .SetLefthandSide(fieldName)
             .SetRighthandSide(paramName);

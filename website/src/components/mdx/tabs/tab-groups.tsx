@@ -1,6 +1,7 @@
 import React, {
   createContext,
   FC,
+  PropsWithChildren,
   useCallback,
   useContext,
   useEffect,
@@ -25,7 +26,9 @@ const TabGroupContext = createContext<TabGroupContextShape>({
 
 const getLocalStorageKey = (groupId: string) => `tab-${groupId}`;
 
-export const TabGroupProvider: FC = ({ children }) => {
+export const TabGroupProvider: FC<PropsWithChildren<unknown>> = ({
+  children,
+}) => {
   const [groups, setGroups] = useState<GroupMap>({});
 
   const handleSetGroup: SetGroup = (groupId, value) => {

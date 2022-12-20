@@ -243,7 +243,4 @@
   <data name="HttpRequestClient_UnknownVariableValueKind" xml:space="preserve">
     <value>Unknown variable value kind.</value>
   </data>
-  <data name="RemoteRequestMiddleware_Request_Not_Supported" xml:space="preserve">
-    <value>The specified request is not supported by the downstream service.</value>
-  </data>
 </root>

@@ -1,20 +1,20 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HotChocolate.Validation
-{
-    public class KnownFragmentNamesTests
-        : DocumentValidatorVisitorTestBase
-    {
-        public KnownFragmentNamesTests()
-            : base(services => services.AddFragmentRules())
-        {
-        }
+namespace HotChocolate.Validation;
 
-        [Fact]
-        public void UniqueFragments()
-        {
-            ExpectValid(@"
+public class KnownFragmentNamesTests
+    : DocumentValidatorVisitorTestBase
+{
+    public KnownFragmentNamesTests()
+        : base(services => services.AddFragmentRules())
+    {
+    }
+
+    [Fact]
+    public void UniqueFragments()
+    {
+        ExpectValid(@"
                  {
                     human(id: 4) {
                         ...HumanFields1
@@ -37,13 +37,13 @@ namespace HotChocolate.Validation
                     name
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void DuplicateFragments()
-        {
-            // arrange
-            ExpectErrors(@"
+    [Fact]
+    public void DuplicateFragments()
+    {
+        // arrange
+        ExpectErrors(@"
                 {
                     human(id: 4) {
                         ...UnknownFragment1
@@ -57,6 +57,5 @@ namespace HotChocolate.Validation
                     ...UnknownFragment3
                 }
             " );
-        }
     }
 }

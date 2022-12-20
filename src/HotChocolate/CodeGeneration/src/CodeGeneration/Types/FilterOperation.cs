@@ -1,10 +1,9 @@
-namespace HotChocolate.CodeGeneration.Types
+namespace HotChocolate.CodeGeneration.Types;
+
+public enum FilterOperation
 {
-    public enum FilterOperation
-    {
-        Equals,
-        NotEquals,
-        All,
-        None
-    }
+    Equals,
+    NotEquals,
+    All,
+    None
 }

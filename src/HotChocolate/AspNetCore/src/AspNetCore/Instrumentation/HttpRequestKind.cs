@@ -25,4 +25,9 @@ public enum HttpRequestKind
     /// HTTP POST GraphQL MultiPart Request.
     /// </summary>
     HttpMultiPart,
+
+    /// <summary>
+    /// HTTP POST GraphQL-SSE
+    /// </summary>
+    HttpSse
 }

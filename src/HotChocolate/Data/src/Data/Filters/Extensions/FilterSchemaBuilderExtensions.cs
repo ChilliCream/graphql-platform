@@ -18,6 +18,7 @@ public static class FilterSchemaBuilderExtensions
     /// <param name="name">
     /// The filter convention name.
     /// </param>
+    /// <param name="compatabilityMode">Uses the old behaviour of naming the filters</param>
     /// <returns>
     /// Returns the <see cref="ISchemaBuilder"/>.
     /// </returns>

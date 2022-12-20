@@ -3,7 +3,6 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Types.Descriptors.TypeReference;
 
@@ -20,8 +19,8 @@ internal sealed class __AppliedDirective : ObjectType<DirectiveNode>
 {
     protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
     {
-        SyntaxTypeReference nonNullStringType = Parse($"{ScalarNames.String}!");
-        SyntaxTypeReference locationListType = Parse($"[{nameof(__DirectiveArgument)}!]!");
+        var nonNullStringType = Parse($"{ScalarNames.String}!");
+        var locationListType = Parse($"[{nameof(__DirectiveArgument)}!]!");
 
         return new ObjectTypeDefinition(
             Names.__AppliedDirective,

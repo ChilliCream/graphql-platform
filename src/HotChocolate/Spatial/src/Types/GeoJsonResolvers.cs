@@ -9,7 +9,7 @@ internal class GeoJsonResolvers
     public Coordinate[][] GetGeometryCollectionCoordinates(
         [Parent] GeometryCollection collection)
     {
-        Coordinate[][] coordinates = new Coordinate[collection.Count][];
+        var coordinates = new Coordinate[collection.Count][];
         for (var i = 0; i < collection.Count; i++)
         {
             coordinates[i] = collection[i].Coordinates;
@@ -32,12 +32,12 @@ internal class GeoJsonResolvers
 
     public IReadOnlyCollection<double> GetBbox([Parent] Geometry geometry)
     {
-        Envelope envelope = geometry.EnvelopeInternal;
+        var envelope = geometry.EnvelopeInternal;
 
         // TODO: support Z
         return new[] { envelope.MinX, envelope.MinY, envelope.MaxX, envelope.MaxY };
     }
 
     public int GetCrs([Parent] Geometry geometry) =>
-        geometry.SRID == 0 ? 4326 : geometry.SRID;
+        geometry.SRID is 0 or -1 ? 4326 : geometry.SRID;
 }

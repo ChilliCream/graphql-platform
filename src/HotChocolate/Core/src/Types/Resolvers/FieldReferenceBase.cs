@@ -1,14 +1,16 @@
+#nullable enable
+
 using System;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Resolvers;
 
-public class FieldReferenceBase
-    : IFieldReference
+public class FieldReferenceBase : IFieldReference
 {
-    protected FieldReferenceBase(NameString typeName, NameString fieldName)
+    protected FieldReferenceBase(string typeName, string fieldName)
     {
-        TypeName = typeName.EnsureNotEmpty(nameof(typeName));
-        FieldName = fieldName.EnsureNotEmpty(nameof(fieldName));
+        TypeName = typeName.EnsureGraphQLName();
+        FieldName = fieldName.EnsureGraphQLName();
     }
 
     protected FieldReferenceBase(FieldReferenceBase fieldReference)
@@ -22,11 +24,11 @@ public class FieldReferenceBase
         FieldName = fieldReference.FieldName;
     }
 
-    public NameString TypeName { get; }
+    public string TypeName { get; }
 
-    public NameString FieldName { get; }
+    public string FieldName { get; }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         if (obj is null)
         {
@@ -37,7 +39,7 @@ public class FieldReferenceBase
             || IsEqualTo(obj as FieldReferenceBase);
     }
 
-    protected bool IsEqualTo(FieldReferenceBase other)
+    protected bool IsEqualTo(FieldReferenceBase? other)
     {
         if (other is null)
         {

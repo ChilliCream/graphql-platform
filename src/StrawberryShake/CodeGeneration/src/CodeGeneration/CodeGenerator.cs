@@ -53,7 +53,7 @@ public abstract class CodeGenerator<TDescriptor>
         codeWriter.Flush();
 
         var sourceText = SourceText.From(code.ToString());
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(sourceText);
+        var tree = CSharpSyntaxTree.ParseText(sourceText);
 
         return new CSharpSyntaxGeneratorResult(
             fileName,

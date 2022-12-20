@@ -34,7 +34,7 @@ ISchema schema = SchemaBuilder.New()
     .Create();
 ```
 
-Hot Chocolate provides a collection of conventions and attributes to express a schema with POCOs. In many cases the default conventions should be enough, but from version 9 on we have centralised these conventions into two classes. If you do not like our default conventions or if you want to bring your own set of custom attributes, then you can overwrite or extend the default conventions.
+Hot Chocolate provides a collection of conventions and attributes to express a schema with POCOs. In many cases the default conventions should be enough, but from version 9 on we have centralized these conventions into two classes. If you do not like our default conventions or if you want to bring your own set of custom attributes, then you can overwrite or extend the default conventions.
 
 > If you want to read more about conventions head over [here](/docs/hotchocolate/v10/schema/conventions).
 

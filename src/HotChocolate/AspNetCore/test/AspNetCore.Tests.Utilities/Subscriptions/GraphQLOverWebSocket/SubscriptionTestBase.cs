@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.WebSockets;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Transport.Sockets;
 using Microsoft.AspNetCore.TestHost;
-using Xunit;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
 
@@ -19,13 +14,13 @@ public class SubscriptionTestBase : ServerTestBase
 
     protected Uri SubscriptionUri { get; } = new("ws://localhost:5000/graphql");
 
-    protected Task<IReadOnlyDictionary<string, object>> WaitForMessage(
+    protected Task<IReadOnlyDictionary<string, object?>?> WaitForMessage(
         WebSocket webSocket,
         string type,
         CancellationToken cancellationToken)
         => WaitForMessage(webSocket, type, TimeSpan.FromSeconds(1), cancellationToken);
 
-    protected async Task<IReadOnlyDictionary<string, object>> WaitForMessage(
+    protected async Task<IReadOnlyDictionary<string, object?>?> WaitForMessage(
         WebSocket webSocket,
         string type,
         TimeSpan timeout,
@@ -102,13 +97,13 @@ public class SubscriptionTestBase : ServerTestBase
         await webSocket.SendConnectionInitAsync(cancellationToken);
         var message = await webSocket.ReceiveServerMessageAsync(cancellationToken);
         Assert.NotNull(message);
-        Assert.Equal("connection_ack", message["type"]);
+        Assert.Equal("connection_ack", message?["type"]);
         return webSocket;
     }
 
     protected static WebSocketClient CreateWebSocketClient(TestServer testServer)
     {
-        WebSocketClient client = testServer.CreateWebSocketClient();
+        var client = testServer.CreateWebSocketClient();
         client.ConfigureRequest = r => r.Headers.Add(
             "Sec-WebSocket-Protocol",
             WellKnownProtocols.GraphQL_Transport_WS);
@@ -119,7 +114,7 @@ public class SubscriptionTestBase : ServerTestBase
     {
         // we will try four times ....
         using var cts = new CancellationTokenSource(Debugger.IsAttached ? 600_000_000 : 15_000);
-        CancellationToken ct = cts.Token;
+        var ct = cts.Token;
         var count = 0;
         var wait = 50;
 

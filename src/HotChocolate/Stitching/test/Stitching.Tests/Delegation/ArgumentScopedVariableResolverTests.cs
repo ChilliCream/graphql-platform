@@ -1,10 +1,10 @@
-using System;
+using HotChocolate.Execution;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Stitching.Processing.ScopedVariables;
+using HotChocolate.Stitching.Delegation.ScopedVariables;
 using HotChocolate.Types;
 using Moq;
-using Xunit;
 
 namespace HotChocolate.Stitching.Delegation;
 
@@ -14,15 +14,15 @@ public class ArgumentScopedVariableResolverTests
     public void CreateVariableValue()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString("type Query { foo(a: String = \"bar\") : String }")
             .Use(_ => _)
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        ObjectField field = schema.GetType<ObjectType>("Query").Fields["foo"];
+        var field = schema.GetType<ObjectType>("Query").Fields["foo"];
 
-        var selection = new Mock<IFieldSelection>(MockBehavior.Strict);
+        var selection = new Mock<ISelection>(MockBehavior.Strict);
         selection.SetupGet(t => t.Field).Returns(field);
 
         var context = new Mock<IResolverContext>(MockBehavior.Strict);
@@ -37,7 +37,7 @@ public class ArgumentScopedVariableResolverTests
 
         // act
         var resolver = new ArgumentScopedVariableResolver();
-        ScopedVariableValue value = resolver.Resolve(
+        var value = resolver.Resolve(
             context.Object,
             scopedVariable,
             schema.GetType<StringType>("String"));
@@ -53,20 +53,20 @@ public class ArgumentScopedVariableResolverTests
     public void ArgumentDoesNotExist()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString("type Query { foo(a: String = \"bar\") : String }")
             .Use(_ => _)
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var selection = new Mock<IFieldSelection>(MockBehavior.Strict);
+        var selection = new Mock<ISelection>(MockBehavior.Strict);
         selection.SetupGet(t => t.Field).Returns(
             schema.GetType<ObjectType>("Query").Fields["foo"]);
 
         var context = new Mock<IResolverContext>(MockBehavior.Strict);
         context.SetupGet(t => t.Selection).Returns(selection.Object);
 
-        context.Setup(t => t.ArgumentValue<object>(It.IsAny<NameString>()))
+        context.Setup(t => t.ArgumentValue<object>(It.IsAny<string>()))
             .Returns("Baz");
         context.Setup(t => t.Selection.SyntaxNode)
             .Returns(new FieldNode(
@@ -77,7 +77,7 @@ public class ArgumentScopedVariableResolverTests
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),
                 null));
-        context.Setup(t => t.Path).Returns(Path.New("foo"));
+        context.Setup(t => t.Path).Returns(PathFactory.Instance.New("foo"));
 
         var scopedVariable = new ScopedVariableNode(
             null,
@@ -101,7 +101,7 @@ public class ArgumentScopedVariableResolverTests
     public void ContextIsNull()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString("type Query { foo(a: String = \"bar\") : String }")
             .Use(_ => _)
             .ModifyOptions(o => o.StrictValidation = false)
@@ -127,19 +127,19 @@ public class ArgumentScopedVariableResolverTests
     public void ScopedVariableIsNull()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString("type Query { foo(a: String = \"bar\") : String }")
             .Use(_ => _)
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var selection = new Mock<IFieldSelection>(MockBehavior.Strict);
+        var selection = new Mock<ISelection>(MockBehavior.Strict);
         selection.SetupGet(t => t.Field).Returns(
             schema.GetType<ObjectType>("Query").Fields["foo"]);
 
         var context = new Mock<IResolverContext>(MockBehavior.Strict);
         context.SetupGet(t => t.Selection).Returns(selection.Object);
-        context.Setup(t => t.ArgumentValue<object>(It.IsAny<NameString>()))
+        context.Setup(t => t.ArgumentValue<object>(It.IsAny<string>()))
             .Returns("Baz");
 
         // act
@@ -157,20 +157,20 @@ public class ArgumentScopedVariableResolverTests
     public void InvalidScope()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString("type Query { foo(a: String = \"bar\") : String }")
             .Use(_ => _)
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        ObjectField field = schema.GetType<ObjectType>("Query").Fields["foo"];
+        var field = schema.GetType<ObjectType>("Query").Fields["foo"];
 
-        var selection = new Mock<IFieldSelection>(MockBehavior.Strict);
+        var selection = new Mock<ISelection>(MockBehavior.Strict);
         selection.SetupGet(t => t.Field).Returns(field);
 
         var context = new Mock<IResolverContext>(MockBehavior.Strict);
         context.SetupGet(t => t.Selection).Returns(selection.Object);
-        context.Setup(t => t.ArgumentValue<object>(It.IsAny<NameString>())).Returns("Baz");
+        context.Setup(t => t.ArgumentValue<object>(It.IsAny<string>())).Returns("Baz");
 
         var scopedVariable = new ScopedVariableNode(
             null,

@@ -31,7 +31,7 @@ public class EntityIdFactoryGenerator : CodeGenerator<EntityIdFactoryDescriptor>
         path = State;
         ns = descriptor.Namespace;
 
-        ClassBuilder classBuilder = ClassBuilder
+        var classBuilder = ClassBuilder
             .New()
             .SetAccessModifier(AccessModifier.Public)
             .AddImplements(TypeNames.IEntityIdSerializer)
@@ -87,7 +87,7 @@ public class EntityIdFactoryGenerator : CodeGenerator<EntityIdFactoryDescriptor>
 
     private ICode ParseEntityIdBody(EntityIdFactoryDescriptor descriptor)
     {
-        AssignmentBuilder typeNameAssignment =
+        var typeNameAssignment =
             AssignmentBuilder
                 .New()
                 .SetLefthandSide($"{TypeNames.String} {WellKnownNames.TypeName}")
@@ -100,7 +100,7 @@ public class EntityIdFactoryGenerator : CodeGenerator<EntityIdFactoryDescriptor>
                             .SetMethodName(nameof(JsonElement.GetString))
                             .SetNullForgiving()));
 
-        SwitchExpressionBuilder typeNameSwitch =
+        var typeNameSwitch =
             SwitchExpressionBuilder
                 .New()
                 .SetReturn()
@@ -167,7 +167,7 @@ public class EntityIdFactoryGenerator : CodeGenerator<EntityIdFactoryDescriptor>
 
     private ICode FormatEntityIdBody(EntityIdFactoryDescriptor descriptor)
     {
-        SwitchExpressionBuilder typeNameSwitch =
+        var typeNameSwitch =
             SwitchExpressionBuilder
                 .New()
                 .SetReturn()
@@ -224,7 +224,7 @@ public class EntityIdFactoryGenerator : CodeGenerator<EntityIdFactoryDescriptor>
 
         if (entity.Fields.Count == 1)
         {
-            ScalarEntityIdDescriptor? field = entity.Fields[0];
+            var field = entity.Fields[0];
 
             body.AddMethodCall()
                 .SetMethodName(_jsonWriter, GetWriteMethod(field))
@@ -246,7 +246,7 @@ public class EntityIdFactoryGenerator : CodeGenerator<EntityIdFactoryDescriptor>
 
             for (var index = 0; index < entity.Fields.Count; index++)
             {
-                ScalarEntityIdDescriptor field = entity.Fields[index];
+                var field = entity.Fields[index];
 
                 body.AddMethodCall()
                     .SetMethodName(_jsonWriter, GetWriteMethod(field))

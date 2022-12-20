@@ -2,12 +2,13 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Extensions;
 
 namespace StrawberryShake.CodeGeneration.Utilities;
 
-internal sealed class EntityIdRewriter : QuerySyntaxRewriter<EntityIdRewriter.Context>
+internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context>
 {
     protected override OperationDefinitionNode RewriteOperationDefinition(
         OperationDefinitionNode node,
@@ -30,7 +31,7 @@ internal sealed class EntityIdRewriter : QuerySyntaxRewriter<EntityIdRewriter.Co
             return node;
         }
 
-        IOutputField field = ((IComplexOutputType)context.Types.Peek()).Fields[node.Name.Value];
+        var field = ((IComplexOutputType)context.Types.Peek()).Fields[node.Name.Value];
 
         if(field.Type.NamedType().IsLeafType())
         {
@@ -75,28 +76,28 @@ internal sealed class EntityIdRewriter : QuerySyntaxRewriter<EntityIdRewriter.Co
         SelectionSetNode node,
         Context context)
     {
-        SelectionSetNode current = base.RewriteSelectionSet(node, context);
+        var current = base.RewriteSelectionSet(node, context);
 
         if (context.Nodes.Peek() is FieldNode or OperationDefinitionNode)
         {
             var selections = current.Selections.ToList();
 
-            foreach (ObjectType objectType in
+            foreach (var objectType in
                      context.Schema.GetPossibleTypes(context.Types.Peek()))
             {
                 if (objectType.IsEntity())
                 {
-                    SelectionSetNode entityDefinition = objectType.GetEntityDefinition();
+                    var entityDefinition = objectType.GetEntityDefinition();
                     List<ISelectionNode> fields = new();
 
-                    foreach (ISelectionNode selection in entityDefinition.Selections)
+                    foreach (var selection in entityDefinition.Selections)
                     {
                         fields.Add(selection);
                     }
 
                     selections.Add(new InlineFragmentNode(
                         null,
-                        new NamedTypeNode(objectType.Name.Value),
+                        new NamedTypeNode(objectType.Name),
                         new List<DirectiveNode>(),
                         new SelectionSetNode(fields)));
                 }
@@ -114,7 +115,7 @@ internal sealed class EntityIdRewriter : QuerySyntaxRewriter<EntityIdRewriter.Co
         return rewriter.RewriteDocument(document, new Context(schema));
     }
 
-    public class Context
+    public class Context : ISyntaxVisitorContext
     {
         public Context(ISchema schema)
         {

@@ -1,20 +1,19 @@
 using System;
 
-namespace HotChocolate.Types.Sorting
+namespace HotChocolate.Types.Sorting;
+
+[Obsolete("Use HotChocolate.Data.")]
+public class SortMiddlewareContext
 {
-    [Obsolete("Use HotChocolate.Data.")]
-    public class SortMiddlewareContext
+    public SortMiddlewareContext(string argumentName)
     {
-        public SortMiddlewareContext(string argumentName)
-        {
-            ArgumentName = argumentName;
-        }
+        ArgumentName = argumentName;
+    }
 
-        public string ArgumentName { get; }
+    public string ArgumentName { get; }
 
-        public static SortMiddlewareContext Create(string argumentName)
-        {
-            return new SortMiddlewareContext(argumentName);
-        }
+    public static SortMiddlewareContext Create(string argumentName)
+    {
+        return new SortMiddlewareContext(argumentName);
     }
 }

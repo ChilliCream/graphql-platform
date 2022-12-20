@@ -1,57 +1,143 @@
+using System;
+using System.Collections.Generic;
 using HotChocolate.Execution.Processing;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Execution;
 
 internal static class OperationContextExtensions
 {
-    public static IOperationContext TrySetNext(
-        this IOperationContext context,
-        bool alwaysSet = false)
+    public static OperationContext ReportError(
+        this OperationContext operationContext,
+        Exception exception,
+        MiddlewareContext resolverContext,
+        ISelection? selection = null,
+        Path? path = null)
     {
-        if (context.Scheduler.DeferredWork.HasWork)
+        selection ??= resolverContext.Selection;
+        path ??= resolverContext.Path;
+
+        if (exception is null)
         {
-            context.Result.SetHasNext(true);
-        }
-        else if (alwaysSet)
-        {
-            context.Result.SetHasNext(false);
+            throw new ArgumentNullException(nameof(exception));
         }
 
-        return context;
+        if (exception is GraphQLException graphQLException)
+        {
+            foreach (var error in graphQLException.Errors)
+            {
+                ReportError(operationContext, error, resolverContext, selection);
+            }
+        }
+        else
+        {
+            var error = operationContext.ErrorHandler
+                .CreateUnexpectedError(exception)
+                .SetPath(path)
+                .AddLocation(selection.SyntaxNode)
+                .Build();
+
+            ReportError(operationContext, error, resolverContext, selection);
+        }
+
+        return operationContext;
     }
 
-    public static IOperationContext SetLabel(
-        this IOperationContext context,
+    public static OperationContext ReportError(
+        this OperationContext operationContext,
+        IError error,
+        MiddlewareContext resolverContext,
+        ISelection? selection = null)
+    {
+        selection ??= resolverContext.Selection;
+
+        if (error is AggregateError aggregateError)
+        {
+            foreach (var innerError in aggregateError.Errors)
+            {
+                ReportSingleError(operationContext, innerError, resolverContext, selection);
+            }
+        }
+        else
+        {
+            ReportSingleError(operationContext, error, resolverContext, selection);
+        }
+
+        return operationContext;
+    }
+
+    private static void ReportSingleError(
+        OperationContext operationContext,
+        IError error,
+        MiddlewareContext resolverContext,
+        ISelection selection)
+    {
+        var handled = operationContext.ErrorHandler.Handle(error);
+
+        if (handled is AggregateError ar)
+        {
+            foreach (var ie in ar.Errors)
+            {
+                operationContext.Result.AddError(ie, selection);
+                operationContext.DiagnosticEvents.ResolverError(resolverContext, ie);
+            }
+        }
+        else
+        {
+            operationContext.Result.AddError(handled, selection);
+            operationContext.DiagnosticEvents.ResolverError(resolverContext, handled);
+        }
+    }
+
+
+    public static OperationContext SetLabel(
+        this OperationContext context,
         string? label)
     {
         context.Result.SetLabel(label);
         return context;
     }
 
-    public static IOperationContext SetPath(
-        this IOperationContext context,
+    public static OperationContext SetPath(
+        this OperationContext context,
         Path? path)
     {
         context.Result.SetPath(path);
         return context;
     }
 
-    public static IOperationContext SetData(
-        this IOperationContext context,
-        ResultMap resultMap)
+    public static OperationContext SetData(
+        this OperationContext context,
+        ObjectResult objectResult)
     {
-        context.Result.SetData(resultMap);
+        context.Result.SetData(objectResult);
         return context;
     }
 
-    public static IOperationContext ClearResult(
-        this IOperationContext context)
+    public static OperationContext SetItems(
+        this OperationContext context,
+        IReadOnlyList<object?> items)
+    {
+        context.Result.SetItems(items);
+        return context;
+    }
+
+    public static OperationContext SetPatchId(
+        this OperationContext context,
+        uint patchId)
+    {
+        context.Result.SetContextData(WellKnownContextData.PatchId, patchId);
+        return context;
+    }
+
+    public static OperationContext ClearResult(
+        this OperationContext context)
     {
         context.Result.Clear();
         return context;
     }
 
     public static IQueryResult BuildResult(
-        this IOperationContext context) =>
+        this OperationContext context) =>
         context.Result.BuildResult();
 }

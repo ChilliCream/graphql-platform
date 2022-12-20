@@ -18,6 +18,9 @@ Various libraries, packages, etc. that developers can add to their own project a
 
 - [AutoGuru.HotChocolate.PolymorphicIds](https://github.com/autoguru-au/hotchocolate-polymorphic-ids) - Polymorphic Relay IDs for HotChocolate
 
+### Types
+
+- [HotChocolate.Extensions.Types.Fido2](https://github.com/tr4cks/hotchocolate-types-fido2) - Make available the fido2-net-lib types into HotChocolate
 
 ### Validation
 

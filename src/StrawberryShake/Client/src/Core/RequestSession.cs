@@ -13,7 +13,7 @@ internal class RequestSession : IDisposable
         _cts = new CancellationTokenSource();
     }
 
-    public CancellationToken Token => _cts.Token;
+    public CancellationToken Abort => _cts.Token;
 
     public void Cancel()
     {

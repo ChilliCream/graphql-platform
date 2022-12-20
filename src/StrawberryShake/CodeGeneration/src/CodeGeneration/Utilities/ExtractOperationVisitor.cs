@@ -24,7 +24,7 @@ internal class ExtractOperationVisitor : SyntaxWalker<ExtractOperationContext>
 
         if (context.AllFragments.TryGetValue(
                 node.Name.Value,
-                out FragmentDefinitionNode? fragment) &&
+                out var fragment) &&
             context.VisitedFragments.Add(fragment.Name.Value))
         {
             if (Visit(fragment, node, context).IsBreak())

@@ -11,7 +11,7 @@ namespace HotChocolate;
 /// <summary>
 /// Represents mutable schema options.
 /// </summary>
-public class SchemaOptions : ISchemaOptions
+public class SchemaOptions : IReadOnlySchemaOptions
 {
     /// <summary>
     /// Gets or sets the name of the query type.
@@ -42,7 +42,7 @@ public class SchemaOptions : ISchemaOptions
     /// A delegate which defines the name of the XML documentation file to be read.
     /// Only used if <seealso cref="UseXmlDocumentation"/> is true.
     /// </summary>
-    public Func<Assembly, string>? ResolveXmlDocumentationFileName { get; set; } = null;
+    public Func<Assembly, string>? ResolveXmlDocumentationFileName { get; set; }
 
     /// <summary>
     /// Defines if fields shall be sorted by name.
@@ -68,6 +68,13 @@ public class SchemaOptions : ISchemaOptions
         BindingBehavior.Implicit;
 
     /// <summary>
+    /// Defines which members shall be by default inferred as GraphQL fields.
+    /// This default applies to <see cref="ObjectType"/> and <see cref="ObjectTypeExtension"/>.
+    /// </summary>
+    public FieldBindingFlags DefaultFieldBindingFlags { get; set; } =
+        FieldBindingFlags.Instance;
+
+    /// <summary>
     /// Defines on which fields a middleware pipeline can be applied on.
     /// </summary>
     public FieldMiddlewareApplication FieldMiddleware { get; set; } =
@@ -83,11 +90,6 @@ public class SchemaOptions : ISchemaOptions
     /// </summary>
     public DirectiveVisibility DefaultDirectiveVisibility { get; set; } =
         DirectiveVisibility.Public;
-
-    /// <summary>
-    /// Defines if field inlining is allowed.
-    /// </summary>
-    public bool AllowInlining { get; set; } = true;
 
     /// <summary>
     /// Defines that the default resolver execution strategy.
@@ -110,9 +112,14 @@ public class SchemaOptions : ISchemaOptions
     /// is an instance of an <see cref="ObjectType{T}"/>.
     /// </summary>
     public IsOfTypeFallback? DefaultIsOfTypeCheck { get; set; }
-    
-    /// <inheritdoc />
+
+    /// <summary>
+    /// Defines if the OneOf spec RFC is enabled. This feature is experimental.
+    /// </summary>
     public bool EnableOneOf { get; set; }
+
+    /// <inheritdoc />
+    public bool EnsureAllNodesCanBeResolved { get; set; }
 
     /// <summary>
     /// Creates a mutable options object from a read-only options object.
@@ -134,14 +141,14 @@ public class SchemaOptions : ISchemaOptions
             PreserveSyntaxNodes = options.PreserveSyntaxNodes,
             EnableDirectiveIntrospection = options.EnableDirectiveIntrospection,
             DefaultDirectiveVisibility = options.DefaultDirectiveVisibility,
-            AllowInlining = options.AllowInlining,
             DefaultResolverStrategy = options.DefaultResolverStrategy,
             ValidatePipelineOrder = options.ValidatePipelineOrder,
             StrictRuntimeTypeValidation = options.StrictRuntimeTypeValidation,
             RemoveUnreachableTypes = options.RemoveUnreachableTypes,
             SortFieldsByName = options.SortFieldsByName,
             DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck,
-            EnableOneOf = options.EnableOneOf
+            EnableOneOf = options.EnableOneOf,
+            EnsureAllNodesCanBeResolved = options.EnsureAllNodesCanBeResolved
         };
     }
 }

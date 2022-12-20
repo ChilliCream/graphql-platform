@@ -14,7 +14,7 @@
       "RequestStrategy": "Default",
       "OutputDirectoryName": "Generated",
       "NoStore": false,
-      "RazorComponents": false,
+      "RazorComponents": null,
       "Records": {
         "Inputs": true,
         "Entities": true

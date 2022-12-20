@@ -1,8 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <IsPackable>false</IsPackable>
+    <TargetFrameworks>$(Library2TargetFrameworks)</TargetFrameworks>
     <AssemblyName>HotChocolate.CodeGeneration.Tests</AssemblyName>
     <RootNamespace>HotChocolate.CodeGeneration</RootNamespace>
   </PropertyGroup>
@@ -10,21 +9,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\CodeGeneration.Neo4J\HotChocolate.CodeGeneration.Neo4J.csproj" />
     <ProjectReference Include="..\..\..\Neo4J\src\Data\HotChocolate.Data.Neo4J.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.8.0" /> -->
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
-    <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="coverlet.collector" Version="3.1.0">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Snapshooter.Xunit" Version="0.6.2" />
   </ItemGroup>
 
 </Project>

@@ -14,10 +14,10 @@ public class SortEnumValueDescriptor
         int value)
         : base(context, new SortEnumValueDefinition { Operation = value })
     {
-        ISortConvention convention = context.GetSortConvention(scope);
+        var convention = context.GetSortConvention(scope);
         Definition.Name = convention.GetOperationName(value);
         Definition.Description = convention.GetOperationDescription(value);
-        Definition.RuntimeValue = Definition.Name.Value;
+        Definition.RuntimeValue = Definition.Name;
     }
 
     protected SortEnumValueDescriptor(
@@ -40,7 +40,7 @@ public class SortEnumValueDescriptor
         return this;
     }
 
-    public new ISortEnumValueDescriptor Name(NameString value)
+    public new ISortEnumValueDescriptor Name(string value)
     {
         base.Name(value);
         return this;
@@ -78,16 +78,13 @@ public class SortEnumValueDescriptor
     }
 
     public new ISortEnumValueDescriptor Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments)
     {
         base.Directive(name, arguments);
         return this;
     }
 
-    public static SortEnumValueDescriptor New(
-        IDescriptorContext context,
-        string? scope,
-        int value) =>
-        new SortEnumValueDescriptor(context, scope, value);
+    public static SortEnumValueDescriptor New(IDescriptorContext context, string? scope, int value)
+        => new(context, scope, value);
 }

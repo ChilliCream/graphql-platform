@@ -4,6 +4,6 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(HotChocolateImplicitUsings)' == 'enable'">
-        <Using Include="HotChocolate.Data" />
-    </ItemGroup>
+      <Using Include="HotChocolate.Data" />
+  </ItemGroup>
 </Project>

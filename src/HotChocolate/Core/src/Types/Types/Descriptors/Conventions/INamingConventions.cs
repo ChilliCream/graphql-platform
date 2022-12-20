@@ -7,21 +7,21 @@ namespace HotChocolate.Types.Descriptors;
 
 public interface INamingConventions : IConvention
 {
-    NameString GetTypeName(Type type);
+    string GetTypeName(Type type);
 
-    NameString GetTypeName(Type type, TypeKind kind);
+    string GetTypeName(Type type, TypeKind kind);
 
     string? GetTypeDescription(Type type, TypeKind kind);
 
-    NameString GetMemberName(MemberInfo member, MemberKind kind);
+    string GetMemberName(MemberInfo member, MemberKind kind);
 
     string? GetMemberDescription(MemberInfo member, MemberKind kind);
 
-    NameString GetArgumentName(ParameterInfo parameter);
+    string GetArgumentName(ParameterInfo parameter);
 
     string? GetArgumentDescription(ParameterInfo parameter);
 
-    NameString GetEnumValueName(object value);
+    string GetEnumValueName(object value);
 
     string? GetEnumValueDescription(object value);
 
@@ -41,5 +41,5 @@ public interface INamingConventions : IConvention
     /// <exception cref="ArgumentException">
     /// The field is <c>null</c> or <see cref="string.Empty"/>.
     /// </exception>
-    NameString FormatFieldName(string fieldName);
+    string FormatFieldName(string fieldName);
 }

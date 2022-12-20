@@ -1,0 +1,1 @@
+MATCH (u:User)-[b1:OWNS*3..5  {boughtOn: '2021-03-02'}]->(b:Bike) RETURN b, u ORDER BY b ASC, u ASC

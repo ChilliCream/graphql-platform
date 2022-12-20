@@ -10,6 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="$(AssemblyName).Tests" />
+    <InternalsVisibleTo Include="HotChocolate.AzureFunctions.IsolatedProcess.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.AzureFunctions.IsolatedProcess" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
   </ItemGroup>
 

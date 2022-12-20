@@ -4,10 +4,9 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using CookieCrumble;
 using Moq;
-using Snapshooter.Xunit;
 using StrawberryShake.Transport.WebSockets.Messages;
-using Xunit;
 
 namespace StrawberryShake.Transport.WebSockets;
 
@@ -21,7 +20,7 @@ public class WebSocketConnectionTests
             => new(new Mock<ISession>().Object);
 
         // act
-        Exception? exception = Record.Exception(() => new WebSocketConnection(SessionFactory));
+        var exception = Record.Exception(() => new WebSocketConnection(SessionFactory));
 
         // assert
         Assert.Null(exception);
@@ -34,7 +33,7 @@ public class WebSocketConnectionTests
         Func<CancellationToken, ValueTask<ISession>> sessionFactory = null!;
 
         // act
-        Exception? exception = Record.Exception(() => new WebSocketConnection(sessionFactory));
+        var exception = Record.Exception(() => new WebSocketConnection(sessionFactory));
 
         // assert
         Assert.IsType<ArgumentNullException>(exception);
@@ -63,7 +62,7 @@ public class WebSocketConnectionTests
         var results = new List<Response<JsonDocument>>();
 
         // act
-        await foreach (Response<JsonDocument> response in connection.ExecuteAsync(operationRequest))
+        await foreach (var response in connection.ExecuteAsync(operationRequest))
         {
             results.Add(response);
         }
@@ -99,7 +98,7 @@ public class WebSocketConnectionTests
         var results = new List<Response<JsonDocument>>();
 
         // act
-        await foreach (Response<JsonDocument> response in connection.ExecuteAsync(operationRequest))
+        await foreach (var response in connection.ExecuteAsync(operationRequest))
         {
             results.Add(response);
         }
@@ -132,13 +131,13 @@ public class WebSocketConnectionTests
         var results = new List<Response<JsonDocument>>();
 
         // act
-        await foreach (Response<JsonDocument> response in connection.ExecuteAsync(operationRequest))
+        await foreach (var response in connection.ExecuteAsync(operationRequest))
         {
             results.Add(response);
         }
 
         // assert
-        Response<JsonDocument>? res = Assert.Single(results);
+        var res = Assert.Single(results);
         res?.Exception?.Message.MatchSnapshot();
     }
 
@@ -166,13 +165,13 @@ public class WebSocketConnectionTests
         var results = new List<Response<JsonDocument>>();
 
         // act
-        await foreach (Response<JsonDocument> response in connection.ExecuteAsync(operationRequest))
+        await foreach (var response in connection.ExecuteAsync(operationRequest))
         {
             results.Add(response);
         }
 
         // assert
-        Response<JsonDocument>? res = Assert.Single(results);
+        var res = Assert.Single(results);
         res?.Exception?.Message.MatchSnapshot();
     }
 
@@ -200,7 +199,7 @@ public class WebSocketConnectionTests
         var results = new List<Response<JsonDocument>>();
 
         // act
-        await foreach (Response<JsonDocument> response in connection.ExecuteAsync(operationRequest))
+        await foreach (var response in connection.ExecuteAsync(operationRequest))
         {
             results.Add(response);
         }

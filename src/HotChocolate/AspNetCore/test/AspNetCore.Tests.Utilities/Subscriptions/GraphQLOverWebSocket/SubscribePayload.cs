@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 #nullable enable
 
 namespace HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;

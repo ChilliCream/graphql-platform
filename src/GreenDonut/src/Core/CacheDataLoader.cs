@@ -28,7 +28,7 @@ public abstract class CacheDataLoader<TKey, TValue>
         {
             try
             {
-                TValue value = await LoadSingleAsync(keys[i], cancellationToken)
+                var value = await LoadSingleAsync(keys[i], cancellationToken)
                     .ConfigureAwait(false);
                 results.Span[i] = value;
             }
@@ -45,7 +45,7 @@ public abstract class CacheDataLoader<TKey, TValue>
 
     private static DataLoaderOptions CreateLocalOptions(DataLoaderOptions options)
     {
-        DataLoaderOptions local = options.Copy();
+        var local = options.Copy();
         local.MaxBatchSize = 1;
         return local;
     }

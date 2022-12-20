@@ -26,8 +26,8 @@ internal sealed class MessageProcessor
             while (true)
             {
                 SequencePosition? position;
-                ReadResult result = await _reader.ReadAsync(cancellationToken);
-                ReadOnlySequence<byte> buffer = result.Buffer;
+                var result = await _reader.ReadAsync(cancellationToken);
+                var buffer = result.Buffer;
 
                 do
                 {

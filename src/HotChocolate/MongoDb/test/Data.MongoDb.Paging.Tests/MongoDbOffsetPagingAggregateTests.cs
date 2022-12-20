@@ -1,6 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.MongoDb.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
@@ -9,9 +7,7 @@ using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
-using Snapshooter.Xunit;
 using Squadron;
-using Xunit;
 
 namespace HotChocolate.Data.MongoDb.Paging;
 
@@ -36,117 +32,131 @@ public class MongoDbOffsetPagingAggregateTests : IClassFixture<MongoResource>
     [Fact]
     public async Task Simple_StringList_Default_Items()
     {
-        Snapshot.FullName();
+        // arrange
+        var executor = await CreateSchemaAsync();
 
-        IRequestExecutor executor = await CreateSchemaAsync();
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                foos {
+                    items {
+                        bar
+                    }
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                    totalCount
+                }
+            }");
 
-        IExecutionResult result = await executor
-            .ExecuteAsync(
-                @"{
-                        foos {
-                            items {
-                                bar
-                            }
-                            pageInfo {
-                                hasNextPage
-                                hasPreviousPage
-                            }
-                            totalCount
-                        }
-                    }");
-        result.MatchDocumentSnapshot();
+        // assert
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), result)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Simple_StringList_Take_2()
     {
-        Snapshot.FullName();
+        // arrange
+        var executor = await CreateSchemaAsync();
 
-        IRequestExecutor executor = await CreateSchemaAsync();
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                foos(take: 2) {
+                    items {
+                        bar
+                    }
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                }
+            }");
 
-        IExecutionResult result = await executor
-            .ExecuteAsync(
-                @"
-                    {
-                        foos(take: 2) {
-                            items {
-                                bar
-                            }
-                            pageInfo {
-                                hasNextPage
-                                hasPreviousPage
-                            }
-                        }
-                    }");
-        result.MatchDocumentSnapshot();
+        // assert
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), result)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Simple_StringList_Take_2_After()
     {
-        Snapshot.FullName();
+        // arrange
+        var executor = await CreateSchemaAsync();
 
-        IRequestExecutor executor = await CreateSchemaAsync();
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                foos(take: 2 skip: 2) {
+                    items {
+                        bar
+                    }
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                }
+            }");
 
-        IExecutionResult result = await executor
-            .ExecuteAsync(
-                @"
-                    {
-                        foos(take: 2 skip: 2) {
-                            items {
-                                bar
-                            }
-                            pageInfo {
-                                hasNextPage
-                                hasPreviousPage
-                            }
-                        }
-                    }");
-        result.MatchDocumentSnapshot();
+        // assert
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), result)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Simple_StringList_Global_DefaultItem_2()
     {
-        Snapshot.FullName();
+        // arrange
+        var executor = await CreateSchemaAsync();
 
-        IRequestExecutor executor = await CreateSchemaAsync();
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                foos {
+                    items {
+                        bar
+                    }
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                }
+            }");
 
-
-        IExecutionResult result = await executor
-            .ExecuteAsync(
-                @"
-                    {
-                        foos {
-                            items {
-                                bar
-                            }
-                            pageInfo {
-                                hasNextPage
-                                hasPreviousPage
-                            }
-                        }
-                    }");
-        result.MatchDocumentSnapshot();
+        // assert
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), result)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task JustTotalCount()
     {
-        Snapshot.FullName();
+        // arrange
+        var executor = await CreateSchemaAsync();
 
-        IRequestExecutor executor = await CreateSchemaAsync();
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                foos {
+                    totalCount
+                }
+            }");
 
-        IExecutionResult result = await executor
-            .ExecuteAsync(
-                @"
-                {
-                    foos {
-                        totalCount
-                    }
-                }");
-
-        result.MatchDocumentSnapshot();
+        // assert
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), result)
+            .MatchAsync();
     }
 
     public class Foo
@@ -163,7 +173,7 @@ public class MongoDbOffsetPagingAggregateTests : IClassFixture<MongoResource>
             IEnumerable<TResult> results)
         where TResult : class
     {
-        IMongoCollection<TResult> collection =
+        var collection =
             mongoResource.CreateCollection<TResult>("data_" + Guid.NewGuid().ToString("N"));
 
         collection.InsertMany(results);

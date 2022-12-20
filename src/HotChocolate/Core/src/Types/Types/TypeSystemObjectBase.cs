@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using HotChocolate.Configuration;
 using HotChocolate.Properties;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -11,7 +12,7 @@ namespace HotChocolate.Types;
 public abstract class TypeSystemObjectBase : ITypeSystemObject
 {
     private TypeStatus _status;
-    private NameString _name;
+    private string? _name;
     private string? _scope;
     private string? _description;
 
@@ -35,9 +36,9 @@ public abstract class TypeSystemObjectBase : ITypeSystemObject
     /// <summary>
     /// Gets the GraphQL type name.
     /// </summary>
-    public NameString Name
+    public string Name
     {
-        get => _name;
+        get => _name!;
         protected set
         {
             if (IsNamed)
@@ -45,7 +46,7 @@ public abstract class TypeSystemObjectBase : ITypeSystemObject
                 throw new InvalidOperationException(
                     TypeResources.TypeSystemObject_NameImmutable);
             }
-            _name = value.EnsureNotEmpty(nameof(value));
+            _name = value.EnsureGraphQLName();
         }
     }
 
@@ -68,17 +69,14 @@ public abstract class TypeSystemObjectBase : ITypeSystemObject
 
     public abstract IReadOnlyDictionary<string, object?> ContextData { get; }
 
-    protected internal bool IsInitialized =>
-        _status == TypeStatus.Initialized
-        || _status == TypeStatus.Named
-        || _status == TypeStatus.Completed;
+    protected internal bool IsInitialized
+        => _status is TypeStatus.Initialized or TypeStatus.Named or TypeStatus.Completed;
 
-    protected internal bool IsNamed =>
-        _status == TypeStatus.Named
-        || _status == TypeStatus.Completed;
+    protected internal bool IsNamed
+        => _status is TypeStatus.Named or TypeStatus.Completed;
 
-    protected internal bool IsCompleted =>
-        _status == TypeStatus.Completed;
+    protected internal bool IsCompleted
+        => _status is TypeStatus.Completed;
 
     /// <summary>
     /// The type configuration is created and dependencies are registered.

@@ -146,15 +146,11 @@ With this we have now a functioning GraphQL server with a simple hello world exa
 
 In order to make this server a stitching server we now have to add the Hot Chocolate stitching engine.
 
-```bash
-dotnet add package HotChocolate.Stitching
-```
+<PackageInstallation packageName="HotChocolate.Stitching" />
 
 and Subscription package if using AspNetCore
 
-```bash
-dotnet add package HotChocolate.AspNetCore.Subscriptions
-```
+<PackageInstallation packageName="HotChocolate.AspNetCore.Subscriptions" />
 
 Now that our GraphQL server is ready we can start to configure the endpoints of our remote schemas.
 
@@ -490,7 +486,7 @@ services.AddStitchedSchema(builder => builder
   })
 ```
 
-> There are also methods for renaming types and fields where the stitching engine will take care that the schema is consitently rewritten so that all the type references will refer to the corrent new type/field name.
+> There are also methods for renaming types and fields where the stitching engine will take care that the schema is consistently rewritten so that all the type references will refer to the current new type/field name.
 
 With that we have removed the types from our stitched schema. Now, let us move on to extend our message type.
 

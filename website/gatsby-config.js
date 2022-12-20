@@ -1,3 +1,4 @@
+/** @type import('gatsby').GatsbyConfig */
 module.exports = {
   siteMetadata: {
     title: `ChilliCream GraphQL Platform`,
@@ -6,39 +7,22 @@ module.exports = {
     company: "ChilliCream",
     siteUrl: `https://chillicream.com`,
     repositoryUrl: `https://github.com/ChilliCream/hotchocolate`,
-    topnav: [
-      {
-        name: `Platform`,
-        link: `/platform`,
-      },
-      {
-        name: `Docs`,
-        link: `/docs/hotchocolate/`,
-      },
-      {
-        name: `Support`,
-        link: `/support`,
-      },
-      {
-        name: `Blog`,
-        link: `/blog`,
-      },
-      {
-        name: `Shop`,
-        link: `https://shop.chillicream.com`,
-      },
-    ],
     tools: {
       bcp: `https://eat.bananacakepop.com`,
       github: `https://github.com/ChilliCream/hotchocolate`,
-      slack: `http://slack.chillicream.com/`,
+      linkedIn: `https://www.linkedin.com/company/chillicream`,
+      shop: `https://store.chillicream.com`,
+      slack: `https://slack.chillicream.com/`,
       twitter: `https://twitter.com/Chilli_Cream`,
+      youtube: `https://www.youtube.com/c/ChilliCream`,
     },
   },
   plugins: [
     `gatsby-plugin-graphql-codegen`,
     `gatsby-plugin-styled-components`,
     `gatsby-plugin-react-helmet`,
+    `gatsby-plugin-robots-txt`,
+    `gatsby-plugin-tsconfig-paths`,
     `gatsby-remark-reading-time`,
     {
       resolve: `gatsby-plugin-mdx`,
@@ -117,6 +101,15 @@ module.exports = {
       options: {
         rule: {
           include: /images/,
+          exclude: /images\/(artwork|brands|companies|logo)/,
+        },
+      },
+    },
+    {
+      resolve: require.resolve(`./plugins/gatsby-plugin-svg-sprite`),
+      options: {
+        rule: {
+          include: /images\/(artwork|brands|companies|logo)/,
         },
       },
     },
@@ -162,7 +155,14 @@ module.exports = {
         anonymize: true,
       },
     },
-    `gatsby-plugin-sitemap`,
+    {
+      resolve: `gatsby-plugin-sitemap`,
+      options: {
+        resolvePagePath({ path }) {
+          return `${path}/`.replace("//", "/");
+        },
+      },
+    },
     {
       resolve: `gatsby-plugin-feed`,
       options: {

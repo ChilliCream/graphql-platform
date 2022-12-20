@@ -1,7 +1,4 @@
-using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Tests.Utilities;
-using Microsoft.AspNetCore.TestHost;
-using Xunit;
 
 namespace HotChocolate.AspNetCore;
 
@@ -16,9 +13,9 @@ public class EvictSchemaTests : ServerTestBase
     public async Task Evict_Default_Schema()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
-        ClientQueryResult time1 = await server.GetAsync(
+        var time1 = await server.GetAsync(
             new ClientQueryRequest { Query = "{ time }" });
 
         // act
@@ -26,7 +23,7 @@ public class EvictSchemaTests : ServerTestBase
             new ClientQueryRequest { Query = "{ evict }" });
 
         // assert
-        ClientQueryResult time2 = await server.GetAsync(
+        var time2 = await server.GetAsync(
             new ClientQueryRequest { Query = "{ time }" });
         Assert.False(((long)time1.Data["time"]).Equals((long)time2.Data["time"]));
     }
@@ -35,9 +32,9 @@ public class EvictSchemaTests : ServerTestBase
     public async Task Evict_Named_Schema()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
-        ClientQueryResult time1 = await server.GetAsync(
+        var time1 = await server.GetAsync(
             new ClientQueryRequest { Query = "{ time }" },
             "/evict");
 
@@ -47,7 +44,7 @@ public class EvictSchemaTests : ServerTestBase
             "/evict");
 
         // assert
-        ClientQueryResult time2 = await server.GetAsync(
+        var time2 = await server.GetAsync(
             new ClientQueryRequest { Query = "{ time }" },
             "/evict");
         Assert.False(((long)time1.Data["time"]).Equals((long)time2.Data["time"]));

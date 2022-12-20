@@ -8,43 +8,43 @@ using HotChocolate.StarWars;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Validation
+namespace HotChocolate.Validation;
+
+public class DocumentValidatorTests
 {
-    public class DocumentValidatorTests
+    [Fact]
+    public void DocumentIsNull()
     {
-        [Fact]
-        public void DocumentIsNull()
-        {
-            // arrange
-            ISchema schema = ValidationUtils.CreateSchema();
-            IDocumentValidator queryValidator = CreateValidator();
+        // arrange
+        var schema = ValidationUtils.CreateSchema();
+        var queryValidator = CreateValidator();
 
-            // act
-            Action a = () => queryValidator.Validate(schema, null!);
+        // act
+        Action a = () => queryValidator.Validate(schema, null!);
 
-            // assert
-            Assert.Throws<ArgumentNullException>(a);
-        }
+        // assert
+        Assert.Throws<ArgumentNullException>(a);
+    }
 
-        [Fact]
-        public void SchemaIsNull()
-        {
-            // arrange
-            IDocumentValidator queryValidator = CreateValidator();
+    [Fact]
+    public void SchemaIsNull()
+    {
+        // arrange
+        var queryValidator = CreateValidator();
 
-            // act
-            // act
-            Action a = () => queryValidator.Validate(null!,
-                new DocumentNode(null, new List<IDefinitionNode>()));
+        // act
+        // act
+        Action a = () => queryValidator.Validate(null!,
+            new DocumentNode(null, new List<IDefinitionNode>()));
 
-            // assert
-            Assert.Throws<ArgumentNullException>(a);
-        }
+        // assert
+        Assert.Throws<ArgumentNullException>(a);
+    }
 
-        [Fact]
-        public void QueryWithTypeSystemDefinitions()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void QueryWithTypeSystemDefinitions()
+    {
+        ExpectErrors(@"
                 query getDogName {
                     dog {
                         name
@@ -62,12 +62,12 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 "The field `color` does not exist " +
                 "on the type `Dog`.", t.Message));
-        }
+    }
 
-        [Fact]
-        public void QueryWithOneAnonymousAndOneNamedOperation()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void QueryWithOneAnonymousAndOneNamedOperation()
+    {
+        ExpectErrors(@"
                 {
                     dog {
                         name
@@ -89,12 +89,12 @@ namespace HotChocolate.Validation
                     "operations when only that one operation exists in " +
                     "the document.", t.Message);
             });
-        }
+    }
 
-        [Fact]
-        public void TwoQueryOperationsWithTheSameName()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void TwoQueryOperationsWithTheSameName()
+    {
+        ExpectErrors(@"
                 query getName {
                     dog {
                         name
@@ -110,14 +110,14 @@ namespace HotChocolate.Validation
                 }
             ",
             t => Assert.Equal(
-                    $"The operation name `getName` is not unique.",
-                    t.Message));
-        }
+                $"The operation name `getName` is not unique.",
+                t.Message));
+    }
 
-        [Fact]
-        public void OperationWithTwoVariablesThatHaveTheSameName()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void OperationWithTwoVariablesThatHaveTheSameName()
+    {
+        ExpectErrors(@"
                 query houseTrainedQuery(
                     $atOtherHomes: Boolean, $atOtherHomes: Boolean) {
                     dog {
@@ -129,12 +129,12 @@ namespace HotChocolate.Validation
                 "A document containing operations that " +
                 "define more than one variable with the same " +
                 "name is invalid for execution.", t.Message));
-        }
+    }
 
-        [Fact]
-        public void DuplicateArgument()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void DuplicateArgument()
+    {
+        ExpectErrors(@"
                 {
                     arguments {
                         ... goodNonNullArg
@@ -148,12 +148,12 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 $"More than one argument with the same name in an argument set " +
                 "is ambiguous and invalid.", t.Message));
-        }
+    }
 
-        [Fact]
-        public void MissingRequiredArgNonNullBooleanArg()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void MissingRequiredArgNonNullBooleanArg()
+    {
+        ExpectErrors(@"
                 {
                     arguments {
                         ... missingRequiredArg
@@ -164,15 +164,15 @@ namespace HotChocolate.Validation
                     nonNullBooleanArgField(nonNullBooleanArg: null)
                 }
             ",
-                t => Assert.Equal(
-                    "The argument `nonNullBooleanArg` is required.",
-                    t.Message));
-        }
+            t => Assert.Equal(
+                "The argument `nonNullBooleanArg` is required.",
+                t.Message));
+    }
 
-        [Fact]
-        public void DisallowedSecondRootField()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void DisallowedSecondRootField()
+    {
+        ExpectErrors(@"
                 subscription sub {
                     newMessage {
                         body
@@ -187,12 +187,12 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 "The field `disallowedSecondRootFieldNonExisting` does not exist " +
                 "on the type `Subscription`.", t.Message));
-        }
+    }
 
-        [Fact]
-        public void FieldIsNotDefinedOnTypeInFragment()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void FieldIsNotDefinedOnTypeInFragment()
+    {
+        ExpectErrors(@"
                 {
                     dog {
                         ... fieldNotDefined
@@ -214,12 +214,12 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 "The field `kawVolume` does not exist " +
                 "on the type `Dog`.", t.Message));
-        }
+    }
 
-        [Fact]
-        public void VariableNotUsedWithinFragment()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void VariableNotUsedWithinFragment()
+    {
+        ExpectErrors(@"
                 query variableNotUsedWithinFragment($atOtherHomes: Boolean) {
                     dog {
                         ...isHouseTrainedWithoutVariableFragment
@@ -233,32 +233,32 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 "The following variables were not used: " +
                 "atOtherHomes.", t.Message));
-        }
+    }
 
-        [Fact]
-        public void SkipDirectiveIsInTheWrongPlace()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void SkipDirectiveIsInTheWrongPlace()
+    {
+        ExpectErrors(@"
                 query @skip(if: $foo) {
                     field
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void QueriesWithInvalidVariableTypes()
-        {
-            // arrange
-            ExpectErrors(
-                null,
-                new ServiceCollection()
-                    .AddValidation()
-                    .ModifyValidationOptions(o => o.MaxAllowedErrors = int.MaxValue)
-                    .Services
-                    .BuildServiceProvider()
-                    .GetRequiredService<IDocumentValidatorFactory>()
-                    .CreateValidator(),
-                @"
+    [Fact]
+    public void QueriesWithInvalidVariableTypes()
+    {
+        // arrange
+        ExpectErrors(
+            null,
+            new ServiceCollection()
+                .AddValidation()
+                .ModifyValidationOptions(o => o.MaxAllowedErrors = int.MaxValue)
+                .Services
+                .BuildServiceProvider()
+                .GetRequiredService<IDocumentValidatorFactory>()
+                .CreateValidator(),
+            @"
                 query takesCat($cat: Cat) {
                     # ...
                 }
@@ -274,67 +274,67 @@ namespace HotChocolate.Validation
                 query takesCatOrDog($catOrDog: CatOrDog) {
                     # ...
                 }",
-                t => Assert.Equal(
-                    "Operation `takesCat` has a empty selection set. Root types without " +
-                    "subfields are disallowed.",
-                    t.Message),
-                t => Assert.Equal(
-                    "Operation `takesDogBang` has a empty selection set. Root types without " +
-                    "subfields are disallowed.",
-                    t.Message),
-                t => Assert.Equal(
-                    "Operation `takesListOfPet` has a empty selection set. Root types without " +
-                    "subfields are disallowed.",
-                    t.Message),
-                t => Assert.Equal(
-                    "Operation `takesCatOrDog` has a empty selection set. Root types without " +
-                    "subfields are disallowed.",
-                    t.Message),
-                t => Assert.Equal(
-                    "The type of variable `cat` is not an input type.",
-                    t.Message),
-                t => Assert.Equal(
-                    "The following variables were not used: cat.",
-                    t.Message),
-                t => Assert.Equal(
-                    "The type of variable `dog` is not an input type.",
-                    t.Message),
-                t => Assert.Equal(
-                    "The following variables were not used: dog.",
-                    t.Message),
-                t => Assert.Equal(
-                    "The type of variable `pets` is not an input type.",
-                    t.Message),
-                t => Assert.Equal(
-                    "The following variables were not used: pets.",
-                    t.Message),
-                t => Assert.Equal(
-                    "The type of variable `catOrDog` is not an input type.",
-                    t.Message),
-                t => Assert.Equal(
-                    "The following variables were not used: catOrDog.",
-                    t.Message));
-        }
+            t => Assert.Equal(
+                "Operation `takesCat` has a empty selection set. Root types without " +
+                "subfields are disallowed.",
+                t.Message),
+            t => Assert.Equal(
+                "Operation `takesDogBang` has a empty selection set. Root types without " +
+                "subfields are disallowed.",
+                t.Message),
+            t => Assert.Equal(
+                "Operation `takesListOfPet` has a empty selection set. Root types without " +
+                "subfields are disallowed.",
+                t.Message),
+            t => Assert.Equal(
+                "Operation `takesCatOrDog` has a empty selection set. Root types without " +
+                "subfields are disallowed.",
+                t.Message),
+            t => Assert.Equal(
+                "The type of variable `cat` is not an input type.",
+                t.Message),
+            t => Assert.Equal(
+                "The following variables were not used: cat.",
+                t.Message),
+            t => Assert.Equal(
+                "The type of variable `dog` is not an input type.",
+                t.Message),
+            t => Assert.Equal(
+                "The following variables were not used: dog.",
+                t.Message),
+            t => Assert.Equal(
+                "The type of variable `pets` is not an input type.",
+                t.Message),
+            t => Assert.Equal(
+                "The following variables were not used: pets.",
+                t.Message),
+            t => Assert.Equal(
+                "The type of variable `catOrDog` is not an input type.",
+                t.Message),
+            t => Assert.Equal(
+                "The following variables were not used: catOrDog.",
+                t.Message));
+    }
 
-        [Fact]
-        public void ConflictingBecauseAlias()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void ConflictingBecauseAlias()
+    {
+        ExpectErrors(@"
                 fragment conflictingBecauseAlias on Dog {
                     name: nickname
                     name
                 }
             ",
-                t => Assert.Equal(
+            t => Assert.Equal(
                 "The specified fragment `conflictingBecauseAlias` " +
                 "is not used within the current document.",
                 t.Message));
-        }
+    }
 
-        [Fact]
-        public void InvalidFieldArgName()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void InvalidFieldArgName()
+    {
+        ExpectErrors(@"
                 {
                     dog {
                         ... invalidArgName
@@ -350,12 +350,12 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 "The argument `dogCommand` is required.",
                 t.Message));
-        }
+    }
 
-        [Fact]
-        public void UnusedFragment()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void UnusedFragment()
+    {
+        ExpectErrors(@"
                 fragment nameFragment on Dog { # unused
                     name
                 }
@@ -369,12 +369,12 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 "The specified fragment `nameFragment` " +
                 "is not used within the current document.", t.Message));
-        }
+    }
 
-        [Fact]
-        public void DuplicateFragments()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void DuplicateFragments()
+    {
+        ExpectErrors(@"
                 {
                     dog {
                         ...fragmentOne
@@ -394,12 +394,12 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 "There are multiple fragments with the name `fragmentOne`.",
                 t.Message));
-        }
+    }
 
-        [Fact]
-        public void ScalarSelectionsNotAllowedOnInt()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void ScalarSelectionsNotAllowedOnInt()
+    {
+        ExpectErrors(@"
                 {
                     dog {
                         barkVolume {
@@ -412,12 +412,12 @@ namespace HotChocolate.Validation
                 "`barkVolume` returns a scalar value. Selections on scalars or enums" +
                 " are never allowed, because they are the leaf nodes of any GraphQL query.",
                 t.Message));
-        }
+    }
 
-        [Fact]
-        public void InlineFragOnScalar()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void InlineFragOnScalar()
+    {
+        ExpectErrors(@"
                 {
                     dog {
                        ... inlineFragOnScalar
@@ -433,12 +433,12 @@ namespace HotChocolate.Validation
             t => Assert.Equal(t.Message,
                 "Fragments can only be declared on unions, interfaces, " +
                 "and objects."));
-        }
+    }
 
-        [Fact]
-        public void FragmentCycle1()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void FragmentCycle1()
+    {
+        ExpectErrors(@"
                 {
                     dog {
                         ...nameFragment
@@ -460,12 +460,12 @@ namespace HotChocolate.Validation
                 "cycles including spreading itself. Otherwise an " +
                 "operation could infinitely spread or infinitely " +
                 "execute on cycles in the underlying data."));
-        }
+    }
 
-        [Fact]
-        public void UndefinedFragment()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void UndefinedFragment()
+    {
+        ExpectErrors(@"
                 {
                     dog {
                         ...undefinedFragment
@@ -476,12 +476,12 @@ namespace HotChocolate.Validation
                 "The specified fragment `undefinedFragment` " +
                 "does not exist.",
                 t.Message));
-        }
+    }
 
-        [Fact]
-        public void FragmentDoesNotMatchType()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void FragmentDoesNotMatchType()
+    {
+        ExpectErrors(@"
                 {
                     dog {
                         ...fragmentDoesNotMatchType
@@ -496,12 +496,12 @@ namespace HotChocolate.Validation
                 "The parent type does not match the type condition on " +
                 "the fragment.",
                 t.Message));
-        }
+    }
 
-        [Fact]
-        public void NotExistingTypeOnInlineFragment()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void NotExistingTypeOnInlineFragment()
+    {
+        ExpectErrors(@"
                 {
                     dog {
                         ...inlineNotExistingType
@@ -520,12 +520,12 @@ namespace HotChocolate.Validation
                     "Unknown type `NotInSchema`.",
                     t.Message);
             });
-        }
+    }
 
-        [Fact]
-        public void InvalidInputObjectFieldsExist()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void InvalidInputObjectFieldsExist()
+    {
+        ExpectErrors(@"
                 {
                     findDog(complex: { favoriteCookieFlavor: ""Bacon"" })
                     {
@@ -537,12 +537,12 @@ namespace HotChocolate.Validation
                 "The specified input object field " +
                 "`favoriteCookieFlavor` does not exist.",
                 t.Message));
-        }
+    }
 
-        [Fact]
-        public void RequiredFieldIsNull()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void RequiredFieldIsNull()
+    {
+        ExpectErrors(@"
                 {
                     findDog2(complex: { name: null })
                     {
@@ -553,12 +553,12 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 "`name` is a required field and cannot be null.",
                 t.Message));
-        }
+    }
 
-        [Fact]
-        public void NameFieldIsAmbiguous()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void NameFieldIsAmbiguous()
+    {
+        ExpectErrors(@"
                 {
                     findDog(complex: { name: ""A"", name: ""B"" })
                     {
@@ -568,12 +568,12 @@ namespace HotChocolate.Validation
             ",
             t =>
                 Assert.Equal("There can be only one input field named `name`.", t.Message));
-        }
+    }
 
-        [Fact]
-        public void UnsupportedDirective()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void UnsupportedDirective()
+    {
+        ExpectErrors(@"
                 {
                     dog {
                         name @foo(bar: true)
@@ -584,12 +584,12 @@ namespace HotChocolate.Validation
                 "The specified directive `foo` " +
                 "is not supported by the current schema.",
                 t.Message));
-        }
+    }
 
-        [Fact]
-        public void StringIntoInt()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void StringIntoInt()
+    {
+        ExpectErrors(@"
                 {
                     arguments {
                         ...stringIntoInt
@@ -604,21 +604,21 @@ namespace HotChocolate.Validation
                 "The specified argument value does not match the " +
                 "argument type.",
                 t.Message));
-        }
+    }
 
-        [Fact]
-        public void MaxDepthRuleIsIncluded()
-        {
-            ExpectErrors(
-                null,
-                new ServiceCollection()
-                    .AddValidation()
-                    .AddMaxExecutionDepthRule(1)
-                    .Services
-                    .BuildServiceProvider()
-                    .GetRequiredService<IDocumentValidatorFactory>()
-                    .CreateValidator(),
-                @"
+    [Fact]
+    public void MaxDepthRuleIsIncluded()
+    {
+        ExpectErrors(
+            null,
+            new ServiceCollection()
+                .AddValidation()
+                .AddMaxExecutionDepthRule(1)
+                .Services
+                .BuildServiceProvider()
+                .GetRequiredService<IDocumentValidatorFactory>()
+                .CreateValidator(),
+            @"
                     query {
                         catOrDog
                         {
@@ -628,19 +628,19 @@ namespace HotChocolate.Validation
                         }
                     }
                 ",
-                t =>
-                {
-                    Assert.Equal(
-                        "The GraphQL document has an execution depth of 2 " +
-                        "which exceeds the max allowed execution depth of 1.",
-                        t.Message);
-                });
-        }
+            t =>
+            {
+                Assert.Equal(
+                    "The GraphQL document has an execution depth of 2 " +
+                    "which exceeds the max allowed execution depth of 1.",
+                    t.Message);
+            });
+    }
 
-        [Fact]
-        public void GoodBooleanArgDefault2()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void GoodBooleanArgDefault2()
+    {
+        ExpectValid(@"
                 query {
                     arguments {
                         ... goodBooleanArgDefault
@@ -651,62 +651,62 @@ namespace HotChocolate.Validation
                     optionalNonNullBooleanArgField2
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void StarWars_Query_Is_Valid()
-        {
-            ExpectValid(
-                SchemaBuilder.New().AddStarWarsTypes().Create(),
-                null,
-                FileResource.Open("StarWars_Request.graphql"));
-        }
+    [Fact]
+    public void StarWars_Query_Is_Valid()
+    {
+        ExpectValid(
+            SchemaBuilder.New().AddStarWarsTypes().Create(),
+            null,
+            FileResource.Open("StarWars_Request.graphql"));
+    }
 
-        [Fact]
-        public void DuplicatesWillBeIgnoredOnFieldMerging()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddStarWarsTypes()
-                .Create();
+    [Fact]
+    public void DuplicatesWillBeIgnoredOnFieldMerging()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .Create();
 
-            DocumentNode document = Utf8GraphQLParser.Parse(
-                FileResource.Open("InvalidIntrospectionQuery.graphql"));
+        var document = Utf8GraphQLParser.Parse(
+            FileResource.Open("InvalidIntrospectionQuery.graphql"));
 
-            var originalOperation = ((OperationDefinitionNode)document.Definitions[0]);
-            OperationDefinitionNode operationWithDuplicates = originalOperation.WithSelectionSet(
-                originalOperation.SelectionSet.WithSelections(
-                    new List<ISelectionNode>
-                    {
-                        originalOperation.SelectionSet.Selections[0],
-                        originalOperation.SelectionSet.Selections[0]
-                    }));
-
-            document = document.WithDefinitions(
-                new List<IDefinitionNode>(document.Definitions.Skip(1))
+        var originalOperation = ((OperationDefinitionNode)document.Definitions[0]);
+        var operationWithDuplicates = originalOperation.WithSelectionSet(
+            originalOperation.SelectionSet.WithSelections(
+                new List<ISelectionNode>
                 {
-                    operationWithDuplicates
-                });
+                    originalOperation.SelectionSet.Selections[0],
+                    originalOperation.SelectionSet.Selections[0]
+                }));
 
-            ServiceProvider services = new ServiceCollection()
-                .AddValidation()
-                .Services
-                .BuildServiceProvider();
+        document = document.WithDefinitions(
+            new List<IDefinitionNode>(document.Definitions.Skip(1))
+            {
+                operationWithDuplicates
+            });
 
-            IDocumentValidatorFactory factory = services.GetRequiredService<IDocumentValidatorFactory>();
-            IDocumentValidator validator = factory.CreateValidator();
+        var services = new ServiceCollection()
+            .AddValidation()
+            .Services
+            .BuildServiceProvider();
 
-            // act
-            DocumentValidatorResult result = validator.Validate(schema, document);
+        var factory = services.GetRequiredService<IDocumentValidatorFactory>();
+        var validator = factory.CreateValidator();
 
-            // assert
-            Assert.False(result.HasErrors);
-        }
+        // act
+        var result = validator.Validate(schema, document);
 
-        [Fact]
-        public void Ensure_That_Merged_Fields_Are_Not_In_Violation_Of_Duplicate_Directives_Rule()
-        {
-            ExpectValid(@"
+        // assert
+        Assert.False(result.HasErrors);
+    }
+
+    [Fact]
+    public void Ensure_That_Merged_Fields_Are_Not_In_Violation_Of_Duplicate_Directives_Rule()
+    {
+        ExpectValid(@"
                 query ($a: Boolean!) {
                     dog {
                         ... inlineFragOnScalar
@@ -722,18 +722,18 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void Ensure_Recursive_Fragments_Fail()
-        {
-            ExpectErrors("fragment f on Query{...f} {...f}");
-        }
+    [Fact]
+    public void Ensure_Recursive_Fragments_Fail()
+    {
+        ExpectErrors("fragment f on Query{...f} {...f}");
+    }
 
-        [Fact]
-        public void Ensure_Recursive_Fragments_Fail_2()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void Ensure_Recursive_Fragments_Fail_2()
+    {
+        ExpectErrors(@"
                 fragment f on Query {
                     ...f
                     f {
@@ -745,126 +745,125 @@ namespace HotChocolate.Validation
                 }
 
                 {...f}");
-        }
+    }
 
-        [Fact]
-        public void Short_Long_Names()
+    [Fact]
+    public void Short_Long_Names()
+    {
+        ExpectErrors(FileResource.Open("short_long_names_query.graphql"));
+    }
+
+    [Fact]
+    public void Anonymous_empty_query_repeated_25000()
+    {
+        ExpectErrors(FileResource.Open("anonymous_empty_query_repeated_25000.graphql"));
+    }
+
+    [Fact]
+    public void Type_query_repeated_6250()
+    {
+        ExpectErrors(FileResource.Open("__type_query_repeated_6250.graphql"));
+    }
+
+    [Fact]
+    public void Typename_query_repeated_4167()
+    {
+        ExpectErrors(FileResource.Open("__typename_query_repeated_4167.graphql"));
+    }
+
+    [Fact]
+    public void Typename_query()
+    {
+        ExpectValid(FileResource.Open("__typename_query.graphql"));
+    }
+
+    [Fact]
+    public void Produce_Many_Errors_100_query()
+    {
+        ExpectErrors(FileResource.Open("100_query.graphql"));
+    }
+
+    [Fact]
+    public void Produce_Many_Errors_1000_query()
+    {
+        ExpectErrors(FileResource.Open("1000_query.graphql"));
+    }
+
+    [Fact]
+    public void Produce_Many_Errors_10000_query()
+    {
+        ExpectErrors(FileResource.Open("10000_query.graphql"));
+    }
+
+    [Fact]
+    public void Produce_Many_Errors_25000_query()
+    {
+        ExpectErrors(FileResource.Open("25000_query.graphql"));
+    }
+
+    [Fact]
+    public void Produce_Many_Errors_30000_query()
+    {
+        ExpectErrors(FileResource.Open("30000_query.graphql"));
+    }
+
+    [Fact]
+    public void Produce_Many_Errors_50000_query()
+    {
+        ExpectErrors(FileResource.Open("50000_query.graphql"));
+    }
+
+    private void ExpectValid(string sourceText) => ExpectValid(null, null, sourceText);
+
+    private void ExpectValid(ISchema schema, IDocumentValidator validator, string sourceText)
+    {
+        // arrange
+        schema ??= ValidationUtils.CreateSchema();
+        validator ??= CreateValidator();
+        var query = Utf8GraphQLParser.Parse(sourceText);
+
+        // act
+        var result = validator.Validate(schema, query);
+
+        // assert
+        Assert.Empty(result.Errors);
+    }
+
+    private void ExpectErrors(string sourceText, params Action<IError>[] elementInspectors) =>
+        ExpectErrors(null, null, sourceText, elementInspectors);
+
+    private void ExpectErrors(
+        ISchema schema,
+        IDocumentValidator validator,
+        string sourceText,
+        params Action<IError>[] elementInspectors)
+    {
+        // arrange
+        schema ??= ValidationUtils.CreateSchema();
+        validator ??= CreateValidator();
+        var query = Utf8GraphQLParser.Parse(sourceText);
+
+        // act
+        var result = validator.Validate(schema, query);
+
+        // assert
+        Assert.NotEmpty(result.Errors);
+
+        if (elementInspectors.Length > 0)
         {
-            ExpectErrors(FileResource.Open("short_long_names_query.graphql"));
+            Assert.Collection(result.Errors, elementInspectors);
         }
 
-        [Fact]
-        public void Anonymous_empty_query_repeated_25000()
-        {
-            ExpectErrors(FileResource.Open("anonymous_empty_query_repeated_25000.graphql"));
-        }
+        result.Errors.MatchSnapshot();
+    }
 
-        [Fact]
-        public void Type_query_repeated_6250()
-        {
-            ExpectErrors(FileResource.Open("__type_query_repeated_6250.graphql"));
-        }
-
-        [Fact]
-        public void Typename_query_repeated_4167()
-        {
-            ExpectErrors(FileResource.Open("__typename_query_repeated_4167.graphql"));
-        }
-
-        [Fact]
-        public void Typename_query()
-        {
-            ExpectValid(FileResource.Open("__typename_query.graphql"));
-        }
-
-        [Fact]
-        public void Produce_Many_Errors_100_query()
-        {
-            ExpectErrors(FileResource.Open("100_query.graphql"));
-        }
-
-        [Fact]
-        public void Produce_Many_Errors_1000_query()
-        {
-            ExpectErrors(FileResource.Open("1000_query.graphql"));
-        }
-
-        [Fact]
-        public void Produce_Many_Errors_10000_query()
-        {
-            ExpectErrors(FileResource.Open("10000_query.graphql"));
-        }
-
-        [Fact]
-        public void Produce_Many_Errors_25000_query()
-        {
-            ExpectErrors(FileResource.Open("25000_query.graphql"));
-        }
-
-        [Fact]
-        public void Produce_Many_Errors_30000_query()
-        {
-            ExpectErrors(FileResource.Open("30000_query.graphql"));
-        }
-
-        [Fact]
-        public void Produce_Many_Errors_50000_query()
-        {
-            ExpectErrors(FileResource.Open("50000_query.graphql"));
-        }
-
-        private void ExpectValid(string sourceText) => ExpectValid(null, null, sourceText);
-
-        private void ExpectValid(ISchema schema, IDocumentValidator validator, string sourceText)
-        {
-            // arrange
-            schema ??= ValidationUtils.CreateSchema();
-            validator ??= CreateValidator();
-            DocumentNode query = Utf8GraphQLParser.Parse(sourceText);
-
-            // act
-            DocumentValidatorResult result = validator.Validate(schema, query);
-
-            // assert
-            Assert.Empty(result.Errors);
-        }
-
-        private void ExpectErrors(string sourceText, params Action<IError>[] elementInspectors) =>
-            ExpectErrors(null, null, sourceText, elementInspectors);
-
-        private void ExpectErrors(
-            ISchema schema,
-            IDocumentValidator validator,
-            string sourceText,
-            params Action<IError>[] elementInspectors)
-        {
-            // arrange
-            schema ??= ValidationUtils.CreateSchema();
-            validator ??= CreateValidator();
-            DocumentNode query = Utf8GraphQLParser.Parse(sourceText);
-
-            // act
-            DocumentValidatorResult result = validator.Validate(schema, query);
-
-            // assert
-            Assert.NotEmpty(result.Errors);
-
-            if (elementInspectors.Length > 0)
-            {
-                Assert.Collection(result.Errors, elementInspectors);
-            }
-
-            result.Errors.MatchSnapshot();
-        }
-
-        private static IDocumentValidator CreateValidator()
-        {
-            return new ServiceCollection()
-                .AddValidation()
-                .Services
-                .BuildServiceProvider()
-                .GetRequiredService<IDocumentValidatorFactory>()
-                .CreateValidator();
-        }
+    private static IDocumentValidator CreateValidator()
+    {
+        return new ServiceCollection()
+            .AddValidation()
+            .Services
+            .BuildServiceProvider()
+            .GetRequiredService<IDocumentValidatorFactory>()
+            .CreateValidator();
     }
 }

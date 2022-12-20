@@ -62,7 +62,7 @@ public class FilterProviderExtensionsTests
         {
         }
 
-        public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
+        public override FieldMiddleware CreateExecutor<TEntityType>(string argumentName)
         {
             throw new NotImplementedException();
         }

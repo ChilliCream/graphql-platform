@@ -1,20 +1,20 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HotChocolate.Validation
-{
-    public class SubscriptionSingleRootFieldRuleTests
-        : DocumentValidatorVisitorTestBase
-    {
-        public SubscriptionSingleRootFieldRuleTests()
-            : base(builder => builder.AddOperationRules())
-        {
-        }
+namespace HotChocolate.Validation;
 
-        [Fact]
-        public void SubscriptionWithOneRootField()
-        {
-            ExpectValid(@"
+public class SubscriptionSingleRootFieldRuleTests
+    : DocumentValidatorVisitorTestBase
+{
+    public SubscriptionSingleRootFieldRuleTests()
+        : base(builder => builder.AddOperationRules())
+    {
+    }
+
+    [Fact]
+    public void SubscriptionWithOneRootField()
+    {
+        ExpectValid(@"
                 subscription sub {
                     newMessage {
                         body
@@ -22,12 +22,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void SubscriptionWithOneRootFieldAnonymous()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void SubscriptionWithOneRootFieldAnonymous()
+    {
+        ExpectValid(@"
                 subscription {
                     newMessage {
                         body
@@ -35,13 +35,13 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void SubscriptionWithDirectiveThatContainsOneRootField()
-        {
-            // arrange
-            ExpectValid(@"
+    [Fact]
+    public void SubscriptionWithDirectiveThatContainsOneRootField()
+    {
+        // arrange
+        ExpectValid(@"
                 subscription sub {
                     ...newMessageFields
                 }
@@ -53,12 +53,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void DisallowedSecondRootField()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void DisallowedSecondRootField()
+    {
+        ExpectErrors(@"
                 subscription sub {
                     newMessage {
                         body
@@ -70,12 +70,12 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 $"Subscription operations must " +
                 "have exactly one root field.", t.Message));
-        }
+    }
 
-        [Fact]
-        public void DisallowedSecondRootFieldAnonymous()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void DisallowedSecondRootFieldAnonymous()
+    {
+        ExpectErrors(@"
                 subscription sub {
                     newMessage {
                         body
@@ -87,12 +87,12 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 $"Subscription operations must " +
                 "have exactly one root field.", t.Message));
-        }
+    }
 
-        [Fact]
-        public void FailsWithManyMoreThanOneRootField()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void FailsWithManyMoreThanOneRootField()
+    {
+        ExpectErrors(@"
                 subscription sub {
                     newMessage {
                         body
@@ -105,12 +105,12 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 $"Subscription operations must " +
                 "have exactly one root field.", t.Message));
-        }
+    }
 
-        [Fact]
-        public void DisallowedSecondRootFieldWithinDirective()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void DisallowedSecondRootFieldWithinDirective()
+    {
+        ExpectErrors(@"
                 subscription sub {
                     ...multipleSubscriptions
                 }
@@ -126,12 +126,12 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 $"Subscription operations must " +
                 "have exactly one root field.", t.Message));
-        }
+    }
 
-        [Fact]
-        public void DisallowedIntrospectionField()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void DisallowedIntrospectionField()
+    {
+        ExpectErrors(@"
                 subscription sub {
                     newMessage {
                         body
@@ -143,6 +143,17 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 $"Subscription operations must " +
                 "have exactly one root field.", t.Message));
-        }
+    }
+
+    [Fact]
+    public void DisallowedOnlyIntrospectionField()
+    {
+        ExpectErrors(@"
+                subscription sub {
+                    __typename
+                }
+            ",
+            t => Assert.Equal(
+                "Subscription must not select an introspection top level field.", t.Message));
     }
 }

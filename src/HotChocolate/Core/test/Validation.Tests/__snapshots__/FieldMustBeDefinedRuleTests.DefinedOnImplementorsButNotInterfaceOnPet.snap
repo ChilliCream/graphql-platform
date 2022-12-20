@@ -2,9 +2,14 @@
   "Message": "The field `nickname` does not exist on the type `Pet`.",
   "Code": null,
   "Path": {
-    "Parent": null,
-    "Depth": 0,
-    "Name": "dog"
+    "Name": "dog",
+    "Parent": {
+      "Parent": null,
+      "Length": -1,
+      "IsRoot": true
+    },
+    "Length": 0,
+    "IsRoot": false
   },
   "Locations": [
     {

@@ -29,6 +29,6 @@ public abstract class FilterOperationCombinator
         TContext context,
         Queue<T> operations,
         FilterCombinator combinator,
-        [NotNullWhen(true)] out T combined)
+        [NotNullWhen(true)] out T? combined)
         where TContext : FilterVisitorContext<T>;
 }

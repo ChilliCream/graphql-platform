@@ -18,7 +18,7 @@ public class SchemaParserTests
             Encoding.UTF8.GetBytes(sourceText));
 
         // act
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
         document.ToString().MatchSnapshot();
@@ -34,7 +34,7 @@ public class SchemaParserTests
             Encoding.UTF8.GetBytes(sourceText));
 
         // act
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
         document.ToString().MatchSnapshot();
@@ -49,7 +49,7 @@ public class SchemaParserTests
             Encoding.UTF8.GetBytes(sourceText));
 
         // act
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
         document.ToString().MatchSnapshot();
@@ -66,7 +66,7 @@ public class SchemaParserTests
             Encoding.UTF8.GetBytes(sourceText));
 
         // act
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
         document.ToString().MatchSnapshot();
@@ -82,7 +82,7 @@ public class SchemaParserTests
             Encoding.UTF8.GetBytes(sourceText));
 
         // act
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
         document.ToString().MatchSnapshot();
@@ -98,7 +98,7 @@ public class SchemaParserTests
             Encoding.UTF8.GetBytes(sourceText));
 
         // act
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
         document.ToString().MatchSnapshot();
@@ -114,7 +114,7 @@ public class SchemaParserTests
             Encoding.UTF8.GetBytes(sourceText));
 
         // act
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
         document.ToString().MatchSnapshot();
@@ -131,7 +131,7 @@ public class SchemaParserTests
             Encoding.UTF8.GetBytes(sourceText));
 
         // act
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
         document.ToString().MatchSnapshot();
@@ -144,7 +144,7 @@ public class SchemaParserTests
         var sourceText = Encoding.UTF8.GetBytes(FileResource.Open("onegraph.graphql"));
 
         // act
-        DocumentNode document = Utf8GraphQLParser.Parse(sourceText);
+        var document = Utf8GraphQLParser.Parse(sourceText);
 
         // assert
         document.ToString().MatchSnapshot();

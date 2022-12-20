@@ -2,8 +2,6 @@ namespace HotChocolate.Types;
 
 internal sealed class ErrorMiddleware
 {
-    public static readonly object ErrorObject = new();
-
     private readonly FieldDelegate _next;
     private readonly IReadOnlyList<CreateError> _errorHandlers;
 
@@ -29,9 +27,9 @@ internal sealed class ErrorMiddleware
         {
             var errors = new List<object>();
 
-            foreach (Exception exception in ex.InnerExceptions)
+            foreach (var exception in ex.InnerExceptions)
             {
-                foreach (CreateError createError in _errorHandlers)
+                foreach (var createError in _errorHandlers)
                 {
                     if (createError(exception) is { } error)
                     {
@@ -47,13 +45,13 @@ internal sealed class ErrorMiddleware
             }
 
             context.SetScopedState(ErrorContextDataKeys.Errors, errors);
-            context.Result = ErrorObject;
+            context.Result = MarkerObjects.ErrorObject;
         }
         catch (Exception ex)
         {
             object? error = null;
 
-            foreach (CreateError createError in _errorHandlers)
+            foreach (var createError in _errorHandlers)
             {
                 if (createError(ex) is { } e)
                 {
@@ -67,12 +65,8 @@ internal sealed class ErrorMiddleware
                 throw;
             }
 
-            context.SetScopedState(ErrorContextDataKeys.Errors,
-                new[]
-                {
-                    error
-                });
-            context.Result = ErrorObject;
+            context.SetScopedState(ErrorContextDataKeys.Errors, new[] { error });
+            context.Result = MarkerObjects.ErrorObject;
         }
     }
 }

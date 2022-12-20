@@ -1,20 +1,20 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HotChocolate.Validation
-{
-    public class OperationNameUniquenessRuleTests
-        : DocumentValidatorVisitorTestBase
-    {
-        public OperationNameUniquenessRuleTests()
-            : base(builder => builder.AddOperationRules())
-        {
-        }
+namespace HotChocolate.Validation;
 
-        [Fact]
-        public void TwoUniqueQueryOperations()
-        {
-            ExpectValid(@"
+public class OperationNameUniquenessRuleTests
+    : DocumentValidatorVisitorTestBase
+{
+    public OperationNameUniquenessRuleTests()
+        : base(builder => builder.AddOperationRules())
+    {
+    }
+
+    [Fact]
+    public void TwoUniqueQueryOperations()
+    {
+        ExpectValid(@"
                 query getDogName {
                     dog {
                         name
@@ -29,12 +29,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void TwoQueryOperationsWithTheSameName()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void TwoQueryOperationsWithTheSameName()
+    {
+        ExpectErrors(@"
                 query getName {
                     dog {
                         name
@@ -52,12 +52,12 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 $"The operation name `getName` is not unique.",
                 t.Message));
-        }
+    }
 
-        [Fact]
-        public void TwoOperationsWithTheSameName()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void TwoOperationsWithTheSameName()
+    {
+        ExpectErrors(@"
                 query dogOperation {
                     dog {
                         name
@@ -73,32 +73,32 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 $"The operation name `dogOperation` is not unique.",
                 t.Message));
-        }
+    }
 
-        [Fact]
-        public void OneAnonOperation()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void OneAnonOperation()
+    {
+        ExpectValid(@"
                 {
                     anyArg
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void OneNamedOperation()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void OneNamedOperation()
+    {
+        ExpectValid(@"
                 query Foo {
                     anyArg
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void MultipleOperationsOfDifferentTypes()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void MultipleOperationsOfDifferentTypes()
+    {
+        ExpectValid(@"
                 query Foo {
                     anyArg
                 }
@@ -113,12 +113,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void FragmentAndOperationNamedTheSame()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void FragmentAndOperationNamedTheSame()
+    {
+        ExpectValid(@"
                 query Foo {
                     ...Foo
                 }
@@ -127,12 +127,12 @@ namespace HotChocolate.Validation
                     anyArg
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void MultipleOperationsOfSameName()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void MultipleOperationsOfSameName()
+    {
+        ExpectErrors(@"
                 query Foo {
                     anyArg
                 }
@@ -141,12 +141,12 @@ namespace HotChocolate.Validation
                     anyArg
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void MultipleOpsOfSameNameOfDifferentTypesMutation()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void MultipleOpsOfSameNameOfDifferentTypesMutation()
+    {
+        ExpectErrors(@"
                 query Foo {
                     anyArg
                 }
@@ -155,12 +155,12 @@ namespace HotChocolate.Validation
                     fieldB
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void MultipleOpsOfSameNameOfDifferentTypesSubscription()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void MultipleOpsOfSameNameOfDifferentTypesSubscription()
+    {
+        ExpectErrors(@"
                 query Foo {
                     anyArg
                 }
@@ -171,6 +171,5 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
     }
 }

@@ -27,15 +27,15 @@ public abstract class FilterVisitorBase<TContext, T>
         TContext context,
         Queue<T> operations,
         FilterCombinator combinator,
-        [NotNullWhen(true)] out T combined);
+        [NotNullWhen(true)] out T? combined);
 
     protected override ISyntaxVisitorAction Leave(
         ObjectValueNode node,
         TContext context)
     {
-        Queue<T> operations = context.PopLevel();
+        var operations = context.PopLevel();
 
-        if (TryCombineOperations(context, operations, FilterCombinator.And, out T combined))
+        if (TryCombineOperations(context, operations, FilterCombinator.And, out var combined))
         {
             context.GetLevel().Enqueue(combined);
         }
@@ -69,7 +69,7 @@ public abstract class FilterVisitorBase<TContext, T>
         ObjectFieldNode node,
         TContext context)
     {
-        ISyntaxVisitorAction? result = Continue;
+        var result = Continue;
 
         if (context.Operations.Peek() is IFilterField field)
         {
@@ -93,14 +93,14 @@ public abstract class FilterVisitorBase<TContext, T>
         ListValueNode node,
         TContext context)
     {
-        FilterCombinator combinator =
+        var combinator =
             context.Operations.Peek() is OrField
                 ? FilterCombinator.Or
                 : FilterCombinator.And;
 
-        Queue<T> operations = context.PopLevel();
+        var operations = context.PopLevel();
 
-        if (TryCombineOperations(context, operations, combinator, out T combined))
+        if (TryCombineOperations(context, operations, combinator, out var combined))
         {
             context.GetLevel().Enqueue(combined);
         }

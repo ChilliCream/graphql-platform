@@ -19,10 +19,9 @@ internal class GeometryTransformerInterceptor : TypeInterceptor
     /// <inheritdoc />
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
-        ISpatialConvention convention = completionContext.GetSpatialConvention();
+        var convention = completionContext.GetSpatialConvention();
         if (convention.TransformerFactory.HasCoordinateSystems() &&
             convention.DefaultSrid > 0)
         {

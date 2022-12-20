@@ -5,8 +5,8 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
+using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -18,8 +18,7 @@ public class InputObjectTypeDescriptor<T>
     protected internal InputObjectTypeDescriptor(IDescriptorContext context)
         : base(context, typeof(T))
     {
-        Definition.Fields.BindingBehavior =
-            context.Options.DefaultBindingBehavior;
+        Definition.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
     }
 
     protected internal InputObjectTypeDescriptor(
@@ -32,31 +31,21 @@ public class InputObjectTypeDescriptor<T>
     Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
 
     protected override void OnCompleteFields(
-        IDictionary<NameString, InputFieldDefinition> fields,
-        ISet<PropertyInfo> handledProperties)
+        IDictionary<string, InputFieldDefinition> fields,
+        ISet<MemberInfo> handledMembers)
     {
-        if (Definition.Fields.IsImplicitBinding())
-        {
-            FieldDescriptorUtilities.AddImplicitFields(
-                this,
-                p => InputFieldDescriptor
-                    .New(Context, p)
-                    .CreateDefinition(),
-                fields,
-                handledProperties);
-        }
-
-        base.OnCompleteFields(fields, handledProperties);
+        InferFieldsFromFieldBindingType(fields, handledMembers);
+        base.OnCompleteFields(fields, handledMembers);
     }
 
     public new IInputObjectTypeDescriptor<T> SyntaxNode(
-        InputObjectTypeDefinitionNode inputObjectTypeDefinitionNode)
+        InputObjectTypeDefinitionNode inputObjectTypeDefinition)
     {
-        base.SyntaxNode(inputObjectTypeDefinitionNode);
+        base.SyntaxNode(inputObjectTypeDefinition);
         return this;
     }
 
-    public new IInputObjectTypeDescriptor<T> Name(NameString value)
+    public new IInputObjectTypeDescriptor<T> Name(string value)
     {
         base.Name(value);
         return this;
@@ -86,9 +75,9 @@ public class InputObjectTypeDescriptor<T>
     {
         if (property.ExtractMember() is PropertyInfo p)
         {
-            InputFieldDescriptor fieldDescriptor =
-                Fields.FirstOrDefault(t => t.Definition.Property == p);
-            if (fieldDescriptor is { })
+            var fieldDescriptor = Fields.FirstOrDefault(t => t.Definition.Property == p);
+
+            if (fieldDescriptor is not null)
             {
                 return fieldDescriptor;
             }
@@ -98,9 +87,7 @@ public class InputObjectTypeDescriptor<T>
             return fieldDescriptor;
         }
 
-        throw new ArgumentException(
-            "Only properties are allowed for input types.",
-            nameof(property));
+        throw new ArgumentException(InputObjectTypeDescriptor_OnlyProperties, nameof(property));
     }
 
     public new IInputObjectTypeDescriptor<T> Directive<TDirective>(
@@ -119,7 +106,7 @@ public class InputObjectTypeDescriptor<T>
     }
 
     public new IInputObjectTypeDescriptor<T> Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments)
     {
         base.Directive(name, arguments);

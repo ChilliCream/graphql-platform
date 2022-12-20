@@ -15,7 +15,6 @@ partial class Build
     AbsolutePath SonarSolutionFile => SourceDirectory / "Build.Sonar.sln";
     AbsolutePath TestSolutionFile => TemporaryDirectory / "Build.Test.sln";
     AbsolutePath PackSolutionFile => SourceDirectory / "Build.Pack.sln";
-    AbsolutePath SgSolutionFile => SourceDirectory / "StrawberryShake" / "SourceGenerator" / "StrawberryShake.SourceGenerator.sln";
 
     AbsolutePath OutputDirectory => RootDirectory / "output";
     AbsolutePath TestResultDirectory => OutputDirectory / "test-results";
@@ -30,4 +29,5 @@ partial class Build
     AbsolutePath TemplatesNuSpec => RootDirectory / "templates" / "v12" / "HotChocolate.Templates.nuspec";
     AbsolutePath EmptyServer12Proj => RootDirectory / "templates" / "v12" / "server" / "HotChocolate.Template.Server.csproj";
     AbsolutePath EmptyAzf12Proj => RootDirectory / "templates" / "v12" / "function" / "HotChocolate.Template.AzureFunctions.csproj";
+    AbsolutePath EmptyAzfUp12Proj => RootDirectory / "templates" / "v12" / "function-isolated" / "HotChocolate.Template.AzureFunctions.Isolated.csproj";
 }

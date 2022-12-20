@@ -2,5 +2,5 @@ namespace HotChocolate.Stitching;
 
 internal static class WellKnownFieldNames
 {
-    public static NameString TypeName { get; } = "__typename";
+    public static string TypeName { get; } = "__typename";
 }

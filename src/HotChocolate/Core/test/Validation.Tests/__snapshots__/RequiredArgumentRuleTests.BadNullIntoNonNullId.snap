@@ -3,9 +3,14 @@
     "Message": "The argument `idArg` is required.",
     "Code": null,
     "Path": {
-      "Parent": null,
-      "Depth": 0,
-      "Name": "arguments"
+      "Name": "arguments",
+      "Parent": {
+        "Parent": null,
+        "Length": -1,
+        "IsRoot": true
+      },
+      "Length": 0,
+      "IsRoot": false
     },
     "Locations": [
       {

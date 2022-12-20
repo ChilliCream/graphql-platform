@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Types.Helpers;
+using static HotChocolate.Types.FieldBindingFlags;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -17,96 +16,28 @@ public abstract class ObjectTypeDescriptorBase<T>
     protected ObjectTypeDescriptorBase(
         IDescriptorContext context,
         Type clrType)
-        : base(context, clrType)
-    {
-    }
+        : base(context, clrType) { }
 
     protected ObjectTypeDescriptorBase(
         IDescriptorContext context)
-        : base(context)
-    {
-    }
+        : base(context) { }
 
     protected ObjectTypeDescriptorBase(
         IDescriptorContext context,
         ObjectTypeDefinition definition)
-        : base(context, definition)
-    {
-    }
+        : base(context, definition) { }
 
     Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
 
     protected override void OnCompleteFields(
-        IDictionary<NameString, ObjectFieldDefinition> fields,
+        IDictionary<string, ObjectFieldDefinition> fields,
         ISet<MemberInfo> handledMembers)
     {
-        HashSet<string> subscribeResolver = null;
-
-        if (Definition.Fields.IsImplicitBinding() &&
-            Definition.FieldBindingType is not null)
-        {
-            FieldDescriptorUtilities.AddImplicitFields(
-                this,
-                Definition.FieldBindingType,
-                p =>
-                {
-                    var descriptor = ObjectFieldDescriptor.New(
-                        Context,
-                        p,
-                        Definition.RuntimeType,
-                        Definition.FieldBindingType);
-
-                    if (Definition.IsExtension && Context.TypeInspector.IsMemberIgnored(p))
-                    {
-                        descriptor.Ignore();
-                    }
-
-                    Fields.Add(descriptor);
-                    return descriptor.CreateDefinition();
-                },
-                fields,
-                handledMembers,
-                include: IncludeField,
-                includeIgnoredMembers: Definition.IsExtension);
-        }
-
+        InferFieldsFromFieldBindingType(fields, handledMembers);
         base.OnCompleteFields(fields, handledMembers);
-
-        bool IncludeField(IReadOnlyList<MemberInfo> all, MemberInfo current)
-        {
-            NameString name = Context.Naming.GetMemberName(current, MemberKind.ObjectField);
-
-            if (Fields.Any(t => t.Definition.Name.Equals(name)))
-            {
-                return false;
-            }
-
-            if (subscribeResolver is null)
-            {
-                subscribeResolver = new HashSet<string>();
-
-                foreach (MemberInfo member in all)
-                {
-                    HandlePossibleSubscribeMember(member);
-                }
-            }
-
-            return !subscribeResolver.Contains(current.Name);
-        }
-
-        void HandlePossibleSubscribeMember(MemberInfo member)
-        {
-            if (member.IsDefined(typeof(SubscribeAttribute)))
-            {
-                if (member.GetCustomAttribute<SubscribeAttribute>() is { With: not null } attr)
-                {
-                    subscribeResolver.Add(attr.With);
-                }
-            }
-        }
     }
 
-    public new IObjectTypeDescriptor<T> Name(NameString value)
+    public new IObjectTypeDescriptor<T> Name(string value)
     {
         base.Name(value);
         return this;
@@ -122,7 +53,46 @@ public abstract class ObjectTypeDescriptorBase<T>
     public IObjectTypeDescriptor<T> BindFields(
         BindingBehavior behavior)
     {
-        Definition.Fields.BindingBehavior = behavior;
+        if (behavior == Definition.Fields.BindingBehavior)
+        {
+            // nothing changed so we just return!
+            return this;
+        }
+
+        if (behavior == BindingBehavior.Explicit)
+        {
+            Definition.Fields.BindingBehavior = BindingBehavior.Explicit;
+            Definition.FieldBindingFlags = Default;
+        }
+        else
+        {
+            Definition.Fields.BindingBehavior = BindingBehavior.Implicit;
+            Definition.FieldBindingFlags = Instance;
+        }
+
+        return this;
+    }
+
+    public IObjectTypeDescriptor<T> BindFields(
+        FieldBindingFlags bindingFlags)
+    {
+        if (bindingFlags == Definition.FieldBindingFlags)
+        {
+            // nothing changed so we just return!
+            return this;
+        }
+
+        if (bindingFlags == Default)
+        {
+            Definition.Fields.BindingBehavior = BindingBehavior.Explicit;
+            Definition.FieldBindingFlags = Default;
+        }
+        else
+        {
+            Definition.Fields.BindingBehavior = BindingBehavior.Implicit;
+            Definition.FieldBindingFlags = bindingFlags;
+        }
+
         return this;
     }
 
@@ -174,15 +144,11 @@ public abstract class ObjectTypeDescriptorBase<T>
 
     public IObjectFieldDescriptor Field(
         Expression<Func<T, object>> propertyOrMethod)
-    {
-        return base.Field(propertyOrMethod);
-    }
+        => base.Field(propertyOrMethod);
 
     public IObjectFieldDescriptor Field<TValue>(
         Expression<Func<T, TValue>> propertyOrMethod)
-    {
-        return base.Field(propertyOrMethod);
-    }
+        => base.Field(propertyOrMethod);
 
     public new IObjectTypeDescriptor<T> Directive<TDirective>(
         TDirective directiveInstance)
@@ -200,7 +166,7 @@ public abstract class ObjectTypeDescriptorBase<T>
     }
 
     public new IObjectTypeDescriptor<T> Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments)
     {
         base.Directive(name, arguments);
