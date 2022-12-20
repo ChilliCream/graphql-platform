@@ -19,12 +19,6 @@ public class HttpQueryCache : QueryCache
     public override ValueTask WriteQueryResultToCacheAsync(IRequestContext context,
         ICacheConstraints constraints, ICacheControlOptions options)
     {
-        if (!context.ContextData.TryGetValue(_httpContextKey, out var httpContextValue)
-            || httpContextValue is not HttpContext httpContext)
-        {
-            return ValueTask.CompletedTask;
-        }
-
         var cacheType = constraints.Scope switch
         {
             CacheControlScope.Private => _cacheControlPrivateScope,
