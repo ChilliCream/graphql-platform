@@ -210,9 +210,9 @@ public static class ErrorCodes
         public const string MiddlewareOrderInvalid = "HC0050";
 
         /// <summary>
-        /// Type system members are not supported as runtime types
+        /// Type system members are not supported as runtime types.
         /// </summary>
-        public const string NoSchemaTypesAllowedAsRuntimeType = "HC0051";
+        public const string NoSchemaTypesAllowedAsRuntimeType = "HC0073";
 
         /// <summary>
         /// An object type implementing the node interface does not provide a node resolver.
