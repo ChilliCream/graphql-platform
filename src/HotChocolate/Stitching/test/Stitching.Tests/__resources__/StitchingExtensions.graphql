@@ -1,0 +1,13 @@
+extend type Customer {
+  contracts: [Contract!]
+    @delegate(schema: "contract", path: "contracts(customerId:$fields:id)")
+  contractIds: [ID!]
+    @delegate(schema: "contract", path: "contracts(customerId:$fields:id).id")
+  int: Int! @delegate(schema: "contract", path: "int(i:$fields:someInt)")
+  guid: UUID! @delegate(schema: "contract", path: "guid(guid:$fields:someGuid)")
+}
+
+extend type Query {
+  customer2(customerId: ID!): Customer
+    @delegate(schema: "customer", path: "customer(id:$arguments:customerId)")
+}

@@ -59,17 +59,6 @@ internal static class ThrowHelper
                 .SetExtension("member", member)
                 .Build());
 
-    public static SchemaException SubscribeAttribute_TopicOnParameterAndMethod(
-        MemberInfo member) =>
-        new SchemaException(
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    ThrowHelper_SubscribeAttribute_TopicOnParameterAndMethod,
-                    member.DeclaringType!.FullName,
-                    member.Name)
-                .SetExtension("member", member)
-                .Build());
-
     public static SchemaException SubscribeAttribute_SubscribeResolverNotFound(
         MemberInfo member,
         string subscribeResolverName) =>
@@ -158,17 +147,6 @@ internal static class ThrowHelper
 
         return new SchemaException(errors);
     }
-
-    public static SchemaException NodeAttribute_NodeResolverNotFound(
-        Type type,
-        string nodeResolver) =>
-        new SchemaException(
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    ThrowHelper_NodeAttribute_NodeResolverNotFound,
-                    nodeResolver,
-                    type.FullName ?? type.Name)
-                .Build());
 
     public static SchemaException NodeAttribute_IdFieldNotFound(
         Type type,

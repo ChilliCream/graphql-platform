@@ -1,4 +1,4 @@
-using System.Text;
+using System.Buffers;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -80,12 +80,11 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             string? queryHash = null;
             DocumentNode? document = null;
 
-
             if (query is { Length: > 0 })
             {
-                var buffer = Encoding.UTF8.GetBytes(query);
-                document = Utf8GraphQLParser.Parse(buffer);
-                queryHash = _documentHashProvider.ComputeHash(buffer);
+                var result = ParseQueryString(query);
+                queryHash = result.QueryHash;
+                document = result.Document;
             }
 
             IReadOnlyDictionary<string, object?>? variables = null;
@@ -120,6 +119,32 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         }
     }
 
+    private (string QueryHash, DocumentNode Document) ParseQueryString(string sourceText)
+    {
+        var length = checked(sourceText.Length * 4);
+        byte[]? source = null;
+
+        var sourceSpan = length <= GraphQLConstants.StackallocThreshold
+            ? stackalloc byte[length]
+            : source = ArrayPool<byte>.Shared.Rent(length);
+
+        try
+        {
+            Utf8GraphQLParser.ConvertToBytes(sourceText, ref sourceSpan);
+            var document = Utf8GraphQLParser.Parse(sourceSpan, _parserOptions);
+            var queryHash = _documentHashProvider.ComputeHash(sourceSpan);
+            return (queryHash, document);
+        }
+        finally
+        {
+            if (source != null)
+            {
+                sourceSpan.Clear();
+                ArrayPool<byte>.Shared.Return(source);
+            }
+        }
+    }
+
     public IReadOnlyList<GraphQLRequest> ReadOperationsRequest(
         string operations) =>
         Parse(operations, _parserOptions, _documentCache, _documentHashProvider);
@@ -131,26 +156,23 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
     {
         try
         {
+            Func<byte[], int, IReadOnlyList<GraphQLRequest>> parse =
+                isGraphQLQuery ? ParseQuery : ParseRequest;
+
             return await BufferHelper.ReadAsync(
                 stream,
-                (buffer, bytesBuffered) =>
+                parse,
+                _maxRequestSize,
+                static (buffer, bytesBuffered, p) =>
                 {
                     if (bytesBuffered == 0)
                     {
                         throw DefaultHttpRequestParser_RequestIsEmpty();
                     }
 
-                    return isGraphQLQuery
-                        ? ParseQuery(buffer, bytesBuffered)
-                        : ParseRequest(buffer, bytesBuffered);
+                    return p(buffer, bytesBuffered);
                 },
-                bytesBuffered =>
-                {
-                    if (bytesBuffered > _maxRequestSize)
-                    {
-                        throw DefaultHttpRequestParser_MaxRequestSizeExceeded();
-                    }
-                },
+                static () => throw DefaultHttpRequestParser_MaxRequestSizeExceeded(),
                 cancellationToken);
         }
         catch (SyntaxException ex)
@@ -164,7 +186,8 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
     }
 
     private IReadOnlyList<GraphQLRequest> ParseRequest(
-        byte[] buffer, int bytesBuffered)
+        byte[] buffer,
+        int bytesBuffered)
     {
         var graphQLData = new ReadOnlySpan<byte>(buffer);
         graphQLData = graphQLData.Slice(0, bytesBuffered);
@@ -179,7 +202,8 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
     }
 
     private IReadOnlyList<GraphQLRequest> ParseQuery(
-        byte[] buffer, int bytesBuffered)
+        byte[] buffer,
+        int bytesBuffered)
     {
         var graphQLData = new ReadOnlySpan<byte>(buffer);
         graphQLData = graphQLData.Slice(0, bytesBuffered);

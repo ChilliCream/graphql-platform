@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -6,57 +8,127 @@ using HotChocolate.Subscriptions;
 using HotChocolate.Utilities.StreamAdapters;
 using HotChocolate.Utilities.Subscriptions;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
 
+/// <summary>
+/// Subscription extensions for <see cref="IObjectFieldDescriptor"/>.
+/// </summary>
 public static class SubscribeResolverObjectFieldDescriptorExtensions
 {
-    public static IObjectFieldDescriptor Subscribe<T>(
+    /// <summary>
+    /// Subscribes to an event stream.
+    /// </summary>
+    /// <param name="descriptor">
+    /// The object field descriptor.
+    /// </param>
+    /// <param name="subscribe">
+    /// The delegate to create the event stream.
+    /// </param>
+    /// <typeparam name="TMessage">
+    /// The type of the message / event payload.
+    /// </typeparam>
+    public static IObjectFieldDescriptor Subscribe<TMessage>(
         this IObjectFieldDescriptor descriptor,
-        Func<IResolverContext, Task<IObservable<T>>> subscribe)
-    {
-        return descriptor.Subscribe(async ctx =>
+        Func<IResolverContext, Task<IObservable<TMessage>>> subscribe)
+        => descriptor.Subscribe(async ctx =>
         {
             var observable = await subscribe(ctx).ConfigureAwait(false);
-            return new SourceStreamWrapper(new ObservableSourceStreamAdapter<T>(observable));
+            return new SourceStreamWrapper(new ObservableSourceStreamAdapter<TMessage>(observable));
         });
-    }
 
-    public static IObjectFieldDescriptor Subscribe<T>(
+    /// <summary>
+    /// Subscribes to an event stream.
+    /// </summary>
+    /// <param name="descriptor">
+    /// The object field descriptor.
+    /// </param>
+    /// <param name="subscribe">
+    /// The delegate to create the event stream.
+    /// </param>
+    /// <typeparam name="TMessage">
+    /// The type of the message / event payload.
+    /// </typeparam>
+    public static IObjectFieldDescriptor Subscribe<TMessage>(
         this IObjectFieldDescriptor descriptor,
-        Func<IResolverContext, IObservable<T>> subscribe) =>
-        descriptor.Subscribe(ctx => Task.FromResult(subscribe(ctx)));
+        Func<IResolverContext, IObservable<TMessage>> subscribe)
+        => descriptor.Subscribe(ctx => Task.FromResult(subscribe(ctx)));
 
-    public static IObjectFieldDescriptor Subscribe<T>(
+    /// <summary>
+    /// Subscribes to an event stream.
+    /// </summary>
+    /// <param name="descriptor">
+    /// The object field descriptor.
+    /// </param>
+    /// <param name="subscribe">
+    /// The delegate to create the event stream.
+    /// </param>
+    /// <typeparam name="TMessage">
+    /// The type of the message / event payload.
+    /// </typeparam>
+    public static IObjectFieldDescriptor Subscribe<TMessage>(
         this IObjectFieldDescriptor descriptor,
-        Func<IResolverContext, Task<IEnumerable<T>>> subscribe)
-    {
-        return descriptor.Subscribe(async ctx =>
+        Func<IResolverContext, Task<IEnumerable<TMessage>>> subscribe)
+        => descriptor.Subscribe(async ctx =>
         {
             var enumerable = await subscribe(ctx).ConfigureAwait(false);
-            return new SourceStreamWrapper(new EnumerableStreamAdapter<T>(enumerable));
+            return new SourceStreamWrapper(new EnumerableStreamAdapter<TMessage>(enumerable));
         });
-    }
 
-    public static IObjectFieldDescriptor Subscribe<T>(
+    /// <summary>
+    /// Subscribes to an event stream.
+    /// </summary>
+    /// <param name="descriptor">
+    /// The object field descriptor.
+    /// </param>
+    /// <param name="subscribe">
+    /// The delegate to create the event stream.
+    /// </param>
+    /// <typeparam name="TMessage">
+    /// The type of the message / event payload.
+    /// </typeparam>
+    public static IObjectFieldDescriptor Subscribe<TMessage>(
         this IObjectFieldDescriptor descriptor,
-        Func<IResolverContext, IEnumerable<T>> subscribe) =>
-        descriptor.Subscribe(ctx => Task.FromResult(subscribe(ctx)));
+        Func<IResolverContext, IEnumerable<TMessage>> subscribe)
+        => descriptor.Subscribe(ctx => Task.FromResult(subscribe(ctx)));
 
-    public static IObjectFieldDescriptor Subscribe<T>(
+    /// <summary>
+    /// Subscribes to an event stream.
+    /// </summary>
+    /// <param name="descriptor">
+    /// The object field descriptor.
+    /// </param>
+    /// <param name="subscribe">
+    /// The delegate to create the event stream.
+    /// </param>
+    /// <typeparam name="TMessage">
+    /// The type of the message / event payload.
+    /// </typeparam>
+    public static IObjectFieldDescriptor Subscribe<TMessage>(
         this IObjectFieldDescriptor descriptor,
-        Func<IResolverContext, Task<IAsyncEnumerable<T>>> subscribe)
-    {
-        return descriptor.Subscribe(async ctx =>
+        Func<IResolverContext, Task<IAsyncEnumerable<TMessage>>> subscribe)
+        => descriptor.Subscribe(async ctx =>
         {
             var enumerable = await subscribe(ctx).ConfigureAwait(false);
-            return new SourceStreamWrapper(new AsyncEnumerableStreamAdapter<T>(enumerable));
+            return new SourceStreamWrapper(new AsyncEnumerableStreamAdapter<TMessage>(enumerable));
         });
-    }
 
-    public static IObjectFieldDescriptor Subscribe<T>(
+    /// <summary>
+    /// Subscribes to an event stream.
+    /// </summary>
+    /// <param name="descriptor">
+    /// The object field descriptor.
+    /// </param>
+    /// <param name="subscribe">
+    /// The delegate to create the event stream.
+    /// </param>
+    /// <typeparam name="TMessage">
+    /// The type of the message / event payload.
+    /// </typeparam>
+    public static IObjectFieldDescriptor Subscribe<TMessage>(
         this IObjectFieldDescriptor descriptor,
-        Func<IResolverContext, IAsyncEnumerable<T>> subscribe) =>
-        descriptor.Subscribe(ctx => Task.FromResult(subscribe(ctx)));
+        Func<IResolverContext, IAsyncEnumerable<TMessage>> subscribe)
+        => descriptor.Subscribe(ctx => Task.FromResult(subscribe(ctx)));
 
     /// <summary>
     /// Subscribes to fixed topic on the <see cref="ITopicEventReceiver" />.
@@ -72,10 +144,8 @@ public static class SubscribeResolverObjectFieldDescriptorExtensions
     /// </typeparam>
     public static IObjectFieldDescriptor SubscribeToTopic<TMessage>(
         this IObjectFieldDescriptor descriptor,
-        string topicName) =>
-        SubscribeToTopic<string, TMessage>(
-            descriptor,
-            _ => topicName);
+        string topicName)
+        => SubscribeToTopic<TMessage>(descriptor, _ => topicName);
 
     /// <summary>
     /// Subscribes to a topic that is represented by an argument value.
@@ -89,15 +159,12 @@ public static class SubscribeResolverObjectFieldDescriptorExtensions
     /// <typeparam name="TMessage">
     /// The type of the message / event payload.
     /// </typeparam>
-    /// <typeparam name="TTopic">
-    /// The topic type.
-    /// </typeparam>
-    public static IObjectFieldDescriptor SubscribeToTopic<TTopic, TMessage>(
+    public static IObjectFieldDescriptor SubscribeToTopicByArgument<TMessage>(
         this IObjectFieldDescriptor descriptor,
-        string argumentName) =>
-        SubscribeToTopic<TTopic, TMessage>(
+        string argumentName)
+        => SubscribeToTopic<TMessage>(
             descriptor,
-            ctx => ctx.ArgumentValue<TTopic>(argumentName));
+            ctx => ctx.ArgumentValue<object>(argumentName).ToString()!);
 
     /// <summary>
     /// Subscribes to a topic that is resolved by executing <paramref name="resolveTopic" />.
@@ -111,12 +178,10 @@ public static class SubscribeResolverObjectFieldDescriptorExtensions
     /// <typeparam name="TMessage">
     /// The type of the message / event payload.
     /// </typeparam>
-    public static IObjectFieldDescriptor SubscribeToTopic<TTopic, TMessage>(
+    public static IObjectFieldDescriptor SubscribeToTopic<TMessage>(
         this IObjectFieldDescriptor descriptor,
-        Func<IResolverContext, TTopic> resolveTopic) =>
-        SubscribeToTopic<TTopic, TMessage>(
-            descriptor,
-            ctx => new ValueTask<TTopic>(resolveTopic(ctx)));
+        Func<IResolverContext, string> resolveTopic)
+        => SubscribeToTopic<TMessage>(descriptor, ctx => new ValueTask<string>(resolveTopic(ctx)));
 
     /// <summary>
     /// Subscribes to a topic that is resolved by executing <paramref name="resolveTopic" />.
@@ -130,15 +195,13 @@ public static class SubscribeResolverObjectFieldDescriptorExtensions
     /// <typeparam name="TMessage">
     /// The type of the message / event payload.
     /// </typeparam>
-    public static IObjectFieldDescriptor SubscribeToTopic<TTopic, TMessage>(
+    public static IObjectFieldDescriptor SubscribeToTopic<TMessage>(
         this IObjectFieldDescriptor descriptor,
-        Func<IResolverContext, ValueTask<TTopic>> resolveTopic)
-    {
-        return descriptor.Subscribe(async ctx =>
+        Func<IResolverContext, ValueTask<string>> resolveTopic)
+        => descriptor.Subscribe(async ctx =>
         {
             var receiver = ctx.Service<ITopicEventReceiver>();
             var topic = await resolveTopic(ctx).ConfigureAwait(false);
-            return await receiver.SubscribeAsync<TTopic, TMessage>(topic).ConfigureAwait(false);
+            return await receiver.SubscribeAsync<TMessage>(topic).ConfigureAwait(false);
         });
-    }
 }

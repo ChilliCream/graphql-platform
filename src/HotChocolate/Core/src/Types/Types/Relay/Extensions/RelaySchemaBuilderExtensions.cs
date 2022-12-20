@@ -38,7 +38,8 @@ public static class RelaySchemaBuilderExtensions
     /// Adds a <c>node</c> field to the root query according to the
     /// Global Object Identification specification.
     /// </summary>
-    public static ISchemaBuilder AddGlobalObjectIdentification(this ISchemaBuilder schemaBuilder)
+    public static ISchemaBuilder AddGlobalObjectIdentification(
+        this ISchemaBuilder schemaBuilder)
         => AddGlobalObjectIdentification(schemaBuilder, true);
 
     /// <summary>
@@ -65,7 +66,8 @@ public static class RelaySchemaBuilderExtensions
     /// <summary>
     /// Enables rewriting of mutation payloads to provide access to a query root field.
     /// </summary>
-    public static ISchemaBuilder AddQueryFieldToMutationPayloads(this ISchemaBuilder schemaBuilder,
+    public static ISchemaBuilder AddQueryFieldToMutationPayloads(
+        this ISchemaBuilder schemaBuilder,
         Action<MutationPayloadOptions>? configureOptions = null)
     {
         MutationPayloadOptions options = new();
@@ -75,7 +77,8 @@ public static class RelaySchemaBuilderExtensions
         return schemaBuilder.AddQueryFieldToMutationPayloads(options);
     }
 
-    private static ISchemaBuilder AddQueryFieldToMutationPayloads(this ISchemaBuilder schemaBuilder,
+    private static ISchemaBuilder AddQueryFieldToMutationPayloads(
+        this ISchemaBuilder schemaBuilder,
         MutationPayloadOptions options)
     {
         return schemaBuilder

@@ -2,7 +2,8 @@ import Highlight, { Language } from "prism-react-renderer";
 import Prism from "prismjs";
 import React, { FC } from "react";
 import styled from "styled-components";
-import { FONT_FAMILY_CODE } from "../../shared-style";
+
+import { FONT_FAMILY_CODE } from "@/shared-style";
 import { Copy } from "./copy";
 
 export interface CodeBlockProps {
@@ -127,7 +128,7 @@ const IndicatorContent = styled.div`
   border-radius: 0px 0px var(--border-radius) var(--border-radius);
   padding: 2px 8px;
   font-size: 0.8em;
-  font-weight: bold;
+  font-weight: 600;
   letter-spacing: 0.075em;
   line-height: 1em;
   text-transform: uppercase;

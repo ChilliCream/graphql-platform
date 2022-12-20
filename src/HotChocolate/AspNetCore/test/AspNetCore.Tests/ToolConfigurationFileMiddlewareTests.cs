@@ -95,22 +95,21 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
         // arrange
         var options = new GraphQLServerOptions
         {
-            Tool =
+            Tool = {
+                Document = "# foo",
+                IncludeCookies = true,
+                HttpHeaders = new HeaderDictionary
                 {
-                    Document = "# foo",
-                    IncludeCookies = true,
-                    HttpHeaders = new HeaderDictionary
-                    {
-                        { "Content-Type", "application/json" }
-                    },
-                    HttpMethod = DefaultHttpMethod.Get,
-                    Enable = true,
-                    Title = "Hello",
-                    GaTrackingId = "GA-FOO",
-                    GraphQLEndpoint = "/foo/bar",
-                    UseBrowserUrlAsGraphQLEndpoint = true,
-                    DisableTelemetry = true
-                }
+                    { "Content-Type", "application/json" }
+                },
+                HttpMethod = DefaultHttpMethod.Get,
+                Enable = true,
+                Title = "Hello",
+                GaTrackingId = "GA-FOO",
+                GraphQLEndpoint = "/foo/bar",
+                UseBrowserUrlAsGraphQLEndpoint = true,
+                DisableTelemetry = true
+            }
         };
         var server = CreateStarWarsServer("/graphql",
             configureConventions: builder => builder.WithOptions(options));

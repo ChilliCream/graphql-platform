@@ -42,7 +42,6 @@ public sealed class DescriptorContext : IDescriptorContext
         IServiceProvider services,
         IDictionary<string, object?> contextData,
         SchemaBuilder.LazySchema schema,
-        SchemaInterceptor schemaInterceptor,
         TypeInterceptor typeInterceptor)
     {
         Schema = schema;
@@ -50,7 +49,6 @@ public sealed class DescriptorContext : IDescriptorContext
         _cFactories = conventionFactories;
         _services = services;
         ContextData = contextData;
-        SchemaInterceptor = schemaInterceptor;
         TypeInterceptor = typeInterceptor;
         ResolverCompiler = new DefaultResolverCompiler(
             services.GetService<IEnumerable<IParameterExpressionBuilder>>());
@@ -113,9 +111,6 @@ public sealed class DescriptorContext : IDescriptorContext
             return _inspector;
         }
     }
-
-    /// <inheritdoc />
-    public SchemaInterceptor SchemaInterceptor { get; }
 
     /// <inheritdoc />
     public TypeInterceptor TypeInterceptor { get; }
@@ -286,7 +281,6 @@ public sealed class DescriptorContext : IDescriptorContext
         IReadOnlyDictionary<(Type, string?), List<CreateConvention>>? conventions = null,
         IDictionary<string, object?>? contextData = null,
         SchemaBuilder.LazySchema? schema = null,
-        SchemaInterceptor? schemaInterceptor = null,
         TypeInterceptor? typeInterceptor = null)
     {
         return new(
@@ -295,7 +289,6 @@ public sealed class DescriptorContext : IDescriptorContext
             services ?? new EmptyServiceProvider(),
             contextData ?? new Dictionary<string, object?>(),
             schema ?? new SchemaBuilder.LazySchema(),
-            schemaInterceptor ?? new AggregateSchemaInterceptor(),
             typeInterceptor ?? new AggregateTypeInterceptor());
     }
 

@@ -64,7 +64,7 @@ public interface ITypeSystemObjectContext
     /// The type initialization interceptor that allows to intercept
     /// objects that er being initialized.
     /// </summary>
-    ITypeInterceptor TypeInterceptor { get; }
+    TypeInterceptor TypeInterceptor { get; }
 
     /// <summary>
     /// Gets the type inspector.

@@ -1,3 +1,5 @@
+using System.Data;
+
 namespace HotChocolate;
 
 /// <summary>
@@ -24,6 +26,12 @@ public static class WellKnownContextData
     /// The key for setting a flag the a document was saved to the persisted query storage.
     /// </summary>
     public const string DocumentSaved = "HotChocolate.Execution.DocumentSaved";
+
+    /// <summary>
+    /// The key that specifies that the current context allows standard queries
+    /// that are not known to the server.
+    /// </summary>
+    public const string NonPersistedQueryAllowed = "HotChocolate.Execution.NonPersistedQueryAllowed";
 
     /// <summary>
     /// The key for setting a flag that the execution had document validation errors.
@@ -207,4 +215,20 @@ public static class WellKnownContextData
     /// The key to get check if a field is the nodes field.
     /// </summary>
     public const string IsNodesField = "HotChocolate.Relay.Node.IsNodeField";
+
+    /// <summary>
+    /// The key to override the max allowed execution depth.
+    /// </summary>
+    public const string MaxAllowedExecutionDepth = "HotChocolate.Execution.MaxAllowedDepth";
+
+    /// <summary>
+    /// The key to skip the execution depth analysis.
+    /// </summary>
+    public const string SkipDepthAnalysis = "HotChocolate.Execution.SkipDepthAnalysis";
+
+    /// <summary>
+    /// The key of the marker setting that a field on the mutation type represents
+    /// the query field.
+    /// </summary>
+    public const string MutationQueryField =  "HotChocolate.Relay.Mutations.QueryField";
 }

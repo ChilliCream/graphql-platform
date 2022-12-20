@@ -9,7 +9,7 @@ internal sealed partial class OperationContext
     /// <summary>
     /// The work scheduler organizes the processing of request tasks.
     /// </summary>
-    public IWorkScheduler Scheduler
+    public WorkScheduler Scheduler
     {
         get
         {
@@ -22,7 +22,7 @@ internal sealed partial class OperationContext
     /// Gets the backlog of the task that shall be processed after
     /// all the main tasks have been executed.
     /// </summary>
-    public IDeferredWorkScheduler DeferredScheduler
+    public DeferredWorkScheduler DeferredScheduler
     {
         get
         {

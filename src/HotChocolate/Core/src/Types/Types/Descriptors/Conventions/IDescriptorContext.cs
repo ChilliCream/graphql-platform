@@ -38,11 +38,6 @@ public interface IDescriptorContext : IHasContextData, IDisposable
     ITypeInspector TypeInspector { get; }
 
     /// <summary>
-    /// Gets the schema interceptor.
-    /// </summary>
-    SchemaInterceptor SchemaInterceptor { get; }
-
-    /// <summary>
     /// Gets the type interceptor.
     /// </summary>
     TypeInterceptor TypeInterceptor { get; }

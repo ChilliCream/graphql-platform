@@ -13,6 +13,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
 {
     private readonly IHttpRequestParser _requestParser;
     private readonly IServerDiagnosticEvents _diagnosticEvents;
+    private readonly PathString _matchUrl;
 
     public HttpGetMiddleware(
         HttpRequestDelegate next,
@@ -20,6 +21,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
         IHttpResponseFormatter responseFormatter,
         IHttpRequestParser requestParser,
         IServerDiagnosticEvents diagnosticEvents,
+        PathString matchUrl,
         string schemaName)
         : base(next, executorResolver, responseFormatter, schemaName)
     {
@@ -27,11 +29,15 @@ public sealed class HttpGetMiddleware : MiddlewareBase
             throw new ArgumentNullException(nameof(requestParser));
         _diagnosticEvents = diagnosticEvents ??
             throw new ArgumentNullException(nameof(diagnosticEvents));
+        _matchUrl = matchUrl;
     }
 
     public async Task InvokeAsync(HttpContext context)
     {
         if (HttpMethods.IsGet(context.Request.Method) &&
+            (!_matchUrl.HasValue ||
+                (context.Request.TryMatchPath(_matchUrl, false, out var subPath) &&
+                !subPath.HasValue)) &&
             (context.GetGraphQLServerOptions()?.EnableGetRequests ?? true))
         {
             if (!IsDefaultSchema)

@@ -8,7 +8,7 @@ using WellKnownContextData = StrawberryShake.CodeGeneration.Analyzers.WellKnownC
 
 namespace StrawberryShake.CodeGeneration.Utilities;
 
-public class EntityTypeInterceptor : TypeInterceptor
+internal sealed class EntityTypeInterceptor : TypeInterceptor
 {
     private readonly List<TypeInfo> _outputTypes = new();
     private readonly IReadOnlyList<SelectionSetNode> _globalEntityPatterns;
@@ -24,18 +24,18 @@ public class EntityTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
-        if (completionContext.Type is IComplexOutputType outputType)
+        if (completionContext.Type is IComplexOutputType outputType &&
+            definition is not null)
         {
             if (_typeEntityPatterns.TryGetValue(outputType.Name, out var pattern))
             {
-                contextData[WellKnownContextData.Entity] = pattern;
+                definition.ContextData[WellKnownContextData.Entity] = pattern;
             }
             else
             {
-                _outputTypes.Add(new TypeInfo(outputType, contextData));
+                _outputTypes.Add(new TypeInfo(outputType, definition.ContextData));
             }
         }
     }

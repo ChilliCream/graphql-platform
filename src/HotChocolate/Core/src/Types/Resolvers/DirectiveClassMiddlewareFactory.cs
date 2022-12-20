@@ -9,20 +9,18 @@ namespace HotChocolate.Resolvers;
 
 public static class DirectiveClassMiddlewareFactory
 {
-    private static MethodInfo _createGeneric =
+    private static readonly MethodInfo _createGeneric =
         typeof(DirectiveClassMiddlewareFactory)
-        .GetTypeInfo().DeclaredMethods.First(t =>
-        {
-            if (t.Name.EqualsOrdinal(
-                nameof(DirectiveClassMiddlewareFactory.Create))
-                && t.GetGenericArguments().Length == 1)
+            .GetTypeInfo().DeclaredMethods.First(t =>
             {
-                return t.GetParameters().Length == 0;
-            }
-            return false;
-        });
+                if (t.Name.EqualsOrdinal(nameof(Create)) && t.GetGenericArguments().Length == 1)
+                {
+                    return t.GetParameters().Length == 0;
+                }
+                return false;
+            });
 
-    private static PropertyInfo _services =
+    private static readonly PropertyInfo _services =
         typeof(IResolverContext).GetProperty(nameof(IResolverContext.Services));
 
     internal static DirectiveMiddleware Create<TMiddleware>()
@@ -33,7 +31,7 @@ public static class DirectiveClassMiddlewareFactory
             var factory =
                 MiddlewareCompiler<TMiddleware>
                     .CompileFactory<IServiceProvider, FieldDelegate>(
-                        (services, next) =>
+                        (services, _) =>
                         new IParameterHandler[] { new ServiceParameterHandler(services) });
 
             return CreateDelegate(
@@ -66,9 +64,9 @@ public static class DirectiveClassMiddlewareFactory
 
         var compiled =
             MiddlewareCompiler<TMiddleware>.CompileDelegate<IDirectiveContext>(
-                (context, middleware) => new List<IParameterHandler>
+                (context, _) => new List<IParameterHandler>
                 {
-                        new ServiceParameterHandler(Expression.Property(context, _services))
+                    new ServiceParameterHandler(Expression.Property(context, _services))
                 });
 
         return context =>
@@ -77,7 +75,7 @@ public static class DirectiveClassMiddlewareFactory
             {
                 lock (sync)
                 {
-                    middleware = middleware ?? factory(context.Services, next);
+                    middleware ??= factory(context.Services, next);
                 }
             }
 

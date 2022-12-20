@@ -32,8 +32,13 @@ namespace StrawberryShake.Tools
             var headersArg = init.Option(
                 "-x|--headers",
                 "Custom headers used in request to Graph QL server. " +
-                "Can be used mulitple times. Example: --headers key1=value1 --headers key2=value2",
+                "Can be used multiple times. Example: --headers key1=value1 --headers key2=value2",
                 CommandOptionType.MultipleValue);
+
+            var fromFileArg = init.Option(
+                "-f|--FromFile",
+                "Import schema from schema file.",
+                CommandOptionType.NoValue);
 
             var authArguments = init.AddAuthArguments();
 
@@ -44,7 +49,8 @@ namespace StrawberryShake.Tools
                     pathArg,
                     nameArg,
                     authArguments,
-                    headersArg);
+                    headersArg,
+                    fromFileArg);
                 var handler = CommandTools.CreateHandler<InitCommandHandler>(jsonArg);
                 return handler.ExecuteAsync(arguments, cancellationToken);
             });

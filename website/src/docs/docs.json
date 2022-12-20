@@ -1,7 +1,51 @@
 [
   {
+    "path": "bananacakepop",
+    "title": "Banana Cake Pop",
+    "description": "Use this GUI to get deep insights from any GraphQL API.",
+    "metaDescription": "Banana Cake Pop is a performant, feature-rich GraphQL IDE that helps developers and data scientists to explore, share, and test any GraphQL API.",
+    "latestStableVersion": "v2",
+    "versions": [
+      {
+        "path": "v2",
+        "title": "v2",
+        "items": [
+          {
+            "path": "index",
+            "title": "Introduction"
+          },
+          {
+            "path": "install",
+            "title": "Installation"
+          },
+          {
+            "path": "getting-started",
+            "title": "Getting Started"
+          },
+          {
+            "path": "schema-reference",
+            "title": "Schema Reference"
+          },
+          {
+            "path": "schema-definition",
+            "title": "Schema Definition"
+          },
+          {
+            "path": "actions",
+            "title": "Actions",
+            "items": [
+              { "path": "schema-refresh", "title": "Schema Refresh" },
+              { "path": "key-bindings", "title": "Key Bindings" }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "path": "hotchocolate",
     "title": "Hot Chocolate",
+    "metaDescription": "Hot Chocolate is the most efficient, feature-rich, open-source GraphQL server in the .NET ecosystem, that helps developer to build powerful APIs.",
     "description": "Build your own thin GraphQL API layer on top of any resource.",
     "latestStableVersion": "v12",
     "versions": [
@@ -174,6 +218,10 @@
               {
                 "path": "spatial-data",
                 "title": "Spatial Data"
+              },
+              {
+                "path": "marten",
+                "title": "Marten"
               }
             ]
           },
@@ -1144,51 +1192,10 @@
     ]
   },
   {
-    "path": "bananacakepop",
-    "title": "Banana Cake Pop",
-    "description": "Use this GUI to get deep insights from any GraphQL API.",
-    "latestStableVersion": "v2",
-    "versions": [
-      {
-        "path": "v2",
-        "title": "v2",
-        "items": [
-          {
-            "path": "index",
-            "title": "Introduction"
-          },
-          {
-            "path": "install",
-            "title": "Installation"
-          },
-          {
-            "path": "getting-started",
-            "title": "Getting Started"
-          },
-          {
-            "path": "schema-reference",
-            "title": "Schema Reference"
-          },
-          {
-            "path": "schema-definition",
-            "title": "Schema Definition"
-          },
-          {
-            "path": "actions",
-            "title": "Actions",
-            "items": [
-              { "path": "schema-refresh", "title": "Schema Refresh" },
-              { "path": "key-bindings", "title": "Key Bindings" }
-            ]
-          }
-        ]
-      }
-    ]
-  },
-  {
     "path": "strawberryshake",
     "title": "Strawberry Shake",
     "description": "The only GraphQL client you will ever need in the .NET ecosystem.",
+    "metaDescription": "Strawberry Shake is an incredible GraphQL client for the .NET ecosystem, that helps developers to build awesome UIs in Blazor, Maui, and more.",
     "latestStableVersion": "v12",
     "versions": [
       {

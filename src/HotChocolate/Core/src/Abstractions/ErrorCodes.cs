@@ -54,6 +54,12 @@ public static class ErrorCodes
         /// A persisted query was not found when using the active persisted query pipeline.
         /// </summary>
         public const string PersistedQueryNotFound = "HC0020";
+
+        /// <summary>
+        /// Only persisted queries are allowed.
+        /// </summary>
+        public const string OnlyPersistedQueriesAllowed = "HC0067";
+
         public const string TaskProcessingError = "HC0008";
         public const string SyntaxError = "HC0014";
         public const string CannotCreateRootValue = "HC0019";
@@ -204,9 +210,35 @@ public static class ErrorCodes
         public const string MiddlewareOrderInvalid = "HC0050";
 
         /// <summary>
-        /// Type system members are not supported as runtime types
+        /// Type system members are not supported as runtime types.
         /// </summary>
-        public const string NoSchemaTypesAllowedAsRuntimeType = "HC0051";
+        public const string NoSchemaTypesAllowedAsRuntimeType = "HC0073";
+
+        /// <summary>
+        /// An object type implementing the node interface does not provide a node resolver.
+        /// </summary>
+        public const string NodeResolverMissing = "HC0068";
+
+        /// <summary>
+        /// A mutation payload type must be an object type.
+        /// </summary>
+        public const string MutationPayloadMustBeObject = "HC0069";
+
+        /// <summary>
+        /// The schema building directive `@mutation`
+        /// can only be applied on object fields.
+        /// </summary>
+        public const string MutationConvDirectiveWrongLocation = "HC0070";
+
+        /// <summary>
+        /// A schema building directive had an argument with an unexpected value.
+        /// </summary>
+        public const string DirectiveArgumentUnexpectedValue = "HC0071";
+
+        /// <summary>
+        /// The specified directive argument does not exist.
+        /// </summary>
+        public const string UnknownDirectiveArgument = "HC0072";
     }
 
     public static class Scalars

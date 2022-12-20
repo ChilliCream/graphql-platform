@@ -47,7 +47,7 @@ internal sealed class WorkQueue
         return false;
     }
 
-    public int Push(IExecutionTask executionTask)
+    public void Push(IExecutionTask executionTask)
     {
         if (executionTask is null)
         {
@@ -55,7 +55,6 @@ internal sealed class WorkQueue
         }
 
         _stack.Push(executionTask);
-        return _stack.Count;
     }
 
     public void Clear()

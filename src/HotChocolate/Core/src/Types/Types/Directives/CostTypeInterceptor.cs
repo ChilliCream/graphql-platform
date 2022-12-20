@@ -27,8 +27,7 @@ internal class CostTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
         EnsurePagingSettingsAreLoaded(discoveryContext.DescriptorContext);
         EnsureCostSettingsAreLoaded(discoveryContext.DescriptorContext);
@@ -57,8 +56,7 @@ internal class CostTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
         if (!_costSettings.Enable || !_costSettings.ApplyDefaults)
         {

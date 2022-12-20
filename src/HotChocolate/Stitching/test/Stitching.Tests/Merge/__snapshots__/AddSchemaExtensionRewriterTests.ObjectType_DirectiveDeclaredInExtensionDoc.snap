@@ -1,0 +1,5 @@
+type Foo @foo {
+  bar: String
+}
+
+directive @foo on OBJECT

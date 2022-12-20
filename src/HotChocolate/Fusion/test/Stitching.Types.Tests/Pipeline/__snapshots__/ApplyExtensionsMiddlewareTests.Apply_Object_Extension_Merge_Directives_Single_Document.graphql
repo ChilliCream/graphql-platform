@@ -1,0 +1,7 @@
+schema @_hc_service(name: "abc") {
+
+}
+
+type Foo @directive {
+  abc: String
+}

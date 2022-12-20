@@ -71,30 +71,24 @@ public class TypeScopeInterceptorTests
         }
     }
 
-    public class TypeScopeInterceptor
-        : TypeInterceptor
-            , ITypeScopeInterceptor
+    public class TypeScopeInterceptor : TypeInterceptor
     {
         private readonly ICollection<ITypeSystemMember> _types;
+        private readonly List<ITypeDiscoveryContext> _contexts = new();
 
         public TypeScopeInterceptor(ICollection<ITypeSystemMember> types)
         {
             _types = types;
         }
 
-        public override bool TriggerAggregations => true;
-
-        public override bool CanHandle(
-            ITypeSystemObjectContext context) =>
-            context is { Scope: { } };
-
         public override void OnBeforeRegisterDependencies(
             ITypeDiscoveryContext discoveryContext,
-            DefinitionBase definition,
-            IDictionary<string, object> contextData)
+            DefinitionBase definition)
         {
-            if (definition is ObjectTypeDefinition def)
+            if (discoveryContext is { Scope: { } } && definition is ObjectTypeDefinition def)
             {
+                _contexts.Add(discoveryContext);
+
                 foreach (var field in def.Fields)
                 {
                     if (field.Type is not null && field.Type.Scope is null)
@@ -107,16 +101,17 @@ public class TypeScopeInterceptorTests
 
         public override void OnBeforeCompleteName(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition,
-            IDictionary<string, object> contextData)
+            DefinitionBase definition)
         {
-            definition.Name = completionContext.Scope + "_" + definition.Name;
+            if (completionContext is { Scope: { } })
+            {
+                definition.Name = completionContext.Scope + "_" + definition.Name;
+            }
         }
 
-        public override void OnTypesInitialized(
-            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+        public override void OnTypesInitialized()
         {
-            foreach (var context in discoveryContexts)
+            foreach (var context in _contexts)
             {
                 _types.Add(context.Type);
             }

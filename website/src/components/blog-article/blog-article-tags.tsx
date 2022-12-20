@@ -1,8 +1,9 @@
 import { graphql } from "gatsby";
 import React, { FC } from "react";
 import styled from "styled-components";
-import { THEME_COLORS } from "../../shared-style";
-import { Link } from "../misc/link";
+
+import { Link } from "@/components/misc/link";
+import { THEME_COLORS } from "@/shared-style";
 
 export interface BlogArticleTagsProps {
   readonly tags: string[];
@@ -15,7 +16,9 @@ export const BlogArticleTags: FC<BlogArticleTagsProps> = ({ tags }) => {
         <Tags>
           {tags.map((tag) => (
             <Tag key={tag}>
-              <TagLink to={`/blog/tags/${tag}`}>{tag}</TagLink>
+              <TagLink to={`/blog/tags/${tag}`} className="content-tag">
+                {tag}
+              </TagLink>
             </Tag>
           ))}
         </Tags>

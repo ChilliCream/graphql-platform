@@ -1,29 +1,36 @@
 import { graphql, useStaticQuery } from "gatsby";
 import React, { FC } from "react";
 import styled from "styled-components";
-import { GetFooterDataQuery } from "../../../graphql-types";
-import LogoTextSvg from "../../images/chillicream-text.svg";
-import LogoIconSvg from "../../images/chillicream.svg";
-import GithubIconSvg from "../../images/github.svg";
-import SlackIconSvg from "../../images/slack.svg";
-import TwitterIconSvg from "../../images/twitter.svg";
-import { FONT_FAMILY_HEADING, THEME_COLORS } from "../../shared-style";
-import { IconContainer } from "../misc/icon-container";
-import { Link } from "../misc/link";
+
+import { IconContainer } from "@/components/misc/icon-container";
+import { Link } from "@/components/misc/link";
+import { Brand, Logo } from "@/components/sprites";
+import { GetFooterDataQuery } from "@/graphql-types";
+import { FONT_FAMILY_HEADING, THEME_COLORS } from "@/shared-style";
+
+// Brands
+import GithubIconSvg from "@/images/brands/github.svg";
+import LinkedInIconSvg from "@/images/brands/linkedin.svg";
+import SlackIconSvg from "@/images/brands/slack.svg";
+import TwitterIconSvg from "@/images/brands/twitter.svg";
+import YouTubeIconSvg from "@/images/brands/youtube.svg";
+
+// Logos
+import LogoTextSvg from "@/images/logo/chillicream-text.svg";
+import LogoIconSvg from "@/images/logo/chillicream.svg";
 
 export const Footer: FC = () => {
   const data = useStaticQuery<GetFooterDataQuery>(graphql`
     query getFooterData {
       site {
         siteMetadata {
-          topnav {
-            name
-            link
-          }
           tools {
             github
+            linkedIn
+            shop
             slack
             twitter
+            youtube
           }
         }
       }
@@ -41,17 +48,17 @@ export const Footer: FC = () => {
       }
     }
   `);
-  const { topnav, tools } = data.site!.siteMetadata!;
+  const { tools } = data.site!.siteMetadata!;
   const { products } = data.docNav!;
 
   return (
     <Container>
       <Section>
         <About>
-          <Logo>
+          <LogoContainer>
             <LogoIcon />
             <LogoText />
-          </Logo>
+          </LogoContainer>
           <Description>
             We at ChilliCream build the ultimate GraphQL platform.
             <br />
@@ -63,50 +70,65 @@ export const Footer: FC = () => {
             <ConnectLink to={tools!.github!}>
               <IconContainer>
                 <GithubIcon />
-              </IconContainer>{" "}
-              to work with us on the platform
+              </IconContainer>
+              {" to work with us on the platform"}
             </ConnectLink>
             <ConnectLink to={tools!.slack!}>
               <IconContainer>
                 <SlackIcon />
-              </IconContainer>{" "}
-              to get in touch with us
+              </IconContainer>
+              {" to get in touch with us"}
+            </ConnectLink>
+            <ConnectLink to={tools!.youtube!}>
+              <IconContainer>
+                <YouTubeIcon />
+              </IconContainer>
+              {" to learn new stuff"}
             </ConnectLink>
             <ConnectLink to={tools!.twitter!}>
               <IconContainer>
                 <TwitterIcon />
-              </IconContainer>{" "}
-              to stay up-to-date
+              </IconContainer>
+              {" to stay up-to-date"}
+            </ConnectLink>
+            <ConnectLink to={tools!.linkedIn!}>
+              <IconContainer>
+                <LinkedInIcon />
+              </IconContainer>
+              {" to connect"}
             </ConnectLink>
           </Connect>
         </About>
         <Links>
-          <Title>Navigation</Title>
+          <Title>Products</Title>
           <Navigation>
-            {topnav!.map((item, index) => (
-              <NavLink key={`topnav-item-${index}`} to={item!.link!}>
-                {item!.name}
-              </NavLink>
-            ))}
+            <NavLink to="/products/bananacakepop">Banana Cake Pop</NavLink>
+            <NavLink to="/docs/hotchocolate">Hot Chocolate</NavLink>
+            <NavLink to="/docs/strawberryshake">Strawberry Shake</NavLink>
           </Navigation>
         </Links>
-        <Location>
-          <Title>Documentation</Title>
+        <Links>
+          <Title>Developers</Title>
           <Navigation>
             {products!.map((product, index) => (
               <NavLink
                 key={`products-item-${index}`}
-                to={
-                  product!.versions![0]!.path! === ""
-                    ? `/docs/${product!.path!}/`
-                    : `/docs/${product!.path!}/${product!.versions![0]!.path!}/`
-                }
+                to={`/docs/${product!.path!}/`}
               >
                 {product!.title}
               </NavLink>
             ))}
+            <NavLink to="/blog">Blog</NavLink>
           </Navigation>
-        </Location>
+        </Links>
+        <Links>
+          <Title>Services</Title>
+          <Navigation>
+            <NavLink to="/services/advisory">Advisory</NavLink>
+            <NavLink to="/services/training">Training</NavLink>
+            <NavLink to="/services/support">Support</NavLink>
+          </Navigation>
+        </Links>
       </Section>
       <Section>
         <Copyright>© {new Date().getFullYear()} ChilliCream</Copyright>
@@ -135,12 +157,12 @@ const Section = styled.div`
 
 const About = styled.div`
   display: flex;
-  flex: 5 1 auto;
+  flex: 6 1 auto;
   flex-direction: column;
   padding: 0 20px;
 `;
 
-const Logo = styled.div`
+const LogoContainer = styled.div`
   display: flex;
   flex: 0 0 auto;
   flex-direction: row;
@@ -148,12 +170,12 @@ const Logo = styled.div`
   margin-bottom: 10px;
 `;
 
-const LogoIcon = styled(LogoIconSvg)`
+const LogoIcon = styled(Logo).attrs(LogoIconSvg)`
   height: 40px;
   fill: ${THEME_COLORS.footerText};
 `;
 
-const LogoText = styled(LogoTextSvg)`
+const LogoText = styled(Logo).attrs(LogoTextSvg)`
   padding-left: 15px;
   height: 24px;
   fill: ${THEME_COLORS.footerText};
@@ -197,17 +219,27 @@ const ConnectLink = styled(Link)`
   }
 `;
 
-const GithubIcon = styled(GithubIconSvg)`
+const GithubIcon = styled(Brand).attrs(GithubIconSvg)`
   height: 26px;
   fill: ${THEME_COLORS.footerText};
 `;
 
-const SlackIcon = styled(SlackIconSvg)`
+const SlackIcon = styled(Brand).attrs(SlackIconSvg)`
   height: 22px;
   fill: ${THEME_COLORS.footerText};
 `;
 
-const TwitterIcon = styled(TwitterIconSvg)`
+const YouTubeIcon = styled(Brand).attrs(YouTubeIconSvg)`
+  height: 22px;
+  fill: ${THEME_COLORS.footerText};
+`;
+
+const TwitterIcon = styled(Brand).attrs(TwitterIconSvg)`
+  height: 22px;
+  fill: ${THEME_COLORS.footerText};
+`;
+
+const LinkedInIcon = styled(Brand).attrs(LinkedInIconSvg)`
   height: 22px;
   fill: ${THEME_COLORS.footerText};
 `;
@@ -216,7 +248,8 @@ const Links = styled.div`
   display: none;
   flex: 2 1 auto;
   flex-direction: column;
-  padding: 0 20px;
+  padding: 0 10px;
+  min-width: 150px;
 
   @media only screen and (min-width: 768px) {
     display: flex;
@@ -244,23 +277,11 @@ const NavLink = styled(Link)`
   }
 `;
 
-const Location = styled.div`
-  display: none;
-  flex: 3 1 auto;
-  flex-direction: column;
-  padding: 0 20px;
-  line-height: 1.5em;
-
-  @media only screen and (min-width: 768px) {
-    display: flex;
-  }
-`;
-
 const Title = styled.h3`
   margin: 15px 0 9px;
   font-size: 1em;
-  font-weight: bold;
-  color: ${THEME_COLORS.footerText};
+  font-weight: 600;
+  color: ${THEME_COLORS.textContrast};
 `;
 
 const Copyright = styled.div`

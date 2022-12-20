@@ -88,11 +88,6 @@ public interface IReadOnlySchemaOptions
     DirectiveVisibility DefaultDirectiveVisibility { get; }
 
     /// <summary>
-    /// Defines if field inlining is allowed.
-    /// </summary>
-    bool AllowInlining { get; }
-
-    /// <summary>
     /// Defines that the default resolver execution strategy.
     /// </summary>
     ExecutionStrategy DefaultResolverStrategy { get; }
@@ -117,4 +112,9 @@ public interface IReadOnlySchemaOptions
     /// Defines if the OneOf spec RFC is enabled. This feature is experimental.
     /// </summary>
     bool EnableOneOf { get; }
+
+    /// <summary>
+    /// Specifies that if all nodes need to provide a node resolver for the schema to be valid.
+    /// </summary>
+    bool EnsureAllNodesCanBeResolved { get; }
 }

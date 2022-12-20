@@ -2,12 +2,13 @@ import { graphql } from "gatsby";
 import { GatsbyImage } from "gatsby-plugin-image";
 import React, { FC } from "react";
 import styled from "styled-components";
-import { BlogArticlesFragment } from "../../../graphql-types";
-import { ArticleTitle } from "../articles/article-elements";
-import { BlogArticleMetadata } from "../blog-article/blog-article-metadata";
-import { BlogArticleTags } from "../blog-article/blog-article-tags";
-import { Link } from "../misc/link";
-import { Pagination } from "../misc/pagination";
+
+import { ArticleTitle } from "@/components/articles/article-elements";
+import { BlogArticleMetadata } from "@/components/blog-article/blog-article-metadata";
+import { BlogArticleTags } from "@/components/blog-article/blog-article-tags";
+import { Link } from "@/components/misc/link";
+import { Pagination } from "@/components/misc/pagination";
+import { BlogArticlesFragment } from "@/graphql-types";
 
 export interface BlogArticlesProps {
   readonly currentPage?: number;

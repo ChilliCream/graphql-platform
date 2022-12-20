@@ -6,7 +6,7 @@ namespace HotChocolate.AspNetCore;
 /// <summary>
 /// This middleware handles the Banana Cake Pop configuration file request.
 /// </summary>
-public class ToolOptionsFileMiddleware
+public sealed class ToolOptionsFileMiddleware
 {
     private const string _configFile = "/bcp-config.json";
     private readonly HttpRequestDelegate _next;

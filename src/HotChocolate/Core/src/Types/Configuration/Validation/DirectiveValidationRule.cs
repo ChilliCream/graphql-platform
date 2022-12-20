@@ -11,22 +11,25 @@ namespace HotChocolate.Configuration.Validation;
 /// Implements directive type validation defined in the spec.
 /// http://spec.graphql.org/draft/#sec-Type-System.Directives.Validation
 /// </summary>
-internal class DirectiveValidationRule : ISchemaValidationRule
+internal sealed class DirectiveValidationRule : ISchemaValidationRule
 {
     private const char _underscore = '_';
 
     public void Validate(
-        IReadOnlyList<ITypeSystemObject> typeSystemObjects,
+        ReadOnlySpan<ITypeSystemObject> typeSystemObjects,
         IReadOnlySchemaOptions options,
         ICollection<ISchemaError> errors)
     {
         if (options.StrictValidation)
         {
-            foreach (var type in typeSystemObjects.OfType<DirectiveType>())
+            foreach (var type in typeSystemObjects)
             {
-                EnsureDirectiveNameIsValid(type, errors);
-                EnsureArgumentNamesAreValid(type, errors);
-                EnsureArgumentDeprecationIsValid(type, errors);
+                if (type is DirectiveType directiveType)
+                {
+                    EnsureDirectiveNameIsValid(directiveType, errors);
+                    EnsureArgumentNamesAreValid(directiveType, errors);
+                    EnsureArgumentDeprecationIsValid(directiveType, errors);
+                }
             }
         }
     }

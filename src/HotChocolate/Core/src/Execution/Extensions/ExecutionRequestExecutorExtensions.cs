@@ -74,7 +74,7 @@ public static class ExecutionRequestExecutorExtensions
     public static Task<IExecutionResult> ExecuteAsync(
         this IRequestExecutor executor,
         string query,
-        IReadOnlyDictionary<string, object?> variableValues)
+        Dictionary<string, object?> variableValues)
     {
         if (executor is null)
         {

@@ -5,9 +5,18 @@ import { useDispatch } from "react-redux";
 import semverCoerce from "semver/functions/coerce";
 import semverCompare from "semver/functions/compare";
 import styled, { css } from "styled-components";
-import { DocPageFragment, DocsJson, Maybe } from "../../../graphql-types";
-import ListAltIconSvg from "../../images/list-alt.svg";
-import NewspaperIconSvg from "../../images/newspaper.svg";
+
+import { Article } from "@/components/articles/article";
+import { ArticleComments } from "@/components/articles/article-comments";
+import { ArticleContentFooter } from "@/components/articles/article-content-footer";
+import {
+  ArticleContent,
+  ArticleHeader,
+  ArticleTitle,
+} from "@/components/articles/article-elements";
+import { ArticleSections } from "@/components/articles/article-sections";
+import { TabGroupProvider } from "@/components/mdx/tabs";
+import { DocPageFragment, DocsJson, Maybe } from "@/graphql-types";
 import {
   DocPageDesktopGridColumns,
   IsDesktop,
@@ -15,19 +24,14 @@ import {
   IsSmallDesktop,
   IsTablet,
   THEME_COLORS,
-} from "../../shared-style";
-import { useObservable } from "../../state";
-import { toggleAside, toggleTOC } from "../../state/common";
-import { Article } from "../articles/article";
-import { ArticleComments } from "../articles/article-comments";
-import { ArticleContentFooter } from "../articles/article-content-footer";
-import {
-  ArticleContent,
-  ArticleHeader,
-  ArticleTitle,
-} from "../articles/article-elements";
-import { ArticleSections } from "../articles/article-sections";
-import { TabGroupProvider } from "../mdx/tabs";
+} from "@/shared-style";
+import { useObservable } from "@/state";
+import { toggleAside, toggleTOC } from "@/state/common";
+
+// Icons
+import ListAltIconSvg from "@/images/list-alt.svg";
+import NewspaperIconSvg from "@/images/newspaper.svg";
+
 import {
   ArticleWrapper,
   ArticleWrapperElement,
@@ -95,7 +99,7 @@ export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
         <DocPageNavigation
           data={data}
           selectedPath={slug}
-          selectedProduct={product.name}
+          selectedProduct={product.path}
           selectedVersion={product.version}
         />
         <ArticleWrapper>
@@ -168,6 +172,7 @@ export const DocPageGraphQLFragment = graphql`
         path
         title
         description
+        metaDescription
         latestStableVersion
       }
     }
@@ -180,17 +185,19 @@ export const DocPageGraphQLFragment = graphql`
 const productAndVersionPattern = /^\/docs\/([\w-]+)(?:\/(v\d+))?/;
 
 interface ProductInformation {
-  readonly name: string;
+  readonly path: string;
+  readonly name: string | null;
   readonly version: string;
   readonly stableVersion: string;
+  readonly description: string | null;
 }
 
 type Product = Pick<
   DocsJson,
-  "path" | "title" | "description" | "latestStableVersion"
+  "path" | "title" | "description" | "metaDescription" | "latestStableVersion"
 >;
 
-function useProductInformation(
+export function useProductInformation(
   slug: string,
   products: Maybe<Array<Maybe<Product>>> | undefined
 ): ProductInformation | null {
@@ -204,20 +211,22 @@ function useProductInformation(
     return null;
   }
 
-  const selectedName = result[1] || "";
+  const selectedPath = result[1] || "";
   const selectedVersion = result[2] || "";
   let stableVersion = "";
 
-  const selectedProduct = products?.find((p) => p?.path === selectedName);
+  const selectedProduct = products?.find((p) => p?.path === selectedPath);
 
   if (selectedProduct) {
     stableVersion = selectedProduct.latestStableVersion || "";
   }
 
   return {
-    name: selectedName,
+    path: selectedPath,
+    name: selectedProduct?.title ?? "",
     version: selectedVersion,
     stableVersion,
+    description: selectedProduct?.metaDescription || null,
   };
 }
 
@@ -315,6 +324,7 @@ const ResponsiveMenu = styled.div`
 
   &.scrolled {
     top: 60px;
+    border-radius: 0;
   }
 
   ${IsPhablet(css`
@@ -382,7 +392,7 @@ const DocumentationVersionWarning = styled.div`
 
   > a {
     color: white !important;
-    font-weight: bold;
+    font-weight: 600;
     text-decoration: underline;
   }
 

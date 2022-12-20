@@ -1,3 +1,4 @@
+using HotChocolate;
 using HotChocolate.Execution.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -60,7 +61,8 @@ public static class MutationRequestExecutorBuilderExtensions
         builder
             .ConfigureSchema(c => c.ContextData[MutationContextDataKeys.Options] = options)
             .TryAddTypeInterceptor<MutationConventionTypeInterceptor>()
-            .AddTypeDiscoveryHandler(c => new MutationResultTypeDiscoveryHandler(c.TypeInspector));
+            .AddTypeDiscoveryHandler(c => new MutationResultTypeDiscoveryHandler(c.TypeInspector))
+            .ConfigureSchema(c => c.TryAddSchemaDirective(new MutationDirective()));
 
         return builder;
     }

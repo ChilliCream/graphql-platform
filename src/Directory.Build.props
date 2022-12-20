@@ -38,18 +38,12 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <LibraryTargetFrameworks Condition="'$(IsMacOsArm)' != 'true'">net7.0; net6.0; net5.0; netcoreapp3.1; netstandard2.0</LibraryTargetFrameworks>
-    <LibraryTargetFrameworks Condition="'$(IsMacOsArm)' == 'true'">net7.0; net6.0; netstandard2.0</LibraryTargetFrameworks>
+    <LibraryTargetFrameworks>net7.0; net6.0; netstandard2.0</LibraryTargetFrameworks>
     <Library2TargetFrameworks>net7.0; net6.0</Library2TargetFrameworks>
-    <TestTargetFrameworks Condition="'$(IsMacOsArm)' != 'true'">net7.0; net6.0; net5.0; netcoreapp3.1</TestTargetFrameworks>
-    <TestTargetFrameworks Condition="'$(IsMacOsArm)' == 'true'">net7.0; net6.0</TestTargetFrameworks>
-    <AspNetTargetFrameworks Condition="'$(IsMacOsArm)' != 'true'">net7.0; net6.0; net5.0; netcoreapp3.1</AspNetTargetFrameworks>
-    <AspNetTargetFrameworks Condition="'$(IsMacOsArm)' == 'true'">net7.0; net6.0</AspNetTargetFrameworks>
-    <AzfTargetFrameworks Condition="'$(IsMacOsArm)' != 'true'">net7.0; net6.0; net5.0; netcoreapp3.1</AzfTargetFrameworks>
-    <AzfTargetFrameworks Condition="'$(IsMacOsArm)' == 'true'">net7.0; net6.0</AzfTargetFrameworks>
-    <!-- Azure Functions Isolated Process does not support netcoreapp3.1 (on net5.0+) -->
-    <AzfIsoProcTargetFrameworks Condition="'$(IsMacOsArm)' != 'true'">net7.0; net6.0; net5.0;</AzfIsoProcTargetFrameworks>
-    <AzfIsoProcTargetFrameworks Condition="'$(IsMacOsArm)' == 'true'">net7.0; net6.0</AzfIsoProcTargetFrameworks>
+    <TestTargetFrameworks>net7.0; net6.0</TestTargetFrameworks>
+    <AspNetTargetFrameworks>net7.0; net6.0</AspNetTargetFrameworks>
+    <AzfTargetFrameworks>net7.0; net6.0</AzfTargetFrameworks>
+    <AzfIsoProcTargetFrameworks>net7.0; net6.0</AzfIsoProcTargetFrameworks>
     <SourceGenTargetFrameworks>net7.0; net6.0; netstandard2.0</SourceGenTargetFrameworks>
   </PropertyGroup>
 

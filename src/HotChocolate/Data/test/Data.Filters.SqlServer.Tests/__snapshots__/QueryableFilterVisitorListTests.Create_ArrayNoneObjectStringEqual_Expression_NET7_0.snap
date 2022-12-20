@@ -163,5 +163,5 @@ FROM "Data" AS "d"
 WHERE NOT (EXISTS (
     SELECT 1
     FROM "FooNested" AS "f"
-    WHERE "d"."Id" = "f"."FooId" AND "f"."Bar" IS NULL))
+    WHERE "d"."Id" = "f"."FooId" AND ("f"."Bar" IS NULL)))
 ---------------

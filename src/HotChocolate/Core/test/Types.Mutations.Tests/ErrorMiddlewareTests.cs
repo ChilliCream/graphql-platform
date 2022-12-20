@@ -3,9 +3,7 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter;
-using Snapshooter.Xunit;
-using Xunit;
+using CookieCrumble;
 
 namespace HotChocolate.Types;
 
@@ -36,10 +34,10 @@ public class ErrorMiddlewareTests
         var res = await executor.ExecuteAsync(_query);
 
         // Assert
-        res.ToJson().MatchSnapshot();
-        var fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
-        executor.Schema.Print().MatchSnapshot(snapshotName);
+        await Snapshot.Create()
+            .Add(res, "result:")
+            .Add(executor.Schema, "schema:")
+            .MatchAsync();
     }
 
     [Fact]
@@ -55,10 +53,10 @@ public class ErrorMiddlewareTests
         var res = await executor.ExecuteAsync(_query);
 
         // Assert
-        res.ToJson().MatchSnapshot();
-        var fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
-        executor.Schema.Print().MatchSnapshot(snapshotName);
+        await Snapshot.Create()
+            .Add(res, "result:")
+            .Add(executor.Schema, "schema:")
+            .MatchAsync();
     }
 
     [Fact]
@@ -74,10 +72,10 @@ public class ErrorMiddlewareTests
         var res = await executor.ExecuteAsync(_query);
 
         // Assert
-        res.ToJson().MatchSnapshot();
-        var fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
-        executor.Schema.Print().MatchSnapshot(snapshotName);
+        await Snapshot.Create()
+            .Add(res, "result:")
+            .Add(executor.Schema, "schema:")
+            .MatchAsync();
     }
 
     [Fact]
@@ -98,10 +96,10 @@ public class ErrorMiddlewareTests
         var res = await executor.ExecuteAsync(_query);
 
         // Assert
-        res.ToJson().MatchSnapshot();
-        var fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
-        executor.Schema.Print().MatchSnapshot(snapshotName);
+        await Snapshot.Create()
+            .Add(res, "result:")
+            .Add(executor.Schema, "schema:")
+            .MatchAsync();
     }
 
     [Fact]
@@ -117,10 +115,10 @@ public class ErrorMiddlewareTests
         var res = await executor.ExecuteAsync(_query);
 
         // Assert
-        res.ToJson().MatchSnapshot();
-        var fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
-        executor.Schema.Print().MatchSnapshot(snapshotName);
+        await Snapshot.Create()
+            .Add(res, "result:")
+            .Add(executor.Schema, "schema:")
+            .MatchAsync();
     }
 
     [Fact]
@@ -136,10 +134,10 @@ public class ErrorMiddlewareTests
         var res = await executor.ExecuteAsync(_query);
 
         // Assert
-        res.ToJson().MatchSnapshot();
-        var fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
-        executor.Schema.Print().MatchSnapshot(snapshotName);
+        await Snapshot.Create()
+            .Add(res, "result:")
+            .Add(executor.Schema, "schema:")
+            .MatchAsync();
     }
 
     [Fact]
@@ -155,10 +153,10 @@ public class ErrorMiddlewareTests
         var res = await executor.ExecuteAsync(_query);
 
         // Assert
-        res.ToJson().MatchSnapshot();
-        var fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
-        executor.Schema.Print().MatchSnapshot(snapshotName);
+        await Snapshot.Create()
+            .Add(res, "result:")
+            .Add(executor.Schema, "schema:")
+            .MatchAsync();
     }
 
     [Fact]
@@ -174,10 +172,10 @@ public class ErrorMiddlewareTests
         var res = await executor.ExecuteAsync(_query);
 
         // Assert
-        res.ToJson().MatchSnapshot();
-        var fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
-        executor.Schema.Print().MatchSnapshot(snapshotName);
+        await Snapshot.Create()
+            .Add(res, "result:")
+            .Add(executor.Schema, "schema:")
+            .MatchAsync();
     }
 
     [Fact]
@@ -193,10 +191,10 @@ public class ErrorMiddlewareTests
         var res = await executor.ExecuteAsync(_query);
 
         // Assert
-        res.ToJson().MatchSnapshot();
-        var fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
-        executor.Schema.Print().MatchSnapshot(snapshotName);
+        await Snapshot.Create()
+            .Add(res, "result:")
+            .Add(executor.Schema, "schema:")
+            .MatchAsync();
     }
 
     [Fact]
@@ -212,10 +210,10 @@ public class ErrorMiddlewareTests
         var res = await executor.ExecuteAsync(_query);
 
         // Assert
-        res.ToJson().MatchSnapshot();
-        var fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
-        executor.Schema.Print().MatchSnapshot(snapshotName);
+        await Snapshot.Create()
+            .Add(res, "result:")
+            .Add(executor.Schema, "schema:")
+            .MatchAsync();
     }
 
     [Fact]
@@ -243,10 +241,10 @@ public class ErrorMiddlewareTests
             }");
 
         // Assert
-        res.ToJson().MatchSnapshot();
-        var fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
-        executor.Schema.Print().MatchSnapshot(snapshotName);
+        await Snapshot.Create()
+            .Add(res, "result:")
+            .Add(executor.Schema, "schema:")
+            .MatchAsync();
     }
 
     [Fact]
@@ -274,10 +272,10 @@ public class ErrorMiddlewareTests
             }");
 
         // Assert
-        res.ToJson().MatchSnapshot();
-        var fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
-        executor.Schema.Print().MatchSnapshot(snapshotName);
+        await Snapshot.Create()
+            .Add(res, "result:")
+            .Add(executor.Schema, "schema:")
+            .MatchAsync();
     }
 
     private ValueTask<IRequestExecutor> BuildSchemaAsync(

@@ -13,10 +13,10 @@
   "FieldMiddleware": "AllFields",
   "EnableDirectiveIntrospection": false,
   "DefaultDirectiveVisibility": "Public",
-  "AllowInlining": true,
   "DefaultResolverStrategy": "Parallel",
   "ValidatePipelineOrder": true,
   "StrictRuntimeTypeValidation": false,
   "DefaultIsOfTypeCheck": null,
-  "EnableOneOf": false
+  "EnableOneOf": false,
+  "EnsureAllNodesCanBeResolved": false
 }

@@ -21,7 +21,7 @@ BarAndFoo SQL:
 ---------------
 SELECT "d"."Id", "d"."BarEnum"
 FROM "Data" AS "d"
-WHERE "d"."BarEnum" NOT IN (1, 0) OR "d"."BarEnum" IS NULL
+WHERE "d"."BarEnum" NOT IN (1, 0) OR ("d"."BarEnum" IS NULL)
 ---------------
 
 FOO Result:
@@ -50,7 +50,7 @@ FOO SQL:
 ---------------
 SELECT "d"."Id", "d"."BarEnum"
 FROM "Data" AS "d"
-WHERE "d"."BarEnum" <> 0 OR "d"."BarEnum" IS NULL
+WHERE "d"."BarEnum" <> 0 OR ("d"."BarEnum" IS NULL)
 ---------------
 
 nullAndFoo Result:
@@ -76,5 +76,5 @@ nullAndFoo SQL:
 ---------------
 SELECT "d"."Id", "d"."BarEnum"
 FROM "Data" AS "d"
-WHERE "d"."BarEnum" <> 0 AND "d"."BarEnum" IS NOT NULL
+WHERE "d"."BarEnum" <> 0 AND ("d"."BarEnum" IS NOT NULL)
 ---------------

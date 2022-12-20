@@ -1,7 +1,7 @@
 [
   {
-    "ContentType": "application/json; charset=utf-8",
-    "StatusCode": "OK",
+    "ContentType": "application/graphql-response+json; charset=utf-8",
+    "StatusCode": "BadRequest",
     "Data": null,
     "Errors": [
       {

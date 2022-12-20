@@ -5,6 +5,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using static HotChocolate.Execution.Properties.Resources;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing;
@@ -139,6 +140,21 @@ internal partial class MiddlewareContext
         return original;
     }
 
+    public IReadOnlyDictionary<string, ArgumentValue> ReplaceArguments(
+        ReplaceArguments replace)
+    {
+        if (replace is null)
+        {
+            throw new ArgumentNullException(nameof(replace));
+        }
+
+        var original = Arguments;
+        Arguments = replace(original) ??
+            throw new InvalidOperationException(
+                MiddlewareContext_ReplaceArguments_NullNotAllowed);
+        return original;
+    }
+
     public ArgumentValue ReplaceArgument(string argumentName, ArgumentValue newArgumentValue)
     {
         if (string.IsNullOrEmpty(argumentName))
@@ -174,9 +190,8 @@ internal partial class MiddlewareContext
 
         if (!mutableArguments.TryGetValue(argumentName, out var argumentValue))
         {
-            // TODO : Exception / throw helper
             throw new ArgumentException(
-                "There is no argument with the name `{argumentName}`.",
+                string.Format(MiddlewareContext_ReplaceArgument_InvalidKey, argumentName),
                 nameof(argumentName));
         }
 

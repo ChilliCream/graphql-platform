@@ -100,6 +100,8 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
 
     public int Max { get; set; }
 
+    public int Allowed { get; set; }
+
     public IDictionary<string, object?> ContextData { get; set; } = default!;
 
     public IList<FieldInfo> RentFieldInfoList()
@@ -157,6 +159,7 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
         UnexpectedErrorsDetected = false;
         Count = 0;
         Max = 0;
+        Allowed = 0;
         MaxAllowedErrors = 0;
     }
 

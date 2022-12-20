@@ -9,8 +9,7 @@ namespace HotChocolate.Utilities;
 internal class ObjectToDictionaryConverter
 {
     private readonly ITypeConverter _converter;
-    private readonly ConcurrentDictionary<Type, List<PropertyInfo>> _properties =
-        new ConcurrentDictionary<Type, List<PropertyInfo>>();
+    private readonly ConcurrentDictionary<Type, List<PropertyInfo>> _properties = new();
 
     public ObjectToDictionaryConverter(ITypeConverter converter)
     {
@@ -62,15 +61,14 @@ internal class ObjectToDictionaryConverter
 
         var type = obj.GetType();
 
-        if (type.IsValueType && _converter.TryConvert(
-            type, typeof(string), obj, out var converted)
-            && converted is string s)
+        if (type.IsValueType &&
+            _converter.TryConvert(type, typeof(string), obj, out var converted) &&
+            converted is string s)
         {
             setValue(s);
-            return;
         }
-        else if (!typeof(IReadOnlyDictionary<string, object>).IsAssignableFrom(type)
-            && obj is ICollection list)
+        else if (!typeof(IReadOnlyDictionary<string, object>).IsAssignableFrom(type) &&
+            obj is ICollection list)
         {
             VisitList(list, setValue, processed);
         }

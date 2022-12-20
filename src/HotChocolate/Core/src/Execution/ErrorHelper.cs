@@ -219,4 +219,24 @@ internal static class ErrorHelper
             .SetPath(path)
             .AddLocation(selection)
             .Build();
+
+    public static IError PersistedQueryNotFound(string requestedKey)
+        => ErrorBuilder.New()
+            .SetMessage(ErrorHelper_PersistedQueryNotFound)
+            .SetCode(ErrorCodes.Execution.PersistedQueryNotFound)
+            .SetExtension(nameof(requestedKey), requestedKey)
+            .Build();
+
+    public static IError OnlyPersistedQueriesAreAllowed()
+        => ErrorBuilder.New()
+            .SetMessage(ErrorHelper_OnlyPersistedQueriesAreAllowed)
+            .SetCode(ErrorCodes.Execution.OnlyPersistedQueriesAllowed)
+            .Build();
+
+    public static IError ReadPersistedQueryMiddleware_PersistedQueryNotFound()
+        => ErrorBuilder.New()
+            // this string is defined in the APQ spec!
+            .SetMessage("PersistedQueryNotFound")
+            .SetCode(ErrorCodes.Execution.PersistedQueryNotFound)
+            .Build();
 }

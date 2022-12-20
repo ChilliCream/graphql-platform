@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Properties;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
@@ -9,6 +11,7 @@ using static HotChocolate.WellKnownContextData;
 
 #nullable enable
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate;
 
 public static partial class SchemaBuilderExtensions
@@ -86,7 +89,7 @@ public static partial class SchemaBuilderExtensions
                 nameof(convention));
         }
 
-        return builder.AddConvention(convention, (s) => concreteConvention, scope);
+        return builder.AddConvention(convention, _ => concreteConvention, scope);
     }
 
     public static ISchemaBuilder AddConvention(
@@ -147,12 +150,12 @@ public static partial class SchemaBuilderExtensions
         where T : IConvention =>
         builder.AddConvention(typeof(T), convention, scope);
 
-    public static ISchemaBuilder AddConvention<TConvetion, TConcreteConvention>(
+    public static ISchemaBuilder AddConvention<TConvention, TConcreteConvention>(
         this ISchemaBuilder builder,
         string? scope = null)
-        where TConvetion : IConvention
+        where TConvention : IConvention
         where TConcreteConvention : IConvention =>
-        builder.AddConvention(typeof(TConvetion), typeof(TConcreteConvention), scope);
+        builder.AddConvention(typeof(TConvention), typeof(TConcreteConvention), scope);
 
     public static ISchemaBuilder TryAddConvention(
         this ISchemaBuilder builder,
@@ -281,7 +284,7 @@ public static partial class SchemaBuilderExtensions
         where TConcreteConvention : class, TConvention =>
         builder.TryAddConvention(typeof(TConvention), typeof(TConcreteConvention), scope);
 
-    public static ISchemaBuilder AddSchemaDirective(
+    public static ISchemaBuilder TryAddSchemaDirective(
         this ISchemaBuilder builder,
         ISchemaDirective directive)
     {
@@ -291,8 +294,12 @@ public static partial class SchemaBuilderExtensions
             directives = new();
             builder.ContextData[SchemaDirectives] = directives;
         }
-        
-        directives.Add(directive);
+
+        if (directives.All(t => !t.Name.EqualsOrdinal(directive.Name)))
+        {
+            directives.Add(directive);
+        }
+
         return builder;
     }
 }

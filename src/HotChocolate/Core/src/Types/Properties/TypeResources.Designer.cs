@@ -1701,12 +1701,6 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string ThrowHelper_NodeAttribute_NodeResolverNotFound {
-            get {
-                return ResourceManager.GetString("ThrowHelper_NodeAttribute_NodeResolverNotFound", resourceCulture);
-            }
-        }
-        
         internal static string ThrowHelper_TypeCompletionContext_UnableToResolveType {
             get {
                 return ResourceManager.GetString("ThrowHelper_TypeCompletionContext_UnableToResolveType", resourceCulture);
@@ -1728,12 +1722,6 @@ namespace HotChocolate.Properties {
         internal static string ThrowHelper_SubscribeAttribute_SubscribeResolverNotFound {
             get {
                 return ResourceManager.GetString("ThrowHelper_SubscribeAttribute_SubscribeResolverNotFound", resourceCulture);
-            }
-        }
-        
-        internal static string ThrowHelper_SubscribeAttribute_TopicOnParameterAndMethod {
-            get {
-                return ResourceManager.GetString("ThrowHelper_SubscribeAttribute_TopicOnParameterAndMethod", resourceCulture);
             }
         }
         
@@ -1908,6 +1896,12 @@ namespace HotChocolate.Properties {
         internal static string ThrowHelper_MutationDuplicateErrorName {
             get {
                 return ResourceManager.GetString("ThrowHelper_MutationDuplicateErrorName", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_NodeResolverMissing {
+            get {
+                return ResourceManager.GetString("ErrorHelper_NodeResolverMissing", resourceCulture);
             }
         }
     }
