@@ -56,7 +56,9 @@ const BananaCakePopPage: FC = () => {
           <ProductDetails>
             <ProductDetailsHeader>
               <ProductName>Banana Cake Pop</ProductName>
-              <ProductDescription>\\ GraphQL IDE for Devs</ProductDescription>
+              <ProductDescription>
+                /* GraphQL IDE for Devs */
+              </ProductDescription>
             </ProductDetailsHeader>
             <ProductDownload appInfos={appInfos} />
             <ProductDetailsFooter></ProductDetailsFooter>
@@ -386,9 +388,9 @@ const ProductDetailsHeader = styled.div`
 
 export const ProductName = styled.h1`
   flex: 0 0 auto;
-  margin-bottom: 0;
   font-weight: normal;
   font-size: 2.222em;
+  text-align: center;
   color: ${THEME_COLORS.textContrast};
 
   ${IsMobile(css`
@@ -398,13 +400,13 @@ export const ProductName = styled.h1`
 
 export const ProductDescription = styled.h2`
   flex: 0 0 auto;
-  margin-bottom: 0;
   font-weight: normal;
-  font-size: 1.625em;
+  font-size: 1.25em;
+  text-align: center;
   color: ${THEME_COLORS.quaternary};
 
   ${IsMobile(css`
-    font-size: 1.125em;
+    font-size: 1em;
   `)}
 `;
 
