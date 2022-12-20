@@ -48,7 +48,7 @@ export const CompaniesSection: FC = () => (
   <Section>
     <SectionRow>
       <ContentContainer noImage>
-        <SectionTitle centerAlways>Companies who trust us</SectionTitle>
+        <SectionTitle centerAlways>Companies Who Trust Us</SectionTitle>
         <Logos>
           <Logo width={140}>
             <Link to="https://additiv.com">

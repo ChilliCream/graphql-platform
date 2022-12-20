@@ -1,4 +1,4 @@
 {
   "name": "gatsby-plugin-svg-sprite",
-  "main": "gatsby-node.js"
+  "main": "index.js"
 }
