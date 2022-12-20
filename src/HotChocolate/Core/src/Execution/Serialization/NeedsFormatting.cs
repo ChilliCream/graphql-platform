@@ -42,10 +42,21 @@ internal sealed class NeedsFormatting<TValue> : NeedsFormatting
 {
     private readonly TValue _value;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="NeedsFormatting{TValue}"/>.
+    /// </summary>
+    /// <param name="value">
+    /// The value that needs formatting.
+    /// </param>
     public NeedsFormatting(TValue value)
     {
         _value = value;
     }
+
+    /// <summary>
+    /// The inner value.
+    /// </summary>
+    public TValue Value => _value;
 
     /// <summary>
     /// Formats the value as JSON

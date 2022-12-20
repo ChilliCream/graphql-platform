@@ -1,9 +1,10 @@
 import { graphql } from "gatsby";
 import React, { FC } from "react";
-import { BlogArticleFragment } from "../../graphql-types";
-import { BlogArticle } from "../components/blog-article/blog-article";
-import { Layout } from "../components/layout";
-import { SEO } from "../components/misc/seo";
+
+import { BlogArticle } from "@/components/blog-article/blog-article";
+import { Layout } from "@/components/layout";
+import { SEO } from "@/components/misc/seo";
+import { BlogArticleFragment } from "@/graphql-types";
 
 interface BlogArticleTemplateProps {
   readonly data: BlogArticleFragment;

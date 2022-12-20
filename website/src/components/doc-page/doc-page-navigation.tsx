@@ -9,15 +9,19 @@ import React, {
 } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styled, { css } from "styled-components";
-import { DocPageNavigationFragment } from "../../../graphql-types";
-import ArrowDownIconSvg from "../../images/arrow-down.svg";
-import ArrowUpIconSvg from "../../images/arrow-up.svg";
-import ProductSwitcherIconSvg from "../../images/th-large.svg";
-import { BoxShadow, IsTablet, THEME_COLORS } from "../../shared-style";
-import { State } from "../../state";
-import { closeTOC } from "../../state/common";
-import { IconContainer } from "../misc/icon-container";
-import { Link } from "../misc/link";
+
+import { IconContainer } from "@/components/misc/icon-container";
+import { Link } from "@/components/misc/link";
+import { DocPageNavigationFragment } from "@/graphql-types";
+import { BoxShadow, IsTablet, THEME_COLORS } from "@/shared-style";
+import { State } from "@/state";
+import { closeTOC } from "@/state/common";
+
+// Icons
+import ArrowDownIconSvg from "@/images/arrow-down.svg";
+import ArrowUpIconSvg from "@/images/arrow-up.svg";
+import ProductSwitcherIconSvg from "@/images/th-large.svg";
+
 import {
   DocPageStickySideBarStyle,
   MostProminentSection,

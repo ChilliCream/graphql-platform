@@ -2,7 +2,8 @@ import { graphql, useStaticQuery } from "gatsby";
 import { GatsbyImage } from "gatsby-plugin-image";
 import React, { FC } from "react";
 import styled from "styled-components";
-import { GetBlogPostBananaCakePopCloudImageQuery } from "../../../graphql-types";
+
+import { GetBlogPostBananaCakePopCloudImageQuery } from "@/graphql-types";
 
 export const BlogPostBananaCakePopCloud: FC = () => {
   const data = useStaticQuery<GetBlogPostBananaCakePopCloudImageQuery>(graphql`

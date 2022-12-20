@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Properties;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -59,11 +60,59 @@ internal sealed partial class ResultBuilder
         }
     }
 
+    public void SetExtension<T>(string key, UpdateState<T> value)
+    {
+        lock (_extensions)
+        {
+            if (_extensions.TryGetValue(key, out var current) && current is T casted)
+            {
+                _extensions[key] = value(key, casted);
+            }
+            else
+            {
+                _extensions[key] = value(key, default!);
+            }
+        }
+    }
+
+    public void SetExtension<T, TState>(string key, TState state, UpdateState<T, TState> value)
+    {
+        lock (_extensions)
+        {
+            if (_extensions.TryGetValue(key, out var current) && current is T casted)
+            {
+                _extensions[key] = value(key, casted, state);
+            }
+            else
+            {
+                _extensions[key] = value(key, default!, state);
+            }
+        }
+    }
+
     public void SetContextData(string key, object? value)
     {
         lock (_contextData)
         {
             _contextData[key] = value;
+        }
+    }
+
+    public void SetContextData(string key, UpdateState<object?> value)
+    {
+        lock (_contextData)
+        {
+            _contextData.TryGetValue(key, out var current);
+            _contextData[key] = value(key, current);
+        }
+    }
+
+    public void SetContextData<TState>(string key, TState state, UpdateState<object?, TState> value)
+    {
+        lock (_contextData)
+        {
+            _contextData.TryGetValue(key, out var current);
+            _contextData[key] = value(key, current, state);
         }
     }
 
