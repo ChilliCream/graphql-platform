@@ -22,42 +22,4 @@ public class SyntaxException : Exception
     public int Line { get; }
 
     public int Column { get; }
-<<<<<<< Updated upstream
-
-    public string SourceText { get; }
-
-    public int SourceTextOffset { get; }
-
-    private static int CalculateSourceTextOffset(Utf8GraphQLReader reader)
-    {
-        if (reader.GraphQLData.Length <= _sourceTextRangeSize ||
-            reader.Position <= _sourceTextRangeSize / 2)
-        {
-            return 0;
-        }
-
-        if (reader.GraphQLData.Length - reader.Position <= _sourceTextRangeSize / 2)
-        {
-            return reader.GraphQLData.Length - _sourceTextRangeSize;
-        }
-
-        return reader.Position - _sourceTextRangeSize / 2;
-    }
-
-    private static string SliceSourceText(Utf8GraphQLReader reader, int offset)
-    {
-        var offsetLength = reader.GraphQLData.Length - offset;
-        if (offsetLength > _sourceTextRangeSize)
-        {
-            offsetLength = _sourceTextRangeSize;
-        }
-
-        var slice = reader.GraphQLData
-            .Slice(offset, offsetLength)
-            .ToArray();
-
-        return Encoding.UTF8.GetString(slice);
-    }
-=======
->>>>>>> Stashed changes
 }
