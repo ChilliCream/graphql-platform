@@ -1,14 +1,14 @@
 namespace HotChocolate.Data.ElasticSearch;
 
-public class RangeOperation : ILeafSearchOperation
+public class RangeOperation<T> : ILeafSearchOperation
 {
     public RangeOperation(
         string path,
         ElasticSearchOperationKind kind,
-        double? greaterThan,
-        double? lowerThan,
-        double? greaterThanOrEquals,
-        double? lowerThanOrEquals)
+        T? greaterThan,
+        T? lowerThan,
+        T? greaterThanOrEquals,
+        T? lowerThanOrEquals)
     {
         Path = path;
         GreaterThan = greaterThan;
@@ -20,13 +20,13 @@ public class RangeOperation : ILeafSearchOperation
 
     public string Path { get; }
 
-    public double? GreaterThan { get; }
+    public T? GreaterThan { get; }
 
-    public double? LowerThan { get; }
+    public T? LowerThan { get; }
 
-    public double? GreaterThanOrEquals { get; }
+    public T? GreaterThanOrEquals { get; }
 
-    public double? LowerThanOrEquals { get; }
+    public T? LowerThanOrEquals { get; }
 
     public ElasticSearchOperationKind Kind { get; }
 }
