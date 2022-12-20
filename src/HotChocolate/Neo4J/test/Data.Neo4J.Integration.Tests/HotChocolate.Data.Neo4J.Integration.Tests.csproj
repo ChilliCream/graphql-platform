@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Data.Neo4J.Integration.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Data.Neo4J.Integration</RootNamespace>
+
+    <!-- Outputs the generated code to the bin directory.  -->
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath>
+
+    <!-- The directory where all the analyzer bin files are for development time. -->
+    <HotChocolate_BinDir>$(MSBuildThisFileDirectory)\..\..\..\Analyzers\src\Analyzers\bin\Debug\netstandard2.0</HotChocolate_BinDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Data\HotChocolate.Data.Neo4J.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Abstractions\HotChocolate.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
+    <ProjectReference Include="..\..\..\Analyzers\src\Analyzers\HotChocolate.Analyzers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" SetTargetFramework="TargetFramework=netstandard2.0" />
+    <ProjectReference Include="..\Data.Neo4J.Testing\HotChocolate.Data.Neo4J.Testing.csproj" />
+  </ItemGroup>
+
+  <!--This item group needs to be in the consuming project.-->
+  <ItemGroup>
+    <AdditionalFiles Include="**\*.graphql" />
+    <AdditionalFiles Include="**\.graphqlrc.json" />
+    <Watch Include="**\*.graphql" />
+    <Watch Include="**\.graphqlrc.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <CompilerVisibleProperty Include="HotChocolate_BinDir" />
+  </ItemGroup>
+
+</Project>

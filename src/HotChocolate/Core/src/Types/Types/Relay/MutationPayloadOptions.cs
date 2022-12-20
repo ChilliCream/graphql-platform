@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 
 namespace HotChocolate.Types.Relay;
@@ -10,12 +12,12 @@ public class MutationPayloadOptions
     /// <summary>
     /// The name of the query field on a mutation payload (default: query).
     /// </summary>
-    public NameString? QueryFieldName { get; set; }
+    public string? QueryFieldName { get; set; }
 
     /// <summary>
     /// A predicate that defines if the query field shall be added to
     /// the specified payload type.
     /// </summary>
     public Func<INamedType, bool> MutationPayloadPredicate { get; set; } =
-        type => type.Name.Value.EndsWith("Payload", StringComparison.Ordinal);
+        type => type.Name.EndsWith("Payload", StringComparison.Ordinal);
 }

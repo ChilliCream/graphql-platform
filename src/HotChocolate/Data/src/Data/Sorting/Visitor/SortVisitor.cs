@@ -17,7 +17,7 @@ public class SortVisitor<TContext, T>
                 context,
                 field,
                 node,
-                out ISyntaxVisitorAction? action))
+                out var action))
         {
             return action;
         }
@@ -35,7 +35,7 @@ public class SortVisitor<TContext, T>
                 context,
                 field,
                 node,
-                out ISyntaxVisitorAction? action))
+                out var action))
         {
             return action;
         }
@@ -55,7 +55,7 @@ public class SortVisitor<TContext, T>
                 field,
                 sortValue,
                 valueNode,
-                out ISyntaxVisitorAction? action))
+                out var action))
         {
             return action;
         }

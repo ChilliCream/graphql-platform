@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
 
 #nullable  enable
@@ -15,11 +16,11 @@ internal sealed class TypeRegistry
     private readonly Dictionary<ITypeReference, RegisteredType> _typeRegister = new();
     private readonly Dictionary<ExtendedTypeReference, ITypeReference> _runtimeTypeRefs =
         new(new ExtendedTypeReferenceEqualityComparer());
-    private readonly Dictionary<NameString, ITypeReference> _nameRefs = new();
+    private readonly Dictionary<string, ITypeReference> _nameRefs = new(StringComparer.Ordinal);
     private readonly List<RegisteredType> _types = new();
-    private readonly ITypeRegistryInterceptor _typeRegistryInterceptor;
+    private readonly TypeInterceptor _typeRegistryInterceptor;
 
-    public TypeRegistry(ITypeRegistryInterceptor typeRegistryInterceptor)
+    public TypeRegistry(TypeInterceptor typeRegistryInterceptor)
     {
         _typeRegistryInterceptor = typeRegistryInterceptor ??
             throw new ArgumentNullException(nameof(typeRegistryInterceptor));
@@ -32,7 +33,7 @@ internal sealed class TypeRegistry
     public IReadOnlyDictionary<ExtendedTypeReference, ITypeReference> RuntimeTypeRefs =>
         _runtimeTypeRefs;
 
-    public IReadOnlyDictionary<NameString, ITypeReference> NameRefs => _nameRefs;
+    public IReadOnlyDictionary<string, ITypeReference> NameRefs => _nameRefs;
 
     public bool IsRegistered(ITypeReference typeReference)
     {
@@ -64,7 +65,7 @@ internal sealed class TypeRegistry
         }
 
         if (typeRef is ExtendedTypeReference clrTypeRef &&
-            _runtimeTypeRefs.TryGetValue(clrTypeRef, out ITypeReference? internalRef))
+            _runtimeTypeRefs.TryGetValue(clrTypeRef, out var internalRef))
         {
             typeRef = internalRef;
         }
@@ -85,15 +86,15 @@ internal sealed class TypeRegistry
     }
 
     public bool TryGetTypeRef(
-        NameString typeName,
+        string typeName,
         [NotNullWhen(true)] out ITypeReference? typeRef)
     {
-        typeName.EnsureNotEmpty(nameof(typeName));
+        typeName.EnsureGraphQLName();
 
         if (!_nameRefs.TryGetValue(typeName, out typeRef))
         {
             typeRef = Types
-                .FirstOrDefault(t => !t.IsExtension && t.Type.Name.Equals(typeName))
+                .FirstOrDefault(t => !t.IsExtension && t.Type.Name.EqualsOrdinal(typeName))
                 ?.References[0];
         }
         return typeRef is not null;
@@ -128,9 +129,9 @@ internal sealed class TypeRegistry
 
         var addToTypes = !_typeRegister.ContainsValue(registeredType);
 
-        foreach (ITypeReference typeReference in registeredType.References)
+        foreach (var typeReference in registeredType.References)
         {
-            if (_typeRegister.TryGetValue(typeReference, out RegisteredType? current) &&
+            if (_typeRegister.TryGetValue(typeReference, out var current) &&
                 !ReferenceEquals(current, registeredType))
             {
                 if (current.IsInferred && !registeredType.IsInferred)
@@ -176,25 +177,29 @@ internal sealed class TypeRegistry
         }
     }
 
-    public void Register(NameString typeName, ExtendedTypeReference typeReference)
+    public void Register(string typeName, ExtendedTypeReference typeReference)
     {
         if (typeReference is null)
         {
             throw new ArgumentNullException(nameof(typeReference));
         }
 
-        typeName.EnsureNotEmpty(nameof(typeName));
+        typeName.EnsureGraphQLName();
+
         _nameRefs[typeName] = typeReference;
     }
 
-    public void Register(NameString typeName, RegisteredType registeredType)
+    public void Register(string typeName, RegisteredType registeredType)
     {
         if (registeredType is null)
         {
             throw new ArgumentNullException(nameof(registeredType));
         }
 
-        typeName.EnsureNotEmpty(nameof(typeName));
+        if (string.IsNullOrEmpty(typeName))
+        {
+            throw new ArgumentNullException(nameof(typeName));
+        }
 
         if (registeredType.IsExtension)
         {
@@ -206,8 +211,8 @@ internal sealed class TypeRegistry
             return;
         }
 
-        if (TryGetTypeRef(typeName, out ITypeReference? typeRef) &&
-            TryGetType(typeRef, out RegisteredType? type) &&
+        if (TryGetTypeRef(typeName, out var typeRef) &&
+            TryGetType(typeRef, out var type) &&
             !ReferenceEquals(type, registeredType))
         {
             throw TypeInitializer_DuplicateTypeName(registeredType.Type, type.Type);
@@ -218,7 +223,7 @@ internal sealed class TypeRegistry
 
     public void CompleteDiscovery()
     {
-        foreach (RegisteredType registeredType in _types)
+        foreach (var registeredType in _types)
         {
             ITypeReference reference = TypeReference.Create(registeredType.Type);
             registeredType.References.TryAdd(reference);

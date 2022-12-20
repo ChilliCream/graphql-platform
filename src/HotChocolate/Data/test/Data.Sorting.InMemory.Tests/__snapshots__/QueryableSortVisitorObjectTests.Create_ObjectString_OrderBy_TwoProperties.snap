@@ -1,0 +1,111 @@
+ASC
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barBool": false,
+          "barShort": 13
+        }
+      },
+      {
+        "foo": {
+          "barBool": true,
+          "barShort": 12
+        }
+      },
+      {
+        "foo": {
+          "barBool": true,
+          "barShort": 14
+        }
+      }
+    ]
+  }
+}
+---------------
+
+ASC
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barBool": false,
+          "barShort": 13
+        }
+      },
+      {
+        "foo": {
+          "barBool": true,
+          "barShort": 12
+        }
+      },
+      {
+        "foo": {
+          "barBool": true,
+          "barShort": 14
+        }
+      }
+    ]
+  }
+}
+---------------
+
+DESC
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barBool": true,
+          "barShort": 14
+        }
+      },
+      {
+        "foo": {
+          "barBool": true,
+          "barShort": 12
+        }
+      },
+      {
+        "foo": {
+          "barBool": false,
+          "barShort": 13
+        }
+      }
+    ]
+  }
+}
+---------------
+
+DESC
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barBool": true,
+          "barShort": 14
+        }
+      },
+      {
+        "foo": {
+          "barBool": true,
+          "barShort": 12
+        }
+      },
+      {
+        "foo": {
+          "barBool": false,
+          "barShort": 13
+        }
+      }
+    ]
+  }
+}
+---------------

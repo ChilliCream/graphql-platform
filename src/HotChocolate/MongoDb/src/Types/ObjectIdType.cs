@@ -27,7 +27,7 @@ public class ObjectIdType
     /// Initializes a new instance of the <see cref="ObjectIdType"/> class.
     /// </summary>
     public ObjectIdType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)

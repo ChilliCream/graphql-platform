@@ -45,7 +45,7 @@ public class ClassBaseClassInspector : ISyntaxInspector
 
                     if (WellKnownTypes.TypeExtensionClass.Contains(displayString))
                     {
-                        syntaxInfo = new TypeExtensionInfo(typeDisplayString);
+                        syntaxInfo = new TypeExtensionInfo(typeDisplayString, false);
                         return true;
                     }
 

@@ -13,7 +13,7 @@ public sealed class RequestExecutorProxy : IDisposable
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly IRequestExecutorResolver _executorResolver;
-    private readonly NameString _schemaName;
+    private readonly string _schemaName;
     private IRequestExecutor? _executor;
     private bool _disposed;
 
@@ -21,13 +21,16 @@ public sealed class RequestExecutorProxy : IDisposable
 
     public event EventHandler? ExecutorEvicted;
 
-    public RequestExecutorProxy(
-        IRequestExecutorResolver executorResolver,
-        NameString schemaName)
+    public RequestExecutorProxy(IRequestExecutorResolver executorResolver, string schemaName)
     {
+        if (string.IsNullOrEmpty(schemaName))
+        {
+            throw new ArgumentNullException(nameof(schemaName));
+        }
+
         _executorResolver = executorResolver ??
             throw new ArgumentNullException(nameof(executorResolver));
-        _schemaName = schemaName.EnsureNotEmpty(nameof(schemaName));
+        _schemaName = schemaName;
         _executorResolver.RequestExecutorEvicted += EvictRequestExecutor;
     }
 
@@ -64,11 +67,11 @@ public sealed class RequestExecutorProxy : IDisposable
             throw new ArgumentNullException(nameof(request));
         }
 
-        IRequestExecutor executor =
+        var executor =
             await GetRequestExecutorAsync(cancellationToken)
                 .ConfigureAwait(false);
 
-        IExecutionResult result =
+        var result =
             await executor
                 .ExecuteAsync(request, cancellationToken)
                 .ConfigureAwait(false);
@@ -97,11 +100,11 @@ public sealed class RequestExecutorProxy : IDisposable
             throw new ArgumentNullException(nameof(requestBatch));
         }
 
-        IRequestExecutor executor =
+        var executor =
             await GetRequestExecutorAsync(cancellationToken)
                 .ConfigureAwait(false);
 
-        IResponseStream result =
+        var result =
             await executor
                 .ExecuteBatchAsync(requestBatch, cancellationToken)
                 .ConfigureAwait(false);
@@ -121,7 +124,7 @@ public sealed class RequestExecutorProxy : IDisposable
     public async ValueTask<ISchema> GetSchemaAsync(
         CancellationToken cancellationToken)
     {
-        IRequestExecutor executor =
+        var executor =
             await GetRequestExecutorAsync(cancellationToken)
                 .ConfigureAwait(false);
         return executor.Schema;
@@ -139,7 +142,7 @@ public sealed class RequestExecutorProxy : IDisposable
     public async ValueTask<IRequestExecutor> GetRequestExecutorAsync(
         CancellationToken cancellationToken)
     {
-        IRequestExecutor? executor = _executor;
+        var executor = _executor;
 
         if (executor is null)
         {

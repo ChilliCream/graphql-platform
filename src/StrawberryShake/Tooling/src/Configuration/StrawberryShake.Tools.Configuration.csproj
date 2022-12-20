@@ -24,9 +24,5 @@
       <DependentUpon>ToolsConfigResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
-
-  <PropertyGroup>
-    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
-  </PropertyGroup>
-
+  
 </Project>

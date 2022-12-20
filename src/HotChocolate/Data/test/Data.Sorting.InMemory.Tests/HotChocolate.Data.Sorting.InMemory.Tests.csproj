@@ -10,12 +10,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\AspNetCore\test\AspNetCore.Tests.Utilities\HotChocolate.AspNetCore.Tests.Utilities.csproj" />
     <ProjectReference Include="..\..\src\Data\HotChocolate.Data.csproj" />
-    <ProjectReference Include="..\..\..\Core\test\Types.Tests\HotChocolate.Types.Tests.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.2.7" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
-    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="3.1.19" />
-  </ItemGroup>
 </Project>

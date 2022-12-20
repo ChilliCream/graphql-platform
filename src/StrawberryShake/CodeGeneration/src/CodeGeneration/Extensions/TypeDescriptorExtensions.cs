@@ -94,7 +94,7 @@ public static class TypeDescriptorExtensions
             .InnerType();
     }
 
-    public static NameString GetName(this ITypeDescriptor typeDescriptor)
+    public static string GetName(this ITypeDescriptor typeDescriptor)
     {
         if (typeDescriptor.NamedType() is INamedTypeDescriptor namedType)
         {

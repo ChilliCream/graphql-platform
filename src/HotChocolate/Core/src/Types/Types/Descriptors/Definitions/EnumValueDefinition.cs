@@ -1,5 +1,6 @@
 using System.Reflection;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -22,11 +23,11 @@ public class EnumValueDefinition
     /// Initializes a new instance of <see cref="EnumValueDefinition"/>.
     /// </summary>
     public EnumValueDefinition(
-        NameString name,
+        string name,
         string? description = null,
         object? runtimeValue = null)
     {
-        Name = name;
+        Name = name.EnsureGraphQLName();
         Description = description;
         RuntimeValue = runtimeValue;
     }
@@ -42,7 +43,7 @@ public class EnumValueDefinition
     public bool IsDeprecated => !string.IsNullOrEmpty(DeprecationReason);
 
     /// <summary>
-    /// Defines if this enum value is ignored 
+    /// Defines if this enum value is ignored
     /// and therefore excluded from the schema.
     /// </summary>
     public bool Ignore { get; set; }

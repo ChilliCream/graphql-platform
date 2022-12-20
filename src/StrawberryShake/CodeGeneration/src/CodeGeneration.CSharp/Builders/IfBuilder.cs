@@ -96,7 +96,7 @@ public class IfBuilder : ICodeContainer<IfBuilder>
 
         using (writer.IncreaseIndent())
         {
-            foreach (ICode code in _lines)
+            foreach (var code in _lines)
             {
                 code.Build(writer);
             }
@@ -106,7 +106,7 @@ public class IfBuilder : ICodeContainer<IfBuilder>
         writer.Write("}");
         writer.WriteLine();
 
-        foreach (IfBuilder ifBuilder in _ifElses)
+        foreach (var ifBuilder in _ifElses)
         {
             writer.WriteIndent();
             writer.Write("else ");

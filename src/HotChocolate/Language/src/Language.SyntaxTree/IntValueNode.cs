@@ -310,7 +310,7 @@ public sealed class IntValueNode : IValueNode<string>, IIntValueLiteral
         {
             if (_stringValue is null)
             {
-                ReadOnlySpan<byte> span = AsSpan();
+                var span = AsSpan();
 
                 fixed (byte* b = span)
                 {

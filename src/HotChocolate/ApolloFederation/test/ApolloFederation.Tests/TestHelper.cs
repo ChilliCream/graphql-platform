@@ -22,6 +22,7 @@ public static class TestHelper
         mock.SetupGet(c => c.ContextData).Returns(contextData);
         mock.SetupProperty(c => c.ScopedContextData);
         mock.SetupProperty(c => c.LocalContextData);
+        mock.Setup(c => c.Clone()).Returns(mock.Object);
         mock.SetupGet(c => c.Schema).Returns(schema);
 
         if (type is not null)
@@ -34,7 +35,7 @@ public static class TestHelper
             additionalMockSetup(mock);
         }
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
         context.ScopedContextData = ImmutableDictionary<string, object?>.Empty;
         context.LocalContextData = ImmutableDictionary<string, object?>.Empty;
         return context;

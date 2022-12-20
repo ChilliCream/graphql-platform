@@ -114,9 +114,9 @@ internal struct Iso8601Duration
         int minutes = default;
         int seconds = default;
         uint nanoseconds = default;
-        bool isNegative = false;
+        var isNegative = false;
 
-        Parts parts = Parts.HasNone;
+        var parts = Parts.HasNone;
 
         result = default;
 

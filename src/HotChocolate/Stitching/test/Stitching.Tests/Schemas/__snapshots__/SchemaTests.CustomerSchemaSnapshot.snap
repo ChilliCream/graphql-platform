@@ -1,7 +1,6 @@
 ﻿schema {
   query: Query
   mutation: Mutation
-  subscription: Subscription
 }
 
 "The node interface is implemented by entities that have a global unique identifier."
@@ -16,7 +15,7 @@ type Consultant implements Node {
 }
 
 type CreateCustomerPayload {
-  customer: Customer
+  customer: Customer!
 }
 
 type Customer implements Node {
@@ -50,8 +49,8 @@ type CustomersEdge {
 }
 
 type Mutation {
-  createCustomer(input: CreateCustomerInput): CreateCustomerPayload
-  createCustomers(inputs: [CreateCustomerInput]): [CreateCustomerPayload]
+  createCustomer(input: CreateCustomerInput!): CreateCustomerPayload!
+  createCustomers(inputs: [CreateCustomerInput!]!): [CreateCustomerPayload!]!
 }
 
 "Information about pagination in a connection."
@@ -79,10 +78,6 @@ type Query {
   allCustomers: [Customer!]!
 }
 
-type Subscription {
-  onCustomerChanged: Customer
-}
-
 union CustomerOrConsultant = Customer | Consultant
 
 input ComplexInputType {
@@ -99,7 +94,7 @@ input CreateCustomerInput {
 }
 
 input SayInput {
-  words: [String]
+  words: [String!]
 }
 
 enum CustomerKind {

@@ -83,8 +83,7 @@ public static class HotChocolateRedisPersistedQueriesServiceCollectionExtensions
     private static IServiceCollection RemoveService<TService>(
         this IServiceCollection services)
     {
-        ServiceDescriptor? serviceDescriptor = services
-            .FirstOrDefault(t => t.ServiceType == typeof(TService));
+        var serviceDescriptor = services.FirstOrDefault(t => t.ServiceType == typeof(TService));
 
         if (serviceDescriptor != null)
         {

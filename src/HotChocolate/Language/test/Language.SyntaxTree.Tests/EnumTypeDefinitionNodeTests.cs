@@ -70,7 +70,7 @@ public class EnumTypeDefinitionNodeTests
 
         // act
         EnumTypeDefinitionNode Action()
-            => new(location, null, description, directives, values);
+            => new(location, null!, description, directives, values);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -88,7 +88,7 @@ public class EnumTypeDefinitionNodeTests
 
         // act
         EnumTypeDefinitionNode Action()
-            => new(location, name, description, null, values);
+            => new(location, name, description, null!, values);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -109,7 +109,7 @@ public class EnumTypeDefinitionNodeTests
              name,
              description,
              directives,
-             null);
+             null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(a);
@@ -162,7 +162,7 @@ public class EnumTypeDefinitionNodeTests
 
 
         // assert
-        Assert.Equal("baz", type.Description.Value);
+        Assert.Equal("baz", type.Description!.Value);
     }
 
     [Fact]

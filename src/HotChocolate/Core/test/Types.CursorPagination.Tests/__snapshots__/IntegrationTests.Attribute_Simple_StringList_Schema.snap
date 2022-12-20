@@ -50,6 +50,7 @@ type NestedObjectListConnection {
   edges: [NestedObjectListEdge!]
   "A flattened list of the nodes."
   nodes: [[Foo!]!]
+  "Identifies the total count of items in the connection."
   totalCount: Int!
 }
 

@@ -1,4 +1,0 @@
-﻿SELECT "d"."Id", "d"."FooId"
-FROM "Data" AS "d"
-INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
-ORDER BY "f"."BarShort", "f"."BarBool"

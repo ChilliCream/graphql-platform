@@ -46,7 +46,7 @@ public static class HttpClientBuilderExtensions
             throw new ArgumentNullException(nameof(configureClient));
         }
 
-        IHttpClientBuilder builder = clientBuilder.Services
+        var builder = clientBuilder.Services
             .AddHttpClient(
                 clientBuilder.ClientName,
                 client =>
@@ -95,7 +95,7 @@ public static class HttpClientBuilderExtensions
             throw new ArgumentNullException(nameof(configureClient));
         }
 
-        IHttpClientBuilder builder = clientBuilder.Services
+        var builder = clientBuilder.Services
             .AddHttpClient(clientBuilder.ClientName, (sp, client) =>
             {
                 client.DefaultRequestHeaders.UserAgent.Add(

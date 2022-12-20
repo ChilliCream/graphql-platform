@@ -1,11 +1,11 @@
-﻿{
+{
   "errors": [
     {
       "message": "Unexpected Execution Error",
       "locations": [
         {
-          "line": 3,
-          "column": 29
+          "line": 2,
+          "column": 25
         }
       ],
       "path": [

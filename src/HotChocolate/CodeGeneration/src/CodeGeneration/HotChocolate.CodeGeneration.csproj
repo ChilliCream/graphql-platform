@@ -1,10 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <AssemblyName>HotChocolate.CodeGeneration</AssemblyName>
     <RootNamespace>HotChocolate.CodeGeneration</RootNamespace>
     <Description>Contains source generators for Hot Chocolate.</Description>
@@ -21,9 +17,5 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
-
-  <PropertyGroup>
-    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
-  </PropertyGroup>
 
 </Project>

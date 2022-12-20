@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -7,7 +6,7 @@ namespace HotChocolate.Types;
 
 public interface IDirective
 {
-    NameString Name { get; }
+    string Name { get; }
 
     DirectiveType Type { get; }
 

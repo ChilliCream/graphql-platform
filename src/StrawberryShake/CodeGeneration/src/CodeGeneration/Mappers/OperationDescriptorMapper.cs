@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
 using System.Text;
-using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
@@ -14,15 +14,18 @@ public static class OperationDescriptorMapper
 {
     public static void Map(ClientModel model, IMapperContext context)
     {
-        foreach (OperationModel modelOperation in model.Operations)
+        foreach (var modelOperation in model.Operations)
         {
+            var hasUpload = false;
             var arguments = modelOperation.Arguments.Select(
                     arg =>
                     {
-                        NameString typeName = arg.Type.TypeName();
+                        var typeName = arg.Type.TypeName();
 
-                        INamedTypeDescriptor namedTypeDescriptor =
-                            context.Types.Single(type => type.Name.Equals(typeName));
+                        var namedTypeDescriptor =
+                            context.Types.Single(type => type.Name.EqualsOrdinal(typeName));
+
+                        hasUpload = hasUpload || namedTypeDescriptor.HasUpload();
 
                         return new PropertyDescriptor(
                             arg.Name,
@@ -32,7 +35,7 @@ public static class OperationDescriptorMapper
                     })
                 .ToList();
 
-            RuntimeTypeInfo resultType = context.GetRuntimeType(
+            var resultType = context.GetRuntimeType(
                 modelOperation.ResultType.Name,
                 Descriptors.TypeDescriptors.TypeKind.Result);
 
@@ -54,6 +57,7 @@ public static class OperationDescriptorMapper
                             bodyString,
                             context.HashProvider.Name,
                             hash,
+                            hasUpload,
                             context.RequestStrategy));
                     break;
 
@@ -69,6 +73,7 @@ public static class OperationDescriptorMapper
                             bodyString,
                             context.HashProvider.Name,
                             hash,
+                            hasUpload,
                             context.RequestStrategy));
                     break;
 

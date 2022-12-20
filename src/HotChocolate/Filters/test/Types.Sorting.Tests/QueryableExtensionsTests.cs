@@ -3,102 +3,101 @@ using System.Linq;
 using System.Linq.Expressions;
 using Xunit;
 
-namespace HotChocolate.Types.Sorting
+namespace HotChocolate.Types.Sorting;
+
+[Obsolete]
+public class QueryableExtensionsTests
 {
-    [Obsolete]
-    public class QueryableExtensionsTests
+    [Fact]
+    public void CompileInitialSortOperation_AscOnIQueryable_ShouldAddOrderBy()
     {
-        [Fact]
-        public void CompileInitialSortOperation_AscOnIQueryable_ShouldAddOrderBy()
-        {
-            // arrange
-            IQueryable<Foo> source = new Foo[0].AsQueryable();
-            var closure = new SortQueryableClosure(typeof(Foo), "p");
-            closure.EnqueueProperty(typeof(Foo).GetProperty(nameof(Foo.Bar)));
-            SortOperationInvocation operation =
-                closure.CreateSortOperation(SortOperationKind.Asc);
+        // arrange
+        var source = new Foo[0].AsQueryable();
+        var closure = new SortQueryableClosure(typeof(Foo), "p");
+        closure.EnqueueProperty(typeof(Foo).GetProperty(nameof(Foo.Bar)));
+        var operation =
+            closure.CreateSortOperation(SortOperationKind.Asc);
 
-            // act
-            Expression sortExpression = source.Expression.CompileInitialSortOperation(
-                operation
-            );
-            IQueryable<Foo> sorted =
-                source.Provider.CreateQuery<Foo>(sortExpression);
+        // act
+        var sortExpression = source.Expression.CompileInitialSortOperation(
+            operation
+        );
+        var sorted =
+            source.Provider.CreateQuery<Foo>(sortExpression);
 
-            // assert
-            Assert.Equal(source.OrderBy(s => s.Bar), sorted);
-        }
+        // assert
+        Assert.Equal(source.OrderBy(s => s.Bar), sorted);
+    }
 
-        [Fact]
-        public void CompileInitialSortOperation_DescOnIQueryable_ShouldAddOrderBy()
-        {
-            // arrange
-            IQueryable<Foo> source = new Foo[0].AsQueryable();
-            var closure = new SortQueryableClosure(typeof(Foo), "p");
-            closure.EnqueueProperty(typeof(Foo).GetProperty(nameof(Foo.Bar)));
-            SortOperationInvocation operation =
-                closure.CreateSortOperation(SortOperationKind.Desc);
+    [Fact]
+    public void CompileInitialSortOperation_DescOnIQueryable_ShouldAddOrderBy()
+    {
+        // arrange
+        var source = new Foo[0].AsQueryable();
+        var closure = new SortQueryableClosure(typeof(Foo), "p");
+        closure.EnqueueProperty(typeof(Foo).GetProperty(nameof(Foo.Bar)));
+        var operation =
+            closure.CreateSortOperation(SortOperationKind.Desc);
 
-            // act
-            Expression sortExpression = source.Expression.CompileInitialSortOperation(
-                operation
-            );
+        // act
+        var sortExpression = source.Expression.CompileInitialSortOperation(
+            operation
+        );
 
-            IQueryable<Foo> sorted =
-               source.Provider.CreateQuery<Foo>(sortExpression);
+        var sorted =
+            source.Provider.CreateQuery<Foo>(sortExpression);
 
 
-            // assert
-            Assert.Equal(source.OrderByDescending(s => s.Bar), sorted);
-        }
+        // assert
+        Assert.Equal(source.OrderByDescending(s => s.Bar), sorted);
+    }
 
-        [Fact]
-        public void AddSortOperation_AscOnIOrderedQueryable_ShouldAddThenBy()
-        {
-            // arrange
-            IOrderedQueryable<Foo> source = new Foo[0].AsQueryable().OrderBy(f => f.Bar);
-            var closure = new SortQueryableClosure(typeof(Foo), "p");
-            closure.EnqueueProperty(typeof(Foo).GetProperty(nameof(Foo.Bar)));
-            SortOperationInvocation operation =
-                closure.CreateSortOperation(SortOperationKind.Asc);
+    [Fact]
+    public void AddSortOperation_AscOnIOrderedQueryable_ShouldAddThenBy()
+    {
+        // arrange
+        var source = new Foo[0].AsQueryable().OrderBy(f => f.Bar);
+        var closure = new SortQueryableClosure(typeof(Foo), "p");
+        closure.EnqueueProperty(typeof(Foo).GetProperty(nameof(Foo.Bar)));
+        var operation =
+            closure.CreateSortOperation(SortOperationKind.Asc);
 
-            // act
-            Expression sortExpression = source.Expression.CompileInitialSortOperation(
-                operation
-            );
-            IQueryable<Foo> sorted =
-               source.Provider.CreateQuery<Foo>(sortExpression);
-
-
-            // assert
-            Assert.Equal(source.ThenBy(s => s.Bar), sorted);
-        }
-
-        [Fact]
-        public void AddSortOperation_DescOnIOrderedQueryable_ShouldAddThenByDescending()
-        {
-            // arrange
-            IOrderedQueryable<Foo> source = new Foo[0].AsQueryable().OrderBy(f => f.Bar);
-            var closure = new SortQueryableClosure(typeof(Foo), "p");
-            closure.EnqueueProperty(typeof(Foo).GetProperty(nameof(Foo.Bar)));
-            SortOperationInvocation operation =
-                closure.CreateSortOperation(SortOperationKind.Desc);
-
-            // act
-            Expression sortExpression = source.Expression.CompileInitialSortOperation(
-                operation
-            );
-            IQueryable<Foo> sorted =
-               source.Provider.CreateQuery<Foo>(sortExpression);
+        // act
+        var sortExpression = source.Expression.CompileInitialSortOperation(
+            operation
+        );
+        var sorted =
+            source.Provider.CreateQuery<Foo>(sortExpression);
 
 
-            // assert
-            Assert.Equal(source.ThenByDescending(s => s.Bar), sorted);
-        }
+        // assert
+        Assert.Equal(source.ThenBy(s => s.Bar), sorted);
+    }
 
-        private sealed class Foo
-        {
-            public string Bar { get; set; }
-        }
+    [Fact]
+    public void AddSortOperation_DescOnIOrderedQueryable_ShouldAddThenByDescending()
+    {
+        // arrange
+        var source = new Foo[0].AsQueryable().OrderBy(f => f.Bar);
+        var closure = new SortQueryableClosure(typeof(Foo), "p");
+        closure.EnqueueProperty(typeof(Foo).GetProperty(nameof(Foo.Bar)));
+        var operation =
+            closure.CreateSortOperation(SortOperationKind.Desc);
+
+        // act
+        var sortExpression = source.Expression.CompileInitialSortOperation(
+            operation
+        );
+        var sorted =
+            source.Provider.CreateQuery<Foo>(sortExpression);
+
+
+        // assert
+        Assert.Equal(source.ThenByDescending(s => s.Bar), sorted);
+    }
+
+    private sealed class Foo
+    {
+        public string Bar { get; set; }
     }
 }

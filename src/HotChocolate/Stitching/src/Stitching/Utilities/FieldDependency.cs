@@ -1,22 +1,22 @@
-
-using System;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching.Utilities;
 
-internal readonly struct FieldDependency : IEquatable<FieldDependency>
+public readonly struct FieldDependency
+    : IEquatable<FieldDependency>
 {
-    public FieldDependency(NameString typeName, NameString fieldName)
+    public FieldDependency(string typeName, string fieldName)
     {
-        typeName.EnsureNotEmpty(nameof(typeName));
-        fieldName.EnsureNotEmpty(nameof(typeName));
+        typeName.EnsureGraphQLName(nameof(typeName));
+        fieldName.EnsureGraphQLName(nameof(typeName));
 
         TypeName = typeName;
         FieldName = fieldName;
     }
 
-    public NameString TypeName { get; }
+    public string TypeName { get; }
 
-    public NameString FieldName { get; }
+    public string FieldName { get; }
 
     public bool Equals(FieldDependency other)
     {

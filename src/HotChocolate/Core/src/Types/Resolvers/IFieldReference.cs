@@ -8,10 +8,10 @@ public interface IFieldReference
     /// <summary>
     /// The name of a GraphQL object type.
     /// </summary>
-    NameString TypeName { get; }
+    string TypeName { get; }
 
     /// <summary>
     /// The name of a field of the object type.
     /// </summary>
-    NameString FieldName { get; }
+    string FieldName { get; }
 }

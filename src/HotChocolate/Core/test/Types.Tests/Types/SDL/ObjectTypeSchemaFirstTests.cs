@@ -1,35 +1,35 @@
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types.SDL
+namespace HotChocolate.Types.SDL;
+
+public class ObjectTypeSchemaFirstTests
 {
-    public class ObjectTypeSchemaFirstTests
+    [Fact]
+    public void Declare_Simple_Query_Type()
     {
-        [Fact]
-        public void Declare_Simple_Query_Type()
-        {
-            // arrange
-            var sdl =
-                @"type Query {
+        // arrange
+        var sdl =
+            @"type Query {
                     hello: String
                 }";
 
-            // act
-            // assert
-            SchemaBuilder.New()
-                .AddDocumentFromString(sdl)
-                .BindRuntimeType<Query>()
-                .Create()
-                .Print()
-                .MatchSnapshot();
-        }
+        // act
+        // assert
+        SchemaBuilder.New()
+            .AddDocumentFromString(sdl)
+            .BindRuntimeType<Query>()
+            .Create()
+            .Print()
+            .MatchSnapshot();
+    }
 
-        [Fact]
-        public void Declare_Query_Type_With_Type_Extension()
-        {
-            // arrange
-            var sdl =
-                @"type Query {
+    [Fact]
+    public void Declare_Query_Type_With_Type_Extension()
+    {
+        // arrange
+        var sdl =
+            @"type Query {
                     hello: String
                 }
 
@@ -37,22 +37,22 @@ namespace HotChocolate.Types.SDL
                     world: String
                 }";
 
-            // act
-            // assert
-            SchemaBuilder.New()
-                .AddDocumentFromString(sdl)
-                .BindRuntimeType<Query>()
-                .Create()
-                .Print()
-                .MatchSnapshot();
-        }
+        // act
+        // assert
+        SchemaBuilder.New()
+            .AddDocumentFromString(sdl)
+            .BindRuntimeType<Query>()
+            .Create()
+            .Print()
+            .MatchSnapshot();
+    }
 
-        [Fact]
-        public void Declare_Query_Type_With_Type_Extension_Add_Directive_To_Field()
-        {
-            // arrange
-            var sdl =
-                @"type Query {
+    [Fact]
+    public void Declare_Query_Type_With_Type_Extension_Add_Directive_To_Field()
+    {
+        // arrange
+        var sdl =
+            @"type Query {
                     hello: String
                 }
 
@@ -62,22 +62,22 @@ namespace HotChocolate.Types.SDL
 
                 directive @foo on FIELD_DEFINITION";
 
-            // act
-            // assert
-            SchemaBuilder.New()
-                .AddDocumentFromString(sdl)
-                .BindRuntimeType<Query>()
-                .Create()
-                .Print()
-                .MatchSnapshot();
-        }
+        // act
+        // assert
+        SchemaBuilder.New()
+            .AddDocumentFromString(sdl)
+            .BindRuntimeType<Query>()
+            .Create()
+            .Print()
+            .MatchSnapshot();
+    }
 
-        [Fact]
-        public void Declare_Query_Type_With_Type_Extension_Add_Directive_To_Type()
-        {
-            // arrange
-            var sdl =
-                @"type Query {
+    [Fact]
+    public void Declare_Query_Type_With_Type_Extension_Add_Directive_To_Type()
+    {
+        // arrange
+        var sdl =
+            @"type Query {
                     hello: String
                 }
 
@@ -85,21 +85,20 @@ namespace HotChocolate.Types.SDL
 
                 directive @foo on OBJECT";
 
-            // act
-            // assert
-            SchemaBuilder.New()
-                .AddDocumentFromString(sdl)
-                .BindRuntimeType<Query>()
-                .Create()
-                .Print()
-                .MatchSnapshot();
-        }
+        // act
+        // assert
+        SchemaBuilder.New()
+            .AddDocumentFromString(sdl)
+            .BindRuntimeType<Query>()
+            .Create()
+            .Print()
+            .MatchSnapshot();
+    }
 
-        public class Query
-        {
-            public string Hello() => "Hello";
+    public class Query
+    {
+        public string Hello() => "Hello";
 
-            public string World() => "World";
-        }
+        public string World() => "World";
     }
 }

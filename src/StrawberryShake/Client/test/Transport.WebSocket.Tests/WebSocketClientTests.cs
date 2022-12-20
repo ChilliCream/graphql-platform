@@ -2,8 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Snapshooter.Xunit;
-using Xunit;
+using CookieCrumble;
 
 namespace StrawberryShake.Transport.WebSockets;
 
@@ -13,12 +12,12 @@ public class WebSocketClientTests
     public void Constructor_AllArgs_CreateObject()
     {
         // arrange
-        string name = "Foo";
+        var name = "Foo";
         IReadOnlyList<ISocketProtocolFactory> protocolFactories =
             Array.Empty<ISocketProtocolFactory>();
 
         // act
-        Exception? exception = Record.Exception(() =>
+        var exception = Record.Exception(() =>
             new WebSocketClient(name, protocolFactories));
 
         // assert
@@ -34,7 +33,7 @@ public class WebSocketClientTests
             Array.Empty<ISocketProtocolFactory>();
 
         // act
-        Exception? exception = Record.Exception(() =>
+        var exception = Record.Exception(() =>
             new WebSocketClient(name, protocolFactories));
 
         // assert
@@ -45,11 +44,11 @@ public class WebSocketClientTests
     public void Constructor_FactoriesNull_CreateObject()
     {
         // arrange
-        string name = "Foo";
+        var name = "Foo";
         IReadOnlyList<ISocketProtocolFactory> protocolFactories = null!;
 
         // act
-        Exception? exception = Record.Exception(() =>
+        var exception = Record.Exception(() =>
             new WebSocketClient(name, protocolFactories));
 
         // assert
@@ -60,14 +59,14 @@ public class WebSocketClientTests
     public async Task OpenAsync_Disposed_ThrowsException()
     {
         // arrange
-        string name = "Foo";
+        var name = "Foo";
         IReadOnlyList<ISocketProtocolFactory> protocolFactories =
             Array.Empty<ISocketProtocolFactory>();
         var socket = new WebSocketClient(name, protocolFactories);
         await socket.DisposeAsync();
 
         // act
-        Exception? exception =
+        var exception =
             await Record.ExceptionAsync(() => socket.OpenAsync(CancellationToken.None));
 
         // assert
@@ -78,13 +77,13 @@ public class WebSocketClientTests
     public async Task OpenAsync_UriIsNull_ThrowsException()
     {
         // arrange
-        string name = "Foo";
+        var name = "Foo";
         IReadOnlyList<ISocketProtocolFactory> protocolFactories =
             Array.Empty<ISocketProtocolFactory>();
         var socket = new WebSocketClient(name, protocolFactories);
 
         // act
-        Exception? exception =
+        var exception =
             await Record.ExceptionAsync(() => socket.OpenAsync(CancellationToken.None));
 
         // assert

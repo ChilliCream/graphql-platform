@@ -1,8 +1,7 @@
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Squadron;
 
-namespace HotChocolate.Data.Filters.Spatial;
+namespace HotChocolate.Data.Spatial.Filters;
 
 public class DatabaseContext<T> : DbContext
     where T : class

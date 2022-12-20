@@ -30,7 +30,7 @@ public class NoStoreAccessorGenerator : CodeGenerator<StoreAccessorDescriptor>
         path = State;
         ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
-        ClassBuilder factory = ClassBuilder
+        var factory = ClassBuilder
             .New(fileName)
             .SetAccessModifier(AccessModifier.Public)
             .AddImplements(TypeNames.IStoreAccessor);

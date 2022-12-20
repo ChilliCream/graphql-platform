@@ -3,8 +3,7 @@ using System.Reflection;
 
 namespace HotChocolate.Resolvers;
 
-internal sealed class DirectiveMethodMiddleware
-    : IDirectiveMiddleware
+internal sealed class DirectiveMethodMiddleware : IDirectiveMiddleware
 {
     public DirectiveMethodMiddleware(
         string directiveName,
@@ -21,7 +20,7 @@ internal sealed class DirectiveMethodMiddleware
         Method = method ?? throw new ArgumentNullException(nameof(method));
     }
 
-    public NameString DirectiveName { get; }
+    public string DirectiveName { get; }
     public Type Type { get; }
     public MethodInfo Method { get; }
 }

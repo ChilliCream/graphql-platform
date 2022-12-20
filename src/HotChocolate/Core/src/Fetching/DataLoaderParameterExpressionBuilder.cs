@@ -7,6 +7,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fetching;
 
+// ReSharper disable once ClassNeverInstantiated.Global
 public sealed class DataLoaderParameterExpressionBuilder : CustomParameterExpressionBuilder
 {
     private static readonly MethodInfo _dataLoader;
@@ -29,7 +30,7 @@ public sealed class DataLoaderParameterExpressionBuilder : CustomParameterExpres
 
     public override Expression Build(ParameterInfo parameter, Expression context)
     {
-        DataLoaderAttribute? attribute = parameter.GetCustomAttribute<DataLoaderAttribute>();
+        var attribute = parameter.GetCustomAttribute<DataLoaderAttribute>();
 
         return string.IsNullOrEmpty(attribute?.Key)
             ? Expression.Call(

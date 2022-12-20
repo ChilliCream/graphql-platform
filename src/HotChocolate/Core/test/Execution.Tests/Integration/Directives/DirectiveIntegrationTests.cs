@@ -4,43 +4,42 @@ using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Tests.TestHelper;
 
-namespace HotChocolate.Execution.Integration.Directives
+namespace HotChocolate.Execution.Integration.Directives;
+
+public class DirectiveIntegrationTests
 {
-    public class DirectiveIntegrationTests
+    [Fact]
+    public async Task UniqueDirectives_OnFieldLevel_OverwriteOnesOnObjectLevel()
     {
-        [Fact]
-        public async Task UniqueDirectives_OnFieldLevel_OverwriteOnesOnObjectLevel()
-        {
-            // arrange
-            IRequestExecutor executor = await CreateExecutorAsync(c => c
-                .AddDocumentFromString(
-                    "type Query @constant(value: \"foo\") " +
-                    "{ bar: String baz: String @constant(value: \"bar\")  }")
-                .AddDirectiveType<ConstantDirectiveType>());
+        // arrange
+        var executor = await CreateExecutorAsync(c => c
+            .AddDocumentFromString(
+                "type Query @constant(value: \"foo\") " +
+                "{ bar: String baz: String @constant(value: \"bar\")  }")
+            .AddDirectiveType<ConstantDirectiveType>());
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync("{ bar baz }");
+        // act
+        var result = await executor.ExecuteAsync("{ bar baz }");
 
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task UniqueDirectives_FieldSelection_OverwriteTypeSystemOnes()
-        {
-            // arrange
-            IRequestExecutor executor = await CreateExecutorAsync(c => c
-                .AddDocumentFromString(
-                    "type Query @constant(value: \"foo\") " +
-                    "{ bar: String baz: String @constant(value: \"bar\")  }")
-                .AddDirectiveType<ConstantDirectiveType>());
+    [Fact]
+    public async Task UniqueDirectives_FieldSelection_OverwriteTypeSystemOnes()
+    {
+        // arrange
+        var executor = await CreateExecutorAsync(c => c
+            .AddDocumentFromString(
+                "type Query @constant(value: \"foo\") " +
+                "{ bar: String baz: String @constant(value: \"bar\")  }")
+            .AddDirectiveType<ConstantDirectiveType>());
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                "{ bar baz @constant(value: \"baz\") }");
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ bar baz @constant(value: \"baz\") }");
 
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
+        // assert
+        result.ToJson().MatchSnapshot();
     }
 }

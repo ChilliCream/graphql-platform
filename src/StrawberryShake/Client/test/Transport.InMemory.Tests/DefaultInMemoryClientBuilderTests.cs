@@ -1,12 +1,10 @@
 using System;
-using System.ComponentModel.Design;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel.Client;
 using Moq;
 using Xunit;
 
@@ -18,15 +16,14 @@ public class DefaultInMemoryClientBuilderTests
     public void Constructor_AllArgs_NoException()
     {
         // arrange
-        IRequestExecutorResolver executorResolver =
-            new Mock<IRequestExecutorResolver>().Object;
-        IOptionsMonitor<InMemoryClientFactoryOptions> optionsMonitor = new ServiceCollection()
+        var executorResolver = new Mock<IRequestExecutorResolver>().Object;
+        var optionsMonitor = new ServiceCollection()
             .Configure<InMemoryClientFactoryOptions>(_ => { })
             .BuildServiceProvider()
             .GetRequiredService<IOptionsMonitor<InMemoryClientFactoryOptions>>();
 
         // act
-        Exception? ex = Record.Exception(() =>
+        var ex = Record.Exception(() =>
             new DefaultInMemoryClientFactory(executorResolver, optionsMonitor));
 
         // assert
@@ -38,13 +35,13 @@ public class DefaultInMemoryClientBuilderTests
     {
         // arrange
         IRequestExecutorResolver executorResolver = default!;
-        IOptionsMonitor<InMemoryClientFactoryOptions> optionsMonitor = new ServiceCollection()
+        var optionsMonitor = new ServiceCollection()
             .Configure<InMemoryClientFactoryOptions>(_ => { })
             .BuildServiceProvider()
             .GetRequiredService<IOptionsMonitor<InMemoryClientFactoryOptions>>();
 
         // act
-        Exception? ex = Record.Exception(() =>
+        var ex = Record.Exception(() =>
             new DefaultInMemoryClientFactory(executorResolver, optionsMonitor));
 
         // assert
@@ -55,12 +52,12 @@ public class DefaultInMemoryClientBuilderTests
     public void Constructor_NoOptions_ThrowException()
     {
         // arrange
-        IRequestExecutorResolver executorResolver =
+        var executorResolver =
             new Mock<IRequestExecutorResolver>().Object;
         IOptionsMonitor<InMemoryClientFactoryOptions> optionsMonitor = default!;
 
         // act
-        Exception? ex = Record.Exception(() =>
+        var ex = Record.Exception(() =>
             new DefaultInMemoryClientFactory(executorResolver, optionsMonitor));
 
         // assert
@@ -71,10 +68,10 @@ public class DefaultInMemoryClientBuilderTests
     public async Task CreateClientAsync_OptionsSet_CallConfigureClient()
     {
         // arrange
-        bool wasCalled = false;
-        IRequestExecutorResolver executorResolver =
+        var wasCalled = false;
+        var executorResolver =
             new Mock<IRequestExecutorResolver>().Object;
-        IOptionsMonitor<InMemoryClientFactoryOptions> optionsMonitor = new ServiceCollection()
+        var optionsMonitor = new ServiceCollection()
             .Configure<InMemoryClientFactoryOptions>("Foo", _ => { wasCalled = true; })
             .BuildServiceProvider()
             .GetRequiredService<IOptionsMonitor<InMemoryClientFactoryOptions>>();
@@ -91,9 +88,9 @@ public class DefaultInMemoryClientBuilderTests
     public async Task CreateClientAsync_NoOptionsSet_CreateClient()
     {
         // arrange
-        IRequestExecutorResolver executorResolver =
+        var executorResolver =
             new Mock<IRequestExecutorResolver>().Object;
-        IOptionsMonitor<InMemoryClientFactoryOptions> optionsMonitor =
+        var optionsMonitor =
             new ServiceCollection()
                 .AddOptions()
                 .BuildServiceProvider()
@@ -101,7 +98,7 @@ public class DefaultInMemoryClientBuilderTests
         var factory = new DefaultInMemoryClientFactory(executorResolver, optionsMonitor);
 
         // act
-        IInMemoryClient client = await factory.CreateAsync("Foo");
+        var client = await factory.CreateAsync("Foo");
 
         // assert
         Assert.NotNull(client);
@@ -111,11 +108,11 @@ public class DefaultInMemoryClientBuilderTests
     public async Task CreateClientAsync_SchemaNameSet_CreateExecutorForSchema()
     {
         // arrange
-        var nameString = new NameString("FooBar");
-        IRequestExecutor executor = new Mock<IRequestExecutor>().Object;
+        var nameString = "FooBar";
+        var executor = new Mock<IRequestExecutor>().Object;
         Mock<IRequestExecutorResolver> executorResolverMock = new();
-        IRequestExecutorResolver executorResolver = executorResolverMock.Object;
-        IOptionsMonitor<InMemoryClientFactoryOptions> optionsMonitor =
+        var executorResolver = executorResolverMock.Object;
+        var optionsMonitor =
             new ServiceCollection()
                 .Configure<InMemoryClientFactoryOptions>("Foo",
                     x => x.InMemoryClientActions.Add((memoryClient, token) =>
@@ -133,7 +130,7 @@ public class DefaultInMemoryClientBuilderTests
             .ReturnsAsync(executor);
 
         // act
-        IInMemoryClient client = await factory.CreateAsync("Foo");
+        var client = await factory.CreateAsync("Foo");
 
         // assert
         Assert.Equal(client.Executor, executor);
@@ -143,12 +140,12 @@ public class DefaultInMemoryClientBuilderTests
     public async Task CreateClientAsync_ExecutorSet_SchemaNameOfExecutor()
     {
         // arrange
-        var nameString = new NameString("FooBar");
+        var nameString = "FooBar";
         Mock<IRequestExecutor> executorMock = new();
         Mock<ISchema> schemaMock = new();
         Mock<IRequestExecutorResolver> executorResolverMock = new();
-        IRequestExecutorResolver executorResolver = executorResolverMock.Object;
-        IOptionsMonitor<InMemoryClientFactoryOptions> optionsMonitor =
+        var executorResolver = executorResolverMock.Object;
+        var optionsMonitor =
             new ServiceCollection()
                 .Configure<InMemoryClientFactoryOptions>("Foo",
                     x => x.InMemoryClientActions.Add((memoryClient, token) =>
@@ -164,7 +161,7 @@ public class DefaultInMemoryClientBuilderTests
         executorMock.Setup(x => x.Schema).Returns(schemaMock.Object);
 
         // act
-        IInMemoryClient client = await factory.CreateAsync("Foo");
+        var client = await factory.CreateAsync("Foo");
 
         // assert
         Assert.Equal(client.SchemaName, nameString);

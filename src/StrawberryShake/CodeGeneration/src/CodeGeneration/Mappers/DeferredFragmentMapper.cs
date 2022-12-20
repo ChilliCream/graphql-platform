@@ -9,9 +9,9 @@ public static class DeferredFragmentMapper
 {
     public static void Map(IMapperContext context)
     {
-        foreach (ComplexTypeDescriptor complexType in context.Types.OfType<ComplexTypeDescriptor>())
+        foreach (var complexType in context.Types.OfType<ComplexTypeDescriptor>())
         {
-            foreach (DeferredFragmentDescriptor fragmentDescriptor in complexType.Deferred)
+            foreach (var fragmentDescriptor in complexType.Deferred)
             {
                 fragmentDescriptor.Complete(
                     context.GetType<InterfaceTypeDescriptor>(fragmentDescriptor.InterfaceName),

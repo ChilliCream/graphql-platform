@@ -26,7 +26,7 @@ public class LongitudeType : ScalarType<double, StringValueNode>
     /// Initializes a new instance of <see cref="LongitudeType"/>
     /// </summary>
     public LongitudeType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)

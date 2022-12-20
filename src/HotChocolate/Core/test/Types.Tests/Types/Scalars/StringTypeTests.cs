@@ -2,195 +2,194 @@
 using HotChocolate.Language;
 using Xunit;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public class StringTypeTests
 {
-    public class StringTypeTests
+    [Fact]
+    public void EnsureStringTypeKindIsCorret()
     {
-        [Fact]
-        public void EnsureStringTypeKindIsCorret()
-        {
-            // arrange
-            var type = new StringType();
+        // arrange
+        var type = new StringType();
 
-            // act
-            TypeKind kind = type.Kind;
+        // act
+        var kind = type.Kind;
 
-            // assert
-            Assert.Equal(TypeKind.Scalar, type.Kind);
-        }
+        // assert
+        Assert.Equal(TypeKind.Scalar, type.Kind);
+    }
 
-        [Fact]
-        public void IsInstanceOfType_ValueNode()
-        {
-            // arrange
-            var type = new StringType();
-            var input = new StringValueNode("123456");
+    [Fact]
+    public void IsInstanceOfType_ValueNode()
+    {
+        // arrange
+        var type = new StringType();
+        var input = new StringValueNode("123456");
 
-            // act
-            bool result = type.IsInstanceOfType(input);
+        // act
+        var result = type.IsInstanceOfType(input);
 
-            // assert
-            Assert.True(result);
-        }
+        // assert
+        Assert.True(result);
+    }
 
-        [Fact]
-        public void IsInstanceOfType_NullValueNode()
-        {
-            // arrange
-            var type = new StringType();
-            NullValueNode input = NullValueNode.Default;
+    [Fact]
+    public void IsInstanceOfType_NullValueNode()
+    {
+        // arrange
+        var type = new StringType();
+        var input = NullValueNode.Default;
 
-            // act
-            bool result = type.IsInstanceOfType(input);
+        // act
+        var result = type.IsInstanceOfType(input);
 
-            // assert
-            Assert.True(result);
-        }
+        // assert
+        Assert.True(result);
+    }
 
-        [Fact]
-        public void IsInstanceOfType_Wrong_ValueNode()
-        {
-            // arrange
-            var type = new StringType();
-            var input = new IntValueNode(123456);
+    [Fact]
+    public void IsInstanceOfType_Wrong_ValueNode()
+    {
+        // arrange
+        var type = new StringType();
+        var input = new IntValueNode(123456);
 
-            // act
-            bool result = type.IsInstanceOfType(input);
+        // act
+        var result = type.IsInstanceOfType(input);
 
-            // assert
-            Assert.False(result);
-        }
+        // assert
+        Assert.False(result);
+    }
 
-        [Fact]
-        public void IsInstanceOfType_Null_Throws()
-        {
-            // arrange
-            var type = new StringType();
+    [Fact]
+    public void IsInstanceOfType_Null_Throws()
+    {
+        // arrange
+        var type = new StringType();
 
-            // act
-            // assert
-            Assert.Throws<ArgumentNullException>(() => type.IsInstanceOfType(null));
-        }
+        // act
+        // assert
+        Assert.Throws<ArgumentNullException>(() => type.IsInstanceOfType(null));
+    }
 
-        [Fact]
-        public void Serialize_Type()
-        {
-            // arrange
-            var type = new StringType();
-            string input = "123456";
+    [Fact]
+    public void Serialize_Type()
+    {
+        // arrange
+        var type = new StringType();
+        var input = "123456";
 
-            // act
-            object serializedValue = type.Serialize(input);
+        // act
+        var serializedValue = type.Serialize(input);
 
-            // assert
-            Assert.IsType<string>(serializedValue);
-            Assert.Equal("123456", serializedValue);
-        }
+        // assert
+        Assert.IsType<string>(serializedValue);
+        Assert.Equal("123456", serializedValue);
+    }
 
-        [Fact]
-        public void Serialize_Null()
-        {
-            // arrange
-            var type = new StringType();
+    [Fact]
+    public void Serialize_Null()
+    {
+        // arrange
+        var type = new StringType();
 
-            // act
-            object serializedValue = type.Serialize(null);
+        // act
+        var serializedValue = type.Serialize(null);
 
-            // assert
-            Assert.Null(serializedValue);
-        }
+        // assert
+        Assert.Null(serializedValue);
+    }
 
-        [Fact]
-        public void Serialize_Wrong_Type_Throws()
-        {
-            // arrange
-            var type = new StringType();
-            object input = 123456;
+    [Fact]
+    public void Serialize_Wrong_Type_Throws()
+    {
+        // arrange
+        var type = new StringType();
+        object input = 123456;
 
-            // act
-            // assert
-            Assert.Throws<SerializationException>(
-                () => type.Serialize(input));
-        }
+        // act
+        // assert
+        Assert.Throws<SerializationException>(
+            () => type.Serialize(input));
+    }
 
-        [Fact]
-        public void ParseLiteral_ValueNode()
-        {
-            // arrange
-            var type = new StringType();
-            var input = new StringValueNode("123456");
+    [Fact]
+    public void ParseLiteral_ValueNode()
+    {
+        // arrange
+        var type = new StringType();
+        var input = new StringValueNode("123456");
 
-            // act
-            object output = type.ParseLiteral(input);
+        // act
+        var output = type.ParseLiteral(input);
 
-            // assert
-            Assert.IsType<string>(output);
-            Assert.Equal("123456", output);
-        }
+        // assert
+        Assert.IsType<string>(output);
+        Assert.Equal("123456", output);
+    }
 
-        [Fact]
-        public void ParseLiteral_NullValueNode()
-        {
-            // arrange
-            var type = new StringType();
-            NullValueNode input = NullValueNode.Default;
+    [Fact]
+    public void ParseLiteral_NullValueNode()
+    {
+        // arrange
+        var type = new StringType();
+        var input = NullValueNode.Default;
 
-            // act
-            object output = type.ParseLiteral(input);
+        // act
+        var output = type.ParseLiteral(input);
 
-            // assert
-            Assert.Null(output);
-        }
+        // assert
+        Assert.Null(output);
+    }
 
-        [Fact]
-        public void ParseLiteral_Wrong_ValueNode_Throws()
-        {
-            // arrange
-            var type = new StringType();
-            var input = new IntValueNode(123456);
+    [Fact]
+    public void ParseLiteral_Wrong_ValueNode_Throws()
+    {
+        // arrange
+        var type = new StringType();
+        var input = new IntValueNode(123456);
 
-            // act
-            // assert
-            Assert.Throws<SerializationException>(
-                () => type.ParseLiteral(input));
-        }
+        // act
+        // assert
+        Assert.Throws<SerializationException>(
+            () => type.ParseLiteral(input));
+    }
 
-        [Fact]
-        public void ParseLiteral_Null_Throws()
-        {
-            // arrange
-            var type = new StringType();
+    [Fact]
+    public void ParseLiteral_Null_Throws()
+    {
+        // arrange
+        var type = new StringType();
 
-            // act
-            // assert
-            Assert.Throws<ArgumentNullException>(() => type.ParseLiteral(null));
-        }
+        // act
+        // assert
+        Assert.Throws<ArgumentNullException>(() => type.ParseLiteral(null));
+    }
 
-        [Fact]
-        public void ParseValue_Wrong_Value_Throws()
-        {
-            // arrange
-            var type = new StringType();
-            object input = 123456;
+    [Fact]
+    public void ParseValue_Wrong_Value_Throws()
+    {
+        // arrange
+        var type = new StringType();
+        object input = 123456;
 
-            // act
-            // assert
-            Assert.Throws<SerializationException>(
-                () => type.ParseValue(input));
-        }
+        // act
+        // assert
+        Assert.Throws<SerializationException>(
+            () => type.ParseValue(input));
+    }
 
-        [Fact]
-        public void ParseValue_Null()
-        {
-            // arrange
-            var type = new StringType();
-            object input = null;
+    [Fact]
+    public void ParseValue_Null()
+    {
+        // arrange
+        var type = new StringType();
+        object input = null;
 
-            // act
-            object output = type.ParseValue(input);
+        // act
+        object output = type.ParseValue(input);
 
-            // assert
-            Assert.IsType<NullValueNode>(output);
-        }
+        // assert
+        Assert.IsType<NullValueNode>(output);
     }
 }

@@ -39,43 +39,43 @@ public class RelationshipChain
 
     public RelationshipChain Unbounded()
     {
-        Relationship lastElement = _relationships.Pop();
+        var lastElement = _relationships.Pop();
         return Add(lastElement.Unbounded());
     }
 
     public RelationshipChain Minmum(int minimum)
     {
-        Relationship lastElement = _relationships.Pop();
+        var lastElement = _relationships.Pop();
         return Add(lastElement.Minimum(minimum));
     }
 
     public RelationshipChain Maximum(int maximum)
     {
-        Relationship lastElement = _relationships.Pop();
+        var lastElement = _relationships.Pop();
         return Add(lastElement.Maximum(maximum));
     }
 
     public RelationshipChain Length(int minimum, int maximum)
     {
-        Relationship lastElement = _relationships.Pop();
+        var lastElement = _relationships.Pop();
         return Add(lastElement.Length(minimum, maximum));
     }
 
     public RelationshipChain Properties(MapExpression newpProperties)
     {
-        Relationship lastElement = _relationships.Pop();
+        var lastElement = _relationships.Pop();
         return Add(lastElement.WithProperties(newpProperties));
     }
 
     public RelationshipChain Properties(params object[] keysAndValues)
     {
-        Relationship lastElement = _relationships.Pop();
+        var lastElement = _relationships.Pop();
         return Add(lastElement.WithProperties(keysAndValues));
     }
 
     public RelationshipChain Named(string newSymbolicName)
     {
-        Relationship lastElement = _relationships.Pop();
+        var lastElement = _relationships.Pop();
         return Add(lastElement.Named(newSymbolicName));
     }
 
@@ -85,7 +85,7 @@ public class RelationshipChain
     {
         cypherVisitor.Enter(this);
         Node? lastNode = null;
-        foreach (Relationship relationship in _relationships)
+        foreach (var relationship in _relationships)
         {
             relationship.Left.Visit(cypherVisitor);
             relationship.Details.Visit(cypherVisitor);

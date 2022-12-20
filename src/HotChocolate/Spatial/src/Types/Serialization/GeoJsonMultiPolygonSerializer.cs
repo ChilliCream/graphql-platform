@@ -57,7 +57,7 @@ internal class GeoJsonMultiPolygonSerializer
         goto Error;
 
 Success:
-        GeometryFactory factory = crs is null
+        var factory = crs is null
             ? NtsGeometryServices.Instance.CreateGeometryFactory()
             : NtsGeometryServices.Instance.CreateGeometryFactory(crs.Value);
 

@@ -1,10 +1,10 @@
 using System;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Options;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate;
 
 public static class ExecutionSchemaExtensions

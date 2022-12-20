@@ -1,9 +1,6 @@
-﻿namespace HotChocolate.Validation
+﻿namespace HotChocolate.Validation;
+
+public enum CatCommand
 {
-    public enum CatCommand
-    {
-        JUMP
-    }
-
-
+    JUMP
 }

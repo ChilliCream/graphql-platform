@@ -16,8 +16,8 @@ public class SyntaxRewriter<TContext>
 {
     public virtual ISyntaxNode? Rewrite(ISyntaxNode node, TContext context)
     {
-        TContext newContext = OnEnter(node, context);
-        ISyntaxNode? rewrittenNode = OnRewrite(node, context);
+        var newContext = OnEnter(node, context);
+        var rewrittenNode = OnRewrite(node, context);
         OnLeave(rewrittenNode, newContext);
         return rewrittenNode;
     }
@@ -88,8 +88,8 @@ public class SyntaxRewriter<TContext>
         ArgumentNode node,
         TContext context)
     {
-        NameNode name = RewriteNode(node.Name, context);
-        IValueNode value = RewriteNode(node.Value, context);
+        var name = RewriteNode(node.Name, context);
+        var value = RewriteNode(node.Value, context);
 
         if (!ReferenceEquals(name, node.Name) ||
             !ReferenceEquals(value, node.Value))
@@ -109,10 +109,10 @@ public class SyntaxRewriter<TContext>
         DirectiveDefinitionNode node,
         TContext context)
     {
-        NameNode name = RewriteNode(node.Name, context);
-        StringValueNode? description = RewriteNodeOrDefault(node.Description, context);
-        IReadOnlyList<InputValueDefinitionNode> arguments = RewriteList(node.Arguments, context);
-        IReadOnlyList<NameNode> locations = RewriteList(node.Locations, context);
+        var name = RewriteNode(node.Name, context);
+        var description = RewriteNodeOrDefault(node.Description, context);
+        var arguments = RewriteList(node.Arguments, context);
+        var locations = RewriteList(node.Locations, context);
 
         if (!ReferenceEquals(name, node.Name) ||
             !ReferenceEquals(description, node.Description) ||
@@ -140,13 +140,11 @@ public class SyntaxRewriter<TContext>
         DocumentNode node,
         TContext context)
     {
-        IReadOnlyList<IDefinitionNode> definitions = RewriteList(node.Definitions, context);
+        var definitions = RewriteList(node.Definitions, context);
 
         if (!ReferenceEquals(definitions, node.Definitions))
         {
-            return new DocumentNode(
-                node.Location,
-                definitions);
+            return new DocumentNode(node.Location, definitions);
         }
 
         return node;
@@ -156,10 +154,10 @@ public class SyntaxRewriter<TContext>
         EnumTypeDefinitionNode node,
         TContext context)
     {
-        NameNode name = RewriteNode(node.Name, context);
-        StringValueNode? description = RewriteNodeOrDefault(node.Description, context);
-        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
-        IReadOnlyList<EnumValueDefinitionNode> values = RewriteList(node.Values, context);
+        var name = RewriteNode(node.Name, context);
+        var description = RewriteNodeOrDefault(node.Description, context);
+        var directives = RewriteList(node.Directives, context);
+        var values = RewriteList(node.Values, context);
 
         if (!ReferenceEquals(name, node.Name) ||
             !ReferenceEquals(description, node.Description) ||
@@ -177,14 +175,13 @@ public class SyntaxRewriter<TContext>
         return node;
     }
 
-
     protected virtual EnumTypeExtensionNode? RewriteEnumTypeExtension(
         EnumTypeExtensionNode node,
         TContext context)
     {
-        NameNode name = RewriteNode(node.Name, context);
-        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
-        IReadOnlyList<EnumValueDefinitionNode> values = RewriteList(node.Values, context);
+        var name = RewriteNode(node.Name, context);
+        var directives = RewriteList(node.Directives, context);
+        var values = RewriteList(node.Values, context);
 
         if (!ReferenceEquals(name, node.Name) ||
             !ReferenceEquals(directives, node.Directives) ||
@@ -204,9 +201,9 @@ public class SyntaxRewriter<TContext>
         EnumValueDefinitionNode node,
         TContext context)
     {
-        NameNode name = RewriteNode(node.Name, context);
-        StringValueNode? description = RewriteNodeOrDefault(node.Description, context);
-        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
+        var name = RewriteNode(node.Name, context);
+        var description = RewriteNodeOrDefault(node.Description, context);
+        var directives = RewriteList(node.Directives, context);
 
         if (!ReferenceEquals(name, node.Name) ||
             !ReferenceEquals(description, node.Description) ||
@@ -231,11 +228,11 @@ public class SyntaxRewriter<TContext>
         FieldDefinitionNode node,
         TContext context)
     {
-        NameNode name = RewriteNode(node.Name, context);
-        StringValueNode? description = RewriteNodeOrDefault(node.Description, context);
-        IReadOnlyList<InputValueDefinitionNode> arguments = RewriteList(node.Arguments, context);
-        ITypeNode type = RewriteNode(node.Type, context);
-        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
+        var name = RewriteNode(node.Name, context);
+        var description = RewriteNodeOrDefault(node.Description, context);
+        var arguments = RewriteList(node.Arguments, context);
+        var type = RewriteNode(node.Type, context);
+        var directives = RewriteList(node.Directives, context);
 
         if (!ReferenceEquals(name, node.Name) ||
             !ReferenceEquals(description, node.Description) ||
@@ -259,12 +256,12 @@ public class SyntaxRewriter<TContext>
         FieldNode node,
         TContext context)
     {
-        NameNode name = RewriteNode(node.Name, context);
-        NameNode? alias = RewriteNodeOrDefault(node.Alias, context);
-        INullabilityNode? required = RewriteNodeOrDefault(node.Required, context);
-        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
-        IReadOnlyList<ArgumentNode> arguments = RewriteList(node.Arguments, context);
-        SelectionSetNode? selectionSet = RewriteNodeOrDefault(node.SelectionSet, context);
+        var name = RewriteNode(node.Name, context);
+        var alias = RewriteNodeOrDefault(node.Alias, context);
+        var required = RewriteNodeOrDefault(node.Required, context);
+        var directives = RewriteList(node.Directives, context);
+        var arguments = RewriteList(node.Arguments, context);
+        var selectionSet = RewriteNodeOrDefault(node.SelectionSet, context);
 
         if (!ReferenceEquals(name, node.Name) ||
             !ReferenceEquals(alias, node.Alias) ||
@@ -295,12 +292,11 @@ public class SyntaxRewriter<TContext>
         FragmentDefinitionNode node,
         TContext context)
     {
-        NameNode name = RewriteNode(node.Name, context);
-        IReadOnlyList<VariableDefinitionNode> variableDefinitions =
-            RewriteList(node.VariableDefinitions, context);
-        NamedTypeNode typeCondition = RewriteNode(node.TypeCondition, context);
-        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
-        SelectionSetNode selectionSet = RewriteNode(node.SelectionSet, context);
+        var name = RewriteNode(node.Name, context);
+        var variableDefinitions = RewriteList(node.VariableDefinitions, context);
+        var typeCondition = RewriteNode(node.TypeCondition, context);
+        var directives = RewriteList(node.Directives, context);
+        var selectionSet = RewriteNode(node.SelectionSet, context);
 
         if (!ReferenceEquals(name, node.Name) ||
             !ReferenceEquals(variableDefinitions, node.VariableDefinitions) ||
@@ -324,8 +320,8 @@ public class SyntaxRewriter<TContext>
         FragmentSpreadNode node,
         TContext context)
     {
-        NameNode name = RewriteNode(node.Name, context);
-        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
+        var name = RewriteNode(node.Name, context);
+        var directives = RewriteList(node.Directives, context);
 
         if (!ReferenceEquals(name, node.Name) ||
             !ReferenceEquals(directives, node.Directives))
@@ -343,9 +339,9 @@ public class SyntaxRewriter<TContext>
         InlineFragmentNode node,
         TContext context)
     {
-        NamedTypeNode? typeCondition = RewriteNodeOrDefault(node.TypeCondition, context);
-        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
-        SelectionSetNode selectionSet = RewriteNode(node.SelectionSet, context);
+        var typeCondition = RewriteNodeOrDefault(node.TypeCondition, context);
+        var directives = RewriteList(node.Directives, context);
+        var selectionSet = RewriteNode(node.SelectionSet, context);
 
         if (!ReferenceEquals(typeCondition, node.TypeCondition) ||
             !ReferenceEquals(directives, node.Directives) ||
@@ -365,10 +361,10 @@ public class SyntaxRewriter<TContext>
         InputObjectTypeDefinitionNode node,
         TContext context)
     {
-        NameNode name = RewriteNode(node.Name, context);
-        StringValueNode? description = RewriteNodeOrDefault(node.Description, context);
-        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
-        IReadOnlyList<InputValueDefinitionNode> fields = RewriteList(node.Fields, context);
+        var name = RewriteNode(node.Name, context);
+        var description = RewriteNodeOrDefault(node.Description, context);
+        var directives = RewriteList(node.Directives, context);
+        var fields = RewriteList(node.Fields, context);
 
         if (!ReferenceEquals(name, node.Name) ||
             !ReferenceEquals(description, node.Description) ||
@@ -390,9 +386,9 @@ public class SyntaxRewriter<TContext>
         InputObjectTypeExtensionNode node,
         TContext context)
     {
-        NameNode name = RewriteNode(node.Name, context);
-        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
-        IReadOnlyList<InputValueDefinitionNode> fields = RewriteList(node.Fields, context);
+        var name = RewriteNode(node.Name, context);
+        var directives = RewriteList(node.Directives, context);
+        var fields = RewriteList(node.Fields, context);
 
         if (!ReferenceEquals(name, node.Name) ||
             !ReferenceEquals(directives, node.Directives) ||
@@ -412,11 +408,11 @@ public class SyntaxRewriter<TContext>
         InputValueDefinitionNode node,
         TContext context)
     {
-        NameNode name = RewriteNode(node.Name, context);
-        StringValueNode? description = RewriteNodeOrDefault(node.Description, context);
-        ITypeNode type = RewriteNode(node.Type, context);
-        IValueNode? defaultValue = RewriteNodeOrDefault(node.DefaultValue, context);
-        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
+        var name = RewriteNode(node.Name, context);
+        var description = RewriteNodeOrDefault(node.Description, context);
+        var type = RewriteNode(node.Type, context);
+        var defaultValue = RewriteNodeOrDefault(node.DefaultValue, context);
+        var directives = RewriteList(node.Directives, context);
 
         if (!ReferenceEquals(name, node.Name) ||
             !ReferenceEquals(description, node.Description) ||
@@ -440,11 +436,11 @@ public class SyntaxRewriter<TContext>
         InterfaceTypeDefinitionNode node,
         TContext context)
     {
-        NameNode name = RewriteNode(node.Name, context);
-        StringValueNode? description = RewriteNodeOrDefault(node.Description, context);
-        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
-        IReadOnlyList<NamedTypeNode> interfaces = RewriteList(node.Interfaces, context);
-        IReadOnlyList<FieldDefinitionNode> fields = RewriteList(node.Fields, context);
+        var name = RewriteNode(node.Name, context);
+        var description = RewriteNodeOrDefault(node.Description, context);
+        var directives = RewriteList(node.Directives, context);
+        var interfaces = RewriteList(node.Interfaces, context);
+        var fields = RewriteList(node.Fields, context);
 
         if (!ReferenceEquals(name, node.Name) ||
             !ReferenceEquals(description, node.Description) ||
@@ -468,10 +464,10 @@ public class SyntaxRewriter<TContext>
         InterfaceTypeExtensionNode node,
         TContext context)
     {
-        NameNode name = RewriteNode(node.Name, context);
-        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
-        IReadOnlyList<NamedTypeNode> interfaces = RewriteList(node.Interfaces, context);
-        IReadOnlyList<FieldDefinitionNode> fields = RewriteList(node.Fields, context);
+        var name = RewriteNode(node.Name, context);
+        var directives = RewriteList(node.Directives, context);
+        var interfaces = RewriteList(node.Interfaces, context);
+        var fields = RewriteList(node.Fields, context);
 
         if (!ReferenceEquals(name, node.Name) ||
             !ReferenceEquals(directives, node.Directives) ||
@@ -498,7 +494,7 @@ public class SyntaxRewriter<TContext>
         ListNullabilityNode node,
         TContext context)
     {
-        INullabilityNode? element = RewriteNodeOrDefault(node.Element, context);
+        var element = RewriteNodeOrDefault(node.Element, context);
 
         if (!ReferenceEquals(element, node.Element))
         {
@@ -514,7 +510,7 @@ public class SyntaxRewriter<TContext>
         ListTypeNode node,
         TContext context)
     {
-        ITypeNode type = RewriteNode(node.Type, context);
+        var type = RewriteNode(node.Type, context);
 
         if (!ReferenceEquals(type, node.Type))
         {
@@ -528,7 +524,7 @@ public class SyntaxRewriter<TContext>
         ListValueNode node,
         TContext context)
     {
-        IReadOnlyList<IValueNode> items = RewriteList(node.Items, context);
+        var items = RewriteList(node.Items, context);
 
         if (!ReferenceEquals(items, node.Items))
         {
@@ -542,7 +538,7 @@ public class SyntaxRewriter<TContext>
         NamedTypeNode node,
         TContext context)
     {
-        NameNode name = RewriteNode(node.Name, context);
+        var name = RewriteNode(node.Name, context);
 
         if (!ReferenceEquals(name, node.Name))
         {
@@ -561,7 +557,7 @@ public class SyntaxRewriter<TContext>
         NonNullTypeNode node,
         TContext context)
     {
-        INullableTypeNode type = RewriteNode(node.Type, context);
+        var type = RewriteNode(node.Type, context);
 
         if (!ReferenceEquals(type, node.Type))
         {
@@ -580,8 +576,8 @@ public class SyntaxRewriter<TContext>
         ObjectFieldNode node,
         TContext context)
     {
-        NameNode name = RewriteNode(node.Name, context);
-        IValueNode value = RewriteNode(node.Value, context);
+        var name = RewriteNode(node.Name, context);
+        var value = RewriteNode(node.Value, context);
 
         if (!ReferenceEquals(name, node.Name) ||
             !ReferenceEquals(value, node.Value))
@@ -596,11 +592,11 @@ public class SyntaxRewriter<TContext>
         ObjectTypeDefinitionNode node,
         TContext context)
     {
-        NameNode name = RewriteNode(node.Name, context);
-        StringValueNode? description = RewriteNodeOrDefault(node.Description, context);
-        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
-        IReadOnlyList<NamedTypeNode> interfaces = RewriteList(node.Interfaces, context);
-        IReadOnlyList<FieldDefinitionNode> fields = RewriteList(node.Fields, context);
+        var name = RewriteNode(node.Name, context);
+        var description = RewriteNodeOrDefault(node.Description, context);
+        var directives = RewriteList(node.Directives, context);
+        var interfaces = RewriteList(node.Interfaces, context);
+        var fields = RewriteList(node.Fields, context);
 
         if (!ReferenceEquals(name, node.Name) ||
             !ReferenceEquals(description, node.Description) ||
@@ -624,10 +620,10 @@ public class SyntaxRewriter<TContext>
         ObjectTypeExtensionNode node,
         TContext context)
     {
-        NameNode name = RewriteNode(node.Name, context);
-        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
-        IReadOnlyList<NamedTypeNode> interfaces = RewriteList(node.Interfaces, context);
-        IReadOnlyList<FieldDefinitionNode> fields = RewriteList(node.Fields, context);
+        var name = RewriteNode(node.Name, context);
+        var directives = RewriteList(node.Directives, context);
+        var interfaces = RewriteList(node.Interfaces, context);
+        var fields = RewriteList(node.Fields, context);
 
         if (!ReferenceEquals(name, node.Name) ||
             !ReferenceEquals(directives, node.Directives) ||
@@ -649,7 +645,7 @@ public class SyntaxRewriter<TContext>
         ObjectValueNode node,
         TContext context)
     {
-        IReadOnlyList<ObjectFieldNode> fields = RewriteList(node.Fields, context);
+        var fields = RewriteList(node.Fields, context);
 
         if (!ReferenceEquals(fields, node.Fields))
         {
@@ -663,11 +659,10 @@ public class SyntaxRewriter<TContext>
         OperationDefinitionNode node,
         TContext context)
     {
-        NameNode? name = RewriteNodeOrDefault(node.Name, context);
-        IReadOnlyList<VariableDefinitionNode> variableDefinitions =
-            RewriteList(node.VariableDefinitions, context);
-        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
-        SelectionSetNode selectionSet = RewriteNode(node.SelectionSet, context);
+        var name = RewriteNodeOrDefault(node.Name, context);
+        var variableDefinitions = RewriteList(node.VariableDefinitions, context);
+        var directives = RewriteList(node.Directives, context);
+        var selectionSet = RewriteNode(node.SelectionSet, context);
 
         if (!ReferenceEquals(name, node.Name) ||
             !ReferenceEquals(variableDefinitions, node.VariableDefinitions) ||
@@ -690,7 +685,7 @@ public class SyntaxRewriter<TContext>
         OperationTypeDefinitionNode node,
         TContext context)
     {
-        NamedTypeNode type = RewriteNode(node.Type, context);
+        var type = RewriteNode(node.Type, context);
 
         if (!ReferenceEquals(type, node.Type))
         {
@@ -707,7 +702,7 @@ public class SyntaxRewriter<TContext>
         OptionalModifierNode node,
         TContext context)
     {
-        ListNullabilityNode? element = RewriteNodeOrDefault(node.Element, context);
+        var element = RewriteNodeOrDefault(node.Element, context);
 
         if (!ReferenceEquals(element, node.Element))
         {
@@ -723,7 +718,7 @@ public class SyntaxRewriter<TContext>
         RequiredModifierNode node,
         TContext context)
     {
-        ListNullabilityNode? element = RewriteNodeOrDefault(node.Element, context);
+        var element = RewriteNodeOrDefault(node.Element, context);
 
         if (!ReferenceEquals(element, node.Element))
         {
@@ -739,9 +734,9 @@ public class SyntaxRewriter<TContext>
         ScalarTypeDefinitionNode node,
         TContext context)
     {
-        NameNode name = RewriteNode(node.Name, context);
-        StringValueNode? description = RewriteNodeOrDefault(node.Description, context);
-        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
+        var name = RewriteNode(node.Name, context);
+        var description = RewriteNodeOrDefault(node.Description, context);
+        var directives = RewriteList(node.Directives, context);
 
         if (!ReferenceEquals(name, node.Name) ||
             !ReferenceEquals(description, node.Description) ||
@@ -761,8 +756,8 @@ public class SyntaxRewriter<TContext>
         ScalarTypeExtensionNode node,
         TContext context)
     {
-        NameNode name = RewriteNode(node.Name, context);
-        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
+        var name = RewriteNode(node.Name, context);
+        var directives = RewriteList(node.Directives, context);
 
         if (!ReferenceEquals(name, node.Name) ||
             !ReferenceEquals(directives, node.Directives))
@@ -780,9 +775,9 @@ public class SyntaxRewriter<TContext>
         SchemaCoordinateNode node,
         TContext context)
     {
-        NameNode name = RewriteNode(node.Name, context);
-        NameNode? memberName = RewriteNodeOrDefault(node.MemberName, context);
-        NameNode? argumentName = RewriteNodeOrDefault(node.ArgumentName, context);
+        var name = RewriteNode(node.Name, context);
+        var memberName = RewriteNodeOrDefault(node.MemberName, context);
+        var argumentName = RewriteNodeOrDefault(node.ArgumentName, context);
 
         if (!ReferenceEquals(name, node.Name) ||
             !ReferenceEquals(memberName, node.MemberName) ||
@@ -803,9 +798,9 @@ public class SyntaxRewriter<TContext>
         SchemaDefinitionNode node,
         TContext context)
     {
-        StringValueNode? description = RewriteNodeOrDefault(node.Description, context);
-        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
-        IReadOnlyList<OperationTypeDefinitionNode> operationTypes =
+        var description = RewriteNodeOrDefault(node.Description, context);
+        var directives = RewriteList(node.Directives, context);
+        var operationTypes =
             RewriteList(node.OperationTypes, context);
 
         if (!ReferenceEquals(description, node.Description) ||
@@ -826,8 +821,8 @@ public class SyntaxRewriter<TContext>
         SchemaExtensionNode node,
         TContext context)
     {
-        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
-        IReadOnlyList<OperationTypeDefinitionNode> operationTypes =
+        var directives = RewriteList(node.Directives, context);
+        var operationTypes =
             RewriteList(node.OperationTypes, context);
 
         if (!ReferenceEquals(directives, node.Directives) ||
@@ -846,7 +841,7 @@ public class SyntaxRewriter<TContext>
         SelectionSetNode node,
         TContext context)
     {
-        IReadOnlyList<ISelectionNode> selections = RewriteList(node.Selections, context);
+        var selections = RewriteList(node.Selections, context);
 
         if (!ReferenceEquals(selections, node.Selections))
         {
@@ -865,10 +860,10 @@ public class SyntaxRewriter<TContext>
         UnionTypeDefinitionNode node,
         TContext context)
     {
-        NameNode name = RewriteNode(node.Name, context);
-        StringValueNode? description = RewriteNodeOrDefault(node.Description, context);
-        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
-        IReadOnlyList<NamedTypeNode> types = RewriteList(node.Types, context);
+        var name = RewriteNode(node.Name, context);
+        var description = RewriteNodeOrDefault(node.Description, context);
+        var directives = RewriteList(node.Directives, context);
+        var types = RewriteList(node.Types, context);
 
         if (!ReferenceEquals(name, node.Name) ||
             !ReferenceEquals(description, node.Description) ||
@@ -890,9 +885,9 @@ public class SyntaxRewriter<TContext>
         UnionTypeExtensionNode node,
         TContext context)
     {
-        NameNode name = RewriteNode(node.Name, context);
-        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
-        IReadOnlyList<NamedTypeNode> types = RewriteList(node.Types, context);
+        var name = RewriteNode(node.Name, context);
+        var directives = RewriteList(node.Directives, context);
+        var types = RewriteList(node.Types, context);
 
         if (!ReferenceEquals(name, node.Name) ||
             !ReferenceEquals(directives, node.Directives) ||
@@ -912,10 +907,10 @@ public class SyntaxRewriter<TContext>
         VariableDefinitionNode node,
         TContext context)
     {
-        VariableNode variable = RewriteNode(node.Variable, context);
-        ITypeNode type = RewriteNode(node.Type, context);
-        IValueNode? defaultValue = RewriteNodeOrDefault(node.DefaultValue, context);
-        IReadOnlyList<DirectiveNode> directives = RewriteList(node.Directives, context);
+        var variable = RewriteNode(node.Variable, context);
+        var type = RewriteNode(node.Type, context);
+        var defaultValue = RewriteNodeOrDefault(node.DefaultValue, context);
+        var directives = RewriteList(node.Directives, context);
 
         if (!ReferenceEquals(variable, node.Variable) ||
             !ReferenceEquals(type, node.Type) ||
@@ -937,7 +932,7 @@ public class SyntaxRewriter<TContext>
         VariableNode node,
         TContext context)
     {
-        NameNode name = RewriteNode(node.Name, context);
+        var name = RewriteNode(node.Name, context);
 
         if (!ReferenceEquals(name, node.Name))
         {
@@ -961,8 +956,8 @@ public class SyntaxRewriter<TContext>
         var includedNodes = 0;
         for (var i = 0; i < nodes.Count; i++)
         {
-            T originalNode = nodes[i];
-            T? rewrittenNode = RewriteNodeOrDefault(originalNode, context);
+            var originalNode = nodes[i];
+            var rewrittenNode = RewriteNodeOrDefault(originalNode, context);
 
             if (rewrittenList is null)
             {

@@ -4,7 +4,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Caching;
 
-internal class DefaultComplexityAnalyzerCache : IComplexityAnalyzerCache
+internal sealed class DefaultComplexityAnalyzerCache : IComplexityAnalyzerCache
 {
     private readonly Cache<ComplexityAnalyzerDelegate> _cache;
 
@@ -19,14 +19,14 @@ internal class DefaultComplexityAnalyzerCache : IComplexityAnalyzerCache
 
     public bool TryGetAnalyzer(
         string operationId,
-        [NotNullWhen(true)] out ComplexityAnalyzerDelegate? analyzer) =>
-        _cache.TryGet(operationId, out analyzer);
+        [NotNullWhen(true)] out ComplexityAnalyzerDelegate? analyzer)
+        => _cache.TryGet(operationId, out analyzer);
 
 
     public void TryAddAnalyzer(
         string operationId,
-        ComplexityAnalyzerDelegate analyzer) =>
-        _cache.GetOrCreate(operationId, () => analyzer);
+        ComplexityAnalyzerDelegate analyzer)
+        => _cache.GetOrCreate(operationId, () => analyzer);
 
     public void Clear() => _cache.Clear();
 }

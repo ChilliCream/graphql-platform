@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using static HotChocolate.Types.SpecifiedByDirectiveType.Names;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -35,7 +37,7 @@ public static partial class FederationSchemaPrinter
 
             if(directives.Count == 0)
             {
-                directives = new[] { deprecateDirective };
+                directives = new List<DirectiveNode> { deprecateDirective };
             }
             else
             {
@@ -57,6 +59,18 @@ public static partial class FederationSchemaPrinter
         Context context)
     {
         var directives = SerializeDirectives(scalarType.Directives, context);
+
+        if (scalarType.SpecifiedBy is not null)
+        {
+            var copy = directives as List<DirectiveNode> ?? directives.ToList();
+            directives = copy;
+            copy.Add(
+                new DirectiveNode(
+                    SpecifiedBy,
+                    new ArgumentNode(
+                        Url,
+                        new StringValueNode(scalarType.SpecifiedBy.ToString()))));
+        }
 
         return new(
             null,

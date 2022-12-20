@@ -3,51 +3,50 @@ using System.Linq;
 using HotChocolate.StarWars.Data;
 using HotChocolate.StarWars.Models;
 
-namespace HotChocolate.StarWars.Resolvers
+namespace HotChocolate.StarWars.Resolvers;
+
+public class SharedResolvers
 {
-    public class SharedResolvers
+    public IEnumerable<ICharacter> GetCharacter(
+        [Parent] ICharacter character,
+        [Service] CharacterRepository repository)
     {
-        public IEnumerable<ICharacter> GetCharacter(
-            [Parent] ICharacter character,
-            [Service] CharacterRepository repository)
+        foreach (string friendId in character.Friends)
         {
-            foreach (string friendId in character.Friends)
+            ICharacter friend = repository.GetCharacter(friendId);
+            if (friend != null)
             {
-                ICharacter friend = repository.GetCharacter(friendId);
-                if (friend != null)
-                {
-                    yield return friend;
-                }
+                yield return friend;
             }
         }
+    }
 
-        public Human GetOtherHuman(
-            [Parent] ICharacter character,
-            [Service] CharacterRepository repository)
+    public Human GetOtherHuman(
+        [Parent] ICharacter character,
+        [Service] CharacterRepository repository)
+    {
+        if (character.Friends.Count == 0)
         {
-            if (character.Friends.Count == 0)
-            {
-                return null;
-            }
-            return character.Friends
-                .Select(t => repository.GetCharacter(t))
-                .OfType<Human>()
-                .FirstOrDefault();
+            return null;
         }
+        return character.Friends
+            .Select(t => repository.GetCharacter(t))
+            .OfType<Human>()
+            .FirstOrDefault();
+    }
 
-        public double GetHeight(Unit? unit, [Parent] ICharacter character)
-            => ConvertToUnit(character.Height, unit);
+    public double GetHeight(Unit? unit, [Parent] ICharacter character)
+        => ConvertToUnit(character.Height, unit);
 
-        public double GetLength(Unit? unit, [Parent] Starship starship)
-            => ConvertToUnit(starship.Length, unit);
+    public double GetLength(Unit? unit, [Parent] Starship starship)
+        => ConvertToUnit(starship.Length, unit);
 
-        private double ConvertToUnit(double length, Unit? unit)
+    private double ConvertToUnit(double length, Unit? unit)
+    {
+        if (unit == Unit.Foot)
         {
-            if (unit == Unit.Foot)
-            {
-                return length * 3.28084d;
-            }
-            return length;
+            return length * 3.28084d;
         }
+        return length;
     }
 }

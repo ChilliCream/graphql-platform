@@ -1,20 +1,19 @@
 using System;
 
-namespace HotChocolate.Types.Filters
+namespace HotChocolate.Types.Filters;
+
+[Obsolete("Use HotChocolate.Data.")]
+public class FilterMiddlewareContext
 {
-    [Obsolete("Use HotChocolate.Data.")]
-    public class FilterMiddlewareContext
+    public FilterMiddlewareContext(string argumentName)
     {
-        public FilterMiddlewareContext(string argumentName)
-        {
-            ArgumentName = argumentName;
-        }
+        ArgumentName = argumentName;
+    }
 
-        public string ArgumentName { get; }
+    public string ArgumentName { get; }
 
-        public static FilterMiddlewareContext Create(string argumentName)
-        {
-            return new FilterMiddlewareContext(argumentName);
-        }
+    public static FilterMiddlewareContext Create(string argumentName)
+    {
+        return new FilterMiddlewareContext(argumentName);
     }
 }

@@ -42,7 +42,7 @@ public abstract class BatchDataLoader<TKey, TValue>
         Memory<Result<TValue>> results,
         CancellationToken cancellationToken)
     {
-        IReadOnlyDictionary<TKey, TValue> result =
+        var result =
             await LoadBatchAsync(keys, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -56,7 +56,7 @@ public abstract class BatchDataLoader<TKey, TValue>
     {
         for (var i = 0; i < keys.Count; i++)
         {
-            if (resultMap.TryGetValue(keys[i], out TValue? value))
+            if (resultMap.TryGetValue(keys[i], out var value))
             {
                 results[i] = value;
             }

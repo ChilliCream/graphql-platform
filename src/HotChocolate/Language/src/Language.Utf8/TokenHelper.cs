@@ -1,4 +1,6 @@
+using System;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace HotChocolate.Language;
 
@@ -21,18 +23,24 @@ internal static class TokenHelper
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsDescription(in Utf8GraphQLReader reader)
     {
-        return _isString[(int)reader.Kind];
+        ref var searchSpace = ref MemoryMarshal.GetReference(_isString.AsSpan());
+        var index = (int)reader.Kind;
+        return Unsafe.Add(ref searchSpace, index);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsString(in Utf8GraphQLReader reader)
     {
-        return _isString[(int)reader.Kind];
+        ref var searchSpace = ref MemoryMarshal.GetReference(_isString.AsSpan());
+        var index = (int)reader.Kind;
+        return Unsafe.Add(ref searchSpace, index);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsScalarValue(in Utf8GraphQLReader reader)
     {
-        return _isScalar[(int)reader.Kind];
+        ref var searchSpace = ref MemoryMarshal.GetReference(_isScalar.AsSpan());
+        var index = (int)reader.Kind;
+        return Unsafe.Add(ref searchSpace, index);
     }
 }

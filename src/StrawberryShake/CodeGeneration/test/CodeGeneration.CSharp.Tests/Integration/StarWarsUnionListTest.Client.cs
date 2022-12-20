@@ -134,7 +134,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
                 return false;
             }
 
-            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Search, other.Search));
+            return (global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Search, other.Search));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -402,7 +402,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
                 return false;
             }
 
-            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Nodes, other.Nodes));
+            return (global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Nodes, other.Nodes));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)

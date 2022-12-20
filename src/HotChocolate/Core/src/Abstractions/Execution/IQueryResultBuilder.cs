@@ -10,6 +10,8 @@ public interface IQueryResultBuilder
 {
     IQueryResultBuilder SetData(IReadOnlyDictionary<string, object?>? data);
 
+    IQueryResultBuilder SetItems(IReadOnlyList<object?>? items);
+
     IQueryResultBuilder AddError(IError error);
 
     IQueryResultBuilder AddErrors(IEnumerable<IError> errors);

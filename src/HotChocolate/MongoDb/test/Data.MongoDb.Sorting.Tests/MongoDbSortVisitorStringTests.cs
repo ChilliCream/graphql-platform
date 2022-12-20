@@ -1,10 +1,8 @@
-using System;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
-using Xunit;
 
 namespace HotChocolate.Data.MongoDb.Sorting;
 
@@ -14,16 +12,16 @@ public class MongoDbSortVisitorStringTests
 {
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { Bar = "testatest" },
-            new Foo { Bar = "testbtest" }
-        };
+        new() { Bar = "testatest" },
+        new() { Bar = "testbtest" }
+    };
 
     private static readonly FooNullable[] _fooNullableEntities =
     {
-            new FooNullable { Bar = "testatest" },
-            new FooNullable { Bar = "testbtest" },
-            new FooNullable { Bar = null }
-        };
+        new() { Bar = "testatest" },
+        new() { Bar = "testbtest" },
+        new() { Bar = null }
+    };
 
     public MongoDbSortVisitorStringTests(MongoResource resource)
     {
@@ -34,45 +32,51 @@ public class MongoDbSortVisitorStringTests
     public async Task Create_String_OrderBy()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<Foo, FooSortType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooSortType>(_fooEntities);
 
         // act
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { bar: ASC}){ bar}}")
                 .Create());
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { bar: DESC}){ bar}}")
                 .Create());
 
         // assert
-        res1.MatchDocumentSnapshot("ASC");
-        res2.MatchDocumentSnapshot("DESC");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_String_OrderBy_Nullable()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<FooNullable, FooNullableSortType>(
+        var tester = CreateSchema<FooNullable, FooNullableSortType>(
             _fooNullableEntities);
 
         // act
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { bar: ASC}){ bar}}")
                 .Create());
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { bar: DESC}){ bar}}")
                 .Create());
 
         // assert
-        res1.MatchDocumentSnapshot("ASC");
-        res2.MatchDocumentSnapshot("DESC");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
+            .MatchAsync();
     }
 
     public class Foo
@@ -91,8 +95,7 @@ public class MongoDbSortVisitorStringTests
         public string? Bar { get; set; }
     }
 
-    public class FooSortType
-        : SortInputType<Foo>
+    public class FooSortType : SortInputType<Foo>
     {
         protected override void Configure(
             ISortInputTypeDescriptor<Foo> descriptor)
@@ -101,8 +104,7 @@ public class MongoDbSortVisitorStringTests
         }
     }
 
-    public class FooNullableSortType
-        : SortInputType<FooNullable>
+    public class FooNullableSortType : SortInputType<FooNullable>
     {
         protected override void Configure(
             ISortInputTypeDescriptor<FooNullable> descriptor)

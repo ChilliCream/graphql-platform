@@ -1,5 +1,7 @@
 using System;
 using HotChocolate.Properties;
+using HotChocolate.Utilities;
+using static System.StringComparison;
 
 #nullable enable
 
@@ -24,13 +26,13 @@ public readonly struct FieldCoordinate : IEquatable<FieldCoordinate>
     /// The optional argument name.
     /// </param>
     public FieldCoordinate(
-        NameString typeName,
-        NameString fieldName,
-        NameString? argumentName = null)
+        string typeName,
+        string fieldName,
+        string? argumentName = null)
     {
-        TypeName = typeName.EnsureNotEmpty(nameof(typeName));
-        FieldName = fieldName.EnsureNotEmpty(nameof(fieldName));
-        ArgumentName = argumentName?.EnsureNotEmpty(nameof(argumentName));
+        TypeName = typeName.EnsureGraphQLName();
+        FieldName = fieldName.EnsureGraphQLName();
+        ArgumentName = argumentName?.EnsureGraphQLName();
         HasValue = true;
     }
 
@@ -38,9 +40,9 @@ public readonly struct FieldCoordinate : IEquatable<FieldCoordinate>
     /// Deconstructs this type into its parts
     /// </summary>
     public void Deconstruct(
-        out NameString typeName,
-        out NameString fieldName,
-        out NameString? argumentName)
+        out string typeName,
+        out string fieldName,
+        out string? argumentName)
     {
         typeName = TypeName;
         fieldName = FieldName;
@@ -54,8 +56,8 @@ public readonly struct FieldCoordinate : IEquatable<FieldCoordinate>
     /// <param name="argumentName">The argument name.</param>
     /// <returns></returns>
     public static FieldCoordinate CreateWithoutType(
-        NameString fieldName,
-        NameString? argumentName = null) =>
+        string fieldName,
+        string? argumentName = null) =>
         new("__Empty", fieldName, argumentName);
 
     /// <summary>
@@ -66,32 +68,37 @@ public readonly struct FieldCoordinate : IEquatable<FieldCoordinate>
     /// <summary>
     /// Gets the type name to which this field coordinate is referring to.
     /// </summary>
-    public NameString TypeName { get; }
+    public string TypeName { get; }
 
     /// <summary>
     /// Gets the field name to which this field coordinate is referring to.
     /// </summary>
-    public NameString FieldName { get; }
+    public string FieldName { get; }
 
     /// <summary>
     /// Gets the argument name to which this field coordinate is referring to.
     /// Note: the argument name can be null if the coordinate is just referring to a field.
     /// </summary>
-    public NameString? ArgumentName { get; }
+    public string? ArgumentName { get; }
 
     /// <summary>
     /// Create a new field coordinate based on the current one.
     /// </summary>
     public FieldCoordinate With(
-        Optional<NameString> typeName = default,
-        Optional<NameString> fieldName = default,
-        Optional<NameString?> argumentName = default)
-    {
-        return new(
+        Optional<string> typeName = default,
+        Optional<string> fieldName = default,
+        Optional<string?> argumentName = default)
+        #if NET5_0_OR_GREATER
+        => new(
             typeName.HasValue ? typeName.Value : TypeName,
             fieldName.HasValue ? fieldName.Value : FieldName,
             argumentName.HasValue ? argumentName.Value : ArgumentName);
-    }
+        #else
+        => new(
+            typeName.HasValue ? typeName.Value! : TypeName,
+            fieldName.HasValue ? fieldName.Value! : FieldName,
+            argumentName.HasValue ? argumentName.Value : ArgumentName);
+        #endif
 
     /// <summary>
     /// Indicates whether the current field coordinate is equal
@@ -107,9 +114,9 @@ public readonly struct FieldCoordinate : IEquatable<FieldCoordinate>
     /// </returns>
     public bool Equals(FieldCoordinate other)
     {
-        return TypeName.Equals(other.TypeName) &&
-               FieldName.Equals(other.FieldName) &&
-               Nullable.Equals(ArgumentName, other.ArgumentName);
+        return string.Equals(TypeName, other.TypeName, Ordinal) &&
+            string.Equals(FieldName, other.FieldName, Ordinal) &&
+            string.Equals(ArgumentName, other.ArgumentName, Ordinal);
     }
 
     /// <summary>
@@ -123,9 +130,7 @@ public readonly struct FieldCoordinate : IEquatable<FieldCoordinate>
     /// are the same type and represent the same value; otherwise, false.
     /// </returns>
     public override bool Equals(object? obj)
-    {
-        return obj is FieldCoordinate other && Equals(other);
-    }
+        => obj is FieldCoordinate other && Equals(other);
 
     /// <summary>
     /// Returns the hash code for this instance.
@@ -134,15 +139,7 @@ public readonly struct FieldCoordinate : IEquatable<FieldCoordinate>
     /// A 32-bit signed integer that is the hash code for this instance.
     /// </returns>
     public override int GetHashCode()
-    {
-        unchecked
-        {
-            var hashCode = TypeName.GetHashCode();
-            hashCode = (hashCode * 397) ^ FieldName.GetHashCode();
-            hashCode = (hashCode * 397) ^ ArgumentName.GetHashCode();
-            return hashCode;
-        }
-    }
+        => HashCode.Combine(TypeName, FieldName, ArgumentName);
 
     /// <summary>
     /// Returns the string representation of this field coordinate.
@@ -151,14 +148,9 @@ public readonly struct FieldCoordinate : IEquatable<FieldCoordinate>
     /// A fully qualified field reference string.
     /// </returns>
     public override string ToString()
-    {
-        if (ArgumentName is null)
-        {
-            return $"{TypeName}.{FieldName}";
-        }
-
-        return $"{TypeName}.{FieldName}({ArgumentName})";
-    }
+        => ArgumentName is null
+            ? $"{TypeName}.{FieldName}"
+            : $"{TypeName}.{FieldName}({ArgumentName})";
 
     /// <summary>
     /// Converts a field coordinate string into a <see cref="FieldCoordinate"/> instance.

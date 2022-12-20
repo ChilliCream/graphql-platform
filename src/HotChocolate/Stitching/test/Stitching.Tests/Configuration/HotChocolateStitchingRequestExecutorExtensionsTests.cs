@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
@@ -18,7 +18,7 @@ public class HotChocolateStitchingRequestExecutorExtensionsTests
     public async Task RewriteType()
     {
         // arrange
-        IRequestExecutorBuilder executorBuilder =
+        var executorBuilder =
             new ServiceCollection().AddGraphQL().AddQueryType<CustomQueryType>();
 
         // act
@@ -26,8 +26,8 @@ public class HotChocolateStitchingRequestExecutorExtensionsTests
         executorBuilder.RewriteType("OriginalType2", "NewType2", "Schema2");
 
         // assert
-        ISchema schema = await executorBuilder.BuildSchemaAsync();
-        IReadOnlyDictionary<(NameString, NameString), NameString> lookup =
+        var schema = await executorBuilder.BuildSchemaAsync();
+        var lookup =
             schema
                 .GetType<CustomQueryType>(nameof(CustomQueryType))
                 .Context

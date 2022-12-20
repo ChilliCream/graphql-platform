@@ -3,103 +3,102 @@ using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 
-namespace HotChocolate.Types.Filters.Expressions
+namespace HotChocolate.Types.Filters.Expressions;
+
+[Obsolete("Use HotChocolate.Data.")]
+public class ArrayFieldHandler
+    : IExpressionFieldHandler
 {
-    [Obsolete("Use HotChocolate.Data.")]
-    public class ArrayFieldHandler
-        : IExpressionFieldHandler
+    public bool Enter(
+        FilterOperationField field,
+        ObjectFieldNode node,
+        IQueryableFilterVisitorContext context,
+        out ISyntaxVisitorAction action)
     {
-        public bool Enter(
-            FilterOperationField field,
-            ObjectFieldNode node,
-            IQueryableFilterVisitorContext context,
-            out ISyntaxVisitorAction action)
+        if (field.Operation.Kind == FilterOperationKind.ArraySome
+            || field.Operation.Kind == FilterOperationKind.ArrayNone
+            || field.Operation.Kind == FilterOperationKind.ArrayAll)
         {
-            if (field.Operation.Kind == FilterOperationKind.ArraySome
-                || field.Operation.Kind == FilterOperationKind.ArrayNone
-                || field.Operation.Kind == FilterOperationKind.ArrayAll)
-            {
-                MemberExpression nestedProperty = Expression.Property(
-                    context.GetInstance(),
-                    field.Operation.Property);
+            var nestedProperty = Expression.Property(
+                context.GetInstance(),
+                field.Operation.Property);
 
-                context.PushInstance(nestedProperty);
+            context.PushInstance(nestedProperty);
 
-                Type closureType = GetTypeFor(field.Operation);
+            var closureType = GetTypeFor(field.Operation);
 
-                context.AddClosure(closureType);
-                action = SyntaxVisitor.Continue;
-                return true;
-            }
-            action = SyntaxVisitor.SkipAndLeave;
-            return false;
+            context.AddClosure(closureType);
+            action = SyntaxVisitor.Continue;
+            return true;
         }
+        action = SyntaxVisitor.SkipAndLeave;
+        return false;
+    }
 
-        public void Leave(
-            FilterOperationField field,
-            ObjectFieldNode node,
-            IQueryableFilterVisitorContext context)
+    public void Leave(
+        FilterOperationField field,
+        ObjectFieldNode node,
+        IQueryableFilterVisitorContext context)
+    {
+
+        if (field.Operation.Kind == FilterOperationKind.ArraySome
+            || field.Operation.Kind == FilterOperationKind.ArrayNone
+            || field.Operation.Kind == FilterOperationKind.ArrayAll)
         {
+            var nestedClosure = context.PopClosure();
+            var lambda = nestedClosure.CreateLambda();
+            var closureType = GetTypeFor(field.Operation);
 
-            if (field.Operation.Kind == FilterOperationKind.ArraySome
-                || field.Operation.Kind == FilterOperationKind.ArrayNone
-                || field.Operation.Kind == FilterOperationKind.ArrayAll)
+            Expression expression;
+            switch (field.Operation.Kind)
             {
-                QueryableClosure nestedClosure = context.PopClosure();
-                LambdaExpression lambda = nestedClosure.CreateLambda();
-                Type closureType = GetTypeFor(field.Operation);
+                case FilterOperationKind.ArraySome:
+                    expression = FilterExpressionBuilder.Any(
+                        closureType,
+                        context.GetInstance(),
+                        lambda
+                    );
+                    break;
 
-                Expression expression;
-                switch (field.Operation.Kind)
-                {
-                    case FilterOperationKind.ArraySome:
-                        expression = FilterExpressionBuilder.Any(
-                          closureType,
-                          context.GetInstance(),
-                          lambda
-                        );
-                        break;
+                case FilterOperationKind.ArrayNone:
+                    expression = FilterExpressionBuilder.Not(
+                        FilterExpressionBuilder.Any(
+                            closureType,
+                            context.GetInstance(),
+                            lambda
+                        )
+                    );
+                    break;
 
-                    case FilterOperationKind.ArrayNone:
-                        expression = FilterExpressionBuilder.Not(
-                            FilterExpressionBuilder.Any(
-                                closureType,
-                                context.GetInstance(),
-                                lambda
-                            )
-                        );
-                        break;
+                case FilterOperationKind.ArrayAll:
+                    expression = FilterExpressionBuilder.All(
+                        closureType,
+                        context.GetInstance(),
+                        lambda
+                    );
+                    break;
 
-                    case FilterOperationKind.ArrayAll:
-                        expression = FilterExpressionBuilder.All(
-                          closureType,
-                          context.GetInstance(),
-                          lambda
-                        );
-                        break;
-
-                    default:
-                        throw new NotSupportedException();
-                }
-
-                if (context.InMemory)
-                {
-                    expression = FilterExpressionBuilder.NotNullAndAlso(
-                        context.GetInstance(), expression);
-                }
-
-                context.GetLevel().Enqueue(expression);
-                context.PopInstance();
+                default:
+                    throw new NotSupportedException();
             }
-        }
 
-        private static Type GetTypeFor(FilterOperation operation)
+            if (context.InMemory)
+            {
+                expression = FilterExpressionBuilder.NotNullAndAlso(
+                    context.GetInstance(), expression);
+            }
+
+            context.GetLevel().Enqueue(expression);
+            context.PopInstance();
+        }
+    }
+
+    private static Type GetTypeFor(FilterOperation operation)
+    {
+        if (operation.TryGetSimpleFilterBaseType(out var baseType))
         {
-            if (operation.TryGetSimpleFilterBaseType(out Type? baseType))
-            {
-                return baseType;
-            }
-            return operation.Type;
+            return baseType;
         }
+        return operation.Type;
     }
 }

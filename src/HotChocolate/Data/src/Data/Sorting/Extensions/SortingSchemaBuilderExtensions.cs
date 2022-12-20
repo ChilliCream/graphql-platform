@@ -2,6 +2,7 @@ using System;
 using HotChocolate.Data;
 using HotChocolate.Data.Sorting;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate;
 
 /// <summary>

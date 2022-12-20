@@ -10,6 +10,7 @@
         "c": "c"
       }
     },
+    "Items": null,
     "Errors": null,
     "Extensions": {
       "loads": [
@@ -20,6 +21,7 @@
         ]
       ]
     },
+    "Incremental": null,
     "ContextData": null,
     "HasNext": null
   },
@@ -30,6 +32,7 @@
     "Data": {
       "a": "a"
     },
+    "Items": null,
     "Errors": null,
     "Extensions": {
       "loads": [
@@ -38,6 +41,7 @@
         ]
       ]
     },
+    "Incremental": null,
     "ContextData": null,
     "HasNext": null
   },
@@ -48,6 +52,7 @@
     "Data": {
       "c": "c"
     },
+    "Items": null,
     "Errors": null,
     "Extensions": {
       "loads": [
@@ -56,6 +61,7 @@
         ]
       ]
     },
+    "Incremental": null,
     "ContextData": null,
     "HasNext": null
   }

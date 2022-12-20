@@ -2,13 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
-using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data.Sorting;
 
@@ -31,30 +28,32 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
     public async Task Create_StringConcatExpression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<Foo, FooSortInputType>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooSortInputType>(_fooEntities);
 
         // act
-        // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
             .SetQuery("{ root(order: { displayName: DESC}){ name lastName}}")
             .Create());
 
-        res1.MatchSqlSnapshot("DESC");
-
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
             .SetQuery("{ root(order: { displayName: ASC}){ name lastName}}")
             .Create());
 
-        res2.MatchSqlSnapshot("ASC");
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "DESC"), res2, "ASC")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Expression_WithMoreThanOneParameter_ThrowsException()
     {
         // arrange
-        IRequestExecutorBuilder builder = new ServiceCollection()
+        var builder = new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(x => x
                 .Name("Query")
@@ -71,31 +70,33 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
         async Task<IRequestExecutor> Call() => await builder.BuildRequestExecutorAsync();
 
         // assert
-        SchemaException ex = await Assert.ThrowsAsync<SchemaException>(Call);
-        ex.Errors.Single().Message.MatchSnapshot();
+        var ex = await Assert.ThrowsAsync<SchemaException>(Call);
+        ex.Errors.MatchSnapshot();
     }
 
     [Fact]
     public async Task Create_CollectionLengthExpression()
     {
         // arrange
-        IRequestExecutor? tester = _cache.CreateSchema<Foo, FooSortInputType>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooSortInputType>(_fooEntities);
 
         // act
-        // assert
-        IExecutionResult? res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
             .SetQuery("{ root(order: { barLength: ASC}){ name lastName}}")
             .Create());
 
-        res1.MatchSqlSnapshot("ASC");
-
-        IExecutionResult? res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
             .SetQuery("{ root(order: { barLength: DESC}){ name lastName}}")
             .Create());
 
-        res2.MatchSqlSnapshot("DESC");
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
+            .MatchAsync();;
     }
 
     public class Foo

@@ -1,5 +1,5 @@
 using System;
-using HotChocolate.Execution.Properties;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.Properties.Resources;
@@ -17,11 +17,10 @@ internal static class RootValueResolver
         ObjectType rootType,
         ref object? cachedValue)
     {
-        // if an initial value was passed in with the request by the user, we will use that
-        // as root value on which the execution engine starts executing.
-        if (context.Request.InitialValue is not null)
+        if (context.ContextData.TryGetValue(WellKnownContextData.InitialValue, out var o) &&
+            o is not null)
         {
-            return context.Request.InitialValue;
+            return o;
         }
 
         // if the initial value is a singleton and was already resolved,
@@ -57,7 +56,7 @@ internal static class RootValueResolver
                         ErrorBuilder.New()
                             .SetMessage(
                                 RootValueResolver_Resolve_CannotCreateInstance,
-                                rootType.Name.Value,
+                                rootType.Name,
                                 rootType.RuntimeType.FullName ?? rootType.RuntimeType.Name)
                             .SetCode(ErrorCodes.Execution.CannotCreateRootValue)
                             .SetExtension("operationType", rootType.Name)

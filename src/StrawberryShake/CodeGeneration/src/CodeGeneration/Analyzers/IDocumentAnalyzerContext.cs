@@ -19,7 +19,7 @@ public interface IDocumentAnalyzerContext
 
     OperationDefinitionNode OperationDefinition { get; }
 
-    NameString OperationName { get; }
+    string OperationName { get; }
 
     Path RootPath { get; }
 
@@ -29,11 +29,10 @@ public interface IDocumentAnalyzerContext
 
     IReadOnlyDictionary<SelectionSetInfo, SelectionSetNode> SelectionSets { get; }
 
-    NameString ResolveTypeName(
-        NameString proposedName);
+    string ResolveTypeName(string proposedName);
 
-    NameString ResolveTypeName(
-        NameString proposedName,
+    string ResolveTypeName(
+        string proposedName,
         ISyntaxNode syntaxNode,
         IReadOnlyList<string>? additionalNamePatterns = null);
 
@@ -43,17 +42,17 @@ public interface IDocumentAnalyzerContext
         Path path);
 
     bool TryGetModel<T>(
-        NameString name,
+        string name,
         [NotNullWhen(true)] out T? typeModel)
         where T : ITypeModel;
 
-    void RegisterModel(NameString name, ITypeModel typeModel);
+    void RegisterModel(string name, ITypeModel typeModel);
 
     void RegisterType(INamedType type);
 
     void RegisterSelectionSet(
-        INamedType namedType, 
-        SelectionSetNode from, 
+        INamedType namedType,
+        SelectionSetNode from,
         SelectionSetNode to);
 
     IEnumerable<OutputTypeModel> GetImplementations(

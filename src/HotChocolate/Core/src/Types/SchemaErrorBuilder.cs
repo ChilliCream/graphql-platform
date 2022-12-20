@@ -6,10 +6,9 @@ using HotChocolate.Types;
 
 namespace HotChocolate;
 
-public partial class SchemaErrorBuilder
-    : ISchemaErrorBuilder
+public partial class SchemaErrorBuilder : ISchemaErrorBuilder
 {
-    private Error _error = new Error();
+    private readonly Error _error = new();
 
     public ISchemaErrorBuilder SetMessage(string message)
     {
@@ -84,5 +83,5 @@ public partial class SchemaErrorBuilder
         return _error.Clone();
     }
 
-    public static SchemaErrorBuilder New() => new SchemaErrorBuilder();
+    public static SchemaErrorBuilder New() => new();
 }

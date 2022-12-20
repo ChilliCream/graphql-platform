@@ -1,55 +1,55 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HotChocolate.Validation
-{
-    public class InputObjectFieldUniquenessRuleTests
-        : DocumentValidatorVisitorTestBase
-    {
-        public InputObjectFieldUniquenessRuleTests()
-            : base(builder => builder.AddValueRules())
-        {
-        }
+namespace HotChocolate.Validation;
 
-        [Fact]
-        public void NoFieldAmbiguity()
-        {
-            ExpectValid(@"
+public class InputObjectFieldUniquenessRuleTests
+    : DocumentValidatorVisitorTestBase
+{
+    public InputObjectFieldUniquenessRuleTests()
+        : base(builder => builder.AddValueRules())
+    {
+    }
+
+    [Fact]
+    public void NoFieldAmbiguity()
+    {
+        ExpectValid(@"
                 {
                     findDog(complex: { name: ""A"", owner: ""B"" })
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void NameFieldIsAmbiguous()
-        {
-            // arrange
-            ExpectErrors(@"
+    [Fact]
+    public void NameFieldIsAmbiguous()
+    {
+        // arrange
+        ExpectErrors(@"
                 {
                     findDog(complex: { name: ""A"", name: ""B"" })
                 }
             ",
             error =>
                 Assert.Equal("There can be only one input field named `name`.", error.Message));
-        }
+    }
 
-        [Fact]
-        public void InputObjectWithField()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void InputObjectWithField()
+    {
+        ExpectValid(@"
                 {
                     arguments {
                         complexArgField(complexArg: {requiredField: true, f: true })
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void SameInputObjectWithinTwoArgs()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void SameInputObjectWithinTwoArgs()
+    {
+        ExpectValid(@"
                 {
                     arguments {
                         complexArgField(
@@ -58,12 +58,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void MultipleInputObjectFields()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void MultipleInputObjectFields()
+    {
+        ExpectValid(@"
                 {
                     arguments {
                         complexArgField(complexArg: {
@@ -74,12 +74,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void AllowsForNestedInputObjectsWithSimilarFields()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void AllowsForNestedInputObjectsWithSimilarFields()
+    {
+        ExpectValid(@"
                 {
                     arguments {
                         complexArgField(complexArg: {
@@ -97,12 +97,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void DuplicateInputObjectFields()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void DuplicateInputObjectFields()
+    {
+        ExpectErrors(@"
                 {
                     arguments {
                         complexArgField(complexArg: {
@@ -112,12 +112,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void ManyDuplicateInputObjectFields()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void ManyDuplicateInputObjectFields()
+    {
+        ExpectErrors(@"
                 {
                     arguments {
                         complexArgField(complexArg: {
@@ -128,12 +128,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void NestedDuplicateInputObjectFields()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void NestedDuplicateInputObjectFields()
+    {
+        ExpectErrors(@"
                 {
                     arguments {
                         complexArgField(complexArg: {
@@ -145,6 +145,5 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
     }
 }

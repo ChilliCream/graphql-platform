@@ -1,7 +1,0 @@
-﻿For more details look at the `Errors` property.
-
-1. For more details look at the `Errors` property.
-
-1. Could not find a unique type name for input type of the argument input on field QueryCollidingNames.createFoo. The type name SecondOne collides with FirstOne.
-Check the attribute `[Input(TypeName= "SecondOne")]` or the method `.Input(typeName: "SecondOne")` on type QueryCollidingNames for naming collisions.
- (HotChocolate.Types.ObjectType<HotChocolate.Types.InputArgumentTests.QueryCollidingNames>)

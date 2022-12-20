@@ -4,7 +4,6 @@ using ChilliCream.Testing;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
-using HotChocolate.Stitching.SchemaBuilding;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
@@ -17,13 +16,13 @@ public class SchemaMergerTests
     public void MergeSimpleSchemaWithDefaultHandler()
     {
         // arrange
-        DocumentNode schema_a =
+        var schema_a =
             Utf8GraphQLParser.Parse("union Foo = Bar | Baz union A = B | C");
-        DocumentNode schema_b =
+        var schema_b =
             Utf8GraphQLParser.Parse("union Foo = Bar | Baz");
 
         // act
-        DocumentNode schema = SchemaMerger.New()
+        var schema = SchemaMerger.New()
             .AddSchema("A", schema_a)
             .AddSchema("B", schema_b)
             .Merge();
@@ -36,15 +35,15 @@ public class SchemaMergerTests
     public void MergeDemoSchemaWithDefaultHandler()
     {
         // arrange
-        DocumentNode schema_a =
+        var schema_a =
             Utf8GraphQLParser.Parse(
                 FileResource.Open("Contract.graphql"));
-        DocumentNode schema_b =
+        var schema_b =
             Utf8GraphQLParser.Parse(
                 FileResource.Open("Customer.graphql"));
 
         // act
-        DocumentNode schema = SchemaMerger.New()
+        var schema = SchemaMerger.New()
             .AddSchema("A", schema_a)
             .AddSchema("B", schema_b)
             .Merge();
@@ -57,15 +56,15 @@ public class SchemaMergerTests
     public void MergeDemoSchemaAndRemoveRootTypes()
     {
         // arrange
-        DocumentNode schema_a =
+        var schema_a =
             Utf8GraphQLParser.Parse(
                 FileResource.Open("Contract.graphql"));
-        DocumentNode schema_b =
+        var schema_b =
             Utf8GraphQLParser.Parse(
                 FileResource.Open("Customer.graphql"));
 
         // act
-        DocumentNode schema = SchemaMerger.New()
+        var schema = SchemaMerger.New()
             .AddSchema("A", schema_a)
             .AddSchema("B", schema_b)
             .IgnoreRootTypes()
@@ -79,15 +78,15 @@ public class SchemaMergerTests
     public void MergeDemoSchemaAndRemoveRootTypesOnSchemaA()
     {
         // arrange
-        DocumentNode schema_a =
+        var schema_a =
             Utf8GraphQLParser.Parse(
                 FileResource.Open("Contract.graphql"));
-        DocumentNode schema_b =
+        var schema_b =
             Utf8GraphQLParser.Parse(
                 FileResource.Open("Customer.graphql"));
 
         // act
-        DocumentNode schema = SchemaMerger.New()
+        var schema = SchemaMerger.New()
             .AddSchema("A", schema_a)
             .AddSchema("B", schema_b)
             .IgnoreRootTypes("A")
@@ -101,15 +100,15 @@ public class SchemaMergerTests
     public void MergeSchemaAndRenameTypeAtoXyzOnAllSchemas()
     {
         // arrange
-        DocumentNode schema_a =
+        var schema_a =
             Utf8GraphQLParser.Parse(
                 "type A { b1: String b2: String } type B { c: String }");
-        DocumentNode schema_b =
+        var schema_b =
             Utf8GraphQLParser.Parse(
                 "type A { b1: String b3: String } type B { c: String }");
 
         // act
-        DocumentNode schema = SchemaMerger.New()
+        var schema = SchemaMerger.New()
             .AddSchema("A", schema_a)
             .AddSchema("B", schema_b)
             .RenameType("A", "Xyz")
@@ -124,15 +123,15 @@ public class SchemaMergerTests
     public void MergeSchemaAndRenameTypeAtoXyzOnSchemaA()
     {
         // arrange
-        DocumentNode schema_a =
+        var schema_a =
             Utf8GraphQLParser.Parse(
                 "type A { b1: String b2: String } type B { c: String }");
-        DocumentNode schema_b =
+        var schema_b =
             Utf8GraphQLParser.Parse(
                 "type A { b1: String b3: String } type B { c: String }");
 
         // act
-        DocumentNode schema = SchemaMerger.New()
+        var schema = SchemaMerger.New()
             .AddSchema("A", schema_a)
             .AddSchema("B", schema_b)
             .RenameType("A", "Xyz", "A")
@@ -146,15 +145,15 @@ public class SchemaMergerTests
     public void MergeSchemaAndRemoveTypeAOnAllSchemas()
     {
         // arrange
-        DocumentNode schema_a =
+        var schema_a =
             Utf8GraphQLParser.Parse(
                 "type A { b1: String } type B { c: String }");
-        DocumentNode schema_b =
+        var schema_b =
             Utf8GraphQLParser.Parse(
                 "type A { b2: String } type B { c: String }");
 
         // act
-        DocumentNode schema = SchemaMerger.New()
+        var schema = SchemaMerger.New()
             .AddSchema("A", schema_a)
             .AddSchema("B", schema_b)
             .IgnoreType("A")
@@ -169,15 +168,15 @@ public class SchemaMergerTests
     public void MergeSchemaAndRemoveTypeAOnSchemaA()
     {
         // arrange
-        DocumentNode schema_a =
+        var schema_a =
             Utf8GraphQLParser.Parse(
                 "type A { b1: String } type B { c: String }");
-        DocumentNode schema_b =
+        var schema_b =
             Utf8GraphQLParser.Parse(
                 "type A { b2: String } type B { c: String }");
 
         // act
-        DocumentNode schema = SchemaMerger.New()
+        var schema = SchemaMerger.New()
             .AddSchema("A", schema_a)
             .AddSchema("B", schema_b)
             .IgnoreType("A", "A")
@@ -191,15 +190,15 @@ public class SchemaMergerTests
     public void MergeSchemaAndRemoveFieldB1OnAllSchemas()
     {
         // arrange
-        DocumentNode schema_a =
+        var schema_a =
             Utf8GraphQLParser.Parse(
                 "type A { b1: String b2: String } type B { c: String }");
-        DocumentNode schema_b =
+        var schema_b =
             Utf8GraphQLParser.Parse(
                 "type A { b1: String b3: String } type B { c: String }");
 
         // act
-        DocumentNode schema = SchemaMerger.New()
+        var schema = SchemaMerger.New()
             .AddSchema("A", schema_a)
             .AddSchema("B", schema_b)
             .IgnoreField(new FieldReference("A", "b1"))
@@ -214,15 +213,15 @@ public class SchemaMergerTests
     public void MergeSchemaAndRemoveFieldB1OnSchemaA()
     {
         // arrange
-        DocumentNode schema_a =
+        var schema_a =
             Utf8GraphQLParser.Parse(
                 "type A { b1: String b2: String } type B { c: String }");
-        DocumentNode schema_b =
+        var schema_b =
             Utf8GraphQLParser.Parse(
                 "type A { b1: String b3: String } type B { c: String }");
 
         // act
-        DocumentNode schema = SchemaMerger.New()
+        var schema = SchemaMerger.New()
             .AddSchema("A", schema_a)
             .AddSchema("B", schema_b)
             .IgnoreField(new FieldReference("A", "b1"), "A")
@@ -236,15 +235,15 @@ public class SchemaMergerTests
     public void MergeSchemaAndRenameFieldB1toB11OnAllSchemas()
     {
         // arrange
-        DocumentNode schema_a =
+        var schema_a =
             Utf8GraphQLParser.Parse(
                 "type A { b1: String b2: String } type B { c: String }");
-        DocumentNode schema_b =
+        var schema_b =
             Utf8GraphQLParser.Parse(
                 "type A { b1: String b3: String } type B { c: String }");
 
         // act
-        DocumentNode schema = SchemaMerger.New()
+        var schema = SchemaMerger.New()
             .AddSchema("A", schema_a)
             .AddSchema("B", schema_b)
             .RenameField(new FieldReference("A", "b1"), "b11")
@@ -259,15 +258,15 @@ public class SchemaMergerTests
     public void MergeSchemaAndRenameFieldB1toB11OnSchemaA()
     {
         // arrange
-        DocumentNode schema_a =
+        var schema_a =
             Utf8GraphQLParser.Parse(
                 "type A { b1: String b2: String } type B { c: String }");
-        DocumentNode schema_b =
+        var schema_b =
             Utf8GraphQLParser.Parse(
                 "type A { b1: String b3: String } type B { c: String }");
 
         // act
-        DocumentNode schema = SchemaMerger.New()
+        var schema = SchemaMerger.New()
             .AddSchema("A", schema_a)
             .AddSchema("B", schema_b)
             .RenameField(new FieldReference("A", "b1"), "b11", "A")
@@ -277,28 +276,28 @@ public class SchemaMergerTests
         schema.Print().MatchSnapshot();
     }
 
-    [Fact(Skip = "Fix It")]
+    [Fact(Skip =  "Fix It")]
     public void RenameReferencingType()
     {
         // arrange
-        DocumentNode schema_a =
+        var schema_a =
             Utf8GraphQLParser.Parse(
                 "type A { b1: B } " +
                 "type B implements C { c: String } " +
                 "interface C { c: String }");
 
-        DocumentNode schema_b =
+        var schema_b =
             Utf8GraphQLParser.Parse(
                 "type B { b1: String b3: String } type C { c: String }");
 
         // act
-        DocumentNode a = SchemaMerger.New()
+        var a = SchemaMerger.New()
             .AddSchema("A", schema_a)
             .AddSchema("B", schema_b)
             .RenameType("A", "B", "Foo")
             .Merge();
 
-        DocumentNode b = SchemaMerger.New()
+        var b = SchemaMerger.New()
             .AddSchema("B", schema_b)
             .AddSchema("A", schema_a)
             .RenameType("A", "B", "Foo")
@@ -313,14 +312,14 @@ public class SchemaMergerTests
     public void Rename_Type_With_Various_Variants()
     {
         // arrange
-        DocumentNode initial =
+        var initial =
             Utf8GraphQLParser.Parse(
                 "type A { b1: B! b2: [B!] b3: [B] b4: [B!]! } " +
                 "type B implements C { c: String } " +
                 "interface C { c: String }");
 
         // act
-        DocumentNode merged = SchemaMerger.New()
+        var merged = SchemaMerger.New()
             .AddSchema("A", initial)
             .RenameType("B", "Foo", "A")
             .Merge();
@@ -333,15 +332,15 @@ public class SchemaMergerTests
     public void FieldDefinitionDoesNotHaveSameTypeShape()
     {
         // arrange
-        DocumentNode schema_a =
+        var schema_a =
             Utf8GraphQLParser.Parse(
                 "type A { b1: String b2: String } type B { c: String! }");
-        DocumentNode schema_b =
+        var schema_b =
             Utf8GraphQLParser.Parse(
                 "type A { b1: String b3: String } type B { c: String }");
 
         // act
-        DocumentNode merged = SchemaMerger.New()
+        var merged = SchemaMerger.New()
             .AddSchema("A", schema_a)
             .AddSchema("B", schema_b)
             .Merge();
@@ -354,19 +353,19 @@ public class SchemaMergerTests
     public void RenameObjectFieldThatImplementsInterface()
     {
         // arrange
-        DocumentNode schema_a =
+        var schema_a =
             Utf8GraphQLParser.Parse(
                 "type A { b1: B } " +
                 "type B implements D { c: String } " +
                 "type C implements D { c: String } " +
                 "interface D { c: String }");
 
-        DocumentNode schema_b =
+        var schema_b =
             Utf8GraphQLParser.Parse(
                 "type B { b1: String b3: String } type C { c: String }");
 
         // act
-        DocumentNode a = SchemaMerger.New()
+        var a = SchemaMerger.New()
             .AddSchema("A", schema_a)
             .AddSchema("B", schema_b)
             .RenameField(new FieldReference("B", "c"), "c123", "A")
@@ -380,19 +379,19 @@ public class SchemaMergerTests
     public void RenameObjectField()
     {
         // arrange
-        DocumentNode schema_a =
+        var schema_a =
             Utf8GraphQLParser.Parse(
                 "type A { b1: B } " +
                 "type B { c: String } " +
                 "type C implements D { c: String } " +
                 "interface D { c: String }");
 
-        DocumentNode schema_b =
+        var schema_b =
             Utf8GraphQLParser.Parse(
                 "type B { b1: String b3: String } type C { c: String }");
 
         // act
-        DocumentNode a = SchemaMerger.New()
+        var a = SchemaMerger.New()
             .AddSchema("A", schema_a)
             .AddSchema("B", schema_b)
             .RenameField(new FieldReference("B", "c"), "c123", "A")
@@ -406,19 +405,19 @@ public class SchemaMergerTests
     public void RenameInterfaceField()
     {
         // arrange
-        DocumentNode schema_a =
+        var schema_a =
             Utf8GraphQLParser.Parse(
                 "type A { b1: B } " +
                 "type B implements D { c: String } " +
                 "type C implements D { c: String } " +
                 "interface D { c: String }");
 
-        DocumentNode schema_b =
+        var schema_b =
             Utf8GraphQLParser.Parse(
                 "type B { b1: String b3: String } type C { c: String }");
 
         // act
-        DocumentNode a = SchemaMerger.New()
+        var a = SchemaMerger.New()
             .AddSchema("A", schema_a)
             .AddSchema("B", schema_b)
             .RenameField(new FieldReference("D", "c"), "c123", "A")
@@ -432,19 +431,19 @@ public class SchemaMergerTests
     public void LastFieldRenameWins()
     {
         // arrange
-        DocumentNode schema_a =
+        var schema_a =
             Utf8GraphQLParser.Parse(
                 "type A { b1: B } " +
                 "type B implements D { c: String } " +
                 "type C implements D { c: String } " +
                 "interface D { c: String }");
 
-        DocumentNode schema_b =
+        var schema_b =
             Utf8GraphQLParser.Parse(
                 "type B { b1: String b3: String } type C { c: String }");
 
         // act
-        DocumentNode a = SchemaMerger.New()
+        var a = SchemaMerger.New()
             .AddSchema("A", schema_a)
             .AddSchema("B", schema_b)
             .RenameField(new FieldReference("B", "c"), "c123", "A")
@@ -452,7 +451,7 @@ public class SchemaMergerTests
             .RenameField(new FieldReference("D", "c"), "c789", "A")
             .Merge();
 
-        DocumentNode b = SchemaMerger.New()
+        var b = SchemaMerger.New()
             .AddSchema("A", schema_a)
             .AddSchema("B", schema_b)
             .RenameField(new FieldReference("B", "c"), "c123", "A")
@@ -461,7 +460,7 @@ public class SchemaMergerTests
             .Merge();
 
         // assert
-        a.Print().MatchSnapshot(SnapshotNameExtension.Create("A"));
+         a.Print().MatchSnapshot(SnapshotNameExtension.Create("A"));
         b.Print().MatchSnapshot(SnapshotNameExtension.Create("B"));
     }
 
@@ -469,13 +468,13 @@ public class SchemaMergerTests
     public void MergeDirectivesWithCustomRule()
     {
         // arrange
-        DocumentNode schema_a =
+        var schema_a =
             Utf8GraphQLParser.Parse("directive @foo on FIELD");
-        DocumentNode schema_b =
+        var schema_b =
             Utf8GraphQLParser.Parse("directive @foo(a: String) on FIELD");
 
         // act
-        DocumentNode a = SchemaMerger.New()
+        var a = SchemaMerger.New()
             .AddSchema("A", schema_a)
             .AddSchema("B", schema_b)
             .AddDirectiveMergeRule(next => (context, directives) =>
@@ -494,13 +493,13 @@ public class SchemaMergerTests
     public void MergeDirectivesWithCustomHandler()
     {
         // arrange
-        DocumentNode schema_a =
+        var schema_a =
             Utf8GraphQLParser.Parse("directive @foo on FIELD");
-        DocumentNode schema_b =
+        var schema_b =
             Utf8GraphQLParser.Parse("directive @foo(a: String) on FIELD");
 
         // act
-        DocumentNode a = SchemaMerger.New()
+        var a = SchemaMerger.New()
             .AddSchema("A", schema_a)
             .AddSchema("B", schema_b)
             .AddDirectiveMergeHandler<CustomDirectiveMergeHandler>()
@@ -514,18 +513,18 @@ public class SchemaMergerTests
     public void MergeTypeWithCustomRule()
     {
         // arrange
-        DocumentNode schema_a =
+        var schema_a =
             Utf8GraphQLParser.Parse("type Foo { a: String }");
-        DocumentNode schema_b =
+        var schema_b =
             Utf8GraphQLParser.Parse("type Foo { b: String }");
 
         // act
-        DocumentNode a = SchemaMerger.New()
+        var a = SchemaMerger.New()
             .AddSchema("A", schema_a)
             .AddSchema("B", schema_b)
             .AddTypeMergeRule(next => (context, types) =>
             {
-                ObjectTypeInfo[] typeInfos = types.OfType<ObjectTypeInfo>().ToArray();
+                var typeInfos = types.OfType<ObjectTypeInfo>().ToArray();
                 var fields = typeInfos[0].Definition.Fields.ToList();
                 fields.AddRange(typeInfos[1].Definition.Fields);
                 context.AddType(
@@ -541,13 +540,13 @@ public class SchemaMergerTests
     public void MergeTypeWithCustomHandler()
     {
         // arrange
-        DocumentNode schema_a =
+        var schema_a =
             Utf8GraphQLParser.Parse("type Foo { a: String }");
-        DocumentNode schema_b =
+        var schema_b =
             Utf8GraphQLParser.Parse("type Foo { b: String }");
 
         // act
-        DocumentNode a = SchemaMerger.New()
+        var a = SchemaMerger.New()
             .AddSchema("A", schema_a)
             .AddSchema("B", schema_b)
             .AddTypeMergeHandler<CustomTypeMergeHandler>()
@@ -569,8 +568,8 @@ public class SchemaMergerTests
             IReadOnlyList<IDirectiveTypeInfo> directives)
         {
             context.AddDirective(
-                    directives.First(t =>
-                        t.Definition.Arguments.Any()).Definition);
+                directives.First(t =>
+                    t.Definition.Arguments.Any()).Definition);
         }
     }
 
@@ -585,7 +584,7 @@ public class SchemaMergerTests
             ISchemaMergeContext context,
             IReadOnlyList<ITypeInfo> types)
         {
-            ObjectTypeInfo[] typeInfos = types.OfType<ObjectTypeInfo>().ToArray();
+            var typeInfos = types.OfType<ObjectTypeInfo>().ToArray();
             var fields = typeInfos[0].Definition.Fields.ToList();
             fields.AddRange(typeInfos[1].Definition.Fields);
             context.AddType(

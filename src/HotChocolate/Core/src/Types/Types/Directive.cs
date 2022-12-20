@@ -15,7 +15,7 @@ namespace HotChocolate.Types;
 public sealed class Directive : IDirective
 {
     private object? _customDirective;
-    private DirectiveNode _parsedDirective;
+    private DirectiveNode? _parsedDirective;
     private Dictionary<string, ArgumentNode>? _arguments;
 
     private Directive(
@@ -34,7 +34,7 @@ public sealed class Directive : IDirective
         Name = directiveType.Name;
     }
 
-    public NameString Name { get; }
+    public string Name { get; }
 
     public DirectiveType Type { get; }
 
@@ -75,7 +75,7 @@ public sealed class Directive : IDirective
         {
             var arguments = new List<ArgumentNode>();
 
-            foreach (ArgumentNode argument in _parsedDirective.Arguments)
+            foreach (var argument in _parsedDirective.Arguments)
             {
                 if (!argument.Value.IsNull())
                 {
@@ -96,9 +96,9 @@ public sealed class Directive : IDirective
             throw new ArgumentNullException(nameof(argumentName));
         }
 
-        Dictionary<string, ArgumentNode> arguments = GetArguments();
-        if (arguments.TryGetValue(argumentName, out ArgumentNode? argValue)
-            && Type.Arguments.TryGetField(argumentName, out Argument? arg))
+        var arguments = GetArguments();
+        if (arguments.TryGetValue(argumentName, out var argValue)
+            && Type.Arguments.TryGetField(argumentName, out var arg))
         {
             return Type.DeserializeArgument<T>(arg, argValue.Value);
         }
@@ -111,20 +111,20 @@ public sealed class Directive : IDirective
 
     private T CreateCustomDirective<T>()
     {
-        if (TryDeserialize(_parsedDirective, out T directive))
+        if (TryDeserialize(_parsedDirective!, out T directive))
         {
             return directive;
         }
 
         directive = (T)Activator.CreateInstance(typeof(T))!;
 
-        ILookup<string, PropertyInfo> properties =
+        var properties =
             typeof(T).GetProperties()
                 .ToLookup(t => t.Name, StringComparer.OrdinalIgnoreCase);
 
-        foreach (Argument argument in Type.Arguments)
+        foreach (var argument in Type.Arguments)
         {
-            PropertyInfo? property = properties[argument.Name].FirstOrDefault();
+            var property = properties[argument.Name].FirstOrDefault();
 
             if (property != null)
             {
@@ -140,8 +140,8 @@ public sealed class Directive : IDirective
         object obj,
         PropertyInfo property)
     {
-        Dictionary<string, ArgumentNode> arguments = GetArguments();
-        if (arguments.TryGetValue(argument.Name, out ArgumentNode? argumentValue))
+        var arguments = GetArguments();
+        if (arguments.TryGetValue(argument.Name, out var argumentValue))
         {
             var parsedValue = Type.DeserializeArgument(
                 argument, argumentValue.Value, property.PropertyType);
@@ -157,10 +157,10 @@ public sealed class Directive : IDirective
         DirectiveNode directiveNode,
         out T directive)
     {
-        ConstructorInfo? constructor = typeof(T).GetTypeInfo()
+        var constructor = typeof(T).GetTypeInfo()
             .DeclaredConstructors.FirstOrDefault(t =>
             {
-                ParameterInfo[] parameters = t.GetParameters();
+                var parameters = t.GetParameters();
                 return parameters.Length == 2
                     && parameters[0].ParameterType ==
                         typeof(SerializationInfo)
@@ -215,7 +215,7 @@ public sealed class Directive : IDirective
                 source);
         }
 
-        DirectiveNode directiveNode = ParseValue(
+        var directiveNode = ParseValue(
             directiveType, definition.CustomDirective);
 
         return new Directive(
@@ -247,7 +247,7 @@ public sealed class Directive : IDirective
 
         if (schema.TryGetDirectiveType(
             directiveNode.Name.Value,
-            out DirectiveType? type))
+            out var type))
         {
             return new Directive(
                 type,
@@ -273,7 +273,7 @@ public sealed class Directive : IDirective
             var argumentNames = new HashSet<string>(
                 directive.Arguments.Select(t => t.Name.Value));
 
-            foreach (Argument argument in directiveType.Arguments)
+            foreach (var argument in directiveType.Arguments)
             {
                 if (argument.DefaultValue is { }
                     && !argumentNames.Contains(argument.Name))
@@ -299,16 +299,16 @@ public sealed class Directive : IDirective
     {
         var arguments = new List<ArgumentNode>();
 
-        Type type = directive.GetType();
-        ILookup<string, PropertyInfo> properties =
+        var type = directive.GetType();
+        var properties =
             type.GetProperties().ToLookup(t => t.Name, StringComparer.OrdinalIgnoreCase);
 
-        foreach (Argument argument in directiveType.Arguments)
+        foreach (var argument in directiveType.Arguments)
         {
-            PropertyInfo? property = properties[argument.Name].FirstOrDefault();
+            var property = properties[argument.Name].FirstOrDefault();
             var propertyValue = property?.GetValue(directive);
 
-            IValueNode valueNode = directiveType.SerializeArgument(argument, propertyValue);
+            var valueNode = directiveType.SerializeArgument(argument, propertyValue);
             arguments.Add(new ArgumentNode(argument.Name, valueNode));
         }
 
