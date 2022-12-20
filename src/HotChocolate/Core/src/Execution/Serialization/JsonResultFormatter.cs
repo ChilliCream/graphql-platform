@@ -509,9 +509,9 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
 
         for (var i = 0; i < list.Count; i++)
         {
-            ref var element = ref Unsafe.Add(ref searchSpace, i);
+            var element = Unsafe.Add(ref searchSpace, i);
 
-            if (Unsafe.IsNullRef(ref element) && _stripNullElements)
+            if (element is null && _stripNullElements)
             {
                 continue;
             }

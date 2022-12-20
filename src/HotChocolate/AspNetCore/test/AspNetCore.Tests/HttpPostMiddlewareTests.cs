@@ -1219,6 +1219,50 @@ public class HttpPostMiddlewareTests : ServerTestBase
                 {""data"":{""__schema"":{}}}");
     }
 
+    [Fact]
+    public async Task Strip_Null_Elements()
+    {
+        // arrange
+        var url = new Uri("http://localhost:5000/test");
+
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer("test")
+                .AddQueryType<NullListQuery>()
+                .Services
+                .AddHttpResponseFormatter(new JsonResultFormatterOptions
+                {
+                    NullIgnoreCondition = Lists
+                }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, url)
+        {
+            Content = JsonContent.Create(
+                new ClientQueryRequest
+                {
+                    Query = "{ nullValues }"
+                })
+        };
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        // expected response content-type: application/json
+        // expected status code: 200
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                @"Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+                {""data"":{""nullValues"":[""abc""]}}");
+    }
+
     public class ErrorRequestInterceptor : DefaultHttpRequestInterceptor
     {
         public override ValueTask OnCreateAsync(
@@ -1240,5 +1284,10 @@ public class HttpPostMiddlewareTests : ServerTestBase
             Triggered = true;
             return EmptyScope;
         }
+    }
+
+    public class NullListQuery
+    {
+        public List<string?> NullValues => new() { null, "abc", null };
     }
 }
