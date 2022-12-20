@@ -5,7 +5,6 @@ using System.Threading;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 using HotChocolate.Validation;
 
 namespace HotChocolate.Execution;
@@ -19,14 +18,12 @@ internal sealed class RequestContext : IRequestContext
         ISchema schema,
         ulong executorVersion,
         IErrorHandler errorHandler,
-        ITypeConverter converter,
         IActivator activator,
         IExecutionDiagnosticEvents diagnosticEvents)
     {
         Schema = schema;
         ExecutorVersion = executorVersion;
         ErrorHandler = errorHandler;
-        Converter = converter;
         Activator = activator;
         DiagnosticEvents = diagnosticEvents;
     }
@@ -38,8 +35,6 @@ internal sealed class RequestContext : IRequestContext
     public IServiceProvider Services { get; private set; } = default!;
 
     public IErrorHandler ErrorHandler { get; }
-
-    public ITypeConverter Converter { get; }
 
     public IActivator Activator { get; }
 
@@ -55,11 +50,11 @@ internal sealed class RequestContext : IRequestContext
 
     public string? DocumentHash { get; set; }
 
+    public DocumentNode? Document { get; set; }
+
     public bool IsCachedDocument { get; set; }
 
     public bool IsPersistedDocument { get; set; }
-
-    public DocumentNode? Document { get; set; }
 
     public DocumentValidatorResult? ValidationResult
     {
@@ -75,7 +70,7 @@ internal sealed class RequestContext : IRequestContext
 
     public string? OperationId { get; set; }
 
-    public IPreparedOperation? Operation { get; set; }
+    public IOperation? Operation { get; set; }
 
     public IVariableValueCollection? Variables { get; set; }
 
@@ -89,7 +84,6 @@ internal sealed class RequestContext : IRequestContext
             Schema,
             ExecutorVersion,
             ErrorHandler,
-            Converter,
             Activator,
             DiagnosticEvents)
         {
@@ -108,12 +102,9 @@ internal sealed class RequestContext : IRequestContext
             Exception = Exception
         };
 
-        if (_contextData is not null)
+        foreach (var item in _contextData)
         {
-            foreach (KeyValuePair<string, object?> item in ContextData)
-            {
-                cloned._contextData.TryAdd(item.Key, item.Value);
-            }
+            cloned._contextData.TryAdd(item.Key, item.Value);
         }
 
         return cloned;
@@ -126,7 +117,7 @@ internal sealed class RequestContext : IRequestContext
 
         if (request.ContextData is not null)
         {
-            foreach (KeyValuePair<string, object?> item in request.ContextData)
+            foreach (var item in request.ContextData)
             {
                 _contextData.TryAdd(item.Key, item.Value);
             }

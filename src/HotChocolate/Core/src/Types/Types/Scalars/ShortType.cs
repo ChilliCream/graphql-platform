@@ -31,7 +31,7 @@ public class ShortType : IntegerTypeBase<short>
     /// Initializes a new instance of the <see cref="ShortType"/> class.
     /// </summary>
     public ShortType(
-        NameString name,
+        string name,
         string? description = null,
         short min = short.MinValue,
         short max = short.MaxValue,

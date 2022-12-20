@@ -10,7 +10,7 @@ namespace GreenDonut;
 public class DataLoaderDiagnosticEventListener : IDataLoaderDiagnosticEventListener
 {
     /// <summary>
-    /// A no-op <see cref="IActivityScope"/> that can be returned from
+    /// A no-op <see cref="IDisposable"/> that can be returned from
     /// event methods that are not interested in when the scope is disposed.
     /// </summary>
     protected static IDisposable EmptyScope { get; } = new EmptyActivityScope();
@@ -19,8 +19,7 @@ public class DataLoaderDiagnosticEventListener : IDataLoaderDiagnosticEventListe
     public virtual void ResolvedTaskFromCache(
         IDataLoader dataLoader,
         TaskCacheKey cacheKey,
-        Task task)
-    { }
+        Task task) { }
 
     /// <inheritdoc />
     public virtual IDisposable ExecuteBatch<TKey>(
@@ -33,27 +32,22 @@ public class DataLoaderDiagnosticEventListener : IDataLoaderDiagnosticEventListe
     public virtual void BatchResults<TKey, TValue>(
         IReadOnlyList<TKey> keys,
         ReadOnlySpan<Result<TValue>> values)
-        where TKey : notnull
-    { }
+        where TKey : notnull { }
 
     /// <inheritdoc />
     public virtual void BatchError<TKey>(
         IReadOnlyList<TKey> keys,
         Exception error)
-        where TKey : notnull
-    { }
+        where TKey : notnull { }
 
     /// <inheritdoc />
     public virtual void BatchItemError<TKey>(
         TKey key,
         Exception error)
-        where TKey : notnull
-    { }
+        where TKey : notnull { }
 
     private sealed class EmptyActivityScope : IDisposable
     {
-        public void Dispose()
-        {
-        }
+        public void Dispose() { }
     }
 }

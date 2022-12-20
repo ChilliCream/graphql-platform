@@ -1,6 +1,7 @@
 using System.Linq;
 using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -12,12 +13,12 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
     public void AddProvidesDirective_EnsureAvailableInSchema()
     {
         // arrange
-        ISchema schema = CreateSchema(b => b.AddDirectiveType<ProvidesDirectiveType>());
+        var schema = CreateSchema(b => b.AddDirectiveType<ProvidesDirectiveType>());
 
         // act
-        DirectiveType? directive =
+        var directive =
             schema.DirectiveTypes.FirstOrDefault(
-                t => t.Name.Equals(WellKnownTypeNames.Provides));
+                t => t.Name.EqualsOrdinal(WellKnownTypeNames.Provides));
 
         // assert
         Assert.NotNull(directive);
@@ -37,7 +38,7 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
         // arrange
         Snapshot.FullName();
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString(
                 @"
                     type Review @key(fields: ""id"") {
@@ -56,14 +57,14 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
             .AddDirectiveType<KeyDirectiveType>()
             .AddDirectiveType<ProvidesDirectiveType>()
             .AddType<FieldSetType>()
-            .Use(next => context => default)
+            .Use(_ => _ => default)
             .Create();
 
         // act
-        ObjectType testType = schema.GetType<ObjectType>("Review");
+        var testType = schema.GetType<ObjectType>("Review");
 
         // assert
-        Assert.Collection(testType.Fields.Single(field => field.Name.Value == "product").Directives,
+        Assert.Collection(testType.Fields.Single(field => field.Name == "product").Directives,
             providesDirective =>
             {
                 Assert.Equal(
@@ -83,7 +84,7 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
         // arrange
         Snapshot.FullName();
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddType(
                 new ObjectType(o =>
                 {
@@ -112,11 +113,11 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
             .Create();
 
         // act
-        ObjectType testType = schema.GetType<ObjectType>("Review");
+        var testType = schema.GetType<ObjectType>("Review");
 
         // assert
         Assert.Collection(
-            testType.Fields.Single(field => field.Name.Value == "product").Directives,
+            testType.Fields.Single(field => field.Name == "product").Directives,
             providesDirective =>
             {
                 Assert.Equal(
@@ -139,17 +140,17 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
         // arrange
         Snapshot.FullName();
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<Query>()
             .Create();
 
         // act
-        ObjectType testType = schema.GetType<ObjectType>("Review");
+        var testType = schema.GetType<ObjectType>("Review");
 
         // assert
         Assert.Collection(
-            testType.Fields.Single(field => field.Name.Value == "product").Directives,
+            testType.Fields.Single(field => field.Name == "product").Directives,
             providesDirective =>
             {
                 Assert.Equal(

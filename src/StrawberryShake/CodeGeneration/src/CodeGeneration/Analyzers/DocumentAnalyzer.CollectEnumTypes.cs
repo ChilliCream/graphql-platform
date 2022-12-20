@@ -15,16 +15,16 @@ public partial class DocumentAnalyzer
         var analyzer = new EnumTypeUsageAnalyzer(context.Schema);
         analyzer.Analyze(context.Document);
 
-        foreach (EnumType enumType in analyzer.EnumTypes)
+        foreach (var enumType in analyzer.EnumTypes)
         {
             RenameDirective? rename;
             var values = new List<EnumValueModel>();
 
-            foreach (IEnumValue enumValue in enumType.Values)
+            foreach (var enumValue in enumType.Values)
             {
                 rename = enumValue.Directives.SingleOrDefault<RenameDirective>();
 
-                EnumValueDirective? value =
+                var value =
                     enumValue.Directives.SingleOrDefault<EnumValueDirective>();
 
                 values.Add(new EnumValueModel(
@@ -36,10 +36,10 @@ public partial class DocumentAnalyzer
 
             rename = enumType.Directives.SingleOrDefault<RenameDirective>();
 
-            SerializationTypeDirective? serializationType =
+            var serializationType =
                 enumType.Directives.SingleOrDefault<SerializationTypeDirective>();
 
-            NameString typeName = context.ResolveTypeName(
+            var typeName = context.ResolveTypeName(
                 rename?.Name ?? GetClassName(enumType.Name));
 
             context.RegisterModel(

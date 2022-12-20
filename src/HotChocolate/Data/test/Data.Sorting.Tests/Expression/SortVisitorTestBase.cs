@@ -12,7 +12,7 @@ public class SortVisitorTestBase
             new SortConvention(
                 x => x.AddDefaults().BindRuntimeType(typeof(TRuntimeType), type.GetType()));
 
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddConvention<ISortConvention>(convention)
             .TryAddTypeInterceptor<SortTypeInterceptor>()
             .AddQueryType(
@@ -32,7 +32,7 @@ public class SortVisitorTestBase
         where T : ISortInputType
     {
         var convention = new SortConvention(x => x.AddDefaults());
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddConvention<ISortConvention>(convention)
             .TryAddTypeInterceptor<SortTypeInterceptor>()
             .AddQueryType(c => c

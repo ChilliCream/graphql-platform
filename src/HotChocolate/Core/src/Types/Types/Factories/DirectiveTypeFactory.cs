@@ -119,7 +119,7 @@ internal sealed class DirectiveTypeFactory
         IReadOnlyCollection<InputValueDefinitionNode> arguments,
         bool preserveSyntaxNodes)
     {
-        foreach (InputValueDefinitionNode argument in arguments)
+        foreach (var argument in arguments)
         {
             var argumentDefinition = new DirectiveArgumentDefinition(
                 argument.Name.Value,
@@ -145,11 +145,11 @@ internal sealed class DirectiveTypeFactory
         DirectiveTypeDefinition parent,
         DirectiveDefinitionNode node)
     {
-        foreach (NameNode location in node.Locations)
+        foreach (var location in node.Locations)
         {
             if (Language.DirectiveLocation.TryParse(
                 location.Value,
-                out Language.DirectiveLocation parsedLocation))
+                out var parsedLocation))
             {
                 parent.Locations.Add(MapDirectiveLocation(parsedLocation));
             }
@@ -159,7 +159,7 @@ internal sealed class DirectiveTypeFactory
     private static DirectiveLocation MapDirectiveLocation(
         Language.DirectiveLocation location)
     {
-        if (!_locs.TryGetValue(location, out DirectiveLocation loc))
+        if (!_locs.TryGetValue(location, out var loc))
         {
             throw new NotSupportedException(string.Format(
                 CultureInfo.InvariantCulture,

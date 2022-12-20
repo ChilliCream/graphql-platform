@@ -7,11 +7,11 @@ internal class InputObjectTypeNameDependencyDescriptor
     : IInputObjectTypeNameDependencyDescriptor
 {
     private readonly IInputObjectTypeDescriptor _descriptor;
-    private readonly Func<INamedType, NameString> _createName;
+    private readonly Func<INamedType, string> _createName;
 
     public InputObjectTypeNameDependencyDescriptor(
         IInputObjectTypeDescriptor descriptor,
-        Func<INamedType, NameString> createName)
+        Func<INamedType, string> createName)
     {
         _descriptor = descriptor
             ?? throw new ArgumentNullException(nameof(descriptor));
@@ -22,15 +22,13 @@ internal class InputObjectTypeNameDependencyDescriptor
     public IInputObjectTypeDescriptor DependsOn<TDependency>()
         where TDependency : IType
     {
-        TypeNameHelper.AddNameFunction(
-            _descriptor, _createName, typeof(TDependency));
+        TypeNameHelper.AddNameFunction(_descriptor, _createName, typeof(TDependency));
         return _descriptor;
     }
 
     public IInputObjectTypeDescriptor DependsOn(Type schemaType)
     {
-        TypeNameHelper.AddNameFunction(
-            _descriptor, _createName, schemaType);
+        TypeNameHelper.AddNameFunction(_descriptor, _createName, schemaType);
         return _descriptor;
     }
 }

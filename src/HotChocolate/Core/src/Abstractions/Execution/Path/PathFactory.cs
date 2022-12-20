@@ -22,11 +22,11 @@ public class PathFactory
             throw new ArgumentOutOfRangeException(nameof(index));
         }
 
-        IndexerPathSegment indexer = CreateIndexer();
+        var indexer = CreateIndexer();
 
         indexer.Parent = parent;
         indexer.Index = index;
-        indexer.Depth = parent.Depth + 1;
+        indexer.Length = parent.Length + 1;
 
         return indexer;
     }
@@ -37,15 +37,18 @@ public class PathFactory
     /// <param name="parent">The parent</param>
     /// <param name="name">The name of the path segment.</param>
     /// <returns>Returns a new path segment.</returns>
-    public NamePathSegment Append(Path parent, NameString name)
+    public NamePathSegment Append(Path parent, string name)
     {
-        name.EnsureNotEmpty(nameof(name));
+        if (string.IsNullOrEmpty(name))
+        {
+            throw new ArgumentNullException(nameof(name));
+        }
 
-        NamePathSegment indexer = CreateNamed();
+        var indexer = CreateNamed();
 
         indexer.Parent = parent;
         indexer.Name = name;
-        indexer.Depth = parent.Depth + 1;
+        indexer.Length = parent.Length + 1;
 
         return indexer;
     }

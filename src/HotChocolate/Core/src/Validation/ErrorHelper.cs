@@ -179,11 +179,9 @@ internal static class ErrorHelper
         IValueNode valueNode)
     {
         return ErrorBuilder.New()
-            .SetMessage(
-                Resources.ErrorHelper_FieldValueIsNotCompatible,
-                field.Name.Value)
+            .SetMessage(Resources.ErrorHelper_FieldValueIsNotCompatible, field.Name)
             .AddLocation(valueNode)
-            .SetExtension("fieldName", field.Name.Value)
+            .SetExtension("fieldName", field.Name)
             .SetExtension("fieldType", field.Type.Print())
             .SetExtension("locationType", locationType.Print())
             .SetPath(context.CreateErrorPath())
@@ -261,7 +259,7 @@ internal static class ErrorHelper
              .Build();
     }
 
-    public static IError FieldsAreNotMergable(
+    public static IError FieldsAreNotMergeable(
         this IDocumentValidatorContext context,
         FieldInfo fieldA,
         FieldInfo fieldB)
@@ -494,7 +492,7 @@ internal static class ErrorHelper
         IOutputField? field = null,
         DirectiveType? directive = null)
     {
-        IErrorBuilder builder = ErrorBuilder.New()
+        var builder = ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_ArgumentNotUnique)
             .AddLocation(node)
             .SetPath(context.CreateErrorPath());
@@ -524,7 +522,7 @@ internal static class ErrorHelper
         IOutputField? field = null,
         DirectiveType? directive = null)
     {
-        IErrorBuilder builder = ErrorBuilder.New()
+        var builder = ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_ArgumentRequired, argumentName)
             .AddLocation(node)
             .SetPath(context.CreateErrorPath());
@@ -553,7 +551,7 @@ internal static class ErrorHelper
         IOutputField? field = null,
         DirectiveType? directive = null)
     {
-        IErrorBuilder builder = ErrorBuilder.New()
+        var builder = ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_ArgumentDoesNotExist, node.Name.Value)
             .AddLocation(node)
             .SetPath(context.CreateErrorPath());
@@ -662,7 +660,7 @@ internal static class ErrorHelper
         ISyntaxNode node,
         InputObjectType type)
         => ErrorBuilder.New()
-            .SetMessage(Resources.ErrorHelper_OneOfMustHaveExactlyOneField, type.Name.Value)
+            .SetMessage(Resources.ErrorHelper_OneOfMustHaveExactlyOneField, type.Name)
             .AddLocation(node)
             .SetPath(context.CreateErrorPath())
             .SetExtension(nameof(type), type.Name)
@@ -684,5 +682,47 @@ internal static class ErrorHelper
             .SetPath(context.CreateErrorPath())
             .SetExtension(nameof(field), field.ToString())
             .SpecifiedBy("sec-Oneof–Input-Objects-Have-Exactly-One-Field", rfc: 825)
+            .Build();
+
+    public static IError DeferAndStreamNotAllowedOnMutationOrSubscriptionRoot(
+        ISelectionNode selection)
+        => ErrorBuilder.New()
+            .SetMessage(Resources.ErrorHelper_DeferAndStreamNotAllowedOnMutationOrSubscriptionRoot)
+            .AddLocation(selection)
+            .SpecifiedBy("sec-Defer-And-Stream-Directives-Are-Used-On-Valid-Root-Field")
+            .Build();
+
+    public static IError DeferAndStreamDuplicateLabel(
+        this IDocumentValidatorContext context,
+        ISyntaxNode selection,
+        string label)
+        => ErrorBuilder.New()
+            .SetMessage(Resources.ErrorHelper_DeferAndStreamDuplicateLabel)
+            .AddLocation(selection)
+            .SpecifiedBy("sec-Defer-And-Stream-Directive-Labels-Are-Unique")
+            .SetExtension(nameof(label), label)
+            .SetPath(context.CreateErrorPath())
+            .Build();
+
+    public static IError DeferAndStreamLabelIsVariable(
+        this IDocumentValidatorContext context,
+        ISyntaxNode selection,
+        string variable)
+        => ErrorBuilder.New()
+            .SetMessage(Resources.ErrorHelper_DeferAndStreamLabelIsVariable)
+            .AddLocation(selection)
+            .SpecifiedBy("sec-Defer-And-Stream-Directive-Labels-Are-Unique")
+            .SetExtension(nameof(variable),$"${variable}")
+            .SetPath(context.CreateErrorPath())
+            .Build();
+
+    public static IError StreamOnNonListField(
+        this IDocumentValidatorContext context,
+        ISyntaxNode selection)
+        => ErrorBuilder.New()
+            .SetMessage("@stream directive is only valid on list fields.")
+            .AddLocation(selection)
+            .SpecifiedBy("sec-Stream-Directives-Are-Used-On-List-Fields")
+            .SetPath(context.CreateErrorPath())
             .Build();
 }

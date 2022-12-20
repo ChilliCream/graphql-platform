@@ -17,8 +17,8 @@ internal sealed partial class TypeInfo
         {
             if (type.Kind == ExtendedTypeKind.Schema)
             {
-                IReadOnlyList<TypeComponent> components =
-                    Decompose(type, out IExtendedType namedType);
+                var components =
+                    Decompose(type, out var namedType);
 
                 typeInfo = new TypeInfo(
                     namedType.Type,
@@ -39,7 +39,7 @@ internal sealed partial class TypeInfo
             out IExtendedType namedType)
         {
             var list = new List<TypeComponent>();
-            IExtendedType? current = type;
+            var current = type;
 
             while (current is not null)
             {

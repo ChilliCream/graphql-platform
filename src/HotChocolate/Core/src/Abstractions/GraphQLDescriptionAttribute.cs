@@ -10,8 +10,7 @@ namespace HotChocolate;
     | AttributeTargets.Enum
     | AttributeTargets.Parameter
     | AttributeTargets.Field)]
-public sealed class GraphQLDescriptionAttribute
-    : Attribute
+public sealed class GraphQLDescriptionAttribute : Attribute
 {
     public GraphQLDescriptionAttribute(string description)
     {

@@ -9,14 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Sockets.Client\HotChocolate.Transport.Sockets.Client.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
-    <ProjectReference Include="..\..\..\Core\src\Types.Scalars.Upload\HotChocolate.Types.Scalars.Upload.csproj" />
     <ProjectReference Include="..\Stitching.Abstractions\HotChocolate.Stitching.Abstractions.csproj" />
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.4" />
   </ItemGroup>
 

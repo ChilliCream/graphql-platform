@@ -47,7 +47,7 @@ public partial class Schema
 
         if (definition.HasDirectives)
         {
-            foreach (DirectiveDefinition directive in definition.Directives)
+            foreach (var directive in definition.Directives)
             {
                 context.Dependencies.Add(new(
                     directive.TypeReference,

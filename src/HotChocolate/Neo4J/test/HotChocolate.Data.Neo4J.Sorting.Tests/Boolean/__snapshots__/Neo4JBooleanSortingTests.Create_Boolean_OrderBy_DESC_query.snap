@@ -1,1 +1,0 @@
-﻿MATCH (fooBool:FooBool) RETURN fooBool ORDER BY fooBool.Bar DESC

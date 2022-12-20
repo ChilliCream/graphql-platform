@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Routing.Patterns;
 using Microsoft.Extensions.FileProviders;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Extensions;
+using static HotChocolate.AspNetCore.MiddlewareRoutingType;
 using static Microsoft.AspNetCore.Routing.Patterns.RoutePatternFactory;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.AspNetCore.Builder;
 
 /// <summary>
@@ -13,11 +15,11 @@ namespace Microsoft.AspNetCore.Builder;
 /// </summary>
 public static class EndpointRouteBuilderExtensions
 {
-    private const string GraphQLHttpPath = "/graphql";
-    private const string GraphQLWebSocketPath = "/graphql/ws";
-    private const string GraphQLSchemaPath = "/graphql/sdl";
-    private const string GraphQLToolPath = "/graphql/ui";
-    private const string GraphQLToolRelativeRequestPath = "..";
+    private const string _graphQLHttpPath = "/graphql";
+    private const string _graphQLWebSocketPath = "/graphql/ws";
+    private const string _graphQLSchemaPath = "/graphql/sdl";
+    private const string _graphQLToolPath = "/graphql/ui";
+    private const string _graphQLToolRelativeRequestPath = "..";
 
     /// <summary>
     /// Adds a GraphQL endpoint to the endpoint configurations.
@@ -37,8 +39,8 @@ public static class EndpointRouteBuilderExtensions
     /// </returns>
     public static GraphQLEndpointConventionBuilder MapGraphQL(
         this IEndpointRouteBuilder endpointRouteBuilder,
-        string path = GraphQLHttpPath,
-        NameString schemaName = default)
+        string path = _graphQLHttpPath,
+        string? schemaName = default)
         => MapGraphQL(endpointRouteBuilder, new PathString(path), schemaName);
 
     /// <summary>
@@ -63,7 +65,7 @@ public static class EndpointRouteBuilderExtensions
     public static GraphQLEndpointConventionBuilder MapGraphQL(
         this IEndpointRouteBuilder endpointRouteBuilder,
         PathString path,
-        NameString schemaName = default)
+        string? schemaName = default)
     {
         if (endpointRouteBuilder is null)
         {
@@ -72,23 +74,21 @@ public static class EndpointRouteBuilderExtensions
 
         path = path.ToString().TrimEnd('/');
 
-        RoutePattern pattern = Parse(path + "/{**slug}");
-        IApplicationBuilder requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
-        NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
-        IFileProvider fileProvider = CreateFileProvider();
+        var pattern = Parse(path + "/{**slug}");
+        var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
+        var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
+        var fileProvider = CreateFileProvider();
 
         requestPipeline
             .UseCancellation()
             .UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault)
             .UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault)
             .UseMiddleware<HttpMultipartMiddleware>(schemaNameOrDefault)
-            .UseMiddleware<HttpGetSchemaMiddleware>(
-                schemaNameOrDefault,
-                MiddlewareRoutingType.Integrated)
+            .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault, Integrated)
             .UseMiddleware<ToolDefaultFileMiddleware>(fileProvider, path)
             .UseMiddleware<ToolOptionsFileMiddleware>(path)
             .UseMiddleware<ToolStaticFileMiddleware>(fileProvider, path)
-            .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault)
+            .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault, path)
             .Use(_ => context =>
             {
                 context.Response.StatusCode = 404;
@@ -122,8 +122,8 @@ public static class EndpointRouteBuilderExtensions
     /// </exception>
     public static GraphQLHttpEndpointConventionBuilder MapGraphQLHttp(
         this IEndpointRouteBuilder endpointRouteBuilder,
-        string pattern = GraphQLHttpPath,
-        NameString schemaName = default)
+        string pattern = _graphQLHttpPath,
+        string? schemaName = default)
         => MapGraphQLHttp(endpointRouteBuilder, Parse(pattern), schemaName);
 
     /// <summary>
@@ -148,7 +148,7 @@ public static class EndpointRouteBuilderExtensions
     public static GraphQLHttpEndpointConventionBuilder MapGraphQLHttp(
         this IEndpointRouteBuilder endpointRouteBuilder,
         RoutePattern pattern,
-        NameString schemaName = default)
+        string? schemaName = default)
     {
         if (endpointRouteBuilder is null)
         {
@@ -160,14 +160,14 @@ public static class EndpointRouteBuilderExtensions
             throw new ArgumentNullException(nameof(pattern));
         }
 
-        IApplicationBuilder requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
-        NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
+        var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
+        var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
 
         requestPipeline
             .UseCancellation()
             .UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault)
             .UseMiddleware<HttpMultipartMiddleware>(schemaNameOrDefault)
-            .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault)
+            .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault, default(PathString))
             .Use(_ => context =>
             {
                 context.Response.StatusCode = 404;
@@ -201,8 +201,8 @@ public static class EndpointRouteBuilderExtensions
     /// </exception>
     public static IEndpointConventionBuilder MapGraphQLWebSocket(
         this IEndpointRouteBuilder endpointRouteBuilder,
-        string pattern = GraphQLWebSocketPath,
-        NameString schemaName = default)
+        string pattern = _graphQLWebSocketPath,
+        string? schemaName = default)
         => MapGraphQLWebSocket(endpointRouteBuilder, Parse(pattern), schemaName);
 
     /// <summary>
@@ -227,7 +227,7 @@ public static class EndpointRouteBuilderExtensions
     public static IEndpointConventionBuilder MapGraphQLWebSocket(
         this IEndpointRouteBuilder endpointRouteBuilder,
         RoutePattern pattern,
-        NameString schemaName = default)
+        string? schemaName = default)
     {
         if (endpointRouteBuilder is null)
         {
@@ -239,8 +239,8 @@ public static class EndpointRouteBuilderExtensions
             throw new ArgumentNullException(nameof(pattern));
         }
 
-        IApplicationBuilder requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
-        NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
+        var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
+        var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
 
         requestPipeline
             .UseCancellation()
@@ -278,8 +278,8 @@ public static class EndpointRouteBuilderExtensions
     /// </exception>
     public static IEndpointConventionBuilder MapGraphQLSchema(
         this IEndpointRouteBuilder endpointRouteBuilder,
-        string pattern = GraphQLSchemaPath,
-        NameString schemaName = default)
+        string pattern = _graphQLSchemaPath,
+        string? schemaName = default)
         => MapGraphQLSchema(endpointRouteBuilder, Parse(pattern), schemaName);
 
     /// <summary>
@@ -304,7 +304,7 @@ public static class EndpointRouteBuilderExtensions
     public static IEndpointConventionBuilder MapGraphQLSchema(
         this IEndpointRouteBuilder endpointRouteBuilder,
         RoutePattern pattern,
-        NameString schemaName = default)
+        string? schemaName = default)
     {
         if (endpointRouteBuilder is null)
         {
@@ -316,14 +316,14 @@ public static class EndpointRouteBuilderExtensions
             throw new ArgumentNullException(nameof(pattern));
         }
 
-        IApplicationBuilder requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
-        NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
+        var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
+        var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
 
         requestPipeline
             .UseCancellation()
             .UseMiddleware<HttpGetSchemaMiddleware>(
                 schemaNameOrDefault,
-                MiddlewareRoutingType.Explicit)
+                Explicit)
             .Use(_ => context =>
             {
                 context.Response.StatusCode = 404;
@@ -354,8 +354,8 @@ public static class EndpointRouteBuilderExtensions
     /// </returns>
     public static BananaCakePopEndpointConventionBuilder MapBananaCakePop(
         this IEndpointRouteBuilder endpointRouteBuilder,
-        string toolPath = GraphQLToolPath,
-        string? relativeRequestPath = GraphQLToolRelativeRequestPath)
+        string toolPath = _graphQLToolPath,
+        string? relativeRequestPath = _graphQLToolRelativeRequestPath)
         => MapBananaCakePop(endpointRouteBuilder, new PathString(toolPath), relativeRequestPath);
 
     /// <summary>
@@ -377,7 +377,7 @@ public static class EndpointRouteBuilderExtensions
     public static BananaCakePopEndpointConventionBuilder MapBananaCakePop(
         this IEndpointRouteBuilder endpointRouteBuilder,
         PathString toolPath,
-        string? relativeRequestPath = GraphQLToolRelativeRequestPath)
+        string? relativeRequestPath = _graphQLToolRelativeRequestPath)
     {
         if (endpointRouteBuilder is null)
         {
@@ -385,11 +385,11 @@ public static class EndpointRouteBuilderExtensions
         }
 
         toolPath = toolPath.ToString().TrimEnd('/');
-        relativeRequestPath ??= GraphQLToolRelativeRequestPath;
+        relativeRequestPath ??= _graphQLToolRelativeRequestPath;
 
-        RoutePattern pattern = Parse(toolPath + "/{**slug}");
-        IApplicationBuilder requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
-        IFileProvider fileProvider = CreateFileProvider();
+        var pattern = Parse(toolPath + "/{**slug}");
+        var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
+        var fileProvider = CreateFileProvider();
 
         requestPipeline
             .UseCancellation()
@@ -402,7 +402,7 @@ public static class EndpointRouteBuilderExtensions
                 return Task.CompletedTask;
             });
 
-        IEndpointConventionBuilder builder = endpointRouteBuilder
+        var builder = endpointRouteBuilder
             .Map(pattern, requestPipeline.Build())
             .WithDisplayName("Banana Cake Pop Pipeline")
             .WithMetadata(new GraphQLEndpointOptions { GraphQLEndpoint = relativeRequestPath });
@@ -489,7 +489,7 @@ public static class EndpointRouteBuilderExtensions
 
     private static IFileProvider CreateFileProvider()
     {
-        Type? type = typeof(EndpointRouteBuilderExtensions);
+        var type = typeof(EndpointRouteBuilderExtensions);
         var resourceNamespace = typeof(MiddlewareBase).Namespace + ".Resources";
         return new EmbeddedFileProvider(type.Assembly, resourceNamespace);
     }

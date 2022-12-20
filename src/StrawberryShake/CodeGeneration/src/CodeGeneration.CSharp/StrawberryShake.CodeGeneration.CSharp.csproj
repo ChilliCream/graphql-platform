@@ -13,8 +13,4 @@
     <ProjectReference Include="..\CodeGeneration\StrawberryShake.CodeGeneration.csproj" />
   </ItemGroup>
 
-  <PropertyGroup>
-    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
-  </PropertyGroup>
-
 </Project>

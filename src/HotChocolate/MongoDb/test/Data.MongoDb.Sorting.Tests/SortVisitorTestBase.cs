@@ -21,12 +21,12 @@ public class SortVisitorTestBase
         params TResult[] results)
         where TResult : class
     {
-        IMongoCollection<TResult> collection =
+        var collection =
             mongoResource.CreateCollection<TResult>("data_" + Guid.NewGuid().ToString("N"));
 
         collection.InsertMany(results);
 
-        return ctx => collection.AsExecutable();
+        return _ => collection.AsExecutable();
     }
 
     protected IRequestExecutor CreateSchema<TEntity, T>(
@@ -36,7 +36,7 @@ public class SortVisitorTestBase
         where TEntity : class
         where T : SortInputType<TEntity>
     {
-        Func<IResolverContext, IExecutable<TEntity>> resolver = BuildResolver(
+        var resolver = BuildResolver(
             mongoResource,
             entities);
 

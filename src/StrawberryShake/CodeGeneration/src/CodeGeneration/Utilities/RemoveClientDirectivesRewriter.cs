@@ -11,7 +11,7 @@ internal sealed class RemoveClientDirectivesRewriter : SyntaxRewriter<ISyntaxVis
 
     protected override FieldNode RewriteField(FieldNode node, ISyntaxVisitorContext context)
     {
-        FieldNode current = node;
+        var current = node;
 
         if (current.Directives.Any(t => t.Name.Value.EqualsOrdinal(_returns)))
         {

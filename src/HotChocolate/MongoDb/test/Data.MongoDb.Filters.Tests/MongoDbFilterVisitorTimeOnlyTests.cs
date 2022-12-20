@@ -1,5 +1,4 @@
-using System;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using MongoDB.Bson;
@@ -7,7 +6,6 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Serializers;
 using Squadron;
-using Xunit;
 
 namespace HotChocolate.Data.MongoDb.Filters;
 
@@ -15,19 +13,18 @@ public class MongoDbFilterVisitorTimeOnlyTests
     : SchemaCache
     , IClassFixture<MongoResource>
 {
-#if NET6_0_OR_GREATER
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { Bar = new TimeOnly(06, 30) },
-            new Foo { Bar = new TimeOnly(16, 00) }
-        };
+        new() { Bar = new TimeOnly(06, 30) },
+        new() { Bar = new TimeOnly(16, 00) }
+    };
 
     private static readonly FooNullable[] _fooNullableEntities =
     {
-            new FooNullable { Bar = new TimeOnly(06, 30) },
-            new FooNullable { Bar = null },
-            new FooNullable { Bar = new TimeOnly(16, 00) }
-        };
+        new() { Bar = new TimeOnly(06, 30) },
+        new() { Bar = null },
+        new() { Bar = new TimeOnly(16, 00) }
+    };
 
     public MongoDbFilterVisitorTimeOnlyTests(MongoResource resource)
     {
@@ -41,108 +38,112 @@ public class MongoDbFilterVisitorTimeOnlyTests
     public async Task Create_TimeOnlyEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: \"06:30:00\" } }){ bar } }")
                 .Create());
 
-        res1.MatchDocumentSnapshot("0630");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: \"16:00:00\" } }){ bar } }")
                 .Create());
 
-        res2.MatchDocumentSnapshot("1600");
+        // arrange
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "0630"), res2, "1600")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_TimeOnlyNotEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: \"06:30:00\" } }){ bar } }")
                 .Create());
 
-        res1.MatchDocumentSnapshot("0630");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: \"16:00:00\" } }){ bar } }")
                 .Create());
 
-        res2.MatchDocumentSnapshot("1600");
+        // arrange
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "0630"), res2, "1600")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_NullableTimeOnlyEqual_Expression()
     {
         // arrange
-        IRequestExecutor? tester = CreateSchema<FooNullable, FooNullableFilterType>(
-            _fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: \"06:30:00\" } }){ bar } }")
                 .Create());
 
-        res1.MatchDocumentSnapshot("0630");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: \"16:00:00\" } }){ bar } }")
                 .Create());
 
-        res2.MatchDocumentSnapshot("1600");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: null } }){ bar } }")
                 .Create());
 
-        res3.MatchDocumentSnapshot("null");
+        // arrange
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "0630"), res2, "1600"), res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_NullableTimeOnlyNotEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<FooNullable, FooNullableFilterType>(
-            _fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: \"06:30:00\" } }){ bar } }")
                 .Create());
 
-        res1.MatchDocumentSnapshot("0630");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: \"16:00:00\" } }){ bar } }")
                 .Create());
 
-        res2.MatchDocumentSnapshot("1600");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: null } }){ bar } }")
                 .Create());
 
-        res3.MatchDocumentSnapshot("null");
+        // arrange
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "0630"), res2, "1600"), res3, "null")
+            .MatchAsync();
     }
 
     public class Foo
@@ -186,7 +187,7 @@ public class MongoDbFilterVisitorTimeOnlyTests
             BsonSerializationArgs args,
             TimeOnly value)
         {
-            DateTime dateTime = default(DateTime).Add(value.ToTimeSpan());
+            var dateTime = default(DateTime).Add(value.ToTimeSpan());
             dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
             var ticks = BsonUtils.ToMillisecondsSinceEpoch(dateTime);
             context.Writer.WriteDateTime(ticks);
@@ -196,10 +197,9 @@ public class MongoDbFilterVisitorTimeOnlyTests
             BsonDeserializationContext context,
             BsonDeserializationArgs args)
         {
-            long ticks = context.Reader.ReadDateTime();
-            DateTime dateTime = BsonUtils.ToDateTimeFromMillisecondsSinceEpoch(ticks);
+            var ticks = context.Reader.ReadDateTime();
+            var dateTime = BsonUtils.ToDateTimeFromMillisecondsSinceEpoch(ticks);
             return new TimeOnly(dateTime.Hour, dateTime.Minute, dateTime.Second);
         }
     }
-#endif
 }

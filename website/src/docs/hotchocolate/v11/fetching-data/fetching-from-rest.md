@@ -2,8 +2,6 @@
 title: "Fetching from REST"
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 In this section, we will cover how you can easily integrate a REST API into your GraphQL API.
 
 GraphQL has a strongly-typed type system and therefore also has to know the dotnet runtime types of the data it returns in advance.
@@ -64,9 +62,7 @@ In this file, you will find the client for your REST API.
 The generated needs `Newtonsoft.Json`.
 Make sure to also add this package by executing:
 
-```bash
-dotnet add package Newtonsoft.Json
-```
+<PackageInstallation packageName="Newtonsoft.Json" external />
 
 # Exposing the API
 
@@ -235,7 +231,7 @@ public class Startup
 </Schema>
 </ExampleTabs>
 
-You can now head over to your Banana Cake Pop on your GraphQL Server (/graphql) and query todos:
+You can now head over to your Banana Cake Pop on your GraphQL Server (/graphql) and query `todos`:
 
 ```graphql
 {

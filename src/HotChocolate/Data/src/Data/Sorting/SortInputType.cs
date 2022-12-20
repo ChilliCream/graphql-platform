@@ -22,8 +22,7 @@ public class SortInputType
 
     public SortInputType(Action<ISortInputTypeDescriptor> configure)
     {
-        _configure = configure ??
-            throw new ArgumentNullException(nameof(configure));
+        _configure = configure ?? throw new ArgumentNullException(nameof(configure));
     }
 
     public IExtendedType EntityType { get; private set; } = default!;
@@ -68,8 +67,7 @@ public class SortInputType
     {
         base.OnCompleteType(context, definition);
 
-        if (definition is SortInputTypeDefinition ft &&
-            ft.EntityType is { })
+        if (definition is SortInputTypeDefinition { EntityType: not null } ft)
         {
             EntityType = context.TypeInspector.GetType(ft.EntityType);
         }
@@ -82,7 +80,7 @@ public class SortInputType
         var fields = new InputField[definition.Fields.Count];
         var index = 0;
 
-        foreach (InputFieldDefinition fieldDefinition in definition.Fields)
+        foreach (var fieldDefinition in definition.Fields)
         {
             if (fieldDefinition is SortFieldDefinition {Ignore: false} field)
             {
@@ -118,7 +116,7 @@ public class SortInputType
             throw new ArgumentNullException(nameof(sortType));
         }
 
-        SortInputTypeDefinition sortTypeDefinition = explicitDefinition ?? new()
+        var sortTypeDefinition = explicitDefinition ?? new()
         {
             EntityType = typeof(object)
         };
@@ -127,7 +125,7 @@ public class SortInputType
         // to declare the types of operations
         foreach (var field in sourceTypeDefinition.Fields.OfType<SortFieldDefinition>())
         {
-            SortFieldDefinition? userDefinedField = sortTypeDefinition.Fields
+            var userDefinedField = sortTypeDefinition.Fields
                 .OfType<SortFieldDefinition>()
                 .FirstOrDefault(x => x.Name == field.Name);
 
@@ -149,7 +147,7 @@ public class SortInputType
             new CompleteConfiguration<SortInputTypeDefinition>(
                 CreateNamingConfiguration,
                 sortTypeDefinition,
-                ApplyConfigurationOn.Naming,
+                ApplyConfigurationOn.BeforeNaming,
                 new TypeDependency[]
                 {
                     new(sortOperationType, TypeDependencyKind.Named),
@@ -170,13 +168,13 @@ public class SortInputType
             ITypeCompletionContext context,
             SortInputTypeDefinition definition)
         {
-            if (definition.Name.HasValue)
+            if (definition.IsNamed)
             {
                 return;
             }
 
-            ISortInputType parentSortType = context.GetType<ISortInputType>(sortType);
-            ISortConvention convention = context.GetSortConvention(context.Scope);
+            var parentSortType = context.GetType<ISortInputType>(sortType);
+            var convention = context.GetSortConvention(context.Scope);
             definition.Name = convention.GetTypeName(parentSortType, fieldDefinition);
         }
     }

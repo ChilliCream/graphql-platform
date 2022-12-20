@@ -8,14 +8,14 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Sorting.Expressions;
 
 [return: NotNullIfNotNull("input")]
 public delegate object? ApplySorting(IResolverContext context, object? input);
 
-public class QueryableSortProvider
-    : SortProvider<QueryableSortContext>
+public class QueryableSortProvider : SortProvider<QueryableSortContext>
 {
     public const string ContextArgumentNameKey = "SortArgumentName";
     public const string ContextVisitSortArgumentKey = nameof(VisitSortArgument);
@@ -26,8 +26,7 @@ public class QueryableSortProvider
     {
     }
 
-    public QueryableSortProvider(
-        Action<ISortProviderDescriptor<QueryableSortContext>> configure)
+    public QueryableSortProvider(Action<ISortProviderDescriptor<QueryableSortContext>> configure)
         : base(configure)
     {
     }
@@ -35,9 +34,9 @@ public class QueryableSortProvider
     protected virtual SortVisitor<QueryableSortContext, QueryableSortOperation> Visitor { get; }
         = new();
 
-    public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
+    public override FieldMiddleware CreateExecutor<TEntityType>(string argumentName)
     {
-        ApplySorting applySorting = CreateApplicatorAsync<TEntityType>(argumentName);
+        var applySorting = CreateApplicatorAsync<TEntityType>(argumentName.EnsureGraphQLName());
 
         return next => context => ExecuteAsync(next, context);
 
@@ -55,22 +54,32 @@ public class QueryableSortProvider
         }
     }
 
-    private static ApplySorting CreateApplicatorAsync<TEntityType>(NameString argumentName)
+    protected virtual bool IsInMemoryQuery<TEntityType>(object? input)
+    {
+        if (input is QueryableExecutable<TEntityType> { InMemory: var inMemory })
+        {
+            return inMemory;
+        }
+
+        return input is not IQueryable || input is EnumerableQuery;
+    }
+
+    private ApplySorting CreateApplicatorAsync<TEntityType>(string argumentName)
     {
         return (context, input) =>
         {
             // next we get the sort argument.
-            IInputField argument = context.Selection.Field.Arguments[argumentName];
-            IValueNode sort = context.ArgumentLiteral<IValueNode>(argumentName);
+            var argument = context.Selection.Field.Arguments[argumentName];
+            var sort = context.ArgumentLiteral<IValueNode>(argumentName);
 
             // if no sort is defined we can stop here and yield back control.
             var skipSorting =
-            context.LocalContextData.TryGetValue(SkipSortingKey, out var skip) &&
-            skip is true;
+                context.LocalContextData.TryGetValue(SkipSortingKey, out var skip) &&
+                skip is true;
 
             // ensure sorting is only applied once
             context.LocalContextData =
-            context.LocalContextData.SetItem(SkipSortingKey, true);
+                context.LocalContextData.SetItem(SkipSortingKey, true);
 
             if (sort.IsNull() || skipSorting)
             {
@@ -80,26 +89,19 @@ public class QueryableSortProvider
             if (argument.Type is ListType lt &&
                 lt.ElementType is NonNullType nn &&
                 nn.NamedType() is ISortInputType sortInput &&
-                context.Selection.Field.ContextData.TryGetValue(
-                    ContextVisitSortArgumentKey,
-                    out var executorObj) &&
+                context.Selection.Field.ContextData
+                    .TryGetValue(ContextVisitSortArgumentKey, out var executorObj) &&
                 executorObj is VisitSortArgument executor)
             {
-                var inMemory =
-                    input is QueryableExecutable<TEntityType> { InMemory: true } ||
-                    input is not IQueryable ||
-                    input is EnumerableQuery;
+                var inMemory = IsInMemoryQuery<TEntityType>(input);
 
-                QueryableSortContext visitorContext = executor(
-                    sort,
-                    sortInput,
-                    inMemory);
+                var visitorContext = executor(sort, sortInput, inMemory);
 
                 // compile expression tree
                 if (visitorContext.Errors.Count > 0)
                 {
                     input = Array.Empty<TEntityType>();
-                    foreach (IError error in visitorContext.Errors)
+                    foreach (var error in visitorContext.Errors)
                     {
                         context.ReportError(error.WithPath(context.Path));
                     }
@@ -122,7 +124,7 @@ public class QueryableSortProvider
     }
 
     public override void ConfigureField(
-        NameString argumentName,
+        string argumentName,
         IObjectFieldDescriptor descriptor)
     {
         QueryableSortContext VisitSortArgumentExecutor(
@@ -130,9 +132,7 @@ public class QueryableSortProvider
             ISortInputType filterInput,
             bool inMemory)
         {
-            var visitorContext = new QueryableSortContext(
-                filterInput,
-                inMemory);
+            var visitorContext = new QueryableSortContext(filterInput, inMemory);
 
             // rewrite GraphQL input object into expression tree.
             Visitor.Visit(valueNode, visitorContext);
@@ -140,7 +140,7 @@ public class QueryableSortProvider
             return visitorContext;
         }
 
-        ExtensionData contextData = descriptor.Extend().Definition.ContextData;
+        var contextData = descriptor.Extend().Definition.ContextData;
         var argumentKey = (VisitSortArgument)VisitSortArgumentExecutor;
         contextData[ContextVisitSortArgumentKey] = argumentKey;
         contextData[ContextArgumentNameKey] = argumentName;

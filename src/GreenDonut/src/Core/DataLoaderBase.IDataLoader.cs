@@ -38,7 +38,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         async Task<IReadOnlyList<object?>> Load()
         {
-            TKey[] casted = keys.Select(key => (TKey)key).ToArray();
+            var casted = keys.Select(key => (TKey)key).ToArray();
             return (IReadOnlyList<object?>)
                 await LoadAsync(casted, cancellationToken).ConfigureAwait(false);
         }

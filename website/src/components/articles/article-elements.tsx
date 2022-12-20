@@ -1,5 +1,6 @@
 import styled from "styled-components";
-import { IsSmallDesktop } from "../../shared-style";
+
+import { IsSmallDesktop } from "@/shared-style";
 
 export interface ArticleHeaderProps {
   readonly kind: "blog" | "doc";

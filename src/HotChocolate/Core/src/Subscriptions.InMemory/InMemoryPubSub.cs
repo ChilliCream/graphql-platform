@@ -1,55 +1,57 @@
-using System.Collections.Concurrent;
-using System.Threading;
-using System.Threading.Tasks;
-using HotChocolate.Execution;
+using HotChocolate.Subscriptions.Diagnostics;
 
 namespace HotChocolate.Subscriptions.InMemory;
 
-public class InMemoryPubSub
-    : ITopicEventReceiver
-    , ITopicEventSender
+/// <summary>
+/// The in-memory pub/sub provider implementation.
+/// </summary>
+internal sealed class InMemoryPubSub : DefaultPubSub
 {
-    private readonly ConcurrentDictionary<object, IEventTopic> _topics =
-        new ConcurrentDictionary<object, IEventTopic>();
+    private readonly SubscriptionOptions _options;
+    private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;
 
-    public ValueTask SendAsync<TTopic, TMessage>(
-        TTopic topic,
-        TMessage message,
+    public InMemoryPubSub(
+        SubscriptionOptions options,
+        ISubscriptionDiagnosticEvents diagnosticEvents)
+        : base(options, diagnosticEvents)
+    {
+        _options = options;
+        _diagnosticEvents = diagnosticEvents;
+    }
+
+    protected override ValueTask OnSendAsync<TMessage>(
+        string formattedTopic,
+        MessageEnvelope<TMessage> message,
         CancellationToken cancellationToken = default)
-        where TTopic : notnull
     {
-        IEventTopic eventTopic = _topics.GetOrAdd(topic, s => new EventTopic<TMessage>());
-
-        if (eventTopic is EventTopic<TMessage> et)
+        if (TryGetTopic<InMemoryTopic<TMessage>>(formattedTopic, out var topic))
         {
-            et.TryWrite(message);
-            return default;
+            topic.TryWrite(message);
         }
 
-        throw new InvalidMessageTypeException();
+        return default;
     }
 
-    public async ValueTask CompleteAsync<TTopic>(TTopic topic)
-        where TTopic : notnull
+    protected override ValueTask OnCompleteAsync(string formattedTopic)
     {
-        if (_topics.TryRemove(topic, out IEventTopic? eventTopic))
+        if (TryGetTopic<IInMemoryTopic>(formattedTopic, out var topic))
         {
-            await eventTopic.CompleteAsync().ConfigureAwait(false);
-        }
-    }
-
-    public async ValueTask<ISourceStream<TMessage>> SubscribeAsync<TTopic, TMessage>(
-        TTopic topic,
-        CancellationToken cancellationToken = default)
-        where TTopic : notnull
-    {
-        IEventTopic eventTopic = _topics.GetOrAdd(topic, s => new EventTopic<TMessage>());
-
-        if (eventTopic is EventTopic<TMessage> et)
-        {
-            return await et.SubscribeAsync(cancellationToken).ConfigureAwait(false);
+            topic.TryComplete();
         }
 
-        throw new InvalidMessageTypeException();
+        return default;
     }
+
+    protected override DefaultTopic<TMessage> OnCreateTopic<TMessage>(
+        string formattedTopic,
+        int? bufferCapacity,
+        TopicBufferFullMode? bufferFullMode)
+        => new InMemoryTopic<TMessage>(
+            formattedTopic,
+            bufferCapacity ?? _options.TopicBufferCapacity,
+            bufferFullMode ?? _options.TopicBufferFullMode,
+            _diagnosticEvents);
+
+    protected override string FormatTopicName(string topic)
+        => topic;
 }

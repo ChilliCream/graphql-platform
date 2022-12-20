@@ -18,12 +18,12 @@ public class ClientInterfaceGenerator : ClassBaseGenerator<ClientDescriptor>
         path = null;
         ns = descriptor.InterfaceType.NamespaceWithoutGlobal;
 
-        InterfaceBuilder interfaceBuilder = InterfaceBuilder
+        var interfaceBuilder = InterfaceBuilder
             .New()
             .SetName(fileName)
             .SetComment(descriptor.Documentation);
 
-        foreach (OperationDescriptor operation in descriptor.Operations)
+        foreach (var operation in descriptor.Operations)
         {
             interfaceBuilder
                 .AddProperty(NameUtils.GetPropertyName(operation.Name))

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -19,16 +18,14 @@ public class QueryableOffsetPagingHandler<TEntity>
     private readonly QueryableOffsetPagination<TEntity> _pagination = new();
 
     public QueryableOffsetPagingHandler(PagingOptions options)
-        : base(options)
-    {
-    }
+        : base(options) { }
 
     protected override ValueTask<CollectionSegment> SliceAsync(
         IResolverContext context,
         object source,
         OffsetPagingArguments arguments)
     {
-        CancellationToken ct = context.RequestAborted;
+        var ct = context.RequestAborted;
         return source switch
         {
             IQueryable<TEntity> q => ResolveAsync(context, q, arguments, ct),
@@ -51,17 +48,19 @@ public class QueryableOffsetPagingHandler<TEntity>
         // TotalCount is one of the heaviest operations. It is only necessary to load totalCount
         // when it is enabled (IncludeTotalCount) and when it is contained in the selection set.
         if (IncludeTotalCount &&
-            context.Selection.Type is ObjectType objectType &&
-            context.Selection.SyntaxNode.SelectionSet is { } selectionSet)
+            context.Selection is { Type: ObjectType objectType, SyntaxNode.SelectionSet: not null })
         {
-            IReadOnlyList<IFieldSelection> selections =
-                context.GetSelections(objectType, selectionSet, true);
+            var selections = context.GetSelections(objectType, null, true);
 
             for (var i = 0; i < selections.Count; i++)
             {
-                if (selections[i].Field.Name.Value is "totalCount")
+                if (selections[i].Field.Name is "totalCount")
                 {
-                    totalCount = source.Count();
+                    totalCount = await Task.Run(
+                            () => source.Count(),
+                            cancellationToken)
+                        .ConfigureAwait(false);
+                    break;
                 }
             }
         }

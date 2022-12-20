@@ -2,9 +2,10 @@ import React, { FC, useEffect } from "react";
 import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
-import { State } from "../../state";
-import { hideCookieConsent, showCookieConsent } from "../../state/common";
-import { Button } from "../misc/button";
+
+import { Button } from "@/components/misc/button";
+import { State } from "@/state";
+import { hideCookieConsent, showCookieConsent } from "@/state/common";
 import { Link } from "./link";
 
 export const CookieConsent: FC = () => {

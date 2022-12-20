@@ -1,7 +1,6 @@
 using ChilliCream.Testing;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Merge;
-using HotChocolate.Stitching.SchemaBuilding;
 using Xunit;
 
 namespace HotChocolate.Stitching;
@@ -13,7 +12,7 @@ public class SchemaInfoTests
     {
         // arrange
         const string schemaName = "foo";
-        DocumentNode schema = Utf8GraphQLParser.Parse(
+        var schema = Utf8GraphQLParser.Parse(
             FileResource.Open("SchemaInfoTests_Schema.graphql"));
 
         // act
@@ -38,14 +37,14 @@ public class SchemaInfoTests
     {
         // arrange
         const string schemaName = "foo";
-        DocumentNode schema = Utf8GraphQLParser.Parse(
+        var schema = Utf8GraphQLParser.Parse(
             FileResource.Open("SchemaInfoTests_Schema.graphql"));
         var schemaInfo = new SchemaInfo(schemaName, schema);
 
         // act
-        bool success = schemaInfo.TryGetOperationType(
+        var success = schemaInfo.TryGetOperationType(
             schemaInfo.QueryType,
-            out OperationType operationType);
+            out var operationType);
 
         // assert
         Assert.True(success);
@@ -57,14 +56,14 @@ public class SchemaInfoTests
     {
         // arrange
         const string schemaName = "foo";
-        DocumentNode schema = Utf8GraphQLParser.Parse(
+        var schema = Utf8GraphQLParser.Parse(
             FileResource.Open("SchemaInfoTests_Schema.graphql"));
         var schemaInfo = new SchemaInfo(schemaName, schema);
 
         // act
-        bool success = schemaInfo.TryGetOperationType(
+        var success = schemaInfo.TryGetOperationType(
             schemaInfo.MutationType,
-            out OperationType operationType);
+            out var operationType);
 
         // assert
         Assert.True(success);
@@ -76,14 +75,14 @@ public class SchemaInfoTests
     {
         // arrange
         const string schemaName = "foo";
-        DocumentNode schema = Utf8GraphQLParser.Parse(
+        var schema = Utf8GraphQLParser.Parse(
             FileResource.Open("SchemaInfoTests_Schema.graphql"));
         var schemaInfo = new SchemaInfo(schemaName, schema);
 
         // act
-        bool success = schemaInfo.TryGetOperationType(
+        var success = schemaInfo.TryGetOperationType(
             schemaInfo.SubscriptionType,
-            out OperationType operationType);
+            out var operationType);
 
         // assert
         Assert.True(success);

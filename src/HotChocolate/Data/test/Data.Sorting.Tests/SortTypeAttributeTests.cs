@@ -3,6 +3,7 @@ using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using Xunit;
+using static HotChocolate.Data.Sorting.SortTypeAttributeTests.GenericTypeSortAttribute;
 
 namespace HotChocolate.Data.Sorting;
 
@@ -12,7 +13,7 @@ public class SortTypeAttributeTests
     public void GenericTypeDescriptorAttribute_Changes_Name()
     {
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddSorting()
             .AddType<SortInputType<FooGeneric>>()
             .ModifyOptions(o => o.StrictValidation = false)
@@ -20,18 +21,15 @@ public class SortTypeAttributeTests
 
         // assert
         Assert.Equal(
-            GenericTypeSortAttribute.TypeName,
-            schema.GetType<SortInputType<FooGeneric>>(
-                    GenericTypeSortAttribute.TypeName)
-                .TypeName()
-                .Value);
+            TypeName,
+            schema.GetType<SortInputType<FooGeneric>>(TypeName).TypeName());
     }
 
     [Fact]
     public void SortFieldAttribute_Changes_Name()
     {
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddSorting()
             .AddType<SortInputType<FooFields>>()
             .ModifyOptions(o => o.StrictValidation = false)
@@ -44,7 +42,7 @@ public class SortTypeAttributeTests
                 .FirstOrDefault(x => x.Name == SortFieldAttributeTest.Field));
     }
 
-    [GenericTypeSortAttribute]
+    [GenericTypeSort]
     public class FooGeneric
     {
         public string StringSortTest { get; set; } = default!;

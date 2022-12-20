@@ -6,10 +6,10 @@ namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 public sealed class ObjectTypeDescriptor : ComplexTypeDescriptor
 {
     public ObjectTypeDescriptor(
-        NameString name,
+        string name,
         TypeKind typeKind,
         RuntimeTypeInfo runtimeType,
-        IReadOnlyList<NameString> implements,
+        IReadOnlyList<string> implements,
         IReadOnlyList<DeferredFragmentDescriptor>? deferred,
         string? description,
         RuntimeTypeInfo? parentRuntimeType = null,

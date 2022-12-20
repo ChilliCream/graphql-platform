@@ -2,11 +2,11 @@ namespace HotChocolate.Stitching;
 
 internal static class DirectiveNames
 {
-    public static NameString Delegate { get; } = "delegate";
+    public static string Delegate { get; } = "delegate";
 
-    public static NameString Computed { get; } = "computed";
+    public static string Computed { get; } = "computed";
 
-    public static NameString Source { get; } = "source";
+    public static string Source { get; } = "source";
 
     public const string RemoveRootTypes = "_removeRootTypes";
 

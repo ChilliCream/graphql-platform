@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
@@ -97,7 +96,7 @@ public sealed class FieldNode : NamedSyntaxNode, ISelectionNode
 
         yield return Name;
 
-        foreach (ArgumentNode argument in Arguments)
+        foreach (var argument in Arguments)
         {
             yield return argument;
         }
@@ -107,7 +106,7 @@ public sealed class FieldNode : NamedSyntaxNode, ISelectionNode
             yield return Required;
         }
 
-        foreach (DirectiveNode directive in Directives)
+        foreach (var directive in Directives)
         {
             yield return directive;
         }

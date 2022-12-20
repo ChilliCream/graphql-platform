@@ -11,9 +11,9 @@ public class ProductRepository
     {
         _products = new Product[]
         {
-                new Product(1, "Table", 899, 100),
-                new Product(2, "Couch", 1299, 1000),
-                new Product(3, "Chair", 54, 50)
+            new Product(1, "Table", 899, 100),
+            new Product(2, "Couch", 1299, 1000),
+            new Product(3, "Chair", 54, 50)
         }.ToDictionary(t => t.Upc);
     }
 
@@ -21,5 +21,5 @@ public class ProductRepository
     public IEnumerable<Product> GetTopProducts(int first) =>
         _products.Values.OrderBy(t => t.Upc).Take(first);
 
-    public Product GetProduct(int upc) => _products[upc];
+    public Product GetProduct   (int upc) => _products[upc];
 }

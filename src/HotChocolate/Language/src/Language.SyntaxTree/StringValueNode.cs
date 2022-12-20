@@ -81,7 +81,7 @@ public sealed class StringValueNode : IValueNode<string>, IHasSpan
         {
             if (_value is null)
             {
-                ReadOnlySpan<byte> span = AsSpan();
+                var span = AsSpan();
                 fixed (byte* b = span)
                 {
                     _value = Encoding.UTF8.GetString(b, span.Length);

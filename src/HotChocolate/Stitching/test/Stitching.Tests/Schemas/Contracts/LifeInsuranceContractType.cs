@@ -7,12 +7,13 @@ namespace HotChocolate.Stitching.Schemas.Contracts;
 
 public class LifeInsuranceContractType : ObjectType<LifeInsuranceContract>
 {
-    protected override void Configure(IObjectTypeDescriptor<LifeInsuranceContract> descriptor)
+    protected override void Configure(
+        IObjectTypeDescriptor<LifeInsuranceContract> descriptor)
     {
         descriptor
-            .ImplementsNode()
+            .AsNode()
             .IdField(t => t.Id)
-            .ResolveNode((ctx, id) =>
+            .NodeResolver((ctx, id) =>
             {
                 return Task.FromResult(
                     ctx.Service<ContractStorage>()

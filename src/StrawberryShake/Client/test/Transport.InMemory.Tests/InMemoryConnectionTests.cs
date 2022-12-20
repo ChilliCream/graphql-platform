@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Xunit;
 
 namespace StrawberryShake.Transport.InMemory;
 
@@ -14,7 +13,7 @@ public class InMemoryConnectionTests
         Func<CancellationToken, ValueTask<IInMemoryClient>> create = _ => default!;
 
         // act
-        Exception? ex = Record.Exception(() => new InMemoryConnection(create));
+        var ex = Record.Exception(() => new InMemoryConnection(create));
 
         // assert
         Assert.Null(ex);
@@ -27,7 +26,7 @@ public class InMemoryConnectionTests
         Func<CancellationToken, ValueTask<IInMemoryClient>> create = null!;
 
         // act
-        Exception? ex = Record.Exception(() => new InMemoryConnection(create));
+        var ex = Record.Exception(() => new InMemoryConnection(create));
 
         // assert
         Assert.IsType<ArgumentNullException>(ex);

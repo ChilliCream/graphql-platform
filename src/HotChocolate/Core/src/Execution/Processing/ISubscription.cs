@@ -13,5 +13,5 @@ public interface ISubscription
     /// <summary>
     /// The compiled subscription operation.
     /// </summary>
-    IPreparedOperation Operation { get; }
+    IOperation Operation { get; }
 }

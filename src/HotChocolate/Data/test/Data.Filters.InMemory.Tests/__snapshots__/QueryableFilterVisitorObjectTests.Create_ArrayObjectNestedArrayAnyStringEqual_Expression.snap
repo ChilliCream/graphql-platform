@@ -1,0 +1,68 @@
+false
+---------------
+{
+  "data": {
+    "root": []
+  }
+}
+---------------
+
+true
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "objectArray": [
+            {
+              "foo": {
+                "barString": "a"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "foo": {
+          "objectArray": [
+            {
+              "foo": {
+                "barString": "d"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter \u0060any\u0060 of type ListBarFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 44
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "Boolean!",
+        "filterType": "ListBarFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": []
+  }
+}
+---------------

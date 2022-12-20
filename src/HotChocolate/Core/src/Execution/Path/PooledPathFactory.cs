@@ -2,8 +2,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution;
 
-internal sealed class PooledPathFactory
-    : PathFactory
+internal sealed class PooledPathFactory : PathFactory
 {
     private readonly PathSegmentFactory<IndexerPathSegment> _indexerPathFactory;
     private readonly PathSegmentFactory<NamePathSegment> _namePathFactory;

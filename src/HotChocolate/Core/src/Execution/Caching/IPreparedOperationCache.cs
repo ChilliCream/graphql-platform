@@ -35,7 +35,7 @@ public interface IPreparedOperationCache
     /// </returns>
     bool TryGetOperation(
         string operationId,
-        [NotNullWhen(true)] out IPreparedOperation? operation);
+        [NotNullWhen(true)] out IOperation? operation);
 
     /// <summary>
     /// Tries to add a new compiled operation to the cache.
@@ -48,7 +48,7 @@ public interface IPreparedOperationCache
     /// </param>
     void TryAddOperation(
         string operationId,
-        IPreparedOperation operation);
+        IOperation operation);
 
     /// <summary>
     /// Clears all items from the cache.

@@ -4,9 +4,8 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Processing.Plan;
+using HotChocolate.Execution.Internal;
 using HotChocolate.Fetching;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
@@ -23,7 +22,6 @@ internal sealed partial class SubscriptionExecutor
         private readonly IExecutionDiagnosticEvents _diagnosticEvents;
         private IDisposable? _subscriptionScope;
         private readonly IRequestContext _requestContext;
-        private readonly QueryPlan _queryPlan;
         private readonly ObjectType _subscriptionType;
         private readonly ISelectionSet _rootSelections;
         private readonly Func<object?> _resolveQueryRootValue;
@@ -37,7 +35,6 @@ internal sealed partial class SubscriptionExecutor
             ObjectPool<OperationContext> operationContextPool,
             QueryExecutor queryExecutor,
             IRequestContext requestContext,
-            QueryPlan queryPlan,
             ObjectType subscriptionType,
             ISelectionSet rootSelections,
             Func<object?> resolveQueryRootValue,
@@ -51,7 +48,6 @@ internal sealed partial class SubscriptionExecutor
             _operationContextPool = operationContextPool;
             _queryExecutor = queryExecutor;
             _requestContext = requestContext;
-            _queryPlan = queryPlan;
             _subscriptionType = subscriptionType;
             _rootSelections = rootSelections;
             _resolveQueryRootValue = resolveQueryRootValue;
@@ -71,9 +67,6 @@ internal sealed partial class SubscriptionExecutor
         /// <param name="requestContext">
         /// The original request context.
         /// </param>
-        /// <param name="queryPlan">
-        /// The subscription query plan.
-        /// </param>
         /// <param name="subscriptionType">
         /// The object type that represents the subscription.
         /// </param>
@@ -83,7 +76,7 @@ internal sealed partial class SubscriptionExecutor
         /// <param name="resolveQueryRootValue">
         /// A delegate to resolve the subscription instance.
         /// </param>
-        /// <param name="executionDiagnosticsEvents">
+        /// <param name="diagnosticsEvents">
         /// The internal diagnostic events to report telemetry.
         /// </param>
         /// <returns>
@@ -93,27 +86,22 @@ internal sealed partial class SubscriptionExecutor
             ObjectPool<OperationContext> operationContextPool,
             QueryExecutor queryExecutor,
             IRequestContext requestContext,
-            QueryPlan queryPlan,
             ObjectType subscriptionType,
             ISelectionSet rootSelections,
             Func<object?> resolveQueryRootValue,
-            IExecutionDiagnosticEvents executionDiagnosticsEvents)
+            IExecutionDiagnosticEvents diagnosticsEvents)
         {
             var subscription = new Subscription(
                 operationContextPool,
                 queryExecutor,
                 requestContext,
-                queryPlan,
                 subscriptionType,
                 rootSelections,
                 resolveQueryRootValue,
-                executionDiagnosticsEvents);
+                diagnosticsEvents);
 
-            subscription._subscriptionScope =
-                executionDiagnosticsEvents.ExecuteSubscription(subscription);
-
-            subscription._sourceStream =
-                await subscription.SubscribeAsync().ConfigureAwait(false);
+            subscription._subscriptionScope = diagnosticsEvents.ExecuteSubscription(subscription);
+            subscription._sourceStream = await subscription.SubscribeAsync().ConfigureAwait(false);
 
             return subscription;
         }
@@ -129,7 +117,7 @@ internal sealed partial class SubscriptionExecutor
         public ulong Id => _id;
 
         /// <inheritdoc />
-        public IPreparedOperation Operation => _requestContext.Operation!;
+        public IOperation Operation => _requestContext.Operation!;
 
         public async ValueTask DisposeAsync()
         {
@@ -153,19 +141,19 @@ internal sealed partial class SubscriptionExecutor
         /// </returns>
         private async Task<IQueryResult> OnEvent(object payload)
         {
-            using IDisposable es = _diagnosticEvents.OnSubscriptionEvent(new(this, payload));
-            using IServiceScope serviceScope = _requestContext.Services.CreateScope();
+            using var es = _diagnosticEvents.OnSubscriptionEvent(new(this, payload));
+            using var serviceScope = _requestContext.Services.CreateScope();
 
-            OperationContext operationContext = _operationContextPool.Get();
+            var operationContext = _operationContextPool.Get();
 
             try
             {
-                IServiceProvider? eventServices = serviceScope.ServiceProvider;
-                IBatchDispatcher? dispatcher = eventServices.GetRequiredService<IBatchDispatcher>();
+                var eventServices = serviceScope.ServiceProvider;
+                var dispatcher = eventServices.GetRequiredService<IBatchDispatcher>();
 
                 // we store the event payload on the scoped context so that it is accessible
                 // in the resolvers.
-                IImmutableDictionary<string, object?> scopedContext =
+                var scopedContext =
                     _scopedContextData.SetItem(WellKnownContextData.EventMessage, payload);
 
                 // next we resolve the subscription instance.
@@ -182,7 +170,6 @@ internal sealed partial class SubscriptionExecutor
                     eventServices,
                     dispatcher,
                     _requestContext.Operation!,
-                    _queryPlan,
                     _requestContext.Variables!,
                     rootValue,
                     _resolveQueryRootValue);
@@ -191,7 +178,7 @@ internal sealed partial class SubscriptionExecutor
                     WellKnownContextData.EventMessage,
                     payload);
 
-                IQueryResult result = await _queryExecutor
+                var result = await _queryExecutor
                     .ExecuteAsync(operationContext, scopedContext)
                     .ConfigureAwait(false);
 
@@ -216,7 +203,7 @@ internal sealed partial class SubscriptionExecutor
         // the event messages from the underlying pub/sub-system.
         private async ValueTask<ISourceStream> SubscribeAsync()
         {
-            OperationContext operationContext = _operationContextPool.Get();
+            var operationContext = _operationContextPool.Get();
 
             try
             {
@@ -237,15 +224,14 @@ internal sealed partial class SubscriptionExecutor
                     _requestContext.Services,
                     NoopBatchDispatcher.Default,
                     _requestContext.Operation!,
-                    _queryPlan,
                     _requestContext.Variables!,
                     rootValue,
                     _resolveQueryRootValue);
 
                 // next we need a result map so that we can store the subscribe temporarily
                 // while executing the subscribe pipeline.
-                ResultMap resultMap = operationContext.Result.RentResultMap(1);
-                ISelection rootSelection = _rootSelections.Selections[0];
+                var resultMap = operationContext.Result.RentObject(1);
+                var rootSelection = _rootSelections.Selections[0];
 
                 // we create a temporary middleware context so that we can use the standard
                 // resolver pipeline.
@@ -263,7 +249,7 @@ internal sealed partial class SubscriptionExecutor
                 // invoking subscribe.
                 if (!rootSelection.Arguments.TryCoerceArguments(
                     middlewareContext,
-                    out IReadOnlyDictionary<NameString, ArgumentValue>? coercedArgs))
+                    out var coercedArgs))
                 {
                     // the middleware context reports errors to the operation context,
                     // this means if we failed, we need to grab the coercion errors from there
@@ -276,8 +262,9 @@ internal sealed partial class SubscriptionExecutor
 
                 // last but not least we can invoke the subscribe resolver which will subscribe
                 // to the underlying pub/sub-system yielding the source stream.
-                ISourceStream sourceStream =
-                    await rootSelection.Field.SubscribeResolver!.Invoke(middlewareContext)
+                var sourceStream =
+                    await rootSelection.Field.SubscribeResolver!
+                        .Invoke(middlewareContext)
                         .ConfigureAwait(false);
                 _scopedContextData = middlewareContext.ScopedContextData;
 
@@ -285,6 +272,16 @@ internal sealed partial class SubscriptionExecutor
                 {
                     // again if we have any errors we will just throw them and not opening
                     // any subscription context.
+                    try
+                    {
+                        // we make sure that we unsubscribe again by disposing the stream.
+                        await sourceStream.DisposeAsync().ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                        // we ignore any errors here since already are in error state.
+                    }
+
                     throw new GraphQLException(operationContext.Result.Errors);
                 }
 
@@ -300,7 +297,7 @@ internal sealed partial class SubscriptionExecutor
             }
             finally
             {
-                operationContext.Result.DropResult();
+                operationContext.Result.DiscardResult();
                 _operationContextPool.Return(operationContext);
             }
         }
@@ -330,7 +327,7 @@ internal sealed partial class SubscriptionExecutor
         {
             try
             {
-                IAsyncEnumerator<object> eventStreamEnumerator =
+                var eventStreamEnumerator =
                     _sourceStream.ReadEventsAsync()
                         .GetAsyncEnumerator(cancellationToken);
 
@@ -402,7 +399,7 @@ internal sealed partial class SubscriptionExecutor
         {
             if (!_disposed)
             {
-                await _eventEnumerator.DisposeAsync();
+                await _eventEnumerator.DisposeAsync().ConfigureAwait(false);
                 _disposed = true;
             }
         }

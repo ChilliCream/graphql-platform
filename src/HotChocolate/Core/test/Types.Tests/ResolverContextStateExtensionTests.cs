@@ -52,7 +52,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupGet(c => c.ContextData).Returns(dict);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
 
         var state = context.GetGlobalStateOrDefault<int>("key");
 
@@ -67,7 +67,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupGet(c => c.ContextData).Returns(dict);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
 
         Assert.Throws<ArgumentException>(() =>
             context.GetGlobalState<int>("key"));
@@ -81,7 +81,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupGet(c => c.ContextData).Returns(dict);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
 
         var state = context.GetGlobalStateOrDefault<int>("key");
 
@@ -96,7 +96,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupGet(c => c.ContextData).Returns(dict);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
 
         Assert.Throws<ArgumentException>(() =>
             context.GetGlobalState<int>("key"));
@@ -110,7 +110,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupGet(c => c.ContextData).Returns(dict);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
 
         var state = context.GetGlobalStateOrDefault<int>("key");
 
@@ -125,7 +125,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupGet(c => c.ContextData).Returns(dict);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
 
         var state = context.GetGlobalState<int>("key");
 
@@ -140,7 +140,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupGet(c => c.ContextData).Returns(dict);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
 
         context.SetGlobalState("key", "value");
 
@@ -155,7 +155,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupGet(c => c.ContextData).Returns(dict);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
 
         var state = context.GetOrSetGlobalState<int>("key", key => 1);
 
@@ -174,7 +174,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupGet(c => c.ContextData).Returns(dict);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
 
         var state = context.GetOrSetGlobalState<int>("key", key => 1);
 
@@ -193,7 +193,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupGet(c => c.ContextData).Returns(dict);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
 
         var state = context.GetOrSetGlobalState<int>("key", key => 1);
 
@@ -207,7 +207,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupProperty(c => c.ScopedContextData);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
         context.ScopedContextData = ImmutableDictionary<string, object?>.Empty;
 
         var state = context.GetScopedStateOrDefault<int>("key");
@@ -221,7 +221,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupProperty(c => c.ScopedContextData);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
         context.ScopedContextData = ImmutableDictionary<string, object?>.Empty;
 
         Assert.Throws<ArgumentException>(() =>
@@ -234,7 +234,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupProperty(c => c.ScopedContextData);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
         context.ScopedContextData = new Dictionary<string, object?>
         {
             { "key", "value" }
@@ -251,7 +251,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupProperty(c => c.ScopedContextData);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
         context.ScopedContextData = new Dictionary<string, object?>
         {
             { "key", "value" }
@@ -267,7 +267,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupProperty(c => c.ScopedContextData);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
         context.ScopedContextData = new Dictionary<string, object?>
         {
             { "key", 1 }
@@ -284,7 +284,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupProperty(c => c.ScopedContextData);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
         context.ScopedContextData = new Dictionary<string, object?>
         {
             { "key", 1 }
@@ -301,7 +301,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupProperty(c => c.ScopedContextData);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
         context.ScopedContextData = ImmutableDictionary<string, object?>.Empty;
 
         context.SetScopedState("key", "value");
@@ -315,7 +315,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupProperty(c => c.ScopedContextData);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
         context.ScopedContextData = ImmutableDictionary<string, object?>.Empty;
 
         var state = context.GetOrSetScopedState<int>("key", key => 1);
@@ -330,7 +330,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupProperty(c => c.ScopedContextData);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
         context.ScopedContextData = new Dictionary<string, object?>
         {
             {"key", "value"}
@@ -348,7 +348,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupProperty(c => c.ScopedContextData);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
         context.ScopedContextData = new Dictionary<string, object?>
         {
             {"key", 2}
@@ -366,7 +366,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupProperty(c => c.ScopedContextData);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
         context.ScopedContextData = ImmutableDictionary<string, object?>.Empty;
 
         context.RemoveScopedState("key");
@@ -380,7 +380,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupProperty(c => c.ScopedContextData);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
         context.ScopedContextData = ImmutableDictionary<string, object?>.Empty;
 
         context.SetScopedState("key1", 1);
@@ -398,7 +398,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupProperty(c => c.LocalContextData);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
         context.LocalContextData = ImmutableDictionary<string, object?>.Empty;
 
         var state = context.GetLocalStateOrDefault<int>("key");
@@ -412,7 +412,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupProperty(c => c.LocalContextData);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
         context.LocalContextData = ImmutableDictionary<string, object?>.Empty;
 
         Assert.Throws<ArgumentException>(() =>
@@ -425,7 +425,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupProperty(c => c.LocalContextData);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
         context.LocalContextData = new Dictionary<string, object?>
         {
             { "key", "value" }
@@ -442,7 +442,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupProperty(c => c.LocalContextData);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
         context.LocalContextData = new Dictionary<string, object?>
         {
             { "key", "value" }
@@ -458,7 +458,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupProperty(c => c.LocalContextData);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
         context.LocalContextData = new Dictionary<string, object?>
         {
             { "key", 1 }
@@ -475,7 +475,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupProperty(c => c.LocalContextData);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
         context.LocalContextData = new Dictionary<string, object?>
         {
             { "key", 1 }
@@ -492,7 +492,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupProperty(c => c.LocalContextData);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
         context.LocalContextData = ImmutableDictionary<string, object?>.Empty;
 
         context.SetLocalState("key", "value");
@@ -506,7 +506,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupProperty(c => c.LocalContextData);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
         context.LocalContextData = ImmutableDictionary<string, object?>.Empty;
 
         var state = context.GetOrSetLocalState<int>("key", key => 1);
@@ -521,7 +521,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupProperty(c => c.LocalContextData);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
         context.LocalContextData = new Dictionary<string, object?>
         {
             { "key", "value" }
@@ -539,7 +539,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupProperty(c => c.LocalContextData);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
         context.LocalContextData = new Dictionary<string, object?>
         {
             { "key", 2 }
@@ -557,7 +557,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupProperty(c => c.LocalContextData);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
         context.LocalContextData = ImmutableDictionary<string, object?>.Empty;
 
         context.RemoveLocalState("key");
@@ -571,7 +571,7 @@ public class ResolverContextStateExtensionTests
         var mock = new Mock<IResolverContext>();
         mock.SetupProperty(c => c.LocalContextData);
 
-        IResolverContext context = mock.Object;
+        var context = mock.Object;
         context.LocalContextData = ImmutableDictionary<string, object?>.Empty;
 
         context.SetLocalState("key1", 1);

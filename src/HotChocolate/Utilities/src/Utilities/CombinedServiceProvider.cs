@@ -31,7 +31,7 @@ internal sealed class CombinedServiceProvider : IServiceProvider
             throw new ArgumentNullException(nameof(serviceType));
         }
 
-        TypeInfo serviceTypeInfo = serviceType.GetTypeInfo();
+        var serviceTypeInfo = serviceType.GetTypeInfo();
 
         if (serviceTypeInfo.IsGenericType &&
             _iEnumerableTypeInfo.IsAssignableFrom(serviceTypeInfo) &&
@@ -47,11 +47,11 @@ internal sealed class CombinedServiceProvider : IServiceProvider
 
     private static bool Any(Type enumerableType, object enumerable)
     {
-        Type genericArgumentType = enumerableType
+        var genericArgumentType = enumerableType
             .GetTypeInfo()
             .GenericTypeArguments[0];
 
-        MethodInfo info = _enumerableTypeInfo
+        var info = _enumerableTypeInfo
             .DeclaredMethods
             .First(m => m.Name == _methodNameAny && m.IsStatic && m.GetParameters().Length == 1)
             .MakeGenericMethod(genericArgumentType);
@@ -68,11 +68,11 @@ internal sealed class CombinedServiceProvider : IServiceProvider
         {
             if (enumerableB != null && Any(enumerableType, enumerableB))
             {
-                Type genericArgumentType = enumerableType
+                var genericArgumentType = enumerableType
                     .GetTypeInfo()
                     .GenericTypeArguments[0];
 
-                MethodInfo info = _enumerableTypeInfo
+                var info = _enumerableTypeInfo
                     .DeclaredMethods
                     .First(m => m.Name == _methodNameConcat && m.IsStatic)
                     .MakeGenericMethod(genericArgumentType);

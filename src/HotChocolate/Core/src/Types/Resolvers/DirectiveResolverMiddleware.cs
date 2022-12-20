@@ -2,8 +2,7 @@ using System;
 
 namespace HotChocolate.Resolvers;
 
-internal sealed class DirectiveDelegateMiddleware
-    : IDirectiveMiddleware
+internal sealed class DirectiveDelegateMiddleware : IDirectiveMiddleware
 {
     public DirectiveDelegateMiddleware(
         string directiveName,
@@ -23,7 +22,7 @@ internal sealed class DirectiveDelegateMiddleware
         Middleware = middleware;
     }
 
-    public NameString DirectiveName { get; }
+    public string DirectiveName { get; }
 
     public DirectiveMiddleware Middleware { get; }
 }

@@ -9,69 +9,69 @@ using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Tests.TestHelper;
 
-namespace HotChocolate.Execution.Batching
+namespace HotChocolate.Execution.Batching;
+
+public class BatchQueryExecutorTests
 {
-    public class BatchQueryExecutorTests
+    [Fact]
+    public async Task ExecuteExportScalar()
     {
-        [Fact]
-        public async Task ExecuteExportScalar()
+        // arrange
+        Snapshot.FullName();
+
+        var executor = await CreateExecutorAsync(c => c
+            .AddStarWarsTypes()
+            .AddExportDirectiveType()
+            .Services
+            .AddStarWarsRepositories());
+
+        // act
+        var batch = new List<IQueryRequest>
         {
-            // arrange
-            Snapshot.FullName();
-
-            IRequestExecutor executor = await CreateExecutorAsync(c => c
-                .AddStarWarsTypes()
-                .AddExportDirectiveType()
-                .Services
-                .AddStarWarsRepositories());
-
-            // act
-            var batch = new List<IReadOnlyQueryRequest>
-            {
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
                         query getHero {
                             hero(episode: EMPIRE) {
                                 id @export
                             }
                         }")
-                    .Create(),
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
+                .Create(),
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
                         query getHuman {
                             human(id: $id) {
                                 name
                             }
                         }")
-                    .Create()
-            };
+                .Create()
+        };
 
-            IResponseStream batchResult = await executor.ExecuteBatchAsync(batch);
+        var batchResult = await executor.ExecuteBatchAsync(batch);
 
-            // assert
-            await batchResult.MatchSnapshotAsync();
-        }
+        // assert
+        await batchResult.MatchSnapshotAsync();
+    }
 
-        [Fact]
-        public async Task ExecuteExportScalarList()
+    [Fact]
+    public async Task ExecuteExportScalarList()
+    {
+        // arrange
+        Snapshot.FullName();
+
+        var executor = await CreateExecutorAsync(c => c
+            .AddStarWarsTypes()
+            .AddExportDirectiveType()
+            .Services
+            .AddStarWarsRepositories());
+
+        // act
+        var batch = new List<IQueryRequest>
         {
-            // arrange
-            Snapshot.FullName();
-
-            IRequestExecutor executor = await CreateExecutorAsync(c => c
-                .AddStarWarsTypes()
-                .AddExportDirectiveType()
-                .Services
-                .AddStarWarsRepositories());
-
-            // act
-            var batch = new List<IReadOnlyQueryRequest>
-            {
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
                         query getHero {
                             hero(episode: EMPIRE) {
                                 friends {
@@ -81,42 +81,42 @@ namespace HotChocolate.Execution.Batching
                                 }
                             }
                         }")
-                    .Create(),
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
+                .Create(),
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
                         query getCharacter {
                             character(characterIds: $abc) {
                                 name
                             }
                         }")
-                    .Create()
-            };
+                .Create()
+        };
 
-            IResponseStream batchResult = await executor.ExecuteBatchAsync(batch);
+        var batchResult = await executor.ExecuteBatchAsync(batch);
 
-            // assert
-            await batchResult.MatchSnapshotAsync();
-        }
+        // assert
+        await batchResult.MatchSnapshotAsync();
+    }
 
-        [Fact]
-        public async Task ExecuteExportScalarList_ExplicitVariable()
+    [Fact]
+    public async Task ExecuteExportScalarList_ExplicitVariable()
+    {
+        // arrange
+        Snapshot.FullName();
+
+        var executor = await CreateExecutorAsync(c => c
+            .AddStarWarsTypes()
+            .AddExportDirectiveType()
+            .Services
+            .AddStarWarsRepositories());
+
+        // act
+        var batch = new List<IQueryRequest>
         {
-            // arrange
-            Snapshot.FullName();
-
-            IRequestExecutor executor = await CreateExecutorAsync(c => c
-                .AddStarWarsTypes()
-                .AddExportDirectiveType()
-                .Services
-                .AddStarWarsRepositories());
-
-            // act
-            var batch = new List<IReadOnlyQueryRequest>
-            {
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
                         query getHero {
                             hero(episode: EMPIRE) {
                                 friends {
@@ -126,43 +126,43 @@ namespace HotChocolate.Execution.Batching
                                 }
                             }
                         }")
-                    .Create(),
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
+                .Create(),
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
                         query getCharacter($abc: [String!]!) {
                             character(characterIds: $abc) {
                                 name
                             }
                         }")
-                    .Create()
-            };
+                .Create()
+        };
 
-            IResponseStream batchResult = await executor.ExecuteBatchAsync(batch);
+        var batchResult = await executor.ExecuteBatchAsync(batch);
 
-            // assert
-            await batchResult.MatchSnapshotAsync();
-        }
+        // assert
+        await batchResult.MatchSnapshotAsync();
+    }
 
-        [Fact]
-        public async Task ExecuteExportObject()
+    [Fact]
+    public async Task ExecuteExportObject()
+    {
+        // arrange
+        Snapshot.FullName();
+
+        var executor = await CreateExecutorAsync(c => c
+            .AddStarWarsTypes()
+            .AddExportDirectiveType()
+            .AddInMemorySubscriptions()
+            .Services
+            .AddStarWarsRepositories());
+
+        // act
+        var batch = new List<IQueryRequest>
         {
-            // arrange
-            Snapshot.FullName();
-
-            IRequestExecutor executor = await CreateExecutorAsync(c => c
-                .AddStarWarsTypes()
-                .AddExportDirectiveType()
-                .AddInMemorySubscriptions()
-                .Services
-                .AddStarWarsRepositories());
-
-            // act
-            var batch = new List<IReadOnlyQueryRequest>
-            {
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"mutation firstReview {
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"mutation firstReview {
                             createReview(
                                 episode: NEW_HOPE
                                 review: { commentary: ""foo"", stars: 4 })
@@ -171,10 +171,10 @@ namespace HotChocolate.Execution.Batching
                                 stars
                             }
                         }")
-                    .Create(),
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
+                .Create(),
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
                         mutation secondReview {
                             createReview(
                                 episode: EMPIRE
@@ -183,76 +183,76 @@ namespace HotChocolate.Execution.Batching
                                 stars
                             }
                         }")
-                    .Create()
-            };
+                .Create()
+        };
 
-            IResponseStream batchResult = await executor.ExecuteBatchAsync(batch);
+        var batchResult = await executor.ExecuteBatchAsync(batch);
 
-            // assert
-            await batchResult.MatchSnapshotAsync();
-        }
+        // assert
+        await batchResult.MatchSnapshotAsync();
+    }
 
-        [Fact]
-        public async Task ExecuteExportLeafList()
-        {
-            // arrange
-            Snapshot.FullName();
+    [Fact]
+    public async Task ExecuteExportLeafList()
+    {
+        // arrange
+        Snapshot.FullName();
 
-            IRequestExecutor executor = await CreateExecutorAsync(c => c
-                .AddQueryType(d => d.Name("Query")
-                    .Field("foo")
-                    .Argument("bar", a => a.Type<ListType<StringType>>())
-                    .Type<ListType<StringType>>()
-                    .Resolve(ctx =>
+        var executor = await CreateExecutorAsync(c => c
+            .AddQueryType(d => d.Name("Query")
+                .Field("foo")
+                .Argument("bar", a => a.Type<ListType<StringType>>())
+                .Type<ListType<StringType>>()
+                .Resolve(ctx =>
+                {
+                    var list = ctx.ArgumentValue<List<string>>("bar");
+
+                    if (list is null)
                     {
-                        List<string> list = ctx.ArgumentValue<List<string>>("bar");
-
-                        if (list is null)
+                        return new List<string>
                         {
-                            return new List<string>
-                            {
-                                "123",
-                                "456"
-                            };
-                        }
+                            "123",
+                            "456"
+                        };
+                    }
 
-                        list.Add("789");
-                        return list;
-                    }))
-                .AddExportDirectiveType());
+                    list.Add("789");
+                    return list;
+                }))
+            .AddExportDirectiveType());
 
-            // act
-            var batch = new List<IReadOnlyQueryRequest>
-            {
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+        // act
+        var batch = new List<IQueryRequest>
+        {
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"{
                             foo @export(as: ""b"")
                         }")
-                    .Create(),
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+                .Create(),
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"{
                             foo(bar: $b)
                         }")
-                    .Create()
-            };
+                .Create()
+        };
 
-            IResponseStream batchResult = await executor.ExecuteBatchAsync(batch);
+        var batchResult = await executor.ExecuteBatchAsync(batch);
 
-            // assert
-            await batchResult.MatchSnapshotAsync();
-        }
+        // assert
+        await batchResult.MatchSnapshotAsync();
+    }
 
-        [Fact]
-        public async Task ExecuteExportObjectList()
-        {
-            // arrange
-            Snapshot.FullName();
+    [Fact]
+    public async Task ExecuteExportObjectList()
+    {
+        // arrange
+        Snapshot.FullName();
 
-            IRequestExecutor executor = await CreateExecutorAsync(c => c
-                .AddDocumentFromString(
-                    @"
+        var executor = await CreateExecutorAsync(c => c
+            .AddDocumentFromString(
+                @"
                     type Query {
                         foo(f: [FooInput]) : [Foo]
                     }
@@ -264,179 +264,178 @@ namespace HotChocolate.Execution.Batching
                     input FooInput {
                         bar: String!
                     }")
-                .AddResolver("Query", "foo", ctx =>
-                {
-                    List<object> list = ctx.ArgumentValue<List<object>>("f");
-
-                    if (list is null)
-                    {
-                        return new List<object>
-                        {
-                            new Dictionary<string, object>
-                            {
-                                { "bar" , "123" }
-                            }
-                        };
-                    }
-
-                    list.Add(new Dictionary<string, object>
-                    {
-                        { "bar" , "456" }
-                    });
-                    return list;
-                })
-                .UseField(next => context =>
-                {
-                    var o = context.Parent<object>();
-                    if (o is Dictionary<string, object> d
-                        && d.TryGetValue(context.ResponseName, out var v))
-                    {
-                        context.Result = v;
-                    }
-                    return next(context);
-                })
-                .AddExportDirectiveType());
-
-            // act
-            var batch = new List<IReadOnlyQueryRequest>
+            .AddResolver("Query", "foo", ctx =>
             {
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+                var list = ctx.ArgumentValue<List<object>>("f");
+
+                if (list is null)
+                {
+                    return new List<object>
+                    {
+                        new Dictionary<string, object>
+                        {
+                            { "bar" , "123" }
+                        }
+                    };
+                }
+
+                list.Add(new Dictionary<string, object>
+                {
+                    { "bar" , "456" }
+                });
+                return list;
+            })
+            .UseField(next => context =>
+            {
+                var o = context.Parent<object>();
+                if (o is Dictionary<string, object> d
+                    && d.TryGetValue(context.ResponseName, out var v))
+                {
+                    context.Result = v;
+                }
+                return next(context);
+            })
+            .AddExportDirectiveType());
+
+        // act
+        var batch = new List<IQueryRequest>
+        {
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"{
                             foo @export(as: ""b"")
                             {
                                 bar
                             }
                         }")
-                    .Create(),
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+                .Create(),
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"{
                             foo(f: $b)
                             {
                                 bar
                             }
                         }")
-                    .Create()
-            };
+                .Create()
+        };
 
-            IResponseStream batchResult = await executor.ExecuteBatchAsync(batch);
+        var batchResult = await executor.ExecuteBatchAsync(batch);
 
-            // assert
-            await batchResult.MatchSnapshotAsync();
-        }
+        // assert
+        await batchResult.MatchSnapshotAsync();
+    }
 
-        [Fact]
-        public async Task Add_Value_To_Variable_List()
+    [Fact]
+    public async Task Add_Value_To_Variable_List()
+    {
+        // arrange
+        Snapshot.FullName();
+
+        var executor = await CreateExecutorAsync(c => c
+            .AddQueryType(d => d.Name("Query")
+                .Field("foo")
+                .Argument("bar", a => a.Type<ListType<StringType>>())
+                .Type<ListType<StringType>>()
+                .Resolve(ctx =>
+                {
+                    var list = ctx.ArgumentValue<List<string>>("bar");
+                    list.Add("789");
+                    return list;
+                }))
+            .AddExportDirectiveType());
+
+        // act
+        var batch = new List<IQueryRequest>
         {
-            // arrange
-            Snapshot.FullName();
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"query foo1($b: [String]) {
+                            foo(bar: $b) @export(as: ""b"")
+                        }")
+                .AddVariableValue("b", new[] { "123" })
+                .Create(),
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"query foo2($b: [String]) {
+                            foo(bar: $b)
+                        }")
+                .Create()
+        };
 
-            IRequestExecutor executor = await CreateExecutorAsync(c => c
-                .AddQueryType(d => d.Name("Query")
-                    .Field("foo")
+        var batchResult = await executor.ExecuteBatchAsync(batch);
+
+        // assert
+        await batchResult.MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Convert_List_To_Single_Value_With_Converters()
+    {
+        // arrange
+        Snapshot.FullName();
+
+        var executor = await CreateExecutorAsync(c => c
+            .AddQueryType(d =>
+            {
+                d.Name("Query");
+
+                d.Field("foo")
                     .Argument("bar", a => a.Type<ListType<StringType>>())
                     .Type<ListType<StringType>>()
                     .Resolve(ctx =>
                     {
-                        List<string> list = ctx.ArgumentValue<List<string>>("bar");
+                        var list = ctx.ArgumentValue<List<string>>("bar");
                         list.Add("789");
                         return list;
-                    }))
-                .AddExportDirectiveType());
+                    });
 
-            // act
-            var batch = new List<IReadOnlyQueryRequest>
-            {
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"query foo1($b: [String]) {
-                            foo(bar: $b) @export(as: ""b"")
-                        }")
-                    .AddVariableValue("b", new[] { "123" })
-                    .Create(),
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"query foo2($b: [String]) {
-                            foo(bar: $b)
-                        }")
-                    .Create()
-            };
+                d.Field("baz")
+                    .Argument("bar", a => a.Type<StringType>())
+                    .Resolve(ctx => ctx.ArgumentValue<string>("bar"));
+            })
+            .AddExportDirectiveType());
 
-            IResponseStream batchResult = await executor.ExecuteBatchAsync(batch);
-
-            // assert
-            await batchResult.MatchSnapshotAsync();
-        }
-
-        [Fact]
-        public async Task Convert_List_To_Single_Value_With_Converters()
+        // act
+        var batch = new List<IQueryRequest>
         {
-            // arrange
-            Snapshot.FullName();
-
-            IRequestExecutor executor = await CreateExecutorAsync(c => c
-                .AddQueryType(d =>
-                {
-                    d.Name("Query");
-
-                    d.Field("foo")
-                        .Argument("bar", a => a.Type<ListType<StringType>>())
-                        .Type<ListType<StringType>>()
-                        .Resolve(ctx =>
-                        {
-                            List<string> list = ctx.ArgumentValue<List<string>>("bar");
-                            list.Add("789");
-                            return list;
-                        });
-
-                    d.Field("baz")
-                        .Argument("bar", a => a.Type<StringType>())
-                        .Resolve(ctx => ctx.ArgumentValue<string>("bar"));
-                })
-                .AddExportDirectiveType());
-
-            // act
-            var batch = new List<IReadOnlyQueryRequest>
-            {
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"query foo1($b1: [String]) {
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"query foo1($b1: [String]) {
                             foo(bar: $b1) @export(as: ""b2"")
                         }")
-                    .AddVariableValue("b1", new[] { "123" })
-                    .Create(),
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"query foo2($b2: String) {
+                .AddVariableValue("b1", new[] { "123" })
+                .Create(),
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"query foo2($b2: String) {
                             baz(bar: $b2)
                         }")
-                    .Create()
-            };
+                .Create()
+        };
 
-            IResponseStream batchResult = await executor.ExecuteBatchAsync(batch);
+        var batchResult = await executor.ExecuteBatchAsync(batch);
 
-            // assert
-            await batchResult.MatchSnapshotAsync();
-        }
+        // assert
+        await batchResult.MatchSnapshotAsync();
+    }
 
-        [Fact]
-        public async Task Batch_Is_Null()
-        {
-           // arrange
-            Snapshot.FullName();
+    [Fact]
+    public async Task Batch_Is_Null()
+    {
+        // arrange
+        Snapshot.FullName();
 
-            IRequestExecutor executor = await CreateExecutorAsync(c => c
-                .AddStarWarsTypes()
-                .AddExportDirectiveType()
-                .Services
-                .AddStarWarsRepositories());
+        var executor = await CreateExecutorAsync(c => c
+            .AddStarWarsTypes()
+            .AddExportDirectiveType()
+            .Services
+            .AddStarWarsRepositories());
 
-            // act
-            Task Action() => executor.ExecuteBatchAsync(null!);
+        // act
+        Task Action() => executor.ExecuteBatchAsync(null!);
 
-            // assert
-            await Assert.ThrowsAsync<ArgumentNullException>(Action);
-        }
+        // assert
+        await Assert.ThrowsAsync<ArgumentNullException>(Action);
     }
 }

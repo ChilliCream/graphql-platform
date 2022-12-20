@@ -98,11 +98,8 @@ public static class ExecutionResultExtensions
         => result.Kind is BatchResult or DeferredResult or SubscriptionResult;
 
     /// <summary>
-    ///
+    /// Expect a query result.
     /// </summary>
-    /// <param name="result"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentException"></exception>
     public static IQueryResult ExpectQueryResult(this IExecutionResult result)
     {
         if (result is IQueryResult qr)
@@ -115,11 +112,8 @@ public static class ExecutionResultExtensions
     }
 
     /// <summary>
-    ///
+    /// Expect a stream result.
     /// </summary>
-    /// <param name="result"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentException"></exception>
     public static IResponseStream ExpectResponseStream(this IExecutionResult result)
     {
         if (result is IResponseStream rs)

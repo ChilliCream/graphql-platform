@@ -4,11 +4,13 @@ using System.Linq;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Descriptors;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
 using StrawberryShake.CodeGeneration.Utilities;
+using static System.StringComparer;
 using TypeKind = StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.TypeKind;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
@@ -26,9 +28,9 @@ public static partial class TypeDescriptorMapper
         ClientModel model,
         IMapperContext context)
     {
-        var typeDescriptors = new Dictionary<NameString, TypeDescriptorModel>();
-        var inputTypeDescriptors = new Dictionary<NameString, InputTypeDescriptorModel>();
-        var leafTypeDescriptors = new Dictionary<NameString, INamedTypeDescriptor>();
+        var typeDescriptors = new Dictionary<string, TypeDescriptorModel>(Ordinal);
+        var inputTypeDescriptors = new Dictionary<string, InputTypeDescriptorModel>(Ordinal);
+        var leafTypeDescriptors = new Dictionary<string, INamedTypeDescriptor>(Ordinal);
 
         // first we create type descriptor for the leaf types ...
         CollectLeafTypes(model, context, leafTypeDescriptors);
@@ -57,11 +59,11 @@ public static partial class TypeDescriptorMapper
     private static void CollectTypes(
         ClientModel model,
         IMapperContext context,
-        Dictionary<NameString, TypeDescriptorModel> typeDescriptors)
+        Dictionary<string, TypeDescriptorModel> typeDescriptors)
     {
-        foreach (OperationModel operation in model.Operations)
+        foreach (var operation in model.Operations)
         {
-            foreach (OutputTypeModel outputType in
+            foreach (var outputType in
                 operation.GetImplementations(operation.ResultType))
             {
                 RegisterType(
@@ -72,7 +74,7 @@ public static partial class TypeDescriptorMapper
                     TypeKind.Result);
             }
 
-            foreach (OutputTypeModel outputType in
+            foreach (var outputType in
                 operation.OutputTypes.Where(t => !t.IsInterface))
             {
                 RegisterType(
@@ -90,12 +92,12 @@ public static partial class TypeDescriptorMapper
                 TypeKind.Result,
                 operation);
 
-            foreach (OutputTypeModel outputType in
+            foreach (var outputType in
                 operation.OutputTypes.Where(t => t.IsInterface))
             {
                 if (!typeDescriptors.TryGetValue(
                         outputType.Name,
-                        out TypeDescriptorModel _))
+                        out var _))
                 {
                     RegisterType(
                         model,
@@ -111,14 +113,14 @@ public static partial class TypeDescriptorMapper
     private static void RegisterType(
         ClientModel model,
         IMapperContext context,
-        Dictionary<NameString, TypeDescriptorModel> typeDescriptors,
+        Dictionary<string, TypeDescriptorModel> typeDescriptors,
         OutputTypeModel outputType,
         TypeKind? kind = null,
         OperationModel? operationModel = null)
     {
         if (typeDescriptors.TryGetValue(
             outputType.Name,
-            out TypeDescriptorModel descriptorModel))
+            out var descriptorModel))
         {
             return;
         }
@@ -189,7 +191,7 @@ public static partial class TypeDescriptorMapper
             }
             else
             {
-                OutputTypeModel mostAbstractTypeModel = outputType;
+                var mostAbstractTypeModel = outputType;
                 while (mostAbstractTypeModel.Implements.Count > 0)
                 {
                     mostAbstractTypeModel = mostAbstractTypeModel.Implements[0];
@@ -221,7 +223,7 @@ public static partial class TypeDescriptorMapper
         }
     }
 
-    private static IReadOnlyList<NameString> ExtractImplementsBy(
+    private static IReadOnlyList<string> ExtractImplementsBy(
         ClientModel clientModel,
         IMapperContext context,
         OutputTypeModel outputType,
@@ -229,17 +231,14 @@ public static partial class TypeDescriptorMapper
     {
         if (kind == TypeKind.Result && outputType.Implements.Count > 0)
         {
-            RuntimeTypeInfo runtimeType =
+            var runtimeType =
                 ExtractRuntimeType(
                     clientModel,
                     context,
                     outputType.Implements.Single(),
                     kind);
 
-            return new NameString[]
-            {
-                runtimeType.Name
-            };
+            return new[] { runtimeType.Name };
         }
 
         return outputType.Implements
@@ -266,11 +265,11 @@ public static partial class TypeDescriptorMapper
 
         if (kind == TypeKind.Result)
         {
-            NameString resultTypeName = CreateResultRootTypeName(outputType.Name);
-            if (clientModel.OutputTypes.Any(t => t.Name.Equals(resultTypeName)))
+            string resultTypeName = CreateResultRootTypeName(outputType.Name);
+            if (clientModel.OutputTypes.Any(t => t.Name.EqualsOrdinal(resultTypeName)))
             {
                 resultTypeName = CreateResultRootTypeName(outputType.Name, outputType.Type);
-                if (clientModel.OutputTypes.Any(t => t.Name.Equals(resultTypeName)))
+                if (clientModel.OutputTypes.Any(t => t.Name.EqualsOrdinal(resultTypeName)))
                 {
                     throw ThrowHelper.ResultTypeNameCollision(resultTypeName);
                 }
@@ -294,7 +293,7 @@ public static partial class TypeDescriptorMapper
     private static TypeDescriptorModel CreateInterfaceTypeModel(
         ClientModel model,
         IMapperContext context,
-        Dictionary<NameString, TypeDescriptorModel> typeDescriptors,
+        Dictionary<string, TypeDescriptorModel> typeDescriptors,
         OutputTypeModel outputType,
         OperationModel operationModel,
         TypeKind? kind = null)
@@ -311,10 +310,10 @@ public static partial class TypeDescriptorMapper
             context,
             outputType,
             implementedBy,
-            out TypeKind extractedKind,
-            out RuntimeTypeInfo? parentRuntimeType);
+            out var extractedKind,
+            out var parentRuntimeType);
 
-        TypeKind typeKind = kind ?? extractedKind;
+        var typeKind = kind ?? extractedKind;
 
         return new TypeDescriptorModel(
             outputType,
@@ -339,10 +338,10 @@ public static partial class TypeDescriptorMapper
             context,
             outputType,
             Array.Empty<ObjectTypeDescriptor>(),
-            out TypeKind extractedKind,
-            out RuntimeTypeInfo? parentRuntimeType);
+            out var extractedKind,
+            out var parentRuntimeType);
 
-        TypeKind typeKind = kind ?? extractedKind;
+        var typeKind = kind ?? extractedKind;
 
         return new TypeDescriptorModel(
             outputType,
@@ -360,10 +359,10 @@ public static partial class TypeDescriptorMapper
     private static void CollectClassesThatImplementInterface(
         OperationModel operation,
         OutputTypeModel outputType,
-        Dictionary<NameString, TypeDescriptorModel> typeDescriptors,
+        Dictionary<string, TypeDescriptorModel> typeDescriptors,
         HashSet<ObjectTypeDescriptor> implementations)
     {
-        foreach (OutputTypeModel type in operation.GetImplementations(outputType))
+        foreach (var type in operation.GetImplementations(outputType))
         {
             if (type.IsInterface)
             {
@@ -383,17 +382,17 @@ public static partial class TypeDescriptorMapper
 
     private static void AddProperties(
         ClientModel model,
-        Dictionary<NameString, TypeDescriptorModel> typeDescriptors,
-        Dictionary<NameString, INamedTypeDescriptor> leafTypeDescriptors)
+        Dictionary<string, TypeDescriptorModel> typeDescriptors,
+        Dictionary<string, INamedTypeDescriptor> leafTypeDescriptors)
     {
-        foreach (TypeDescriptorModel typeDescriptorModel in typeDescriptors.Values.ToList())
+        foreach (var typeDescriptorModel in typeDescriptors.Values.ToList())
         {
             var properties = new List<PropertyDescriptor>();
 
-            foreach (OutputFieldModel field in typeDescriptorModel.Model.Fields)
+            foreach (var field in typeDescriptorModel.Model.Fields)
             {
                 INamedTypeDescriptor? fieldType;
-                INamedType namedType = field.Type.NamedType();
+                var namedType = field.Type.NamedType();
 
                 if (namedType.IsScalarType() || namedType.IsEnumType())
                 {
@@ -425,9 +424,9 @@ public static partial class TypeDescriptorMapper
     private static void CollectLeafTypes(
         ClientModel model,
         IMapperContext context,
-        Dictionary<NameString, INamedTypeDescriptor> leafTypeDescriptors)
+        Dictionary<string, INamedTypeDescriptor> leafTypeDescriptors)
     {
-        foreach (LeafTypeModel leafType in model.LeafTypes)
+        foreach (var leafType in model.LeafTypes)
         {
             INamedTypeDescriptor descriptor;
 
@@ -463,14 +462,14 @@ public static partial class TypeDescriptorMapper
         ClientModel model,
         FieldNode fieldSyntax,
         INamedType fieldNamedType,
-        Dictionary<NameString, TypeDescriptorModel> typeDescriptors)
+        Dictionary<string, TypeDescriptorModel> typeDescriptors)
     {
-        foreach (OperationModel operation in model.Operations)
+        foreach (var operation in model.Operations)
         {
             if (operation.TryGetFieldResultType(
                     fieldSyntax,
                     fieldNamedType,
-                    out OutputTypeModel? fieldType))
+                    out var fieldType))
             {
                 return typeDescriptors.Values
                     .First(t => t.Model == fieldType)

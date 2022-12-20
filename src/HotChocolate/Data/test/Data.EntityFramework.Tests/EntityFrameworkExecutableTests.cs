@@ -1,8 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
-using HotChocolate.Tests;
-using Snapshooter.Xunit;
-using Xunit;
+using CookieCrumble;
 
 namespace HotChocolate.Data;
 
@@ -20,11 +18,11 @@ public class EntityFrameworkExecutableTests : IClassFixture<AuthorFixture>
     {
         // arrange
         // act
-        IExecutable<Author> executable = _context.Authors.AsExecutable();
+        var executable = _context.Authors.AsExecutable();
 
         // assert
         Assert.IsType<EntityFrameworkExecutable<Author>>(executable);
-        executable.Print().MatchSnapshot();
+        executable.MatchSnapshot();
     }
 
     [Fact]
@@ -32,7 +30,7 @@ public class EntityFrameworkExecutableTests : IClassFixture<AuthorFixture>
     {
         // arrange
         // act
-        IExecutable<Author> executable = _context
+        var executable = _context
             .Authors
             .AsQueryable()
             .AsEntityFrameworkExecutable();
@@ -40,19 +38,19 @@ public class EntityFrameworkExecutableTests : IClassFixture<AuthorFixture>
 
         // assert
         Assert.IsType<EntityFrameworkExecutable<Author>>(executable);
-        executable.Print().MatchSnapshot();
+        executable.MatchSnapshot();
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_ReturnAllItems_When_ToListAsync()
     {
         // arrange
-        IExecutable<Author> executable = _context
+        var executable = _context
             .Authors
             .AsExecutable();
 
         // act
-        object? result = await executable.ToListAsync(default);
+        object result = await executable.ToListAsync(default);
 
         // assert
         new { result, executable = executable.Print() }.MatchSnapshot();

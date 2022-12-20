@@ -29,8 +29,8 @@ public sealed class MongoDbDirectionalSortOperation : MongoDbSortDefinition
         StringFieldDefinitionHelper.Resolve(
             _path,
             documentSerializer,
-            out string? resolvedFieldName,
-            out IBsonSerializer? _);
+            out var resolvedFieldName,
+            out var _);
 
         BsonValue value;
         switch (_direction)

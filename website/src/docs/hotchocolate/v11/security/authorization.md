@@ -2,8 +2,6 @@
 title: Authorization
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 Authorization allows us to determine a user's permissions within our system. We can for example limit access to resources or only allow certain users to execute specific mutations.
 
 Authentication is a prerequisite of Authorization, as we first need to validate a user's "authenticity" before we can evaluate his authorization claims.
@@ -33,7 +31,7 @@ public class Startup
 }
 ```
 
-> ⚠️ Note: We need to call `AddAuthorization()` on the `IServiceCollection`, to register the services needed by ASP.NET Core, and on the `IRequestExecutorBuilder` to register the `@authorize` directive and middleware.
+> Warning: We need to call `AddAuthorization()` on the `IServiceCollection`, to register the services needed by ASP.NET Core, and on the `IRequestExecutorBuilder` to register the `@authorize` directive and middleware.
 
 2. Register the ASP.NET Core authorization middleware with the request pipeline by calling `UseAuthorization`
 
@@ -75,7 +73,7 @@ public class User
 }
 ```
 
-> ⚠️ Note: We need to use the `HotChocolate.AspNetCore.AuthorizationAttribute` instead of the `Microsoft.AspNetCore.AuthorizationAttribute`.
+> Warning: We need to use the `HotChocolate.AspNetCore.AuthorizationAttribute` instead of the `Microsoft.AspNetCore.AuthorizationAttribute`.
 
 </Annotation>
 <Code>
@@ -163,7 +161,7 @@ type User @authorize(roles: [ "Guest", "Administrator" ]) {
 </Schema>
 </ExampleTabs>
 
-> ⚠️ Note: If multiple roles are specified, a user only has to match one of the specified roles, in order to be able to execute the resolver.
+> Warning: If multiple roles are specified, a user only has to match one of the specified roles, in order to be able to execute the resolver.
 
 [Learn more about role-based authorization in ASP.NET Core](https://docs.microsoft.com/aspnet/core/security/authorization/roles)
 
@@ -282,9 +280,9 @@ public class UserType : ObjectType<User>
 
 ```sdl
 type User
-	@authorize(policy: "AtLeast21")
-	@authorize(policy: "HasCountry") {
-	name: String!
+ @authorize(policy: "AtLeast21")
+ @authorize(policy: "HasCountry") {
+ name: String!
 }
 ```
 
@@ -333,9 +331,9 @@ public class Startup
 }
 ```
 
-> ⚠️ Note: This will also block unauthenticated access to GraphQL IDEs hosted on that endpoint, like Banana Cake Pop.
+> Warning: This will also block unauthenticated access to GraphQL IDEs hosted on that endpoint, like Banana Cake Pop.
 
-This method also accepts [roles](#roles) and [policies](#policies) as arguments, similiar to the `Authorize` attribute / methods.
+This method also accepts [roles](#roles) and [policies](#policies) as arguments, similar to the `Authorize` attribute / methods.
 
 # Modifying the ClaimsPrincipal
 

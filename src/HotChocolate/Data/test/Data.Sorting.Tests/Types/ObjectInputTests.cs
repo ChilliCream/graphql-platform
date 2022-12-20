@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using CookieCrumble;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
+
 using Xunit;
 
 namespace HotChocolate.Data.Sorting;
@@ -12,7 +13,7 @@ public class ObjectInputTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(
                 t => t
                     .Name("Query")
@@ -24,7 +25,7 @@ public class ObjectInputTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -32,7 +33,7 @@ public class ObjectInputTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(
                 t => t
                     .Name("Query")
@@ -46,7 +47,7 @@ public class ObjectInputTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     public class ExplicitSortType : SortInputType

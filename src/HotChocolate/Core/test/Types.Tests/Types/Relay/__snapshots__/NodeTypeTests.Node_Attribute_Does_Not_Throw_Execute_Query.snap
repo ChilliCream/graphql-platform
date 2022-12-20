@@ -1,0 +1,9 @@
+﻿{
+  "data": {
+    "node": {
+      "id": "Rm9vMQpkMTIz",
+      "__typename": "Foo1",
+      "clearTextId": "123"
+    }
+  }
+}

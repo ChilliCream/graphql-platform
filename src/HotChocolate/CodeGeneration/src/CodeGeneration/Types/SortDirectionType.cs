@@ -1,12 +1,11 @@
 using HotChocolate.Types;
 
-namespace HotChocolate.CodeGeneration.Types
+namespace HotChocolate.CodeGeneration.Types;
+
+public class SortDirectionType : EnumType<SortDirection>
 {
-    public class SortDirectionType : EnumType<SortDirection>
+    protected override void Configure(IEnumTypeDescriptor<SortDirection> descriptor)
     {
-        protected override void Configure(IEnumTypeDescriptor<SortDirection> descriptor)
-        {
-            descriptor.Name("_SortDirection");
-        }
+        descriptor.Name("_SortDirection");
     }
 }

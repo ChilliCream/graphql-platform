@@ -55,7 +55,7 @@ public class EnumTypeDescriptor
 
         definition.Values.Clear();
 
-        foreach (EnumValueDefinition value in values.Values)
+        foreach (var value in values.Values)
         {
             definition.Values.Add(value);
         }
@@ -71,7 +71,7 @@ public class EnumTypeDescriptor
         {
             foreach (var value in Context.TypeInspector.GetEnumValues(typeDefinition.RuntimeType))
             {
-                EnumValueDefinition valueDefinition =
+                var valueDefinition =
                     EnumValueDescriptor.New(Context, value)
                         .CreateDefinition();
 
@@ -91,9 +91,9 @@ public class EnumTypeDescriptor
         return this;
     }
 
-    public IEnumTypeDescriptor Name(NameString value)
+    public IEnumTypeDescriptor Name(string value)
     {
-        Definition.Name = value.EnsureNotEmpty(nameof(value));
+        Definition.Name = value;
         return this;
     }
 
@@ -121,12 +121,24 @@ public class EnumTypeDescriptor
     public IEnumTypeDescriptor BindValuesImplicitly() =>
         BindValues(BindingBehavior.Implicit);
 
+    public IEnumTypeDescriptor NameComparer(IEqualityComparer<string> comparer)
+    {
+        Definition.NameComparer = comparer ?? throw new ArgumentNullException(nameof(comparer));
+        return this;
+    }
+
+    public IEnumTypeDescriptor ValueComparer(IEqualityComparer<object> comparer)
+    {
+        Definition.ValueComparer = comparer ?? throw new ArgumentNullException(nameof(comparer));
+        return this;
+    }
+
     [Obsolete("Use `Value`.")]
-    public IEnumValueDescriptor Item<T>(T value) => Value<T>(value);
+    public IEnumValueDescriptor Item<T>(T value) => Value(value);
 
     public IEnumValueDescriptor Value<T>(T value)
     {
-        EnumValueDescriptor descriptor = Values.FirstOrDefault(t =>
+        var descriptor = Values.FirstOrDefault(t =>
             t.Definition.RuntimeValue is not null &&
             t.Definition.RuntimeValue.Equals(value));
 
@@ -154,8 +166,7 @@ public class EnumTypeDescriptor
         return this;
     }
 
-    public IEnumTypeDescriptor Directive(
-        NameString name, params ArgumentNode[] arguments)
+    public IEnumTypeDescriptor Directive(string name, params ArgumentNode[] arguments)
     {
         Definition.AddDirective(name, arguments);
         return this;
@@ -178,7 +189,7 @@ public class EnumTypeDescriptor
         IDescriptorContext context,
         Type schemaType)
     {
-        EnumTypeDescriptor descriptor = New(context, schemaType);
+        var descriptor = New(context, schemaType);
         descriptor.Definition.RuntimeType = typeof(object);
         return descriptor;
     }

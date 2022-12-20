@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Types.Introspection.IntrospectionFields;
 
@@ -10,13 +9,12 @@ internal sealed class IntrospectionTypeInterceptor : TypeInterceptor
 {
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition,
-        IDictionary<string, object> contextData)
+        DefinitionBase definition)
     {
         if (definition is ObjectTypeDefinition objectTypeDefinition)
         {
             var position = 0;
-            IDescriptorContext context = completionContext.DescriptorContext;
+            var context = completionContext.DescriptorContext;
 
             if (completionContext.IsQueryType ?? false)
             {

@@ -14,7 +14,7 @@ public static class JsonErrorParser
             var array = new IClientError[errors.GetArrayLength()];
             var i = 0;
 
-            foreach (JsonElement error in errors.EnumerateArray())
+            foreach (var error in errors.EnumerateArray())
             {
                 try
                 {
@@ -44,9 +44,9 @@ public static class JsonErrorParser
             return new ClientError(JsonErrorParser_ParseError_MessageCannotBeNull);
         }
 
-        IReadOnlyList<object>? path = error.ParsePath();
-        IReadOnlyList<Location>? locations = error.ParseLocations();
-        IReadOnlyDictionary<string, object?>? extensions = error.ParseExtensions();
+        var path = error.ParsePath();
+        var locations = error.ParseLocations();
+        var extensions = error.ParseExtensions();
         var code = error.ParseCode(extensions);
 
         return new ClientError(message, code, path, locations, extensions: extensions);
@@ -59,7 +59,7 @@ public static class JsonErrorParser
             var array = new object[path.GetArrayLength()];
             var i = 0;
 
-            foreach (JsonElement element in path.EnumerateArray())
+            foreach (var element in path.EnumerateArray())
             {
                 array[i++] = element.ValueKind switch
                 {
@@ -82,7 +82,7 @@ public static class JsonErrorParser
             var array = new Location[locations.GetArrayLength()];
             var i = 0;
 
-            foreach (JsonElement location in locations.EnumerateArray())
+            foreach (var location in locations.EnumerateArray())
             {
                 array[i++] = new Location(
                     location.GetProperty("line").GetInt32(),
@@ -118,7 +118,7 @@ public static class JsonErrorParser
 
         // if we do not have a top level error code we will check if the extensions
         // dictionary has any field called code.
-        if (extensions is not null && extensions.TryGetValue("code", out object? value) &&
+        if (extensions is not null && extensions.TryGetValue("code", out var value) &&
             value is string s)
         {
             return s;
@@ -134,7 +134,7 @@ public static class JsonErrorParser
             case JsonValueKind.Object:
                 var dict = new Dictionary<string, object?>();
 
-                foreach (JsonProperty property in element.EnumerateObject())
+                foreach (var property in element.EnumerateObject())
                 {
                     dict[property.Name] = ParseValue(property.Value);
                 }
@@ -145,7 +145,7 @@ public static class JsonErrorParser
                 var array = new object?[element.GetArrayLength()];
                 var i = 0;
 
-                foreach (JsonElement item in element.EnumerateArray())
+                foreach (var item in element.EnumerateArray())
                 {
                     array[i++] = ParseValue(item);
                 }

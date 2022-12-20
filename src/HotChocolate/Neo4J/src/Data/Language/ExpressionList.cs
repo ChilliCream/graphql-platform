@@ -10,7 +10,7 @@ namespace HotChocolate.Data.Neo4J.Language;
 /// </summary>
 public class ExpressionList
     : TypedSubtree<Expression>
-        , ITypedSubtree
+    , ITypedSubtree
 {
     public ExpressionList(List<Expression> returnItems) : base(returnItems)
     {

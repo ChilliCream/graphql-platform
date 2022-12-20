@@ -19,7 +19,7 @@ public abstract class Path : IEquatable<Path>
     /// <summary>
     /// Gets the count of segments this path contains.
     /// </summary>
-    public int Depth { get; protected internal set; }
+    public int Length { get; protected internal set; }
 
     /// <summary>
     /// Returns true if the Path is the root element
@@ -48,7 +48,7 @@ public abstract class Path : IEquatable<Path>
         }
 
         var stack = new List<object>();
-        Path current = this;
+        var current = this;
 
         while (!current.IsRoot)
         {
@@ -114,17 +114,15 @@ public abstract class Path : IEquatable<Path>
             return Root;
         }
 
-        Path segment =
-            PathFactory.Instance.New(path[0] is NameString s ? s : (string)path[0]);
+        Path segment = PathFactory.Instance.New(path[0] is string s ? s : (string)path[0]);
 
         for (var i = 1; i < path.Count; i++)
         {
             segment = path[i] switch
             {
-                NameString n => PathFactory.Instance.Append(segment, n),
                 string n => PathFactory.Instance.Append(segment, n),
                 int n => PathFactory.Instance.Append(segment, n),
-                _ => throw new NotSupportedException("notsupported")
+                _ => throw new NotSupportedException()
             };
         }
 
@@ -137,7 +135,7 @@ public abstract class Path : IEquatable<Path>
     {
         private RootPathSegment()
         {
-            Depth = -1;
+            Length = -1;
         }
 
         /// <inheritdoc />
@@ -160,12 +158,9 @@ public abstract class Path : IEquatable<Path>
         /// <inheritdoc />
         public override int GetHashCode()
         {
-            unchecked
-            {
-                var hash = Parent.GetHashCode() * 3;
-                hash ^= Depth.GetHashCode() * 7;
-                return hash;
-            }
+            // ReSharper disable NonReadonlyMemberInGetHashCode
+            return HashCode.Combine(Parent, Length);
+            // ReSharper restore NonReadonlyMemberInGetHashCode
         }
 
         public static RootPathSegment Instance { get; } = new();

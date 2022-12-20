@@ -8,6 +8,9 @@ public static class WellKnownAttributes
     public const string UnionTypeAttribute = "HotChocolate.Types.UnionTypeAttribute";
     public const string EnumTypeAttribute = "HotChocolate.Types.EnumTypeAttribute";
     public const string InputObjectTypeAttribute = "HotChocolate.Types.InputObjectTypeAttribute";
+    public const string QueryTypeAttribute = "HotChocolate.Types.QueryTypeAttribute";
+    public const string MutationTypeAttribute = "HotChocolate.Types.MutationTypeAttribute";
+    public const string SubscriptionTypeAttribute = "HotChocolate.Types.SubscriptionTypeAttribute";
 
     public static HashSet<string> TypeAttributes { get; } =
         new()
@@ -17,6 +20,9 @@ public static class WellKnownAttributes
             InterfaceTypeAttribute,
             UnionTypeAttribute,
             EnumTypeAttribute,
-            InputObjectTypeAttribute
+            InputObjectTypeAttribute,
+            QueryTypeAttribute,
+            MutationTypeAttribute,
+            SubscriptionTypeAttribute
         };
 }

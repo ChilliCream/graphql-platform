@@ -19,7 +19,7 @@ public class SignedByteType : IntegerTypeBase<sbyte>
     /// Initializes a new instance of the <see cref="SignedByteType"/> class.
     /// </summary>
     public SignedByteType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Implicit)
         : base(name, sbyte.MinValue, sbyte.MaxValue, bind)

@@ -40,7 +40,7 @@ public static class DocumentHelper
         IEnumerable<GraphQLFile> files,
         IDictionary<ISyntaxNode, string> lookup)
     {
-        foreach (GraphQLFile file in files)
+        foreach (var file in files)
         {
             IndexSyntaxNodes(file, lookup);
         }

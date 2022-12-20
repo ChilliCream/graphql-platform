@@ -11,17 +11,18 @@ public sealed class DelegateDirectiveType : DirectiveType<DelegateDirective>
         descriptor
             .Name(DirectiveNames.Delegate)
             .Description(StitchingResources.DelegateDirectiveType_Description)
-            .Location(DirectiveLocation.FieldDefinition)
-            .Internal();
+            .Location(DirectiveLocation.FieldDefinition);
 
-        descriptor.Argument(t => t.Path)
+        descriptor
+            .Argument(t => t.Path)
             .Name(DirectiveFieldNames.Delegate_Path)
             .Type<StringType>()
             .Description(StitchingResources.DelegateDirectiveType_Path_FieldDescription);
 
-        descriptor.Argument(t => t.Schema)
+        descriptor
+            .Argument(t => t.Schema)
             .Name(DirectiveFieldNames.Delegate_Schema)
-            .Type<NonNullType<NameType>>()
+            .Type<NonNullType<StringType>>()
             .Description(StitchingResources.DelegateDirectiveType_Schema_FieldDescription);
     }
 }

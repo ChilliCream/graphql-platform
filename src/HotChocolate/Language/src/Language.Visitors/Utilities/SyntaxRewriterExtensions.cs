@@ -9,11 +9,11 @@ public static class SyntaxRewriterExtensions
         ISyntaxNode node)
         => rewriter.Rewrite(node, _empty);
 
-    public static T Rewrite<T>(
+    public static T? Rewrite<T>(
         this ISyntaxRewriter<ISyntaxVisitorContext> rewriter,
         T node)
         where T : ISyntaxNode
-        => (T)rewriter.Rewrite(node, _empty);
+        => (T?)rewriter.Rewrite(node, _empty);
 
     private sealed class EmptySyntaxVisitorContext : ISyntaxVisitorContext
     {

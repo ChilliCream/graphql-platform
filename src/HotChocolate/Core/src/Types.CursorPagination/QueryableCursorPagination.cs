@@ -31,7 +31,7 @@ internal sealed class QueryableCursorPagination<TEntity>
         if (query is IAsyncEnumerable<TEntity> enumerable)
         {
             var index = offset;
-            await foreach (TEntity item in enumerable
+            await foreach (var item in enumerable
                 .WithCancellation(cancellationToken)
                 .ConfigureAwait(false))
             {
@@ -43,7 +43,7 @@ internal sealed class QueryableCursorPagination<TEntity>
             await Task.Run(() =>
                 {
                     var index = offset;
-                    foreach (TEntity item in query)
+                    foreach (var item in query)
                     {
                         if (cancellationToken.IsCancellationRequested)
                         {

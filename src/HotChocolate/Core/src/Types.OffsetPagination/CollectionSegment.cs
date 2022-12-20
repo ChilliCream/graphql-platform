@@ -29,12 +29,9 @@ public class CollectionSegment : IPage
         CollectionSegmentInfo info,
         Func<CancellationToken, ValueTask<int>> getTotalCount)
     {
-        Items = items ??
-            throw new ArgumentNullException(nameof(items));
-        Info = info ??
-            throw new ArgumentNullException(nameof(info));
-        _getTotalCount = getTotalCount ??
-            throw new ArgumentNullException(nameof(getTotalCount));
+        Items = items ?? throw new ArgumentNullException(nameof(items));
+        Info = info ?? throw new ArgumentNullException(nameof(info));
+        _getTotalCount = getTotalCount ?? throw new ArgumentNullException(nameof(getTotalCount));
     }
 
     /// <summary>
@@ -55,10 +52,8 @@ public class CollectionSegment : IPage
         int totalCount = 0)
     {
         _getTotalCount = _ => new(totalCount);
-        Items = items ??
-            throw new ArgumentNullException(nameof(items));
-        Info = info ??
-            throw new ArgumentNullException(nameof(info));
+        Items = items ?? throw new ArgumentNullException(nameof(items));
+        Info = info ?? throw new ArgumentNullException(nameof(info));
     }
 
     /// <summary>
@@ -85,6 +80,6 @@ public class CollectionSegment : IPage
     /// <returns>
     /// The total count of the data set / collection.
     /// </returns>
-    public ValueTask<int> GetTotalCountAsync(CancellationToken cancellationToken) =>
-        _getTotalCount(cancellationToken);
+    public ValueTask<int> GetTotalCountAsync(CancellationToken cancellationToken)
+        => _getTotalCount(cancellationToken);
 }

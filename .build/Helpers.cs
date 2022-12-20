@@ -23,14 +23,17 @@ static class Helpers
         Path.Combine("HotChocolate", "Utilities"),
         Path.Combine("HotChocolate", "Data"),
         Path.Combine("HotChocolate", "Filters"),
+        Path.Combine("HotChocolate", "Marten"),
         Path.Combine("HotChocolate", "MongoDb"),
         Path.Combine("HotChocolate", "Neo4J"),
         Path.Combine("HotChocolate", "Stitching"),
+        Path.Combine("HotChocolate", "Fusion"),
         Path.Combine("HotChocolate", "Spatial"),
         Path.Combine("StrawberryShake", "Client"),
         Path.Combine("StrawberryShake", "CodeGeneration"),
-        Path.Combine("StrawberryShake", "SourceGenerator"),
-        Path.Combine("StrawberryShake", "Tooling")
+        Path.Combine("StrawberryShake", "MetaPackages"),
+        Path.Combine("StrawberryShake", "Tooling"),
+        "CookieCrumble"
     };
 
     static IEnumerable<string> GetAllProjects(

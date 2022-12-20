@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
+using CookieCrumble;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using NetTopologySuite.Geometries;
-using Snapshooter.Xunit;
-using Xunit;
 using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
 namespace HotChocolate.Types.Spatial;
@@ -78,7 +75,7 @@ public class GeoJsonPolygonSerializerTests
     public void Serialize_Should_Pass_When_SerializeNullValue(string typeName)
     {
         // arrange
-        ILeafType type = CreateLeafType(typeName);
+        var type = CreateLeafType(typeName);
 
         // act
         // assert
@@ -90,7 +87,7 @@ public class GeoJsonPolygonSerializerTests
     public void Serialize_Should_Pass_When_Dictionary(string typeName)
     {
         // arrange
-        ILeafType type = CreateLeafType(typeName);
+        var type = CreateLeafType(typeName);
         var dictionary = new Dictionary<string, object>();
 
         // act
@@ -105,7 +102,7 @@ public class GeoJsonPolygonSerializerTests
     public void Serialize_Should_Pass_When_SerializeGeometry(string typeName)
     {
         // arrange
-        ILeafType type = CreateLeafType(typeName);
+        var type = CreateLeafType(typeName);
 
         // act
         var result = type.Serialize(_geometry);
@@ -119,7 +116,7 @@ public class GeoJsonPolygonSerializerTests
     public void Serialize_Should_Throw_When_InvalidObjectShouldThrow(string typeName)
     {
         // arrange
-        ILeafType type = CreateLeafType(typeName);
+        var type = CreateLeafType(typeName);
 
         // act
         // assert
@@ -132,7 +129,7 @@ public class GeoJsonPolygonSerializerTests
     public void IsInstanceOfType_Should_Throw_When_Null(string typeName)
     {
         // arrange
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         // act
         // assert
@@ -144,7 +141,7 @@ public class GeoJsonPolygonSerializerTests
     public void IsInstanceOfType_Should_Pass_When_ObjectValueNode(string typeName)
     {
         // arrange
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         // act
         // assert
@@ -157,7 +154,7 @@ public class GeoJsonPolygonSerializerTests
     public void IsInstanceOfType_Should_Pass_When_NullValueNode(string typeName)
     {
         // arrange
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         // act
         // assert
@@ -169,7 +166,7 @@ public class GeoJsonPolygonSerializerTests
     public void IsInstanceOfType_Should_Fail_When_DifferentGeoJsonObject(string typeName)
     {
         // arrange
-        ILeafType type = CreateLeafType(typeName);
+        var type = CreateLeafType(typeName);
 
         // act
         // assert
@@ -187,7 +184,7 @@ public class GeoJsonPolygonSerializerTests
     public void IsInstanceOfType_Should_Pass_When_GeometryOfType(string typeName)
     {
         // arrange
-        ILeafType type = CreateLeafType(typeName);
+        var type = CreateLeafType(typeName);
 
         // act
         // assert
@@ -199,7 +196,7 @@ public class GeoJsonPolygonSerializerTests
     public void IsInstanceOfType_Should_Fail_When_NoGeometry(string typeName)
     {
         // arrange
-        ILeafType type = CreateLeafType(typeName);
+        var type = CreateLeafType(typeName);
 
         // act
         // assert
@@ -213,7 +210,7 @@ public class GeoJsonPolygonSerializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         // act
         // assert
@@ -227,7 +224,7 @@ public class GeoJsonPolygonSerializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         // act
         // assert
@@ -242,7 +239,7 @@ public class GeoJsonPolygonSerializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
         var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, _geometryType);
         var coordField = new ObjectFieldNode(
             WellKnownFields.CoordinatesFieldName,
@@ -264,7 +261,7 @@ public class GeoJsonPolygonSerializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
         var coordField = new ObjectFieldNode(
             WellKnownFields.CoordinatesFieldName,
             _coordinatesSyntaxNode);
@@ -283,7 +280,7 @@ public class GeoJsonPolygonSerializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
         var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, _geometryType);
         var crsField = new ObjectFieldNode(WellKnownFields.CrsFieldName, 0);
         var valueNode = new ObjectValueNode(typeField, crsField);
@@ -300,7 +297,7 @@ public class GeoJsonPolygonSerializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, _geometryType);
         var coordField = new ObjectFieldNode(
@@ -322,7 +319,7 @@ public class GeoJsonPolygonSerializerTests
     {
         // arrange
         var inputFormatter = new InputFormatter();
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         // act
         // assert
@@ -334,11 +331,11 @@ public class GeoJsonPolygonSerializerTests
     public void ParseResult_Should_Pass_When_Serialized(string typeName)
     {
         // arrange
-        ILeafType type = CreateLeafType(typeName);
+        var type = CreateLeafType(typeName);
         var serialized = type.Serialize(_geometry);
 
         // act
-        IValueNode literal = type.ParseResult(serialized);
+        var literal = type.ParseResult(serialized);
 
         // assert
         literal.ToString().MatchSnapshot();
@@ -351,10 +348,10 @@ public class GeoJsonPolygonSerializerTests
     {
         // arrange
         var inputFormatter = new InputFormatter();
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         // act
-        IValueNode literal = inputFormatter.FormatResult(_geometry, type);
+        var literal = inputFormatter.FormatResult(_geometry, type);
 
         // assert
         literal.ToString().MatchSnapshot();
@@ -367,7 +364,7 @@ public class GeoJsonPolygonSerializerTests
     {
         // arrange
         var inputFormatter = new InputFormatter();
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         // act
         // assert
@@ -381,7 +378,7 @@ public class GeoJsonPolygonSerializerTests
     {
         // arrange
         var inputFormatter = new InputFormatter();
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         // act
         // assert
@@ -393,11 +390,11 @@ public class GeoJsonPolygonSerializerTests
     public void ParseValue_Should_Pass_When_Serialized(string typeName)
     {
         // arrange
-        ILeafType type = CreateLeafType(typeName);
+        var type = CreateLeafType(typeName);
         var serialized = type.Serialize(_geometry);
 
         // act
-        IValueNode literal = type.ParseValue(serialized);
+        var literal = type.ParseValue(serialized);
 
         // assert
         literal.ToString().MatchSnapshot();
@@ -410,10 +407,10 @@ public class GeoJsonPolygonSerializerTests
     {
         // arrange
         var inputFormatter = new InputFormatter();
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         // act
-        IValueNode literal = inputFormatter.FormatValue(_geometry, type);
+        var literal = inputFormatter.FormatValue(_geometry, type);
 
         // assert
         literal.ToString().MatchSnapshot();
@@ -426,7 +423,7 @@ public class GeoJsonPolygonSerializerTests
     {
         // arrange
         var inputFormatter = new InputFormatter();
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         // act
         // assert
@@ -440,7 +437,7 @@ public class GeoJsonPolygonSerializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         // act
         // assert
@@ -452,7 +449,7 @@ public class GeoJsonPolygonSerializerTests
     public void Deserialize_Should_Pass_When_PassedSerializedResult(string typeName)
     {
         // arrange
-        ILeafType type = CreateLeafType(typeName);
+        var type = CreateLeafType(typeName);
         var serialized = type.Serialize(_geometry);
 
         // act
@@ -469,7 +466,7 @@ public class GeoJsonPolygonSerializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         // act
         var result = inputParser.ParseResult(_geometry, type);
@@ -485,7 +482,7 @@ public class GeoJsonPolygonSerializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
 
         // act
         // assert
@@ -499,7 +496,7 @@ public class GeoJsonPolygonSerializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
         var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
@@ -521,7 +518,7 @@ public class GeoJsonPolygonSerializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
         var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
@@ -542,7 +539,7 @@ public class GeoJsonPolygonSerializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
         var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.CoordinatesFieldName, _geometryParsed },
@@ -561,7 +558,7 @@ public class GeoJsonPolygonSerializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
         var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
@@ -580,7 +577,7 @@ public class GeoJsonPolygonSerializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        INamedInputType type = CreateInputType(typeName);
+        var type = CreateInputType(typeName);
         var coords = new ListValueNode(
             new IntValueNode(30),
             new IntValueNode(10));

@@ -1,6 +1,7 @@
 using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using static HotChocolate.Execution.Properties.Resources;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -10,9 +11,7 @@ internal readonly struct VariableValueOrLiteral
     {
         if (value is null && valueLiteral.Kind != SyntaxKind.NullValue)
         {
-            // TODO : resource
-            throw new ArgumentException(
-                "The runtime value can only be null if the literal is also null.");
+            throw new ArgumentException(VariableValueOrLiteral_NullNotAllowed);
         }
 
         Type = type ?? throw new ArgumentNullException(nameof(type));

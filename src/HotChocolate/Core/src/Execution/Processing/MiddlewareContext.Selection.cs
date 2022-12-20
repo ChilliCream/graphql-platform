@@ -18,9 +18,9 @@ internal partial class MiddlewareContext
     [Obsolete("Use Selection.SyntaxNode.")]
     public FieldNode FieldSelection => _selection.SyntaxNode;
 
-    public IFieldSelection Selection => _selection;
+    public ISelection Selection => _selection;
 
-    public NameString ResponseName => _selection.ResponseName;
+    public string ResponseName => _selection.ResponseName;
 
     public int ResponseIndex { get; private set; }
 

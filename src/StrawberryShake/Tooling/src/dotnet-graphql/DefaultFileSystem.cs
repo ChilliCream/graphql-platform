@@ -25,12 +25,12 @@ namespace StrawberryShake.Tools
 
         public IEnumerable<string> GetClientDirectories(string path)
         {
-            foreach (string configFile in Directory.GetFiles(
+            foreach (var configFile in Directory.GetFiles(
                 Environment.CurrentDirectory,
                 WellKnownFiles.Config,
                 SearchOption.AllDirectories))
             {
-                string directory = Path.GetDirectoryName(configFile)!;
+                var directory = Path.GetDirectoryName(configFile)!;
                 if (Directory.GetFiles(directory, _graphQLFilter).Length > 0)
                 {
                     yield return directory;
@@ -76,7 +76,7 @@ namespace StrawberryShake.Tools
                 File.Delete(fileName);
             }
 
-            using (FileStream stream = File.Create(fileName))
+            using (var stream = File.Create(fileName))
             {
                 await write(stream).ConfigureAwait(false);
             }

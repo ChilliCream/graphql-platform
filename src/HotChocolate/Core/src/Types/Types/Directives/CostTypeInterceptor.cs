@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
-using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -28,8 +27,7 @@ internal class CostTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
         EnsurePagingSettingsAreLoaded(discoveryContext.DescriptorContext);
         EnsureCostSettingsAreLoaded(discoveryContext.DescriptorContext);
@@ -47,7 +45,7 @@ internal class CostTypeInterceptor : TypeInterceptor
             definition is ObjectTypeDefinition objectDef &&
             objectDef.Fields.Any(CanApplyDefaultCost))
         {
-            IExtendedType directive =
+            var directive =
                 discoveryContext.TypeInspector.GetType(typeof(CostDirectiveType));
 
             discoveryContext.Dependencies.Add(new(
@@ -58,8 +56,7 @@ internal class CostTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
         if (!_costSettings.Enable || !_costSettings.ApplyDefaults)
         {
@@ -69,7 +66,7 @@ internal class CostTypeInterceptor : TypeInterceptor
         if (!completionContext.IsIntrospectionType &&
             definition is ObjectTypeDefinition objectDef)
         {
-            foreach (ObjectFieldDefinition field in objectDef.Fields)
+            foreach (var field in objectDef.Fields)
             {
                 if (CanApplyDefaultCost(field))
                 {
@@ -119,13 +116,13 @@ internal class CostTypeInterceptor : TypeInterceptor
             return false;
         }
 
-        IReadOnlyList<DirectiveDefinition> directives = field.GetDirectives();
+        var directives = field.GetDirectives();
         return directives is { Count: 0 } || !directives.Any(IsCostDirective);
     }
 
     private static bool IsCostDirective(DirectiveDefinition directive)
     {
-        if (directive.Reference is NameDirectiveReference { Name: { Value: "cost" } })
+        if (directive.Reference is NameDirectiveReference { Name: "cost" })
         {
             return true;
         }
@@ -154,7 +151,7 @@ internal class CostTypeInterceptor : TypeInterceptor
             return true;
         }
 
-        MemberInfo? resolver = field.ResolverMember ?? field.Member;
+        var resolver = field.ResolverMember ?? field.Member;
 
         if (resolver is MethodInfo method)
         {

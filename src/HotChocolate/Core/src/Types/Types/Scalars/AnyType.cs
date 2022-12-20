@@ -5,6 +5,7 @@ using System.Globalization;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -15,7 +16,6 @@ public class AnyType : ScalarType
 {
     private readonly ObjectValueToDictionaryConverter _objectValueToDictConverter = new();
     private ObjectToDictionaryConverter _objectToDictConverter = default!;
-    private ITypeConverter _converter = default!;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AnyType"/> class.
@@ -28,7 +28,7 @@ public class AnyType : ScalarType
     /// Initializes a new instance of the <see cref="AnyType"/> class.
     /// </summary>
     public AnyType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)
@@ -40,11 +40,10 @@ public class AnyType : ScalarType
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        IDictionary<string, object?> contextData)
+        ScalarTypeDefinition definition)
     {
-        _converter = context.Services.GetTypeConverter();
-        _objectToDictConverter = new ObjectToDictionaryConverter(_converter);
-        base.OnCompleteType(context, contextData);
+        base.OnCompleteType(context, definition);
+        _objectToDictConverter = new ObjectToDictionaryConverter(Converter);
     }
 
     public override bool IsInstanceOfType(IValueNode literal)
@@ -140,10 +139,10 @@ public class AnyType : ScalarType
                 return new IntValueNode(b);
         }
 
-        Type type = value.GetType();
+        var type = value.GetType();
 
-        if (type.IsValueType && _converter.TryConvert(
-            type, typeof(string), value, out object? converted)
+        if (type.IsValueType && Converter.TryConvert(
+            type, typeof(string), value, out var converted)
             && converted is string c)
         {
             return new StringValueNode(c);
@@ -154,7 +153,7 @@ public class AnyType : ScalarType
             if (value is IReadOnlyDictionary<string, object> dict)
             {
                 var fields = new List<ObjectFieldNode>();
-                foreach (KeyValuePair<string, object> field in dict)
+                foreach (var field in dict)
                 {
                     fields.Add(new ObjectFieldNode(
                         field.Key,
@@ -166,7 +165,7 @@ public class AnyType : ScalarType
             if (value is IReadOnlyList<object> list)
             {
                 var valueList = new List<IValueNode>();
-                foreach (object element in list)
+                foreach (var element in list)
                 {
                     valueList.Add(ParseValue(element, set));
                 }
@@ -208,10 +207,10 @@ public class AnyType : ScalarType
                 return true;
 
             default:
-                Type type = runtimeValue.GetType();
+                var type = runtimeValue.GetType();
 
                 if (type.IsValueType &&
-                    _converter.TryConvert(type, typeof(string), runtimeValue, out object? c) &&
+                    Converter.TryConvert(type, typeof(string), runtimeValue, out var c) &&
                     c is string casted)
                 {
                     resultValue = casted;
@@ -232,7 +231,7 @@ public class AnyType : ScalarType
             case IDictionary<string, object> dictionary:
                 {
                     var result = new Dictionary<string, object?>();
-                    foreach (KeyValuePair<string, object> element in dictionary)
+                    foreach (var element in dictionary)
                     {
                         if (TryDeserialize(element.Value, out elementValue))
                         {

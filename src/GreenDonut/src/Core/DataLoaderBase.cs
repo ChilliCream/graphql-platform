@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using static GreenDonut.NoopDataLoaderDiagnosticEventListener;
 using static GreenDonut.Errors;
 
 namespace GreenDonut;
@@ -53,7 +54,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     protected DataLoaderBase(IBatchScheduler batchScheduler, DataLoaderOptions? options = null)
     {
         options ??= new DataLoaderOptions();
-        _diagnosticEvents = options.DiagnosticEvents ?? new DataLoaderDiagnosticEventListener();
+        _diagnosticEvents = options.DiagnosticEvents ?? Default;
 
         if (options.Caching && options.Cache is null)
         {
@@ -97,7 +98,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         {
             if (Cache is not null)
             {
-                Task<TValue> cachedTask = Cache.GetOrAddTask(cacheKey, CreatePromise);
+                var cachedTask = Cache.GetOrAddTask(cacheKey, CreatePromise);
 
                 if (cached)
                 {
@@ -148,14 +149,14 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         void InitializeWithCache()
         {
-            foreach (TKey key in keys)
+            foreach (var key in keys)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 cached = true;
                 currentKey = key;
                 TaskCacheKey cacheKey = new(CacheKeyType, key);
-                Task<TValue> cachedTask = Cache.GetOrAddTask(cacheKey, CreatePromise);
+                var cachedTask = Cache.GetOrAddTask(cacheKey, CreatePromise);
 
                 if (cached)
                 {
@@ -168,7 +169,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         void Initialize()
         {
-            foreach (TKey key in keys)
+            foreach (var key in keys)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -229,7 +230,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     {
         _diagnosticEvents.BatchError(keys, error);
 
-        foreach (TKey key in keys)
+        foreach (var key in keys)
         {
             if (Cache is not null)
             {
@@ -248,8 +249,8 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     {
         for (var i = 0; i < keys.Count; i++)
         {
-            TKey key = keys[i];
-            Result<TValue> value = results[i];
+            var key = keys[i];
+            var value = results[i];
 
             if (value.Kind is ResultKind.Undefined)
             {
@@ -310,8 +311,8 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             return _currentBatch.GetOrCreatePromise<TValue>(key);
         }
 
-        Batch<TKey> newBatch = BatchPool<TKey>.Shared.Get();
-        TaskCompletionSource<TValue> newPromise = newBatch.GetOrCreatePromise<TValue>(key);
+        var newBatch = BatchPool<TKey>.Shared.Get();
+        var newPromise = newBatch.GetOrCreatePromise<TValue>(key);
 
         // set the batch before enqueueing to avoid concurrency issues.
         _currentBatch = newBatch;
@@ -359,7 +360,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     {
         if (Cache is not null)
         {
-            foreach (TItem item in items)
+            foreach (var item in items)
             {
                 TaskCacheKey cacheKey = new(cacheKeyType, key(item));
                 Cache.TryAdd(cacheKey, () => Task.FromResult(value(item)));
