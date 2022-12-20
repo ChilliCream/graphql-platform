@@ -62,7 +62,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
             ServiceDescriptor.Singleton<IExtensionConfigProvider, GraphQLExtensions>());
 
         // Add the Request Executor Dependency...
-        services.AddAzureFunctionsGraphQLRequestExecutorDependency(apiRoute, schemaName);
+        services.AddAzureFunctionsGraphQLRequestExecutor(apiRoute, schemaName);
 
         return executorBuilder;
     }
@@ -72,7 +72,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
     /// in-process and isolate-process. Normal configuration should use AddGraphQLFunction()
     /// extension instead which correctly call this internally.
     /// </summary>
-    private static IServiceCollection AddAzureFunctionsGraphQLRequestExecutorDependency(
+    private static IServiceCollection AddAzureFunctionsGraphQLRequestExecutor(
         this IServiceCollection services,
         string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute,
         string? schemaName = default
