@@ -88,7 +88,7 @@ const IndexPage: FC = () => {
             <Link to="/blog/2020/03/18/entity-framework">
               <BlogPostEFMeetsGraphQL />
               <SlideContent>
-                <SlideTitle>Entity Framework meets GraphQL</SlideTitle>
+                <SlideTitle>Entity Framework Meets GraphQL</SlideTitle>
                 <SlideDescription>
                   Get started with Hot Chocolate and Entity Framework
                 </SlideDescription>
@@ -104,7 +104,7 @@ const IndexPage: FC = () => {
           </ImageContainer>
           <ContentContainer>
             <SectionTitle>
-              What is the ChilliCream GraphQL platform?
+              What Is the ChilliCream GraphQL Platform?
             </SectionTitle>
             <p>
               It's a new way of defining modern APIs which are strongly typed
@@ -143,7 +143,7 @@ const IndexPage: FC = () => {
             <Artwork {...ContactUsSvg} />
           </ImageContainer>
           <ContentContainer>
-            <SectionTitle>What's your story?</SectionTitle>
+            <SectionTitle>What’s Your Story?</SectionTitle>
             <p>
               {
                 "We would be thrilled to hear your customer success story with Hot Chocolate! Write us an "

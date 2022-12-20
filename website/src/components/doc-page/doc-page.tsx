@@ -73,13 +73,8 @@ export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
   }, []);
 
   useEffect(() => {
-    const classes = responsiveMenuRef.current?.className ?? "";
-
     const subscription = hasScrolled$.subscribe((hasScrolled) => {
-      if (responsiveMenuRef.current) {
-        responsiveMenuRef.current.className =
-          classes + (hasScrolled ? " scrolled" : "");
-      }
+      responsiveMenuRef.current?.classList.toggle("scrolled", hasScrolled);
     });
 
     return () => {

@@ -29,7 +29,8 @@ export const Main: FC<PropsWithChildren<unknown>> = ({ children }) => {
       );
     };
 
-    ref.current?.addEventListener("scroll", handleScroll);
+    ref.current?.addEventListener("scroll", handleScroll, { passive: true });
+
     return () => {
       ref.current?.removeEventListener("scroll", handleScroll);
     };

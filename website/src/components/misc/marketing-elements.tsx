@@ -88,7 +88,7 @@ export const ContentContainer = styled.div<{ noImage?: boolean }>`
   }
 `;
 
-export const SectionTitle = styled.h1<{ centerAlways?: boolean }>`
+export const SectionTitle = styled.h2<{ centerAlways?: boolean }>`
   flex: 0 0 auto;
   font-size: 1.75em;
   color: ${THEME_COLORS.text};
