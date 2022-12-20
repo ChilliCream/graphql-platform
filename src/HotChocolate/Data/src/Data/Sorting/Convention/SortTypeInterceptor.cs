@@ -18,10 +18,6 @@ public sealed class SortTypeInterceptor : TypeInterceptor
     private TypeRegistry _typeRegistry = default!;
     private readonly Dictionary<ITypeSystemMember, SortInputTypeDefinition> _definitions = new();
 
-    public override bool CanHandle(ITypeSystemObjectContext context) => true;
-
-    public override bool TriggerAggregations => true;
-
     internal override void InitializeContext(
         IDescriptorContext context,
         TypeInitializer typeInitializer,
@@ -34,8 +30,7 @@ public sealed class SortTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
         switch (definition)
         {
@@ -50,8 +45,7 @@ public sealed class SortTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
         switch (definition)
         {
@@ -66,8 +60,7 @@ public sealed class SortTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
         switch (definition)
         {

@@ -577,14 +577,14 @@ public class UserNameTakenError
         Message = $"The username {username} is already taken.";
     }
 
-    public static MyCustomError CreateErrorFrom(UserNameTakenException ex)
+    public static UserNameTakenError CreateErrorFrom(UserNameTakenException ex)
     {
-        return new MyCustomError(ex.Username);
+        return new UserNameTakenError(ex.Username);
     }
 
-    public static MyCustomError CreateErrorFrom(OtherException ex)
+    public static UserNameTakenError CreateErrorFrom(OtherException ex)
     {
-        return new MyCustomError(ex.Username);
+        return new UserNameTakenError(ex.Username);
     }
 
     public string Message { get; }
@@ -621,14 +621,14 @@ public class UserNameTakenError
         Message = $"The username {username} is already taken.";
     }
 
-    public static MyCustomError CreateErrorFrom(UserNameTakenException ex)
+    public static UserNameTakenError CreateErrorFrom(UserNameTakenException ex)
     {
-        return new MyCustomError(ex.Username);
+        return new UserNameTakenError(ex.Username);
     }
 
-    public static MyCustomError CreateErrorFrom(OtherException ex)
+    public static UserNameTakenError CreateErrorFrom(OtherException ex)
     {
-        return new MyCustomError(ex.Username);
+        return new UserNameTakenError(ex.Username);
     }
 
     public string Message { get; }
@@ -675,14 +675,14 @@ public class UserNameTakenError
         Message = $"The username {username} is already taken.";
     }
 
-    public static MyCustomError CreateErrorFrom(UserNameTakenException ex)
+    public static UserNameTakenError CreateErrorFrom(UserNameTakenException ex)
     {
-        return new MyCustomError(ex.Username);
+        return new UserNameTakenError(ex.Username);
     }
 
-    public static MyCustomError CreateErrorFrom(OtherException ex)
+    public static UserNameTakenError CreateErrorFrom(OtherException ex)
     {
-        return new MyCustomError(ex.Username);
+        return new UserNameTakenError(ex.Username);
     }
 
     public string Message { get; }
@@ -714,14 +714,14 @@ Error factories can also be located in a dedicated class.
 ```csharp
 public static class CreateUserErrorFactory
 {
-    public static MyCustomErrorA CreateErrorFrom(DomainExceptionA ex)
+    public static UserNameTakenError CreateErrorFrom(DomainExceptionA ex)
     {
-        return new MyCustomError();
+        return new UserNameTakenError();
     }
 
-    public static MyCustomErrorB CreateErrorFrom(DomainExceptionB ex)
+    public static UserNameTakenError CreateErrorFrom(DomainExceptionB ex)
     {
-        return new MyCustomError();
+        return new UserNameTakenError();
     }
 }
 
@@ -740,17 +740,17 @@ You can also use the `IPayloadErrorFactory<TError, TException>` interface, to de
 
 ```csharp
 public class CreateUserErrorFactory
-    : IPayloadErrorFactory<MyCustomErrorA, DomainExceptionA>
-    , IPayloadErrorFactory<MyCustomErrorB, DomainExceptionB>
+    : IPayloadErrorFactory<MyCustomError, DomainExceptionA>
+    , IPayloadErrorFactory<MyCustomError, DomainExceptionB>
 {
-    public MyCustomErrorA CreateErrorFrom(DomainExceptionA ex)
+    public MyCustomError CreateErrorFrom(DomainExceptionA ex)
     {
-        return new MyCustomError();
+        return new MyCustomErrorA();
     }
 
-    public MyCustomErrorB CreateErrorFrom(DomainExceptionB ex)
+    public MyCustomError CreateErrorFrom(DomainExceptionB ex)
     {
-        return new MyCustomError();
+        return new MyCustomErrorB();
     }
 }
 

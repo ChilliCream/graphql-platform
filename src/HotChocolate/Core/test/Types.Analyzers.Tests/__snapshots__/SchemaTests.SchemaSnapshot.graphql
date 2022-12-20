@@ -1,9 +1,15 @@
 schema {
   query: Query
+  mutation: Mutation
+  subscription: Subscription
 }
 
 interface Entity {
   name: String!
+}
+
+type Mutation {
+  doSomething: String!
 }
 
 type Person implements Entity {
@@ -21,6 +27,10 @@ type Query {
 
 type SomeBook {
   title: String
+}
+
+type Subscription {
+  onSomething: String!
 }
 
 enum CustomEnum {

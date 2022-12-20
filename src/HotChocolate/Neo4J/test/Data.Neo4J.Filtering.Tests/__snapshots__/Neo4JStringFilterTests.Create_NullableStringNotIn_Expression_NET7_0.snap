@@ -1,0 +1,45 @@
+testatestAndtestb Result:
+---------------
+{
+  "data": {
+    "root": []
+  }
+}
+---------------
+
+testatestAndtestb Query:
+---------------
+MATCH (fooStringNullable:FooStringNullable) WHERE NOT (fooStringNullable.Bar IN [ "testatest", "testbtest" ]) RETURN fooStringNullable {.Bar} ORDER BY fooStringNullable {.Bar} ASC
+---------------
+
+testbtestAndNull Result:
+---------------
+{
+  "data": {
+    "root": []
+  }
+}
+---------------
+
+testbtestAndNull Query:
+---------------
+MATCH (fooStringNullable:FooStringNullable) WHERE NOT (fooStringNullable.Bar IN [ "testbtest", null ]) RETURN fooStringNullable {.Bar} ORDER BY fooStringNullable {.Bar} ASC
+---------------
+
+testatest Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testbtest"
+      }
+    ]
+  }
+}
+---------------
+
+testatest Query:
+---------------
+MATCH (fooStringNullable:FooStringNullable) WHERE NOT (fooStringNullable.Bar IN [ "testatest" ]) RETURN fooStringNullable {.Bar} ORDER BY fooStringNullable {.Bar} ASC
+---------------

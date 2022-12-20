@@ -1,6 +1,7 @@
 import React, { FC, useState } from "react";
 import styled from "styled-components";
-import { FONT_FAMILY, THEME_COLORS } from "../../shared-style";
+
+import { FONT_FAMILY, THEME_COLORS } from "@/shared-style";
 
 function copyToClipboard(content: string): void {
   const el = document.createElement(`textarea`);

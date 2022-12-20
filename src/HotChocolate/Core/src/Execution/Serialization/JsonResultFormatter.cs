@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -12,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Utilities;
+using static System.Text.Json.JsonSerializerDefaults;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Serialization;
@@ -22,6 +22,7 @@ namespace HotChocolate.Execution.Serialization;
 public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecutionResultFormatter
 {
     private readonly JsonWriterOptions _options;
+    private readonly JsonSerializerOptions _serializerOptions;
 
     /// <summary>
     /// Initializes a new instance of <see cref="JsonResultFormatter"/>.
@@ -34,7 +35,8 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
     /// </param>
     public JsonResultFormatter(bool indented = false, JavaScriptEncoder? encoder = null)
     {
-        _options = new JsonWriterOptions { Indented = indented, Encoder = encoder };
+        _options = new() { Indented = indented, Encoder = encoder };
+        _serializerOptions = new(Web) { WriteIndented = indented, Encoder = encoder };
     }
 
     /// <inheritdoc cref="IExecutionResultFormatter.FormatAsync"/>
@@ -606,7 +608,7 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
                 WriteListResult(writer, resultMapList);
                 break;
 
-#if NET5_0_OR_GREATER
+#if NET6_0_OR_GREATER
             case JsonElement element:
                 WriteJsonElement(writer, element);
                 break;
@@ -615,6 +617,10 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
                 writer.WriteRawValue(rawJsonValue.Value.Span, true);
                 break;
 #endif
+            case NeedsFormatting unformatted:
+                unformatted.FormatValue(writer, _serializerOptions);
+                break;
+
             case Dictionary<string, object?> dict:
                 WriteDictionary(writer, dict);
                 break;

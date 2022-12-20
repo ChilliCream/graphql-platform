@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Validation.Types;
@@ -11,9 +12,11 @@ namespace HotChocolate.Validation;
 public static class ValidationUtils
 {
     public static DocumentValidatorContext CreateContext(ISchema? schema = null)
-    {
-        return new() { Schema = schema ?? CreateSchema() };
-    }
+        => new()
+        {
+            Schema = schema ?? CreateSchema(),
+            ContextData = new Dictionary<string, object?>()
+        };
 
     public static void Prepare(this IDocumentValidatorContext context, DocumentNode document)
     {

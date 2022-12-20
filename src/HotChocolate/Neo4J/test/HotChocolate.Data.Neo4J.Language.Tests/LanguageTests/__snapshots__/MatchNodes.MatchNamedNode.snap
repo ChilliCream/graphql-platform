@@ -1,1 +1,0 @@
-MATCH (m:Movie) RETURN m

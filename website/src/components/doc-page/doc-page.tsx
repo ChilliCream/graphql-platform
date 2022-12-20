@@ -5,9 +5,18 @@ import { useDispatch } from "react-redux";
 import semverCoerce from "semver/functions/coerce";
 import semverCompare from "semver/functions/compare";
 import styled, { css } from "styled-components";
-import { DocPageFragment, DocsJson, Maybe } from "../../../graphql-types";
-import ListAltIconSvg from "../../images/list-alt.svg";
-import NewspaperIconSvg from "../../images/newspaper.svg";
+
+import { Article } from "@/components/articles/article";
+import { ArticleComments } from "@/components/articles/article-comments";
+import { ArticleContentFooter } from "@/components/articles/article-content-footer";
+import {
+  ArticleContent,
+  ArticleHeader,
+  ArticleTitle,
+} from "@/components/articles/article-elements";
+import { ArticleSections } from "@/components/articles/article-sections";
+import { TabGroupProvider } from "@/components/mdx/tabs";
+import { DocPageFragment, DocsJson, Maybe } from "@/graphql-types";
 import {
   DocPageDesktopGridColumns,
   IsDesktop,
@@ -15,19 +24,14 @@ import {
   IsSmallDesktop,
   IsTablet,
   THEME_COLORS,
-} from "../../shared-style";
-import { useObservable } from "../../state";
-import { toggleAside, toggleTOC } from "../../state/common";
-import { Article } from "../articles/article";
-import { ArticleComments } from "../articles/article-comments";
-import { ArticleContentFooter } from "../articles/article-content-footer";
-import {
-  ArticleContent,
-  ArticleHeader,
-  ArticleTitle,
-} from "../articles/article-elements";
-import { ArticleSections } from "../articles/article-sections";
-import { TabGroupProvider } from "../mdx/tabs";
+} from "@/shared-style";
+import { useObservable } from "@/state";
+import { toggleAside, toggleTOC } from "@/state/common";
+
+// Icons
+import ListAltIconSvg from "@/images/list-alt.svg";
+import NewspaperIconSvg from "@/images/newspaper.svg";
+
 import {
   ArticleWrapper,
   ArticleWrapperElement,
@@ -168,6 +172,7 @@ export const DocPageGraphQLFragment = graphql`
         path
         title
         description
+        metaDescription
         latestStableVersion
       }
     }
@@ -184,11 +189,12 @@ interface ProductInformation {
   readonly name: string | null;
   readonly version: string;
   readonly stableVersion: string;
+  readonly description: string | null;
 }
 
 type Product = Pick<
   DocsJson,
-  "path" | "title" | "description" | "latestStableVersion"
+  "path" | "title" | "description" | "metaDescription" | "latestStableVersion"
 >;
 
 export function useProductInformation(
@@ -220,6 +226,7 @@ export function useProductInformation(
     name: selectedProduct?.title ?? "",
     version: selectedVersion,
     stableVersion,
+    description: selectedProduct?.metaDescription || null,
   };
 }
 

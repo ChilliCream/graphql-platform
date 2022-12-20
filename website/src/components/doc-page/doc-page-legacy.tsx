@@ -2,10 +2,13 @@ import React, { FC, useEffect } from "react";
 import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
-import TimesIconSvg from "../../images/times.svg";
-import { State } from "../../state";
-import { hideLegacyDocHeader, showLegacyDocInfo } from "../../state/common";
-import { Link } from "../misc/link";
+
+import { Link } from "@/components/misc/link";
+import { State } from "@/state";
+import { hideLegacyDocHeader, showLegacyDocInfo } from "@/state/common";
+
+// Icons
+import TimesIconSvg from "@/images/times.svg";
 
 export const DocPageLegacy: FC = () => {
   const show = useSelector<State, boolean>(

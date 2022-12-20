@@ -47,8 +47,8 @@ public sealed class ArgumentValue : IInputFieldInfo
     {
         _argument = argument ?? throw new ArgumentNullException(nameof(argument));
         Kind = kind;
-        IsFullyCoerced = isFullyCoerced;
         IsDefaultValue = isDefaultValue;
+        IsFullyCoerced = isFullyCoerced;
         HasError = false;
         Error = null;
         Value = value;

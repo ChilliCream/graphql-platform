@@ -10,6 +10,7 @@ module.exports = {
     tools: {
       bcp: `https://eat.bananacakepop.com`,
       github: `https://github.com/ChilliCream/hotchocolate`,
+      linkedIn: `https://www.linkedin.com/company/chillicream`,
       shop: `https://store.chillicream.com`,
       slack: `https://slack.chillicream.com/`,
       twitter: `https://twitter.com/Chilli_Cream`,
@@ -20,6 +21,7 @@ module.exports = {
     `gatsby-plugin-graphql-codegen`,
     `gatsby-plugin-styled-components`,
     `gatsby-plugin-react-helmet`,
+    `gatsby-plugin-robots-txt`,
     `gatsby-plugin-tsconfig-paths`,
     `gatsby-remark-reading-time`,
     {
@@ -99,6 +101,15 @@ module.exports = {
       options: {
         rule: {
           include: /images/,
+          exclude: /images\/(artwork|brands|companies|logo)/,
+        },
+      },
+    },
+    {
+      resolve: require.resolve(`./plugins/gatsby-plugin-svg-sprite`),
+      options: {
+        rule: {
+          include: /images\/(artwork|brands|companies|logo)/,
         },
       },
     },

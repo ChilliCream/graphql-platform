@@ -1068,7 +1068,7 @@ public class SchemaBuilderTests
         // arrange
         // act
         Action action = () => SchemaBuilder.New()
-            .TryAddTypeInterceptor((ITypeInitializationInterceptor)null);
+            .TryAddTypeInterceptor(((TypeInterceptor)null)!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -1133,7 +1133,7 @@ public class SchemaBuilderTests
     {
         // arrange
         var services = new ServiceCollection();
-        services.AddSingleton<ITypeInitializationInterceptor, MyInterceptor>();
+        services.AddSingleton<TypeInterceptor, MyInterceptor>();
 
         // act
         var schema = SchemaBuilder.New()
@@ -1500,32 +1500,6 @@ public class SchemaBuilderTests
                 .Resolve("bar"))
             .Create();
         Assert.Equal(2, sum);
-    }
-
-    [Fact]
-    public void UseStateAndDelayedConfiguration()
-    {
-        SchemaBuilder.New()
-            .SetContextData("name", "QueryRoot")
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Resolve("bar"))
-            .TryAddSchemaInterceptor(new DummySchemaInterceptor(
-                c => c.ContextData["name"] += "1"))
-            .TryAddTypeInterceptor(new DelegateTypeInterceptor(
-                onAfterRegisterDependencies: (c, d, _) =>
-                {
-                    if (d is ObjectTypeDefinition def && def.Name.EqualsOrdinal("Query"))
-                    {
-                        ObjectTypeDescriptor
-                            .From(c.DescriptorContext, def)
-                            .Name(c.ContextData["name"]!.ToString()!);
-                    }
-                }))
-            .Create()
-            .Print()
-            .MatchSnapshot();
     }
 
     [Fact]
@@ -2297,25 +2271,29 @@ public class SchemaBuilderTests
 
     public class MyInterceptor : TypeInterceptor
     {
+        public override void OnBeforeCompleteType(
+            ITypeCompletionContext completionContext,
+            DefinitionBase definition)
+        {
+            definition.TouchContextData();
+        }
+
         public override void OnAfterCompleteType(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition,
-            IDictionary<string, object> contextData)
+            DefinitionBase definition)
         {
-            contextData.Add("touched", true);
+            definition.ContextData.Add("touched", true);
         }
     }
 
-    public class DummySchemaInterceptor : SchemaInterceptor
+    public class DummySchemaInterceptor : TypeInterceptor
     {
         private readonly Action<IDescriptorContext> _onBeforeCreate;
 
         public DummySchemaInterceptor(Action<IDescriptorContext> onBeforeCreate)
-        {
-            _onBeforeCreate = onBeforeCreate;
-        }
+            => _onBeforeCreate = onBeforeCreate;
 
-        public override void OnBeforeCreate(
+        public override void OnBeforeCreateSchema(
             IDescriptorContext context,
             ISchemaBuilder schemaBuilder) =>
             _onBeforeCreate(context);

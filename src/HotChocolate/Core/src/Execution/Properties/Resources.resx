@@ -324,4 +324,7 @@
   <data name="Operation_GetPossibleTypes_NoSelectionSet" xml:space="preserve">
     <value>The specified selection does not have a selection set.</value>
   </data>
+  <data name="MiddlewareContext_ReplaceArguments_NullNotAllowed" xml:space="preserve">
+    <value>It is not allowed to replace the arguments with null.</value>
+  </data>
 </root>
