@@ -3,24 +3,14 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Data.ElasticSearch.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Data.ElasticSearch</RootNamespace>
-    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <NeutralLanguage>en</NeutralLanguage>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj" />
     <ProjectReference Include="..\..\..\ElasticSearch\src\Data.ElasticSearch\HotChocolate.Data.ElasticSearch.csproj" />
-    <ProjectReference Include="..\..\..\Core\test\Types.Tests\HotChocolate.Types.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Squadron.Elasticsearch" Version="0.15.0-preview.3" />
-  </ItemGroup>
-
-  <!--For Visual Studio for Mac Test Explorer we need this reference here-->
-  <ItemGroup>
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+    <PackageReference Include="Squadron.Elasticsearch" Version="0.18.0-preview.7" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="__snapshots__" />
