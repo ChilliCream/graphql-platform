@@ -27,6 +27,8 @@ internal sealed class DirectiveContext : IDirectiveContext
 
     public IOperation Operation => _middlewareContext.Operation;
 
+    public IOperationResultBuilder OperationResult => _middlewareContext.OperationResult;
+
     public ISelection Selection => _middlewareContext.Selection;
 
     public IVariableValueCollection Variables => _middlewareContext.Variables;
@@ -120,6 +122,10 @@ internal sealed class DirectiveContext : IDirectiveContext
     public IReadOnlyDictionary<string, ArgumentValue> ReplaceArguments(
         IReadOnlyDictionary<string, ArgumentValue> argumentValues)
         => _middlewareContext.ReplaceArguments(argumentValues);
+
+    public IReadOnlyDictionary<string, ArgumentValue> ReplaceArguments(
+        ReplaceArguments replace)
+        => _middlewareContext.ReplaceArguments(replace);
 
     public ArgumentValue ReplaceArgument(
         string argumentName,

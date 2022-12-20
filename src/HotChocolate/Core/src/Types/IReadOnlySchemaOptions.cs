@@ -88,11 +88,6 @@ public interface IReadOnlySchemaOptions
     DirectiveVisibility DefaultDirectiveVisibility { get; }
 
     /// <summary>
-    /// Defines if field inlining is allowed.
-    /// </summary>
-    bool AllowInlining { get; }
-
-    /// <summary>
     /// Defines that the default resolver execution strategy.
     /// </summary>
     ExecutionStrategy DefaultResolverStrategy { get; }

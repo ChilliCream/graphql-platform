@@ -1,8 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Data.Neo4J.Sorting;
 using HotChocolate.Language;
@@ -52,7 +48,7 @@ public class Neo4JExecutable<T>
     }
 
     /// <inheritdoc />
-    public object? Source => _session;
+    public object Source => _session;
 
     /// <inheritdoc />
     public async ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
@@ -117,22 +113,55 @@ public class Neo4JExecutable<T>
     {
         var statement = Cypher.Match(Node).Return(Node);
 
-        if (_filters is not null)
+        ApplyFilters(statement);
+        ApplyProjections(statement);
+        ApplyPaging(statement);
+        ApplySorting(statement);
+
+        return statement;
+    }
+
+    private void ApplyFilters(StatementBuilder statement)
+    {
+        if (_filters is null)
         {
-            statement.Match(new Where(_filters), Node);
+            return;
         }
 
-        if (_projection is not null)
+        statement.Match(new Where(_filters), Node);
+    }
+
+    private void ApplyProjections(StatementBuilder statement)
+    {
+        if (_projection is null)
         {
-            statement.Return(Node.Project(_projection));
+            return;
         }
 
+        statement.Return(Node.Project(_projection));
+    }
+
+    private void ApplyPaging(StatementBuilder statement)
+    {
+        if (_limit is not null)
+        {
+            statement.Limit((int)_limit);
+        }
+
+        if (_skip is not null)
+        {
+            statement.Skip((int)_skip);
+        }
+    }
+
+    private void ApplySorting(StatementBuilder statement)
+    {
         if (_sorting is null)
         {
-            return statement;
+            return;
         }
 
-        var sorts = new List<SortItem>();
+        var sorts = new List<SortItem>(_sorting.Length);
 
         foreach (var sort in _sorting)
         {
@@ -148,17 +177,5 @@ public class Neo4JExecutable<T>
         }
 
         statement.OrderBy(sorts);
-
-        if (_limit is not null)
-        {
-            statement.Limit((int)_limit);
-        }
-
-        if (_skip is not null)
-        {
-            statement.Limit((int)_skip);
-        }
-
-        return statement;
     }
 }

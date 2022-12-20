@@ -2,7 +2,8 @@ import { graphql, useStaticQuery } from "gatsby";
 import { GatsbyImage } from "gatsby-plugin-image";
 import React, { FC } from "react";
 import styled from "styled-components";
-import { GetBananaCakePopImageQuery } from "../../../graphql-types";
+
+import { GetBananaCakePopImageQuery } from "@/graphql-types";
 
 export interface BananaCakePopProps {
   readonly shadow?: boolean;

@@ -1,7 +1,10 @@
 import React, { FC, useEffect, useRef } from "react";
 import styled from "styled-components";
-import ArrowUpIconSvg from "../../images/arrow-up.svg";
-import { useObservable } from "../../state";
+
+import { useObservable } from "@/state";
+
+// Icons
+import ArrowUpIconSvg from "@/images/arrow-up.svg";
 
 export interface PageTopProps {
   readonly onTopScroll: () => void;
@@ -38,8 +41,8 @@ export const PageTop: FC<PageTopProps> = ({ onTopScroll }) => {
 const JumpToTop = styled.button`
   display: none;
   position: fixed;
-  right: 50px;
-  bottom: 50px;
+  right: 24px;
+  bottom: 24px;
   z-index: 29;
   display: none;
   border-radius: 50%;

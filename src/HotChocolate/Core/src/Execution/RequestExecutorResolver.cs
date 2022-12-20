@@ -24,8 +24,8 @@ namespace HotChocolate.Execution;
 
 internal sealed class RequestExecutorResolver
     : IRequestExecutorResolver
-    , IInternalRequestExecutorResolver
-    , IDisposable
+        , IInternalRequestExecutorResolver
+        , IDisposable
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly ConcurrentDictionary<string, RegisteredExecutor> _executors = new();
@@ -161,7 +161,10 @@ internal sealed class RequestExecutorResolver
                     await Task.Delay(TimeSpan.FromMinutes(5));
                     registeredExecutor.Dispose();
                 }
-            }, default, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
+            },
+            default,
+            TaskCreationOptions.DenyChildAttach,
+            TaskScheduler.Default);
     }
 
     private async Task<IServiceProvider> CreateSchemaServicesAsync(
@@ -244,17 +247,18 @@ internal sealed class RequestExecutorResolver
 
         serviceCollection.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
 
-        serviceCollection.TryAddSingleton<ObjectPool<RequestContext>>(sp =>
-        {
-            var provider = sp.GetRequiredService<ObjectPoolProvider>();
-            var policy = new RequestContextPooledObjectPolicy(
-                sp.GetRequiredService<ISchema>(),
-                sp.GetRequiredService<IErrorHandler>(),
-                sp.GetRequiredService<IActivator>(),
-                sp.GetRequiredService<IExecutionDiagnosticEvents>(),
-                version);
-            return provider.Create(policy);
-        });
+        serviceCollection.TryAddSingleton<ObjectPool<RequestContext>>(
+            sp =>
+            {
+                var provider = sp.GetRequiredService<ObjectPoolProvider>();
+                var policy = new RequestContextPooledObjectPolicy(
+                    sp.GetRequiredService<ISchema>(),
+                    sp.GetRequiredService<IErrorHandler>(),
+                    sp.GetRequiredService<IActivator>(),
+                    sp.GetRequiredService<IExecutionDiagnosticEvents>(),
+                    version);
+                return provider.Create(policy);
+            });
 
         serviceCollection.AddSingleton<IRequestExecutor>(
             sp => new RequestExecutor(
@@ -366,7 +370,7 @@ internal sealed class RequestExecutorResolver
     {
         var executorOptions =
             options.RequestExecutorOptions ??
-                new RequestExecutorOptions();
+            new RequestExecutorOptions();
 
         foreach (var action in options.RequestExecutorOptionsActions)
         {
@@ -473,15 +477,14 @@ internal sealed class RequestExecutorResolver
             _schemaName = schemaName;
         }
 
-        public override bool CanHandle(ITypeSystemObjectContext context) =>
-            context.IsSchema;
-
         public override void OnBeforeCompleteName(
             ITypeCompletionContext completionContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
+            DefinitionBase definition)
         {
-            definition!.Name = _schemaName;
+            if (completionContext.IsSchema)
+            {
+                definition!.Name = _schemaName;
+            }
         }
     }
 

@@ -1,6 +1,7 @@
 import React, { FC, memo } from "react";
 import styled from "styled-components";
-import { FULL_ROTATION, ThemeColors, THEME_COLORS } from "../../shared-style";
+
+import { FULL_ROTATION, ThemeColors, THEME_COLORS } from "@/shared-style";
 
 export interface SpinnerProps {
   readonly colorSelector?: (colors: ThemeColors) => string;

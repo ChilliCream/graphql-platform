@@ -1,7 +1,8 @@
 import { Link } from "gatsby";
 import React, { FC } from "react";
 import styled from "styled-components";
-import { THEME_COLORS } from "../../shared-style";
+
+import { THEME_COLORS } from "@/shared-style";
 
 export interface PaginationProps {
   readonly currentPage: number;

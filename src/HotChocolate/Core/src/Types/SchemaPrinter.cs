@@ -9,6 +9,7 @@ using HotChocolate.Language.Utilities;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
+using static HotChocolate.Types.SpecifiedByDirectiveType.Names;
 using static HotChocolate.WellKnownDirectives;
 
 namespace HotChocolate;
@@ -384,6 +385,16 @@ public static class SchemaPrinter
         var directives = scalarType.Directives
             .Select(PrintDirective)
             .ToList();
+
+        if (scalarType.SpecifiedBy is not null)
+        {
+            directives.Add(
+                new DirectiveNode(
+                    SpecifiedBy,
+                    new ArgumentNode(
+                        Url,
+                        new StringValueNode(scalarType.SpecifiedBy.ToString()))));
+        }
 
         return new(
             null,

@@ -7,6 +7,9 @@ namespace CookieCrumble;
 
 public static class SnapshotExtensions
 {
+    public static void MatchSnapshot(this Snapshot value)
+        => value.Match();
+
     public static void MatchSnapshot(
         this object? value,
         object? postFix = null,

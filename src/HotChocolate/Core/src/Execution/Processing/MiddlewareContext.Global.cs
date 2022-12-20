@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Properties;
+using HotChocolate.Execution.Serialization;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,6 +13,7 @@ namespace HotChocolate.Execution.Processing;
 
 internal partial class MiddlewareContext : IMiddlewareContext
 {
+    private readonly OperationResultBuilderFacade _operationResultBuilder = new();
     private readonly List<Func<ValueTask>> _cleanupTasks = new();
     private OperationContext _operationContext = default!;
     private IServiceProvider _services = default!;
@@ -28,6 +30,8 @@ internal partial class MiddlewareContext : IMiddlewareContext
     public ISchema Schema => _operationContext.Schema;
 
     public IOperation Operation => _operationContext.Operation;
+
+    public IOperationResultBuilder OperationResult => _operationResultBuilder;
 
     public IDictionary<string, object?> ContextData => _operationContext.ContextData;
 
@@ -69,6 +73,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
             for (var i = 0; i < selectionCount; i++)
             {
                 var childSelection = Unsafe.Add(ref selectionRef, i);
+
                 if (childSelection.IsIncluded(operationIncludeFlags, allowInternals))
                 {
                     finalFields.Add(childSelection);
@@ -90,11 +95,12 @@ internal partial class MiddlewareContext : IMiddlewareContext
                 nameof(errorMessage));
         }
 
-        ReportError(ErrorBuilder.New()
-            .SetMessage(errorMessage)
-            .SetPath(Path)
-            .AddLocation(_selection.SyntaxNode)
-            .Build());
+        ReportError(
+            ErrorBuilder.New()
+                .SetMessage(errorMessage)
+                .SetPath(Path)
+                .AddLocation(_selection.SyntaxNode)
+                .Build());
     }
 
     public void ReportError(Exception exception, Action<IErrorBuilder>? configure = null)
@@ -182,7 +188,9 @@ internal partial class MiddlewareContext : IMiddlewareContext
             _hasResolverResult = true;
         }
 
-        return _resolverResult is null ? default! : (T)_resolverResult;
+        return _resolverResult is null
+            ? default!
+            : (T)_resolverResult;
     }
 
     public T Resolver<T>() =>
@@ -257,4 +265,49 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     IResolverContext IResolverContext.Clone()
         => Clone();
+
+    private sealed class OperationResultBuilderFacade : IOperationResultBuilder
+    {
+        public OperationContext Context { get; set; } = default!;
+
+        public void SetResultState(string key, object? value)
+            => Context.Result.SetContextData(key, value);
+
+        public void SetResultState(string key, UpdateState<object?> value)
+            => Context.Result.SetContextData(key, value);
+
+        public void SetResultState<TState>(
+            string key,
+            TState state,
+            UpdateState<object?, TState> value)
+            => Context.Result.SetContextData(key, state, value);
+
+        public void SetExtension<TValue>(string key, TValue value)
+            => Context.Result.SetExtension(key, new NeedsFormatting<TValue>(value));
+
+        public void SetExtension<TValue>(string key, UpdateState<TValue> value)
+            => Context.Result.SetExtension<NeedsFormatting<TValue>?>(
+                key,
+                (k, c) => new NeedsFormatting<TValue>(
+                    value(
+                        k,
+                        c is null
+                            ? default!
+                            : c.Value)));
+
+        public void SetExtension<TValue, TState>(
+            string key,
+            TState state,
+            UpdateState<TValue, TState> value)
+            => Context.Result.SetExtension<NeedsFormatting<TValue>?, TState>(
+                key,
+                state,
+                (k, c, s) => new NeedsFormatting<TValue>(
+                    value(
+                        k,
+                        c is null
+                            ? default!
+                            : c.Value,
+                        s)));
+    }
 }

@@ -113,6 +113,9 @@ public class DefinitionBase : IDefinition
         return _contextData;
     }
 
+    public void TouchContextData()
+        => _contextData = new ExtensionData();
+
     protected void CopyTo(DefinitionBase target)
     {
         if (_dependencies is not null && _dependencies.Count > 0)

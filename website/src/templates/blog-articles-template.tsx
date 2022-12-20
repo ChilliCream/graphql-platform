@@ -1,9 +1,10 @@
 import { graphql } from "gatsby";
 import React, { FC } from "react";
-import { GetBlogArticlesQuery } from "../../graphql-types";
-import { Layout } from "../components/layout";
-import { SEO } from "../components/misc/seo";
-import { BlogArticles } from "../components/widgets";
+
+import { Layout } from "@/components/layout";
+import { SEO } from "@/components/misc/seo";
+import { BlogArticles } from "@/components/widgets";
+import { GetBlogArticlesQuery } from "@/graphql-types";
 
 interface BlogArticlesTemplateProps {
   pageContext: BlogArticlesTemplatePageContext;

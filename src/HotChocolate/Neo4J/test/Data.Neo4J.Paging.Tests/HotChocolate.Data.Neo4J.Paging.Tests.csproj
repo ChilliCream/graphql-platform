@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Data.Neo4J.Paging.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Data</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Data\HotChocolate.Data.Neo4J.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Abstractions\HotChocolate.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
+    <ProjectReference Include="..\Data.Neo4J.Testing\HotChocolate.Data.Neo4J.Testing.csproj" />
+  </ItemGroup>
+
+</Project>

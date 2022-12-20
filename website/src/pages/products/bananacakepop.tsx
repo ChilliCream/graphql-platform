@@ -1,3 +1,4 @@
+import { SrOnly } from "@/components/misc/sr-only";
 import { OutboundLink } from "gatsby-plugin-google-analytics";
 import React, {
   FC,
@@ -9,18 +10,17 @@ import React, {
 } from "react";
 import styled, { css } from "styled-components";
 import { parse } from "yaml";
-import { BananaCakePop } from "../../components/images/banana-cake-pop";
-import { Layout } from "../../components/layout";
-import { Link } from "../../components/misc/link";
-import { Intro } from "../../components/misc/page-elements";
-import { SEO } from "../../components/misc/seo";
-import { Spinner } from "../../components/misc/spinner";
+
+import { BananaCakePop } from "@/components/images/banana-cake-pop";
+import { Layout } from "@/components/layout";
+import { Link } from "@/components/misc/link";
+import { Intro } from "@/components/misc/page-elements";
+import { SEO } from "@/components/misc/seo";
+import { Spinner } from "@/components/misc/spinner";
 import {
   CompaniesSection,
   MostRecentBcpBlogPostsSection,
-} from "../../components/widgets";
-import ArrowDownIconSvg from "../../images/arrow-down.svg";
-import CircleDownIconSvg from "../../images/circle-down.svg";
+} from "@/components/widgets";
 import {
   FONT_FAMILY_HEADING,
   IsDesktop,
@@ -29,7 +29,11 @@ import {
   IsSmallTablet,
   IsTablet,
   THEME_COLORS,
-} from "../../shared-style";
+} from "@/shared-style";
+
+// Icons
+import ArrowDownIconSvg from "@/images/arrow-down.svg";
+import CircleDownIconSvg from "@/images/circle-down.svg";
 
 const DOWNLOAD_STABLE_BASE_URL =
   "https://download.chillicream.com/bananacakepop/";
@@ -179,10 +183,10 @@ const DownloadButton: FC<DownloadButtonProps> = ({
           <thead>
             <tr>
               <th className="os" scope="col">
-                <span className="sr-only">OS</span>
+                <SrOnly>OS</SrOnly>
               </th>
               <th className="type" scope="col">
-                <span className="sr-only">Type</span>
+                <SrOnly>Type</SrOnly>
               </th>
               <th className="stable" scope="col">
                 Stable
@@ -214,7 +218,7 @@ const DownloadButton: FC<DownloadButtonProps> = ({
             </tr>
             <tr>
               <td className="os" scope="row">
-                <span className="sr-only">macOS x64</span>
+                <SrOnly>macOS x64</SrOnly>
               </td>
               <td className="type">Silicon</td>
               <td className="stable">
@@ -232,7 +236,7 @@ const DownloadButton: FC<DownloadButtonProps> = ({
             </tr>
             <tr>
               <td className="os" scope="row">
-                <span className="sr-only">macOS x64</span>
+                <SrOnly>macOS x64</SrOnly>
               </td>
               <td className="type">Intel</td>
               <td className="stable">

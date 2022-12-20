@@ -11,16 +11,12 @@ namespace HotChocolate.Types.Interceptors;
 
 internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
 {
-    public override bool CanHandle(ITypeSystemObjectContext context)
-        => context.DescriptorContext.Options.ValidatePipelineOrder &&
-           context.Type is ObjectType;
-
     public override void OnValidateType(
         ITypeSystemObjectContext validationContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
-        if (definition is ObjectTypeDefinition objectTypeDef)
+        if (validationContext.DescriptorContext.Options.ValidatePipelineOrder &&
+            definition is ObjectTypeDefinition objectTypeDef)
         {
             foreach (var field in objectTypeDef.Fields)
             {

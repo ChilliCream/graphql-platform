@@ -1,6 +1,7 @@
 import React, { FC, ReactNode } from "react";
 import styled from "styled-components";
-import { THEME_COLORS } from "../../shared-style";
+
+import { THEME_COLORS } from "@/shared-style";
 
 type Props = {
   readonly children: ReactNode;

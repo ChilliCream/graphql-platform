@@ -13,17 +13,12 @@ using static HotChocolate.Data.ThrowHelper;
 
 namespace HotChocolate.Data.Filters;
 
-public class FilterTypeInterceptor
-    : TypeInterceptor
+public sealed class FilterTypeInterceptor : TypeInterceptor
 {
     private readonly Dictionary<string, IFilterConvention> _conventions = new();
     private readonly Dictionary<ITypeSystemMember, FilterInputTypeDefinition> _definitions = new();
     private readonly List<Func<ITypeReference>> _typesToRegister = new();
     private TypeRegistry _typeRegistry = default!;
-
-    public override bool CanHandle(ITypeSystemObjectContext context) => true;
-
-    public override bool TriggerAggregations => true;
 
     internal override void InitializeContext(
         IDescriptorContext context,
@@ -37,8 +32,7 @@ public class FilterTypeInterceptor
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
         if (definition is not FilterInputTypeDefinition { EntityType: { } } def)
         {
@@ -140,8 +134,7 @@ public class FilterTypeInterceptor
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
         if (definition is not FilterInputTypeDefinition def)
         {
@@ -169,8 +162,7 @@ public class FilterTypeInterceptor
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
         if (definition is not FilterInputTypeDefinition { EntityType: { } } def)
         {

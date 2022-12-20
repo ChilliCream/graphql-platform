@@ -647,8 +647,7 @@ public class TransformationIntegrationTests
     {
         public override void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
+            DefinitionBase definition)
         {
             if (definition is ObjectTypeDefinition o)
             {

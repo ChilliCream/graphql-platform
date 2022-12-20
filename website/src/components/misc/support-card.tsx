@@ -1,6 +1,7 @@
 import React, { FC } from "react";
 import styled from "styled-components";
-import { FONT_FAMILY_HEADING, THEME_COLORS } from "../../shared-style";
+
+import { FONT_FAMILY_HEADING, THEME_COLORS } from "@/shared-style";
 
 export interface SupportCardProps {
   readonly name: string;
@@ -18,16 +19,14 @@ export const SupportCard: FC<SupportCardProps> = ({
       <TopHalf>
         <Name>{name}</Name>
         <Description>{description}</Description>
-        <ContactUs
-          href={`mailto:contact@chillicream.com?subject=${name} - Support`}
-        >
+        <ContactUs href={`mailto:contact@chillicream.com?subject=${name}`}>
           Contact Us
         </ContactUs>
       </TopHalf>
       <BottomHalf>
         <Perks>
           {perks.map((perk) => (
-            <Perk>{perk}</Perk>
+            <Perk key={perk}>{perk}</Perk>
           ))}
         </Perks>
       </BottomHalf>
@@ -48,7 +47,7 @@ const ContactUs = styled.a`
   line-height: 1.25rem;
   font-weight: 600;
   border: 1px solid transparent;
-  border-radius: 0.375rem;
+  border-radius: var(--border-radius);
   background-color: ${THEME_COLORS.primary};
 
   :hover {
@@ -57,11 +56,24 @@ const ContactUs = styled.a`
 `;
 
 const Container = styled.div`
+  background: #ffffff;
+  box-shadow: rgb(46 41 51 / 8%) 0px 1px 2px, rgb(71 63 79 / 8%) 0px 2px 4px;
   max-width: 350px;
   margin: 10px;
-  box-shadow: rgba(0, 0, 0, 0.25) 0px 3px 6px 0px;
-  border: 1px solid rgb(229, 231, 235);
+  box-sizing: border-box;
+  position: relative;
+  flex-direction: column;
+  border: 1px solid #d9d7e0;
   border-radius: var(--border-radius);
+  padding: 0px;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  cursor: default;
+  transition: border 0.5s ease-out 0s;
+
+  &:hover {
+    border-color: #1d5185;
+  }
 `;
 
 const TopHalf = styled.div`
