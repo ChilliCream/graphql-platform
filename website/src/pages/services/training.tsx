@@ -1,6 +1,8 @@
 import React, { FC } from "react";
 import styled, { css } from "styled-components";
+
 import { Layout } from "@/components/layout";
+import { Link } from "@/components/misc/link";
 import {
   ContentContainer,
   EnvelopeIcon,
@@ -12,15 +14,24 @@ import {
 import { Hero, Intro, Teaser, Title } from "@/components/misc/page-elements";
 import { SEO } from "@/components/misc/seo";
 import { SupportCard } from "@/components/misc/support-card";
-import ContactUsSvg from "@/images/contact-us.svg";
+import { Artwork } from "@/components/sprites";
 import { IsPhablet } from "@/shared-style";
 
-type ServiceKind = "Corporate Training" | "Corporate Workshop";
+// Artwork
+import ContactUsSvg from "@/images/artwork/contact-us.svg";
 
-export interface Service {
-  readonly kind: ServiceKind;
+interface Service {
+  readonly kind: "Corporate Training" | "Corporate Workshop";
   readonly description: string;
   readonly perks: string[];
+}
+
+interface Workshop {
+  readonly title: string;
+  readonly date: string;
+  readonly host: string;
+  readonly place: string;
+  readonly url: string;
 }
 
 const TrainingPage: FC = () => {
@@ -53,6 +64,30 @@ const TrainingPage: FC = () => {
     },
   ];
 
+  const workshops: Workshop[] = [
+    {
+      title: "Reactive Mobile Apps with GraphQL and Maui",
+      date: "23 - 24 Jan 2023",
+      host: "NDC",
+      place: "{ London }",
+      url: "https://ndclondon.com/workshops/reactive-mobile-apps-with-graphql-and-maui/8a69a3c2659d",
+    },
+    {
+      title: "Building Modern Apps with GraphQL in ASP.NET Core 7 and React 18",
+      date: "20 - 21 Apr 2023",
+      host: "dotnetdays",
+      place: "lasi, Romania",
+      url: "https://dotnetdays.ro/workshops/Building-Modern-Apps-with-GraphQL-and-net7",
+    },
+    {
+      title: "Building Modern Apps with GraphQL in ASP.NET Core 7 and React 18",
+      date: "22 - 23 May 2023",
+      host: "NDC",
+      place: "{ Oslo }",
+      url: "https://ndcoslo.com/workshops/building-modern-applications-with-graphql-using-asp-net-core-6-hot-chocolate-and-relay/cb7ce0173d8f",
+    },
+  ];
+
   return (
     <Layout>
       <SEO title={areaTitle} />
@@ -66,7 +101,29 @@ const TrainingPage: FC = () => {
         </Teaser>
       </Intro>
       <Section>
-        <CardContainer>
+        <WorkshopsContainer>
+          <WorkshopsHeader>Upcoming Public Workshops</WorkshopsHeader>
+          <WorkshopsMatrix>
+            {workshops.map(({ title, date, host, place, url }) => (
+              <Link key={url} to={url}>
+                <dl>
+                  <dt>
+                    <p>{title}</p>
+                  </dt>
+                  <dd>
+                    <small>{date}</small>
+                  </dd>
+                  <dd>
+                    <p>{host}</p>
+                    <small>{place}</small>
+                  </dd>
+                </dl>
+              </Link>
+            ))}
+          </WorkshopsMatrix>
+          <WorkshopsFooter />
+        </WorkshopsContainer>
+        <CardsContainer>
           {services.map(({ kind, description, perks }) => (
             <SupportCard
               key={kind}
@@ -75,12 +132,12 @@ const TrainingPage: FC = () => {
               perks={perks}
             />
           ))}
-        </CardContainer>
+        </CardsContainer>
       </Section>
       <Section>
         <SectionRow>
           <ImageContainer>
-            <ContactUsSvg />
+            <Artwork {...ContactUsSvg} />
           </ImageContainer>
           <ContentContainer>
             <SectionTitle>Get in Touch</SectionTitle>
@@ -101,7 +158,7 @@ const TrainingPage: FC = () => {
 
 export default TrainingPage;
 
-const CardContainer = styled.div`
+const CardsContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1.5rem;
@@ -121,4 +178,143 @@ const CardContainer = styled.div`
     margin-top: 1rem;
     grid-template-columns: minmax(0, 1fr);
   `)}
+`;
+
+const WorkshopsContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 960px;
+  margin-top: -1em;
+  padding: 0 20px;
+  box-sizing: border-box;
+
+  @media only screen and (min-width: 400px) {
+    padding: 0 40px;
+    margin-bottom: 40px;
+    overflow: visible;
+  }
+`;
+
+const WorkshopsHeader = styled.div`
+  display: block;
+  background: none;
+  text-align: center;
+  outline: none;
+  padding: 0;
+  color: var(--cc-text-color);
+  font-size: 1.25em;
+  line-height: 1.5em;
+  cursor: default;
+`;
+
+const WorkshopsFooter = styled.div`
+  display: block;
+  background: none;
+  text-align: center;
+  outline: none;
+  padding: 0;
+  border: 0;
+  color: var(--cc-text-color);
+  font-size: 1.25em;
+  line-height: 1.5em;
+  cursor: default;
+`;
+
+const WorkshopsMatrix = styled.div`
+  border-top: 1px solid #d2d2d7;
+  border-bottom: 1px solid #d2d2d7;
+  padding: 0.5em 0;
+  margin: 0.5em 0;
+  scroll-snap-type: x mandatory;
+  overflow-x: scroll;
+  overscroll-behavior-x: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  & dl {
+    margin: 0;
+    padding: 0.5em;
+    display: grid;
+    grid-template-columns: auto;
+    min-height: 2.5em;
+    background-color: var(--cc-background-color);
+  }
+
+  & a:nth-child(odd) dl {
+    background-color: #fafafa;
+  }
+
+  & a:hover dl {
+    background-color: #f3f4f8;
+  }
+
+  & dt {
+    margin: 0;
+    padding: 0.25em 0.5em;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: left;
+    position: sticky;
+    left: 0;
+    background-color: inherit;
+    scroll-snap-align: start;
+  }
+
+  & dt p {
+    margin: 0;
+    font-size: 0.825rem;
+    line-height: 1;
+    color: #3d5f9f;
+    text-align: center;
+  }
+
+  & dd {
+    margin: 0;
+    padding: 0.25em 0.5em;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-weight: 600;
+    text-align: center;
+    scroll-snap-align: start;
+  }
+
+  & dd strong {
+    font-size: 1em;
+    color: #232129;
+  }
+
+  & dd p {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1;
+    color: #36313d;
+  }
+
+  & small {
+    font-size: 0.75em;
+    color: #36313d;
+  }
+
+  @media only screen and (min-width: 600px) {
+    && dt {
+      align-items: flex-start;
+    }
+
+    && dt p {
+      text-align: start;
+    }
+
+    && dl {
+      grid-template-columns: 60% repeat(2, 1fr);
+    }
+  }
 `;

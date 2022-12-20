@@ -1,6 +1,7 @@
 import React, { FC } from "react";
 import styled from "styled-components";
-import { FONT_FAMILY_HEADING, THEME_COLORS } from "../../shared-style";
+
+import { FONT_FAMILY_HEADING, THEME_COLORS } from "@/shared-style";
 
 export interface SupportCardProps {
   readonly name: string;

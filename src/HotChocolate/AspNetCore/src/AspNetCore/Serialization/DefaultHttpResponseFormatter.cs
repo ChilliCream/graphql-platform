@@ -37,10 +37,21 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     public DefaultHttpResponseFormatter(
         bool indented = false,
         JavaScriptEncoder? encoder = null)
+        : this(new JsonResultFormatterOptions { Indented = indented, Encoder = encoder })
     {
-        _jsonFormatter = new JsonResultFormatter(indented, encoder);
+    }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="DefaultHttpResponseFormatter" />.
+    /// </summary>
+    /// <param name="options">
+    /// The JSON result formatter options
+    /// </param>
+    public DefaultHttpResponseFormatter(JsonResultFormatterOptions options)
+    {
+        _jsonFormatter = new JsonResultFormatter(options);
         _multiPartFormatter = new MultiPartResultFormatter(_jsonFormatter);
-        _eventStreamResultFormatter = new EventStreamResultFormatter(indented, encoder);
+        _eventStreamResultFormatter = new EventStreamResultFormatter(options);
     }
 
     public GraphQLRequestFlags CreateRequestFlags(

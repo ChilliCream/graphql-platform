@@ -130,7 +130,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     {
         public const string ContextKey = "HotChocolate.Execution.FieldMiddlewareLookup";
 
-        public override bool CanHandle(ITypeSystemObjectContext context) =>
+        private bool CanHandle(ITypeSystemObjectContext context) =>
             context.Type is ObjectType { Name: { } typeName } &&
             context.ContextData.TryGetValue(ContextKey, out var value) &&
             value is FieldMiddlewareLookup lookup &&
@@ -138,9 +138,13 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
         public override void OnAfterCompleteName(
             ITypeCompletionContext completionContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
+            DefinitionBase definition)
         {
+            if (!CanHandle(completionContext))
+            {
+                return;
+            }
+
             if (!completionContext.ContextData.TryGetValue(ContextKey, out var value) ||
                 value is not FieldMiddlewareLookup lookup)
             {

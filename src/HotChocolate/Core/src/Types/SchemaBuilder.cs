@@ -29,7 +29,6 @@ public partial class SchemaBuilder : ISchemaBuilder
     private readonly Dictionary<OperationType, CreateRef> _operations = new();
     private readonly Dictionary<(Type, string?), List<CreateConvention>> _conventions = new();
     private readonly Dictionary<Type, (CreateRef, CreateRef)> _clrTypes = new();
-    private readonly List<object> _schemaInterceptors = new();
 
     private readonly List<object> _typeInterceptors = new()
     {
@@ -408,7 +407,7 @@ public partial class SchemaBuilder : ISchemaBuilder
             throw new ArgumentNullException(nameof(interceptor));
         }
 
-        if (!typeof(ITypeInitializationInterceptor).IsAssignableFrom(interceptor))
+        if (!typeof(TypeInterceptor).IsAssignableFrom(interceptor))
         {
             throw new ArgumentException(
                 TypeResources.SchemaBuilder_Interceptor_NotSuppported,
@@ -424,7 +423,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     }
 
     /// <inheritdoc />
-    public ISchemaBuilder TryAddTypeInterceptor(ITypeInitializationInterceptor interceptor)
+    public ISchemaBuilder TryAddTypeInterceptor(TypeInterceptor interceptor)
     {
         if (interceptor is null)
         {
@@ -434,45 +433,6 @@ public partial class SchemaBuilder : ISchemaBuilder
         if (!_typeInterceptors.Contains(interceptor))
         {
             _typeInterceptors.Add(interceptor);
-        }
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public ISchemaBuilder TryAddSchemaInterceptor(Type interceptor)
-    {
-        if (interceptor is null)
-        {
-            throw new ArgumentNullException(nameof(interceptor));
-        }
-
-        if (!typeof(ISchemaInterceptor).IsAssignableFrom(interceptor))
-        {
-            throw new ArgumentException(
-                TypeResources.SchemaBuilder_Interceptor_NotSuppported,
-                nameof(interceptor));
-        }
-
-        if (!_schemaInterceptors.Contains(interceptor))
-        {
-            _schemaInterceptors.Add(interceptor);
-        }
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public ISchemaBuilder TryAddSchemaInterceptor(ISchemaInterceptor interceptor)
-    {
-        if (interceptor is null)
-        {
-            throw new ArgumentNullException(nameof(interceptor));
-        }
-
-        if (!_schemaInterceptors.Contains(interceptor))
-        {
-            _schemaInterceptors.Add(interceptor);
         }
 
         return this;

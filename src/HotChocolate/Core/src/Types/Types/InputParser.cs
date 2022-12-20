@@ -224,8 +224,7 @@ public class InputParser
                     if (type.Fields.TryGetField(fieldValue.Name.Value, out var field))
                     {
                         var literal = fieldValue.Value;
-                        Path fieldPath =
-                            PathFactory.Instance.Append(path, field.Name);
+                        Path fieldPath = PathFactory.Instance.Append(path, field.Name);
 
                         if (literal.Kind is SyntaxKind.NullValue)
                         {

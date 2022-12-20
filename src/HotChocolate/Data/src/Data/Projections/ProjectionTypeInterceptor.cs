@@ -9,18 +9,15 @@ namespace HotChocolate.Data.Projections;
 
 internal sealed class ProjectionTypeInterceptor : TypeInterceptor
 {
-    public override bool CanHandle(ITypeSystemObjectContext context) => true;
-
     public override void OnAfterCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
         if ((completionContext.IsQueryType ?? false) &&
             completionContext.Type is ObjectType { Fields: var fields })
         {
-            bool foundNode = false;
-            bool foundNodes = false;
+            var foundNode = false;
+            var foundNodes = false;
 
             foreach (var field in fields)
             {
@@ -54,8 +51,7 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
         if (definition is ObjectTypeDefinition objectTypeDefinition)
         {

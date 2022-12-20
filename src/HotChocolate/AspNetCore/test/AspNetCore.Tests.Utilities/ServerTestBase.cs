@@ -97,6 +97,7 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
                         endpoints.MapGraphQL("/arguments", "arguments");
                         endpoints.MapGraphQL("/upload", "upload");
                         endpoints.MapGraphQL("/starwars", "StarWars");
+                        endpoints.MapGraphQL("/test", "test");
                     }));
     }
 

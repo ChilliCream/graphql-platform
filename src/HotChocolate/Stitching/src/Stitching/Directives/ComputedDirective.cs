@@ -2,5 +2,5 @@ namespace HotChocolate.Stitching;
 
 public class ComputedDirective
 {
-    public string[] DependantOn { get; set; }
+    public string[]? DependantOn { get; set; }
 }

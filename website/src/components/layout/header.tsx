@@ -11,6 +11,11 @@ import React, {
   useState,
 } from "react";
 import styled, { createGlobalStyle } from "styled-components";
+
+import { IconContainer } from "@/components/misc/icon-container";
+import { Link } from "@/components/misc/link";
+import { SearchModal } from "@/components/misc/search-modal";
+import { Brand, Logo } from "@/components/sprites";
 import {
   DocsJson,
   DocsJsonVersions,
@@ -18,26 +23,31 @@ import {
   Maybe,
   SiteSiteMetadataTools,
 } from "@/graphql-types";
-import AngleRightIconSvg from "@/images/angle-right.svg";
-import BarsIconSvg from "@/images/bars.svg";
-import LogoTextSvg from "@/images/chillicream-text.svg";
-import LogoIconSvg from "@/images/chillicream-winking.svg";
-import GithubIconSvg from "@/images/github.svg";
-import NewspaperIconSvg from "@/images/newspaper.svg";
-import SearchIconSvg from "@/images/search.svg";
-import SlackIconSvg from "@/images/slack.svg";
-import TimesIconSvg from "@/images/times.svg";
-import TwitterIconSvg from "@/images/twitter.svg";
-import YouTubeIconSvg from "@/images/youtube.svg";
-import ArrowDownSvg from "@/images/arrow-down.svg";
-import ExternalLinkSvg from "@/images/external-link.svg";
-
 import { FONT_FAMILY_HEADING, THEME_COLORS } from "@/shared-style";
 import { useObservable } from "@/state";
+
+// Brands
+import GithubIconSvg from "@/images/brands/github.svg";
+import LinkedInIconSvg from "@/images/brands/linkedin.svg";
+import SlackIconSvg from "@/images/brands/slack.svg";
+import TwitterIconSvg from "@/images/brands/twitter.svg";
+import YouTubeIconSvg from "@/images/brands/youtube.svg";
+
+// Icons
+import AngleRightIconSvg from "@/images/angle-right.svg";
+import ArrowDownSvg from "@/images/arrow-down.svg";
+import BarsIconSvg from "@/images/bars.svg";
+import ExternalLinkSvg from "@/images/external-link.svg";
+import NewspaperIconSvg from "@/images/newspaper.svg";
+import SearchIconSvg from "@/images/search.svg";
+import TimesIconSvg from "@/images/times.svg";
+
+// Images
 import { WorkshopNdcLondon } from "@/components/images/workshop-ndc-london";
-import { IconContainer } from "@/components/misc/icon-container";
-import { Link } from "@/components/misc/link";
-import { SearchModal } from "@/components/misc/search-modal";
+
+// Logos
+import LogoTextSvg from "@/images/logo/chillicream-text.svg";
+import LogoIconSvg from "@/images/logo/chillicream-winking.svg";
 
 export const Header: FC = () => {
   const containerRef = useRef<HTMLHeadingElement>(null);
@@ -51,6 +61,7 @@ export const Header: FC = () => {
           tools {
             bcp
             github
+            linkedIn
             shop
             slack
             twitter
@@ -122,13 +133,8 @@ export const Header: FC = () => {
   }, [setSearchOpen]);
 
   useEffect(() => {
-    const classes = containerRef.current?.className ?? "";
-
     const subscription = showShadow$.subscribe((showShadow) => {
-      if (containerRef.current) {
-        containerRef.current.className =
-          classes + (showShadow ? " shadow" : "");
-      }
+      containerRef.current?.classList.toggle("shadow", showShadow);
     });
 
     return () => {
@@ -141,14 +147,14 @@ export const Header: FC = () => {
       <BodyStyle disableScrolling={topNavOpen} />
       <ContainerWrapper>
         <LogoLink to="/">
-          <LogoIcon />
-          <LogoText />
+          <LogoIcon {...LogoIconSvg} />
+          <LogoText {...LogoTextSvg} />
         </LogoLink>
         <Navigation open={topNavOpen}>
           <NavigationHeader>
             <LogoLink to="/">
-              <LogoIcon />
-              <LogoText />
+              <LogoIcon {...LogoIconSvg} />
+              <LogoText {...LogoTextSvg} />
             </LogoLink>
             <HamburgerCloseButton onClick={handleTopNavClose}>
               <HamburgerCloseIcon />
@@ -229,17 +235,17 @@ const LogoLink = styled(Link)`
   flex: 0 0 auto;
   flex-direction: row;
   align-items: center;
-  padding: 0 20px;
+  padding-left: 20px;
   height: 60px;
 `;
 
-const LogoIcon = styled(LogoIconSvg)`
+const LogoIcon = styled(Logo)`
   height: 40px;
   fill: ${THEME_COLORS.textContrast};
   transition: fill 0.2s ease-in-out;
 `;
 
-const LogoText = styled(LogoTextSvg)`
+const LogoText = styled(Logo)`
   display: none;
   padding-left: 15px;
   height: 24px;
@@ -410,7 +416,7 @@ const ProductsNavItem: FC<ProductsNavItemProps> = ({ firstBlogPost }) => {
 
   return (
     <NavItemContainer {...navHandlers}>
-      <NavLink to="/products" {...linkHandlers}>
+      <NavLink to="/products" prefetch={false} {...linkHandlers}>
         Products
         <IconContainer size={10}>
           <ArrowDownSvg />
@@ -429,7 +435,7 @@ interface DeveloperNavItemProps {
   >[];
   readonly tools: Pick<
     SiteSiteMetadataTools,
-    "bcp" | "github" | "shop" | "slack" | "twitter" | "youtube"
+    "bcp" | "github" | "linkedIn" | "shop" | "slack" | "twitter" | "youtube"
   >;
 }
 
@@ -437,51 +443,61 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
   const [subNav, navHandlers, linkHandlers] = useSubNav((hideSubNav) => (
     <>
       <SubNavMain>
-        <SubNavTitle>Documentation</SubNavTitle>
-        {products.map((product, index) => (
-          <SubNavLink
-            key={index}
-            to={`/docs/${product!.path!}/`}
-            onClick={hideSubNav}
-          >
-            <IconContainer size={16}>
-              <AngleRightIconSvg />
-            </IconContainer>
-            {product!.title}
-          </SubNavLink>
-        ))}
+        <SubNavGroup>
+          <SubNavTitle>Documentation</SubNavTitle>
+          {products.map((product, index) => (
+            <SubNavLink
+              key={index}
+              to={`/docs/${product!.path!}/`}
+              onClick={hideSubNav}
+            >
+              <IconContainer size={16}>
+                <AngleRightIconSvg />
+              </IconContainer>
+              {product!.title}
+            </SubNavLink>
+          ))}
+        </SubNavGroup>
         <SubNavSeparator />
-        <SubNavTitle>More Resources</SubNavTitle>
-        <SubNavLink to="/blog" onClick={hideSubNav}>
-          <IconContainer size={20}>
-            <NewspaperIconSvg />
-          </IconContainer>
-          Blog
-        </SubNavLink>
-        <SubNavLink to={tools.slack!} onClick={hideSubNav}>
-          <IconContainer size={20}>
-            <SlackIconSvg />
-          </IconContainer>
-          Slack / Community
-        </SubNavLink>
-        <SubNavLink to={tools.twitter!} onClick={hideSubNav}>
-          <IconContainer size={20}>
-            <TwitterIconSvg />
-          </IconContainer>
-          Twitter
-        </SubNavLink>
-        <SubNavLink to={tools.youtube!} onClick={hideSubNav}>
-          <IconContainer size={20}>
-            <YouTubeIconSvg />
-          </IconContainer>
-          YouTube Channel
-        </SubNavLink>
-        <SubNavLink to={tools.github!} onClick={hideSubNav}>
-          <IconContainer size={20}>
-            <GithubIconSvg />
-          </IconContainer>
-          GitHub
-        </SubNavLink>
+        <SubNavGroup>
+          <SubNavTitle>More Resources</SubNavTitle>
+          <SubNavLink to="/blog" onClick={hideSubNav}>
+            <IconContainer size={20}>
+              <NewspaperIconSvg />
+            </IconContainer>
+            Blog
+          </SubNavLink>
+          <SubNavLink to={tools.github!} onClick={hideSubNav}>
+            <IconContainer size={20}>
+              <Brand {...GithubIconSvg} />
+            </IconContainer>
+            GitHub
+          </SubNavLink>
+          <SubNavLink to={tools.slack!} onClick={hideSubNav}>
+            <IconContainer size={20}>
+              <Brand {...SlackIconSvg} />
+            </IconContainer>
+            Slack / Community
+          </SubNavLink>
+          <SubNavLink to={tools.youtube!} onClick={hideSubNav}>
+            <IconContainer size={20}>
+              <Brand {...YouTubeIconSvg} />
+            </IconContainer>
+            YouTube Channel
+          </SubNavLink>
+          <SubNavLink to={tools.twitter!} onClick={hideSubNav}>
+            <IconContainer size={20}>
+              <Brand {...TwitterIconSvg} />
+            </IconContainer>
+            Twitter
+          </SubNavLink>
+          <SubNavLink to={tools.linkedIn!} onClick={hideSubNav}>
+            <IconContainer size={20}>
+              <Brand {...LinkedInIconSvg} />
+            </IconContainer>
+            LinkedIn
+          </SubNavLink>
+        </SubNavGroup>
       </SubNavMain>
       <SubNavAdditionalInfo>
         <SubNavTitle>Upcoming Workshop</SubNavTitle>
@@ -500,7 +516,7 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
 
   return (
     <NavItemContainer {...navHandlers}>
-      <NavLink to="/docs" {...linkHandlers}>
+      <NavLink to="/docs" prefetch={false} {...linkHandlers}>
         Developers
         <IconContainer size={10}>
           <ArrowDownSvg />
@@ -544,11 +560,8 @@ const ServicesNavItem: FC = () => {
             Our expertise.
           </TeaserHero>
           <TeaserDescription>
-            <p>
-              <strong>ChilliCream</strong> helps you unlock the full potential
-              of your technology investments, fulfilling its promise to
-              transform your company.
-            </p>
+            <strong>ChilliCream</strong> helps you unlock your full potential,
+            delivering on its promise to transform your business.
           </TeaserDescription>
         </TeaserLink>
       </SubNavAdditionalInfo>
@@ -557,7 +570,7 @@ const ServicesNavItem: FC = () => {
 
   return (
     <NavItemContainer {...navHandlers}>
-      <NavLink to="/services" {...linkHandlers}>
+      <NavLink to="/services" prefetch={false} {...linkHandlers}>
         Services
         <IconContainer size={10}>
           <ArrowDownSvg />
@@ -721,6 +734,7 @@ const SubNav = styled.div`
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
+  min-width: 100%;
   border-radius: var(--border-radius);
   background-color: ${THEME_COLORS.background};
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
@@ -738,29 +752,44 @@ const SubNavMain = styled.div`
   display: flex;
   flex: 1 1 55%;
   flex-direction: column;
-  padding: 15px 0;
+`;
+
+const SubNavGroup = styled.div`
+  margin: 10px 0;
+
+  @media only screen and ((min-width: 600px) and (min-height: 430px)) {
+    margin: 15px 0;
+  }
 `;
 
 const SubNavTitle = styled.h1`
-  margin: 5px 30px 10px;
+  margin: 5px 15px 10px;
   font-size: 0.75em;
   font-weight: 600;
   letter-spacing: 0.05em;
   color: ${THEME_COLORS.heading};
   transition: color 0.2s ease-in-out;
+
+  @media only screen and ((min-width: 600px) and (min-height: 430px)) {
+    margin: 5px 30px 10px;
+  }
 `;
 
 const SubNavSeparator = styled.div`
-  margin: 10px 20px;
+  margin: 0 10px;
   height: 1px;
   background-color: ${THEME_COLORS.backgroundAlt};
+
+  @media only screen and ((min-width: 600px) and (min-height: 430px)) {
+    margin: -5px 20px;
+  }
 `;
 
 const SubNavLink = styled(Link)`
   display: flex;
   flex-direction: row;
   align-items: center;
-  margin: 6px 30px;
+  margin: 5px 15px;
   font-size: 0.833em;
   color: ${THEME_COLORS.text};
   transition: color 0.2s ease-in-out;
@@ -780,6 +809,10 @@ const SubNavLink = styled(Link)`
     ${IconContainer} > svg {
       fill: ${THEME_COLORS.primary};
     }
+  }
+
+  @media only screen and ((min-width: 600px) and (min-height: 430px)) {
+    margin: 5px 30px;
   }
 `;
 
@@ -801,11 +834,11 @@ const TileLinkDescription = styled.p`
 const TileLink = styled(Link)`
   display: flex;
   flex-direction: column;
-  margin: 5px 20px;
+  margin: 5px 10px;
   border-radius: var(--border-radius);
   width: auto;
   min-height: 60px;
-  padding: 10px;
+  padding: 5px 10px;
   background-color: ${THEME_COLORS.background};
   transition: background-color 0.2s ease-in-out;
 
@@ -817,6 +850,11 @@ const TileLink = styled(Link)`
       color: ${THEME_COLORS.background};
     }
   }
+
+  @media only screen and ((min-width: 600px) and (min-height: 430px)) {
+    margin: 5px 20px;
+    padding: 10px;
+  }
 `;
 
 const SubNavAdditionalInfo = styled.div`
@@ -824,8 +862,12 @@ const SubNavAdditionalInfo = styled.div`
   flex: 1 1 45%;
   flex-direction: column;
   border-radius: 0 var(--border-radius) var(--border-radius) 0;
-  padding: 25px 0;
+  padding: 10px 0;
   background-color: ${THEME_COLORS.backgroundAlt};
+
+  @media only screen and ((min-width: 600px) and (min-height: 430px)) {
+    padding: 25px 0;
+  }
 `;
 
 const TeaserHero = styled.h1`
@@ -835,7 +877,8 @@ const TeaserHero = styled.h1`
   text-align: center;
   font-size: 1em;
   line-height: 1.5em;
-  max-width: 400px;
+  max-width: 80%;
+  margin: auto;
   aspect-ratio: 16/9;
   border-radius: var(--border-radius);
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
@@ -843,10 +886,14 @@ const TeaserHero = styled.h1`
   color: ${THEME_COLORS.textContrast};
   background-color: ${THEME_COLORS.primary};
   background: linear-gradient(180deg, ${THEME_COLORS.primary} 0%, #3d5f9f 100%);
+
+  @media only screen and ((min-width: 600px) and (min-height: 430px)) {
+    max-width: 400px;
+  }
 `;
 
 const TeaserLink = styled(Link)`
-  margin: 5px 30px;
+  margin: 5px 15px;
 
   .gatsby-image-wrapper {
     pointer-events: none;
@@ -866,15 +913,25 @@ const TeaserLink = styled(Link)`
       box-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
     }
   }
+
+  @media only screen and ((min-width: 600px) and (min-height: 430px)) {
+    margin: 5px 30px;
+  }
 `;
 
 const TeaserImage = styled.div`
   overflow: visible;
+  max-width: 80%;
+  margin: auto;
 
   .gatsby-image-wrapper {
     border-radius: var(--border-radius);
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
     transition: box-shadow 0.2s ease-in-out;
+  }
+
+  @media only screen and ((min-width: 600px) and (min-height: 430px)) {
+    max-width: fit-content;
   }
 `;
 
@@ -889,7 +946,7 @@ const TeaserMetadata = styled.div`
 `;
 
 const TeaserTitle = styled.h2`
-  margin: 0 0 15px;
+  margin: 0;
   font-size: 1em;
   line-height: 1.5em;
   color: ${THEME_COLORS.text};
@@ -897,9 +954,6 @@ const TeaserTitle = styled.h2`
 `;
 
 const TeaserDescription = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
   margin: 15px 0 7px;
   font-size: 0.833em;
   line-height: 1.5em;
@@ -912,7 +966,6 @@ const Group = styled.div`
   flex: 1 1 auto;
   flex-direction: row;
   justify-content: flex-end;
-  padding: 0 20px;
   height: 60px;
 
   @media only screen and (min-width: 284px) {
@@ -921,6 +974,7 @@ const Group = styled.div`
 
   @media only screen and (min-width: 992px) {
     flex: 0 0 auto;
+    padding-right: 20px;
   }
 `;
 

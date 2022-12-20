@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Delegation;
@@ -11,15 +9,13 @@ using static HotChocolate.Stitching.WellKnownContextData;
 
 namespace HotChocolate.Stitching.Utilities;
 
-internal class StitchingTypeInterceptor : TypeInterceptor
+internal sealed class StitchingTypeInterceptor : TypeInterceptor
 {
-    private readonly HashSet<(string, string)> _handledExternalFields =
-        new HashSet<(string, string)>();
+    private readonly HashSet<(string, string)> _handledExternalFields = new();
 
     public override void OnAfterInitialize(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
         if (definition is ObjectTypeDefinition objectTypeDef)
         {
@@ -39,24 +35,23 @@ internal class StitchingTypeInterceptor : TypeInterceptor
             }
         }
 
-        if (definition is SchemaTypeDefinition)
+        if (definition is SchemaTypeDefinition schemaTypeDef)
         {
             if (discoveryContext.ContextData.TryGetValue(RemoteExecutors, out var value))
             {
                 // we copy the remote executors that are stored only on the
                 // schema builder context to the schema context so that
                 // the stitching context can access these at runtime.
-                contextData.Add(RemoteExecutors, value);
+                schemaTypeDef.ContextData.Add(RemoteExecutors, value);
             }
 
-            contextData.Add(NameLookup, discoveryContext.GetNameLookup());
+            schemaTypeDef.ContextData.Add(NameLookup, discoveryContext.GetNameLookup());
         }
     }
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
         if (completionContext.Type is ObjectType objectType &&
             definition is ObjectTypeDefinition objectTypeDef)

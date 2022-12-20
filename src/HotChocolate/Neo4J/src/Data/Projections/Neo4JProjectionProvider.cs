@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Data.Neo4J.Execution;
 using HotChocolate.Data.Projections;
 using HotChocolate.Resolvers;

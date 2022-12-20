@@ -237,6 +237,8 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         public IOperation Operation => _context.Operation;
 
+        public IOperationResultBuilder OperationResult => _context.OperationResult;
+
         public ISelection Selection { get; }
 
         public IVariableValueCollection Variables => _context.Variables;
@@ -320,6 +322,10 @@ public static class ProjectionObjectFieldDescriptorExtensions
         public IReadOnlyDictionary<string, ArgumentValue> ReplaceArguments(
             IReadOnlyDictionary<string, ArgumentValue> newArgumentValues)
             => _context.ReplaceArguments(newArgumentValues);
+
+        public IReadOnlyDictionary<string, ArgumentValue> ReplaceArguments(
+            ReplaceArguments replace)
+            => _context.ReplaceArguments(replace);
 
         public ArgumentValue ReplaceArgument(string argumentName, ArgumentValue newArgumentValue)
             => _context.ReplaceArgument(argumentName, newArgumentValue);

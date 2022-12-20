@@ -1,5 +1,6 @@
 import React, { FC } from "react";
 import styled, { css } from "styled-components";
+
 import { Layout } from "@/components/layout";
 import {
   ContentContainer,
@@ -12,13 +13,14 @@ import {
 import { Hero, Intro, Teaser, Title } from "@/components/misc/page-elements";
 import { SEO } from "@/components/misc/seo";
 import { SupportCard } from "@/components/misc/support-card";
-import ContactUsSvg from "@/images/contact-us.svg";
+import { Artwork } from "@/components/sprites";
 import { IsPhablet } from "@/shared-style";
 
-type ServiceKind = "Consulting" | "Production Support";
+// Artwork
+import ContactUsSvg from "@/images/artwork/contact-us.svg";
 
 interface Service {
-  readonly kind: ServiceKind;
+  readonly kind: "Consulting" | "Production Support";
   readonly description: string;
   readonly perks: string[];
 }
@@ -64,7 +66,7 @@ const AvisoryPage: FC = () => {
         </Teaser>
       </Intro>
       <Section>
-        <CardContainer>
+        <CardsContainer>
           {services.map(({ kind, description, perks }) => (
             <SupportCard
               key={kind}
@@ -73,12 +75,12 @@ const AvisoryPage: FC = () => {
               perks={perks}
             />
           ))}
-        </CardContainer>
+        </CardsContainer>
       </Section>
       <Section>
         <SectionRow>
           <ImageContainer>
-            <ContactUsSvg />
+            <Artwork {...ContactUsSvg} />
           </ImageContainer>
           <ContentContainer>
             <SectionTitle>Get in Touch</SectionTitle>
@@ -99,7 +101,7 @@ const AvisoryPage: FC = () => {
 
 export default AvisoryPage;
 
-const CardContainer = styled.div`
+const CardsContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1.5rem;

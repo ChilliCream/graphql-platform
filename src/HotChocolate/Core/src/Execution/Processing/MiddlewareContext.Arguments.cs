@@ -140,6 +140,21 @@ internal partial class MiddlewareContext
         return original;
     }
 
+    public IReadOnlyDictionary<string, ArgumentValue> ReplaceArguments(
+        ReplaceArguments replace)
+    {
+        if (replace is null)
+        {
+            throw new ArgumentNullException(nameof(replace));
+        }
+
+        var original = Arguments;
+        Arguments = replace(original) ??
+            throw new InvalidOperationException(
+                MiddlewareContext_ReplaceArguments_NullNotAllowed);
+        return original;
+    }
+
     public ArgumentValue ReplaceArgument(string argumentName, ArgumentValue newArgumentValue)
     {
         if (string.IsNullOrEmpty(argumentName))

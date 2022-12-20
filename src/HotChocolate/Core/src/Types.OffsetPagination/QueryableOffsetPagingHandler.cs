@@ -18,9 +18,7 @@ public class QueryableOffsetPagingHandler<TEntity>
     private readonly QueryableOffsetPagination<TEntity> _pagination = new();
 
     public QueryableOffsetPagingHandler(PagingOptions options)
-        : base(options)
-    {
-    }
+        : base(options) { }
 
     protected override ValueTask<CollectionSegment> SliceAsync(
         IResolverContext context,
@@ -50,8 +48,7 @@ public class QueryableOffsetPagingHandler<TEntity>
         // TotalCount is one of the heaviest operations. It is only necessary to load totalCount
         // when it is enabled (IncludeTotalCount) and when it is contained in the selection set.
         if (IncludeTotalCount &&
-            context.Selection.Type is ObjectType objectType &&
-            context.Selection.SyntaxNode.SelectionSet is not null)
+            context.Selection is { Type: ObjectType objectType, SyntaxNode.SelectionSet: not null })
         {
             var selections = context.GetSelections(objectType, null, true);
 
@@ -59,7 +56,11 @@ public class QueryableOffsetPagingHandler<TEntity>
             {
                 if (selections[i].Field.Name is "totalCount")
                 {
-                    totalCount = source.Count();
+                    totalCount = await Task.Run(
+                            () => source.Count(),
+                            cancellationToken)
+                        .ConfigureAwait(false);
+                    break;
                 }
             }
         }

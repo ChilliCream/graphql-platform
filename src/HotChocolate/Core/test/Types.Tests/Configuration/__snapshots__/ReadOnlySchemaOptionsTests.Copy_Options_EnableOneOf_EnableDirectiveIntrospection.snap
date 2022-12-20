@@ -13,7 +13,6 @@
   "FieldMiddleware": "AllFields",
   "EnableDirectiveIntrospection": true,
   "DefaultDirectiveVisibility": "Public",
-  "AllowInlining": true,
   "DefaultResolverStrategy": "Parallel",
   "ValidatePipelineOrder": true,
   "StrictRuntimeTypeValidation": false,
