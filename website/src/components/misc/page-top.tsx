@@ -1,7 +1,10 @@
 import React, { FC, useEffect, useRef } from "react";
 import styled from "styled-components";
-import ArrowUpIconSvg from "../../images/arrow-up.svg";
-import { useObservable } from "../../state";
+
+import { useObservable } from "@/state";
+
+// Icons
+import ArrowUpIconSvg from "@/images/arrow-up.svg";
 
 export interface PageTopProps {
   readonly onTopScroll: () => void;

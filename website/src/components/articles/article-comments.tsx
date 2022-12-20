@@ -2,7 +2,8 @@ import { graphql } from "gatsby";
 import { Disqus } from "gatsby-plugin-disqus";
 import React, { FC } from "react";
 import styled from "styled-components";
-import { ArticleCommentsFragment } from "../../../graphql-types";
+
+import { ArticleCommentsFragment } from "@/graphql-types";
 
 export interface ArticleCommentsProps {
   readonly data: ArticleCommentsFragment;

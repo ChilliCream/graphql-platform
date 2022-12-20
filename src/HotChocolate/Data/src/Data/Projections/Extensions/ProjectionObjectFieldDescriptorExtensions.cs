@@ -237,6 +237,8 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         public IOperation Operation => _context.Operation;
 
+        public IOperationResultBuilder OperationResult => _context.OperationResult;
+
         public ISelection Selection { get; }
 
         public IVariableValueCollection Variables => _context.Variables;

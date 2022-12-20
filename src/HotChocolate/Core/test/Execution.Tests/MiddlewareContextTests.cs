@@ -204,7 +204,7 @@ public class MiddlewareContextTests
         result.MatchSnapshot();
     }
 
-     [Fact]
+    [Fact]
     public async Task ReplaceArguments_Delegate_ReplaceWithNull_ShouldFail()
     {
         var result = await new ServiceCollection()
@@ -230,6 +230,276 @@ public class MiddlewareContextTests
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task SetResultContextData()
+    {
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                d =>
+                {
+                    d.Field("abc")
+                        .Argument("a", t => t.Type<StringType>())
+                        .Resolve(ctx => ctx.ArgumentValue<string>("a"))
+                        .Use(
+                            next => async context =>
+                            {
+                                context.OperationResult.SetResultState("abc", "def");
+                                await next(context);
+                            });
+                })
+            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
+
+        Assert.NotNull(result.ContextData);
+        Assert.True(result.ContextData.TryGetValue("abc", out var value));
+        Assert.Equal("def", value);
+    }
+
+    [Fact]
+    public async Task SetResultContextData_Delegate_IntValue()
+    {
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                d =>
+                {
+                    d.Field("abc")
+                        .Argument("a", t => t.Type<StringType>())
+                        .Resolve(ctx => ctx.ArgumentValue<string>("a"))
+                        .Use(
+                            next => async context =>
+                            {
+                                context.OperationResult.SetResultState("abc", 1);
+                                context.OperationResult.SetResultState("abc",
+                                    (_, c) =>
+                                    {
+                                        if (c is int i)
+                                        {
+                                            return ++i;
+                                        }
+                                        return 0;
+                                    });
+                                await next(context);
+                            });
+                })
+            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
+
+        Assert.NotNull(result.ContextData);
+        Assert.True(result.ContextData.TryGetValue("abc", out var value));
+        Assert.Equal(2, value);
+    }
+
+    [Fact]
+    public async Task SetResultContextData_Delegate_IntValue_WithState()
+    {
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                d =>
+                {
+                    d.Field("abc")
+                        .Argument("a", t => t.Type<StringType>())
+                        .Resolve(ctx => ctx.ArgumentValue<string>("a"))
+                        .Use(
+                            next => async context =>
+                            {
+                                context.OperationResult.SetResultState("abc", 1);
+                                context.OperationResult.SetResultState("abc", 5,
+                                    (_, c, s) =>
+                                    {
+                                        if (c is int i)
+                                        {
+                                            return i + s;
+                                        }
+                                        return 0;
+                                    });
+                                await next(context);
+                            });
+                })
+            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
+
+        Assert.NotNull(result.ContextData);
+        Assert.True(result.ContextData.TryGetValue("abc", out var value));
+        Assert.Equal(6, value);
+    }
+
+    [Fact]
+    public async Task SetResultExtensionData_With_IntValue()
+    {
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                d =>
+                {
+                    d.Field("abc")
+                        .Argument("a", t => t.Type<StringType>())
+                        .Resolve(ctx => ctx.ArgumentValue<string>("a"))
+                        .Use(
+                            next => async context =>
+                            {
+                                context.OperationResult.SetExtension("abc", 1);
+                                await next(context);
+                            });
+                })
+            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
+
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                @"{
+                  ""data"": {
+                    ""abc"": ""abc""
+                  },
+                  ""extensions"": {
+                    ""abc"": 1
+                  }
+                }");
+    }
+
+    [Fact]
+    public async Task SetResultExtensionData_With_Delegate_IntValue()
+    {
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                d =>
+                {
+                    d.Field("abc")
+                        .Argument("a", t => t.Type<StringType>())
+                        .Resolve(ctx => ctx.ArgumentValue<string>("a"))
+                        .Use(
+                            next => async context =>
+                            {
+                                context.OperationResult.SetExtension("abc", 1);
+                                context.OperationResult.SetExtension<int>("abc", (_, v) => 1 + v);
+                                await next(context);
+                            });
+                })
+            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
+
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                @"{
+                  ""data"": {
+                    ""abc"": ""abc""
+                  },
+                  ""extensions"": {
+                    ""abc"": 2
+                  }
+                }");
+    }
+
+    [Fact]
+    public async Task SetResultExtensionData_With_Delegate_IntValue_With_State()
+    {
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                d =>
+                {
+                    d.Field("abc")
+                        .Argument("a", t => t.Type<StringType>())
+                        .Resolve(ctx => ctx.ArgumentValue<string>("a"))
+                        .Use(
+                            next => async context =>
+                            {
+                                context.OperationResult.SetExtension("abc", 1);
+                                context.OperationResult.SetExtension<int, int>(
+                                    key: "abc",
+                                    state: 5,
+                                    (_, v, s) => s + v);
+                                await next(context);
+                            });
+                })
+            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
+
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                @"{
+                  ""data"": {
+                    ""abc"": ""abc""
+                  },
+                  ""extensions"": {
+                    ""abc"": 6
+                  }
+                }");
+    }
+
+    [Fact]
+    public async Task SetResultExtensionData_With_Delegate_NoDefaultValue_IntValue()
+    {
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                d =>
+                {
+                    d.Field("abc")
+                        .Argument("a", t => t.Type<StringType>())
+                        .Resolve(ctx => ctx.ArgumentValue<string>("a"))
+                        .Use(
+                            next => async context =>
+                            {
+                                context.OperationResult.SetExtension<int>("abc", (_, v) => 1 + v);
+                                await next(context);
+                            });
+                })
+            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
+
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                @"{
+                  ""data"": {
+                    ""abc"": ""abc""
+                  },
+                  ""extensions"": {
+                    ""abc"": 1
+                  }
+                }");
+    }
+
+    [Fact]
+    public async Task SetResultExtensionData_With_ObjectValue()
+    {
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                d =>
+                {
+                    d.Field("abc")
+                        .Argument("a", t => t.Type<StringType>())
+                        .Resolve(ctx => ctx.ArgumentValue<string>("a"))
+                        .Use(
+                            next => async context =>
+                            {
+                                context.OperationResult.SetExtension("abc", new SomeData("def"));
+                                await next(context);
+                            });
+                })
+            .ExecuteRequestAsync("{ abc(a: \"abc\") }");
+
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                @"{
+                  ""data"": {
+                    ""abc"": ""abc""
+                  },
+                  ""extensions"": {
+                    ""abc"": {
+                      ""someField"": ""def""
+                    }
+                  }
+                }");
+    }
+
     private static void CollectSelections(
         IResolverContext context,
         ISelection selection,
@@ -248,4 +518,6 @@ public class MiddlewareContextTests
             }
         }
     }
+
+    private record SomeData(string SomeField);
 }
