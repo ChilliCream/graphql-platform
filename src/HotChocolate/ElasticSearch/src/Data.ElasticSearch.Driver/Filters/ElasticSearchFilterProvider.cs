@@ -34,7 +34,7 @@ public class ElasticSearchFilterProvider
     { get; } = new(new ElasticSearchFilterCombinator());
 
     /// <inheritdoc />
-    public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
+    public override FieldMiddleware CreateExecutor<TEntityType>(string argumentName)
     {
         return next => context => ExecuteAsync(next, context);
 
