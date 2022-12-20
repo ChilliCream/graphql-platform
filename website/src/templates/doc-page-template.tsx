@@ -1,13 +1,11 @@
 import { SrOnly } from "@/components/misc/sr-only";
 import { graphql } from "gatsby";
 import React, { FC } from "react";
-import { DocPageFragment } from "../../graphql-types";
-import {
-  DocPage,
-  useProductInformation,
-} from "../components/doc-page/doc-page";
-import { Layout } from "../components/layout";
-import { SEO } from "../components/misc/seo";
+
+import { DocPage, useProductInformation } from "@/components/doc-page/doc-page";
+import { Layout } from "@/components/layout";
+import { SEO } from "@/components/misc/seo";
+import { DocPageFragment } from "@/graphql-types";
 
 export interface DocPageTemplateProps {
   readonly data: DocPageFragment;

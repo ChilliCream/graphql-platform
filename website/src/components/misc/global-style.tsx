@@ -1,10 +1,11 @@
 import { createGlobalStyle } from "styled-components";
+
 import {
   DEFAULT_THEME_COLORS,
   FONT_FAMILY,
   FONT_FAMILY_HEADING,
   THEME_COLORS,
-} from "../../shared-style";
+} from "@/shared-style";
 
 export const GlobalStyle = createGlobalStyle`
   :root {

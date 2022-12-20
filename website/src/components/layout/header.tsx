@@ -11,6 +11,11 @@ import React, {
   useState,
 } from "react";
 import styled, { createGlobalStyle } from "styled-components";
+
+import { IconContainer } from "@/components/misc/icon-container";
+import { Link } from "@/components/misc/link";
+import { SearchModal } from "@/components/misc/search-modal";
+import { Brand, Logo } from "@/components/sprites";
 import {
   DocsJson,
   DocsJsonVersions,
@@ -18,26 +23,31 @@ import {
   Maybe,
   SiteSiteMetadataTools,
 } from "@/graphql-types";
-import AngleRightIconSvg from "@/images/angle-right.svg";
-import BarsIconSvg from "@/images/bars.svg";
-import LogoTextSvg from "@/images/chillicream-text.svg";
-import LogoIconSvg from "@/images/chillicream-winking.svg";
-import GithubIconSvg from "@/images/github.svg";
-import NewspaperIconSvg from "@/images/newspaper.svg";
-import SearchIconSvg from "@/images/search.svg";
-import SlackIconSvg from "@/images/slack.svg";
-import TimesIconSvg from "@/images/times.svg";
-import TwitterIconSvg from "@/images/twitter.svg";
-import YouTubeIconSvg from "@/images/youtube.svg";
-import ArrowDownSvg from "@/images/arrow-down.svg";
-import ExternalLinkSvg from "@/images/external-link.svg";
-
 import { FONT_FAMILY_HEADING, THEME_COLORS } from "@/shared-style";
 import { useObservable } from "@/state";
+
+// Brands
+import GithubIconSvg from "@/images/brands/github.svg";
+import LinkedInIconSvg from "@/images/brands/linkedin.svg";
+import SlackIconSvg from "@/images/brands/slack.svg";
+import TwitterIconSvg from "@/images/brands/twitter.svg";
+import YouTubeIconSvg from "@/images/brands/youtube.svg";
+
+// Icons
+import AngleRightIconSvg from "@/images/angle-right.svg";
+import ArrowDownSvg from "@/images/arrow-down.svg";
+import BarsIconSvg from "@/images/bars.svg";
+import ExternalLinkSvg from "@/images/external-link.svg";
+import NewspaperIconSvg from "@/images/newspaper.svg";
+import SearchIconSvg from "@/images/search.svg";
+import TimesIconSvg from "@/images/times.svg";
+
+// Images
 import { WorkshopNdcLondon } from "@/components/images/workshop-ndc-london";
-import { IconContainer } from "@/components/misc/icon-container";
-import { Link } from "@/components/misc/link";
-import { SearchModal } from "@/components/misc/search-modal";
+
+// Logos
+import LogoTextSvg from "@/images/logo/chillicream-text.svg";
+import LogoIconSvg from "@/images/logo/chillicream-winking.svg";
 
 export const Header: FC = () => {
   const containerRef = useRef<HTMLHeadingElement>(null);
@@ -51,6 +61,7 @@ export const Header: FC = () => {
           tools {
             bcp
             github
+            linkedIn
             shop
             slack
             twitter
@@ -141,14 +152,14 @@ export const Header: FC = () => {
       <BodyStyle disableScrolling={topNavOpen} />
       <ContainerWrapper>
         <LogoLink to="/">
-          <LogoIcon />
-          <LogoText />
+          <LogoIcon {...LogoIconSvg} />
+          <LogoText {...LogoTextSvg} />
         </LogoLink>
         <Navigation open={topNavOpen}>
           <NavigationHeader>
             <LogoLink to="/">
-              <LogoIcon />
-              <LogoText />
+              <LogoIcon {...LogoIconSvg} />
+              <LogoText {...LogoTextSvg} />
             </LogoLink>
             <HamburgerCloseButton onClick={handleTopNavClose}>
               <HamburgerCloseIcon />
@@ -233,13 +244,13 @@ const LogoLink = styled(Link)`
   height: 60px;
 `;
 
-const LogoIcon = styled(LogoIconSvg)`
+const LogoIcon = styled(Logo)`
   height: 40px;
   fill: ${THEME_COLORS.textContrast};
   transition: fill 0.2s ease-in-out;
 `;
 
-const LogoText = styled(LogoTextSvg)`
+const LogoText = styled(Logo)`
   display: none;
   padding-left: 15px;
   height: 24px;
@@ -410,7 +421,7 @@ const ProductsNavItem: FC<ProductsNavItemProps> = ({ firstBlogPost }) => {
 
   return (
     <NavItemContainer {...navHandlers}>
-      <NavLink to="/products" {...linkHandlers}>
+      <NavLink to="/products" prefetch={false} {...linkHandlers}>
         Products
         <IconContainer size={10}>
           <ArrowDownSvg />
@@ -429,7 +440,7 @@ interface DeveloperNavItemProps {
   >[];
   readonly tools: Pick<
     SiteSiteMetadataTools,
-    "bcp" | "github" | "shop" | "slack" | "twitter" | "youtube"
+    "bcp" | "github" | "linkedIn" | "shop" | "slack" | "twitter" | "youtube"
   >;
 }
 
@@ -461,29 +472,35 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
             </IconContainer>
             Blog
           </SubNavLink>
+          <SubNavLink to={tools.github!} onClick={hideSubNav}>
+            <IconContainer size={20}>
+              <Brand {...GithubIconSvg} />
+            </IconContainer>
+            GitHub
+          </SubNavLink>
           <SubNavLink to={tools.slack!} onClick={hideSubNav}>
             <IconContainer size={20}>
-              <SlackIconSvg />
+              <Brand {...SlackIconSvg} />
             </IconContainer>
             Slack / Community
           </SubNavLink>
-          <SubNavLink to={tools.twitter!} onClick={hideSubNav}>
-            <IconContainer size={20}>
-              <TwitterIconSvg />
-            </IconContainer>
-            Twitter
-          </SubNavLink>
           <SubNavLink to={tools.youtube!} onClick={hideSubNav}>
             <IconContainer size={20}>
-              <YouTubeIconSvg />
+              <Brand {...YouTubeIconSvg} />
             </IconContainer>
             YouTube Channel
           </SubNavLink>
-          <SubNavLink to={tools.github!} onClick={hideSubNav}>
+          <SubNavLink to={tools.twitter!} onClick={hideSubNav}>
             <IconContainer size={20}>
-              <GithubIconSvg />
+              <Brand {...TwitterIconSvg} />
             </IconContainer>
-            GitHub
+            Twitter
+          </SubNavLink>
+          <SubNavLink to={tools.linkedIn!} onClick={hideSubNav}>
+            <IconContainer size={20}>
+              <Brand {...LinkedInIconSvg} />
+            </IconContainer>
+            LinkedIn
           </SubNavLink>
         </SubNavGroup>
       </SubNavMain>
@@ -504,7 +521,7 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
 
   return (
     <NavItemContainer {...navHandlers}>
-      <NavLink to="/docs" {...linkHandlers}>
+      <NavLink to="/docs" prefetch={false} {...linkHandlers}>
         Developers
         <IconContainer size={10}>
           <ArrowDownSvg />
@@ -558,7 +575,7 @@ const ServicesNavItem: FC = () => {
 
   return (
     <NavItemContainer {...navHandlers}>
-      <NavLink to="/services" {...linkHandlers}>
+      <NavLink to="/services" prefetch={false} {...linkHandlers}>
         Services
         <IconContainer size={10}>
           <ArrowDownSvg />
@@ -769,7 +786,7 @@ const SubNavSeparator = styled.div`
   background-color: ${THEME_COLORS.backgroundAlt};
 
   @media only screen and ((min-width: 600px) and (min-height: 430px)) {
-    margin: 5px 20px;
+    margin: -5px 20px;
   }
 `;
 

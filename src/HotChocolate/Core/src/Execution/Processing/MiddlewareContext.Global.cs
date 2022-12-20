@@ -273,7 +273,41 @@ internal partial class MiddlewareContext : IMiddlewareContext
         public void SetResultState(string key, object? value)
             => Context.Result.SetContextData(key, value);
 
+        public void SetResultState(string key, UpdateState<object?> value)
+            => Context.Result.SetContextData(key, value);
+
+        public void SetResultState<TState>(
+            string key,
+            TState state,
+            UpdateState<object?, TState> value)
+            => Context.Result.SetContextData(key, state, value);
+
         public void SetExtension<TValue>(string key, TValue value)
             => Context.Result.SetExtension(key, new NeedsFormatting<TValue>(value));
+
+        public void SetExtension<TValue>(string key, UpdateState<TValue> value)
+            => Context.Result.SetExtension<NeedsFormatting<TValue>?>(
+                key,
+                (k, c) => new NeedsFormatting<TValue>(
+                    value(
+                        k,
+                        c is null
+                            ? default!
+                            : c.Value)));
+
+        public void SetExtension<TValue, TState>(
+            string key,
+            TState state,
+            UpdateState<TValue, TState> value)
+            => Context.Result.SetExtension<NeedsFormatting<TValue>?, TState>(
+                key,
+                state,
+                (k, c, s) => new NeedsFormatting<TValue>(
+                    value(
+                        k,
+                        c is null
+                            ? default!
+                            : c.Value,
+                        s)));
     }
 }
