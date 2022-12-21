@@ -1,7 +1,5 @@
-using System.Collections.Generic;
 using System.Text.Json;
-using Snapshooter.Xunit;
-using Xunit;
+using CookieCrumble;
 
 namespace StrawberryShake.Json;
 
@@ -14,7 +12,7 @@ public class JsonErrorParserTests
         var result = JsonDocument.Parse(@" [ { ""message"": ""errors"" } ] ");
 
         // act
-        IReadOnlyList<IClientError>? errors = JsonErrorParser.ParseErrors(result.RootElement);
+        var errors = JsonErrorParser.ParseErrors(result.RootElement);
 
         // assert
         Assert.Collection(errors!, error => Assert.Equal("errors", error.Message));
@@ -27,7 +25,7 @@ public class JsonErrorParserTests
         var result = JsonDocument.Parse(@"[{ }]");
 
         // act
-        IReadOnlyList<IClientError>? errors = JsonErrorParser.ParseErrors(result.RootElement);
+        var errors = JsonErrorParser.ParseErrors(result.RootElement);
 
         // assert
         Assert.Collection(
@@ -51,7 +49,7 @@ public class JsonErrorParserTests
             ");
 
         // act
-        IReadOnlyList<IClientError>? errors = JsonErrorParser.ParseErrors(result.RootElement);
+        var errors = JsonErrorParser.ParseErrors(result.RootElement);
 
         // assert
         Assert.Collection(
@@ -82,7 +80,7 @@ public class JsonErrorParserTests
             ");
 
         // act
-        IReadOnlyList<IClientError>? errors = JsonErrorParser.ParseErrors(result.RootElement);
+        var errors = JsonErrorParser.ParseErrors(result.RootElement);
 
         // assert
         Assert.Collection(
@@ -112,7 +110,7 @@ public class JsonErrorParserTests
             ");
 
         // act
-        IReadOnlyList<IClientError>? errors = JsonErrorParser.ParseErrors(result.RootElement);
+        var errors = JsonErrorParser.ParseErrors(result.RootElement);
 
         // assert
         Assert.Collection(
@@ -155,7 +153,7 @@ public class JsonErrorParserTests
             ");
 
         // act
-        IReadOnlyList<IClientError>? errors = JsonErrorParser.ParseErrors(result.RootElement);
+        var errors = JsonErrorParser.ParseErrors(result.RootElement);
 
         // assert
         Assert.Collection(
@@ -184,7 +182,7 @@ public class JsonErrorParserTests
             ");
 
         // act
-        IReadOnlyList<IClientError>? errors = JsonErrorParser.ParseErrors(result.RootElement);
+        var errors = JsonErrorParser.ParseErrors(result.RootElement);
 
         // assert
         Assert.Collection(
@@ -211,7 +209,7 @@ public class JsonErrorParserTests
             ");
 
         // act
-        IReadOnlyList<IClientError>? errors = JsonErrorParser.ParseErrors(result.RootElement);
+        var errors = JsonErrorParser.ParseErrors(result.RootElement);
 
         // assert
         Assert.Collection(
@@ -228,20 +226,20 @@ public class JsonErrorParserTests
     {
         // arrange
         var result = JsonDocument.Parse(@"
-                [
+            [
+                {
+                    ""message"": ""errors"",
+                    ""code"": ""CSROOT"",
+                    ""extensions"":
                     {
-                        ""message"": ""errors"",
-                        ""code"": ""CSROOT"",
-                        ""extensions"":
-                        {
-                          ""code"": ""CS1234""
-                        }
+                      ""code"": ""CS1234""
                     }
-                ]
-            ");
+                }
+            ]
+        ");
 
         // act
-        IReadOnlyList<IClientError>? errors = JsonErrorParser.ParseErrors(result.RootElement);
+        var errors = JsonErrorParser.ParseErrors(result.RootElement);
 
         // assert
         Assert.Collection(
@@ -259,20 +257,20 @@ public class JsonErrorParserTests
     {
         // arrange
         var result = JsonDocument.Parse(@"
-                [
-                    {
-                        ""message"": ""errors"",
-                        ""locations"": [ { ""column"": 5 } ]
-                    },
-                    {
-                        ""message"": ""errors"",
-                        ""locations"": [ { ""column"": 5 } ]
-                    }
-                ]
-            ");
+            [
+                {
+                    ""message"": ""errors"",
+                    ""locations"": [ { ""column"": 5 } ]
+                },
+                {
+                    ""message"": ""errors"",
+                    ""locations"": [ { ""column"": 5 } ]
+                }
+            ]
+        ");
 
         // act
-        IReadOnlyList<IClientError>? errors = JsonErrorParser.ParseErrors(result.RootElement);
+        var errors = JsonErrorParser.ParseErrors(result.RootElement);
 
         // assert
         Assert.Collection(
@@ -296,7 +294,7 @@ public class JsonErrorParserTests
         var result = JsonDocument.Parse("null");
 
         // act
-        IReadOnlyList<IClientError>? errors = JsonErrorParser.ParseErrors(result.RootElement);
+        var errors = JsonErrorParser.ParseErrors(result.RootElement);
 
         // assert
         Assert.Null(errors);

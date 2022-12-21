@@ -300,18 +300,34 @@ public static partial class HotChocolateValidationBuilderExtensions
         return builder.TryAddValidationVisitor<OperationVisitor>();
     }
 
-    public static IValidationBuilder AddMaxExecutionDepthRule(
-        this IValidationBuilder builder,
-        int maxAllowedExecutionDepth)
-        => AddMaxExecutionDepthRule(builder, maxAllowedExecutionDepth, false);
-
+    /// <summary>
+    /// Adds a validation rule that restricts the depth of a GraphQL request.
+    /// </summary>
+    /// <param name="builder">
+    /// The validation builder.
+    /// </param>
+    /// <param name="maxAllowedExecutionDepth">
+    /// The max allowed GraphQL request depth.
+    /// </param>
+    /// <param name="skipIntrospectionFields">
+    /// Specifies if depth analysis is skipped for introspection queries.
+    /// </param>
+    /// <param name="allowRequestOverrides">
+    /// Defines if request depth overrides are allowed on a per request basis.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IValidationBuilder"/> for configuration chaining.
+    /// </returns>
     public static IValidationBuilder AddMaxExecutionDepthRule(
         this IValidationBuilder builder,
         int maxAllowedExecutionDepth,
-        bool skipIntrospectionFields)
+        bool skipIntrospectionFields = false,
+        bool allowRequestOverrides = false)
     {
         return builder
-            .TryAddValidationVisitor((_, o) => new MaxExecutionDepthVisitor(o))
+            .TryAddValidationVisitor(
+                (_, o) => new MaxExecutionDepthVisitor(o),
+                isCacheable: !allowRequestOverrides)
             .ModifyValidationOptions(o =>
             {
                 o.MaxAllowedExecutionDepth = maxAllowedExecutionDepth;

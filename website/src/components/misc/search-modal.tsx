@@ -7,7 +7,8 @@ import type {
 import React, { FC, ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { createGlobalStyle } from "styled-components";
-import { THEME_COLORS } from "../../shared-style";
+
+import { THEME_COLORS } from "@/shared-style";
 import { Link } from "./link";
 
 export interface SearchModalProps {
@@ -33,8 +34,8 @@ export const SearchModal: FC<SearchModalProps> = ({
       {open
         ? createPortal(
             <DocSearchModal
-              appId="BH4D9OD16A"
-              apiKey="3ed63973f167d1fc290b9a1aaa85a793"
+              appId="WQ7ZRCU9RS"
+              apiKey="b40ebfd92eb180185aa52c192e4fbd86"
               indexName="chillicream"
               placeholder="Search..."
               hitComponent={resolveHit}
@@ -89,5 +90,9 @@ const DocSearchStyleOverwrite = createGlobalStyle`
 
   .DocSearch-Commands {
     display: none;
+  }
+
+  .DocSearch-Hit {
+    margin: 0;
   }
 `;

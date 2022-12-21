@@ -9,9 +9,11 @@ namespace HotChocolate.Execution;
 public class QueryResultBuilder : IQueryResultBuilder
 {
     private IReadOnlyDictionary<string, object?>? _data;
+    private IReadOnlyList<object?>? _items;
     private List<IError>? _errors;
     private ExtensionData? _extensionData;
     private ExtensionData? _contextData;
+    private List<IQueryResult>? _incremental;
     private string? _label;
     private Path? _path;
     private bool? _hasNext;
@@ -20,6 +22,19 @@ public class QueryResultBuilder : IQueryResultBuilder
     public IQueryResultBuilder SetData(IReadOnlyDictionary<string, object?>? data)
     {
         _data = data;
+        _items = null;
+        return this;
+    }
+
+    public IQueryResultBuilder SetItems(IReadOnlyList<object?>? items)
+    {
+        _items = items;
+
+        if (items is not null)
+        {
+            _data = null;
+        }
+
         return this;
     }
 
@@ -109,6 +124,18 @@ public class QueryResultBuilder : IQueryResultBuilder
         return this;
     }
 
+    public IQueryResultBuilder AddPatch(IQueryResult patch)
+    {
+        if (patch is null)
+        {
+            throw new ArgumentNullException(nameof(patch));
+        }
+
+        _incremental ??= new List<IQueryResult>();
+        _incremental.Add(patch);
+        return this;
+    }
+
     public IQueryResultBuilder SetLabel(string? label)
     {
         _label = label;
@@ -146,6 +173,8 @@ public class QueryResultBuilder : IQueryResultBuilder
             _errors?.Count > 0 ? _errors : null,
             _extensionData?.Count > 0 ? _extensionData : null,
             _contextData?.Count > 0 ? _contextData : null,
+            _items,
+            _incremental,
             _label,
             _path,
             _hasNext,

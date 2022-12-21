@@ -1,0 +1,19 @@
+{
+  "data": {
+    "persons": [
+      {
+        "id": "UGVyc29uCmkx"
+      },
+      {
+        "id": "UGVyc29uCmky"
+      },
+      {
+        "id": "UGVyc29uCmkz"
+      },
+      {
+        "id": "UGVyc29uCmk0"
+      }
+    ],
+    "wait": true
+  }
+}

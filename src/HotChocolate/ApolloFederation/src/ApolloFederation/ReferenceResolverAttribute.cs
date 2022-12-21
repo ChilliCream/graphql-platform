@@ -46,7 +46,7 @@ public class ReferenceResolverAttribute : DescriptorAttribute
         {
             if (EntityResolver is not null)
             {
-                MethodInfo? method = EntityResolverType.GetMethod(EntityResolver);
+                var method = EntityResolverType.GetMethod(EntityResolver);
 
                 if (method is null)
                 {
@@ -64,7 +64,7 @@ public class ReferenceResolverAttribute : DescriptorAttribute
         }
         else if (EntityResolver is not null)
         {
-            MethodInfo? method = type.GetMethod(EntityResolver);
+            var method = type.GetMethod(EntityResolver);
 
             if (method is null)
             {

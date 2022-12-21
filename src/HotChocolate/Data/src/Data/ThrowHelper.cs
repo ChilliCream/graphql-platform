@@ -390,6 +390,12 @@ internal static class ThrowHelper
                 .SetMessage(DataResources.ProjectionConvention_CouldNotProject)
                 .Build());
 
+    public static SchemaException ProjectionConvention_NodeFieldWasInInvalidState() =>
+        new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(DataResources.ProjectionConvention_NodeFieldWasInInvalidState)
+                .Build());
+
     public static SchemaException Projection_ProjectionWasNotFound(IResolverContext context) =>
         new SchemaException(
             SchemaErrorBuilder.New()

@@ -65,9 +65,9 @@ internal sealed class ComplexityAnalyzerCompilerVisitor : TypeDocumentValidatorV
         FieldNode node,
         IDocumentValidatorContext context)
     {
-        if (context.Types.TryPeek(out IType? type) &&
+        if (context.Types.TryPeek(out var type) &&
             type.NamedType() is IComplexOutputType ot &&
-            ot.Fields.TryGetField(node.Name.Value, out IOutputField? of))
+            ot.Fields.TryGetField(node.Name.Value, out var of))
         {
             context.List.Push(new List<Expression>());
             context.OutputFields.Push(of);
@@ -83,7 +83,7 @@ internal sealed class ComplexityAnalyzerCompilerVisitor : TypeDocumentValidatorV
         FieldNode node,
         IDocumentValidatorContext context)
     {
-        IOutputField field = context.OutputFields.Pop();
+        var field = context.OutputFields.Pop();
         var children = (List<Expression>)context.List.Pop()!;
         context.Types.Pop();
 
@@ -113,7 +113,7 @@ internal sealed class ComplexityAnalyzerCompilerVisitor : TypeDocumentValidatorV
         FieldNode selection,
         Expression childComplexity)
     {
-        CostDirective? costDirective =
+        var costDirective =
             field.Directives["cost"]
                 .FirstOrDefault()?
                 .ToObject<CostDirective>();
@@ -138,7 +138,7 @@ internal sealed class ComplexityAnalyzerCompilerVisitor : TypeDocumentValidatorV
 
     private Expression Combine(IReadOnlyList<Expression> expressions)
     {
-        Expression combinedComplexity = expressions[0];
+        var combinedComplexity = expressions[0];
 
         for (var i = 1; i < expressions.Count; i++)
         {

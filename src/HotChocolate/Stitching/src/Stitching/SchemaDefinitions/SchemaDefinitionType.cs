@@ -30,7 +30,7 @@ public class SchemaDefinitionType : ObjectType<RemoteSchemaDefinition>
             .Type<NonNullType<ListType<NonNullType<StringType>>>>();
     }
 
-    private sealed class Resolvers
+    private class Resolvers
     {
         public string GetDocument(
             [Parent] RemoteSchemaDefinition schemaDefinition) =>
@@ -43,12 +43,12 @@ public class SchemaDefinitionType : ObjectType<RemoteSchemaDefinition>
 
     public static class Names
     {
-        public static NameString SchemaDefinition { get; } = "_SchemaDefinition";
+        public static string SchemaDefinition { get; } = "_SchemaDefinition";
 
-        public static NameString Name { get; } = "name";
+        public static string Name { get; } = "name";
 
-        public static NameString Document { get; } = "document";
+        public static string Document { get; } = "document";
 
-        public static NameString ExtensionDocuments { get; } = "extensionDocuments";
+        public static string ExtensionDocuments { get; } = "extensionDocuments";
     }
 }

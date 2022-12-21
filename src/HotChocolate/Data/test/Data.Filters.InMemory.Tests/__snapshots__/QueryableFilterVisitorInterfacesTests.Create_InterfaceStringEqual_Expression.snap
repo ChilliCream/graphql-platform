@@ -1,0 +1,57 @@
+a
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "test": {
+          "prop": "a"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+b
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "test": {
+          "prop": "b"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter \u0060eq\u0060 of type StringOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 37
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "String!",
+        "filterType": "StringOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": []
+  }
+}
+---------------

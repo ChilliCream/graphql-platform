@@ -19,7 +19,7 @@ public class UnsignedShortType : IntegerTypeBase<ushort>
     /// Initializes a new instance of the <see cref="UnsignedShortType"/> class.
     /// </summary>
     public UnsignedShortType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Implicit)
         : base(name, ushort.MinValue, ushort.MaxValue, bind)

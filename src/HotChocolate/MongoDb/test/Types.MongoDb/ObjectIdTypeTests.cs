@@ -1,11 +1,8 @@
-using System.Threading;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types.MongoDb;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types;
 
@@ -15,10 +12,10 @@ public class ObjectIdTypeTests
     public async Task Should_MapObjectIdToScalar()
     {
         // arrange
-        IRequestExecutor executor = await CreateSchema();
+        var executor = await CreateSchema();
 
         // act
-        string schema = executor.Schema.Print();
+        var schema = executor.Schema.Print();
 
         // assert
         schema.MatchSnapshot();
@@ -28,8 +25,8 @@ public class ObjectIdTypeTests
     public async Task Should_ReturnObjectIdOnQuery()
     {
         // arrange
-        IRequestExecutor executor = await CreateSchema();
-        string query = @"
+        var executor = await CreateSchema();
+        var query = @"
             {
                 foo {
                     id
@@ -38,29 +35,29 @@ public class ObjectIdTypeTests
             ";
 
         // act
-        IReadOnlyQueryRequest request = QueryRequestBuilder.Create(query);
-        IExecutionResult result = await executor.ExecuteAsync(request, CancellationToken.None);
+        var request = QueryRequestBuilder.Create(query);
+        var result = await executor.ExecuteAsync(request, CancellationToken.None);
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Should_ReturnInputOnQuery()
     {
         // arrange
-        IRequestExecutor executor = await CreateSchema();
-        string query = @"
+        var executor = await CreateSchema();
+        var query = @"
             {
                 loopback(objectId: ""6124e80f3f5fc839830c1f6b"")
             }";
 
         // act
-        IReadOnlyQueryRequest request = QueryRequestBuilder.Create(query);
-        IExecutionResult result = await executor.ExecuteAsync(request, CancellationToken.None);
+        var request = QueryRequestBuilder.Create(query);
+        var result = await executor.ExecuteAsync(request, CancellationToken.None);
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     private ValueTask<IRequestExecutor> CreateSchema() =>

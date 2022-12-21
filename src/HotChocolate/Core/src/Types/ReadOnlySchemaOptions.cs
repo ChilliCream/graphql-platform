@@ -37,16 +37,17 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
         ResolveXmlDocumentationFileName = options.ResolveXmlDocumentationFileName;
         RemoveUnreachableTypes = options.RemoveUnreachableTypes;
         DefaultBindingBehavior = options.DefaultBindingBehavior;
+        DefaultFieldBindingFlags = options.DefaultFieldBindingFlags;
         FieldMiddleware = options.FieldMiddleware;
         PreserveSyntaxNodes = options.PreserveSyntaxNodes;
         EnableDirectiveIntrospection = options.EnableDirectiveIntrospection;
         DefaultDirectiveVisibility = options.DefaultDirectiveVisibility;
-        AllowInlining = options.AllowInlining;
         DefaultResolverStrategy = options.DefaultResolverStrategy;
         ValidatePipelineOrder = options.ValidatePipelineOrder;
         StrictRuntimeTypeValidation = options.StrictRuntimeTypeValidation;
         DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck;
         EnableOneOf = options.EnableOneOf;
+        EnsureAllNodesCanBeResolved = options.EnsureAllNodesCanBeResolved;
     }
 
     /// <summary>
@@ -102,6 +103,9 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
     /// </summary>
     public BindingBehavior DefaultBindingBehavior { get; }
 
+    /// <inheritdoc />
+    public FieldBindingFlags DefaultFieldBindingFlags { get; }
+
     /// <summary>
     /// Defines on which fields a middleware pipeline can be applied on.
     /// </summary>
@@ -116,11 +120,6 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
     /// The default directive visibility when directive introspection is enabled.
     /// </summary>
     public DirectiveVisibility DefaultDirectiveVisibility { get; }
-
-    /// <summary>
-    /// Defines if field inlining is allowed.
-    /// </summary>
-    public bool AllowInlining { get; }
 
     /// <summary>
     /// Defines that the default resolver execution strategy.
@@ -145,4 +144,7 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
 
     /// <inheritdoc />
     public bool EnableOneOf { get; }
+
+    /// <inheritdoc />
+    public bool EnsureAllNodesCanBeResolved { get; }
 }

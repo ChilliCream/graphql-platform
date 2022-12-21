@@ -13,12 +13,12 @@ public class SyntaxVisitorTests
         // arrange
         var list = new List<string>();
 
-        DocumentNode schema = Parse(
+        var schema = Parse(
             @"type Foo {
                 field(a: String!): String!
             }");
 
-        ISyntaxVisitor<NavigatorContext> visitor =
+        var visitor =
             CreateWithNavigator<NavigatorContext>(
                 enter: (n, c) =>
                 {

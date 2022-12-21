@@ -4,6 +4,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Types;
+using HotChocolate.Types.Helpers;
+using static System.Reflection.BindingFlags;
 
 #nullable enable
 
@@ -13,46 +15,75 @@ internal static class InputObjectConstructorResolver
 {
     public static ConstructorInfo? GetCompatibleConstructor(
         Type type,
+        InputObjectType inputObjectType,
         IReadOnlyDictionary<string, InputField> fields)
     {
-        ConstructorInfo[] constructors = type.GetConstructors(
-            BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-        ConstructorInfo? defaultConstructor = constructors.FirstOrDefault(
-            t => t.GetParameters().Length == 0);
+        var constructors = type.GetConstructors(NonPublic | Public | Instance);
 
-        if (fields.Values.All(t => t.Property!.CanWrite))
+        if (AllPropertiesCanWrite(inputObjectType))
         {
-            if (defaultConstructor is not null)
-            {
-                return defaultConstructor;
-            }
-
             if (constructors.Length == 0)
             {
                 return null;
             }
+
+            var defaultCtor = Array.Find(constructors, t => t.GetParameters().Length == 0);
+
+            if (defaultCtor is not null)
+            {
+                return defaultCtor;
+            }
         }
 
-        var required = new HashSet<string>();
-        CollectReadOnlyProperties(fields, required);
+        var required = TypeMemHelper.RentNameSet();
+        CollectReadOnlyProperties(inputObjectType, required);
+        ConstructorInfo? compatibleCtor = null;
 
-        if (constructors.Length > 0)
+        if (constructors.Length == 1)
         {
-            foreach (ConstructorInfo constructor in
+            var constructor = constructors[0];
+            if (IsCompatibleConstructor(constructor, fields, required))
+            {
+                compatibleCtor = constructor;
+            }
+        }
+        else if (constructors.Length != 0)
+        {
+            foreach (var constructor in
                 constructors.OrderByDescending(t => t.GetParameters().Length))
             {
                 if (IsCompatibleConstructor(constructor, fields, required))
                 {
-                    return constructor;
+                    compatibleCtor = constructor;
                 }
             }
+        }
+
+        TypeMemHelper.Return(required);
+
+        if (compatibleCtor is not null)
+        {
+            return compatibleCtor;
         }
 
         throw new InvalidOperationException(
             $"No compatible constructor found for input type type `{type.FullName}`.\r\n" +
             "Either you have to provide a public constructor with settable properties or " +
-            "a public constructor that allows to pass in values for read-only properties." +
+            "a public constructor that allows to pass in values for read-only properties. " +
             $"There was no way to set the following properties: {string.Join(", ", required)}.");
+    }
+
+    private static bool AllPropertiesCanWrite(InputObjectType type)
+    {
+        foreach (var field in type.Fields.AsSpan())
+        {
+            if (!(field.Property?.CanWrite ?? false))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static bool IsCompatibleConstructor(
@@ -60,23 +91,17 @@ internal static class InputObjectConstructorResolver
         IReadOnlyDictionary<string, InputField> fields,
         ISet<string> required)
     {
-        return IsCompatibleConstructor(
-            constructor.GetParameters(),
-            fields,
-            required);
-    }
+        var count = required.Count;
 
-    private static bool IsCompatibleConstructor(
-        ParameterInfo[] parameters,
-        IReadOnlyDictionary<string, InputField> fields,
-        ISet<string> required)
-    {
-        foreach (ParameterInfo? parameter in parameters)
+        foreach (var parameter in constructor.GetParameters())
         {
-            if (fields.TryGetParameter(parameter, out InputField? field) &&
+            if (fields.TryGetParameter(parameter, out var field) &&
                 parameter.ParameterType == field.Property!.PropertyType)
             {
-                required.Remove(field.Name);
+                if (required.Contains(field.Name))
+                {
+                    count--;
+                }
             }
             else
             {
@@ -84,20 +109,18 @@ internal static class InputObjectConstructorResolver
             }
         }
 
-        return required.Count == 0;
+        return count == 0;
     }
 
     private static void CollectReadOnlyProperties(
-        IReadOnlyDictionary<string, InputField> fields,
+        InputObjectType type,
         ISet<string> required)
     {
-        required.Clear();
-
-        foreach (KeyValuePair<string, InputField> item in fields)
+        foreach (var item in type.Fields.AsSpan())
         {
-            if (!item.Value.Property!.CanWrite)
+            if (!(item.Property?.CanWrite ?? false))
             {
-                required.Add(item.Value.Name);
+                required.Add(item.Name);
             }
         }
     }
@@ -107,15 +130,19 @@ internal static class InputObjectConstructorResolver
         ParameterInfo parameter,
         [NotNullWhen(true)] out InputField? field)
     {
-        string name = parameter.Name!;
-        string alternativeName = GetAlternativeParameterName(parameter.Name!);
+        var name = parameter.Name!;
+        var alternativeName = GetAlternativeParameterName(parameter.Name!);
 
-        return (fields.TryGetValue(alternativeName, out field) ||
-            fields.TryGetValue(name, out field));
+        return fields.TryGetValue(alternativeName, out field) ||
+            fields.TryGetValue(name, out field);
     }
 
     private static string GetAlternativeParameterName(string name)
         => name.Length > 1
-            ? name.Substring(0, 1).ToUpperInvariant() + name.Substring(1)
+#if NET6_0_OR_GREATER
+            ? string.Concat(name.Substring(0, 1).ToUpperInvariant(), name.AsSpan(1))
+#else
+            ? string.Concat(name.Substring(0, 1).ToUpperInvariant(), name.Substring(1))
+#endif
             : name.ToUpperInvariant();
 }

@@ -22,6 +22,12 @@ public interface IObjectField : IOutputField
     bool IsParallelExecutable { get; }
 
     /// <summary>
+    /// Defines that the resolver pipeline returns an
+    /// <see cref="IAsyncEnumerable{T}"/> as its result.
+    /// </summary>
+    bool HasStreamResult { get; }
+
+    /// <summary>
     /// Gets the field resolver middleware.
     /// </summary>
     FieldDelegate Middleware { get; }
@@ -62,9 +68,4 @@ public interface IObjectField : IOutputField
     /// this property will return <see cref="Member"/>.
     /// </summary>
     MemberInfo? ResolverMember { get; }
-
-    /// <summary>
-    /// Defines that the result of this field might be a stream.
-    /// </summary>
-    bool MaybeStream { get; }
 }

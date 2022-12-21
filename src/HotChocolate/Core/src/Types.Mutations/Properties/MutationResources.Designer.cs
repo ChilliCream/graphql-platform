@@ -86,5 +86,29 @@ namespace HotChocolate.Types.Properties {
                 return ResourceManager.GetString("ThrowHelper_NonMutationFields", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_MutationPayloadMustBeObject {
+            get {
+                return ResourceManager.GetString("ThrowHelper_MutationPayloadMustBeObject", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_MutationConvDirective_In_Wrong_Location {
+            get {
+                return ResourceManager.GetString("ThrowHelper_MutationConvDirective_In_Wrong_Location", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_DirectiveArgument_Unexpected_Value {
+            get {
+                return ResourceManager.GetString("ThrowHelper_DirectiveArgument_Unexpected_Value", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_UnknownDirectiveArgument {
+            get {
+                return ResourceManager.GetString("ThrowHelper_UnknownDirectiveArgument", resourceCulture);
+            }
+        }
     }
 }

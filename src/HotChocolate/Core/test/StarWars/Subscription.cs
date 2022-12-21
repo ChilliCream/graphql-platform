@@ -1,16 +1,15 @@
 ﻿using HotChocolate.StarWars.Data;
 using HotChocolate.StarWars.Models;
 
-namespace HotChocolate.StarWars
+namespace HotChocolate.StarWars;
+
+public class Subscription
 {
-    public class Subscription
+    public Review OnReview(
+        Episode episode,
+        [EventMessage]Review review,
+        [Service]ReviewRepository repository)
     {
-        public Review OnReview(
-            Episode episode,
-            [EventMessage]Review review,
-            [Service]ReviewRepository repository)
-        {
-            return review;
-        }
+        return review;
     }
 }

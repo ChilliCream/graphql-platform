@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
+using HotChocolate.Utilities;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Utilities;
 using Xunit;
@@ -17,7 +18,7 @@ public class DocumentAnalyzerTests
     public async Task One_Document_One_Op_One_Field_No_Fragments()
     {
         // arrange
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddStarWarsRepositories()
                 .AddGraphQL()
@@ -33,7 +34,7 @@ public class DocumentAnalyzerTests
                         @"extend scalar String @runtimeType(name: ""Abc"")"))
                 });
 
-        DocumentNode document =
+        var document =
             Utf8GraphQLParser.Parse(@"
                 query GetHero {
                     hero(episode: NEW_HOPE) {
@@ -42,7 +43,7 @@ public class DocumentAnalyzerTests
                 }");
 
         // act
-        ClientModel clientModel =
+        var clientModel =
             DocumentAnalyzer
                 .New()
                 .SetSchema(schema)
@@ -70,7 +71,7 @@ public class DocumentAnalyzerTests
                     op.GetImplementations(op.ResultType),
                     model => Assert.Equal("GetHero", model.Name));
 
-                OutputTypeModel fieldResultType = op.GetFieldResultType(
+                var fieldResultType = op.GetFieldResultType(
                     op.ResultType.Fields.Single().SyntaxNode);
                 Assert.Equal("IGetHero_Hero", fieldResultType.Name);
             });
@@ -81,7 +82,7 @@ public class DocumentAnalyzerTests
     public async Task One_Fragment_One_Deferred_Fragment()
     {
         // arrange
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddStarWarsRepositories()
                 .AddGraphQL()
@@ -99,7 +100,7 @@ public class DocumentAnalyzerTests
                         "extend schema @key(fields: \"id\")"))
                 });
 
-        DocumentNode document =
+        var document =
             Utf8GraphQLParser.Parse(@"
                 query GetHero {
                     hero(episode: NEW_HOPE) {
@@ -117,7 +118,7 @@ public class DocumentAnalyzerTests
                 }");
 
         // act
-        ClientModel clientModel =
+        var clientModel =
             DocumentAnalyzer
                 .New()
                 .SetSchema(schema)
@@ -125,7 +126,7 @@ public class DocumentAnalyzerTests
                 .Analyze();
 
         // assert
-        var human = clientModel.OutputTypes.First(t => t.Name.Equals("GetHero_Hero_Human"));
+        var human = clientModel.OutputTypes.First(t => t.Name.EqualsOrdinal("GetHero_Hero_Human"));
         Assert.Equal(1, human.Fields.Count);
 
         Assert.True(
@@ -134,6 +135,6 @@ public class DocumentAnalyzerTests
 
         Assert.Collection(
             human.Deferred["HeroAppearsIn"].Class.Fields,
-            field => Assert.Equal("AppearsIn", field.Name.Value));
+            field => Assert.Equal("AppearsIn", field.Name));
     }
 }

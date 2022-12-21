@@ -11,7 +11,7 @@ namespace HotChocolate.AspNetCore;
 /// If so the file name is appended to the path and execution continues.
 /// Note we don't just serve the file because it may require interpretation.
 /// </summary>
-public class ToolDefaultFileMiddleware
+public sealed class ToolDefaultFileMiddleware
 {
     private const string _defaultFile = "index.html";
     private readonly IFileProvider _fileProvider;
@@ -45,15 +45,15 @@ public class ToolDefaultFileMiddleware
     {
         if (context.Request.IsGetOrHeadMethod() &&
             context.Request.AcceptHeaderContainsHtml() &&
-            context.Request.TryMatchPath(_matchUrl, true, out PathString subPath) &&
+            context.Request.TryMatchPath(_matchUrl, true, out var subPath) &&
             (context.GetGraphQLToolOptions()?.Enable ?? true))
         {
-            IDirectoryContents? dirContents = _fileProvider.GetDirectoryContents(subPath.Value);
+            var dirContents = _fileProvider.GetDirectoryContents(subPath);
 
             if (dirContents.Exists)
             {
                 // Check if any of our default files exist.
-                IFileInfo? file = _fileProvider.GetFileInfo(subPath.Value + _defaultFile);
+                var file = _fileProvider.GetFileInfo(subPath.Value + _defaultFile);
 
                 // TryMatchPath will make sure subpath always ends with a "/"
                 // by adding it if needed.
@@ -66,7 +66,7 @@ public class ToolDefaultFileMiddleware
                     {
                         context.Response.StatusCode = StatusCodes.Status301MovedPermanently;
 
-                        HttpRequest? request = context.Request;
+                        var request = context.Request;
                         var redirect = UriHelper.BuildAbsolute(request.Scheme, request.Host,
                             request.PathBase, request.Path + "/", request.QueryString);
 

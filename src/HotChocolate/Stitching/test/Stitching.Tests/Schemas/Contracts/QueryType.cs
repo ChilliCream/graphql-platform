@@ -21,7 +21,7 @@ public class QueryType : ObjectType<Query>
             .Type<DateTimeType>()
             .Resolve(ctx =>
             {
-                DateTime dateTime = ctx.ArgumentValue<DateTime>("d");
+                var dateTime = ctx.ArgumentValue<DateTime>("d");
                 return dateTime;
             });
     }

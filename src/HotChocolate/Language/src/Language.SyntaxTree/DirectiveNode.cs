@@ -95,7 +95,7 @@ public sealed class DirectiveNode : ISyntaxNode
     {
         yield return Name;
 
-        foreach (ArgumentNode argument in Arguments)
+        foreach (var argument in Arguments)
         {
             yield return argument;
         }

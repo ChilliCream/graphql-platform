@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using CookieCrumble;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
+
 using Xunit;
 
 namespace HotChocolate.Data;
@@ -14,7 +15,7 @@ public class ProjectionAttributeTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<FirstOrDefaultQuery>()
             .AddProjections()
             .Create();
@@ -28,7 +29,7 @@ public class ProjectionAttributeTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<SingleOrDefaultQuery>()
             .AddProjections()
             .Create();
@@ -42,7 +43,7 @@ public class ProjectionAttributeTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<FirstOrDefaultQuery>()
             .AddType<FooType>()
             .AddProjections()
@@ -57,7 +58,7 @@ public class ProjectionAttributeTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<SingleOrDefaultQuery>()
             .AddType<FooType>()
             .AddProjections()

@@ -66,6 +66,14 @@ public abstract class SocketProtocolBase : ISocketProtocol
     }
 
     /// <inheritdoc />
+    public async ValueTask NotifyCompletion(
+    string operationId,
+    CancellationToken cancellationToken)
+    {
+        await Notify(operationId, CompleteOperationMessage.Default, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
     public virtual ValueTask DisposeAsync()
     {
         if (!_disposed)

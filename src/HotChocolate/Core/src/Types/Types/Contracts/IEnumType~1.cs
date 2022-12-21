@@ -23,7 +23,5 @@ public interface IEnumType<T> : IEnumType
     /// <c>true</c> if the <paramref name="name"/> represents a value of this enum type;
     /// otherwise, <c>false</c>.
     /// </returns>
-    bool TryGetRuntimeValue(
-        NameString name,
-        [NotNullWhen(true)] out T runtimeValue);
+    bool TryGetRuntimeValue(string name, [NotNullWhen(true)] out T runtimeValue);
 }

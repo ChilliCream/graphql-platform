@@ -1,0 +1,22 @@
+Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": false,
+        "baz": "b"
+      },
+      {
+        "bar": true,
+        "baz": "a"
+      }
+    ]
+  }
+}
+---------------
+
+Query:
+---------------
+MATCH (fooScalar:FooScalar) RETURN fooScalar {.Bar, .Baz} ORDER BY fooScalar {.Bar, .Baz} ASC
+---------------

@@ -1,11 +1,10 @@
 #nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
-using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
-using HotChocolate.Execution.Processing;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Benchmarks;
@@ -13,7 +12,7 @@ namespace HotChocolate.Execution.Benchmarks;
 [RPlotExporter, CategoriesColumn, RankColumn, MeanColumn, MedianColumn, MemoryDiagnoser]
 public class NamePathBenchmark
 {
-    private readonly NameString _name = "name";
+    private readonly string _name = "name";
     private readonly Pooled.PathFactory _pooledPathFactory;
     private readonly Optimized.PathFactory _optimizedPathFactory;
     private readonly Threadsafe.PathFactory _threadsafePathFactory;
@@ -38,7 +37,7 @@ public class NamePathBenchmark
     public void V12_CreatePath()
     {
         V12.Path root = V12.RootPathSegment.Instance;
-        int each = Size / 2;
+        var each = Size / 2;
         for (var fieldCount = 0; fieldCount < each; fieldCount++)
         {
             root = root.Append(_name);
@@ -54,7 +53,7 @@ public class NamePathBenchmark
     public void Pooled_CreatePath()
     {
         Pooled.Path root = Pooled.RootPathSegment.Instance;
-        int each = Size / 2;
+        var each = Size / 2;
         for (var fieldCount = 0; fieldCount < each; fieldCount++)
         {
             root = _pooledPathFactory.Append(root, _name);
@@ -72,7 +71,7 @@ public class NamePathBenchmark
     public void Optimized_CreatePath()
     {
         Optimized.Path root = Optimized.RootPathSegment.Instance;
-        int each = Size / 2;
+        var each = Size / 2;
         for (var fieldCount = 0; fieldCount < each; fieldCount++)
         {
             root = _optimizedPathFactory.Append(root, _name);
@@ -90,7 +89,7 @@ public class NamePathBenchmark
     public void Threadsafe_CreatePath()
     {
         Threadsafe.Path root = Threadsafe.RootPathSegment.Instance;
-        int each = Size / 2;
+        var each = Size / 2;
         for (var fieldCount = 0; fieldCount < each; fieldCount++)
         {
             root = _threadsafePathFactory.Append(root, _name);
@@ -142,9 +141,13 @@ public class NamePathBenchmark
             /// </summary>
             /// <param name="name">The name of the path segment.</param>
             /// <returns>Returns a new path segment.</returns>
-            public virtual NamePathSegment Append(NameString name)
+            public virtual NamePathSegment Append(string name)
             {
-                name.EnsureNotEmpty(nameof(name));
+                if (string.IsNullOrEmpty(name))
+                {
+                    throw new ArgumentNullException(nameof(name));
+                }
+
                 return new NamePathSegment(this, name);
             }
 
@@ -170,7 +173,7 @@ public class NamePathBenchmark
                 }
 
                 var stack = new List<object>();
-                Path? current = this;
+                var current = this;
 
                 while (current != null)
                 {
@@ -223,7 +226,7 @@ public class NamePathBenchmark
             /// <returns>
             /// Returns a new root segment.
             /// </returns>
-            public static NamePathSegment New(NameString name) => new(null, name);
+            public static NamePathSegment New(string name) => new(null, name);
 
             public static RootPathSegment Root => RootPathSegment.Instance;
 
@@ -245,7 +248,6 @@ public class NamePathBenchmark
                 {
                     segment = path[i] switch
                     {
-                        NameString n => segment.Append(n),
                         string s => segment.Append(s),
                         int n => segment.Append(n),
                         _ => throw new NotSupportedException("notsupported")
@@ -258,7 +260,7 @@ public class NamePathBenchmark
 
         public sealed class NamePathSegment : Path
         {
-            public NamePathSegment(Path? parent, NameString name)
+            public NamePathSegment(Path? parent, string name)
             {
                 Parent = parent;
                 Depth = parent?.Depth + 1 ?? 0;
@@ -274,7 +276,7 @@ public class NamePathBenchmark
             /// <summary>
             ///  Gets the name representing a field on a result map.
             /// </summary>
-            public NameString Name { get; }
+            public string Name { get; }
 
             /// <inheritdoc />
             public override string Print()
@@ -393,7 +395,7 @@ public class NamePathBenchmark
             {
                 Parent = null;
                 Depth = 0;
-                Name = default;
+                Name = default!;
             }
 
             /// <inheritdoc />
@@ -405,14 +407,14 @@ public class NamePathBenchmark
             /// <summary>
             ///  Gets the name representing a field on a result map.
             /// </summary>
-            public NameString Name { get; }
+            public string Name { get; }
 
             /// <inheritdoc />
             public override IndexerPathSegment Append(int index) =>
                 throw new NotSupportedException();
 
             /// <inheritdoc />
-            public override NamePathSegment Append(NameString name) =>
+            public override NamePathSegment Append(string name) =>
                 New(name);
 
             /// <inheritdoc />
@@ -556,7 +558,7 @@ public class NamePathBenchmark
             {
                 while (true)
                 {
-                    if (_current is null || !_current.TryPop(out T? segment))
+                    if (_current is null || !_current.TryPop(out var segment))
                     {
                         Resize();
                         continue;
@@ -611,7 +613,7 @@ public class NamePathBenchmark
                     throw new ArgumentOutOfRangeException(nameof(index));
                 }
 
-                IndexerPathSegment indexer = _indexerPathFactory.Get();
+                var indexer = _indexerPathFactory.Get();
 
                 indexer.Parent = parent;
                 indexer.Index = index;
@@ -624,12 +626,12 @@ public class NamePathBenchmark
             /// </summary>
             /// <param name="name">The name of the path segment.</param>
             /// <returns>Returns a new path segment.</returns>
-            public virtual NamePathSegment Append(Path? parent, NameString name)
+            public virtual NamePathSegment Append(Path? parent, string name)
             {
                 // TODO private
                 //name.EnsureNotEmpty(nameof(name));
 
-                NamePathSegment indexer = _namePathFactory.Get();
+                var indexer = _namePathFactory.Get();
 
                 indexer.Parent = parent;
                 indexer.Name = name;
@@ -696,7 +698,7 @@ public class NamePathBenchmark
                 }
 
                 var stack = new List<object>();
-                Path? current = this;
+                var current = this;
 
                 while (current != null)
                 {
@@ -782,7 +784,7 @@ public class NamePathBenchmark
             /// <summary>
             ///  Gets the name representing a field on a result map.
             /// </summary>
-            public NameString Name { get; internal set; }
+            public string Name { get; internal set; } = default!;
 
             /// <inheritdoc />
             public override string Print()
@@ -861,7 +863,7 @@ public class NamePathBenchmark
                 if (other is IndexerPathSegment indexer &&
                     Depth.Equals(indexer.Depth) &&
                     Index.Equals(indexer.Index) &&
-                    Parent.Equals(indexer.Parent))
+                    Equals(Parent, indexer.Parent))
                 {
                     return true;
                 }
@@ -871,15 +873,7 @@ public class NamePathBenchmark
 
             /// <inheritdoc />
             public override int GetHashCode()
-            {
-                unchecked
-                {
-                    var hash = Parent.GetHashCode() * 3;
-                    hash ^= Depth.GetHashCode() * 7;
-                    hash ^= Index.GetHashCode() * 11;
-                    return hash;
-                }
-            }
+                => HashCode.Combine(Parent, Depth, Index);
         }
 
         public sealed class RootPathSegment : Path
@@ -888,13 +882,13 @@ public class NamePathBenchmark
             {
                 Parent = null;
                 Depth = 0;
-                Name = default;
+                Name = default!;
             }
 
             /// <summary>
             ///  Gets the name representing a field on a result map.
             /// </summary>
-            public NameString Name { get; }
+            public string Name { get; }
 
             /// <inheritdoc />
             public override string Print() => "/";
@@ -947,7 +941,7 @@ public class NamePathBenchmark
 
             public T Pop()
             {
-                if (TryPop(out T? obj))
+                if (TryPop(out var obj))
                 {
                     return obj;
                 }
@@ -1064,7 +1058,7 @@ public class NamePathBenchmark
 
             private sealed class NamePathSegmentPolicy : IPooledObjectPolicy<NamePathSegment>
             {
-                private readonly NameString _default = new("default");
+                private readonly string _default = new("default");
 
                 public NamePathSegment Create() => new();
 
@@ -1113,7 +1107,7 @@ public class NamePathBenchmark
             {
                 while (true)
                 {
-                    if (_current is null || !_current.TryPop(out T? segment))
+                    if (_current is null || !_current.TryPop(out var segment))
                     {
                         Resize();
                         continue;
@@ -1170,7 +1164,7 @@ public class NamePathBenchmark
                     throw new ArgumentOutOfRangeException(nameof(index));
                 }
 
-                IndexerPathSegment indexer = _indexerPathFactory.Get();
+                var indexer = _indexerPathFactory.Get();
 
                 indexer.Parent = parent;
                 indexer.Index = index;
@@ -1184,12 +1178,12 @@ public class NamePathBenchmark
             /// </summary>
             /// <param name="name">The name of the path segment.</param>
             /// <returns>Returns a new path segment.</returns>
-            public virtual NamePathSegment Append(Path parent, NameString name)
+            public virtual NamePathSegment Append(Path parent, string name)
             {
                 // TODO private
                 //name.EnsureNotEmpty(nameof(name));
 
-                NamePathSegment indexer = _namePathFactory.Get();
+                var indexer = _namePathFactory.Get();
 
                 indexer.Parent = parent;
                 indexer.Name = name;
@@ -1243,7 +1237,7 @@ public class NamePathBenchmark
                 }
 
                 var stack = new List<object>();
-                Path current = this;
+                var current = this;
 
                 while (!ReferenceEquals(current, RootPathSegment.Instance))
                 {
@@ -1329,7 +1323,7 @@ public class NamePathBenchmark
             /// <summary>
             ///  Gets the name representing a field on a result map.
             /// </summary>
-            public NameString Name { get; internal set; }
+            public string Name { get; internal set; } = default!;
 
             /// <inheritdoc />
             public override string Print()
@@ -1430,13 +1424,13 @@ public class NamePathBenchmark
         {
             private RootPathSegment()
             {
-                Name = default;
+                Name = default!;
             }
 
             /// <summary>
             ///  Gets the name representing a field on a result map.
             /// </summary>
-            public NameString Name { get; }
+            public string Name { get; }
 
             /// <inheritdoc />
             public override string Print() => "/";
@@ -1489,7 +1483,7 @@ public class NamePathBenchmark
 
             public T Pop()
             {
-                if (TryPop(out T? obj))
+                if (TryPop(out var obj))
                 {
                     return obj;
                 }
@@ -1606,7 +1600,7 @@ public class NamePathBenchmark
 
             private sealed class NamePathSegmentPolicy : IPooledObjectPolicy<NamePathSegment>
             {
-                private readonly NameString _default = new("default");
+                private readonly string _default = new("default");
 
                 public NamePathSegment Create() => new();
 
@@ -1655,7 +1649,7 @@ public class NamePathBenchmark
             {
                 while (true)
                 {
-                    if (_current is null || !_current.TryPop(out T? segment))
+                    if (_current is null || !_current.TryPop(out var segment))
                     {
                         Resize();
                         continue;
@@ -1712,7 +1706,7 @@ public class NamePathBenchmark
                     throw new ArgumentOutOfRangeException(nameof(index));
                 }
 
-                IndexerPathSegment indexer = _indexerPathFactory.Get();
+                var indexer = _indexerPathFactory.Get();
 
                 indexer.Parent = parent;
                 indexer.Index = index;
@@ -1726,12 +1720,12 @@ public class NamePathBenchmark
             /// </summary>
             /// <param name="name">The name of the path segment.</param>
             /// <returns>Returns a new path segment.</returns>
-            public virtual NamePathSegment Append(Path parent, NameString name)
+            public virtual NamePathSegment Append(Path parent, string name)
             {
                 // TODO private
                 //name.EnsureNotEmpty(nameof(name));
 
-                NamePathSegment indexer = _namePathFactory.Get();
+                var indexer = _namePathFactory.Get();
 
                 indexer.Parent = parent;
                 indexer.Name = name;
@@ -1785,7 +1779,7 @@ public class NamePathBenchmark
                 }
 
                 var stack = new List<object>();
-                Path current = this;
+                var current = this;
 
                 while (!ReferenceEquals(current, RootPathSegment.Instance))
                 {
@@ -1871,7 +1865,7 @@ public class NamePathBenchmark
             /// <summary>
             ///  Gets the name representing a field on a result map.
             /// </summary>
-            public NameString Name { get; internal set; }
+            public string Name { get; internal set; } = default!;
 
             /// <inheritdoc />
             public override string Print()
@@ -1972,13 +1966,13 @@ public class NamePathBenchmark
         {
             private RootPathSegment()
             {
-                Name = default;
+                Name = default!;
             }
 
             /// <summary>
             ///  Gets the name representing a field on a result map.
             /// </summary>
-            public NameString Name { get; }
+            public string Name { get; }
 
             /// <inheritdoc />
             public override string Print() => "/";
@@ -2031,7 +2025,7 @@ public class NamePathBenchmark
 
             public T Pop()
             {
-                if (TryPop(out T? obj))
+                if (TryPop(out var obj))
                 {
                     return obj;
                 }

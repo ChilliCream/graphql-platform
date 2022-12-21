@@ -32,7 +32,7 @@ public sealed class AnyType : ScalarType<Representation, ObjectValueNode>
     /// <param name="bind">
     /// Defines if this scalar shall bind implicitly to <see cref="SelectionSetNode"/>.
     /// </param>
-    public AnyType(NameString name, BindingBehavior bind = BindingBehavior.Explicit)
+    public AnyType(string name, BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)
     {
         Description = FederationResources.Any_Description;
@@ -108,7 +108,7 @@ public sealed class AnyType : ScalarType<Representation, ObjectValueNode>
 
         if (resultValue is ObjectValueNode ovn)
         {
-            ObjectFieldNode? typeField = ovn.Fields.SingleOrDefault(
+            var typeField = ovn.Fields.SingleOrDefault(
                 field => field.Name.Value.EqualsOrdinal(TypeNameField));
 
             if (typeField?.Value is StringValueNode svn)

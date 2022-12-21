@@ -18,7 +18,7 @@ public class QueryableStringEqualsHandler : QueryableStringOperationHandler
         IValueNode value,
         object? parsedValue)
     {
-        Expression property = context.GetInstance();
+        var property = context.GetInstance();
         return FilterExpressionBuilder.Equals(property, parsedValue);
     }
 }

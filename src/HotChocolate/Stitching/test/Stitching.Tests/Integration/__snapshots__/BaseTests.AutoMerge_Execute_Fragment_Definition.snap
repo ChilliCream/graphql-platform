@@ -1,23 +1,24 @@
 ﻿{
-  "errors": [
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 2,
-          "column": 17
-        }
-      ],
-      "path": [
-        "customer"
-      ],
-      "extensions": {
-        "message": "The method or operation is not implemented.",
-        "stackTrace": "   at HotChocolate.Stitching.SelectionPathParser.Parse(String path) in /Users/michael/local/hc-6/src/HotChocolate/Stitching/src/Stitching/Directives/SelectionPathParser.cs:line 15\n   at HotChocolate.Stitching.Utilities.FieldDependencyResolver.CollectFieldNames(DelegateDirective directive, IHasName type, ISet\u00601 dependencies) in /Users/michael/local/hc-6/src/HotChocolate/Stitching/src/Stitching/Utilities/FieldDependencyResolver.cs:line 155\n   at HotChocolate.Stitching.Utilities.FieldDependencyResolver.CollectDelegationDependencies(Context context, IHasName type, IOutputField field) in /Users/michael/local/hc-6/src/HotChocolate/Stitching/src/Stitching/Utilities/FieldDependencyResolver.cs:line 115\n   at HotChocolate.Stitching.Utilities.FieldDependencyResolver.VisitField(FieldNode node, Context context) in /Users/michael/local/hc-6/src/HotChocolate/Stitching/src/Stitching/Utilities/FieldDependencyResolver.cs:line 101\n   at HotChocolate.Language.SyntaxVisitor\u00602.VisitSelection(ISelectionNode node, TContext context) in /Users/michael/local/hc-6/src/HotChocolate/Language/src/Language/Legacy/Visitors/SyntaxVisitor.VisitMethods.cs:line 229\n   at HotChocolate.Language.SyntaxVisitor\u00602.VisitMany[T](IEnumerable\u00601 items, TContext context, Action\u00602 action) in /Users/michael/local/hc-6/src/HotChocolate/Language/src/Language/Legacy/Visitors/SyntaxVisitor.VisitMethods.cs:line 308\n   at HotChocolate.Language.QuerySyntaxWalker\u00601.VisitSelectionSet(SelectionSetNode node, TContext context) in /Users/michael/local/hc-6/src/HotChocolate/Language/src/Language/Legacy/Visitors/QuerySyntaxWalker.cs:line 113\n   at HotChocolate.Stitching.Utilities.FieldDependencyResolver.GetFieldDependencies(DocumentNode document, SelectionSetNode selectionSet, INamedOutputType declaringType) in /Users/michael/local/hc-6/src/HotChocolate/Stitching/src/Stitching/Utilities/FieldDependencyResolver.cs:line 74\n   at HotChocolate.Stitching.Processing.ExtractFieldQuerySyntaxRewriter.RewriteSelectionSet(SelectionSetNode node, Context context) in /Users/michael/local/hc-6/src/HotChocolate/Stitching/src/Stitching/Processing/ExtractFieldQuerySyntaxRewriter.cs:line 201\n   at HotChocolate.Language.SyntaxRewriter\u00601.Rewrite[TParent,TProperty](TParent parent, TProperty property, TContext context, Func\u00603 visit, Func\u00602 rewrite) in /Users/michael/local/hc-6/src/HotChocolate/Language/src/Language/Legacy/Visitors/SyntaxRewriter.cs:line 248\n   at HotChocolate.Stitching.Processing.ExtractFieldQuerySyntaxRewriter.RewriteFieldSelectionSet(FieldNode node, IOutputField field, Context context) in /Users/michael/local/hc-6/src/HotChocolate/Stitching/src/Stitching/Processing/ExtractFieldQuerySyntaxRewriter.cs:line 157\n   at HotChocolate.Stitching.Processing.ExtractFieldQuerySyntaxRewriter.RewriteField(FieldNode node, Context context) in /Users/michael/local/hc-6/src/HotChocolate/Stitching/src/Stitching/Processing/ExtractFieldQuerySyntaxRewriter.cs:line 113\n   at HotChocolate.Stitching.Processing.ExtractFieldQuerySyntaxRewriter.ExtractField(NameString sourceSchema, DocumentNode document, OperationDefinitionNode operation, IFieldSelection selection, INamedOutputType declaringType) in /Users/michael/local/hc-6/src/HotChocolate/Stitching/src/Stitching/Processing/ExtractFieldQuerySyntaxRewriter.cs:line 67\n   at HotChocolate.Stitching.Processing.DelegateResolve.CreateQuery(IMiddlewareContext context, NameString schemaName, IImmutableStack\u00601 path, IImmutableStack\u00601 reversePath) in /Users/michael/local/hc-6/src/HotChocolate/Stitching/src/Stitching/Processing/DelegateResolve.cs:line 82\n   at HotChocolate.Stitching.Processing.DelegateResolve.InvokeAsync(IMiddlewareContext context) in /Users/michael/local/hc-6/src/HotChocolate/Stitching/src/Stitching/Processing/DelegateResolve.cs:line 51\n   at HotChocolate.Utilities.MiddlewareCompiler\u00601.ExpressionHelper.AwaitTaskHelper(Task task) in /Users/michael/local/hc-6/src/HotChocolate/Utilities/src/Utilities/MiddlewareCompiler.cs:line 167\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.ExecuteResolverPipelineAsync(CancellationToken cancellationToken) in /Users/michael/local/hc-6/src/HotChocolate/Core/src/Execution/Processing/Tasks/ResolverTask.Execute.cs:line 95\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.TryExecuteAsync(CancellationToken cancellationToken) in /Users/michael/local/hc-6/src/HotChocolate/Core/src/Execution/Processing/Tasks/ResolverTask.Execute.cs:line 62"
-      }
-    }
-  ],
   "data": {
-    "customer": null
+    "customer": {
+      "name": "Freddy Freeman",
+      "consultant": {
+        "name": "Jordan Belfort"
+      },
+      "contracts": [
+        {
+          "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0CmQx",
+          "premium": 123456.11
+        },
+        {
+          "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0CmQy",
+          "premium": 456789.12
+        },
+        {
+          "id": "U29tZU90aGVyQ29udHJhY3QKZDE=",
+          "expiryDate": "2015-02-01T00:00:00.000Z"
+        }
+      ]
+    }
   }
 }

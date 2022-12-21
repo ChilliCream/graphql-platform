@@ -13,7 +13,7 @@ namespace StrawberryShake;
 /// <typeparam name="T">
 /// The type of the data object.
 /// </typeparam>
-public class OperationResult<T> : IOperationResult<T> where T : class
+public sealed class OperationResult<T> : IOperationResult<T> where T : class
 {
     public OperationResult(
         T? data,

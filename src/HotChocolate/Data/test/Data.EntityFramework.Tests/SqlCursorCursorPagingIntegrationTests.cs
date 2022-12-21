@@ -1,9 +1,7 @@
 using System;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
-using HotChocolate.Tests;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data;
 
@@ -20,187 +18,192 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
     [Fact]
     public async Task Simple_StringList_Default_Items()
     {
-        Snapshot.FullName();
+        // arrange
+        var executor = CreateSchema(Data);
 
-        IRequestExecutor executor = CreateSchema(Data);
-
-        await executor
-            .ExecuteAsync(@"
-                {
-                    root {
-                        edges {
-                            node {
-                                foo
-                            }
-                            cursor
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                root {
+                    edges {
+                        node {
+                            foo
                         }
-                        nodes {foo}
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                            startCursor
-                            endCursor
-                        }
+                        cursor
                     }
-                }")
-            .MatchSnapshotAsync();
+                    nodes {foo}
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                        startCursor
+                        endCursor
+                    }
+                }
+            }");
+
+        // assert
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task No_Boundaries_Set()
     {
-        Snapshot.FullName();
+        // arrange
+        var executor = CreateSchema(Data);
 
-        IRequestExecutor executor = CreateSchema(Data);
-
-        await executor
-            .ExecuteAsync(@"
-                {
-                    root {
-                        edges {
-                            node {
-                                foo
-                            }
-                            cursor
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                root {
+                    edges {
+                        node {
+                            foo
                         }
-                        nodes {foo}
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                            startCursor
-                            endCursor
-                        }
+                        cursor
                     }
-                }")
-            .MatchSnapshotAsync();
+                    nodes {foo}
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                        startCursor
+                        endCursor
+                    }
+                }
+                }");
+
+        // assert
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Attribute_Simple_StringList_Default_Items()
     {
-        Snapshot.FullName();
+        // arrange
+        var executor = CreateSchema(Data);
 
-        IRequestExecutor executor = CreateSchema(Data);
-
-        await executor
-            .ExecuteAsync(@"
-                {
-                    root {
-                        edges {
-                            node {
-                                foo
-                            }
-                            cursor
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                root {
+                    edges {
+                        node {
+                            foo
                         }
-                        nodes {foo}
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                            startCursor
-                            endCursor
-                        }
+                        cursor
                     }
-                }")
-            .MatchSnapshotAsync();
+                    nodes {foo}
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                        startCursor
+                        endCursor
+                    }
+                }
+            }");
+
+        // assert
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Simple_StringList_First_2()
     {
-        Snapshot.FullName();
+        // arrange
+        var executor = CreateSchema(Data);
 
-        IRequestExecutor executor = CreateSchema(Data);
-
-        await executor
-            .ExecuteAsync(@"
-                {
-                    root(first: 2) {
-                        edges {
-                            node {
-                                foo
-                            }
-                            cursor
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                root(first: 2) {
+                    edges {
+                        node {
+                            foo
                         }
-                        nodes {foo}
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                            startCursor
-                            endCursor
-                        }
+                        cursor
                     }
-                }")
-            .MatchSnapshotAsync();
+                    nodes {foo}
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                        startCursor
+                        endCursor
+                    }
+                }
+            }");
+
+        // assert
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Attribute_Simple_StringList_First_2()
     {
-        Snapshot.FullName();
+        // arrange
+        var executor = CreateSchema(Data);
 
-        IRequestExecutor executor = CreateSchema(Data);
-
-        await executor
-            .ExecuteAsync(@"
-                {
-                    root(first: 2) {
-                        edges {
-                            node {
-                                foo
-                            }
-                            cursor
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                root(first: 2) {
+                    edges {
+                        node {
+                            foo
                         }
-                        nodes {foo}
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                            startCursor
-                            endCursor
-                        }
+                        cursor
                     }
-                }")
-            .MatchSnapshotAsync();
+                    nodes {foo}
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                        startCursor
+                        endCursor
+                    }
+                }
+            }");
+
+        // assert
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Simple_StringList_First_2_After()
     {
-        Snapshot.FullName();
+        // arrange
+        var executor = CreateSchema(Data);
 
-        IRequestExecutor executor = CreateSchema(Data);
-
-        await executor
-            .ExecuteAsync(@"
-                {
-                    root(first: 2 after: ""MQ=="") {
-                        edges {
-                            node {
-                                foo
-                            }
-                            cursor
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                root(first: 2 after: ""MQ=="") {
+                    edges {
+                        node {
+                            foo
                         }
-                        nodes {foo}
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                            startCursor
-                            endCursor
-                        }
+                        cursor
                     }
-                }")
-            .MatchSnapshotAsync();
+                    nodes {foo}
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                        startCursor
+                        endCursor
+                    }
+                }
+            }");
+
+        // assert
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Attribute_Simple_StringList_First_2_After()
     {
-        Snapshot.FullName();
+        // arrange
+        var executor = CreateSchema(Data);
 
-        IRequestExecutor executor = CreateSchema(Data);
-
-        await executor
-            .ExecuteAsync(@"
-                {
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
                     root(first: 2 after: ""MQ=="") {
                         edges {
                             node {
@@ -216,20 +219,21 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
                             endCursor
                         }
                     }
-                }")
-            .MatchSnapshotAsync();
+                }");
+
+        // assert
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Simple_StringList_Global_DefaultItem_2()
     {
-        Snapshot.FullName();
+        // arrange
+        var executor = CreateSchema(Data);
 
-        IRequestExecutor executor = CreateSchema(Data);
-
-        await executor
-            .ExecuteAsync(@"
-                {
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
                     root {
                         edges {
                             node {
@@ -245,54 +249,58 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
                             endCursor
                         }
                     }
-                }")
-            .MatchSnapshotAsync();
+                }");
+
+        // assert
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Attribute_Simple_StringList_Global_DefaultItem_2()
     {
-        Snapshot.FullName();
+        // arrange
+        var executor = CreateSchema(Data);
 
-        IRequestExecutor executor = CreateSchema(Data);
-
-        await executor
-            .ExecuteAsync(@"
-                {
-                    root {
-                        edges {
-                            node {
-                                foo
-                            }
-                            cursor
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                root {
+                    edges {
+                        node {
+                            foo
                         }
-                        nodes {foo}
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                            startCursor
-                            endCursor
-                        }
+                        cursor
                     }
-                }")
-            .MatchSnapshotAsync();
+                    nodes {foo}
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                        startCursor
+                        endCursor
+                    }
+                }
+            }");
+
+        // assert
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task TotalCount_Should_Be_Correct()
     {
-        Snapshot.FullName();
+        // arrange
+        var executor = CreateSchema(Data);
 
-        IRequestExecutor executor = CreateSchema(Data);
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                root {
+                    totalCount
+                }
+            }");
 
-        await executor
-            .ExecuteAsync(@"
-                {
-                    root {
-                        totalCount
-                    }
-                }")
-            .MatchSnapshotAsync();
+        // assert
+        result.MatchSnapshot();
     }
 
     public class TestData

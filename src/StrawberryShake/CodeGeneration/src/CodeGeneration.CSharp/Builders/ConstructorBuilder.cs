@@ -68,7 +68,7 @@ public class ConstructorBuilder : ICodeBuilder
             throw new ArgumentNullException(nameof(writer));
         }
 
-        string modifier = _accessModifier.ToString().ToLowerInvariant();
+        var modifier = _accessModifier.ToString().ToLowerInvariant();
 
         writer.WriteIndent();
 
@@ -147,7 +147,7 @@ public class ConstructorBuilder : ICodeBuilder
 
         using (writer.IncreaseIndent())
         {
-            foreach (ICode code in _lines)
+            foreach (var code in _lines)
             {
                 code.Build(writer);
             }

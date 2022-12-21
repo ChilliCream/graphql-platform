@@ -42,11 +42,11 @@ public class UnionType<T>
     {
         base.OnCompleteTypeSet(context, definition, typeSet);
 
-        Type markerType = definition.RuntimeType;
+        var markerType = definition.RuntimeType;
 
         if (markerType != typeof(object))
         {
-            foreach (ObjectType type in context.GetTypes<ObjectType>())
+            foreach (var type in context.GetTypes<ObjectType>())
             {
                 if (type.RuntimeType != typeof(object)
                     && markerType.IsAssignableFrom(type.RuntimeType))

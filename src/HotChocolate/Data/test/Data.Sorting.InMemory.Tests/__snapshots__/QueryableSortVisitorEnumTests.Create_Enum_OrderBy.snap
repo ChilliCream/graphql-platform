@@ -1,0 +1,43 @@
+ASC
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barEnum": "FOO"
+      },
+      {
+        "barEnum": "BAR"
+      },
+      {
+        "barEnum": "BAZ"
+      },
+      {
+        "barEnum": "QUX"
+      }
+    ]
+  }
+}
+---------------
+
+DESC
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barEnum": "QUX"
+      },
+      {
+        "barEnum": "BAZ"
+      },
+      {
+        "barEnum": "BAR"
+      },
+      {
+        "barEnum": "FOO"
+      }
+    ]
+  }
+}
+---------------

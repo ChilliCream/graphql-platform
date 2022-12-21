@@ -4,207 +4,207 @@ using HotChocolate.Language;
 using Moq;
 using Xunit;
 
-namespace HotChocolate.Execution.Pipeline
+namespace HotChocolate.Execution.Pipeline;
+
+public class DocumentCacheMiddlewareTests
 {
-    public class DocumentCacheMiddlewareTests
+    [Fact]
+    public async Task RetrieveItemFromCache_DocumentFoundOnCache()
     {
-        [Fact]
-        public async Task RetrieveItemFromCache_DocumentFoundOnCache()
-        {
-            // arrange
-            var cache = new Caching.DefaultDocumentCache();
-            var hashProvider = new MD5DocumentHashProvider();
+        // arrange
+        var cache = new Caching.DefaultDocumentCache();
+        var hashProvider = new MD5DocumentHashProvider();
 
-            var middleware = new DocumentCacheMiddleware(
-                context => default,
-                new NoopExecutionDiagnosticEvents(),
-                cache,
-                hashProvider);
+        var middleware = new DocumentCacheMiddleware(
+            context => default,
+            new NoopExecutionDiagnosticEvents(),
+            cache,
+            hashProvider);
 
-            var request = QueryRequestBuilder.New()
-                .SetQuery("{ a }")
-                .SetQueryId("a")
-                .Create();
+        var request = QueryRequestBuilder.New()
+            .SetQuery("{ a }")
+            .SetQueryId("a")
+            .Create();
 
-            DocumentNode document = Utf8GraphQLParser.Parse("{ a }");
-            cache.TryAddDocument("a", document);
+        var document = Utf8GraphQLParser.Parse("{ a }");
+        cache.TryAddDocument("a", document);
 
-            var requestContext = new Mock<IRequestContext>();
-            var schema = new Mock<ISchema>();
-            requestContext.SetupGet(t => t.Schema).Returns(schema.Object);
-            requestContext.SetupGet(t => t.Request).Returns(request);
-            requestContext.SetupProperty(t => t.DocumentId);
-            requestContext.SetupProperty(t => t.Document);
-            requestContext.SetupProperty(t => t.ValidationResult);
-            schema.Setup(s => s.Name).Returns("SchemaName");
+        var requestContext = new Mock<IRequestContext>();
+        var schema = new Mock<ISchema>();
+        requestContext.SetupGet(t => t.Schema).Returns(schema.Object);
+        requestContext.SetupGet(t => t.Request).Returns(request);
+        requestContext.SetupProperty(t => t.DocumentId);
+        requestContext.SetupProperty(t => t.Document);
+        requestContext.SetupProperty(t => t.ValidationResult);
+        schema.Setup(s => s.Name).Returns("SchemaName");
 
-            // act
-            await middleware.InvokeAsync(requestContext.Object);
+        // act
+        await middleware.InvokeAsync(requestContext.Object);
 
-            // assert
-            Assert.Equal(document, requestContext.Object.Document);
-            Assert.Equal("a", requestContext.Object.DocumentId);
-        }
+        // assert
+        Assert.Equal(document, requestContext.Object.Document);
+        Assert.Equal("a", requestContext.Object.DocumentId);
+    }
 
-        [Fact]
-        public async Task RetrieveItemFromCacheByHash_DocumentFoundOnCache()
-        {
-            // arrange
-            var cache = new Caching.DefaultDocumentCache();
-            var hashProvider = new MD5DocumentHashProvider();
+    [Fact]
+    public async Task RetrieveItemFromCacheByHash_DocumentFoundOnCache()
+    {
+        // arrange
+        var cache = new Caching.DefaultDocumentCache();
+        var hashProvider = new MD5DocumentHashProvider();
 
-            var middleware = new DocumentCacheMiddleware(
-                context => default,
-                new NoopExecutionDiagnosticEvents(),
-                cache,
-                hashProvider);
+        var middleware = new DocumentCacheMiddleware(
+            context => default,
+            new NoopExecutionDiagnosticEvents(),
+            cache,
+            hashProvider);
 
-            var request = QueryRequestBuilder.New()
-                .SetQuery("{ a }")
-                .SetQueryHash("a")
-                .Create();
+        var request = QueryRequestBuilder.New()
+            .SetQuery("{ a }")
+            .SetQueryHash("a")
+            .Create();
 
-            DocumentNode document = Utf8GraphQLParser.Parse("{ a }");
-            cache.TryAddDocument("a", document);
+        var document = Utf8GraphQLParser.Parse("{ a }");
+        cache.TryAddDocument("a", document);
 
-            var requestContext = new Mock<IRequestContext>();
-            var schema = new Mock<ISchema>();
-            requestContext.SetupGet(t => t.Schema).Returns(schema.Object);
-            requestContext.SetupGet(t => t.Request).Returns(request);
-            requestContext.SetupProperty(t => t.DocumentId);
-            requestContext.SetupProperty(t => t.Document);
-            requestContext.SetupProperty(t => t.ValidationResult);
-            schema.Setup(s => s.Name).Returns("SchemaName");
+        var requestContext = new Mock<IRequestContext>();
+        var schema = new Mock<ISchema>();
+        requestContext.SetupGet(t => t.Schema).Returns(schema.Object);
+        requestContext.SetupGet(t => t.Request).Returns(request);
+        requestContext.SetupProperty(t => t.DocumentId);
+        requestContext.SetupProperty(t => t.Document);
+        requestContext.SetupProperty(t => t.ValidationResult);
+        schema.Setup(s => s.Name).Returns("SchemaName");
 
-            // act
-            await middleware.InvokeAsync(requestContext.Object);
+        // act
+        await middleware.InvokeAsync(requestContext.Object);
 
-            // assert
-            Assert.Equal(document, requestContext.Object.Document);
-            Assert.Equal("a", requestContext.Object.DocumentId);
-        }
+        // assert
+        Assert.Equal(document, requestContext.Object.Document);
+        Assert.Equal("a", requestContext.Object.DocumentId);
+    }
 
-        [Fact]
-        public async Task RetrieveItemFromCache_DocumentNotFoundOnCache()
-        {
-            // arrange
-            var cache = new Caching.DefaultDocumentCache();
-            var hashProvider = new MD5DocumentHashProvider();
+    [Fact]
+    public async Task RetrieveItemFromCache_DocumentNotFoundOnCache()
+    {
+        // arrange
+        var cache = new Caching.DefaultDocumentCache();
+        var hashProvider = new MD5DocumentHashProvider();
 
-            var middleware = new DocumentCacheMiddleware(
-                context => default,
-                new NoopExecutionDiagnosticEvents(),
-                cache,
-                hashProvider);
+        var middleware = new DocumentCacheMiddleware(
+            context => default,
+            new NoopExecutionDiagnosticEvents(),
+            cache,
+            hashProvider);
 
-            var request = QueryRequestBuilder.New()
-                .SetQuery("{ a }")
-                .SetQueryId("a")
-                .Create();
+        var request = QueryRequestBuilder.New()
+            .SetQuery("{ a }")
+            .SetQueryId("a")
+            .Create();
 
-            DocumentNode document = Utf8GraphQLParser.Parse("{ a }");
-            cache.TryAddDocument("b", document);
+        var document = Utf8GraphQLParser.Parse("{ a }");
+        cache.TryAddDocument("b", document);
 
-            var requestContext = new Mock<IRequestContext>();
-            var schema = new Mock<ISchema>();
-            requestContext.SetupGet(t => t.Schema).Returns(schema.Object);
-            requestContext.SetupGet(t => t.Request).Returns(request);
-            requestContext.SetupProperty(t => t.DocumentId);
-            requestContext.SetupProperty(t => t.DocumentHash);
-            requestContext.SetupProperty(t => t.Document);
-            requestContext.SetupProperty(t => t.ValidationResult);
-            schema.Setup(s => s.Name).Returns("SchemaName");
+        var requestContext = new Mock<IRequestContext>();
+        var schema = new Mock<ISchema>();
+        requestContext.SetupGet(t => t.Schema).Returns(schema.Object);
+        requestContext.SetupGet(t => t.Request).Returns(request);
+        requestContext.SetupProperty(t => t.DocumentId);
+        requestContext.SetupProperty(t => t.DocumentHash);
+        requestContext.SetupProperty(t => t.Document);
+        requestContext.SetupProperty(t => t.ValidationResult);
+        schema.Setup(s => s.Name).Returns("SchemaName");
 
-            // act
-            await middleware.InvokeAsync(requestContext.Object);
+        // act
+        await middleware.InvokeAsync(requestContext.Object);
 
-            // assert
-            Assert.Null(requestContext.Object.Document);
-            Assert.Null(requestContext.Object.DocumentId);
-            Assert.Equal("1/4JnW9GhGu3YdhGeMefaA==", requestContext.Object.DocumentHash);
-        }
+        // assert
+        Assert.Null(requestContext.Object.Document);
+        Assert.Null(requestContext.Object.DocumentId);
+        Assert.Equal("1/4JnW9GhGu3YdhGeMefaA==", requestContext.Object.DocumentHash);
+    }
 
-        [Fact]
-        public async Task AddItemToCacheWithDocumentId()
-        {
-            // arrange
-            var cache = new Caching.DefaultDocumentCache();
-            var hashProvider = new MD5DocumentHashProvider();
+    [Fact]
+    public async Task AddItemToCacheWithDocumentId()
+    {
+        // arrange
+        var cache = new Caching.DefaultDocumentCache();
+        var hashProvider = new MD5DocumentHashProvider();
 
-            var request = QueryRequestBuilder.New()
-                .SetQuery("{ a }")
-                .Create();
+        var request = QueryRequestBuilder.New()
+            .SetQuery("{ a }")
+            .Create();
 
-            DocumentNode document = Utf8GraphQLParser.Parse("{ a }");
+        var document = Utf8GraphQLParser.Parse("{ a }");
 
-            var middleware = new DocumentCacheMiddleware(
-                context =>
-                {
-                    context.Document = document;
-                    context.DocumentId = "a";
-                    return default;
-                },
-                new NoopExecutionDiagnosticEvents(),
-                cache,
-                hashProvider);
+        var middleware = new DocumentCacheMiddleware(
+            context =>
+            {
+                context.Document = document;
+                context.DocumentId = "a";
+                return default;
+            },
+            new NoopExecutionDiagnosticEvents(),
+            cache,
+            hashProvider);
 
-            var requestContext = new Mock<IRequestContext>();
-            requestContext.SetupGet(t => t.Request).Returns(request);
-            requestContext.SetupProperty(t => t.DocumentId);
-            requestContext.SetupProperty(t => t.DocumentHash);
-            requestContext.SetupProperty(t => t.Document);
-            requestContext.SetupProperty(t => t.ValidationResult);
+        var requestContext = new Mock<IRequestContext>();
+        requestContext.SetupGet(t => t.Request).Returns(request);
+        requestContext.SetupProperty(t => t.DocumentId);
+        requestContext.SetupProperty(t => t.DocumentHash);
+        requestContext.SetupProperty(t => t.Document);
+        requestContext.SetupProperty(t => t.ValidationResult);
 
-            // act
-            await middleware.InvokeAsync(requestContext.Object);
+        // act
+        await middleware.InvokeAsync(requestContext.Object);
 
-            // assert
-            Assert.Equal(document, requestContext.Object.Document);
-            Assert.Equal("a", requestContext.Object.DocumentId);
-            Assert.Equal("1/4JnW9GhGu3YdhGeMefaA==", requestContext.Object.DocumentHash);
-        }
+        // assert
+        Assert.Equal(document, requestContext.Object.Document);
+        Assert.Equal("a", requestContext.Object.DocumentId);
+        Assert.Equal("1/4JnW9GhGu3YdhGeMefaA==", requestContext.Object.DocumentHash);
+    }
 
-        [Fact]
-        public async Task AddItemToCacheWithDocumentHash()
-        {
-            // arrange
-            var cache = new Caching.DefaultDocumentCache();
-            var hashProvider = new MD5DocumentHashProvider();
+    [Fact]
+    public async Task AddItemToCacheWithDocumentHash()
+    {
+        // arrange
+        var cache = new Caching.DefaultDocumentCache();
+        var hashProvider = new MD5DocumentHashProvider();
 
-            var request = QueryRequestBuilder.New()
-                .SetQuery("{ a }")
-                .Create();
+        var request = QueryRequestBuilder.New()
+            .SetQuery("{ a }")
+            .Create();
 
-            DocumentNode document = Utf8GraphQLParser.Parse("{ a }");
+        var document = Utf8GraphQLParser.Parse("{ a }");
 
-            var parserMiddleware = new DocumentParserMiddleware(
-                context => default,
-                new NoopExecutionDiagnosticEvents(),
-                hashProvider);
+        var parserMiddleware = new DocumentParserMiddleware(
+            context => default,
+            new NoopExecutionDiagnosticEvents(),
+            hashProvider,
+            new ParserOptions());
 
-            var middleware = new DocumentCacheMiddleware(
-                context =>
-                {
-                    return parserMiddleware.InvokeAsync(context);
-                },
-                new NoopExecutionDiagnosticEvents(),
-                cache,
-                hashProvider);
+        var middleware = new DocumentCacheMiddleware(
+            context =>
+            {
+                return parserMiddleware.InvokeAsync(context);
+            },
+            new NoopExecutionDiagnosticEvents(),
+            cache,
+            hashProvider);
 
-            var requestContext = new Mock<IRequestContext>();
-            requestContext.SetupGet(t => t.Request).Returns(request);
-            requestContext.SetupProperty(t => t.DocumentId);
-            requestContext.SetupProperty(t => t.DocumentHash);
-            requestContext.SetupProperty(t => t.Document);
-            requestContext.SetupProperty(t => t.ValidationResult);
+        var requestContext = new Mock<IRequestContext>();
+        requestContext.SetupGet(t => t.Request).Returns(request);
+        requestContext.SetupProperty(t => t.DocumentId);
+        requestContext.SetupProperty(t => t.DocumentHash);
+        requestContext.SetupProperty(t => t.Document);
+        requestContext.SetupProperty(t => t.ValidationResult);
 
-            // act
-            await middleware.InvokeAsync(requestContext.Object);
+        // act
+        await middleware.InvokeAsync(requestContext.Object);
 
-            // assert
-            Assert.NotNull(requestContext.Object.Document);
-            Assert.Equal(requestContext.Object.DocumentHash, requestContext.Object.DocumentId);
-            Assert.Equal("1/4JnW9GhGu3YdhGeMefaA==", requestContext.Object.DocumentHash);
-        }
+        // assert
+        Assert.NotNull(requestContext.Object.Document);
+        Assert.Equal(requestContext.Object.DocumentHash, requestContext.Object.DocumentId);
+        Assert.Equal("1/4JnW9GhGu3YdhGeMefaA==", requestContext.Object.DocumentHash);
     }
 }

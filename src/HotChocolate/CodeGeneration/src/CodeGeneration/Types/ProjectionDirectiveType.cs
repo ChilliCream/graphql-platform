@@ -1,14 +1,13 @@
 using HotChocolate.Types;
 
-namespace HotChocolate.CodeGeneration.Types
+namespace HotChocolate.CodeGeneration.Types;
+
+public class ProjectionDirectiveType : DirectiveType
 {
-    public class ProjectionDirectiveType : DirectiveType
+    protected override void Configure(IDirectiveTypeDescriptor descriptor)
     {
-        protected override void Configure(IDirectiveTypeDescriptor descriptor)
-        {
-            descriptor
-                .Name("projection")
-                .Location(DirectiveLocation.FieldDefinition | DirectiveLocation.Schema);
-        }
+        descriptor
+            .Name("projection")
+            .Location(DirectiveLocation.FieldDefinition | DirectiveLocation.Schema);
     }
 }

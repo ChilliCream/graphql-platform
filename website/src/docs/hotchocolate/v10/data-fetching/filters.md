@@ -65,7 +65,7 @@ public class Query
 }
 ```
 
-> ⚠️ **Note**: Be sure to install the `HotChocolate.Types.Filters` NuGet package.
+> Warning: Be sure to install the `HotChocolate.Types.Filters` NuGet package.
 
 In the above example the person resolver just returns the `IQueryable` representing the data source. The `IQueryable` represents a not executed database query on which we are able to apply filters.
 
@@ -191,7 +191,7 @@ query {
 }
 ```
 
-> ⚠️ **Note**: Be sure to install the `HotChocolate.Types.Sorting` NuGet package.
+> Warning: Be sure to install the `HotChocolate.Types.Sorting` NuGet package.
 
 If you want to combine for instance paging, filtering and sorting make sure that the order is like follows:
 

@@ -5,10 +5,12 @@
   "Data": {
     "__typename": "Query"
   },
+  "Items": null,
   "Errors": null,
   "Extensions": {
     "persistedDocument": true
   },
+  "Incremental": null,
   "ContextData": null,
   "HasNext": null
 }

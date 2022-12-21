@@ -2,7 +2,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
-using Xunit;
 
 namespace StrawberryShake.Transport.WebSockets;
 
@@ -28,7 +27,7 @@ public class MessagePipelineTests
         // arrange
         ProcessAsync a = (_, _) => default;
         Mock<ISocketClient> socketClientMock = new(MockBehavior.Strict);
-        ISocketClient socketClient = socketClientMock.Object;
+        var socketClient = socketClientMock.Object;
 
         // act
         await using var messagePipeline = new MessagePipeline(socketClient, a);

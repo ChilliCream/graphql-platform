@@ -1,3 +1,4 @@
+using System;
 using System.Buffers;
 using System.IO;
 using System.Threading;
@@ -25,7 +26,11 @@ public interface IQueryResultFormatter
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
-    Task FormatAsync(
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="result"/> is <c>null</c>.
+    /// <paramref name="outputStream"/> is <c>null</c>.
+    /// </exception>
+    ValueTask FormatAsync(
         IQueryResult result,
         Stream outputStream,
         CancellationToken cancellationToken = default);
@@ -40,6 +45,10 @@ public interface IQueryResultFormatter
     /// <param name="writer">
     /// The writer to which the formatted <paramref name="result"/> shall be written to.
     /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="result"/> is <c>null</c>.
+    /// <paramref name="writer"/> is <c>null</c>.
+    /// </exception>
     void Format(
         IQueryResult result,
         IBufferWriter<byte> writer);

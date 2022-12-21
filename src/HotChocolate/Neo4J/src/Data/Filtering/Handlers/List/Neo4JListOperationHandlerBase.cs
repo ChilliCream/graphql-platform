@@ -1,9 +1,7 @@
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Language;
-using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 
@@ -55,7 +53,7 @@ public abstract class Neo4JListOperationHandlerBase
         if (context.RuntimeTypes.Count > 0 &&
             context.RuntimeTypes.Peek().TypeArguments is { Count: > 0 } args)
         {
-            IExtendedType element = args[0];
+            var element = args[0];
             context.RuntimeTypes.Push(element);
             context.AddScope();
 
@@ -76,12 +74,11 @@ public abstract class Neo4JListOperationHandlerBase
     {
         context.RuntimeTypes.Pop();
 
-        if (context.TryCreateQuery(out CompoundCondition? query) &&
-            context.Scopes.Pop() is Neo4JFilterScope scope)
+        if (context.Scopes.Pop() is Neo4JFilterScope scope)
         {
             var path = context.GetNeo4JFilterScope().GetPath();
 
-            Condition combinedOperations =
+            var combinedOperations =
                 HandleListOperation(context, field, scope, path);
 
             context.GetLevel().Enqueue(combinedOperations);
@@ -114,14 +111,14 @@ public abstract class Neo4JListOperationHandlerBase
     /// <returns>A with and combined filter definition of all definitions of the scope</returns>
     protected static Condition CombineOperationsOfScope(Neo4JFilterScope scope)
     {
-        Queue<Condition> level = scope.Level.Peek();
+        var level = scope.Level.Peek();
         if (level.Count == 1)
         {
             return level.Peek();
         }
 
         var conditions = new CompoundCondition(Operator.And);
-        foreach (Condition condition in level)
+        foreach (var condition in level)
         {
             conditions.And(condition);
         }

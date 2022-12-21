@@ -30,7 +30,7 @@ namespace HotChocolate.ConferencePlanner.Sessions
             AttendeeByIdDataLoader attendeeById,
             CancellationToken cancellationToken)
         {
-            int[] attendeeIds = await dbContext.Sessions
+            var attendeeIds = await dbContext.Sessions
                 .Where(s => s.Id == session.Id)
                 .Include(s => s.SessionAttendees)
                 .SelectMany(s => s.SessionAttendees.Select(t => t.AttendeeId))

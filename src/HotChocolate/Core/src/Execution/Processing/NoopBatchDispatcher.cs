@@ -4,6 +4,7 @@ using HotChocolate.Fetching;
 
 namespace HotChocolate.Execution.Processing;
 
+#pragma warning disable CS0067
 internal class NoopBatchDispatcher : IBatchDispatcher
 {
     public event EventHandler? TaskEnqueued;

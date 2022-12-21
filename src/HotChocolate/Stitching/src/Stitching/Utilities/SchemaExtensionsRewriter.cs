@@ -1,12 +1,11 @@
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Utilities;
+using static HotChocolate.Stitching.Utilities.SchemaExtensionsRewriter;
 
 namespace HotChocolate.Stitching.Utilities;
 
-public class SchemaExtensionsRewriter : SyntaxRewriter<SchemaExtensionsRewriter.Context>
+public class SchemaExtensionsRewriter : SyntaxRewriter<Context>
 {
     private readonly List<DirectiveNode> _directives = new();
 
@@ -18,7 +17,7 @@ public class SchemaExtensionsRewriter : SyntaxRewriter<SchemaExtensionsRewriter.
     {
         var directives = new List<DirectiveNode>();
 
-        foreach (DirectiveNode directive in node.Directives)
+        foreach (var directive in node.Directives)
         {
             switch (directive.Name.Value)
             {
@@ -50,7 +49,7 @@ public class SchemaExtensionsRewriter : SyntaxRewriter<SchemaExtensionsRewriter.
 
             arguments.Add(new ArgumentNode(
                 DirectiveFieldNames.Delegate_Schema,
-                context.Name));
+                context.SchemaName));
 
             return node.WithArguments(arguments);
         }
@@ -60,11 +59,11 @@ public class SchemaExtensionsRewriter : SyntaxRewriter<SchemaExtensionsRewriter.
 
     public sealed class Context : ISyntaxVisitorContext
     {
-        public Context(string name)
+        public Context(string schemaName)
         {
-            Name = name;
+            SchemaName = schemaName;
         }
 
-        public string Name { get; }
+        public string SchemaName { get; }
     }
 }

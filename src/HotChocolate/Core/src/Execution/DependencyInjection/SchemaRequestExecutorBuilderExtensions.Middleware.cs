@@ -41,9 +41,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         FieldReference fieldReference)
         where TMiddleware : class
     {
-        FieldMiddleware classMiddleware =
-            FieldClassMiddlewareFactory.Create<TMiddleware>();
-
+        var classMiddleware = FieldClassMiddlewareFactory.Create<TMiddleware>();
         return builder.MapFieldMiddleware(fieldReference, classMiddleware);
     }
 
@@ -53,9 +51,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
         where TMiddleware : class
     {
-        FieldMiddleware classMiddleware =
-            FieldClassMiddlewareFactory.Create(factory);
-
+        var classMiddleware = FieldClassMiddlewareFactory.Create(factory);
         return builder.MapFieldMiddleware(fieldReference, classMiddleware);
     }
 
@@ -120,10 +116,10 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
         public void RegisterFieldMiddleware(FieldReference reference, FieldMiddleware middleware)
         {
-            if (!_lookup.TryGetValue(reference.TypeName.Value, out var middlewares))
+            if (!_lookup.TryGetValue(reference.TypeName, out var middlewares))
             {
                 middlewares = new List<FieldMiddlewareReference>();
-                _lookup[reference.TypeName.Value] = middlewares;
+                _lookup[reference.TypeName] = middlewares;
             }
 
             middlewares.Add(new(reference, middleware));
@@ -134,17 +130,21 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     {
         public const string ContextKey = "HotChocolate.Execution.FieldMiddlewareLookup";
 
-        public override bool CanHandle(ITypeSystemObjectContext context) =>
-            context.Type is ObjectType { Name.Value: { } typeName } &&
+        private bool CanHandle(ITypeSystemObjectContext context) =>
+            context.Type is ObjectType { Name: { } typeName } &&
             context.ContextData.TryGetValue(ContextKey, out var value) &&
             value is FieldMiddlewareLookup lookup &&
             lookup.HasFieldMiddleware(typeName);
 
         public override void OnAfterCompleteName(
             ITypeCompletionContext completionContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
+            DefinitionBase definition)
         {
+            if (!CanHandle(completionContext))
+            {
+                return;
+            }
+
             if (!completionContext.ContextData.TryGetValue(ContextKey, out var value) ||
                 value is not FieldMiddlewareLookup lookup)
             {
@@ -156,7 +156,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
                 return;
             }
 
-            foreach (ObjectFieldDefinition field in def.Fields)
+            foreach (var field in def.Fields)
             {
                 if (lookup.TryGetFieldMiddlewares(def.Name, out var refs))
                 {

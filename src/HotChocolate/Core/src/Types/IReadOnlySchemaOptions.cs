@@ -2,7 +2,6 @@ using System;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 #nullable enable
@@ -68,6 +67,12 @@ public interface IReadOnlySchemaOptions
     BindingBehavior DefaultBindingBehavior { get; }
 
     /// <summary>
+    /// Defines which members shall be by default inferred as GraphQL fields.
+    /// This default applies to <see cref="ObjectType"/> and <see cref="ObjectTypeExtension"/>.
+    /// </summary>
+    FieldBindingFlags DefaultFieldBindingFlags { get; }
+
+    /// <summary>
     /// Defines on which fields a middleware pipeline can be applied on.
     /// </summary>
     FieldMiddlewareApplication FieldMiddleware { get; }
@@ -81,11 +86,6 @@ public interface IReadOnlySchemaOptions
     /// The default directive visibility when directive introspection is enabled.
     /// </summary>
     DirectiveVisibility DefaultDirectiveVisibility { get; }
-
-    /// <summary>
-    /// Defines if field inlining is allowed.
-    /// </summary>
-    bool AllowInlining { get; }
 
     /// <summary>
     /// Defines that the default resolver execution strategy.
@@ -112,4 +112,9 @@ public interface IReadOnlySchemaOptions
     /// Defines if the OneOf spec RFC is enabled. This feature is experimental.
     /// </summary>
     bool EnableOneOf { get; }
+
+    /// <summary>
+    /// Specifies that if all nodes need to provide a node resolver for the schema to be valid.
+    /// </summary>
+    bool EnsureAllNodesCanBeResolved { get; }
 }

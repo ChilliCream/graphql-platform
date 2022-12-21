@@ -1,11 +1,8 @@
-using System;
-using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Utilities;
 using Snapshooter.Xunit;
 using Squadron;
 using StackExchange.Redis;
-using Xunit;
 
 namespace HotChocolate.PersistedQueries.Redis;
 
@@ -40,8 +37,7 @@ public class ServiceCollectionExtensionsTests
 
         // act
         void Action()
-            => HotChocolateRedisPersistedQueriesServiceCollectionExtensions
-                .AddRedisQueryStorage(services, null!);
+            => services.AddRedisQueryStorage(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -54,8 +50,7 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // act
-        HotChocolateRedisPersistedQueriesServiceCollectionExtensions
-            .AddRedisQueryStorage(services, _ => _database);
+        services.AddRedisQueryStorage(_ => _database);
 
         // assert
         services.ToDictionary(
@@ -86,8 +81,7 @@ public class ServiceCollectionExtensionsTests
 
         // act
         void Action()
-            => HotChocolateRedisPersistedQueriesServiceCollectionExtensions
-                .AddReadOnlyRedisQueryStorage(services, null!);
+            => services.AddReadOnlyRedisQueryStorage(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -100,8 +94,7 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // act
-        HotChocolateRedisPersistedQueriesServiceCollectionExtensions
-            .AddReadOnlyRedisQueryStorage(services, _ => _database);
+        services.AddReadOnlyRedisQueryStorage(_ => _database);
 
         // assert
         services.ToDictionary(

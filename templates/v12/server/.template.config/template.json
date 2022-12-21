@@ -22,6 +22,10 @@
         {
           "choice": "net6.0",
           "description": "Target .NET 6"
+        },
+        {
+          "choice": "net7.0",
+          "description": "Target .NET 7"
         }
       ],
       "replaces": "net6.0",

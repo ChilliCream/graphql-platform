@@ -5,17 +5,22 @@ using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Descriptors.Operations;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
+using StrawberryShake.CodeGeneration.Mappers;
 using StrawberryShake.CodeGeneration.Properties;
 using static StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
+using InputObjectTypeDescriptor =
+    StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.InputObjectTypeDescriptor;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
 {
     private const string _variables = "variables";
+    private const string _files = "files";
     private const string _operationExecutor = "_operationExecutor";
     private const string operationExecutor = "operationExecutor";
     private const string _createRequest = "CreateRequest";
@@ -24,6 +29,9 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
     private const string _request = "request";
     private const string _value = "value";
     private const string _cancellationToken = "cancellationToken";
+
+    private static readonly string _filesType =
+        TypeNames.Dictionary.WithGeneric(TypeNames.String, TypeNames.Upload.MakeNullable());
 
     protected override void Generate(
         OperationDescriptor descriptor,
@@ -37,7 +45,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
         path = null;
         ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
-        ClassBuilder classBuilder = ClassBuilder
+        var classBuilder = ClassBuilder
             .New()
             .SetComment(
                 XmlCommentBuilder
@@ -50,7 +58,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
             .AddImplements(descriptor.InterfaceType.ToString())
             .SetName(fileName);
 
-        ConstructorBuilder constructorBuilder = classBuilder
+        var constructorBuilder = classBuilder
             .AddConstructor()
             .SetTypeName(fileName);
 
@@ -71,9 +79,11 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
             classBuilder.AddMethod(CreateExecuteMethod(descriptor, resultTypeName));
         }
 
+        AddFileMapMethods(descriptor, classBuilder);
+
         classBuilder.AddMethod(CreateWatchMethod(descriptor, resultTypeName));
         classBuilder.AddMethod(CreateRequestMethod(descriptor));
-        classBuilder.AddMethod(CreateRequestVariablesMethod(descriptor));
+        classBuilder.AddMethod(CreateRequestVariablesMethod(descriptor, descriptor.HasUpload));
 
         AddFormatMethods(descriptor, classBuilder);
 
@@ -83,7 +93,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
             .AsLambda($"typeof({resultTypeName})")
             .SetInterface(TypeNames.IOperationRequestFactory);
 
-        MethodCallBuilder createRequestCall = MethodCallBuilder
+        var createRequestCall = MethodCallBuilder
             .New()
             .SetReturn()
             .SetMethodName(_createRequest);
@@ -91,6 +101,14 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
         if (descriptor.Arguments.Count > 0)
         {
             createRequestCall.AddArgument($"{_variables}!");
+        }
+
+        if (descriptor.HasUpload)
+        {
+            createRequestCall.AddArgument(MethodCallBuilder
+                .Inline()
+                .SetNew()
+                .SetMethodName(_filesType));
         }
 
         classBuilder
@@ -145,7 +163,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
 
         foreach (var property in neededSerializers.Values)
         {
-            if (property.Type.GetName().Value is { } name)
+            if (property.Type.GetName() is { } name)
             {
                 var fieldName = $"{GetFieldName(name)}Formatter";
                 constructorBuilder
@@ -179,7 +197,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
 
     private MethodCallBuilder CreateRequestMethodCall(OperationDescriptor operationDescriptor)
     {
-        MethodCallBuilder createRequestMethodCall = MethodCallBuilder
+        var createRequestMethodCall = MethodCallBuilder
             .Inline()
             .SetMethodName(_createRequest);
 
@@ -195,7 +213,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
         OperationDescriptor descriptor,
         string runtimeTypeName)
     {
-        MethodBuilder watchMethod =
+        var watchMethod =
             MethodBuilder
                 .New()
                 .SetPublic()
@@ -236,7 +254,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
         OperationDescriptor operationDescriptor,
         string runtimeTypeName)
     {
-        MethodBuilder executeMethod = MethodBuilder
+        var executeMethod = MethodBuilder
             .New()
             .SetPublic()
             .SetAsync()
@@ -278,11 +296,13 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
                         .AddArgument("false")));
     }
 
-    private MethodBuilder CreateRequestVariablesMethod(OperationDescriptor descriptor)
+    private MethodBuilder CreateRequestVariablesMethod(
+        OperationDescriptor descriptor,
+        bool hasFiles)
     {
-        string typeName = CreateDocumentTypeName(descriptor.RuntimeType.Name);
+        var typeName = CreateDocumentTypeName(descriptor.RuntimeType.Name);
 
-        MethodBuilder method = MethodBuilder
+        var method = MethodBuilder
             .New()
             .SetName(_createRequest)
             .SetReturnType(TypeNames.OperationRequest)
@@ -293,7 +313,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
                         .WithGeneric(TypeNames.String, TypeNames.Object.MakeNullable())
                         .MakeNullable()));
 
-        MethodCallBuilder newOperationRequest = MethodCallBuilder
+        var newOperationRequest = MethodCallBuilder
             .New()
             .SetReturn()
             .SetNew()
@@ -302,6 +322,12 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
             .AddArgument("name: " + descriptor.Name.AsStringToken())
             .AddArgument($"document: {typeName}.Instance")
             .AddArgument($"strategy: {TypeNames.RequestStrategy}.{descriptor.Strategy}");
+
+        if (hasFiles)
+        {
+            method.AddParameter(_files, p => p.SetType(_filesType));
+            newOperationRequest.AddArgument("files: files");
+        }
 
         if (descriptor.Arguments.Count > 0)
         {
@@ -315,12 +341,12 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
 
     private MethodBuilder CreateRequestMethod(OperationDescriptor descriptor)
     {
-        MethodBuilder method = MethodBuilder
+        var method = MethodBuilder
             .New()
             .SetName(_createRequest)
             .SetReturnType(TypeNames.OperationRequest);
 
-        MethodCallBuilder createRequestWithVariables = MethodCallBuilder
+        var createRequestWithVariables = MethodCallBuilder
             .New()
             .SetReturn()
             .SetMethodName(_createRequest);
@@ -360,6 +386,34 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
             }
 
             createRequestWithVariables.AddArgument(_variables);
+
+            if (descriptor.HasUpload)
+            {
+                method.AddCode(
+                    AssignmentBuilder
+                        .New()
+                        .SetLefthandSide($"var {_files}")
+                        .SetRighthandSide(
+                            MethodCallBuilder
+                                .Inline()
+                                .SetNew()
+                                .SetMethodName(_filesType)));
+
+                foreach (var argument in descriptor.Arguments)
+                {
+                    if (argument.Type.HasUpload())
+                    {
+                        method.AddCode(MethodCallBuilder
+                            .New()
+                            .SetMethodName("MapFilesFromArgument" + GetPropertyName(argument.Name))
+                            .AddArgument($"\"variables.{argument.FieldName}\"")
+                            .AddArgument(argument.FieldName.ToEscapedName())
+                            .AddArgument(_files));
+                    }
+                }
+
+                createRequestWithVariables.AddArgument(_files);
+            }
         }
         else
         {
@@ -369,5 +423,150 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
         return method
             .AddEmptyLine()
             .AddCode(createRequestWithVariables);
+    }
+
+    private static void AddFileMapMethods(
+        OperationDescriptor descriptor,
+        ClassBuilder classBuilder)
+    {
+        if (!descriptor.HasUpload)
+        {
+            return;
+        }
+
+        var processed = new HashSet<string>();
+        foreach (var argument in descriptor.Arguments)
+        {
+            if (argument.Type.NamedType() is InputObjectTypeDescriptor { HasUpload: true } type)
+            {
+                if (processed.Add(argument.Type.NamedType().Name))
+                {
+                    AddMapFilesOfInputTypeMethod(classBuilder, type);
+                }
+            }
+            else if (argument.Type.NamedType() is not ScalarTypeDescriptor { Name: "Upload" })
+            {
+                continue;
+            }
+
+            classBuilder
+                .AddMethod("MapFilesFromArgument" + GetPropertyName(argument.Name))
+                .AddParameter("path", p => p.SetType(TypeNames.String))
+                .AddParameter("value", p => p.SetType(argument.Type.ToTypeReference()))
+                .AddParameter(_files, p => p.SetType(_filesType))
+                .AddCode(BuildUploadFileMapper(argument.Type, "path", "value")!);
+        }
+    }
+
+    private static void AddMapFilesOfInputTypeMethod(
+        ClassBuilder builder,
+        InputObjectTypeDescriptor type)
+    {
+        if (!type.HasUpload)
+        {
+            return;
+        }
+
+        var methodBuilder = builder
+            .AddMethod("MapFilesFromType" + type.Name)
+            .AddParameter("path", p => p.SetType(TypeNames.String))
+            .AddParameter("value", p => p.SetType(type.ToTypeReference(nonNull: true)))
+            .AddParameter(_files, p => p.SetType(_filesType));
+
+        foreach (var field in type.Properties)
+        {
+            if (!field.Type.HasUpload())
+            {
+                continue;
+            }
+
+            methodBuilder
+                .AddCode(
+                    AssignmentBuilder
+                        .New()
+                        .SetLefthandSide($"var path{field.Name}")
+                        .SetRighthandSide($"path + \".{field.FieldName}\""))
+                .AddCode(
+                    AssignmentBuilder
+                        .New()
+                        .SetLefthandSide($"var value{field.Name}")
+                        .SetRighthandSide($"value.{field.Name}"))
+                .AddCode(
+                    BuildUploadFileMapper(field.Type, $"path{field.Name}", $"value{field.Name}"))
+                .AddEmptyLine();
+
+            if (field.Type.NamedType() is InputObjectTypeDescriptor nextType)
+            {
+                AddMapFilesOfInputTypeMethod(builder, nextType);
+            }
+        }
+    }
+
+    private static ICode BuildUploadFileMapper(
+        ITypeDescriptor typeReference,
+        string pathVariable,
+        string variable)
+    {
+        var checkedVariable = variable + "_i";
+        if (typeReference is NonNullTypeDescriptor { InnerType: { } it })
+        {
+            typeReference = it;
+        }
+
+        ICode result;
+
+        switch (typeReference)
+        {
+            case ListTypeDescriptor { InnerType: { } lt }:
+            {
+                var innerVariable = variable + "_lt";
+                var innerPathVariable = pathVariable + "_lt";
+                var counterVariable = pathVariable + "_counter";
+
+                result = CodeBlockBuilder
+                    .New()
+                    .AddCode(AssignmentBuilder
+                        .New()
+                        .SetLefthandSide($"var {counterVariable}")
+                        .SetRighthandSide("0"))
+                    .AddCode(ForEachBuilder
+                        .New()
+                        .SetLoopHeader($"var {innerVariable} in {checkedVariable}")
+                        .AddCode(AssignmentBuilder
+                            .New()
+                            .SetLefthandSide($"var {innerPathVariable}")
+                            .SetRighthandSide($"{pathVariable} + \".\" + ({counterVariable}++)"))
+                        .AddEmptyLine()
+                        .AddCode(BuildUploadFileMapper(lt, innerPathVariable, innerVariable)));
+
+                break;
+            }
+            case InputObjectTypeDescriptor { HasUpload: true, Name: { } inputTypeName }:
+            {
+                result = MethodCallBuilder.New()
+                    .SetMethodName("MapFilesFromType" + inputTypeName)
+                    .AddArgument(pathVariable)
+                    .AddArgument(checkedVariable)
+                    .AddArgument(_files);
+                break;
+            }
+            case ScalarTypeDescriptor { Name: "Upload" }:
+            {
+                return CodeBlockBuilder.New()
+                    .AddCode(
+                        MethodCallBuilder
+                            .New()
+                            .SetMethodName(_files, "Add")
+                            .AddArgument(pathVariable)
+                            .AddArgument($"{variable} is {TypeNames.Upload} u ? u : null"));
+            }
+            default:
+                throw ThrowHelper.OperationServiceGenerator_HasNoUploadScalar(typeReference);
+        }
+
+        return IfBuilder.New()
+            .SetCondition($"{variable} is {{}} {checkedVariable}")
+            .AddCode(result)
+            .AddEmptyLine();
     }
 }

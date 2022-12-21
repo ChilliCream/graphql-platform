@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Stitching.SchemaBuilding;
-using HotChocolate.Stitching.SchemaBuilding.Rewriters;
+using HotChocolate.Stitching.Merge;
+using HotChocolate.Stitching.Merge.Rewriters;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Stitching.ThrowHelper;
 using static HotChocolate.Stitching.WellKnownContextData;
@@ -13,11 +10,11 @@ namespace HotChocolate.Stitching;
 
 internal static class ContextDataExtensions
 {
-    public static IReadOnlyDictionary<NameString, IRequestExecutor> GetRemoteExecutors(
-       this IHasContextData hasContextData)
+    public static IReadOnlyDictionary<string, IRequestExecutor> GetRemoteExecutors(
+        this IHasContextData hasContextData)
     {
-        if (hasContextData.ContextData.TryGetValue(RemoteExecutors, out object? o) &&
-            o is IReadOnlyDictionary<NameString, IRequestExecutor> executors)
+        if (hasContextData.ContextData.TryGetValue(RemoteExecutors, out var o) &&
+            o is IReadOnlyDictionary<string, IRequestExecutor> executors)
         {
             return executors;
         }
@@ -25,11 +22,11 @@ internal static class ContextDataExtensions
         throw RequestExecutorBuilder_RemoteExecutorNotFound();
     }
 
-    public static IReadOnlyDictionary<NameString, IRequestExecutor> GetRemoteExecutors(
+    public static IReadOnlyDictionary<string, IRequestExecutor> GetRemoteExecutors(
         this ISchema schema)
     {
-        if (schema.ContextData.TryGetValue(RemoteExecutors, out object? o) &&
-            o is IReadOnlyDictionary<NameString, IRequestExecutor> executors)
+        if (schema.ContextData.TryGetValue(RemoteExecutors, out var o) &&
+            o is IReadOnlyDictionary<string, IRequestExecutor> executors)
         {
             return executors;
         }
@@ -39,7 +36,7 @@ internal static class ContextDataExtensions
 
     public static ISchemaBuilder AddRemoteExecutor(
         this ISchemaBuilder schemaBuilder,
-        NameString schemaName,
+        string schemaName,
         IRequestExecutor executor)
     {
         return schemaBuilder
@@ -47,9 +44,9 @@ internal static class ContextDataExtensions
                 RemoteExecutors,
                 current =>
                 {
-                    if (!(current is OrderedDictionary<NameString, IRequestExecutor> dict))
+                    if (current is not OrderedDictionary<string, IRequestExecutor> dict)
                     {
-                        dict = new OrderedDictionary<NameString, IRequestExecutor>();
+                        dict = new OrderedDictionary<string, IRequestExecutor>();
                     }
 
                     dict[schemaName] = executor;
@@ -60,7 +57,7 @@ internal static class ContextDataExtensions
     public static IReadOnlyList<MergeTypeRuleFactory> GetTypeMergeRules(
         this IDescriptorContext hasContextData)
     {
-        if (hasContextData.ContextData.TryGetValue(TypeMergeRules, out object? o) &&
+        if (hasContextData.ContextData.TryGetValue(TypeMergeRules, out var o) &&
             o is IReadOnlyList<MergeTypeRuleFactory> rules)
         {
             return rules;
@@ -76,7 +73,7 @@ internal static class ContextDataExtensions
             TypeMergeRules,
             current =>
             {
-                if (!(current is List<MergeTypeRuleFactory> list))
+                if (current is not List<MergeTypeRuleFactory> list)
                 {
                     list = new List<MergeTypeRuleFactory>();
                 }
@@ -88,7 +85,7 @@ internal static class ContextDataExtensions
     public static IReadOnlyList<MergeDirectiveRuleFactory> GetDirectiveMergeRules(
         this IDescriptorContext hasContextData)
     {
-        if (hasContextData.ContextData.TryGetValue(DirectiveMergeRules, out object? o) &&
+        if (hasContextData.ContextData.TryGetValue(DirectiveMergeRules, out var o) &&
             o is IReadOnlyList<MergeDirectiveRuleFactory> rules)
         {
             return rules;
@@ -116,7 +113,7 @@ internal static class ContextDataExtensions
     public static IReadOnlyList<ITypeRewriter> GetTypeRewriter(
         this IDescriptorContext hasContextData)
     {
-        if (hasContextData.ContextData.TryGetValue(TypeRewriter, out object? o) &&
+        if (hasContextData.ContextData.TryGetValue(TypeRewriter, out var o) &&
             o is IReadOnlyList<ITypeRewriter> rules)
         {
             return rules;
@@ -144,7 +141,7 @@ internal static class ContextDataExtensions
     public static IReadOnlyList<IDocumentRewriter> GetDocumentRewriter(
         this IDescriptorContext hasContextData)
     {
-        if (hasContextData.ContextData.TryGetValue(DocumentRewriter, out object? o) &&
+        if (hasContextData.ContextData.TryGetValue(DocumentRewriter, out var o) &&
             o is IReadOnlyList<IDocumentRewriter> rules)
         {
             return rules;
@@ -173,9 +170,9 @@ internal static class ContextDataExtensions
         this IDescriptorContext hasContextData,
         string? name = null)
     {
-        string key = name is not null ? $"{TypeExtensions}.{name}" : TypeExtensions;
+        var key = name is not null ? $"{TypeExtensions}.{name}" : TypeExtensions;
 
-        if (hasContextData.ContextData.TryGetValue(key, out object? o) &&
+        if (hasContextData.ContextData.TryGetValue(key, out var o) &&
             o is IReadOnlyList<DocumentNode> rules)
         {
             return rules;
@@ -189,7 +186,7 @@ internal static class ContextDataExtensions
         DocumentNode document,
         string? name = null)
     {
-        string key = name is not null ? $"{TypeExtensions}.{name}" : TypeExtensions;
+        var key = name is not null ? $"{TypeExtensions}.{name}" : TypeExtensions;
 
         return schemaBuilder.SetContextData(
             key,
@@ -208,7 +205,7 @@ internal static class ContextDataExtensions
     public static IReadOnlyList<Func<DocumentNode, DocumentNode>> GetMergedDocRewriter(
         this IDescriptorContext hasContextData)
     {
-        if (hasContextData.ContextData.TryGetValue(MergedDocRewriter, out object? o) &&
+        if (hasContextData.ContextData.TryGetValue(MergedDocRewriter, out var o) &&
             o is IReadOnlyList<Func<DocumentNode, DocumentNode>> rules)
         {
             return rules;
@@ -236,7 +233,7 @@ internal static class ContextDataExtensions
     public static IReadOnlyList<Action<DocumentNode>> GetMergedDocVisitors(
         this IDescriptorContext hasContextData)
     {
-        if (hasContextData.ContextData.TryGetValue(MergedDocVisitors, out object? o) &&
+        if (hasContextData.ContextData.TryGetValue(MergedDocVisitors, out var o) &&
             o is IReadOnlyList<Action<DocumentNode>> rules)
         {
             return rules;
@@ -261,30 +258,30 @@ internal static class ContextDataExtensions
                 return list;
             });
 
-    public static IReadOnlyDictionary<NameString, ISet<NameString>> GetExternalFieldLookup(
+    public static IReadOnlyDictionary<string, ISet<string>> GetExternalFieldLookup(
         this IHasContextData hasContextData)
     {
         if (hasContextData.ContextData.TryGetValue(ExternalFieldLookup, out var value) &&
-            value is IReadOnlyDictionary<NameString, ISet<NameString>> dict)
+            value is IReadOnlyDictionary<string, ISet<string>> dict)
         {
             return dict;
         }
 
-        return new Dictionary<NameString, ISet<NameString>>();
+        return new Dictionary<string, ISet<string>>();
     }
 
     public static ISchemaBuilder AddExternalFieldLookup(
         this ISchemaBuilder schemaBuilder,
-        IReadOnlyDictionary<NameString, ISet<NameString>> externalFieldLookup)
+        IReadOnlyDictionary<string, ISet<string>> externalFieldLookup)
     {
         return schemaBuilder.SetContextData(ExternalFieldLookup, externalFieldLookup);
     }
 
-    public static IReadOnlyDictionary<(NameString, NameString), NameString> GetNameLookup(
+    public static IReadOnlyDictionary<(string, string), string> GetNameLookup(
         this ISchema schema)
     {
-        if (schema.ContextData.TryGetValue(NameLookup, out object? value) &&
-            value is IReadOnlyDictionary<(NameString, NameString), NameString> dict)
+        if (schema.ContextData.TryGetValue(NameLookup, out var value) &&
+            value is IReadOnlyDictionary<(string, string), string> dict)
         {
             return dict;
         }
@@ -292,27 +289,27 @@ internal static class ContextDataExtensions
         throw RequestExecutorBuilder_NameLookupNotFound();
     }
 
-    public static IReadOnlyDictionary<(NameString, NameString), NameString> GetNameLookup(
+    public static IReadOnlyDictionary<(string, string), string> GetNameLookup(
         this IHasContextData hasContextData)
     {
-        if (hasContextData.ContextData.TryGetValue(NameLookup, out object? value) &&
-            value is IReadOnlyDictionary<(NameString, NameString), NameString> dict)
+        if (hasContextData.ContextData.TryGetValue(NameLookup, out var value) &&
+            value is IReadOnlyDictionary<(string, string), string> dict)
         {
             return dict;
         }
 
-        return new Dictionary<(NameString, NameString), NameString>();
+        return new Dictionary<(string, string), string>();
     }
 
     public static ISchemaBuilder AddNameLookup(
         this ISchemaBuilder schemaBuilder,
-        IReadOnlyDictionary<(NameString, NameString), NameString> nameLookup)
+        IReadOnlyDictionary<(string, string), string> nameLookup)
     {
         return schemaBuilder.SetContextData(NameLookup, current =>
         {
-            if (current is IDictionary<(NameString, NameString), NameString> dict)
+            if (current is IDictionary<(string, string), string> dict)
             {
-                foreach (KeyValuePair<(NameString, NameString), NameString> item in nameLookup)
+                foreach (var item in nameLookup)
                 {
                     dict[item.Key] = item.Value;
                 }
@@ -326,22 +323,22 @@ internal static class ContextDataExtensions
 
     public static ISchemaBuilder AddNameLookup(
         this ISchemaBuilder schemaBuilder,
-        NameString originalTypeName,
-        NameString newTypeName,
-        NameString schemaName)
+        string originalTypeName,
+        string newTypeName,
+        string schemaName)
     {
         return schemaBuilder.SetContextData(NameLookup, current =>
         {
-            if (current is IDictionary<(NameString, NameString), NameString> dict)
+            if (current is IDictionary<(string, string), string> dict)
             {
                 dict[(newTypeName, schemaName)] = originalTypeName;
 
                 return dict;
             }
 
-            return new Dictionary<(NameString, NameString), NameString>
+            return new Dictionary<(string, string), string>
             {
-                    { (newTypeName, schemaName), originalTypeName }
+                { (newTypeName, schemaName), originalTypeName }
             };
         });
     }
@@ -349,7 +346,7 @@ internal static class ContextDataExtensions
     public static IReadOnlyList<RemoteSchemaDefinition> GetSchemaDefinitions(
         this IReadOnlyDictionary<string, object?> contextData)
     {
-        if (contextData.TryGetValue(WellKnownContextData.SchemaDefinitions, out object? o) &&
+        if (contextData.TryGetValue(WellKnownContextData.SchemaDefinitions, out var o) &&
             o is IReadOnlyList<RemoteSchemaDefinition> schemaDefinitions)
         {
             return schemaDefinitions;
@@ -362,8 +359,8 @@ internal static class ContextDataExtensions
         this IDescriptorContext descriptorContext)
     {
         if (descriptorContext.ContextData.TryGetValue(
-            WellKnownContextData.SchemaDefinitions,
-            out object? o) &&
+                WellKnownContextData.SchemaDefinitions,
+                out var o) &&
             o is List<RemoteSchemaDefinition> schemaDefinitions)
         {
             return schemaDefinitions;

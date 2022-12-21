@@ -19,6 +19,8 @@ namespace HotChocolate.Types.Descriptors;
 /// <summary>
 /// The descriptor context is passed around during the schema creation and
 /// allows access to conventions and context data.
+///
+/// Essentially this is the schema building context.
 /// </summary>
 public sealed class DescriptorContext : IDescriptorContext
 {
@@ -28,6 +30,7 @@ public sealed class DescriptorContext : IDescriptorContext
 
     private readonly IServiceProvider _services;
 
+    private TypeDiscoveryHandler[]? _typeDiscoveryHandlers;
     private INamingConventions? _naming;
     private ITypeInspector? _inspector;
 
@@ -39,7 +42,6 @@ public sealed class DescriptorContext : IDescriptorContext
         IServiceProvider services,
         IDictionary<string, object?> contextData,
         SchemaBuilder.LazySchema schema,
-        SchemaInterceptor schemaInterceptor,
         TypeInterceptor typeInterceptor)
     {
         Schema = schema;
@@ -47,15 +49,13 @@ public sealed class DescriptorContext : IDescriptorContext
         _cFactories = conventionFactories;
         _services = services;
         ContextData = contextData;
-        SchemaInterceptor = schemaInterceptor;
         TypeInterceptor = typeInterceptor;
         ResolverCompiler = new DefaultResolverCompiler(
             services.GetService<IEnumerable<IParameterExpressionBuilder>>());
 
-        InputParser = services.GetService<InputParser>() ??
-            new InputParser(Services.GetTypeConverter());
-        InputFormatter = services.GetService<InputFormatter>() ??
-            new InputFormatter(Services.GetTypeConverter());
+        var typeConverter = Services.GetTypeConverter();
+        InputParser = services.GetService<InputParser>() ?? new InputParser(typeConverter);
+        InputFormatter = services.GetService<InputFormatter>() ?? new InputFormatter(typeConverter);
 
         schema.Completed += OnSchemaOnCompleted;
 
@@ -113,9 +113,6 @@ public sealed class DescriptorContext : IDescriptorContext
     }
 
     /// <inheritdoc />
-    public SchemaInterceptor SchemaInterceptor { get; }
-
-    /// <inheritdoc />
     public TypeInterceptor TypeInterceptor { get; }
 
     /// <inheritdoc />
@@ -131,6 +128,10 @@ public sealed class DescriptorContext : IDescriptorContext
     public IDictionary<string, object?> ContextData { get; }
 
     /// <inheritdoc />
+    public ReadOnlySpan<TypeDiscoveryHandler> GetTypeDiscoveryHandlers()
+        => _typeDiscoveryHandlers ??= CreateTypeDiscoveryHandlers(this);
+
+    /// <inheritdoc />
     public bool TryGetSchemaDirective(
         DirectiveNode directiveNode,
         [NotNullWhen(true)] out ISchemaDirective? directive)
@@ -138,9 +139,9 @@ public sealed class DescriptorContext : IDescriptorContext
         if (ContextData.TryGetValue(SchemaDirectives, out var value) &&
             value is IReadOnlyList<ISchemaDirective> directives)
         {
-            foreach (ISchemaDirective sd in directives)
+            foreach (var sd in directives)
             {
-                _schemaDirectives[sd.Name.Value] = sd;
+                _schemaDirectives[sd.Name] = sd;
             }
 
             ContextData.Remove(SchemaDirectives);
@@ -160,7 +161,7 @@ public sealed class DescriptorContext : IDescriptorContext
             throw new ArgumentNullException(nameof(defaultConvention));
         }
 
-        if (_conventions.TryGetValue((typeof(T), scope), out IConvention? conv) &&
+        if (_conventions.TryGetValue((typeof(T), scope), out var conv) &&
             conv is T castedConvention)
         {
             return castedConvention;
@@ -168,8 +169,8 @@ public sealed class DescriptorContext : IDescriptorContext
 
         CreateConventions<T>(
             scope,
-            out IConvention? createdConvention,
-            out IList<IConventionExtension>? extensions);
+            out var createdConvention,
+            out var extensions);
 
         createdConvention ??= createdConvention as T;
         createdConvention ??= _services.GetService(typeof(T)) as T;
@@ -177,7 +178,7 @@ public sealed class DescriptorContext : IDescriptorContext
 
         if (createdConvention is Convention init)
         {
-            ConventionContext conventionContext =
+            var conventionContext =
                 ConventionContext.Create(scope, _services, this);
 
             init.Initialize(conventionContext);
@@ -202,13 +203,11 @@ public sealed class DescriptorContext : IDescriptorContext
         createdConvention = null;
         extensions = new List<IConventionExtension>();
 
-        if (_cFactories.TryGetValue(
-            (typeof(T), scope),
-            out List<CreateConvention>? factories))
+        if (_cFactories.TryGetValue((typeof(T), scope), out var factories))
         {
             for (var i = 0; i < factories.Count; i++)
             {
-                IConvention convention = factories[i](_services);
+                var convention = factories[i](_services);
                 if (convention is IConventionExtension extension)
                 {
                     extensions.Add(extension);
@@ -235,7 +234,7 @@ public sealed class DescriptorContext : IDescriptorContext
         Convention convention,
         IList<IConventionExtension> extensions)
     {
-        foreach (IConventionExtension? extension in extensions)
+        foreach (var extension in extensions)
         {
             if (extension is Convention extensionConvention)
             {
@@ -246,6 +245,34 @@ public sealed class DescriptorContext : IDescriptorContext
         }
     }
 
+    private static TypeDiscoveryHandler[] CreateTypeDiscoveryHandlers(
+        IDescriptorContext self)
+    {
+        TypeDiscoveryHandler[] array;
+
+        if (self.ContextData.TryGetValue(TypeDiscoveryHandlers, out var value) &&
+            value is IReadOnlyList<Func<IDescriptorContext, TypeDiscoveryHandler>> { Count: > 0 } h)
+        {
+            array = new TypeDiscoveryHandler[h.Count + 2];
+
+            for (var i = 0; i < h.Count; i++)
+            {
+                array[i] = h[i](self);
+            }
+
+            array[h.Count] = new ScalarTypeDiscoveryHandler(self.TypeInspector);
+            array[h.Count + 1] = new DefaultTypeDiscoveryHandler(self.TypeInspector);
+        }
+        else
+        {
+            array = new TypeDiscoveryHandler[2];
+            array[0] = new ScalarTypeDiscoveryHandler(self.TypeInspector);
+            array[1] = new DefaultTypeDiscoveryHandler(self.TypeInspector);
+        }
+
+        return array;
+    }
+
     public void Dispose() => ResolverCompiler.Dispose();
 
     internal static DescriptorContext Create(
@@ -254,7 +281,6 @@ public sealed class DescriptorContext : IDescriptorContext
         IReadOnlyDictionary<(Type, string?), List<CreateConvention>>? conventions = null,
         IDictionary<string, object?>? contextData = null,
         SchemaBuilder.LazySchema? schema = null,
-        SchemaInterceptor? schemaInterceptor = null,
         TypeInterceptor? typeInterceptor = null)
     {
         return new(
@@ -263,7 +289,6 @@ public sealed class DescriptorContext : IDescriptorContext
             services ?? new EmptyServiceProvider(),
             contextData ?? new Dictionary<string, object?>(),
             schema ?? new SchemaBuilder.LazySchema(),
-            schemaInterceptor ?? new AggregateSchemaInterceptor(),
             typeInterceptor ?? new AggregateTypeInterceptor());
     }
 

@@ -23,7 +23,7 @@ public class QueryableComparableEqualsHandler
         IValueNode value,
         object? parsedValue)
     {
-        Expression property = context.GetInstance();
+        var property = context.GetInstance();
         parsedValue = ParseValue(value, parsedValue, field.Type, context);
         return FilterExpressionBuilder.Equals(property, parsedValue);
     }

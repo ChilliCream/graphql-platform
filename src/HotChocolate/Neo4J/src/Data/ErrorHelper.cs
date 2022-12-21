@@ -1,4 +1,3 @@
-using System.Linq;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
@@ -14,7 +13,7 @@ internal static class ErrorHelper
         IFilterVisitorContext<T> context,
         bool isMemberInvalid = false)
     {
-        IFilterInputType filterType = context.Types.OfType<IFilterInputType>().First();
+        var filterType = context.Types.OfType<IFilterInputType>().First();
 
         INullabilityNode nullability =
             isMemberInvalid && field.Type.IsListType()
@@ -38,7 +37,7 @@ internal static class ErrorHelper
         IValueNode value,
         ISortVisitorContext<T> context)
     {
-        ISortInputType sortType = context.Types.OfType<ISortInputType>().First();
+        var sortType = context.Types.OfType<ISortInputType>().First();
 
         return ErrorBuilder.New()
             .SetMessage(

@@ -1,5 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.Extensions.ObjectPool;
 
@@ -19,11 +21,12 @@ internal sealed class PathSegmentBuffer<T> where T : class
         _buffer = new T[capacity];
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool HasSpace() => _index < _capacity;
 
     public T Pop()
     {
-        if (TryPop(out T? obj))
+        if (TryPop(out var obj))
         {
             return obj;
         }
@@ -34,6 +37,7 @@ internal sealed class PathSegmentBuffer<T> where T : class
     public bool TryPop([NotNullWhen(true)] out T? obj)
     {
         var nextIndex = Interlocked.Increment(ref _index) - 1;
+
         if (nextIndex < _capacity)
         {
             if (_buffer[nextIndex] is { } o)
@@ -63,11 +67,15 @@ internal sealed class PathSegmentBuffer<T> where T : class
             _index = _capacity;
         }
 
+        ref var bufferRef = ref MemoryMarshal.GetReference(_buffer.AsSpan());
+
         for (var i = 0; i < _index; i++)
         {
-            if (!_policy.Return(_buffer[i]!))
+            ref var rented = ref Unsafe.Add(ref bufferRef, i);
+
+            if (!_policy.Return(rented!))
             {
-                _buffer[i] = null;
+                rented = null;
             }
         }
 

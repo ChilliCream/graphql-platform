@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -8,15 +9,14 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Data.Filters.Expressions;
 
 /// <summary>
-/// The base of a mongodb operation handler specific for
+/// The base of a <see cref="IQueryable{T}"/> operation handler specific for
 /// <see cref="IComparableOperationFilterInputType "/>
 /// If the <see cref="FilterTypeInterceptor"/> encounters a operation field that implements
 /// <see cref="IComparableOperationFilterInputType "/> and matches the operation identifier
 /// defined in <see cref="QueryableComparableOperationHandler.Operation"/> the handler is bound
 /// to the field
 /// </summary>
-public abstract class QueryableComparableOperationHandler
-    : QueryableOperationHandlerBase
+public abstract class QueryableComparableOperationHandler : QueryableOperationHandlerBase
 {
     protected QueryableComparableOperationHandler(
         ITypeConverter typeConverter,
@@ -31,6 +31,9 @@ public abstract class QueryableComparableOperationHandler
     /// </summary>
     protected abstract int Operation { get; }
 
+    /// <summary>
+    /// Provides access to the type converter,
+    /// </summary>
     protected ITypeConverter TypeConverter { get; }
 
     /// <summary>
@@ -73,15 +76,15 @@ public abstract class QueryableComparableOperationHandler
             return parsedValue;
         }
 
-        Type returnType = context.RuntimeTypes.Peek().Source;
+        var returnType = context.RuntimeTypes.Peek().Source;
 
         if (type.IsListType())
         {
-            Type elementType = type.ElementType().ToRuntimeType();
+            var elementType = type.ElementType().ToRuntimeType();
 
             if (returnType != elementType)
             {
-                Type listType = typeof(List<>).MakeGenericType(returnType);
+                var listType = typeof(List<>).MakeGenericType(returnType);
                 parsedValue = TypeConverter.Convert(typeof(object), listType, parsedValue) ??
                     throw ThrowHelper.FilterConvention_CouldNotConvertValue(node);
             }

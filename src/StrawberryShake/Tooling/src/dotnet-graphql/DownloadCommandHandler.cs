@@ -29,9 +29,9 @@ namespace StrawberryShake.Tools
             DownloadCommandArguments arguments,
             CancellationToken cancellationToken)
         {
-            using IDisposable command = Output.WriteCommand();
+            using var command = Output.WriteCommand();
 
-            AccessToken? accessToken =
+            var accessToken =
                 await arguments.AuthArguments
                     .RequestTokenAsync(Output, cancellationToken)
                     .ConfigureAwait(false);
@@ -56,9 +56,9 @@ namespace StrawberryShake.Tools
             DownloadCommandContext context,
             CancellationToken cancellationToken)
         {
-            using IActivity activity = Output.WriteActivity("Download schema");
+            using var activity = Output.WriteActivity("Download schema");
 
-            HttpClient client = HttpClientFactory.Create(
+            var client = HttpClientFactory.Create(
                 context.Uri, context.Token, context.Scheme, context.CustomHeaders);
 
             return await IntrospectionHelper.DownloadSchemaAsync(

@@ -55,7 +55,7 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor
             throw new ArgumentNullException(nameof(requestExecutorProxy));
         }
 
-        IRequestExecutor executor = await requestExecutorProxy
+        var executor = await requestExecutorProxy
             .GetRequestExecutorAsync(cancellationToken)
             .ConfigureAwait(false);
 
@@ -159,7 +159,7 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor
 
         try
         {
-            IRequestExecutor executor = await _executorProxy
+            var executor = await _executorProxy
                 .GetRequestExecutorAsync(default)
                 .ConfigureAwait(false);
             _executor = executor;

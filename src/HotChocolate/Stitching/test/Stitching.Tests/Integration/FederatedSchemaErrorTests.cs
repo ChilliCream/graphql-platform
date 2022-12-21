@@ -1,20 +1,14 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Serialization;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
+using HotChocolate.Types;
+using Snapshooter.Xunit;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Schemas.Accounts;
 using HotChocolate.Stitching.Schemas.Inventory;
 using HotChocolate.Stitching.Schemas.Products;
 using HotChocolate.Stitching.Schemas.Reviews;
-using HotChocolate.Types;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Stitching.Integration;
 
@@ -36,10 +30,10 @@ public class FederatedSchemaErrorTests : IClassFixture<StitchingTestContext>
     public async Task AutoMerge_Schema()
     {
         // arrange
-        IHttpClientFactory httpClientFactory = CreateDefaultRemoteSchemas();
+        var httpClientFactory = CreateDefaultRemoteSchemas();
 
         // act
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
@@ -58,9 +52,9 @@ public class FederatedSchemaErrorTests : IClassFixture<StitchingTestContext>
     public async Task Execute_Error_StatusCode_On_DownStream_Request()
     {
         // arrange
-        IHttpClientFactory httpClientFactory = CreateDefaultRemoteSchemas();
+        var httpClientFactory = CreateDefaultRemoteSchemas();
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
@@ -72,7 +66,7 @@ public class FederatedSchemaErrorTests : IClassFixture<StitchingTestContext>
                 .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"{
                     error
                 }");
@@ -81,14 +75,13 @@ public class FederatedSchemaErrorTests : IClassFixture<StitchingTestContext>
         result.ToJson().MatchSnapshot();
     }
 
-    // TODO : Fix Flaky Test
-    [Fact(Skip = "Flaky")]
+    [Fact]
     public async Task Execute_Ok_StatusCode_With_Error_On_DownStream_Request()
     {
         // arrange
-        IHttpClientFactory httpClientFactory = CreateDefaultRemoteSchemas();
+        var httpClientFactory = CreateDefaultRemoteSchemas();
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
@@ -100,7 +93,7 @@ public class FederatedSchemaErrorTests : IClassFixture<StitchingTestContext>
                 .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"{
                     a: topProducts(first: 1) {
                         upc
@@ -125,7 +118,6 @@ public class FederatedSchemaErrorTests : IClassFixture<StitchingTestContext>
         Context.ServerFactory.Create(
             services => services
                 .AddRouting()
-                .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                 .AddGraphQLServer()
                 .AddAccountsSchema()
                 .PublishSchemaDefinition(c => c
@@ -148,7 +140,6 @@ public class FederatedSchemaErrorTests : IClassFixture<StitchingTestContext>
         Context.ServerFactory.Create(
             services => services
                 .AddRouting()
-                .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                 .AddGraphQLServer()
                 .AddInventorySchema()
                 .PublishSchemaDefinition(c => c
@@ -170,7 +161,6 @@ public class FederatedSchemaErrorTests : IClassFixture<StitchingTestContext>
         Context.ServerFactory.Create(
             services => services
                 .AddRouting()
-                .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                 .AddGraphQLServer()
                 .AddProductsSchema()
                 .AddTypeExtension(new ObjectTypeExtension(d =>
@@ -213,7 +203,6 @@ public class FederatedSchemaErrorTests : IClassFixture<StitchingTestContext>
         Context.ServerFactory.Create(
             services => services
                 .AddRouting()
-                .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                 .AddGraphQLServer()
                 .AddReviewSchema()
                 .PublishSchemaDefinition(c => c
@@ -237,13 +226,13 @@ public class FederatedSchemaErrorTests : IClassFixture<StitchingTestContext>
     public IHttpClientFactory CreateDefaultRemoteSchemas()
     {
         var connections = new Dictionary<string, HttpClient>
-            {
-                { _accounts, CreateAccountsService().CreateClient() },
-                { _inventory, CreateInventoryService().CreateClient() },
-                { _products, CreateProductsService().CreateClient() },
-                { _reviews, CreateReviewsService().CreateClient() },
-            };
+        {
+            { _accounts, CreateAccountsService().CreateClient() },
+            { _inventory, CreateInventoryService().CreateClient() },
+            { _products, CreateProductsService().CreateClient() },
+            { _reviews, CreateReviewsService().CreateClient() },
+        };
 
-        return StitchingTestContext.CreateHttpClientFactory(connections);
+        return StitchingTestContext.CreateRemoteSchemas(connections);
     }
 }

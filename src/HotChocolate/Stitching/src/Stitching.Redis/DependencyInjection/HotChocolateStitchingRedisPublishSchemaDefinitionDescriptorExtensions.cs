@@ -2,28 +2,30 @@ using System;
 using HotChocolate;
 using HotChocolate.Stitching.Redis;
 using HotChocolate.Stitching.SchemaDefinitions;
+using HotChocolate.Utilities;
 using StackExchange.Redis;
 
-namespace Microsoft.Extensions.DependencyInjection;
-
-public static class HotChocolateStitchingRedisPublishSchemaDefinitionDescriptorExtensions
+namespace Microsoft.Extensions.DependencyInjection
 {
-    public static IPublishSchemaDefinitionDescriptor PublishToRedis(
-        this IPublishSchemaDefinitionDescriptor descriptor,
-        NameString configurationName,
-        Func<IServiceProvider, IConnectionMultiplexer> connectionFactory)
+    public static class HotChocolateStitchingRedisPublishSchemaDefinitionDescriptorExtensions
     {
-        if (connectionFactory is null)
+        public static IPublishSchemaDefinitionDescriptor PublishToRedis(
+            this IPublishSchemaDefinitionDescriptor descriptor,
+            string configurationName,
+            Func<IServiceProvider, IConnectionMultiplexer> connectionFactory)
         {
-            throw new ArgumentNullException(nameof(connectionFactory));
+            if (connectionFactory is null)
+            {
+                throw new ArgumentNullException(nameof(connectionFactory));
+            }
+
+            configurationName.EnsureGraphQLName(nameof(configurationName));
+
+            return descriptor.SetSchemaDefinitionPublisher(sp =>
+            {
+                var connection = connectionFactory(sp);
+                return new RedisSchemaDefinitionPublisher(configurationName, connection);
+            });
         }
-
-        configurationName.EnsureNotEmpty(nameof(configurationName));
-
-        return descriptor.SetSchemaDefinitionPublisher(sp =>
-        {
-            IConnectionMultiplexer connection = connectionFactory(sp);
-            return new RedisSchemaDefinitionPublisher(configurationName, connection);
-        });
     }
 }

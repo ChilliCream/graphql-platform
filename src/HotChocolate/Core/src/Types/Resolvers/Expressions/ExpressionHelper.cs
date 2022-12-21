@@ -17,16 +17,17 @@ internal static class ExpressionHelper
         return await task.ConfigureAwait(false);
     }
 
-    public static async ValueTask<object> AwaitValueTaskHelper<T>(ValueTask<T> task) =>
-        await task.ConfigureAwait(false);
+    public static async ValueTask<object> AwaitValueTaskHelper<T>(ValueTask<T> task)
+        => await task.ConfigureAwait(false);
 
-    public static ValueTask<object> WrapResultHelper<T>(T result) => new(result);
+    public static ValueTask<object> WrapResultHelper<T>(T result)
+        => new(result);
 
     public static TContextData GetGlobalState<TContextData>(
         IDictionary<string, object> contextData,
         string key,
-        bool defaultIfNotExists = false) =>
-        GetGlobalStateWithDefault<TContextData>(contextData, key, defaultIfNotExists, default);
+        bool defaultIfNotExists = false)
+        => GetGlobalStateWithDefault<TContextData>(contextData, key, defaultIfNotExists, default);
 
     public static TContextData GetGlobalStateWithDefault<TContextData>(
         IDictionary<string, object> contextData,
@@ -36,7 +37,7 @@ internal static class ExpressionHelper
     {
         if (contextData.TryGetValue(key, out var value))
         {
-            if (value is null)
+            if (ReferenceEquals(value, null))
             {
                 return default;
             }
@@ -57,20 +58,20 @@ internal static class ExpressionHelper
 
     public static SetState<TContextData> SetGlobalStateGeneric<TContextData>(
         IDictionary<string, object> contextData,
-        string key) =>
-        value => contextData[key] = value;
+        string key)
+        => value => contextData[key] = value;
 
     public static SetState SetGlobalState(
         IDictionary<string, object> contextData,
-        string key) =>
-        value => contextData[key] = value;
+        string key)
+        => value => contextData[key] = value;
 
     public static TContextData GetScopedState<TContextData>(
         IPureResolverContext context,
         IReadOnlyDictionary<string, object> contextData,
         string key,
-        bool defaultIfNotExists = false) =>
-        GetScopedStateWithDefault<TContextData>(
+        bool defaultIfNotExists = false)
+        => GetScopedStateWithDefault<TContextData>(
             context, contextData, key, defaultIfNotExists, default);
 
     public static TContextData GetScopedStateWithDefault<TContextData>(
@@ -104,21 +105,21 @@ internal static class ExpressionHelper
 
     public static SetState<TContextData> SetScopedStateGeneric<TContextData>(
         IResolverContext context,
-        string key) =>
-        value => context.ScopedContextData = context.ScopedContextData.SetItem(key, value);
+        string key)
+        => value => context.ScopedContextData = context.ScopedContextData.SetItem(key, value);
 
     public static SetState SetScopedState(
         IResolverContext context,
-        string key) =>
-        value => context.ScopedContextData = context.ScopedContextData.SetItem(key, value);
+        string key)
+        => value => context.ScopedContextData = context.ScopedContextData.SetItem(key, value);
 
     public static SetState<TContextData> SetLocalStateGeneric<TContextData>(
         IResolverContext context,
-        string key) =>
-        value => context.LocalContextData = context.LocalContextData.SetItem(key, value);
+        string key)
+        => value => context.LocalContextData = context.LocalContextData.SetItem(key, value);
 
     public static SetState SetLocalState(
         IResolverContext context,
-        string key) =>
-        value => context.LocalContextData = context.LocalContextData.SetItem(key, value);
+        string key)
+        => value => context.LocalContextData = context.LocalContextData.SetItem(key, value);
 }

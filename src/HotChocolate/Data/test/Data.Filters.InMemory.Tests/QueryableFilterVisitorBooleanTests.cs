@@ -1,12 +1,10 @@
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
-using HotChocolate.Tests;
-using Xunit;
 
 namespace HotChocolate.Data.Filters;
 
-public class QueryableFilterVisitorBooleanTests
-    : IClassFixture<SchemaCache>
+public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
 {
     private static readonly Foo[] _fooEntities =
     {
@@ -32,108 +30,108 @@ public class QueryableFilterVisitorBooleanTests
     public async Task Create_BooleanEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var snapshot = new Snapshot();
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: true}}){ bar}}")
                 .Create());
+        snapshot.Add(res1, "true");
 
-        res1.MatchSnapshot("true");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: false}}){ bar}}")
                 .Create());
+        snapshot.Add(res2, "false");
 
-        res2.MatchSnapshot("false");
+        // assert
+        await snapshot.MatchAsync();
     }
 
     [Fact]
     public async Task Create_BooleanNotEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var snapshot = new Snapshot();
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: true}}){ bar}}")
                 .Create());
+        snapshot.Add(res1, "true");
 
-        res1.MatchSnapshot("true");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: false}}){ bar}}")
                 .Create());
+        snapshot.Add(res2, "false");
 
-        res2.MatchSnapshot("false");
+        // assert
+        await snapshot.MatchAsync();
     }
 
     [Fact]
     public async Task Create_NullableBooleanEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var snapshot = new Snapshot();
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: true}}){ bar}}")
                 .Create());
+        snapshot.Add(res1, "true");
 
-        res1.MatchSnapshot("true");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: false}}){ bar}}")
                 .Create());
+        snapshot.Add(res2, "false");
 
-        res2.MatchSnapshot("false");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: null}}){ bar}}")
                 .Create());
+        snapshot.Add(res3, "null");
 
-        res3.MatchSnapshot("null");
+        // assert
+        await snapshot.MatchAsync();
     }
 
     [Fact]
     public async Task Create_NullableBooleanNotEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
-            _fooNullableEntities);
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
+        var snapshot = new Snapshot();
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: true}}){ bar}}")
                 .Create());
+        snapshot.Add(res1, "true");
 
-        res1.MatchSnapshot("true");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: false}}){ bar}}")
                 .Create());
+        snapshot.Add(res2, "false");
 
-        res2.MatchSnapshot("false");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: null}}){ bar}}")
                 .Create());
+        snapshot.Add(res3, "null");
 
-        res3.MatchSnapshot("null");
+        // assert
+        await snapshot.MatchAsync();
     }
 
     public class Foo

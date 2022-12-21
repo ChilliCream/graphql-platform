@@ -1,12 +1,8 @@
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
-using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.AspNetCore.Authorization;
 
@@ -18,11 +14,9 @@ public class AuthorizationHandlerTests
     [InlineData(AuthorizeResult.NotAuthenticated)]
     [InlineData(AuthorizeResult.PolicyNotFound)]
     [Theory]
-    public async Task Authorize(AuthorizeResult result)
+    public async Task Authorize(AuthorizeResult authResult)
     {
-        Snapshot.FullName(new SnapshotNameExtension(result));
-
-        await new ServiceCollection()
+        var result = await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType()
             .AddTypeExtension<QueryExtensions>()
@@ -31,9 +25,10 @@ public class AuthorizationHandlerTests
                 QueryRequestBuilder
                     .New()
                     .SetQuery("{ bar }")
-                    .AddGlobalState("auth", result)
-                    .Create())
-            .MatchSnapshotAsync();
+                    .AddGlobalState("auth", authResult)
+                    .Create());
+
+        result.MatchSnapshot(authResult);
     }
 
     [Authorize]

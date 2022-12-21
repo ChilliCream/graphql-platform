@@ -1,8 +1,0 @@
-﻿DbSet<Post>()
-    .Select(dtoPost => new PostDto{ 
-        Blog = dtoPost.Blog == null ? null : new BlogDto{ Url = dtoPost.Blog.Url }
-        , 
-        PostId = dtoPost.PostId ?? 0, 
-        Title = dtoPost.Title 
-    }
-    )

@@ -53,10 +53,11 @@ internal partial class BatchExecutor
         {
             for (var i = 0; i < _requestBatch.Count; i++)
             {
-                IQueryRequest queryRequest = _requestBatch[i];
-                var request = (IReadOnlyQueryRequest)queryRequest;
-                IQueryResult result = await ExecuteNextAsync(
-                    request, cancellationToken).ConfigureAwait(false);
+                var result = await ExecuteNextAsync(
+                    _requestBatch[i],
+                    cancellationToken)
+                    .ConfigureAwait(false);
+
                 yield return result;
 
                 if (result.Data is null)
@@ -67,16 +68,16 @@ internal partial class BatchExecutor
         }
 
         private async Task<IQueryResult> ExecuteNextAsync(
-            IReadOnlyQueryRequest request,
+            IQueryRequest request,
             CancellationToken cancellationToken)
         {
             try
             {
-                DocumentNode document = request.Query is QueryDocument d
+                var document = request.Query is QueryDocument d
                     ? d.Document
                     : Utf8GraphQLParser.Parse(request.Query!.AsSpan());
 
-                OperationDefinitionNode operation =
+                var operation =
                     document.GetOperation(request.OperationName);
 
                 if (document != _previous)
@@ -93,7 +94,7 @@ internal partial class BatchExecutor
                 _previous = document;
                 document = RewriteDocument(operation);
                 operation = (OperationDefinitionNode)document.Definitions[0];
-                IReadOnlyDictionary<string, object?>? variableValues =
+                var variableValues =
                     MergeVariables(request.VariableValues, operation);
 
                 request = QueryRequestBuilder.From(request)
@@ -147,10 +148,10 @@ internal partial class BatchExecutor
                 return variables;
             }
 
-            ILookup<string, ExportedVariable> exported = _exportedVariables.ToLookup(t => t.Name);
+            var exported = _exportedVariables.ToLookup(t => t.Name);
             var merged = new Dictionary<string, object?>();
 
-            foreach (VariableDefinitionNode variableDefinition in operation.VariableDefinitions)
+            foreach (var variableDefinition in operation.VariableDefinitions)
             {
                 var variableName = variableDefinition.Variable.Name.Value;
 
@@ -177,7 +178,7 @@ internal partial class BatchExecutor
                         }
                     }
 
-                    foreach (ExportedVariable variable in exported[variableName])
+                    foreach (var variable in exported[variableName])
                     {
                         SerializeListValue(variable, variableDefinition.Type, list);
                     }
@@ -207,7 +208,7 @@ internal partial class BatchExecutor
         {
             if (_requestExecutor.Schema.TryGetType<INamedInputType>(
                 type.NamedType().Name.Value,
-                out INamedInputType? inputType)
+                out var inputType)
                 && _typeConverter.TryConvert(
                     inputType!.RuntimeType,
                     exported.Value,
@@ -226,7 +227,7 @@ internal partial class BatchExecutor
         {
             if (_requestExecutor.Schema.TryGetType<INamedInputType>(
                 type.NamedType().Name.Value,
-                out INamedInputType? inputType))
+                out var inputType))
             {
                 SerializeListValue(exported, inputType, list);
             }
@@ -241,7 +242,7 @@ internal partial class BatchExecutor
             INamedInputType inputType,
             ICollection<object?> list)
         {
-            Type runtimeType = inputType.RuntimeType;
+            var runtimeType = inputType.RuntimeType;
 
             if (exported.Type.IsListType()
                 && exported.Value is IEnumerable l)

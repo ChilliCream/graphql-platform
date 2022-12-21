@@ -23,7 +23,7 @@ public sealed class AggregateInfo : ISyntaxInfo, IEquatable<AggregateInfo>
             return true;
         }
 
-        return _syntaxInfos == other._syntaxInfos;
+        return Equals(_syntaxInfos, other._syntaxInfos);
     }
 
     public override bool Equals(object? obj)

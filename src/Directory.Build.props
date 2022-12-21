@@ -38,10 +38,13 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <LibraryTargetFrameworks Condition="'$(IsMacOsArm)' != 'true'">net6.0; net5.0; netcoreapp3.1; netstandard2.0</LibraryTargetFrameworks>
-    <TestTargetFrameworks Condition="'$(IsMacOsArm)' != 'true'">net6.0; net5.0; netcoreapp3.1</TestTargetFrameworks>
-    <LibraryTargetFrameworks Condition="'$(IsMacOsArm)' == 'true'">net6.0; netstandard2.0</LibraryTargetFrameworks>
-    <TestTargetFrameworks Condition="'$(IsMacOsArm)' == 'true'">net6.0</TestTargetFrameworks>
+    <LibraryTargetFrameworks>net7.0; net6.0; netstandard2.0</LibraryTargetFrameworks>
+    <Library2TargetFrameworks>net7.0; net6.0</Library2TargetFrameworks>
+    <TestTargetFrameworks>net7.0; net6.0</TestTargetFrameworks>
+    <AspNetTargetFrameworks>net7.0; net6.0</AspNetTargetFrameworks>
+    <AzfTargetFrameworks>net7.0; net6.0</AzfTargetFrameworks>
+    <AzfIsoProcTargetFrameworks>net7.0; net6.0</AzfIsoProcTargetFrameworks>
+    <SourceGenTargetFrameworks>net7.0; net6.0; netstandard2.0</SourceGenTargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -59,40 +62,5 @@
     <None Include="$(MSBuildThisFileDirectory)..\website\static\resources\strawberryshake-signet.png" Pack="true" PackagePath="strawberryshake-signet.png" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\LICEN*" Pack="true" PackagePath="" Visible="false" />
   </ItemGroup>
-
-  <!-- PublicApiAnalyzers -->
-  <PropertyGroup>
-    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
-    <AddPublicApiAnalyzers Condition=" '$(AddPublicApiAnalyzers)' == '' AND !$(MSBuildProjectName.Contains('.Tests')) AND !$(MSBuildProjectName.Contains('.Resources')) ">true</AddPublicApiAnalyzers>
-    <AddPublicApiAnalyzers Condition=" '$(AddPublicApiAnalyzers)' == '' ">false</AddPublicApiAnalyzers>
-
-    <WarningsAsErrors Condition=" '$(RequireDocumentationOfPublicApiChanges)' != '' ">$(WarningsAsErrors);RS0016;RS0017;RS0024</WarningsAsErrors>
-  </PropertyGroup>
-
-  <ItemGroup Condition=" $(AddPublicApiAnalyzers) ">
-    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.3">
-      <ExcludeAssets>compile</ExcludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-  </ItemGroup>
-
-  <Target Name="_CheckIgnoredPublicApiFiles"
-      BeforeTargets="Build;Restore"
-      Condition=" Exists('$(MSBuildProjectDirectory)\PublicAPI.Shipped.txt') AND ! $(AddPublicApiAnalyzers) ">
-    <Message Text="Public API baseline files ignored." />
-  </Target>
-
-  <Target Name="_RemovePublicApiAnalyzer" BeforeTargets="RazorCoreCompile">
-    <ItemGroup>
-      <_PublicAPIAnalyzers Include="@(Analyzer->WithMetadataValue('NuGetPackageId','Microsoft.CodeAnalysis.PublicApiAnalyzers'))" />
-      <Analyzer Remove="@(_PublicAPIAnalyzers)" />
-    </ItemGroup>
-  </Target>
-
-  <Target Name="_RestorePublicApiAnalyzer" AfterTargets="RazorCoreCompile">
-    <ItemGroup>
-      <Analyzer Include="@(_PublicAPIAnalyzers)" />
-    </ItemGroup>
-  </Target>
 
 </Project>

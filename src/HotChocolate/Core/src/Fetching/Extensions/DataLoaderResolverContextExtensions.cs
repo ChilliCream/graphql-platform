@@ -10,6 +10,7 @@ using static HotChocolate.Fetching.Properties.FetchingResources;
 
 #nullable enable
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
 
 public static class DataLoaderResolverContextExtensions
@@ -74,8 +75,8 @@ public static class DataLoaderResolverContextExtensions
             throw new ArgumentNullException(nameof(fetch));
         }
 
-        IServiceProvider services = context.Services;
-        IDataLoaderRegistry reg = services.GetRequiredService<IDataLoaderRegistry>();
+        var services = context.Services;
+        var reg = services.GetRequiredService<IDataLoaderRegistry>();
         FetchBatchDataLoader<TKey, TValue> Loader()
             => new(
                 dataLoaderName ?? "default",
@@ -180,8 +181,8 @@ public static class DataLoaderResolverContextExtensions
             throw new ArgumentNullException(nameof(fetch));
         }
 
-        IServiceProvider services = context.Services;
-        IDataLoaderRegistry reg = services.GetRequiredService<IDataLoaderRegistry>();
+        var services = context.Services;
+        var reg = services.GetRequiredService<IDataLoaderRegistry>();
         FetchGroupedDataLoader<TKey, TValue> Loader()
             => new(
                 dataLoaderName ?? "default",
@@ -271,8 +272,8 @@ public static class DataLoaderResolverContextExtensions
             throw new ArgumentNullException(nameof(fetch));
         }
 
-        IServiceProvider services = context.Services;
-        IDataLoaderRegistry reg = services.GetRequiredService<IDataLoaderRegistry>();
+        var services = context.Services;
+        var reg = services.GetRequiredService<IDataLoaderRegistry>();
         FetchCacheDataLoader<TKey, TValue> Loader()
             => new(
                 key ?? "default",
@@ -359,8 +360,8 @@ public static class DataLoaderResolverContextExtensions
             throw new ArgumentNullException(nameof(key));
         }
 
-        IServiceProvider services = context.Services;
-        IDataLoaderRegistry reg = services.GetRequiredService<IDataLoaderRegistry>();
+        var services = context.Services;
+        var reg = services.GetRequiredService<IDataLoaderRegistry>();
         return reg.GetOrRegister(key, () => CreateDataLoader<T>(services));
     }
 
@@ -373,15 +374,15 @@ public static class DataLoaderResolverContextExtensions
             throw new ArgumentNullException(nameof(context));
         }
 
-        IServiceProvider services = context.Services;
-        IDataLoaderRegistry reg = services.GetRequiredService<IDataLoaderRegistry>();
+        var services = context.Services;
+        var reg = services.GetRequiredService<IDataLoaderRegistry>();
         return reg.GetOrRegister(() => CreateDataLoader<T>(services));
     }
 
     private static T CreateDataLoader<T>(IServiceProvider services)
         where T : IDataLoader
     {
-        T registeredDataLoader = services.GetService<T>();
+        var registeredDataLoader = services.GetService<T>();
 
         if (registeredDataLoader is null)
         {
