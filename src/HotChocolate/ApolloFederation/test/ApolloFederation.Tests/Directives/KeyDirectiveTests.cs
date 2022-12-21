@@ -69,8 +69,8 @@ public class KeyDirectiveTests : FederationTypesTestBase
             item =>
             {
                 Assert.Equal(WellKnownTypeNames.Key, item.Name);
-                Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
-                Assert.Equal("\"id\"", item.ToNode().Arguments[0].Value.ToString());
+                Assert.Equal("fields", item.AsSyntaxNode().Arguments[0].Name.ToString());
+                Assert.Equal("\"id\"", item.AsSyntaxNode().Arguments[0].Value.ToString());
             });
 
         schema.ToString().MatchSnapshot();
@@ -113,8 +113,8 @@ public class KeyDirectiveTests : FederationTypesTestBase
                     WellKnownTypeNames.Key,
                     item.Name
                 );
-                Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
-                Assert.Equal("\"id\"", item.ToNode().Arguments[0].Value.ToString());
+                Assert.Equal("fields", item.AsSyntaxNode().Arguments[0].Name.ToString());
+                Assert.Equal("\"id\"", item.AsSyntaxNode().Arguments[0].Value.ToString());
             });
 
         schema.ToString().MatchSnapshot();
@@ -142,8 +142,8 @@ public class KeyDirectiveTests : FederationTypesTestBase
                     WellKnownTypeNames.Key,
                     item.Name
                 );
-                Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
-                Assert.Equal("\"id\"", item.ToNode().Arguments[0].Value.ToString());
+                Assert.Equal("fields", item.AsSyntaxNode().Arguments[0].Name.ToString());
+                Assert.Equal("\"id\"", item.AsSyntaxNode().Arguments[0].Value.ToString());
             });
 
         schema.ToString().MatchSnapshot();
@@ -171,8 +171,8 @@ public class KeyDirectiveTests : FederationTypesTestBase
                     WellKnownTypeNames.Key,
                     item.Name
                 );
-                Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
-                Assert.Equal("\"id\"", item.ToNode().Arguments[0].Value.ToString());
+                Assert.Equal("fields", item.AsSyntaxNode().Arguments[0].Name.ToString());
+                Assert.Equal("\"id\"", item.AsSyntaxNode().Arguments[0].Value.ToString());
             });
 
         schema.ToString().MatchSnapshot();
@@ -200,8 +200,8 @@ public class KeyDirectiveTests : FederationTypesTestBase
                     WellKnownTypeNames.Key,
                     item.Name
                 );
-                Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
-                Assert.Equal("\"id name\"", item.ToNode().Arguments[0].Value.ToString());
+                Assert.Equal("fields", item.AsSyntaxNode().Arguments[0].Name.ToString());
+                Assert.Equal("\"id name\"", item.AsSyntaxNode().Arguments[0].Value.ToString());
             });
 
         schema.ToString().MatchSnapshot();

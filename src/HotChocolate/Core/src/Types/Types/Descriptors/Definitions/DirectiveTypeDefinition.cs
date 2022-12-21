@@ -16,7 +16,6 @@ public class DirectiveTypeDefinition
     , IHasRuntimeType
 {
     private Type _clrType = typeof(object);
-    private List<DirectiveMiddleware>? _middlewareComponents;
     private HashSet<DirectiveLocation>? _locations;
     private BindableList<DirectiveArgumentDefinition>? _arguments;
 
@@ -64,12 +63,6 @@ public class DirectiveTypeDefinition
     }
 
     /// <summary>
-    /// Gets or the associated middleware components.
-    /// </summary>
-    public IList<DirectiveMiddleware> MiddlewareComponents =>
-        _middlewareComponents ??= new List<DirectiveMiddleware>();
-
-    /// <summary>
     /// Defines the location on which a directive can be annotated.
     /// </summary>
     public ISet<DirectiveLocation> Locations => _locations ??= new HashSet<DirectiveLocation>();
@@ -94,19 +87,6 @@ public class DirectiveTypeDefinition
         }
 
         return configs;
-    }
-
-    /// <summary>
-    /// Gets or the associated middleware components.
-    /// </summary>
-    internal IReadOnlyList<DirectiveMiddleware> GetMiddlewareComponents()
-    {
-        if (_middlewareComponents is null)
-        {
-            return Array.Empty<DirectiveMiddleware>();
-        }
-
-        return _middlewareComponents;
     }
 
     /// <summary>

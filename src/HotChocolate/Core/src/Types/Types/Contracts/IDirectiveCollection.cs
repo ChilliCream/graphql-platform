@@ -1,10 +1,44 @@
+#nullable enable
 using System.Collections.Generic;
 
 namespace HotChocolate.Types;
 
-public interface IDirectiveCollection : IReadOnlyCollection<IDirective>
+/// <summary>
+/// Represents a collection of directives of a <see cref="ITypeSystemMember"/>.
+/// </summary>
+public interface IDirectiveCollection : IReadOnlyCollection<Directive>
 {
-    IEnumerable<IDirective> this[string key] { get; }
+    /// <summary>
+    /// Gets all directives of a certain directive type.
+    /// </summary>
+    /// <param name="directiveName"></param>
+    IEnumerable<Directive> this[string directiveName] { get; }
 
-    bool Contains(string key);
+    /// <summary>
+    /// Gets a directive by its index.
+    /// </summary>
+    Directive this[int index] { get; }
+
+    /// <summary>
+    /// Gets the first directive that matches the given name or <c>null</c>.
+    /// </summary>
+    /// <param name="directiveName">
+    /// The directive name.
+    /// </param>
+    /// <returns>
+    /// Returns the first directive that matches the given name or <c>null</c>.
+    /// </returns>
+    Directive? FirstOrDefault(string directiveName);
+
+    /// <summary>
+    /// Checks if a directive with the specified <paramref name="directiveName"/> exists.
+    /// </summary>
+    /// <param name="directiveName">
+    /// The directive name.
+    /// </param>
+    /// <returns>
+    /// Returns <c>true</c> if a directive with the specified <paramref name="directiveName"/>
+    /// exists; otherwise, <c>false</c> will be returned.
+    /// </returns>
+    bool ContainsDirective(string directiveName);
 }

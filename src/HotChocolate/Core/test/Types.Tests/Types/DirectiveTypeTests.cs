@@ -130,12 +130,12 @@ public class DirectiveTypeTests : TypeTestBase
             t =>
             {
                 Assert.Equal("foo", t.Name);
-                Assert.Equal("1", t.GetArgument<string>("a"));
+                Assert.Equal("1", t.GetArgumentValue<string>("a"));
             },
             t =>
             {
                 Assert.Equal("foo", t.Name);
-                Assert.Equal("2", t.GetArgument<string>("a"));
+                Assert.Equal("2", t.GetArgumentValue<string>("a"));
             });
     }
 
@@ -174,12 +174,12 @@ public class DirectiveTypeTests : TypeTestBase
             t =>
             {
                 Assert.Equal("foo", t.Name);
-                Assert.Equal("1", t.GetArgument<string>("a"));
+                Assert.Equal("1", t.GetArgumentValue<string>("a"));
             },
             t =>
             {
                 Assert.Equal("foo", t.Name);
-                Assert.Equal("2", t.GetArgument<string>("a"));
+                Assert.Equal("2", t.GetArgumentValue<string>("a"));
             });
     }
 
@@ -254,7 +254,7 @@ public class DirectiveTypeTests : TypeTestBase
             t =>
             {
                 Assert.Equal("foo", t.Name);
-                Assert.Equal("2", t.GetArgument<string>("a"));
+                Assert.Equal("2", t.GetArgumentValue<string>("a"));
             });
     }
 

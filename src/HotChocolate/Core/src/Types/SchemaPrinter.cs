@@ -528,7 +528,7 @@ public static class SchemaPrinter
         => new(null, new NameNode(namedType.Name));
 
     private static DirectiveNode PrintDirective(IDirective directiveType)
-        => directiveType.ToNode(true);
+        => directiveType.AsSyntaxNode(true);
 
     private static StringValueNode PrintDescription(string description)
         => string.IsNullOrEmpty(description) ? null : new StringValueNode(description);

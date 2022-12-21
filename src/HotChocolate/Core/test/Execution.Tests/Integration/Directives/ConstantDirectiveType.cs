@@ -16,7 +16,7 @@ public class ConstantDirectiveType
 
         descriptor.Use(next => context =>
         {
-            context.Result = context.Directive.GetArgument<string>("value");
+            context.Result = context.Directive.GetArgumentValue<string>("value");
             return next(context);
         });
     }

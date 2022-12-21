@@ -204,7 +204,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         ObjectTypeDefinition objectTypeDefinition)
     {
         if (objectTypeDefinition.Directives.Any(
-            d => d.Reference is NameDirectiveReference { Name: WellKnownTypeNames.Key }) ||
+            d => d.Value is DirectiveNode { Name.Value: WellKnownTypeNames.Key }) ||
             objectTypeDefinition.Fields.Any(f => f.ContextData.ContainsKey(WellKnownTypeNames.Key)))
         {
             _entityTypes.Add(objectType);
@@ -245,8 +245,8 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             {
                 discoveryContext.Dependencies.Add(
                     new TypeDependency(
-                        directiveDefinition.TypeReference,
-                        TypeDependencyKind.Completed));
+                        directiveDefinition.Type,
+                        TypeDependencyFulfilled.Completed));
 
                 discoveryContext.RegisterDependency(directiveDefinition.Reference);
             }

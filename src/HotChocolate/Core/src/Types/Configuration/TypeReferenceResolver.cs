@@ -98,7 +98,7 @@ internal sealed class TypeReferenceResolver
                 type = CreateType(namedType, r.Type);
                 return true;
 
-            case DependantFactoryTypeReference reference:
+            case DependantFactoryTypeReference:
                 type = namedType;
                 return true;
 
@@ -108,7 +108,7 @@ internal sealed class TypeReferenceResolver
     }
 
     public bool TryGetDirectiveType(
-        IDirectiveReference typeRef,
+        ITypeReference typeRef,
         [NotNullWhen(true)] out DirectiveType? directiveType)
     {
         if (typeRef is null)

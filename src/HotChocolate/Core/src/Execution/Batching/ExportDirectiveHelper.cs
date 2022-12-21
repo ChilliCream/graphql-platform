@@ -24,7 +24,7 @@ internal static class ExportDirectiveHelper
             && o is ConcurrentBag<ExportedVariable> exp)
         {
             exp.Add(new ExportedVariable(
-                context.Directive.ToObject<ExportDirective>().As
+                context.Directive.AsValue<ExportDirective>().As
                     ?? context.Selection.Field.Name,
                 context.Selection.Type,
                 context.Result));

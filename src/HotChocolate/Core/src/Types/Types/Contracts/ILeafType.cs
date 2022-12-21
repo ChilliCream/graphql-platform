@@ -37,7 +37,7 @@ public interface ILeafType
     /// Parses the GraphQL value syntax of this type into a runtime value representation.
     /// </summary>
     /// <param name="valueSyntax">
-    ///     A GraphQL value syntax representation of this type.
+    /// A GraphQL value syntax representation of this type.
     /// </param>
     /// <returns>
     /// Returns a runtime value representation of this type.

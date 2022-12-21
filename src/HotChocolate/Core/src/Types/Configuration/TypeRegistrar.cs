@@ -142,9 +142,9 @@ internal sealed class TypeRegistrar : ITypeRegistrar
             {
                 foreach (var typeDep in type.Dependencies)
                 {
-                    if (registered.Add(typeDep.TypeReference))
+                    if (registered.Add(typeDep.Type))
                     {
-                        unhandled.Add(typeDep.TypeReference);
+                        unhandled.Add(typeDep.Type);
                     }
                 }
             }

@@ -4,10 +4,12 @@ using System;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
+
 namespace HotChocolate.Types;
 
 public class InputParser
@@ -128,13 +130,14 @@ public class InputParser
             {
                 for (var i = 0; i < items.Count; i++)
                 {
-                    list.Add(ParseLiteralInternal(
-                        items[i],
-                        elementType,
-                        PathFactory.Instance.Append(path, i),
-                        stack,
-                        defaults,
-                        field));
+                    list.Add(
+                        ParseLiteralInternal(
+                            items[i],
+                            elementType,
+                            PathFactory.Instance.Append(path, i),
+                            stack,
+                            defaults,
+                            field));
                 }
             }
             else
@@ -149,13 +152,14 @@ public class InputParser
                         throw ParseNestedList_InvalidSyntaxKind(type, item.Kind, itemPath);
                     }
 
-                    list.Add(ParseLiteralInternal(
-                        item,
-                        elementType,
-                        itemPath,
-                        stack,
-                        defaults,
-                        field));
+                    list.Add(
+                        ParseLiteralInternal(
+                            item,
+                            elementType,
+                            itemPath,
+                            stack,
+                            defaults,
+                            field));
                 }
             }
 
@@ -164,12 +168,14 @@ public class InputParser
         else
         {
             var list = CreateList(type);
-            list.Add(ParseLiteralInternal(
-                resultValue,
-                type.ElementType,
-                PathFactory.Instance.Append(path, 0),
-                stack,
-                defaults, field));
+            list.Add(
+                ParseLiteralInternal(
+                    resultValue,
+                    type.ElementType,
+                    PathFactory.Instance.Append(path, 0),
+                    stack,
+                    defaults,
+                    field));
             return list;
         }
     }
@@ -189,7 +195,7 @@ public class InputParser
                 ? stackalloc bool[type.Fields.Count]
                 : processedBuffer = ArrayPool<bool>.Shared.Rent(type.Fields.Count);
 
-            if(processedBuffer is not null)
+            if (processedBuffer is not null)
             {
                 processed.Clear();
             }
@@ -205,7 +211,7 @@ public class InputParser
             try
             {
                 var fields = ((ObjectValueNode)resultValue).Fields;
-                var oneOf = type.Directives.Contains(WellKnownDirectives.OneOf);
+                var oneOf = type.Directives.ContainsDirective(WellKnownDirectives.OneOf);
 
                 if (oneOf && fields.Count is 0)
                 {
@@ -296,7 +302,7 @@ public class InputParser
         throw ParseInputObject_InvalidSyntaxKind(type, resultValue.Kind, path);
     }
 
-    private object? ParseLeaf(
+    private static object? ParseLeaf(
         IValueNode resultValue,
         ILeafType type,
         Path path,
@@ -321,6 +327,112 @@ public class InputParser
 
             throw new SerializationException(error, ex.Type, path);
         }
+    }
+
+    public object ParseDirective(
+        DirectiveNode node,
+        DirectiveType type,
+        Path? path = null)
+        => ParseDirective(node, type, path ?? Path.Root, 0, true);
+
+    private object ParseDirective(
+        DirectiveNode node,
+        DirectiveType type,
+        Path path,
+        int stack,
+        bool defaults)
+    {
+        var processedCount = 0;
+        bool[]? processedBuffer = null;
+        var processed = stack <= 256 && type.Arguments.Count <= 32
+            ? stackalloc bool[type.Arguments.Count]
+            : processedBuffer = ArrayPool<bool>.Shared.Rent(type.Arguments.Count);
+
+        if (processedBuffer is not null)
+        {
+            processed.Clear();
+        }
+
+        if (processedBuffer is null)
+        {
+            stack += type.Arguments.Count;
+        }
+
+        var fieldValues = new object?[type.Arguments.Count];
+        List<string>? invalidFieldNames = null;
+
+        try
+        {
+            var fields = node.Arguments;
+
+            for (var i = 0; i < fields.Count; i++)
+            {
+                var fieldValue = fields[i];
+
+                if (type.Arguments.TryGetField(fieldValue.Name.Value, out var field))
+                {
+                    var literal = fieldValue.Value;
+                    Path fieldPath = PathFactory.Instance.Append(path, field.Name);
+
+                    if (literal.Kind is SyntaxKind.NullValue &&
+                        field.Type.Kind is TypeKind.NonNull)
+                    {
+                        throw NonNullInputViolation(type, fieldPath, field);
+                    }
+
+                    var value = ParseLiteralInternal(
+                        literal,
+                        field.Type,
+                        fieldPath,
+                        stack,
+                        defaults,
+                        field);
+                    value = FormatValue(field, value);
+                    value = ConvertValue(field.RuntimeType, value);
+
+                    if (field.IsOptional)
+                    {
+                        value = new Optional(value, true);
+                    }
+
+                    fieldValues[field.Index] = value;
+                    processed[field.Index] = true;
+                    processedCount++;
+                }
+                else
+                {
+                    invalidFieldNames ??= new List<string>();
+                    invalidFieldNames.Add(fieldValue.Name.Value);
+                }
+            }
+
+            if (invalidFieldNames?.Count > 0)
+            {
+                throw InvalidInputFieldNames(type, invalidFieldNames, path);
+            }
+
+            if (processedCount < type.Arguments.Count)
+            {
+                for (var i = 0; i < type.Arguments.Count; i++)
+                {
+                    if (!processed[i])
+                    {
+                        var field = type.Arguments[i];
+                        Path fieldPath = PathFactory.Instance.Append(path, field.Name);
+                        fieldValues[i] = CreateDefaultValue(field, fieldPath, stack);
+                    }
+                }
+            }
+        }
+        finally
+        {
+            if (processedBuffer is not null)
+            {
+                ArrayPool<bool>.Shared.Return(processedBuffer);
+            }
+        }
+
+        return type.CreateInstance(fieldValues);
     }
 
     public object? ParseResult(object? resultValue, IType type, Path? path = null)
@@ -400,7 +512,7 @@ public class InputParser
     {
         if (resultValue is IReadOnlyDictionary<string, object?> map)
         {
-            var oneOf = type.Directives.Contains(WellKnownDirectives.OneOf);
+            var oneOf = type.Directives.ContainsDirective(WellKnownDirectives.OneOf);
 
             if (oneOf && map.Count is 0)
             {
@@ -539,7 +651,9 @@ public class InputParser
                 value = Activator.CreateInstance(field.RuntimeType);
             }
 
-            return field.IsOptional ? new Optional(value, false) : value;
+            return field.IsOptional
+                ? new Optional(value, false)
+                : value;
         }
 
         try
@@ -560,7 +674,9 @@ public class InputParser
         value = FormatValue(field, value);
         value = ConvertValue(field.RuntimeType, value);
 
-        return field.IsOptional ? new Optional(value, false) : value;
+        return field.IsOptional
+            ? new Optional(value, false)
+            : value;
     }
 
     private object? FormatValue(IInputFieldInfo field, object? value)

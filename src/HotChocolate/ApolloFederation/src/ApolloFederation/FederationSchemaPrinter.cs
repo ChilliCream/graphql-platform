@@ -141,7 +141,7 @@ public static partial class FederationSchemaPrinter
         {
             if (context.DirectiveNames.Contains(directive.Name))
             {
-                (directiveNodes ??= new()).Add(directive.ToNode(true));
+                (directiveNodes ??= new()).Add(directive.AsSyntaxNode(true));
             }
         }
 

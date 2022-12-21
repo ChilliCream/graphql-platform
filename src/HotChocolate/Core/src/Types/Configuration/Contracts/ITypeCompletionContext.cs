@@ -90,6 +90,6 @@ public interface ITypeCompletionContext : ITypeSystemObjectContext
     IEnumerable<T> GetTypes<T>() where T : IType;
 
     bool TryGetDirectiveType(
-        IDirectiveReference directiveRef,
+        ITypeReference directiveRef,
         [NotNullWhen(true)] out DirectiveType? directiveType);
 }

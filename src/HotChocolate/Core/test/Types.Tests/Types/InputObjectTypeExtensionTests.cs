@@ -120,7 +120,7 @@ public class InputObjectTypeExtensionTests
         // assert
         var type = schema.GetType<InputObjectType>("FooInput");
         var value = type.Directives["dummy_arg"]
-            .First().GetArgument<string>("a");
+            .First().GetArgumentValue<string>("a");
         Assert.Equal("b", value);
     }
 
@@ -144,7 +144,7 @@ public class InputObjectTypeExtensionTests
         // assert
         var type = schema.GetType<InputObjectType>("FooInput");
         var value = type.Fields["description"].Directives["dummy_arg"]
-            .First().GetArgument<string>("a");
+            .First().GetArgumentValue<string>("a");
         Assert.Equal("b", value);
     }
 

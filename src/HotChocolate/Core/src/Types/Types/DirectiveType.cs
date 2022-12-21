@@ -65,15 +65,10 @@ public class DirectiveType
     private InputFormatter _inputFormatter = default!;
 
     protected DirectiveType()
-    {
-        _configure = Configure;
-    }
+        => _configure = Configure;
 
     public DirectiveType(Action<IDirectiveTypeDescriptor> configure)
-    {
-        _configure = configure ??
-            throw new ArgumentNullException(nameof(configure));
-    }
+        => _configure = configure ?? throw new ArgumentNullException(nameof(configure));
 
     /// <summary>
     /// Create a directive type from a type definition.
@@ -118,11 +113,6 @@ public class DirectiveType
     /// Gets the directive arguments.
     /// </summary>
     public FieldCollection<Argument> Arguments { get; private set; } = default!;
-
-    public IReadOnlyList<DirectiveMiddleware> MiddlewareComponents { get; private set; } =
-        default!;
-
-    public bool HasMiddleware { get; private set; }
 
     /// <summary>
     /// Defines that this directive can be used in executable GraphQL documents.
@@ -193,9 +183,9 @@ public class DirectiveType
     {
         base.OnRegisterDependencies(context, definition);
 
-        RuntimeType = definition.RuntimeType != GetType()
-            ? definition.RuntimeType
-            : typeof(object);
+        RuntimeType = definition.RuntimeType == GetType()
+            ? typeof(object)
+            : definition.RuntimeType;
         IsRepeatable = definition.IsRepeatable;
 
         TypeDependencyHelper.CollectDependencies(definition, context.Dependencies);
@@ -210,16 +200,15 @@ public class DirectiveType
         _converter = context.Services.GetTypeConverter();
         _inputFormatter = context.DescriptorContext.InputFormatter;
         _inputParser = context.DescriptorContext.InputParser;
-        MiddlewareComponents = definition.GetMiddlewareComponents();
 
         SyntaxNode = definition.SyntaxNode;
         Locations = definition.GetLocations().ToList().AsReadOnly();
         Arguments = OnCompleteFields(context, definition);
-        HasMiddleware = MiddlewareComponents.Count > 0;
         IsPublic = definition.IsPublic;
 
         if (Locations.Count == 0)
         {
+            // TODO : move to error helper
             context.ReportError(SchemaErrorBuilder.New()
                 .SetMessage(string.Format(
                     CultureInfo.InvariantCulture,
@@ -244,7 +233,17 @@ public class DirectiveType
             => new(argDef, index);
     }
 
-    internal IValueNode SerializeArgument(Argument argument, object? obj)
+    internal T Parse<T>(DirectiveNode syntaxNode)
+    {
+
+    }
+
+    internal DirectiveNode Format(object runtimeValue)
+    {
+        Arguments[0].DeclaringMember.
+    }
+
+    internal IValueNode FormatArgumentValue(Argument argument, object? obj)
     {
         if (argument is null)
         {
@@ -255,7 +254,7 @@ public class DirectiveType
         return _inputFormatter.FormatValue(obj, argument.Type, path);
     }
 
-    internal object? DeserializeArgument(Argument argument, IValueNode literal, Type target)
+    internal object? ParseArgumentValue(Argument argument, IValueNode literal, Type target)
     {
         if (argument is null)
         {
@@ -284,6 +283,6 @@ public class DirectiveType
             nameof(target));
     }
 
-    internal T DeserializeArgument<T>(Argument argument, IValueNode literal)
-        => (T)DeserializeArgument(argument, literal, typeof(T))!;
+    internal T ParseArgumentValue<T>(Argument argument, IValueNode literal)
+        => (T)ParseArgumentValue(argument, literal, typeof(T))!;
 }

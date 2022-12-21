@@ -167,7 +167,7 @@ internal sealed class TypeInitializer
                 {
                     var typeReference = TypeReference.Create(interfaceType.Type);
                     ((ObjectType)objectType.Type).Definition!.Interfaces.Add(typeReference);
-                    objectType.Dependencies.Add(new(typeReference, TypeDependencyKind.Completed));
+                    objectType.Dependencies.Add(new(typeReference, TypeDependencyFulfilled.Completed));
                 }
             }
         }
@@ -181,7 +181,7 @@ internal sealed class TypeInitializer
                 {
                     var typeReference = TypeReference.Create(interfaceType.Type);
                     ((InterfaceType)implementing.Type).Definition!.Interfaces.Add(typeReference);
-                    implementing.Dependencies.Add(new(typeReference, TypeDependencyKind.Completed));
+                    implementing.Dependencies.Add(new(typeReference, TypeDependencyFulfilled.Completed));
                 }
             }
         }
@@ -394,7 +394,7 @@ internal sealed class TypeInitializer
 
         _interceptor.OnBeforeCompleteTypes();
 
-        ProcessTypes(TypeDependencyKind.Completed, CompleteType);
+        ProcessTypes(TypeDependencyFulfilled.Completed, CompleteType);
         EnsureNoErrors();
 
         _interceptor.OnTypesCompleted();
@@ -413,11 +413,11 @@ internal sealed class TypeInitializer
     }
 
     private bool ProcessTypes(
-        TypeDependencyKind kind,
+        TypeDependencyFulfilled fulfilled,
         Func<RegisteredType, bool> action)
     {
         var processed = new HashSet<ITypeReference>();
-        var batch = new List<RegisteredType>(GetInitialBatch(kind));
+        var batch = new List<RegisteredType>(GetInitialBatch(fulfilled));
         var failed = false;
 
         while (!failed && processed.Count < _typeRegistry.Count && batch.Count > 0)
@@ -457,7 +457,7 @@ internal sealed class TypeInitializer
                         out var normalized,
                         out var notFound)
                         ? normalized.Except(processed).ToArray()
-                        : type.Conditionals.Select(t => t.TypeReference).ToArray();
+                        : type.Conditionals.Select(t => t.Type).ToArray();
 
                 if (notFound != null)
                 {
@@ -487,7 +487,7 @@ internal sealed class TypeInitializer
     }
 
     private IEnumerable<RegisteredType> GetInitialBatch(
-        TypeDependencyKind kind)
+        TypeDependencyFulfilled fulfilled)
     {
         _next.Clear();
 
@@ -498,7 +498,7 @@ internal sealed class TypeInitializer
 
             foreach (var dependency in registeredType.Dependencies)
             {
-                if (dependency.Kind == kind)
+                if (dependency.Fulfilled == fulfilled)
                 {
                     conditional = true;
                     registeredType.Conditionals.Add(dependency);
@@ -573,11 +573,11 @@ internal sealed class TypeInitializer
         foreach (var dependency in dependencies)
         {
             if (!_typeLookup.TryNormalizeReference(
-                dependency.TypeReference,
+                dependency.Type,
                 out var nr))
             {
                 normalized = null;
-                n.Add(dependency.TypeReference);
+                n.Add(dependency.Type);
                 notFound = n;
                 return false;
             }

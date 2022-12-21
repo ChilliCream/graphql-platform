@@ -288,7 +288,7 @@ public class InterfaceTypeExtensionTests
         // assert
         var type = schema.GetType<InterfaceType>("Foo");
         var value = type.Directives["dummy_arg"]
-            .First().GetArgument<string>("a");
+            .First().GetArgumentValue<string>("a");
         Assert.Equal("b", value);
     }
 
@@ -314,7 +314,7 @@ public class InterfaceTypeExtensionTests
         // assert
         var type = schema.GetType<InterfaceType>("Foo");
         var value = type.Fields["description"].Directives["dummy_arg"]
-            .First().GetArgument<string>("a");
+            .First().GetArgumentValue<string>("a");
         Assert.Equal("b", value);
     }
 
@@ -344,7 +344,7 @@ public class InterfaceTypeExtensionTests
         var type = schema.GetType<InterfaceType>("Foo");
         var value = type.Fields["name"].Arguments["a"]
             .Directives["dummy_arg"]
-            .First().GetArgument<string>("a");
+            .First().GetArgumentValue<string>("a");
         Assert.Equal("b", value);
     }
 
@@ -369,7 +369,7 @@ public class InterfaceTypeExtensionTests
         var type = schema.GetType<InterfaceType>("Foo");
         var value = type.Fields["name"].Arguments["a"]
             .Directives["dummy_arg"]
-            .First().GetArgument<string>("a");
+            .First().GetArgumentValue<string>("a");
         Assert.Equal("b", value);
     }
 

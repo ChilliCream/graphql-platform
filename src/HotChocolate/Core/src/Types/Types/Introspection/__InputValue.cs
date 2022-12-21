@@ -84,7 +84,7 @@ internal sealed class __InputValue : ObjectType
             => context.Parent<IInputField>()
                 .Directives
                 .Where(t => t.Type.IsPublic)
-                .Select(d => d.ToNode());
+                .Select(d => d.AsSyntaxNode());
     }
 
     public static class Names

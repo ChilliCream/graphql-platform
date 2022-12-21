@@ -115,7 +115,7 @@ public class SchemaDirectiveTests
             descriptor.Location(DirectiveLocation.FieldDefinition);
             descriptor.Use(next => context =>
             {
-                var s = context.Directive.ToObject<ADirective>().Append;
+                var s = context.Directive.AsValue<ADirective>().Append;
                 context.Result = context.Result + s;
                 return next.Invoke(context);
             });
@@ -135,7 +135,7 @@ public class SchemaDirectiveTests
             descriptor.Location(DirectiveLocation.FieldDefinition);
             descriptor.Use(next => context =>
             {
-                var s = context.Directive.ToObject<BDirective>().Append;
+                var s = context.Directive.AsValue<BDirective>().Append;
                 context.Result = context.Result + s;
                 return next.Invoke(context);
             });
@@ -152,7 +152,7 @@ public class SchemaDirectiveTests
             descriptor.Location(DirectiveLocation.Field);
             descriptor.Use(_ => context =>
             {
-                var s = context.Directive.ToObject<CDirective>().Append;
+                var s = context.Directive.AsValue<CDirective>().Append;
                 context.Result += s;
                 return default;
             });

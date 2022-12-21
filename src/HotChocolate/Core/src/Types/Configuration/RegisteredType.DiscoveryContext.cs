@@ -11,7 +11,7 @@ namespace HotChocolate.Configuration;
 
 internal sealed partial class RegisteredType : ITypeDiscoveryContext
 {
-    private readonly List<IDirectiveReference> _directiveReferences = new();
+    private readonly List<ITypeReference> _directiveReferences = new();
     private List<ISchemaError>? _errors;
 
     public string? Scope { get; }
@@ -88,26 +88,6 @@ internal sealed partial class RegisteredType : ITypeDiscoveryContext
                 kind = default;
                 return false;
         }
-    }
-
-    public void RegisterDependency(IDirectiveReference reference)
-    {
-        if (reference is null)
-        {
-            throw new ArgumentNullException(nameof(reference));
-        }
-
-        _directiveReferences.Add(reference);
-    }
-
-    public void RegisterDependencyRange(IEnumerable<IDirectiveReference> references)
-    {
-        if (references is null)
-        {
-            throw new ArgumentNullException(nameof(references));
-        }
-
-        _directiveReferences.AddRange(references);
     }
 
     private static TypeKind GetTypeKindFromSchemaType(IExtendedType type)

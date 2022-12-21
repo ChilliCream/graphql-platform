@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Types.Descriptors.Definitions.TypeDependencyFulfilled;
 
 namespace HotChocolate.Internal;
 
@@ -34,7 +35,7 @@ public static class TypeDependencyHelper
         {
             foreach (var typeRef in definition.Interfaces)
             {
-                dependencies.Add(new(typeRef, TypeDependencyKind.Completed));
+                dependencies.Add(new TypeDependency(typeRef, Completed));
             }
         }
 
@@ -68,7 +69,7 @@ public static class TypeDependencyHelper
         {
             foreach (var typeRef in definition.Interfaces)
             {
-                dependencies.Add(new(typeRef, TypeDependencyKind.Completed));
+                dependencies.Add(new(typeRef, Completed));
             }
         }
 
@@ -184,7 +185,7 @@ public static class TypeDependencyHelper
         {
             foreach (var directive in definition.Directives)
             {
-                dependencies.Add(new(directive.TypeReference, TypeDependencyKind.Completed));
+                dependencies.Add(new(directive.Type, Completed));
             }
         }
     }
@@ -197,7 +198,7 @@ public static class TypeDependencyHelper
         {
             foreach (var directive in definition.Directives)
             {
-                dependencies.Add(new(directive.TypeReference, TypeDependencyKind.Completed));
+                dependencies.Add(new(directive.Type, Completed));
             }
         }
     }
@@ -246,7 +247,7 @@ public static class TypeDependencyHelper
 
             if (field.Type is not null)
             {
-                dependencies.Add(new(field.Type, TypeDependencyKind.Completed));
+                dependencies.Add(new(field.Type, Completed));
             }
 
             CollectDirectiveDependencies(field, dependencies);
@@ -321,7 +322,7 @@ public static class TypeDependencyHelper
         CollectDependencies(definition, context.Dependencies);
     }
 
-    private static TypeDependencyKind GetDefaultValueDependencyKind(
+    private static TypeDependencyFulfilled GetDefaultValueDependencyKind(
         ArgumentDefinition argumentDefinition)
     {
         var hasDefaultValue =
@@ -329,7 +330,7 @@ public static class TypeDependencyHelper
             argumentDefinition.RuntimeDefaultValue is not null;
 
         return hasDefaultValue
-            ? TypeDependencyKind.Completed
-            : TypeDependencyKind.Default;
+            ? Completed
+            : Default;
     }
 }

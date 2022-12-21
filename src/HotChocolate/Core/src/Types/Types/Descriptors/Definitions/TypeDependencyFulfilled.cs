@@ -3,7 +3,7 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// <summary>
 /// Defines when the type dependency has to be fulfilled.
 /// </summary>
-public enum TypeDependencyKind
+public enum TypeDependencyFulfilled
 {
     /// <summary>
     /// The dependency instance does not need to be completed.
@@ -19,4 +19,10 @@ public enum TypeDependencyKind
     /// The dependency instance needs to be fully completed.
     /// </summary>
     Completed
+}
+
+public enum TypeDependencyTarget
+{
+    Type,
+    Directive
 }

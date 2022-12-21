@@ -43,7 +43,7 @@ internal class CollectionSegmentType
                     Definition,
                     ApplyConfigurationOn.BeforeNaming,
                     nodeType,
-                    TypeDependencyKind.Named));
+                    TypeDependencyFulfilled.Named));
         }
 
         Definition.Configurations.Add(
@@ -59,7 +59,7 @@ internal class CollectionSegmentType
                 Definition,
                 ApplyConfigurationOn.BeforeNaming,
                 nodeType,
-                TypeDependencyKind.Named));
+                TypeDependencyFulfilled.Named));
 
         Definition.Dependencies.Add(new(nodeType));
     }

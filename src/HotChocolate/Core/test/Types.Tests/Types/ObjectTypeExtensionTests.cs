@@ -358,7 +358,7 @@ public class ObjectTypeExtensionTests
         var type = schema.GetType<ObjectType>("Foo");
         var value = type.Fields["name"].Arguments["a"]
             .Directives["dummy_arg"]
-            .First().GetArgument<string>("a");
+            .First().GetArgumentValue<string>("a");
         Assert.Equal("b", value);
     }
 

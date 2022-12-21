@@ -22,7 +22,7 @@ internal sealed class AuthorizeMiddleware
     public async Task InvokeAsync(IDirectiveContext context)
     {
         AuthorizeDirective directive = context.Directive
-            .ToObject<AuthorizeDirective>();
+            .AsValue<AuthorizeDirective>();
 
         if (directive.Apply == ApplyPolicy.AfterResolver)
         {

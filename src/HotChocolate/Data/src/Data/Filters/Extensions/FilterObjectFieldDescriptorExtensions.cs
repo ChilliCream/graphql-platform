@@ -189,7 +189,7 @@ public static class FilterObjectFieldDescriptorExtensions
                             definition,
                             ApplyConfigurationOn.BeforeCompletion,
                             argumentTypeReference,
-                            TypeDependencyKind.Completed));
+                            TypeDependencyFulfilled.Completed));
 
                     argumentDefinition.Configurations.Add(
                         new CompleteConfiguration<ArgumentDefinition>(

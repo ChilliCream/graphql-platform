@@ -35,7 +35,7 @@ public class DirectiveTests : TypeTestBase
                 fooDirective,
                 _typeInspector.GetTypeRef(fooDirective.GetType())),
             new object());
-        var directiveNode = directive.ToNode();
+        var directiveNode = directive.AsSyntaxNode();
 
         // assert
         Assert.Equal(directiveType.Name, directiveNode.Name.Value);
@@ -80,7 +80,7 @@ public class DirectiveTests : TypeTestBase
                 fooDirective,
                 _typeInspector.GetTypeRef(fooDirective.GetType())),
             new object());
-        var mappedObject = directive.ToObject<FooChild>();
+        var mappedObject = directive.AsValue<FooChild>();
 
         // assert
         Assert.Equal("123", mappedObject.Bar);
@@ -108,7 +108,7 @@ public class DirectiveTests : TypeTestBase
                 fooDirective,
                 _typeInspector.GetTypeRef(fooDirective.GetType())),
             new object());
-        var barValue = directive.GetArgument<string>("bar");
+        var barValue = directive.GetArgumentValue<string>("bar");
 
         // assert
         Assert.Equal("123", barValue);

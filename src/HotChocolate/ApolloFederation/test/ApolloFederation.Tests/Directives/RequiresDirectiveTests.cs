@@ -72,10 +72,10 @@ public class RequiresDirectiveTests
                     providesDirective.Name);
                 Assert.Equal(
                     "fields",
-                    providesDirective.ToNode().Arguments[0].Name.ToString());
+                    providesDirective.AsSyntaxNode().Arguments[0].Name.ToString());
                 Assert.Equal(
                     "\"id\"",
-                    providesDirective.ToNode().Arguments[0].Value.ToString());
+                    providesDirective.AsSyntaxNode().Arguments[0].Value.ToString());
             });
 
         schema.ToString().MatchSnapshot();
@@ -128,8 +128,8 @@ public class RequiresDirectiveTests
                     WellKnownTypeNames.Requires,
                     providesDirective.Name
                 );
-                Assert.Equal("fields", providesDirective.ToNode().Arguments[0].Name.ToString());
-                Assert.Equal("\"id\"", providesDirective.ToNode().Arguments[0].Value.ToString());
+                Assert.Equal("fields", providesDirective.AsSyntaxNode().Arguments[0].Name.ToString());
+                Assert.Equal("\"id\"", providesDirective.AsSyntaxNode().Arguments[0].Value.ToString());
             }
         );
         schema.ToString().MatchSnapshot();
@@ -157,8 +157,8 @@ public class RequiresDirectiveTests
                     WellKnownTypeNames.Requires,
                     providesDirective.Name
                 );
-                Assert.Equal("fields", providesDirective.ToNode().Arguments[0].Name.ToString());
-                Assert.Equal("\"id\"", providesDirective.ToNode().Arguments[0].Value.ToString());
+                Assert.Equal("fields", providesDirective.AsSyntaxNode().Arguments[0].Name.ToString());
+                Assert.Equal("\"id\"", providesDirective.AsSyntaxNode().Arguments[0].Value.ToString());
             }
         );
         schema.ToString().MatchSnapshot();

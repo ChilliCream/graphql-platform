@@ -190,8 +190,8 @@ public class FilterInputType
                 filterTypeDefinition,
                 ApplyConfigurationOn.BeforeNaming,
                 new TypeDependency[] {
-                    new(filterOperationType, TypeDependencyKind.Named) ,
-                    new(filterType, TypeDependencyKind.Named)
+                    new(filterOperationType, TypeDependencyFulfilled.Named) ,
+                    new(filterType, TypeDependencyFulfilled.Named)
                 }));
         Definition.Configurations.Add(
             new CompleteConfiguration<FilterInputTypeDefinition>(
@@ -199,8 +199,8 @@ public class FilterInputType
                 filterTypeDefinition,
                 ApplyConfigurationOn.BeforeNaming,
                 new TypeDependency[] {
-                    new(filterOperationType, TypeDependencyKind.Named),
-                    new(filterType, TypeDependencyKind.Named)
+                    new(filterOperationType, TypeDependencyFulfilled.Named),
+                    new(filterType, TypeDependencyFulfilled.Named)
                 }
             ));
 

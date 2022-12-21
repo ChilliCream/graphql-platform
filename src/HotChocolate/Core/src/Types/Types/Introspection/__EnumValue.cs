@@ -64,7 +64,7 @@ internal sealed class __EnumValue : ObjectType<IEnumValue>
         public static object AppliedDirectives(IPureResolverContext context)
             => context.Parent<IEnumValue>().Directives
                 .Where(t => t.Type.IsPublic)
-                .Select(d => d.ToNode());
+                .Select(d => d.AsSyntaxNode());
     }
 
     public static class Names

@@ -50,13 +50,13 @@ public partial class Schema
             foreach (var directive in definition.Directives)
             {
                 context.Dependencies.Add(new(
-                    directive.TypeReference,
-                    TypeDependencyKind.Completed));
+                    directive.Type,
+                    TypeDependencyFulfilled.Completed));
             }
         }
 
         context.RegisterDependencyRange(
-            definition.GetDirectives().Select(t => t.Reference));
+            definition.GetDirectives().Select(t => t.Type));
     }
 
     protected override void OnCompleteType(
@@ -65,8 +65,7 @@ public partial class Schema
     {
         base.OnCompleteType(context, definition);
 
-        Directives =
-            DirectiveCollection.CreateAndComplete(context, this, definition.GetDirectives());
+        Directives = DirectiveCollection.CreateAndComplete(context, this, definition.GetDirectives());
         Services = context.Services;
     }
 
@@ -82,6 +81,12 @@ public partial class Schema
         {
             throw new InvalidOperationException(
                 "This schema is already sealed and cannot be mutated.");
+        }
+
+        if (schemaTypesDefinition.Types is null || schemaTypesDefinition.DirectiveTypes is null)
+        {
+            throw new InvalidOperationException(
+                "The schema type collections are not initialized.");
         }
 
         DirectiveTypes = schemaTypesDefinition.DirectiveTypes;

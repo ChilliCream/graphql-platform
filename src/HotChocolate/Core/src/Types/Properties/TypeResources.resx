@@ -1062,4 +1062,7 @@ Type: `{0}`</value>
   <data name="ErrorHelper_NodeResolverMissing" xml:space="preserve">
     <value>The type `{0}` implements the node interface but does not provide a node resolver for re-fetching.</value>
   </data>
+  <data name="Directive_GetArgumentValue_UnknownArgument" xml:space="preserve">
+    <value>The directive '{0}' has no argument with the name '{1}'.</value>
+  </data>
 </root>

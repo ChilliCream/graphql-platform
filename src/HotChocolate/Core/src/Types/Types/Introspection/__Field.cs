@@ -93,7 +93,7 @@ internal sealed class __Field : ObjectType<IOutputField>
             context.Parent<IOutputField>()
                 .Directives
                 .Where(t => t.Type.IsPublic)
-                .Select(d => d.ToNode());
+                .Select(d => d.AsSyntaxNode());
     }
 
     public static class Names

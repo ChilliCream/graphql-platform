@@ -50,7 +50,7 @@ internal class CostTypeInterceptor : TypeInterceptor
 
             discoveryContext.Dependencies.Add(new(
                 TypeReference.Create(directive),
-                TypeDependencyKind.Completed));
+                TypeDependencyFulfilled.Completed));
         }
     }
 

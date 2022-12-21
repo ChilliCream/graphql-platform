@@ -1,242 +1,122 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
-using static HotChocolate.Utilities.ErrorHelper;
+using HotChocolate.Utilities;
 
 #nullable enable
 namespace HotChocolate.Types;
 
 public sealed class DirectiveCollection : IDirectiveCollection
 {
-    private static readonly ILookup<string, IDirective> _defaultLookup =
-        Enumerable.Empty<IDirective>().ToLookup(x => x.Name);
-
     private readonly object _source;
     private readonly DirectiveLocation _location;
-    private IDirective[] _directives = Array.Empty<IDirective>();
-    private IReadOnlyList<DirectiveDefinition>? _definitions;
-    private ILookup<string, IDirective> _lookup = default!;
+    private readonly Directive[] _directives;
 
-    public DirectiveCollection(
-        object source,
-        IReadOnlyList<DirectiveDefinition> directiveDefinitions)
+    private DirectiveCollection(object source, Directive[] directives)
     {
-        _source = source ??
-            throw new ArgumentNullException(nameof(source));
-        _definitions = directiveDefinitions ??
-            throw new ArgumentNullException(nameof(directiveDefinitions));
+        _source = source ?? throw new ArgumentNullException(nameof(source));
+        _directives = directives ?? throw new ArgumentNullException(nameof(directives));
         _location = DirectiveHelper.InferDirectiveLocation(source);
     }
 
-    /// <inheritdoc />
     public int Count => _directives.Length;
 
-    /// <inheritdoc />
-    public IEnumerable<IDirective> this[string key] => _lookup[key];
-
-    /// <inheritdoc />
-    public bool Contains(string key) => _lookup.Contains(key);
-
-    public void CompleteCollection(ITypeCompletionContext context)
+    public IEnumerable<Directive> this[string directiveName]
     {
-        if (context is null)
+        get
         {
-            throw new ArgumentNullException(nameof(context));
+            var directives = _directives;
+            return directives.Length == 0
+                ? Enumerable.Empty<Directive>()
+                : FindDirectives(directives, directiveName);
         }
-
-        var processed = new HashSet<string>();
-        List<IDirective>? directives = null;
-
-        foreach (var description in _definitions!)
-        {
-            if (TryCompleteDirective(
-                context,
-                description,
-                processed,
-                out var directive))
-            {
-                directives ??= new List<IDirective>();
-                directives.Add(directive);
-                ValidateArguments(context, directive);
-            }
-        }
-
-        if (directives is null)
-        {
-            _lookup = _defaultLookup;
-        }
-        else
-        {
-            _directives = directives.ToArray();
-            _lookup = _directives.ToLookup(t => t.Name);
-        }
-
-        _definitions = null;
     }
 
-    private bool TryCompleteDirective(
-        ITypeCompletionContext context,
-        DirectiveDefinition definition,
-        ISet<string> processed,
-        [NotNullWhen(true)] out Directive? directive)
+    private static IEnumerable<Directive> FindDirectives(Directive[] directives, string name)
     {
-        if (!context.TryGetDirectiveType(
-            definition.Reference,
-            out var directiveType))
+        for (var i = 0; i < directives.Length; i++)
         {
-            directive = null;
-            return false;
-        }
+            var directive = directives[i];
 
-        if (!processed.Add(directiveType.Name) && !directiveType.IsRepeatable)
-        {
-            context.ReportError(
-                DirectiveCollection_DirectiveIsUnique(
-                    directiveType,
-                    context.Type,
-                    definition.ParsedDirective,
-                    _source));
-            directive = null;
-            return false;
-        }
-
-        if (directiveType.Locations.Contains(_location))
-        {
-            directive = Directive.FromDescription(directiveType, definition, _source);
-            return true;
-        }
-
-        context.ReportError(
-            DirectiveCollection_LocationNotAllowed(
-                directiveType,
-                _location,
-                context.Type,
-                definition.ParsedDirective,
-                _source));
-        directive = null;
-        return false;
-    }
-
-    private void ValidateArguments(ITypeCompletionContext context, Directive directive)
-    {
-        var arguments = directive.ToNode().Arguments.ToDictionary(t => t.Name.Value);
-
-        foreach (var argument in arguments.Values)
-        {
-            if (directive.Type.Arguments.TryGetField(
-                argument.Name.Value,
-                out var arg))
+            if (directive.Type.Name.EqualsOrdinal(name))
             {
-                if (!arg.Type.IsInstanceOfType(argument.Value))
-                {
-                    context.ReportError(
-                        DirectiveCollection_ArgumentValueTypeIsWrong(
-                            directive.Type,
-                            context.Type,
-                            directive.ToNode(),
-                            _source,
-                            arg.Name));
-                }
-            }
-            else
-            {
-                context.ReportError(
-                    DirectiveCollection_ArgumentDoesNotExist(
-                        directive.Type,
-                        context.Type,
-                        directive.ToNode(),
-                        _source,
-                        argument.Name.Value));
-            }
-        }
-
-        foreach (var argument in directive.Type.Arguments
-            .Where(a => a.Type.IsNonNullType()))
-        {
-            if (!arguments.TryGetValue(argument.Name, out var arg)
-                || arg.Value is NullValueNode)
-            {
-                context.ReportError(
-                    DirectiveCollection_ArgumentNonNullViolation(
-                        directive.Type,
-                        context.Type,
-                        directive.ToNode(),
-                        _source,
-                        argument.Name));
+                yield return directive;
             }
         }
     }
 
-    /// <inheritdoc />
-    public IEnumerator<IDirective> GetEnumerator()
+    public Directive this[int index] => _directives[index];
+
+    public Directive? FirstOrDefault(string directiveName)
     {
-        for (var i = 0; i < _directives.Length; i++)
+        directiveName.EnsureGraphQLName();
+
+        var span = _directives.AsSpan();
+        ref var start = ref MemoryMarshal.GetReference(span);
+        ref var end = ref Unsafe.Add(ref start, span.Length);
+
+        while (Unsafe.IsAddressLessThan(ref start, ref end))
         {
-            yield return _directives[i];
+            var directive = Unsafe.Add(ref start, 0);
+
+            if (directive.Type.Name.EqualsOrdinal(directiveName))
+            {
+                return directive;
+            }
+
+            // move pointer
+            start = ref Unsafe.Add(ref start, 1);
         }
+
+        return null;
     }
 
-    /// <inheritdoc />
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    public bool ContainsDirective(string directiveName)
+        => FirstOrDefault(directiveName) is not null;
 
-    public static IDirectiveCollection CreateAndComplete(
+    internal static DirectiveCollection CreateAndComplete(
         ITypeCompletionContext context,
         object source,
-        IReadOnlyList<DirectiveDefinition> directiveDefinitions)
+        IReadOnlyList<DirectiveDefinition>? definitions)
     {
-        if (context is null)
+        var directives = new Directive[definitions.Count];
+
+        for (var i = 0; i < directives.Length; i++)
         {
-            throw new ArgumentNullException(nameof(context));
+            var definition = definitions[i];
+            var value = definition.Value;
+
+            if (context.TryGetDirectiveType(definition.Type, out var directiveType))
+            {
+                directives[i] = value is DirectiveNode syntaxNode
+                    ? new Directive(directiveType, syntaxNode)
+                    : new Directive(directiveType, directiveType.Format(value), value);
+            }
         }
 
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
-
-        if (directiveDefinitions is null)
-        {
-            throw new ArgumentNullException(nameof(directiveDefinitions));
-        }
-
-        if (directiveDefinitions.Count is 0)
-        {
-            return EmptyDirectiveCollection.Default;
-        }
-
-        var directives = new DirectiveCollection(source, directiveDefinitions);
-        directives.CompleteCollection(context);
-        return directives;
+        return new DirectiveCollection(source, directives);
     }
 
-    private sealed class EmptyDirectiveCollection : IDirectiveCollection
-    {
-        private EmptyDirectiveCollection() { }
+    internal ReadOnlySpan<Directive> AsSpan()
+        => _directives;
 
-        public IEnumerator<IDirective> GetEnumerator()
-        {
-            yield break;
-        }
+    internal ref Directive GetReference()
+#if NET6_0_OR_GREATER
+        => ref MemoryMarshal.GetArrayDataReference(_directives);
+#else
+        => ref MemoryMarshal.GetReference(_directives.AsSpan());
+#endif
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+    public IEnumerator<Directive> GetEnumerator()
+        => ((IEnumerable<Directive>)_directives).GetEnumerator();
 
-        public int Count => 0;
-
-        public IEnumerable<IDirective> this[string key] => Array.Empty<IDirective>();
-
-
-        public bool Contains(string key) => false;
-
-
-        public static readonly IDirectiveCollection Default = new EmptyDirectiveCollection();
-    }
+    IEnumerator IEnumerable.GetEnumerator()
+        => GetEnumerator();
 }

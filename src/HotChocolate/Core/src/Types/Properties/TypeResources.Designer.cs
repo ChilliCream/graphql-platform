@@ -1904,5 +1904,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ErrorHelper_NodeResolverMissing", resourceCulture);
             }
         }
+        
+        internal static string Directive_GetArgumentValue_UnknownArgument {
+            get {
+                return ResourceManager.GetString("Directive_GetArgumentValue_UnknownArgument", resourceCulture);
+            }
+        }
     }
 }

@@ -201,7 +201,7 @@ DISCOVER:
             foreach (var unresolvedReference in _typeRegistrar.Unresolved)
             {
                 var types = _typeRegistry.Types.Where(
-                    t => t.Dependencies.Select(d => d.TypeReference)
+                    t => t.Dependencies.Select(d => d.Type)
                         .Any(r => r.Equals(unresolvedReference))).ToList();
 
                 var builder =

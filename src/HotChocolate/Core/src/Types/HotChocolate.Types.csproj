@@ -79,6 +79,9 @@
     <Compile Update="Types\Scalars\ScalarType.Initialization.cs">
       <DependentUpon>ScalarType.cs</DependentUpon>
     </Compile>
+    <Compile Update="Schema.Initialization.cs">
+      <DependentUpon>Schema.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

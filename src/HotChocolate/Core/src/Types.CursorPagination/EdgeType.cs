@@ -56,7 +56,7 @@ internal sealed class EdgeType : ObjectType, IEdgeType
                 Definition,
                 ApplyConfigurationOn.BeforeNaming,
                 nodeType,
-                TypeDependencyKind.Named));
+                TypeDependencyFulfilled.Named));
         Definition.Configurations.Add(
             new CompleteConfiguration(
                 (c, _) => NodeType = c.GetType<IOutputType>(nodeType),

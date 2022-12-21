@@ -150,8 +150,8 @@ public class SortInputType
                 ApplyConfigurationOn.BeforeNaming,
                 new TypeDependency[]
                 {
-                    new(sortOperationType, TypeDependencyKind.Named),
-                    new(sortType, TypeDependencyKind.Named)
+                    new(sortOperationType, TypeDependencyFulfilled.Named),
+                    new(sortType, TypeDependencyFulfilled.Named)
                 }));
 
         // <summary>

@@ -60,7 +60,7 @@ internal class ConnectionType
                 Definition,
                 ApplyConfigurationOn.BeforeNaming,
                 nodeType,
-                TypeDependencyKind.Named));
+                TypeDependencyFulfilled.Named));
         Definition.Configurations.Add(
             new CompleteConfiguration(
                 (c, _) => EdgeType = c.GetType<IEdgeType>(TypeReference.Create(edgeTypeName)),
@@ -112,7 +112,7 @@ internal class ConnectionType
                 Definition,
                 ApplyConfigurationOn.BeforeNaming,
                 nodeType,
-                TypeDependencyKind.Named));
+                TypeDependencyFulfilled.Named));
         Definition.Configurations.Add(
             new CompleteConfiguration(
                 (c, _) =>
