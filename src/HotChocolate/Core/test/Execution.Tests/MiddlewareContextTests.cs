@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution.Processing;
@@ -290,6 +291,55 @@ public class MiddlewareContextTests
     }
 
     [Fact]
+    public async Task SetResultContextData_Delegate_IntValue_When_Deferred()
+    {
+        using var cts = new CancellationTokenSource(5000);
+        var ct = cts.Token;
+
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                d =>
+                {
+                    d.Field("abc")
+                        .Argument("a", t => t.Type<StringType>())
+                        .Resolve(ctx => ctx.ArgumentValue<string>("a"))
+                        .Use(
+                            next => async context =>
+                            {
+                                context.OperationResult.SetResultState("abc", 1);
+                                context.OperationResult.SetResultState("abc",
+                                    (_, c) =>
+                                    {
+                                        if (c is int i)
+                                        {
+                                            return ++i;
+                                        }
+                                        return 0;
+                                    });
+                                await next(context);
+                            });
+                })
+            .ExecuteRequestAsync("{ ... @defer { abc(a: \"abc\") } }");
+
+        var first = true;
+
+        await foreach (var queryResult in result.ExpectResponseStream()
+            .ReadResultsAsync())
+        {
+            if (first)
+            {
+                first = false;
+                continue;
+            }
+
+            Assert.NotNull(queryResult.Incremental[0].ContextData);
+            Assert.True(queryResult.Incremental[0].ContextData.TryGetValue("abc", out var value));
+            Assert.Equal(2, value);
+        }
+    }
+
+    [Fact]
     public async Task SetResultContextData_Delegate_IntValue_WithState()
     {
         var result = await new ServiceCollection()
@@ -498,6 +548,62 @@ public class MiddlewareContextTests
                     }
                   }
                 }");
+    }
+
+    [Fact]
+    public async Task SetResultExtensionData_With_ObjectValue_WhenDeferred()
+    {
+        using var cts = new CancellationTokenSource(5000);
+        var ct = cts.Token;
+
+        var result = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                d =>
+                {
+                    d.Field("abc")
+                        .Argument("a", t => t.Type<StringType>())
+                        .Resolve(ctx => ctx.ArgumentValue<string>("a"))
+                        .Use(
+                            next => async context =>
+                            {
+                                context.OperationResult.SetExtension("abc", new SomeData("def"));
+                                await next(context);
+                            });
+                })
+            .ExecuteRequestAsync("{ ... @defer { abc(a: \"abc\") } }", cancellationToken: ct);
+
+        var first = true;
+        await foreach (var queryResult in result.ExpectResponseStream()
+            .ReadResultsAsync().WithCancellation(ct))
+        {
+            if (first)
+            {
+                first = false;
+                continue;
+            }
+
+            Snapshot
+                .Create()
+                .AddResult(queryResult)
+                .MatchInline(
+                    @"{
+                      ""incremental"": [
+                        {
+                          ""data"": {
+                            ""abc"": ""abc""
+                          },
+                          ""extensions"": {
+                            ""abc"": {
+                              ""someField"": ""def""
+                            }
+                          },
+                          ""path"": []
+                        }
+                      ],
+                      ""hasNext"": false
+                    }");
+        }
     }
 
     private static void CollectSelections(
