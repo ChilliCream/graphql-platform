@@ -3,15 +3,13 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using HotChocolate.Configuration;
-using HotChocolate.Execution;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
 using static HotChocolate.Internal.FieldInitHelper;
+using static HotChocolate.Utilities.Serialization.InputObjectCompiler;
 
 #nullable enable
 
@@ -60,9 +58,8 @@ public class DirectiveType
         };
 
     private Action<IDirectiveTypeDescriptor>? _configure;
-    private ITypeConverter _converter = default!;
-    private InputParser _inputParser = default!;
-    private InputFormatter _inputFormatter = default!;
+    private Func<object?[], object> _createInstance = default!;
+    private Action<object, object?[]> _getFieldValues = default!;
 
     protected DirectiveType()
         => _configure = Configure;
@@ -112,7 +109,7 @@ public class DirectiveType
     /// <summary>
     /// Gets the directive arguments.
     /// </summary>
-    public FieldCollection<Argument> Arguments { get; private set; } = default!;
+    public FieldCollection<DirectiveArgument> Arguments { get; private set; } = default!;
 
     /// <summary>
     /// Defines that this directive can be used in executable GraphQL documents.
@@ -197,14 +194,13 @@ public class DirectiveType
     {
         base.OnCompleteType(context, definition);
 
-        _converter = context.Services.GetTypeConverter();
-        _inputFormatter = context.DescriptorContext.InputFormatter;
-        _inputParser = context.DescriptorContext.InputParser;
-
         SyntaxNode = definition.SyntaxNode;
         Locations = definition.GetLocations().ToList().AsReadOnly();
         Arguments = OnCompleteFields(context, definition);
         IsPublic = definition.IsPublic;
+
+        _createInstance = OnCompleteCreateInstance(context, definition);
+        _getFieldValues = OnCompleteGetFieldValues(context, definition);
 
         if (Locations.Count == 0)
         {
@@ -224,65 +220,89 @@ public class DirectiveType
         IsTypeSystemDirective = _typeSystemLocations.Overlaps(Locations);
     }
 
-    protected virtual FieldCollection<Argument> OnCompleteFields(
+    protected virtual FieldCollection<DirectiveArgument> OnCompleteFields(
         ITypeCompletionContext context,
         DirectiveTypeDefinition definition)
     {
         return CompleteFields(context, this, definition.GetArguments(), CreateArgument);
-        static Argument CreateArgument(DirectiveArgumentDefinition argDef, int index)
+        static DirectiveArgument CreateArgument(DirectiveArgumentDefinition argDef, int index)
             => new(argDef, index);
     }
 
-    internal T Parse<T>(DirectiveNode syntaxNode)
+    protected virtual Func<object?[], object> OnCompleteCreateInstance(
+        ITypeCompletionContext context,
+        DirectiveTypeDefinition definition)
     {
+        Func<object?[], object>? createInstance = null;
 
+        if (definition.CreateInstance is not null)
+        {
+            createInstance = definition.CreateInstance;
+        }
+
+        if (RuntimeType == typeof(object) || Arguments.Any(t => t.Property is null))
+        {
+            createInstance ??= CreateDictionaryInstance;
+        }
+        else
+        {
+            createInstance ??= CompileFactory(this);
+        }
+
+        return createInstance;
     }
 
-    internal DirectiveNode Format(object runtimeValue)
+    protected virtual Action<object, object?[]> OnCompleteGetFieldValues(
+        ITypeCompletionContext context,
+        DirectiveTypeDefinition definition)
     {
-        Arguments[0].DeclaringMember.
+        Action<object, object?[]>? getFieldValues = null;
+
+        if (definition.GetFieldData is not null)
+        {
+            getFieldValues = definition.GetFieldData;
+        }
+
+        if (RuntimeType == typeof(object) || Arguments.Any(t => t.Property is null))
+        {
+            getFieldValues ??= CreateDictionaryGetValues;
+        }
+        else
+        {
+            getFieldValues ??= CompileGetFieldValues(this);
+        }
+
+        return getFieldValues;
     }
 
-    internal IValueNode FormatArgumentValue(Argument argument, object? obj)
+    internal object CreateInstance(object?[] fieldValues)
+        => _createInstance(fieldValues);
+
+    internal void GetFieldValues(object runtimeValue, object?[] fieldValues)
+        => _getFieldValues(runtimeValue, fieldValues);
+
+    private object CreateDictionaryInstance(object?[] fieldValues)
     {
-        if (argument is null)
+        var dictionary = new Dictionary<string, object?>();
+
+        foreach (var field in Arguments.AsSpan())
         {
-            throw new ArgumentNullException(nameof(argument));
+            dictionary.Add(field.Name, fieldValues[field.Index]);
         }
 
-        var path = PathFactory.Instance.New(argument.Name);
-        return _inputFormatter.FormatValue(obj, argument.Type, path);
+        return dictionary;
     }
 
-    internal object? ParseArgumentValue(Argument argument, IValueNode literal, Type target)
+    private void CreateDictionaryGetValues(object obj, object?[] fieldValues)
     {
-        if (argument is null)
+        var map = (Dictionary<string, object?>)obj;
+
+        foreach (var field in Arguments.AsSpan())
         {
-            throw new ArgumentNullException(nameof(argument));
+            if (map.TryGetValue(field.Name, out var val))
+            {
+                fieldValues[field.Index] = val;
+            }
         }
-
-        if (literal is null)
-        {
-            throw new ArgumentNullException(nameof(literal));
-        }
-
-        var obj = _inputParser.ParseLiteral(literal, argument);
-
-        if (target.IsInstanceOfType(obj))
-        {
-            return obj;
-        }
-
-        if (_converter.TryConvert(typeof(object), target, obj, out var o))
-        {
-            return o;
-        }
-
-        throw new ArgumentException(
-            TypeResources.DirectiveType_UnableToConvert,
-            nameof(target));
     }
-
-    internal T ParseArgumentValue<T>(Argument argument, IValueNode literal)
-        => (T)ParseArgumentValue(argument, literal, typeof(T))!;
 }

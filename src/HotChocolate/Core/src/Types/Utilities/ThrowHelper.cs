@@ -203,7 +203,7 @@ internal static class ThrowHelper
                 .Build());
 
     public static SerializationException RequiredInputFieldIsMissing(
-        InputField field,
+        IInputField field,
         Path fieldPath)
         => new SerializationException(
             ErrorBuilder.New()

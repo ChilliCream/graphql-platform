@@ -82,6 +82,9 @@
     <Compile Update="Schema.Initialization.cs">
       <DependentUpon>Schema.cs</DependentUpon>
     </Compile>
+    <Compile Update="Types\InputObjectType.Initialization.cs">
+      <DependentUpon>InputObjectType.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

@@ -679,6 +679,54 @@ public class InputParser
             : value;
     }
 
+    private object? CreateDefaultValue(DirectiveArgument field, Path path, int stack)
+    {
+        object? value;
+
+        if (field.DefaultValue is null || field.DefaultValue.Kind == SyntaxKind.NullValue)
+        {
+            if (field.Type.Kind == TypeKind.NonNull)
+            {
+                throw RequiredInputFieldIsMissing(field, path);
+            }
+
+            value = null;
+
+            // if the type is nullable but the runtime type is a non-nullable value
+            // we will create a default instance and assign that instead.
+            if (field.RuntimeType.IsValueType)
+            {
+                value = Activator.CreateInstance(field.RuntimeType);
+            }
+
+            return field.IsOptional
+                ? new Optional(value, false)
+                : value;
+        }
+
+        try
+        {
+            value = ParseLiteralInternal(
+                field.DefaultValue,
+                field.Type,
+                path,
+                stack,
+                false,
+                field);
+        }
+        catch (SerializationException ex)
+        {
+            throw new SerializationException(ex.Errors[0].WithPath(path), ex.Type, path);
+        }
+
+        value = FormatValue(field, value);
+        value = ConvertValue(field.RuntimeType, value);
+
+        return field.IsOptional
+            ? new Optional(value, false)
+            : value;
+    }
+
     private object? FormatValue(IInputFieldInfo field, object? value)
     {
         return field.Formatter is null || value is null

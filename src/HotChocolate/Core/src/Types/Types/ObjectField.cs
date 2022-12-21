@@ -17,7 +17,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Represents a field of an <see cref="ObjectType"/>.
 /// </summary>
-public class ObjectField
+public sealed class ObjectField
     : OutputFieldBase<ObjectFieldDefinition>
     , IObjectField
 {
