@@ -4,31 +4,33 @@ public class RangeOperation<T> : ILeafSearchOperation
 {
     public RangeOperation(
         string path,
-        ElasticSearchOperationKind kind,
-        T? greaterThan,
-        T? lowerThan,
-        T? greaterThanOrEquals,
-        T? lowerThanOrEquals)
+        ElasticSearchOperationKind kind)
     {
         Path = path;
-        GreaterThan = greaterThan;
-        LowerThan = lowerThan;
-        GreaterThanOrEquals = greaterThanOrEquals;
-        LowerThanOrEquals = lowerThanOrEquals;
         Kind = kind;
     }
 
     public string Path { get; }
 
-    public T? GreaterThan { get; }
+    public RangeOperationValue<T>? GreaterThan { get; init; }
 
-    public T? LowerThan { get; }
+    public RangeOperationValue<T>? LowerThan { get; init; }
 
-    public T? GreaterThanOrEquals { get; }
+    public RangeOperationValue<T>? GreaterThanOrEquals { get; init; }
 
-    public T? LowerThanOrEquals { get; }
+    public RangeOperationValue<T>? LowerThanOrEquals { get; init;}
 
     public ElasticSearchOperationKind Kind { get; }
+}
+
+public class RangeOperationValue<T>
+{
+    public RangeOperationValue(T value)
+    {
+        Value = value;
+    }
+
+    public T Value { get; }
 }
 
 

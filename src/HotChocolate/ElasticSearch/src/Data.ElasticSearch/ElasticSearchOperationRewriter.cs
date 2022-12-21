@@ -66,10 +66,10 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
         return new NumericRangeQuery
         {
             Field = operation.Path,
-            GreaterThan = operation.GreaterThan,
-            LessThan = operation.LowerThan,
-            GreaterThanOrEqualTo = operation.GreaterThanOrEquals,
-            LessThanOrEqualTo = operation.LowerThanOrEquals
+            GreaterThan = operation.GreaterThan?.Value,
+            LessThan = operation.LowerThan?.Value,
+            GreaterThanOrEqualTo = operation.GreaterThanOrEquals?.Value,
+            LessThanOrEqualTo = operation.LowerThanOrEquals?.Value
         };
     }
 
@@ -79,10 +79,10 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
         return new LongRangeQuery
         {
             Field = operation.Path,
-            GreaterThan = operation.GreaterThan,
-            LessThan = operation.LowerThan,
-            GreaterThanOrEqualTo = operation.GreaterThanOrEquals,
-            LessThanOrEqualTo = operation.LowerThanOrEquals
+            GreaterThan = operation.GreaterThan?.Value,
+            LessThan = operation.LowerThan?.Value,
+            GreaterThanOrEqualTo = operation.GreaterThanOrEquals?.Value,
+            LessThanOrEqualTo = operation.LowerThanOrEquals?.Value
         };
     }
 
@@ -92,10 +92,10 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
         return new TermRangeQuery
         {
             Field = operation.Path,
-            GreaterThan = operation.GreaterThan,
-            LessThan = operation.LowerThan,
-            GreaterThanOrEqualTo = operation.GreaterThanOrEquals,
-            LessThanOrEqualTo = operation.LowerThanOrEquals
+            GreaterThan = operation.GreaterThan?.Value,
+            LessThan = operation.LowerThan?.Value,
+            GreaterThanOrEqualTo = operation.GreaterThanOrEquals?.Value,
+            LessThanOrEqualTo = operation.LowerThanOrEquals?.Value
         };
     }
 
@@ -105,10 +105,10 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
         return new DateRangeQuery
         {
             Field = operation.Path,
-            GreaterThan = operation.GreaterThan,
-            LessThan = operation.LowerThan,
-            GreaterThanOrEqualTo = operation.GreaterThanOrEquals,
-            LessThanOrEqualTo = operation.LowerThanOrEquals
+            GreaterThan = operation.GreaterThan?.Value,
+            LessThan = operation.LowerThan?.Value,
+            GreaterThanOrEqualTo = operation.GreaterThanOrEquals?.Value,
+            LessThanOrEqualTo = operation.LowerThanOrEquals?.Value
         };
     }
 
