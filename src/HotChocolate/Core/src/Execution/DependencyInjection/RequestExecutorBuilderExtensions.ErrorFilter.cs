@@ -57,11 +57,10 @@ public static partial class RequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        builder.Services.TryAddTransient<T>();
-        return builder.ConfigureSchemaServices(s
-            => s.AddSingleton<T>()
-                .AddSingleton<IErrorFilter, T>(sp
-                    => sp.GetCombinedServices().GetRequiredService<T>()));
+        builder.Services.TryAddSingleton<T>();
+        return builder.ConfigureSchemaServices(
+            s => s.AddSingleton<IErrorFilter, T>(
+                sp => sp.GetApplicationService<T>()));
     }
 
     public static IServiceCollection AddErrorFilter(

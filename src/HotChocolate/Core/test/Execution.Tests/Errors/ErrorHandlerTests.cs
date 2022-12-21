@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Tests;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Execution.Errors;
 
@@ -33,15 +32,15 @@ public class ErrorHandlerTests
                 .AddDocumentFromString("type Query { foo: String bar: String }")
                 .AddResolver("Query", "foo", _ => throw new Exception("Foo"))
                 .AddResolver("Query", "bar", _ => throw new NullReferenceException("Foo"))
-                .AddErrorFilter(error =>
-                {
-                    if (error.Exception is NullReferenceException)
+                .AddErrorFilter(
+                    error =>
                     {
-                        return error.WithCode("NullRef");
-                    }
-                    return error;
-                }),
-
+                        if (error.Exception is NullReferenceException)
+                        {
+                            return error.WithCode("NullRef");
+                        }
+                        return error;
+                    }),
             expectedErrorCount: 2);
     }
 
@@ -76,39 +75,28 @@ public class ErrorHandlerTests
         resp.MatchSnapshot();
     }
 
-        [Fact]
-        public async Task AddClassErrorFilterUsingDI_SchemaBuiltViaServiceExtensions_ErrorFilterWorks()
-        {
-            // arrange
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<SomeService>();
-            IRequestExecutor schema = await serviceCollection
-                .AddGraphQLServer()
-                .AddErrorFilter<DummyErrorFilterWithDependency>()
-                .AddQueryType<Query>()
-                .BuildRequestExecutorAsync();
-
-            // act
-            IExecutionResult resp = await schema.ExecuteAsync("{ foo }");
-
-            // assert
-            resp.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task AddClassErrorFilterWithFactory()
-        {
-            Snapshot.FullName();
-            await ExpectError(
-                "{ foo }",
-                b => b
-                    .AddDocumentFromString("type Query { foo: String }")
-                    .AddResolver("Query", "foo", _ => throw new Exception("Foo"))
-                    .Services
-                    .AddErrorFilter(_ => new DummyErrorFilter()));
-        }
     [Fact]
-    public async Task AddClassErrorFilterUsingFactory_SchemaBuiltViaServiceExtensions_ErrorFilterWorks()
+    public async Task AddClassErrorFilterUsingDI_SchemaBuiltViaServiceExtensions_ErrorFilterWorks()
+    {
+        // arrange
+        var serviceCollection = new ServiceCollection();
+        serviceCollection.AddSingleton<SomeService>();
+        var schema = await serviceCollection
+            .AddGraphQLServer()
+            .AddErrorFilter<DummyErrorFilterWithDependency>()
+            .AddQueryType<Query>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var resp = await schema.ExecuteAsync("{ foo }");
+
+        // assert
+        resp.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task
+        AddClassErrorFilterUsingFactory_SchemaBuiltViaServiceExtensions_ErrorFilterWorks()
     {
         // arrange
         var serviceCollection = new ServiceCollection();
@@ -161,11 +149,14 @@ public class ErrorHandlerTests
             "{ foo }",
             b => b
                 .AddDocumentFromString("type Query { foo: String }")
-                .AddResolver("Query", "foo", ctx =>
-                {
-                    ctx.ReportError(new AggregateError(new Error("abc"), new Error("def")));
-                    return "Hello";
-                }),
+                .AddResolver(
+                    "Query",
+                    "foo",
+                    ctx =>
+                    {
+                        ctx.ReportError(new AggregateError(new Error("abc"), new Error("def")));
+                        return "Hello";
+                    }),
             expectedErrorCount: 2);
     }
 
@@ -181,11 +172,12 @@ public class ErrorHandlerTests
             b =>
             {
                 configure(b);
-                b.AddErrorFilter(error =>
-                {
-                    errors++;
-                    return error;
-                });
+                b.AddErrorFilter(
+                    error =>
+                    {
+                        errors++;
+                        return error;
+                    });
             });
 
         Assert.Equal(expectedErrorCount, errors);
@@ -199,24 +191,22 @@ public class ErrorHandlerTests
         }
     }
 
-        public class DummyErrorFilterWithDependency : IErrorFilter
+    public class DummyErrorFilterWithDependency : IErrorFilter
+    {
+        private readonly SomeService _service;
+
+        public DummyErrorFilterWithDependency(SomeService service)
         {
-            private readonly SomeService _service;
-
-            public DummyErrorFilterWithDependency(SomeService service)
-            {
-                _service = service;
-            }
-
-            public IError OnError(IError error)
-            {
-                return error.WithCode("Foo123");
-            }
+            _service = service;
         }
 
-        public class SomeService
+        public IError OnError(IError error)
         {
+            return error.WithCode("Foo123");
         }
+    }
+
+    public class SomeService { }
 
     public class AggregateErrorFilter : IErrorFilter
     {
