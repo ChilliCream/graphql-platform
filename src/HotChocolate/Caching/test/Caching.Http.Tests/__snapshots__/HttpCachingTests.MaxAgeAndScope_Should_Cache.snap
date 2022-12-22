@@ -11,7 +11,7 @@
     {
       "Key": "Content-Type",
       "Value": [
-        "application/json; charset=utf-8"
+        "application/graphql-response+json; charset=utf-8"
       ]
     }
   ],

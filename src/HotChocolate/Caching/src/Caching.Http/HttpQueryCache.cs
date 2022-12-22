@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Microsoft.AspNetCore.Http;
+using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Caching.Http;
 
@@ -29,8 +30,14 @@ public class HttpQueryCache : QueryCache
         var headerValue = string.Format(_cacheControlValueTemplate,
             cacheType, constraints.MaxAge);
 
-        context.ContextData.Add(HotChocolate.WellKnownContextData.CacheControlHeaderValue,
-            headerValue);
+        var queryResult = context.Result?.ExpectQueryResult();
+
+        if (queryResult is not null)
+        {
+            context.Result = QueryResultBuilder.FromResult(queryResult)
+                .SetContextData(CacheControlHeaderValue, headerValue)
+                .Create();
+        }
 
         return ValueTask.CompletedTask;
     }
