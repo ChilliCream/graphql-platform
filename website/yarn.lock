@@ -8139,7 +8139,8 @@ __metadata:
     gatsby: ^3.6.2
     gatsby-plugin-disqus: ^1.2.2
     gatsby-plugin-feed: ^3.6.0
-    gatsby-plugin-google-analytics: ^3.6.0
+    gatsby-plugin-google-analytics: ^5.3.0
+    gatsby-plugin-google-tagmanager: ^5.3.1
     gatsby-plugin-graphql-codegen: ^3.0.0
     gatsby-plugin-image: ^1.6.0
     gatsby-plugin-manifest: ^3.6.0
@@ -12739,18 +12740,32 @@ __metadata:
   languageName: node
   linkType: hard
 
-"gatsby-plugin-google-analytics@npm:^3.6.0":
-  version: 3.14.0
-  resolution: "gatsby-plugin-google-analytics@npm:3.14.0"
+"gatsby-plugin-google-analytics@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "gatsby-plugin-google-analytics@npm:5.3.0"
   dependencies:
     "@babel/runtime": ^7.15.4
-    minimatch: 3.0.4
+    minimatch: ^3.1.2
     web-vitals: ^1.1.2
   peerDependencies:
-    gatsby: ^3.0.0-next.0
-    react: ^16.9.0 || ^17.0.0
-    react-dom: ^16.9.0 || ^17.0.0
-  checksum: 5ed3c1ff69f1711af1e601f924bd6a210a4a8c222cacf9ad3e42038cce5207f0f8d53ba5e75059dd951e636372a777749d968e26976684131734d39ae1d26762
+    gatsby: ^5.0.0-next
+    react: ^18.0.0 || ^0.0.0
+    react-dom: ^18.0.0 || ^0.0.0
+  checksum: 037192c53525a89383e7680c5d9ad5b4359bf020add460ba863dcba5227a7a090d812cac6c7f0076e1aac38aa06f784e86baa7654a7afbc239612482a7482ff9
+  languageName: node
+  linkType: hard
+
+"gatsby-plugin-google-tagmanager@npm:^5.3.1":
+  version: 5.3.1
+  resolution: "gatsby-plugin-google-tagmanager@npm:5.3.1"
+  dependencies:
+    "@babel/runtime": ^7.15.4
+    web-vitals: ^1.1.2
+  peerDependencies:
+    gatsby: ^5.0.0-next
+    react: ^18.0.0 || ^0.0.0
+    react-dom: ^18.0.0 || ^0.0.0
+  checksum: 86e1f9aac02729c54e643f22fc14f4f06ea5c26ca4ca3e3b6b0775a3e085843633a68b336a5f5110a0db2923bb54e65b09a04b0817a27963adf07b4086baff8d
   languageName: node
   linkType: hard
 
