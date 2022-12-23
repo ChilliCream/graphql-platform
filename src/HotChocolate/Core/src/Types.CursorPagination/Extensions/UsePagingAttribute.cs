@@ -21,7 +21,7 @@ public sealed class UsePagingAttribute : DescriptorAttribute
     private bool? _inferConnectionNameFromField;
 
     /// <summary>
-    /// Applies the offset paging middleware to the annotated property.
+    /// Applies the cursor paging middleware to the annotated property.
     /// </summary>
     /// <param name="type">
     /// The schema type representing the item type.
