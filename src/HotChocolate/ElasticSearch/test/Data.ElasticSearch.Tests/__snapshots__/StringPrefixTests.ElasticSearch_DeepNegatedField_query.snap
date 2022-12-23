@@ -6,9 +6,9 @@
           "bool": {
             "must_not": [
               {
-                "prefix": {
+                "wildcard": {
                   "baz.bar": {
-                    "value": "he"
+                    "wildcard": "he*"
                   }
                 }
               }

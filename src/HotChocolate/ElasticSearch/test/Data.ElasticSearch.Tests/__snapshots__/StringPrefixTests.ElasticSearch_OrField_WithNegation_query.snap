@@ -6,9 +6,9 @@
           "bool": {
             "should": [
               {
-                "prefix": {
+                "wildcard": {
                   "bar": {
-                    "value": "th"
+                    "wildcard": "th*"
                   }
                 }
               },
@@ -16,9 +16,9 @@
                 "bool": {
                   "must_not": [
                     {
-                      "prefix": {
+                      "wildcard": {
                         "bar": {
-                          "value": "I"
+                          "wildcard": "I*"
                         }
                       }
                     }

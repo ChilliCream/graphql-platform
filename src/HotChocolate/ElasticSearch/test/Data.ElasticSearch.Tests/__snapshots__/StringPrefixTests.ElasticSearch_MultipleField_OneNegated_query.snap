@@ -6,18 +6,18 @@
           "bool": {
             "must": [
               {
-                "prefix": {
+                "wildcard": {
                   "qux": {
-                    "value": "do"
+                    "wildcard": "do*"
                   }
                 }
               }
             ],
             "must_not": [
               {
-                "prefix": {
+                "wildcard": {
                   "bar": {
-                    "value": "th"
+                    "wildcard": "th*"
                   }
                 }
               }

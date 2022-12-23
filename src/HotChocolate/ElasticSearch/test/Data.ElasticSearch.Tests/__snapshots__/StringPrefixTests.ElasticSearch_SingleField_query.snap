@@ -3,9 +3,9 @@
     "bool": {
       "filter": [
         {
-          "prefix": {
+          "wildcard": {
             "bar": {
-              "value": "th"
+              "wildcard": "th*"
             }
           }
         }
