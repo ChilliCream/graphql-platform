@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Filtering_MartenQueryableCombinator_InvalidCombinator" xml:space="preserve">
+    <value>MartenQueryableCombinator {0} could not combine expression. {1} is an invalid combinator.</value>
+  </data>
+  <data name="ErrorHelper_CreateNonNullError" xml:space="preserve">
+    <value>The provided value for filter `{0}` of type {1} is invalid. Null values are not supported.</value>
+  </data>
+  <data name="Sorting_InvalidState_ParentIsNoFieldSelector" xml:space="preserve">
+    <value>Sorting is in a invalid state. The parent was no sort field selector. This error occured on {0}.{1}: {2}</value>
+  </data>
+  <data name="QueryableSorting_ExpressionParameterInvalid" xml:space="preserve">
+    <value>Sorting needs a expression with exactly one parameter of type {0}! This error occured on {1}.{2}: {3}</value>
+  </data>
+  <data name="QueryableSorting_MemberInvalid" xml:space="preserve">
+    <value>Sorting needs a member of type PropertyInfo or MethodInfo but received {0}! This error occured on {1}.{2}: {3}</value>
+  </data>
+  <data name="QueryableSorting_NoMemberDeclared" xml:space="preserve">
+    <value>Sorting needs a member of type PropertyInfo or MethodInfo no member was found! This error occured on {0}.{1}: {2}</value>
+  </data>
+  <data name="Filtering_CouldNotParseValue" xml:space="preserve">
+    <value>The {0} could not parse the value of the filter. The value was {1}. The expected type was {2}. This error occured on {3}.{4}: {5}</value>
+  </data>
+</root>

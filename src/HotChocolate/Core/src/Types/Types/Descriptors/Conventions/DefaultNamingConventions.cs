@@ -30,7 +30,7 @@ public class DefaultNamingConventions
     protected IDocumentationProvider DocumentationProvider => _documentation;
 
     /// <inheritdoc />
-    public virtual NameString GetTypeName(Type type)
+    public virtual string GetTypeName(Type type)
     {
         if (type is null)
         {
@@ -46,14 +46,14 @@ public class DefaultNamingConventions
     }
 
     /// <inheritdoc />
-    public virtual NameString GetTypeName(Type type, TypeKind kind)
+    public virtual string GetTypeName(Type type, TypeKind kind)
     {
         if (type is null)
         {
             throw new ArgumentNullException(nameof(type));
         }
 
-        string name = type.GetGraphQLName();
+        var name = type.GetGraphQLName();
 
         if (kind == TypeKind.InputObject)
         {
@@ -99,7 +99,7 @@ public class DefaultNamingConventions
     }
 
     /// <inheritdoc />
-    public virtual NameString GetMemberName(
+    public virtual string GetMemberName(
         MemberInfo member,
         MemberKind kind)
     {
@@ -132,7 +132,7 @@ public class DefaultNamingConventions
     }
 
     /// <inheritdoc />
-    public virtual NameString GetArgumentName(ParameterInfo parameter)
+    public virtual string GetArgumentName(ParameterInfo parameter)
     {
         if (parameter is null)
         {
@@ -160,18 +160,18 @@ public class DefaultNamingConventions
     }
 
     /// <inheritdoc />
-    public virtual unsafe NameString GetEnumValueName(object value)
+    public virtual unsafe string GetEnumValueName(object value)
     {
         if (value is null)
         {
             throw new ArgumentNullException(nameof(value));
         }
 
-        Type enumType = value.GetType();
+        var enumType = value.GetType();
 
         if (enumType.IsEnum)
         {
-            MemberInfo? enumMember = enumType
+            var enumMember = enumType
                 .GetMember(value.ToString()!)
                 .FirstOrDefault();
 
@@ -183,7 +183,7 @@ public class DefaultNamingConventions
         }
 
         var underscores = 0;
-        ReadOnlySpan<char> name = value.ToString().AsSpan();
+        var name = value.ToString().AsSpan();
 
         if (name.Length == 1)
         {
@@ -225,7 +225,7 @@ public class DefaultNamingConventions
 
         var size = underscores + name.Length;
         char[]? rented = null;
-        Span<char> buffer = size <= 128
+        var buffer = size <= 128
             ? stackalloc char[size]
             : rented = ArrayPool<char>.Shared.Rent(size);
 
@@ -234,7 +234,7 @@ public class DefaultNamingConventions
             var p = 0;
             buffer[p++] = char.ToUpper(name[0]);
 
-            bool lastWasUnderline = false;
+            var lastWasUnderline = false;
             for (var i = 1; i < name.Length; i++)
             {
                 if (!lastWasUnderline &&
@@ -270,10 +270,10 @@ public class DefaultNamingConventions
             throw new ArgumentNullException(nameof(value));
         }
 
-        Type enumType = value.GetType();
+        var enumType = value.GetType();
         if (enumType.IsEnum)
         {
-            MemberInfo? enumMember = enumType
+            var enumMember = enumType
                 .GetMember(value.ToString()!)
                 .FirstOrDefault();
 
@@ -308,11 +308,11 @@ public class DefaultNamingConventions
             throw new ArgumentNullException(nameof(value));
         }
 
-        Type enumType = value.GetType();
+        var enumType = value.GetType();
 
         if (enumType.IsEnum)
         {
-            MemberInfo? enumMember = enumType
+            var enumMember = enumType
                 .GetMember(value.ToString()!)
                 .FirstOrDefault();
 
@@ -332,7 +332,7 @@ public class DefaultNamingConventions
     }
 
     /// <inheritdoc />
-    public NameString FormatFieldName(string fieldName)
+    public string FormatFieldName(string fieldName)
     {
         if (string.IsNullOrEmpty(fieldName))
         {

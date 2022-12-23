@@ -2,9 +2,10 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 using static HotChocolate.Data.Filters.Expressions.QueryableFilterProvider;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Data.Projections.Handlers;
 
-public class QueryableFilterProjectionOptimizer : IProjectionOptimizer
+public sealed class QueryableFilterProjectionOptimizer : IProjectionOptimizer
 {
     public bool CanHandle(ISelection field) =>
         field.Field.Member is { } &&
@@ -12,10 +13,10 @@ public class QueryableFilterProjectionOptimizer : IProjectionOptimizer
         field.Field.ContextData.ContainsKey(ContextArgumentNameKey);
 
     public Selection RewriteSelection(
-        SelectionOptimizerContext context,
+        SelectionSetOptimizerContext context,
         Selection selection)
     {
-        FieldDelegate resolverPipeline =
+        var resolverPipeline =
             selection.ResolverPipeline ??
             context.CompileResolverPipeline(selection.Field, selection.SyntaxNode);
 
@@ -31,16 +32,8 @@ public class QueryableFilterProjectionOptimizer : IProjectionOptimizer
 
         resolverPipeline = WrappedPipeline(resolverPipeline);
 
-        var compiledSelection = new Selection(
-            context.GetNextId(),
-            context.Type,
-            selection.Field,
-            selection.SyntaxNode,
-            resolverPipeline,
-            arguments: selection.Arguments,
-            internalSelection: false);
+        context.SetResolver(selection, resolverPipeline);
 
-        context.Fields[compiledSelection.ResponseName] = compiledSelection;
-        return compiledSelection;
+        return selection;
     }
 }

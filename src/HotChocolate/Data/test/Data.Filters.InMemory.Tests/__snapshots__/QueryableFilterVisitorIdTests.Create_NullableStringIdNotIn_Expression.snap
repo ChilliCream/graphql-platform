@@ -1,0 +1,41 @@
+testatestAndtestb
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": null
+      }
+    ]
+  }
+}
+---------------
+
+testbtestAndNull
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "Rm9vTnVsbGFibGUKZHRlc3RhdGVzdA=="
+      }
+    ]
+  }
+}
+---------------
+
+testatest
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "Rm9vTnVsbGFibGUKZHRlc3RidGVzdA=="
+      },
+      {
+        "bar": null
+      }
+    ]
+  }
+}
+---------------

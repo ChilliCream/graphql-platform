@@ -21,7 +21,7 @@ public class EnumParserGenerator : CodeGenerator<EnumTypeDescriptor>
         path = Serialization;
         ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
-        ClassBuilder classBuilder = ClassBuilder
+        var classBuilder = ClassBuilder
             .New(fileName)
             .AddImplements(IInputValueFormatter)
             .AddImplements(ILeafValueParser.WithGeneric(String, descriptor.Name));
@@ -53,7 +53,7 @@ public class EnumParserGenerator : CodeGenerator<EnumTypeDescriptor>
         string serializedValue,
         EnumTypeDescriptor descriptor)
     {
-        SwitchExpressionBuilder switchExpression = SwitchExpressionBuilder
+        var switchExpression = SwitchExpressionBuilder
             .New()
             .SetReturn()
             .SetExpression(serializedValue)
@@ -73,7 +73,7 @@ public class EnumParserGenerator : CodeGenerator<EnumTypeDescriptor>
         string runtimeValue,
         EnumTypeDescriptor descriptor)
     {
-        SwitchExpressionBuilder switchExpression =
+        var switchExpression =
             SwitchExpressionBuilder.New()
                 .SetReturn()
                 .SetExpression(runtimeValue)

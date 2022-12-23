@@ -1,5 +1,4 @@
-using System;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -8,9 +7,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Serializers;
-using MongoDB.Driver;
 using Squadron;
-using Xunit;
 
 namespace HotChocolate.Data.MongoDb.Sorting;
 
@@ -18,14 +15,15 @@ public class MongoDbSortCollectionTests : IClassFixture<MongoResource>
 {
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { Bar = true }, new Foo { Bar = false }
-        };
+        new() { Bar = true },
+        new() { Bar = false }
+    };
 
     private static readonly Bar[] _barEntities =
     {
-            new Bar { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
-            new Bar { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) }
-        };
+        new() { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
+        new() { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) }
+    };
 
     private readonly MongoResource _resource;
 
@@ -38,10 +36,10 @@ public class MongoDbSortCollectionTests : IClassFixture<MongoResource>
     public async Task BsonElement_Rename()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema(
+        var tester = CreateSchema(
             () =>
             {
-                IMongoCollection<Foo> collection =
+                var collection =
                     _resource.CreateCollection<Foo>("data_" + Guid.NewGuid().ToString("N"));
 
                 collection.InsertMany(_fooEntities);
@@ -49,19 +47,22 @@ public class MongoDbSortCollectionTests : IClassFixture<MongoResource>
             });
 
         // act
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { bar: ASC}){ bar}}")
                 .Create());
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { bar: DESC}){ bar}}")
                 .Create());
 
         // assert
-        res1.MatchDocumentSnapshot("ASC");
-        res2.MatchDocumentSnapshot("DESC");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
+            .MatchAsync();
     }
 
     [Fact]
@@ -73,10 +74,10 @@ public class MongoDbSortCollectionTests : IClassFixture<MongoResource>
                 .SetSerializer(new DateTimeOffsetSerializer(BsonType.String))
                 .SetElementName("testName"));
 
-        IRequestExecutor tester = CreateSchema(
+        var tester = CreateSchema(
             () =>
             {
-                IMongoCollection<Bar> collection =
+                var collection =
                     _resource.CreateCollection<Bar>("data_" + Guid.NewGuid().ToString("N"));
 
                 collection.InsertMany(_barEntities);
@@ -84,19 +85,22 @@ public class MongoDbSortCollectionTests : IClassFixture<MongoResource>
             });
 
         // act
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { baz: ASC}){ baz}}")
                 .Create());
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { baz: DESC}){ baz}}")
                 .Create());
 
         // assert
-        res1.MatchDocumentSnapshot("ASC");
-        res2.MatchDocumentSnapshot("DESC");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
+            .MatchAsync();
     }
 
     public class Foo

@@ -12,7 +12,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors.Operations;
 public class SubscriptionOperationDescriptor : OperationDescriptor
 {
     public SubscriptionOperationDescriptor(
-        NameString name,
+        string name,
         string @namespace,
         ITypeDescriptor resultTypeReference,
         IReadOnlyList<PropertyDescriptor> arguments,
@@ -30,6 +30,7 @@ public class SubscriptionOperationDescriptor : OperationDescriptor
             bodyString,
             hashAlgorithm,
             hashValue,
+            false,
             strategy)
     {
     }

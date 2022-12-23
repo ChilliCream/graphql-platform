@@ -2,8 +2,6 @@
 title: "Object Types"
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 The most important type in a GraphQL schema is the object type. It contains fields that can return simple scalars like `String`, `Int`, or again object types.
 
 ```sdl
@@ -83,7 +81,7 @@ public class Startup
 }
 ```
 
-In the above example every `Author` CLR type we return from our resovlers would be assumed to be an `AuthorType`.
+In the above example every `Author` CLR type we return from our resolvers would be assumed to be an `AuthorType`.
 
 We can also create schema object types without a backing POCO.
 

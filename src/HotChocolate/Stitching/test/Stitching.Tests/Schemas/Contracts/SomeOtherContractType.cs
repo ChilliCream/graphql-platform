@@ -6,7 +6,8 @@ namespace HotChocolate.Stitching.Schemas.Contracts;
 
 public class SomeOtherContractType : ObjectType<SomeOtherContract>
 {
-    protected override void Configure(IObjectTypeDescriptor<SomeOtherContract> descriptor)
+    protected override void Configure(
+        IObjectTypeDescriptor<SomeOtherContract> descriptor)
     {
         descriptor
             .ImplementsNode()

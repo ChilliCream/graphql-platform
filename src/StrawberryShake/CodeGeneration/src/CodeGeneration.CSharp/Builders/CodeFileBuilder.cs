@@ -90,7 +90,7 @@ public class CodeFileBuilder : ICodeBuilder
 
         if (_usings.Count > 0)
         {
-            foreach (string u in _usings)
+            foreach (var u in _usings)
             {
                 writer.WriteIndentedLine($"using {u};");
             }
@@ -105,7 +105,7 @@ public class CodeFileBuilder : ICodeBuilder
 
         using (writer.IncreaseIndent())
         {
-            foreach (ITypeBuilder type in _types)
+            foreach (var type in _types)
             {
                 type.Build(writer);
             }

@@ -88,7 +88,7 @@ public sealed class InputValueDefinitionNode : NamedSyntaxNode
             yield return DefaultValue;
         }
 
-        foreach (DirectiveNode directive in Directives)
+        foreach (var directive in Directives)
         {
             yield return directive;
         }

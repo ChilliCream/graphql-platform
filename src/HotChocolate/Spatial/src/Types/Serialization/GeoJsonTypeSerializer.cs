@@ -102,7 +102,7 @@ internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType
         }
 
         if (valueSyntax is EnumValueNode evn &&
-            _nameLookup.TryGetValue(evn.Value, out GeoJsonGeometryType ev))
+            _nameLookup.TryGetValue(evn.Value, out var ev))
         {
             return ev;
         }
@@ -170,12 +170,6 @@ internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType
             return new EnumValueNode(s);
         }
 
-        if (resultValue is NameString n &&
-            _nameLookup.ContainsKey(n.Value))
-        {
-            return new EnumValueNode(n.Value);
-        }
-
         if (resultValue is GeoJsonGeometryType value &&
             _valueLookup.TryGetValue(value, out var name))
         {
@@ -215,14 +209,7 @@ internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType
         }
 
         if (resultValue is string s &&
-            _nameLookup.TryGetValue(s, out GeoJsonGeometryType enumValue))
-        {
-            runtimeValue = enumValue;
-            return true;
-        }
-
-        if (resultValue is NameString { HasValue: true } n &&
-            _nameLookup.TryGetValue(n.Value, out enumValue))
+            _nameLookup.TryGetValue(s, out var enumValue))
         {
             runtimeValue = enumValue;
             return true;

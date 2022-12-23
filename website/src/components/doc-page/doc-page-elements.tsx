@@ -1,5 +1,6 @@
 import styled, { createGlobalStyle } from "styled-components";
-import { IsMobile, IsTablet } from "../../shared-style";
+
+import { IsMobile, IsTablet } from "@/shared-style";
 
 export const MostProminentSection = styled.div``;
 

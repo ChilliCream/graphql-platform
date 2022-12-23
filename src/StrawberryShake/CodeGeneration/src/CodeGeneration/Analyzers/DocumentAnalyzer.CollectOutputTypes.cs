@@ -34,12 +34,12 @@ public partial class DocumentAnalyzer
         IDocumentAnalyzerContext context)
     {
         Queue<FieldSelection> backlog = new();
-        OutputTypeModel root = VisitOperationSelectionSet(context, backlog);
+        var root = VisitOperationSelectionSet(context, backlog);
 
         while (backlog.Any())
         {
-            FieldSelection current = backlog.Dequeue();
-            INamedType namedType = current.Field.Type.NamedType();
+            var current = backlog.Dequeue();
+            var namedType = current.Field.Type.NamedType();
 
             if (namedType.IsLeafType())
             {
@@ -58,7 +58,7 @@ public partial class DocumentAnalyzer
         IDocumentAnalyzerContext context,
         Queue<FieldSelection> backlog)
     {
-        SelectionSetVariants selectionSetVariants =
+        var selectionSetVariants =
             context.CollectFields(
                 context.OperationDefinition.SelectionSet,
                 context.OperationType,
@@ -78,7 +78,7 @@ public partial class DocumentAnalyzer
     {
         var namedType = (INamedOutputType)fieldSelection.Field.Type.NamedType();
 
-        SelectionSetVariants selectionSetVariants =
+        var selectionSetVariants =
             context.CollectFields(
                 fieldSelection.SyntaxNode.SelectionSet!,
                 namedType,
@@ -107,10 +107,10 @@ public partial class DocumentAnalyzer
     {
         var arguments = new List<ArgumentModel>();
 
-        foreach (VariableDefinitionNode variableDefinition in
+        foreach (var variableDefinition in
                  context.OperationDefinition.VariableDefinitions)
         {
-            INamedInputType namedInputType = context.Schema.GetType<INamedInputType>(
+            var namedInputType = context.Schema.GetType<INamedInputType>(
                 variableDefinition.Type.NamedType().Name.Value);
 
             arguments.Add(new ArgumentModel(
@@ -129,16 +129,16 @@ public partial class DocumentAnalyzer
     {
         if (selectionSetVariants.Variants.Count == 0)
         {
-            foreach (FieldSelection fieldSelection in selectionSetVariants.ReturnType.Fields)
+            foreach (var fieldSelection in selectionSetVariants.ReturnType.Fields)
             {
                 backlog.Enqueue(fieldSelection);
             }
         }
         else
         {
-            foreach (SelectionSet selectionSet in selectionSetVariants.Variants)
+            foreach (var selectionSet in selectionSetVariants.Variants)
             {
-                foreach (FieldSelection fieldSelection in selectionSet.Fields)
+                foreach (var fieldSelection in selectionSet.Fields)
                 {
                     backlog.Enqueue(fieldSelection);
                 }

@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
@@ -8,6 +7,7 @@ using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static class InternalSchemaServiceCollectionExtensions
@@ -29,8 +29,7 @@ public static class InternalSchemaServiceCollectionExtensions
     {
         services.TryAddSingleton<IExecutionDiagnosticEvents>(sp =>
         {
-            IExecutionDiagnosticEventListener[] listeners =
-                sp.GetServices<IExecutionDiagnosticEventListener>().ToArray();
+            var listeners = sp.GetServices<IExecutionDiagnosticEventListener>().ToArray();
             return listeners.Length switch
             {
                 0 => new NoopExecutionDiagnosticEvents(),

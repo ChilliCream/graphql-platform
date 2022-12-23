@@ -24,7 +24,7 @@ internal sealed partial class RegisteredType : ITypeDiscoveryContext
 
     public ITypeInspector TypeInspector => DescriptorContext.TypeInspector;
 
-    public ITypeInterceptor TypeInterceptor { get; }
+    public TypeInterceptor TypeInterceptor { get; }
 
     IList<TypeDependency> ITypeDiscoveryContext.Dependencies => Dependencies;
 
@@ -42,8 +42,8 @@ internal sealed partial class RegisteredType : ITypeDiscoveryContext
 
     public bool TryPredictTypeKind(ITypeReference typeRef, out TypeKind kind)
     {
-        if (_typeLookup.TryNormalizeReference(typeRef, out ITypeReference? namedTypeRef) &&
-            _typeRegistry.TryGetType(namedTypeRef, out RegisteredType? registeredType))
+        if (_typeLookup.TryNormalizeReference(typeRef, out var namedTypeRef) &&
+            _typeRegistry.TryGetType(namedTypeRef, out var registeredType))
         {
             switch (registeredType.Type)
             {
@@ -78,7 +78,7 @@ internal sealed partial class RegisteredType : ITypeDiscoveryContext
                     return true;
                 }
 
-                return SchemaTypeResolver.TryInferSchemaTypeKind(r, out kind);
+                return DescriptorContext.TryInferSchemaTypeKind(r, out kind);
 
             case SchemaTypeReference r:
                 kind = GetTypeKindFromSchemaType(TypeInspector.GetType(r.Type.GetType()));

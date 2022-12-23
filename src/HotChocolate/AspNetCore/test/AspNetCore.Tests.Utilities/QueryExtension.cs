@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Mvc;
@@ -15,6 +14,12 @@ public class QueryExtension
     public bool Evict([FromServices] IRequestExecutorResolver executorResolver, ISchema schema)
     {
         executorResolver.EvictRequestExecutor(schema.Name);
+        return true;
+    }
+
+    public async Task<bool> Wait(int m, CancellationToken ct)
+    {
+        await Task.Delay(m, ct);
         return true;
     }
 }

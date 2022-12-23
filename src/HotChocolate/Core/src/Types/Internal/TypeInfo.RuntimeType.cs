@@ -26,8 +26,8 @@ internal sealed partial class TypeInfo
         {
             if (type.Kind != ExtendedTypeKind.Schema)
             {
-                IReadOnlyList<TypeComponent> components =
-                    Decompose(type, cache, out IExtendedType namedType);
+                var components =
+                    Decompose(type, cache, out var namedType);
 
                 typeInfo = new TypeInfo(
                     namedType.Type,
@@ -49,7 +49,7 @@ internal sealed partial class TypeInfo
             out IExtendedType namedType)
         {
             var list = new List<TypeComponent>();
-            IExtendedType? current = type;
+            var current = type;
 
             while (current is not null)
             {
@@ -62,7 +62,7 @@ internal sealed partial class TypeInfo
 
                 if (current.IsArrayOrList)
                 {
-                    IExtendedType rewritten = current.IsNullable
+                    var rewritten = current.IsNullable
                         ? current
                         : ExtendedType.Tools.ChangeNullability(
                             current, new bool?[] { true }, cache);
@@ -72,7 +72,7 @@ internal sealed partial class TypeInfo
                 }
                 else
                 {
-                    IExtendedType rewritten = current.IsNullable
+                    var rewritten = current.IsNullable
                         ? current
                         : ExtendedType.Tools.ChangeNullability(
                             current, new bool?[] { true }, cache);
@@ -89,7 +89,7 @@ internal sealed partial class TypeInfo
         private static IExtendedType RemoveNonEssentialParts(IExtendedType type)
         {
             short i = 0;
-            IExtendedType current = type;
+            var current = type;
 
             while (IsWrapperType(current) || IsTaskType(current) || IsOptional(current))
             {

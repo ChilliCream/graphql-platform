@@ -9,16 +9,16 @@ public interface IInterfaceTypeDescriptor<T>
     : IDescriptor<InterfaceTypeDefinition>
     , IFluent
 {
-    // <summary>
+    /// <summary>
     /// Associates the specified
-    /// <paramref name="interfaceTypeDefinitionNode"/>
+    /// <paramref name="interfaceTypeDefinition"/>
     /// with the <see cref="InterfaceType"/>.
     /// </summary>
     /// <param name="interfaceTypeDefinition">
     /// The <see cref="InterfaceTypeDefinitionNode"/> of a parsed schema.
     /// </param>
     IInterfaceTypeDescriptor<T> SyntaxNode(
-        InterfaceTypeDefinitionNode interfaceTypeDefinitionNode);
+        InterfaceTypeDefinitionNode interfaceTypeDefinition);
 
     /// <summary>
     /// Defines the name of the <see cref="InterfaceType"/>.
@@ -28,7 +28,7 @@ public interface IInterfaceTypeDescriptor<T>
     /// <paramref name="value"/> is <c>null</c> or
     /// <see cref="string.Empty"/>.
     /// </exception>
-    IInterfaceTypeDescriptor<T> Name(NameString value);
+    IInterfaceTypeDescriptor<T> Name(string value);
 
     /// <summary>
     /// Adds explanatory text to the <see cref="InterfaceType"/>
@@ -41,7 +41,7 @@ public interface IInterfaceTypeDescriptor<T>
     /// Specifies an interface that is implemented by the
     /// <see cref="InterfaceType"/>.
     /// </summary>
-    /// <typeparam name="T">The interface type.</typeparam>
+    /// <typeparam name="TInterface">The interface that is being implemented.</typeparam>
     [Obsolete("Use Implements.")]
     IInterfaceTypeDescriptor<T> Interface<TInterface>()
         where TInterface : InterfaceType;
@@ -50,7 +50,7 @@ public interface IInterfaceTypeDescriptor<T>
     /// Specifies an interface that is implemented by the
     /// <see cref="InterfaceType"/>.
     /// </summary>
-    /// <typeparam name="T">The interface type.</typeparam>
+    /// <typeparam name="TInterface">The interface that is being implemented.</typeparam>
     [Obsolete("Use Implements.")]
     IInterfaceTypeDescriptor<T> Interface<TInterface>(TInterface type)
         where TInterface : InterfaceType;
@@ -69,7 +69,7 @@ public interface IInterfaceTypeDescriptor<T>
     /// Specifies an interface that is implemented by the
     /// <see cref="InterfaceType"/>.
     /// </summary>
-    /// <typeparam name="T">The interface type.</typeparam>
+    /// <typeparam name="TInterface">The interface that is being implemented.</typeparam>
     IInterfaceTypeDescriptor<T> Implements<TInterface>()
         where TInterface : InterfaceType;
 
@@ -77,7 +77,7 @@ public interface IInterfaceTypeDescriptor<T>
     /// Specifies an interface that is implemented by the
     /// <see cref="InterfaceType"/>.
     /// </summary>
-    /// <typeparam name="T">The interface type.</typeparam>
+    /// <typeparam name="TInterface">The interface that is being implemented.</typeparam>
     IInterfaceTypeDescriptor<T> Implements<TInterface>(TInterface type)
         where TInterface : InterfaceType;
 
@@ -128,7 +128,7 @@ public interface IInterfaceTypeDescriptor<T>
     IInterfaceFieldDescriptor Field(
         Expression<Func<T, object>> propertyOrMethod);
 
-    IInterfaceFieldDescriptor Field(NameString name);
+    IInterfaceFieldDescriptor Field(string name);
 
     IInterfaceTypeDescriptor<T> Directive<TDirective>(
         TDirective directiveInstance)
@@ -138,6 +138,6 @@ public interface IInterfaceTypeDescriptor<T>
         where TDirective : class, new();
 
     IInterfaceTypeDescriptor<T> Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments);
 }

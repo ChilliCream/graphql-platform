@@ -1,0 +1,44 @@
+  <Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Subscriptions.Nats</PackageId>
+    <AssemblyName>HotChocolate.Subscriptions.Nats</AssemblyName>
+    <RootNamespace>HotChocolate.Subscriptions.Nats</RootNamespace>
+    <Description>Contains a Hot Chocolate GraphQL subscription provider for NATS.</Description>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TargetFrameworks>$(Library2TargetFrameworks)</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Subscriptions.Nats.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
+    <ProjectReference Include="..\Subscriptions\HotChocolate.Subscriptions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AlterNats.Hosting" Version="1.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\NatsResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>NatsResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\NatsResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>NatsResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+</Project>

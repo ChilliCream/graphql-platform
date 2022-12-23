@@ -11,7 +11,8 @@ public interface IInputValueFormatter
 {
     /// <summary>
     /// Is called after the field has deserialized its value.
-    /// If you do not want to handle a value just return the incoming <paramref name="runtimeValue"/>;
+    /// If you do not want to handle a value just return the incoming
+    /// <paramref name="runtimeValue"/>;
     /// otherwise, return the formatted value.
     /// </summary>
     /// <param name="runtimeValue">
@@ -21,5 +22,5 @@ public interface IInputValueFormatter
     /// Returns either the <paramref name="runtimeValue"/> or another value
     /// that represents a formatted version or it.
     /// </returns>
-    object? OnAfterDeserialize(object? runtimeValue);
+    object? Format(object? runtimeValue);
 }

@@ -7,57 +7,53 @@ using HotChocolate.Language;
 namespace HotChocolate.Execution;
 
 /// <summary>
-/// Represents a GraphQL query request.
+/// Representation of a GraphQL request.
 /// </summary>
 public interface IQueryRequest
 {
     /// <summary>
-    /// Gets the GraphQL query document.
+    /// Gets the GraphQL request document.
     /// </summary>
     IQuery? Query { get; }
 
     /// <summary>
-    /// Gets an ID referring to a GraphQL persisted query.
+    /// Gets the GraphQL request document ID.
     /// </summary>
     string? QueryId { get; }
 
     /// <summary>
-    /// Gets the GraphQL query hash.
+    /// Gets GraphQL request document hash.
     /// </summary>
     string? QueryHash { get; }
 
     /// <summary>
-    /// Gets the operation from the GraphQL query that shall be executed.
+    /// A name of an operation in the GraphQL request document that shall be executed;
+    /// or, <c>null</c> if the document only contains a single operation.
     /// </summary>
     string? OperationName { get; }
 
     /// <summary>
-    /// Gets the GraphQL request variables.
+    /// Gets the variable values for the GraphQL request.
     /// </summary>
     IReadOnlyDictionary<string, object?>? VariableValues { get; }
 
     /// <summary>
-    /// Gets the GraphQL operation instance.
-    /// </summary>
-    object? InitialValue { get; }
-
-    /// <summary>
-    /// Gets custom context properties that can be passed into the GraphQL execution. 
-    /// </summary>
-    IReadOnlyDictionary<string, object?>? ContextData { get; }
-
-    /// <summary>
-    /// Gets custom extension properties from the GraphQL request,
+    /// Gets the GraphQL request extension data.
     /// </summary>
     IReadOnlyDictionary<string, object?>? Extensions { get; }
 
     /// <summary>
-    /// Gets the GraphQL request services.
+    /// Gets the initial request state.
+    /// </summary>
+    IReadOnlyDictionary<string, object?>? ContextData { get; }
+
+    /// <summary>
+    /// Gets the services that shall be used while executing the GraphQL request.
     /// </summary>
     IServiceProvider? Services { get; }
 
     /// <summary>
-    /// Specifies the allowed GraphQL operations.
+    /// GraphQL request flags allow to limit the GraphQL executor capabilities.
     /// </summary>
-    OperationType[]? AllowedOperations { get; }
+    GraphQLRequestFlags Flags { get; }
 }

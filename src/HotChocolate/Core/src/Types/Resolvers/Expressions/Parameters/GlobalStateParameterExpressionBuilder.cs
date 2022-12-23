@@ -38,14 +38,14 @@ internal sealed class GlobalStateParameterExpressionBuilder : IParameterExpressi
 
     public Expression Build(ParameterInfo parameter, Expression context)
     {
-        GlobalStateAttribute attribute = parameter.GetCustomAttribute<GlobalStateAttribute>()!;
+        var attribute = parameter.GetCustomAttribute<GlobalStateAttribute>()!;
 
-        ConstantExpression key =
+        var key =
             attribute.Key is null
                 ? Expression.Constant(parameter.Name, typeof(string))
                 : Expression.Constant(attribute.Key, typeof(string));
 
-        MemberExpression contextData = Expression.Property(context, _contextData);
+        var contextData = Expression.Property(context, _contextData);
 
         return IsStateSetter(parameter.ParameterType)
             ? BuildSetter(parameter, key, contextData)
@@ -57,7 +57,7 @@ internal sealed class GlobalStateParameterExpressionBuilder : IParameterExpressi
         ConstantExpression key,
         MemberExpression contextData)
     {
-        MethodInfo setGlobalState =
+        var setGlobalState =
             parameter.ParameterType.IsGenericType
                 ? _setGlobalStateGeneric.MakeGenericMethod(
                     parameter.ParameterType.GetGenericArguments()[0])
@@ -74,7 +74,7 @@ internal sealed class GlobalStateParameterExpressionBuilder : IParameterExpressi
         ConstantExpression key,
         MemberExpression contextData)
     {
-        MethodInfo getGlobalState =
+        var getGlobalState =
             parameter.HasDefaultValue
                 ? _getGlobalStateWithDefault.MakeGenericMethod(parameter.ParameterType)
                 : _getGlobalState.MakeGenericMethod(parameter.ParameterType);

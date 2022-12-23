@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -14,13 +16,16 @@ public class DefinitionBase : IDefinition
     private List<TypeDependency>? _dependencies;
     private List<ITypeSystemMemberConfiguration>? _configurations;
     private ExtensionData? _contextData;
-
-    protected DefinitionBase() { }
+    private string _name = string.Empty;
 
     /// <summary>
     /// Gets or sets the name the type shall have.
     /// </summary>
-    public NameString Name { get; set; }
+    public string Name
+    {
+        get => _name;
+        set => _name = string.Intern(value.EnsureGraphQLName());
+    }
 
     /// <summary>
     /// Gets or sets the description the type shall have.
@@ -36,29 +41,32 @@ public class DefinitionBase : IDefinition
     /// Get access to context data that are copied to the type
     /// and can be used for customizations.
     /// </summary>
-    public virtual ExtensionData ContextData => _contextData ??= new ExtensionData();
+    public virtual ExtensionData ContextData
+        => _contextData ??= new ExtensionData();
 
     /// <summary>
     /// Gets access to additional type dependencies.
     /// </summary>
-    public IList<TypeDependency> Dependencies =>
-        _dependencies ??= new List<TypeDependency>();
+    public IList<TypeDependency> Dependencies
+        => _dependencies ??= new List<TypeDependency>();
 
     /// <summary>
     /// Defines if this type has dependencies.
     /// </summary>
-    public bool HasDependencies => _dependencies is { Count: > 0 };
+    public bool HasDependencies
+        => _dependencies is { Count: > 0 };
 
     /// <summary>
     /// Gets configurations that shall be applied at a later point.
     /// </summary>
-    public IList<ITypeSystemMemberConfiguration> Configurations =>
-        _configurations ??= new List<ITypeSystemMemberConfiguration>();
+    public IList<ITypeSystemMemberConfiguration> Configurations
+        => _configurations ??= new List<ITypeSystemMemberConfiguration>();
 
     /// <summary>
     /// Defines if this type has configurations.
     /// </summary>
-    public bool HasConfigurations => _configurations is { Count: > 0 };
+    public bool HasConfigurations
+        => _configurations is { Count: > 0 };
 
     /// <summary>
     /// Defines whether descriptor attributes have been applied or not.
@@ -99,11 +107,14 @@ public class DefinitionBase : IDefinition
     {
         if (_contextData is null)
         {
-            return ExtensionData.Empty;
+            return ImmutableDictionary<string, object?>.Empty;
         }
 
         return _contextData;
     }
+
+    public void TouchContextData()
+        => _contextData = new ExtensionData();
 
     protected void CopyTo(DefinitionBase target)
     {
@@ -116,7 +127,7 @@ public class DefinitionBase : IDefinition
         {
             target._configurations = new List<ITypeSystemMemberConfiguration>();
 
-            foreach (ITypeSystemMemberConfiguration configuration in _configurations)
+            foreach (var configuration in _configurations)
             {
                 target._configurations.Add(configuration.Copy(target));
             }
@@ -145,7 +156,7 @@ public class DefinitionBase : IDefinition
         {
             target._configurations ??= new List<ITypeSystemMemberConfiguration>();
 
-            foreach (ITypeSystemMemberConfiguration configuration in _configurations)
+            foreach (var configuration in _configurations)
             {
                 target._configurations.Add(configuration.Copy(target));
             }
@@ -154,7 +165,7 @@ public class DefinitionBase : IDefinition
         if (_contextData is not null && _contextData.Count > 0)
         {
             target._contextData ??= new ExtensionData();
-            foreach (KeyValuePair<string, object?> item in _contextData)
+            foreach (var item in _contextData)
             {
                 target._contextData[item.Key] = item.Value;
             }

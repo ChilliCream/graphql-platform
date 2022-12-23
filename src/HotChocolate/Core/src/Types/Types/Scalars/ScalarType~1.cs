@@ -12,7 +12,7 @@ namespace HotChocolate.Types;
 public abstract class ScalarType<TRuntimeType> : ScalarType
 {
     /// <inheritdoc />
-    protected ScalarType(NameString name, BindingBehavior bind = BindingBehavior.Explicit)
+    protected ScalarType(string name, BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)
     {
     }

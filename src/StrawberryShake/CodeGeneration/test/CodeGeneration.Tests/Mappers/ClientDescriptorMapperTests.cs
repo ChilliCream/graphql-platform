@@ -13,7 +13,7 @@ public class ClientDescriptorMapperTests
     public async Task MapClientDescriptor()
     {
         // arrange
-        ClientModel clientModel = await CreateClientModelAsync(
+        var clientModel = await CreateClientModelAsync(
             @"query GetHero {
                 hero(episode: NEW_HOPE) {
                     name

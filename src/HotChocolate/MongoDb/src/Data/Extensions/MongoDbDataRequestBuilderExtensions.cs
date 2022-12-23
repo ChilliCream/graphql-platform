@@ -20,6 +20,7 @@ public static class MongoDbDataRequestBuilderExtensions
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
     /// <param name="name"></param>
+    /// <param name="compatabilityMode">Uses the old behaviour of naming the filters</param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/>.
     /// </returns>
@@ -73,7 +74,7 @@ public static class MongoDbDataRequestBuilderExtensions
         builder
             .BindRuntimeType<ObjectId, StringType>()
 #pragma warning disable CS8622
-                .AddTypeConverter<ObjectId, string>(x => x.ToString())
+            .AddTypeConverter<ObjectId, string>(x => x.ToString())
             .AddTypeConverter<string, ObjectId>(x => new ObjectId(x));
 #pragma warning restore CS8622
 

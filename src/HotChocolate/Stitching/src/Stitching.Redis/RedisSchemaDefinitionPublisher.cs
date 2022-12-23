@@ -1,7 +1,4 @@
-using System.Linq;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Stitching.SchemaDefinitions;
 using StackExchange.Redis;
 
@@ -10,10 +7,10 @@ namespace HotChocolate.Stitching.Redis;
 public class RedisSchemaDefinitionPublisher : ISchemaDefinitionPublisher
 {
     private readonly IConnectionMultiplexer _connection;
-    private readonly NameString _configurationName;
+    private readonly string _configurationName;
 
     public RedisSchemaDefinitionPublisher(
-        NameString configurationName,
+        string configurationName,
         IConnectionMultiplexer connection)
     {
         _connection = connection;
@@ -24,16 +21,16 @@ public class RedisSchemaDefinitionPublisher : ISchemaDefinitionPublisher
         RemoteSchemaDefinition schemaDefinition,
         CancellationToken cancellationToken = default)
     {
-        string key = $"{_configurationName}.{schemaDefinition.Name}";
-        string json = SerializeSchemaDefinition(schemaDefinition);
+        var key = $"{_configurationName}.{schemaDefinition.Name}";
+        var json = SerializeSchemaDefinition(schemaDefinition);
 
-        IDatabase database = _connection.GetDatabase();
+        var database = _connection.GetDatabase();
         await database.StringSetAsync(key, json).ConfigureAwait(false);
-        await database.SetAddAsync(_configurationName.Value, schemaDefinition.Name.Value)
+        await database.SetAddAsync(_configurationName, schemaDefinition.Name)
             .ConfigureAwait(false);
 
-        ISubscriber subscriber = _connection.GetSubscriber();
-        await subscriber.PublishAsync(_configurationName.Value, schemaDefinition.Name.Value)
+        var subscriber = _connection.GetSubscriber();
+        await subscriber.PublishAsync(_configurationName, schemaDefinition.Name)
             .ConfigureAwait(false);
     }
 
@@ -41,7 +38,7 @@ public class RedisSchemaDefinitionPublisher : ISchemaDefinitionPublisher
     {
         var dto = new SchemaDefinitionDto
         {
-            Name = schemaDefinition.Name.Value,
+            Name = schemaDefinition.Name,
             Document = schemaDefinition.Document.ToString(false),
         };
 

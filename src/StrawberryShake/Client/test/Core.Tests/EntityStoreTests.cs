@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Xunit;
 
 namespace StrawberryShake;
 
@@ -19,7 +18,7 @@ public class EntityStoreTests
         IReadOnlyList<MockEntity> updated = Array.Empty<MockEntity>();
         ulong version = 0;
 
-        using IDisposable subscription = entityStore.Watch().Subscribe(update =>
+        using var subscription = entityStore.Watch().Subscribe(update =>
         {
             updated = update.Snapshot.GetEntities<MockEntity>(update.UpdatedEntityIds);
             version = update.Version;

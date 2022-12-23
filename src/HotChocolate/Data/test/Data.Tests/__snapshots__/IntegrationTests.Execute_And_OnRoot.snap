@@ -1,0 +1,191 @@
+Result:
+---------------
+{
+  "data": {
+    "books": {
+      "nodes": [
+        {
+          "title": "BookTitle"
+        }
+      ]
+    }
+  }
+}
+---------------
+
+Schema:
+---------------
+schema {
+  query: DifferentScope
+}
+
+type Author {
+  id: Int!
+  name: String
+  books: [Book!]!
+  publishers: [Publisher!]!
+}
+
+type Book {
+  id: Int!
+  authorId: Int!
+  title: String
+  author: Author
+  publisher: Publisher
+}
+
+"A connection to a list of items."
+type BooksConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [BooksEdge!]
+  "A flattened list of the nodes."
+  nodes: [Book!]
+}
+
+"An edge in a connection."
+type BooksEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Book!
+}
+
+type DifferentScope {
+  books("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: Foo_BookFilterInput order: [Foo_BookSortInput!]): BooksConnection
+}
+
+"Information about pagination in a connection."
+type PageInfo {
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+  "When paginating backwards, the cursor to continue."
+  startCursor: String
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
+}
+
+type Publisher {
+  id: Int!
+  name: String!
+  address: String!
+  zipcode: String!
+  books: [Book!]!
+  authors: [Author!]!
+}
+
+input Foo_AuthorFilterInput {
+  and: [Foo_AuthorFilterInput!]
+  or: [Foo_AuthorFilterInput!]
+  id: Foo_IntOperationFilterInput
+  name: Foo_StringOperationFilterInput
+  books: Foo_ListFilterInputTypeOfBookFilterInput
+  publishers: Foo_ListFilterInputTypeOfPublisherFilterInput
+}
+
+input Foo_AuthorSortInput {
+  id: Foo_SortEnumType
+  name: Foo_SortEnumType
+}
+
+input Foo_BookFilterInput {
+  and: [Foo_BookFilterInput!]
+  or: [Foo_BookFilterInput!]
+  id: Foo_IntOperationFilterInput
+  authorId: Foo_IntOperationFilterInput
+  title: Foo_StringOperationFilterInput
+  author: Foo_AuthorFilterInput
+  publisher: Foo_PublisherFilterInput
+}
+
+input Foo_BookSortInput {
+  id: Foo_SortEnumType
+  authorId: Foo_SortEnumType
+  title: Foo_SortEnumType
+  author: Foo_AuthorSortInput
+  publisher: Foo_PublisherSortInput
+}
+
+input Foo_IntOperationFilterInput {
+  eq: Int
+  neq: Int
+  in: [Int]
+  nin: [Int]
+  gt: Int
+  ngt: Int
+  gte: Int
+  ngte: Int
+  lt: Int
+  nlt: Int
+  lte: Int
+  nlte: Int
+}
+
+input Foo_ListFilterInputTypeOfAuthorFilterInput {
+  all: Foo_AuthorFilterInput
+  none: Foo_AuthorFilterInput
+  some: Foo_AuthorFilterInput
+  any: Boolean
+}
+
+input Foo_ListFilterInputTypeOfBookFilterInput {
+  all: Foo_BookFilterInput
+  none: Foo_BookFilterInput
+  some: Foo_BookFilterInput
+  any: Boolean
+}
+
+input Foo_ListFilterInputTypeOfPublisherFilterInput {
+  all: Foo_PublisherFilterInput
+  none: Foo_PublisherFilterInput
+  some: Foo_PublisherFilterInput
+  any: Boolean
+}
+
+input Foo_PublisherFilterInput {
+  and: [Foo_PublisherFilterInput!]
+  or: [Foo_PublisherFilterInput!]
+  id: Foo_IntOperationFilterInput
+  name: Foo_StringOperationFilterInput
+  address: Foo_StringOperationFilterInput
+  zipcode: Foo_StringOperationFilterInput
+  books: Foo_ListFilterInputTypeOfBookFilterInput
+  authors: Foo_ListFilterInputTypeOfAuthorFilterInput
+}
+
+input Foo_PublisherSortInput {
+  id: Foo_SortEnumType
+  name: Foo_SortEnumType
+  address: Foo_SortEnumType
+  zipcode: Foo_SortEnumType
+}
+
+input Foo_StringOperationFilterInput {
+  and: [Foo_StringOperationFilterInput!]
+  or: [Foo_StringOperationFilterInput!]
+  eq: String
+  neq: String
+  contains: String
+  ncontains: String
+  in: [String]
+  nin: [String]
+  startsWith: String
+  nstartsWith: String
+  endsWith: String
+  nendsWith: String
+}
+
+enum Foo_SortEnumType {
+  ASC
+  DESC
+}
+
+"The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
+directive @defer("If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to." label: String "Deferred when true." if: Boolean) on FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"The `@stream` directive may be provided for a field of `List` type so that the backend can leverage technology such as asynchronous iterators to provide a partial list in the initial response, and additional list items in subsequent responses. `@include` and `@skip` take precedence over `@stream`."
+directive @stream("If this argument label has a value other than null, it will be passed on to the result of this stream directive. This label is intended to give client applications a way to identify to which fragment a streamed result belongs to." label: String "The initial elements that shall be send down to the consumer." initialCount: Int! = 0 "Streamed when true." if: Boolean) on FIELD
+---------------

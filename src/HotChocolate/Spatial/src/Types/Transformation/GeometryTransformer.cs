@@ -18,7 +18,7 @@ internal class GeometryTransformer
     /// <inheritdoc />
     public void TransformInPlace(Geometry geometry, int targetSrid)
     {
-        bool hasErrors = false;
+        var hasErrors = false;
 
         // This function transforms the coordinate in place. The instance of the coordinate
         // will stay the same.

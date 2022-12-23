@@ -40,7 +40,7 @@ public class IntType : IntegerTypeBase<int>
     /// Initializes a new instance of the <see cref="IntType"/> class.
     /// </summary>
     public IntType(
-        NameString name,
+        string name,
         string? description = null,
         int min = int.MinValue,
         int max = int.MaxValue,
@@ -50,9 +50,9 @@ public class IntType : IntegerTypeBase<int>
         Description = description;
     }
 
-    protected override int ParseLiteral(IntValueNode valueSyntax) =>
-        valueSyntax.ToInt32();
+    protected override int ParseLiteral(IntValueNode valueSyntax)
+        => valueSyntax.ToInt32();
 
-    protected override IntValueNode ParseValue(int runtimeValue) =>
-        new(runtimeValue);
+    protected override IntValueNode ParseValue(int runtimeValue)
+        => new(runtimeValue);
 }

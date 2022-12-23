@@ -42,10 +42,7 @@ public class UnionTypeDescriptor
     {
         if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
         {
-            Context.TypeInspector.ApplyAttributes(
-                Context,
-                this,
-                Definition.RuntimeType);
+            Context.TypeInspector.ApplyAttributes(Context, this, Definition.RuntimeType);
             Definition.AttributesAreApplied = true;
         }
 
@@ -53,15 +50,15 @@ public class UnionTypeDescriptor
     }
 
     public IUnionTypeDescriptor SyntaxNode(
-        UnionTypeDefinitionNode unionTypeDefinitionNode)
+        UnionTypeDefinitionNode unionTypeDefinition)
     {
-        Definition.SyntaxNode = unionTypeDefinitionNode;
+        Definition.SyntaxNode = unionTypeDefinition;
         return this;
     }
 
-    public IUnionTypeDescriptor Name(NameString value)
+    public IUnionTypeDescriptor Name(string value)
     {
-        Definition.Name = value.EnsureNotEmpty(nameof(value));
+        Definition.Name = value;
         return this;
     }
 
@@ -123,7 +120,7 @@ public class UnionTypeDescriptor
     }
 
     public IUnionTypeDescriptor Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments)
     {
         Definition.AddDirective(name, arguments);
@@ -143,7 +140,7 @@ public class UnionTypeDescriptor
         IDescriptorContext context,
         Type schemaType)
     {
-        UnionTypeDescriptor descriptor = New(context, schemaType);
+        var descriptor = New(context, schemaType);
         descriptor.Definition.RuntimeType = typeof(object);
         return descriptor;
     }

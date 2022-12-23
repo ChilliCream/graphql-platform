@@ -17,7 +17,7 @@ public class UUIDSerializer : ScalarSerializer<string, Guid>
 
     public override Guid Parse(string serializedValue)
     {
-        if (Guid.TryParse(serializedValue, out Guid guid))
+        if (Guid.TryParse(serializedValue, out var guid))
         {
             return guid;
         }

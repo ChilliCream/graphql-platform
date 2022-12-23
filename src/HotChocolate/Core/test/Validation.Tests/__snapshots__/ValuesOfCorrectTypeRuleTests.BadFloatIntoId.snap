@@ -3,13 +3,19 @@
     "Message": "The specified argument value does not match the argument type.",
     "Code": null,
     "Path": {
+      "Name": "idArgField",
       "Parent": {
-        "Parent": null,
-        "Depth": 0,
-        "Name": "arguments"
+        "Name": "arguments",
+        "Parent": {
+          "Parent": null,
+          "Length": -1,
+          "IsRoot": true
+        },
+        "Length": 0,
+        "IsRoot": false
       },
-      "Depth": 1,
-      "Name": "idArgField"
+      "Length": 1,
+      "IsRoot": false
     },
     "Locations": [
       {

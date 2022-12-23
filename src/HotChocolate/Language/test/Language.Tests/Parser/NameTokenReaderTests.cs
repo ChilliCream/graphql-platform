@@ -13,8 +13,8 @@ public class NameTokenReaderTests
     private void ReadToken(string sourceText)
     {
         // arrange
-        string nameTokenValue = "helloWorld_123";
-        byte[] source = Encoding.UTF8.GetBytes(sourceText);
+        var nameTokenValue = "helloWorld_123";
+        var source = Encoding.UTF8.GetBytes(sourceText);
         var reader = new Utf8GraphQLReader(source);
 
         // act

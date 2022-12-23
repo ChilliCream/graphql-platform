@@ -4,11 +4,10 @@ using HotChocolate.Execution.Options;
 
 namespace HotChocolate.Execution;
 
-internal sealed class RequestCoreMiddlewareContext
-    : IRequestCoreMiddlewareContext
+internal sealed class RequestCoreMiddlewareContext : IRequestCoreMiddlewareContext
 {
     public RequestCoreMiddlewareContext(
-        NameString schemaName,
+        string schemaName,
         IServiceProvider services,
         IServiceProvider schemaServices,
         IRequestExecutorOptionsAccessor options)
@@ -19,7 +18,7 @@ internal sealed class RequestCoreMiddlewareContext
         Options = options;
     }
 
-    public NameString SchemaName { get; }
+    public string SchemaName { get; }
 
     public IServiceProvider Services { get; }
 

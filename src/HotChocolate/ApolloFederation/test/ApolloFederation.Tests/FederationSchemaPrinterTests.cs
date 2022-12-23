@@ -25,7 +25,7 @@ public class FederationSchemaPrinterTests
     public void TestFederationPrinterApolloDirectivesSchemaFirst()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddDocumentFromString(
                 @"type TestType @key(fields: ""id"") {
@@ -48,7 +48,7 @@ public class FederationSchemaPrinterTests
     public void TestFederationPrinterSchemaFirst()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddDocumentFromString(@"
                 type TestType @key(fields: ""id"") {
@@ -103,7 +103,7 @@ public class FederationSchemaPrinterTests
     public void TestFederationPrinterSchemaFirst_With_DateTime()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddDocumentFromString(@"
                 type TestType @key(fields: ""id"") {
@@ -161,7 +161,7 @@ public class FederationSchemaPrinterTests
     public void TestFederationPrinterApolloDirectivesPureCodeFirst()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<QueryRoot<User>>()
             .Create();
@@ -175,7 +175,7 @@ public class FederationSchemaPrinterTests
     public void TestFederationPrinterTypeExtensionPureCodeFirst()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<QueryRoot<Product>>()
             .Create();
@@ -189,7 +189,7 @@ public class FederationSchemaPrinterTests
     public void CustomDirective_IsPublic()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<QueryWithDirective>()
             .AddDirectiveType(new CustomDirectiveType(true))
             .Create();
@@ -203,7 +203,7 @@ public class FederationSchemaPrinterTests
     public void CustomDirective_IsInternal()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<QueryWithDirective>()
             .AddDirectiveType(new CustomDirectiveType(false))
             .Create();

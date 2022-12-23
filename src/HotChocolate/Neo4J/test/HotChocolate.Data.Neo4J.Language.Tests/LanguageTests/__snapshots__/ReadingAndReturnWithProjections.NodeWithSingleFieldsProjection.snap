@@ -1,1 +1,0 @@
-﻿MATCH (u:User) RETURN u {.name}

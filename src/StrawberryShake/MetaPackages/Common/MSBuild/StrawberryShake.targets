@@ -1,0 +1,50 @@
+<Project>
+  <PropertyGroup>
+    <GenTool>$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "dotnet-graphql.dll"))</GenTool>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PropertyPageSchema Include="$(MSBuildThisFileDirectory)StrawberryShake.MSBuild.xaml" />
+    <PropertyPageSchema Include="$(MSBuildThisFileDirectory)StrawberryShake.MSBuild.ContentType.xaml" />
+    <AvailableItemName Include="GraphQL"/>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <CoreCompileDependsOn>
+      GenerateGraphQLCode;
+      $(CoreCompileDependsOn)
+    </CoreCompileDependsOn>
+  </PropertyGroup>
+
+  <Target
+    Name="GenerateGraphQLCode"
+    BeforeTargets="BeforeBuild"
+    Condition="'@(GraphQL)' != ''">
+    <PropertyGroup>
+      <GraphQLCodeGenerationRoot>$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\</GraphQLCodeGenerationRoot>
+      <GraphQLQueryGenerationRoot>$(MSBuildProjectDirectory)\$(GraphQLPersistedQueryOutput)</GraphQLQueryGenerationRoot>
+    </PropertyGroup>
+
+    <PropertyGroup>
+      <GenCommand>dotnet &quot;$(GenTool)&quot; generate &quot;$(MSBuildProjectDirectory)&quot;</GenCommand>
+      <GenCommand>$(GenCommand) -o $(GraphQLCodeGenerationRoot)</GenCommand>
+      <GenCommand Condition="'$(RootNamespace)' != ''">$(GenCommand) -n $(RootNamespace)</GenCommand>
+      <GenCommand Condition="'$(GraphQLPersistedQueryOutput)' != ''">$(GenCommand) -q $(GraphQLQueryGenerationRoot)</GenCommand>
+      <GenCommand Condition="'$(GraphQLRequestHash)' != ''">$(GenCommand) -a $(GraphQLRequestHash)</GenCommand>
+      <GenCommand Condition="'$(GraphQLStrictSchemaValidation)' != 'enable'">$(GenCommand) -s</GenCommand>
+      <GenCommand Condition="'$(GraphQLClientStore)' != 'enable'">$(GenCommand) -t</GenCommand>
+      <GenCommand Condition="'$(GraphQLRazorComponents)' == 'enable'">$(GenCommand) -r</GenCommand>
+      <GenCommand Condition="'$(GraphQLPersistedQueryFormat)' == 'relay'">$(GenCommand) --relayFormat</GenCommand>
+    </PropertyGroup>
+
+    <Message Text="MSBuildProjectDirectory: $(MSBuildProjectDirectory)" Importance="High" Condition="'$(GraphQLDebug)' == 'enable'" />
+    <Message Text="MSBuildThisFileDirectory: $(MSBuildThisFileDirectory)" Importance="High" Condition="'$(GraphQLDebug)' == 'enable'" />
+    <Message Text="$(GenCommand)" Importance="High" Condition="'$(GraphQLDebug)' == 'enable'" />
+    <Exec Command="$(GenCommand)" WorkingDirectory="$(MSBuildThisFileDirectory)" ConsoleToMsBuild="true" />
+
+    <ItemGroup>
+      <Compile Include="$(GraphQLCodeGenerationRoot)**\*.cs" />
+    </ItemGroup>
+  </Target>
+
+</Project>

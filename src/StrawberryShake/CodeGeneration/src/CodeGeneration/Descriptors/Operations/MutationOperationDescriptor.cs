@@ -12,7 +12,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors.Operations;
 public class MutationOperationDescriptor : OperationDescriptor
 {
     public MutationOperationDescriptor(
-        NameString name,
+        string name,
         string @namespace,
         ITypeDescriptor resultTypeReference,
         IReadOnlyList<PropertyDescriptor> arguments,
@@ -20,6 +20,7 @@ public class MutationOperationDescriptor : OperationDescriptor
         string bodyString,
         string hashAlgorithm,
         string hashValue,
+        bool hasUpload,
         RequestStrategy strategy)
         : base(
             name,
@@ -30,6 +31,7 @@ public class MutationOperationDescriptor : OperationDescriptor
             bodyString,
             hashAlgorithm,
             hashValue,
+            hasUpload,
             strategy)
     {
     }

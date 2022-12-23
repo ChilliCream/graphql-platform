@@ -4,13 +4,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using static HotChocolate.Execution.Properties.Resources;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Execution;
 
 public static class ExecutionRequestExecutorExtensions
 {
     public static Task<IExecutionResult> ExecuteAsync(
         this IRequestExecutor executor,
-        IReadOnlyQueryRequest request)
+        IQueryRequest request)
     {
         if (executor is null)
         {
@@ -73,7 +74,7 @@ public static class ExecutionRequestExecutorExtensions
     public static Task<IExecutionResult> ExecuteAsync(
         this IRequestExecutor executor,
         string query,
-        IReadOnlyDictionary<string, object?> variableValues)
+        Dictionary<string, object?> variableValues)
     {
         if (executor is null)
         {
@@ -133,7 +134,7 @@ public static class ExecutionRequestExecutorExtensions
 
     public static IExecutionResult Execute(
         this IRequestExecutor executor,
-        IReadOnlyQueryRequest request)
+        IQueryRequest request)
     {
         if (executor is null)
         {

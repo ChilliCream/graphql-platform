@@ -9,8 +9,6 @@ public class CollectionSegmentInfo : IPageInfo
     /// <summary>
     /// Initializes <see cref="CollectionSegmentInfo" />.
     /// </summary>
-    /// <param name="hasNextPage"></param>
-    /// <param name="hasPreviousPage"></param>
     public CollectionSegmentInfo(
         bool hasNextPage,
         bool hasPreviousPage)

@@ -30,7 +30,7 @@ public static class PagingHelper
 
         FieldMiddlewareDefinition placeholder = new(_ => _ => default, key: Paging);
 
-        ObjectFieldDefinition definition = descriptor.Extend().Definition;
+        var definition = descriptor.Extend().Definition;
         definition.MiddlewareDefinitions.Add(placeholder);
         definition.Configurations.Add(
             new CompleteConfiguration<ObjectFieldDefinition>(
@@ -43,7 +43,7 @@ public static class PagingHelper
                     options,
                     placeholder),
                 definition,
-                ApplyConfigurationOn.Completion));
+                ApplyConfigurationOn.BeforeCompletion));
 
         return descriptor;
     }
@@ -60,10 +60,10 @@ public static class PagingHelper
         options = context.GetSettings(options);
         entityType ??= context.GetType<IOutputType>(definition.Type!).ToRuntimeType();
 
-        IExtendedType source = GetSourceType(context.TypeInspector, definition, entityType);
-        IPagingProvider pagingProvider = resolvePagingProvider(context.Services, source, name);
-        IPagingHandler pagingHandler = pagingProvider.CreateHandler(source, options);
-        FieldMiddleware middleware = CreateMiddleware(pagingHandler);
+        var source = GetSourceType(context.TypeInspector, definition, entityType);
+        var pagingProvider = resolvePagingProvider(context.Services, source, name);
+        var pagingHandler = pagingProvider.CreateHandler(source, options);
+        var middleware = CreateMiddleware(pagingHandler);
 
         var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
         definition.MiddlewareDefinitions[index] = new(middleware, key: Paging);
@@ -82,7 +82,7 @@ public static class PagingHelper
         }
 
         // Otherwise we will look at specified members and extract the return type.
-        MemberInfo? member = definition.ResolverMember ?? definition.Member;
+        var member = definition.ResolverMember ?? definition.Member;
         if (member is not null)
         {
             return typeInspector.GetReturnType(member, true);
@@ -100,14 +100,16 @@ public static class PagingHelper
             (typeof(IPagingHandler), handler));
 
     public static IExtendedType GetSchemaType(
-        ITypeInspector typeInspector,
+        IDescriptorContext context,
         MemberInfo? member,
         Type? type = null)
     {
+        var typeInspector = context.TypeInspector;
+
         if (type is null &&
             member is not null &&
             typeInspector.GetOutputReturnTypeRef(member) is ExtendedTypeReference r &&
-            typeInspector.TryCreateTypeInfo(r.Type, out ITypeInfo? typeInfo))
+            typeInspector.TryCreateTypeInfo(r.Type, out var typeInfo))
         {
             // if the member has already associated a schema type we will just take it.
             // Since we want the entity element we are going to take
@@ -122,17 +124,18 @@ public static class PagingHelper
             // It might be that we either are unable to infer or get the wrong type
             // in special cases. In the case we are getting it wrong the user has
             // to explicitly bind the type.
-            if (SchemaTypeResolver.TryInferSchemaType(
-                typeInspector,
+            if (context.TryInferSchemaType(
                 r.WithType(typeInspector.GetType(typeInfo.NamedType)),
-                out ExtendedTypeReference? schemaTypeRef))
+                out var schemaTypeRefs) &&
+                schemaTypeRefs is { Length:> 0 } &&
+                schemaTypeRefs[0] is ExtendedTypeReference schemaTypeRef)
             {
                 // if we are able to infer the type we will reconstruct its structure so that
                 // we can correctly extract from it the element type with the correct
                 // nullability information.
-                Type current = schemaTypeRef.Type.Type;
+                var current = schemaTypeRef.Type.Type;
 
-                foreach (TypeComponent component in typeInfo.Components.Reverse().Skip(1))
+                foreach (var component in typeInfo.Components.Reverse().Skip(1))
                 {
                     if (component.Kind == TypeComponentKind.NonNull)
                     {
@@ -166,7 +169,7 @@ public static class PagingHelper
     {
         if (member is not null &&
             typeInspector.GetReturnType(member) is { } returnType &&
-            typeInspector.TryCreateTypeInfo(returnType, out ITypeInfo? typeInfo))
+            typeInspector.TryCreateTypeInfo(returnType, out var typeInfo))
         {
             namedType = typeInfo.NamedType;
             return true;

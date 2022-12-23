@@ -1,9 +1,0 @@
-﻿SELECT "d"."Id", "d"."LastName", "d"."Name"
-FROM "Data" AS "d"
-WHERE ((
-    SELECT COUNT(*)
-    FROM "Bar" AS "b"
-    WHERE "d"."Id" = "b"."FooId") = @__p_0) OR ((
-    SELECT COUNT(*)
-    FROM "Bar" AS "b"
-    WHERE "d"."Id" = "b"."FooId") IS NULL AND @__p_0 IS NULL)

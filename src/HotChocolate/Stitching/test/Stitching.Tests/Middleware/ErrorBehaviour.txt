@@ -62,7 +62,7 @@ namespace HotChocolate.Stitching
 
             using (IServiceScope scope = services.CreateScope())
             {
-                IReadOnlyQueryRequest request =
+                IQueryRequest request =
                     QueryRequestBuilder.New()
                         .SetQuery(@"
                             mutation {
@@ -92,7 +92,7 @@ namespace HotChocolate.Stitching
             // act
             using (IServiceScope scope = services.CreateScope())
             {
-                IReadOnlyQueryRequest request =
+                IQueryRequest request =
                     QueryRequestBuilder.New()
                         .SetQuery(@"
                             mutation {

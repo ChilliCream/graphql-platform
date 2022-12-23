@@ -6,107 +6,104 @@ using HotChocolate.Execution;
 using HotChocolate.Utilities;
 using HotChocolate.Language;
 
-namespace HotChocolate.PersistedQueries.FileSystem
-{
-    /// <summary>
-    /// An implementation of <see cref="IReadStoredQueries"/>
-    /// and <see cref="IWriteStoredQueries"/> that
-    /// uses the local file system.
-    /// </summary>
-    public class FileSystemQueryStorage
-        : IReadStoredQueries
+namespace HotChocolate.PersistedQueries.FileSystem;
+
+/// <summary>
+/// An implementation of <see cref="IReadStoredQueries"/>
+/// and <see cref="IWriteStoredQueries"/> that
+/// uses the local file system.
+/// </summary>
+public class FileSystemQueryStorage
+    : IReadStoredQueries
         , IWriteStoredQueries
+{
+    private static readonly Task<QueryDocument?> _null = Task.FromResult<QueryDocument?>(null);
+    private readonly IQueryFileMap _queryMap;
+
+    /// <summary>
+    /// Initializes a new instance of the class.
+    /// </summary>
+    /// <param name="queryMap">The query identifier mapping.</param>
+    public FileSystemQueryStorage(IQueryFileMap queryMap)
     {
-        private static readonly Task<QueryDocument?> _null = Task.FromResult<QueryDocument?>(null);
-        private readonly IQueryFileMap _queryMap;
+        _queryMap = queryMap
+            ?? throw new ArgumentNullException(nameof(queryMap));
 
-        /// <summary>
-        /// Initializes a new instance of the class.
-        /// </summary>
-        /// <param name="queryMap">The query identifier mapping.</param>
-        public FileSystemQueryStorage(IQueryFileMap queryMap)
+        if (!Directory.Exists(_queryMap.Root))
         {
-            _queryMap = queryMap
-                ?? throw new ArgumentNullException(nameof(queryMap));
+            Directory.CreateDirectory(queryMap.Root);
+        }
+    }
 
-            if (!Directory.Exists(_queryMap.Root))
-            {
-                Directory.CreateDirectory(queryMap.Root);
-            }
+    /// <inheritdoc />
+    public Task<QueryDocument?> TryReadQueryAsync(
+        string queryId,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(queryId))
+        {
+            throw new ArgumentNullException(nameof(queryId));
         }
 
-        /// <inheritdoc />
-        public Task<QueryDocument?> TryReadQueryAsync(
-            string queryId,
-            CancellationToken cancellationToken = default)
+        var filePath = _queryMap.MapToFilePath(queryId);
+
+        if (!File.Exists(filePath))
         {
-            if (string.IsNullOrWhiteSpace(queryId))
-            {
-                throw new ArgumentNullException(nameof(queryId));
-            }
-
-            var filePath = _queryMap.MapToFilePath(queryId);
-
-            if (!File.Exists(filePath))
-            {
-                return _null;
-            }
-
-            return TryReadQueryInternalAsync(queryId, filePath, cancellationToken);
+            return _null;
         }
 
-        private async Task<QueryDocument?> TryReadQueryInternalAsync(
-            string queryId,
-            string filePath,
-            CancellationToken cancellationToken)
-        {
-            using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+        return TryReadQueryInternalAsync(filePath, cancellationToken);
+    }
 
-            DocumentNode document = await BufferHelper.ReadAsync(
+    private async Task<QueryDocument?> TryReadQueryInternalAsync(
+        string filePath,
+        CancellationToken cancellationToken)
+    {
+        using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+
+        var document = await BufferHelper.ReadAsync(
                 stream,
-                (buffer, buffered) =>
+                static (buffer, buffered) =>
                 {
-                    Span<byte> span = buffer.AsSpan().Slice(0, buffered);
+                    var span = buffer.AsSpan().Slice(0, buffered);
                     return Utf8GraphQLParser.Parse(span);
                 },
                 cancellationToken)
-                .ConfigureAwait(false);
+            .ConfigureAwait(false);
 
-            return new QueryDocument(document);
+        return new QueryDocument(document);
+    }
+
+    /// <inheritdoc />
+    public Task WriteQueryAsync(
+        string queryId,
+        IQuery query,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(queryId))
+        {
+            throw new ArgumentNullException(nameof(queryId));
         }
 
-        /// <inheritdoc />
-        public Task WriteQueryAsync(
-            string queryId,
-            IQuery query,
-            CancellationToken cancellationToken = default)
+        if (query is null)
         {
-            if (string.IsNullOrWhiteSpace(queryId))
-            {
-                throw new ArgumentNullException(nameof(queryId));
-            }
-
-            if (query is null)
-            {
-                throw new ArgumentNullException(nameof(query));
-            }
-
-            var filePath = _queryMap.MapToFilePath(queryId);
-            return WriteQueryInternalAsync(queryId, query, filePath, cancellationToken);
+            throw new ArgumentNullException(nameof(query));
         }
 
-        private async Task WriteQueryInternalAsync(
-            string queryId,
-            IQuery query,
-            string filePath,
-            CancellationToken cancellationToken)
+        var filePath = _queryMap.MapToFilePath(queryId);
+        return WriteQueryInternalAsync(query, filePath, cancellationToken);
+    }
+
+    private async Task WriteQueryInternalAsync(
+        IQuery query,
+        string filePath,
+        CancellationToken cancellationToken)
+    {
+        if (!File.Exists(filePath))
         {
-            if (!File.Exists(filePath))
-            {
-                using var stream = new FileStream(filePath, FileMode.CreateNew, FileAccess.Write);
-                await query.WriteToAsync(stream, cancellationToken).ConfigureAwait(false);
-                await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
-            }
+            using var stream = new FileStream(filePath, FileMode.CreateNew, FileAccess.Write);
+            await query.WriteToAsync(stream, cancellationToken).ConfigureAwait(false);
+            await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

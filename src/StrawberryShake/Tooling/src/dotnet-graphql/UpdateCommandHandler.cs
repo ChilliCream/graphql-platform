@@ -1,16 +1,10 @@
-using System;
-using System.IO;
-using System.Net.Http;
-using System.Threading.Tasks;
-using System.Threading;
-using StrawberryShake.Tools.OAuth;
 using System.Text;
 using StrawberryShake.Tools.Configuration;
+using static System.IO.Path;
 
 namespace StrawberryShake.Tools
 {
-    public class UpdateCommandHandler
-        : CommandHandler<UpdateCommandArguments>
+    public class UpdateCommandHandler : CommandHandler<UpdateCommandArguments>
     {
         public UpdateCommandHandler(
             IFileSystem fileSystem,
@@ -32,9 +26,9 @@ namespace StrawberryShake.Tools
             UpdateCommandArguments arguments,
             CancellationToken cancellationToken)
         {
-            using IDisposable command = Output.WriteCommand();
+            using var command = Output.WriteCommand();
 
-            AccessToken? accessToken =
+            var accessToken =
                 await arguments.AuthArguments
                     .RequestTokenAsync(Output, cancellationToken)
                     .ConfigureAwait(false);
@@ -57,7 +51,7 @@ namespace StrawberryShake.Tools
             UpdateCommandContext context,
             CancellationToken cancellationToken)
         {
-            foreach (string path in FileSystem.GetClientDirectories(FileSystem.CurrentDirectory))
+            foreach (var path in FileSystem.GetClientDirectories(FileSystem.CurrentDirectory))
             {
                 try
                 {
@@ -80,10 +74,10 @@ namespace StrawberryShake.Tools
             string clientDirectory,
             CancellationToken cancellationToken)
         {
-            string configFilePath = Path.Combine(clientDirectory, WellKnownFiles.Config);
+            var configFilePath = Combine(clientDirectory, WellKnownFiles.Config);
             var buffer = await FileSystem.ReadAllBytesAsync(configFilePath).ConfigureAwait(false);
             var json = Encoding.UTF8.GetString(buffer);
-            GraphQLConfig configuration = GraphQLConfig.FromJson(json);
+            var configuration = GraphQLConfig.FromJson(json);
 
             if (configuration is not null &&
                 await UpdateSchemaAsync(context, clientDirectory, configuration, cancellationToken)
@@ -106,16 +100,59 @@ namespace StrawberryShake.Tools
             if (configuration.Extensions.StrawberryShake.Url is not null)
             {
                 var uri = new Uri(configuration.Extensions.StrawberryShake.Url);
-                var schemaFilePath = Path.Combine(clientDirectory, configuration.Schema);
+                var schemaFilePath = Combine(clientDirectory, configuration.Schema);
+                var tempFile = CreateTempFileName();
 
-                if (!await DownloadSchemaAsync(context, uri, schemaFilePath, cancellationToken)
+                // we first attempt to download the new schema into a temp file.
+                // if that should fail we still have the original schema file and
+                // the user can still work.
+                if (!await DownloadSchemaAsync(context, uri, tempFile, cancellationToken)
                     .ConfigureAwait(false))
                 {
+                    // if the schema download succeeded we will replace the old schema with the
+                    // new one.
+                    if (File.Exists(schemaFilePath))
+                    {
+                        File.Delete(schemaFilePath);
+                    }
+
+                    File.Move(tempFile, schemaFilePath);
+
                     hasErrors = true;
+                }
+
+                // in any case we will make sure the temp file is removed at the end.
+                if (File.Exists(tempFile))
+                {
+                    File.Delete(tempFile);
                 }
             }
 
             return !hasErrors;
+        }
+
+        private static string CreateTempFileName()
+        {
+            var pathSegment = Random.Shared.Next(9999).ToString();
+
+            for (var i = 0; i < 100; i++)
+            {
+                var tempFile = Combine(GetTempPath(), pathSegment, GetRandomFileName());
+
+                if (!File.Exists(tempFile))
+                {
+                    var tempDir = GetDirectoryName(tempFile)!;
+
+                    if (!Directory.Exists(tempDir))
+                    {
+                        Directory.CreateDirectory(tempDir);
+                    }
+
+                    return tempFile;
+                }
+            }
+
+            throw new InvalidOperationException("Could not acquire a temp file.");
         }
 
         private async Task<bool> DownloadSchemaAsync(
@@ -124,9 +161,9 @@ namespace StrawberryShake.Tools
             string schemaFilePath,
             CancellationToken cancellationToken)
         {
-            using IActivity activity = Output.WriteActivity("Download schema");
+            using var activity = Output.WriteActivity("Download schema");
 
-            HttpClient client = HttpClientFactory.Create(
+            var client = HttpClientFactory.Create(
                 context.Uri ?? serviceUri,
                 context.Token,
                 context.Scheme,

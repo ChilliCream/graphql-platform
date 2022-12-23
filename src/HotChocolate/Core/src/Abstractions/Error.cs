@@ -36,7 +36,7 @@ public class Error : IError
 
         Message = message;
         Code = code;
-        Path = path;
+        Path = path?.Clone();
         Locations = locations;
         Extensions = extensions;
         Exception = exception;
@@ -97,7 +97,7 @@ public class Error : IError
             return RemoveCode();
         }
 
-        OrderedDictionary<string, object?> extensions = Extensions is null
+        var extensions = Extensions is null
             ? new OrderedDictionary<string, object?> { [_code] = code }
             : new OrderedDictionary<string, object?>(Extensions) { [_code] = code };
         return new Error(Message, code, Path, Locations, extensions, Exception);
@@ -106,7 +106,7 @@ public class Error : IError
     /// <inheritdoc />
     public IError RemoveCode()
     {
-        IReadOnlyDictionary<string, object?>? extensions = Extensions;
+        var extensions = Extensions;
 
         if (Extensions is { })
         {
@@ -167,7 +167,7 @@ public class Error : IError
                 nameof(key));
         }
 
-        OrderedDictionary<string, object?> extensions = Extensions is { }
+        var extensions = Extensions is { }
             ? new OrderedDictionary<string, object?>(Extensions)
             : new OrderedDictionary<string, object?>();
         extensions[key] = value;

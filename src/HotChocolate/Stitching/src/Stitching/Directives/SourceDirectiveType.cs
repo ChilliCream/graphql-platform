@@ -3,7 +3,8 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Stitching;
 
-public sealed class SourceDirectiveType : DirectiveType<SourceDirective>
+public class SourceDirectiveType
+    : DirectiveType<SourceDirective>
 {
     protected override void Configure(
         IDirectiveTypeDescriptor<SourceDirective> descriptor)
@@ -11,8 +12,7 @@ public sealed class SourceDirectiveType : DirectiveType<SourceDirective>
         descriptor
             .Name(DirectiveNames.Source)
             .Description(StitchingResources.SourceDirectiveType_Description)
-            .Repeatable()
-            .Internal();
+            .Repeatable();
 
         descriptor
             .Location(DirectiveLocation.Enum)
@@ -28,13 +28,15 @@ public sealed class SourceDirectiveType : DirectiveType<SourceDirective>
         descriptor
             .Argument(t => t.Name)
             .Name(DirectiveFieldNames.Source_Name)
-            .Type<NonNullType<NameType>>()
-            .Description(StitchingResources.SourceDirectiveType_Name_Description);
+            .Type<NonNullType<StringType>>()
+            .Description(StitchingResources
+                .SourceDirectiveType_Name_Description);
 
         descriptor
             .Argument(t => t.Schema)
             .Name(DirectiveFieldNames.Source_Schema)
-            .Type<NonNullType<NameType>>()
-            .Description(StitchingResources.SourceDirectiveType_Schema_Description);
+            .Type<NonNullType<StringType>>()
+            .Description(StitchingResources
+                .SourceDirectiveType_Schema_Description);
     }
 }

@@ -16,18 +16,18 @@ internal sealed class DefaultGraphQLRequestExecutor : IGraphQLRequestExecutor
         _options = options ?? throw new ArgumentNullException(nameof(options));
     }
 
-    public async Task<IActionResult> ExecuteAsync(HttpRequest request)
+    public async Task<IActionResult> ExecuteAsync(HttpContext context)
     {
-        if (request is null)
+        if (context is null)
         {
-            throw new ArgumentNullException(nameof(request));
+            throw new ArgumentNullException(nameof(context));
         }
 
         // First we need to populate the HttpContext with the current GraphQL server options ...
-        request.HttpContext.Items.Add(nameof(GraphQLServerOptions), _options);
+        context.Items.Add(nameof(GraphQLServerOptions), _options);
 
         // after that we can execute the pipeline ...
-        await _pipeline.Invoke(request.HttpContext).ConfigureAwait(false);
+        await _pipeline.Invoke(context).ConfigureAwait(false);
 
         // last we return out empty result that we have cached in this class.
         // the pipeline actually takes care of writing the result to the

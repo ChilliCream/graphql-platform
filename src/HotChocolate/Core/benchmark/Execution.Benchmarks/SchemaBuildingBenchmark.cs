@@ -1,10 +1,8 @@
 using System;
-using System.Text.Unicode;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.StarWars;
-using HotChocolate.StarWars.Types;
 using HotChocolate.Types;
 
 //|             Method |      Mean |    Error |   StdDev |    Median | Rank |      Gen 0 |     Gen 1 |     Gen 2 | Allocated |

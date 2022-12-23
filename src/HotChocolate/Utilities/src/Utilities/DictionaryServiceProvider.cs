@@ -55,7 +55,7 @@ public sealed class DictionaryServiceProvider : IServiceProvider
 
     public object? GetService(Type serviceType)
     {
-        if (_services.TryGetValue(serviceType, out object? service))
+        if (_services.TryGetValue(serviceType, out var service))
         {
             return service;
         }

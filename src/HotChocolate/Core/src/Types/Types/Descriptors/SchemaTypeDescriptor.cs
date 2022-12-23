@@ -27,12 +27,11 @@ public class SchemaTypeDescriptor
         Definition = definition;
     }
 
-    protected internal override SchemaTypeDefinition Definition { get; protected set; } =
-        new SchemaTypeDefinition();
+    protected internal override SchemaTypeDefinition Definition { get; protected set; } = new();
 
-    public ISchemaTypeDescriptor Name(NameString value)
+    public ISchemaTypeDescriptor Name(string value)
     {
-        Definition.Name = value.EnsureNotEmpty(nameof(value));
+        Definition.Name = value;
         return this;
     }
 
@@ -57,7 +56,7 @@ public class SchemaTypeDescriptor
     }
 
     public ISchemaTypeDescriptor Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments)
     {
         Definition.AddDirective(name, arguments);

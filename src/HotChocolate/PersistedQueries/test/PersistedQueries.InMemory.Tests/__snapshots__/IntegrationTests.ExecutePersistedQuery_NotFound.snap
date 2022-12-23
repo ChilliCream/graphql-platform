@@ -1,9 +1,10 @@
 ﻿{
   "errors": [
     {
-      "message": "The query request contains no document.",
+      "message": "The specified persisted query key is invalid.",
       "extensions": {
-        "code": "HC0015"
+        "code": "HC0020",
+        "requestedKey": "does_not_exist"
       }
     }
   ]

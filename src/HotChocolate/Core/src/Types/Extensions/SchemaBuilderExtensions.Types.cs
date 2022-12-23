@@ -1,9 +1,10 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
@@ -585,7 +586,7 @@ public static partial class SchemaBuilderExtensions
             throw new ArgumentNullException(nameof(types));
         }
 
-        foreach (INamedType type in types)
+        foreach (var type in types)
         {
             builder.AddType(type);
         }
@@ -606,7 +607,7 @@ public static partial class SchemaBuilderExtensions
             throw new ArgumentNullException(nameof(types));
         }
 
-        foreach (Type type in types)
+        foreach (var type in types)
         {
             builder.AddType(type);
         }
@@ -671,7 +672,7 @@ public static partial class SchemaBuilderExtensions
         return builder.SetSchema(typeof(TSchema));
     }
 
-    public static ISchemaBuilder BindClrType<TClrType, TSchemaType>(
+    public static ISchemaBuilder BindRuntimeType<TRuntimeType, TSchemaType>(
         this ISchemaBuilder builder)
         where TSchemaType : INamedType
     {
@@ -680,12 +681,12 @@ public static partial class SchemaBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        return builder.BindRuntimeType(typeof(TClrType), typeof(TSchemaType));
+        return builder.BindRuntimeType(typeof(TRuntimeType), typeof(TSchemaType));
     }
 
     public static ISchemaBuilder BindRuntimeType<TRuntimeType>(
         this ISchemaBuilder builder,
-        NameString? typeName = null)
+        string? typeName = null)
     {
         if (builder is null)
         {
@@ -693,15 +694,13 @@ public static partial class SchemaBuilderExtensions
         }
 
         typeName ??= typeof(TRuntimeType).Name;
-        typeName.Value.EnsureNotEmpty(nameof(typeName));
-
-        return BindRuntimeTypeInternal(builder, typeName.Value, typeof(TRuntimeType));
+        return BindRuntimeTypeInternal(builder, typeName, typeof(TRuntimeType));
     }
 
     public static ISchemaBuilder BindRuntimeType(
         this ISchemaBuilder builder,
         Type runtimeType,
-        NameString? typeName = null)
+        string? typeName = null)
     {
         if (builder is null)
         {
@@ -714,14 +713,12 @@ public static partial class SchemaBuilderExtensions
         }
 
         typeName ??= runtimeType.Name;
-        typeName.Value.EnsureNotEmpty(nameof(typeName));
-
-        return BindRuntimeTypeInternal(builder, typeName.Value, runtimeType);
+        return BindRuntimeTypeInternal(builder, typeName, runtimeType);
     }
 
     public static void TryBindRuntimeType(
         this IDescriptorContext context,
-        NameString typeName,
+        string typeName,
         Type runtimeType)
     {
         if (context is null)
@@ -734,10 +731,13 @@ public static partial class SchemaBuilderExtensions
             throw new ArgumentNullException(nameof(runtimeType));
         }
 
-        typeName.EnsureNotEmpty(nameof(typeName));
+        if (string.IsNullOrEmpty(typeName))
+        {
+            throw new ArgumentNullException(nameof(typeName));
+        }
 
         if (context.ContextData.TryGetValue(WellKnownContextData.RuntimeTypes, out var o) &&
-            o is Dictionary<NameString, Type> runtimeTypes)
+            o is Dictionary<string, Type> runtimeTypes)
         {
             runtimeTypes[typeName] = runtimeType;
         }
@@ -745,13 +745,13 @@ public static partial class SchemaBuilderExtensions
 
     private static ISchemaBuilder BindRuntimeTypeInternal(
         ISchemaBuilder builder,
-        NameString typeName,
+        string typeName,
         Type runtimeType)
     {
         InitializeResolverTypeInterceptor(builder);
 
         if (builder.ContextData.TryGetValue(WellKnownContextData.RuntimeTypes, out var o) &&
-            o is Dictionary<NameString, Type> runtimeTypes)
+            o is Dictionary<string, Type> runtimeTypes)
         {
             runtimeTypes[typeName] = runtimeType;
         }

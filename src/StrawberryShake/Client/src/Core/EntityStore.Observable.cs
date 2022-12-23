@@ -24,15 +24,9 @@ public partial class EntityStore
         try
         {
             while (!_cts.Token.IsCancellationRequested ||
-                   !_updates.Reader.Completion.IsCompleted)
+                !_updates.Reader.Completion.IsCompleted)
             {
                 var update = await _updates.Reader.ReadAsync(_cts.Token);
-
-                if (_cts.Token.IsCancellationRequested)
-                {
-                    break;
-                }
-
                 _entityUpdateObservable.OnUpdated(update);
             }
         }
@@ -74,7 +68,7 @@ public partial class EntityStore
 
         public void OnUpdated(EntityUpdate update)
         {
-            ImmutableList<IObserver<EntityUpdate>> observers = _observers;
+            var observers = _observers;
 
             if (observers.Count > 0)
             {
@@ -87,7 +81,7 @@ public partial class EntityStore
 
         public void OnComplete()
         {
-            ImmutableList<IObserver<EntityUpdate>> observers = _observers;
+            var observers = _observers;
 
             if (observers.Count > 0)
             {

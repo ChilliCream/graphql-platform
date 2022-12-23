@@ -11,6 +11,7 @@ public class ObjectTypeExtensionDescriptor<T>
         Definition.Name = context.Naming.GetTypeName(typeof(T), TypeKind.Object);
         Definition.Description = context.Naming.GetTypeDescription(typeof(T), TypeKind.Object);
         Definition.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
+        Definition.FieldBindingFlags = context.Options.DefaultFieldBindingFlags;
         Definition.FieldBindingType = typeof(T);
         Definition.IsExtension = true;
     }

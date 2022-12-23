@@ -1,0 +1,71 @@
+﻿[
+  {
+    "Message": "@stream directive is only valid on list fields.",
+    "Code": null,
+    "Path": {
+      "Name": "__schema",
+      "Parent": {
+        "Parent": null,
+        "Length": -1,
+        "IsRoot": true
+      },
+      "Length": 0,
+      "IsRoot": false
+    },
+    "Locations": [
+      {
+        "Line": 3,
+        "Column": 21
+      }
+    ],
+    "Extensions": {
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Stream-Directives-Are-Used-On-List-Fields"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [],
+      "Required": null,
+      "SelectionSet": null,
+      "Location": {
+        "Start": 55,
+        "End": 92,
+        "Line": 3,
+        "Column": 21
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 55,
+          "End": 68,
+          "Line": 3,
+          "Column": 21
+        },
+        "Value": "description"
+      },
+      "Directives": [
+        {
+          "Kind": "Directive",
+          "Location": {
+            "Start": 67,
+            "End": 92,
+            "Line": 3,
+            "Column": 33
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 68,
+              "End": 92,
+              "Line": 3,
+              "Column": 34
+            },
+            "Value": "stream"
+          },
+          "Arguments": []
+        }
+      ]
+    }
+  }
+]

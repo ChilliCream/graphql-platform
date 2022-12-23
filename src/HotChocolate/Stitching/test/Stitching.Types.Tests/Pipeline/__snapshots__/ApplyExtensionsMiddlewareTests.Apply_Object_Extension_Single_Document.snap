@@ -1,4 +1,0 @@
-﻿type Foo {
-  abc: String
-  def: String
-}

@@ -1,4 +1,18 @@
 ﻿{
+  hero(episode: EMPIRE) {
+    name
+    ... on Droid {
+      primaryFunction
+    }
+    ... on Human {
+      homePlanet
+    }
+  }
+}
+
+---------------------------------------------------------
+
+{
   ... on Query {
     hero(episode: EMPIRE) @__execute(id: 0, kind: PURE, type: COMPOSITE) {
       ... on Human {

@@ -1,0 +1,2 @@
+The argument `payloadFieldName` of the `@mutation` directive must be null or a string value.
+code: HC0071

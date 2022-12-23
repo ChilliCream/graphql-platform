@@ -1,10 +1,7 @@
-using System;
-using System.Threading.Tasks;
-using HotChocolate.Data;
+using CookieCrumble;
 using HotChocolate.Execution;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
-using Xunit;
 
 namespace HotChocolate.Data.MongoDb.Projections;
 
@@ -13,14 +10,15 @@ public class MongoDbProjectionVisitorIsProjectedTests
 {
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { IsProjectedTrue = true, IsProjectedFalse = false },
-            new Foo { IsProjectedTrue = true, IsProjectedFalse = false }
-        };
+        new() { IsProjectedTrue = true, IsProjectedFalse = false },
+        new() { IsProjectedTrue = true, IsProjectedFalse = false }
+    };
 
     private static readonly Bar[] _barEntities =
     {
-            new Bar { IsProjectedFalse = false }, new Bar { IsProjectedFalse = false }
-        };
+        new() { IsProjectedFalse = false },
+        new() { IsProjectedFalse = false }
+    };
 
     private readonly SchemaCache _cache;
 
@@ -33,64 +31,76 @@ public class MongoDbProjectionVisitorIsProjectedTests
     public async Task IsProjected_Should_NotBeProjectedWhenSelected_When_FalseWithOneProps()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_fooEntities);
+        var tester = _cache.CreateSchema(_fooEntities);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root { isProjectedFalse }}")
                 .Create());
 
-        res1.MatchDocumentSnapshot();
+        // assert
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task IsProjected_Should_NotBeProjectedWhenSelected_When_FalseWithTwoProps()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_fooEntities);
+        var tester = _cache.CreateSchema(_fooEntities);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root { isProjectedFalse isProjectedTrue  }}")
                 .Create());
 
-        res1.MatchDocumentSnapshot();
+        // assert
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task IsProjected_Should_AlwaysBeProjectedWhenSelected_When_True()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_fooEntities);
+        var tester = _cache.CreateSchema(_fooEntities);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root { isProjectedFalse }}")
                 .Create());
 
-        res1.MatchDocumentSnapshot();
+        // assert
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task IsProjected_Should_NotFailWhenSelectionSetSkippedCompletely()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barEntities);
+        var tester = _cache.CreateSchema(_barEntities);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root { isProjectedFalse }}")
                 .Create());
 
-        res1.MatchDocumentSnapshot();
+        // assert
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     public class Foo

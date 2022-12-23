@@ -10,13 +10,15 @@ namespace StrawberryShake.Tools
             CommandOption path,
             CommandOption name,
             AuthArguments authArguments,
-            CommandOption customHeaders)
+            CommandOption customHeaders,
+            CommandOption fromFile)
         {
             Uri = uri;
             Path = path;
             Name = name;
             AuthArguments = authArguments;
             CustomHeaders = customHeaders;
+            FromFile = fromFile;
         }
 
         public CommandArgument Uri { get; }
@@ -24,5 +26,7 @@ namespace StrawberryShake.Tools
         public CommandOption Name { get; }
         public AuthArguments AuthArguments { get; }
         public CommandOption CustomHeaders { get; }
+        public CommandOption FromFile { get; }
+
     }
 }

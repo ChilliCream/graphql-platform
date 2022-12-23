@@ -1,11 +1,22 @@
 import { graphql, Link } from "gatsby";
 import { MDXRenderer } from "gatsby-plugin-mdx";
-import React, { FC, useCallback, useEffect, useRef } from "react";
+import React, { FC, useCallback, useEffect, useMemo, useRef } from "react";
 import { useDispatch } from "react-redux";
+import semverCoerce from "semver/functions/coerce";
+import semverCompare from "semver/functions/compare";
 import styled, { css } from "styled-components";
-import { DocPageFragment } from "../../../graphql-types";
-import ListAltIconSvg from "../../images/list-alt.svg";
-import NewspaperIconSvg from "../../images/newspaper.svg";
+
+import { Article } from "@/components/articles/article";
+import { ArticleComments } from "@/components/articles/article-comments";
+import { ArticleContentFooter } from "@/components/articles/article-content-footer";
+import {
+  ArticleContent,
+  ArticleHeader,
+  ArticleTitle,
+} from "@/components/articles/article-elements";
+import { ArticleSections } from "@/components/articles/article-sections";
+import { TabGroupProvider } from "@/components/mdx/tabs";
+import { DocPageFragment, DocsJson, Maybe } from "@/graphql-types";
 import {
   DocPageDesktopGridColumns,
   IsDesktop,
@@ -13,19 +24,14 @@ import {
   IsSmallDesktop,
   IsTablet,
   THEME_COLORS,
-} from "../../shared-style";
-import { useObservable } from "../../state";
-import { toggleAside, toggleTOC } from "../../state/common";
-import { Article } from "../articles/article";
-import { ArticleComments } from "../articles/article-comments";
-import { ArticleContentFooter } from "../articles/article-content-footer";
-import {
-  ArticleContent,
-  ArticleHeader,
-  ArticleTitle,
-} from "../articles/article-elements";
-import { ArticleSections } from "../articles/article-sections";
-import { TabGroupProvider } from "../mdx/tabs";
+} from "@/shared-style";
+import { useObservable } from "@/state";
+import { toggleAside, toggleTOC } from "@/state/common";
+
+// Icons
+import ListAltIconSvg from "@/images/list-alt.svg";
+import NewspaperIconSvg from "@/images/newspaper.svg";
+
 import {
   ArticleWrapper,
   ArticleWrapperElement,
@@ -52,7 +58,7 @@ export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
   const slug = fields!.slug!;
   const title = frontmatter!.title!;
 
-  const product = useProductInformation(slug);
+  const product = useProductInformation(slug, data.productsConfig?.products);
 
   const hasScrolled$ = useObservable((state) => {
     return state.common.yScrollPosition > 20;
@@ -67,13 +73,8 @@ export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
   }, []);
 
   useEffect(() => {
-    const classes = responsiveMenuRef.current?.className ?? "";
-
     const subscription = hasScrolled$.subscribe((hasScrolled) => {
-      if (responsiveMenuRef.current) {
-        responsiveMenuRef.current.className =
-          classes + (hasScrolled ? " scrolled" : "");
-      }
+      responsiveMenuRef.current?.classList.toggle("scrolled", hasScrolled);
     });
 
     return () => {
@@ -93,7 +94,7 @@ export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
         <DocPageNavigation
           data={data}
           selectedPath={slug}
-          selectedProduct={product.name}
+          selectedProduct={product.path}
           selectedVersion={product.version}
         />
         <ArticleWrapper>
@@ -114,7 +115,7 @@ export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
                     </Button>
                   </ResponsiveMenu>
                 </ResponsiveMenuWrapper>
-                <DocumentationNotes product={product} />
+                <DocumentationNotes product={product} slug={slug} />
                 <ArticleTitle>{title}</ArticleTitle>
               </ArticleHeader>
               <ArticleContent>
@@ -158,6 +159,18 @@ export const DocPageGraphQLFragment = graphql`
         ...ArticleSections
       }
     }
+    productsConfig: file(
+      sourceInstanceName: { eq: "docs" }
+      relativePath: { eq: "docs.json" }
+    ) {
+      products: childrenDocsJson {
+        path
+        title
+        description
+        metaDescription
+        latestStableVersion
+      }
+    }
     ...ArticleComments
     ...DocPageCommunity
     ...DocPageNavigation
@@ -167,11 +180,22 @@ export const DocPageGraphQLFragment = graphql`
 const productAndVersionPattern = /^\/docs\/([\w-]+)(?:\/(v\d+))?/;
 
 interface ProductInformation {
-  readonly name: string;
+  readonly path: string;
+  readonly name: string | null;
   readonly version: string;
+  readonly stableVersion: string;
+  readonly description: string | null;
 }
 
-function useProductInformation(slug: string): ProductInformation | null {
+type Product = Pick<
+  DocsJson,
+  "path" | "title" | "description" | "metaDescription" | "latestStableVersion"
+>;
+
+export function useProductInformation(
+  slug: string,
+  products: Maybe<Array<Maybe<Product>>> | undefined
+): ProductInformation | null {
   if (!slug) {
     return null;
   }
@@ -182,9 +206,22 @@ function useProductInformation(slug: string): ProductInformation | null {
     return null;
   }
 
+  const selectedPath = result[1] || "";
+  const selectedVersion = result[2] || "";
+  let stableVersion = "";
+
+  const selectedProduct = products?.find((p) => p?.path === selectedPath);
+
+  if (selectedProduct) {
+    stableVersion = selectedProduct.latestStableVersion || "";
+  }
+
   return {
-    name: result[1] || "",
-    version: result[2] || "",
+    path: selectedPath,
+    name: selectedProduct?.title ?? "",
+    version: selectedVersion,
+    stableVersion,
+    description: selectedProduct?.metaDescription || null,
   };
 }
 
@@ -282,6 +319,7 @@ const ResponsiveMenu = styled.div`
 
   &.scrolled {
     top: 60px;
+    border-radius: 0;
   }
 
   ${IsPhablet(css`
@@ -337,7 +375,7 @@ const Button = styled.button`
   }
 `;
 
-const OutdatedDocumentationWarning = styled.div`
+const DocumentationVersionWarning = styled.div`
   padding: 20px 20px;
   background-color: ${THEME_COLORS.warning};
   color: ${THEME_COLORS.textContrast};
@@ -349,7 +387,7 @@ const OutdatedDocumentationWarning = styled.div`
 
   > a {
     color: white !important;
-    font-weight: bold;
+    font-weight: 600;
     text-decoration: underline;
   }
 
@@ -360,20 +398,67 @@ const OutdatedDocumentationWarning = styled.div`
 
 interface DocumentationNotesProps {
   readonly product: ProductInformation;
+  readonly slug: string;
 }
 
-const DocumentationNotes: FC<DocumentationNotesProps> = ({ product }) => {
-  if (product.version === "") {
+type DocumentationVersionType = "stable" | "experimental" | "outdated" | null;
+
+const DocumentationNotes: FC<DocumentationNotesProps> = ({ product, slug }) => {
+  const versionType = useMemo<DocumentationVersionType>(() => {
+    const parsedCurrentVersion = semverCoerce(product.version);
+    const parsedStableVersion = semverCoerce(product.stableVersion);
+
+    if (parsedCurrentVersion && parsedStableVersion) {
+      const curVersion = parsedCurrentVersion.version;
+      const stableVersion = parsedStableVersion.version;
+
+      const result = semverCompare(curVersion, stableVersion);
+
+      if (result === 0) {
+        return "stable";
+      }
+
+      if (result === 1) {
+        return "experimental";
+      }
+
+      if (result === -1) {
+        return "outdated";
+      }
+    }
+
     return null;
+  }, [product.stableVersion, product.version]);
+
+  if (versionType !== null) {
+    const stableDocsUrl = slug.replace(
+      "/" + product.version,
+      "/" + product.stableVersion
+    );
+
+    if (versionType === "experimental") {
+      return (
+        <DocumentationVersionWarning>
+          This is documentation for <strong>{product.version}</strong>, which is
+          currently in preview.
+          <br />
+          See the <Link to={stableDocsUrl}>latest stable version</Link> instead.
+        </DocumentationVersionWarning>
+      );
+    }
+
+    if (versionType === "outdated") {
+      return (
+        <DocumentationVersionWarning>
+          This is documentation for <strong>{product.version}</strong>, which is
+          no longer actively maintained.
+          <br />
+          For up-to-date documentation, see the{" "}
+          <Link to={stableDocsUrl}>latest stable version</Link>.
+        </DocumentationVersionWarning>
+      );
+    }
   }
 
-  return (
-    <OutdatedDocumentationWarning>
-      This is documentation for <strong>{product.version}</strong>, which is no
-      longer actively maintained.
-      <br />
-      For up-to-date documentation, see the{" "}
-      <Link to={`/docs/${product.name}`}>latest version</Link>.
-    </OutdatedDocumentationWarning>
-  );
+  return null;
 };

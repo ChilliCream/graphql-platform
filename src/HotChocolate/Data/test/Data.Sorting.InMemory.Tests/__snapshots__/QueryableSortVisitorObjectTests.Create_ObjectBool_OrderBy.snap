@@ -1,0 +1,49 @@
+ASC
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barBool": false
+        }
+      },
+      {
+        "foo": {
+          "barBool": true
+        }
+      },
+      {
+        "foo": {
+          "barBool": true
+        }
+      }
+    ]
+  }
+}
+---------------
+
+DESC
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barBool": true
+        }
+      },
+      {
+        "foo": {
+          "barBool": true
+        }
+      },
+      {
+        "foo": {
+          "barBool": false
+        }
+      }
+    ]
+  }
+}
+---------------

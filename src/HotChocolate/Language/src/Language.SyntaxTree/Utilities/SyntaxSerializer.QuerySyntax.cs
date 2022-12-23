@@ -8,7 +8,7 @@ public sealed partial class SyntaxSerializer
         OperationDefinitionNode node,
         ISyntaxWriter writer)
     {
-        bool writeOperation = node.Name is { }
+        var writeOperation = node.Name is { }
             || node.Operation != OperationType.Query
             || node.VariableDefinitions.Count > 0
             || node.Directives.Count > 0;
@@ -225,6 +225,7 @@ public sealed partial class SyntaxSerializer
 
         if (node.Directives.Count > 0)
         {
+            writer.WriteSpace();
             writer.WriteMany(node.Directives,
                 (n, w) => w.WriteDirective(n),
                 w => w.WriteSpace());

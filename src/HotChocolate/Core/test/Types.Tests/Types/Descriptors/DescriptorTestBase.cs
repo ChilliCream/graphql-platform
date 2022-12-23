@@ -1,14 +1,13 @@
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.Types
-{
-    public class DescriptorTestBase
-    {
-        protected DescriptorTestBase()
-        {
-        }
+namespace HotChocolate.Types;
 
-        public IDescriptorContext Context { get; } =
-            DescriptorContext.Create();
+public class DescriptorTestBase
+{
+    protected DescriptorTestBase()
+    {
     }
+
+    public IDescriptorContext Context { get; } =
+        DescriptorContext.Create();
 }

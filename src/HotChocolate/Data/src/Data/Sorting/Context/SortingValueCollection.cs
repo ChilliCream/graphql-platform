@@ -5,7 +5,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Data.Sorting;
 
 /// <summary>
-/// Represents a collection of <see cref="ISortingValueNode">
+/// Represents a collection of <see cref="ISortingValueNode"/>
 /// </summary>
 public class SortingValueCollection : List<ISortingValueNode>, ISortingValueCollection
 {

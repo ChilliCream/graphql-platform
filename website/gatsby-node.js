@@ -2,8 +2,10 @@ const { createFilePath } = require("gatsby-source-filesystem");
 const path = require("path");
 const git = require("simple-git/promise");
 
+/** @type import('gatsby').GatsbyNode["createPages"] */
 exports.createPages = async ({ actions, graphql, reporter }) => {
   const { createPage, createRedirect } = actions;
+
   const result = await graphql(`
     {
       blog: allMdx(
@@ -34,6 +36,15 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
           }
         }
       }
+      productsConfig: file(
+        sourceInstanceName: { eq: "docs" }
+        relativePath: { eq: "docs.json" }
+      ) {
+        products: childrenDocsJson {
+          path
+          latestStableVersion
+        }
+      }
     }
   `);
 
@@ -44,7 +55,30 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
   }
 
   createBlogArticles(createPage, result.data.blog);
-  createDocPages(createPage, result.data.docs);
+
+  const products = result.data.productsConfig.products;
+
+  createDocPages(createPage, result.data.docs, products);
+
+  createRedirect({
+    fromPath: "/docs/",
+    toPath: "/docs/hotchocolate/",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+
+  const hotchocolate = products.find((p) => p.path === "hotchocolate");
+
+  if (hotchocolate) {
+    createHotChocolateRedirects(hotchocolate, createRedirect);
+  }
+
+  createRedirect({
+    fromPath: "/docs/marshmallowpie/",
+    toPath: "/docs/hotchocolate/",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
 
   createRedirect({
     fromPath: "/blog/2019/03/18/entity-framework",
@@ -52,15 +86,73 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
     redirectInBrowser: true,
     isPermanent: true,
   });
+
+  // Banana Cake Pop
   createRedirect({
-    fromPath: "/docs/",
-    toPath: "/docs/hotchocolate/",
+    fromPath: "/banana-cake-pop",
+    toPath: "/products/bananacakepop",
     redirectInBrowser: true,
     isPermanent: true,
   });
   createRedirect({
-    fromPath: "/docs/marshmallowpie/",
-    toPath: "/docs/hotchocolate/",
+    fromPath: "/banana-cake-pop/",
+    toPath: "/products/bananacakepop",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+
+  // Products
+  createRedirect({
+    fromPath: "/products",
+    toPath: "/",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+  createRedirect({
+    fromPath: "/products/",
+    toPath: "/",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+
+  // Company
+  createRedirect({
+    fromPath: "/company",
+    toPath: "/",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+  createRedirect({
+    fromPath: "/company/",
+    toPath: "/",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+
+  // Services
+  createRedirect({
+    fromPath: "/services",
+    toPath: "/services/support",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+  createRedirect({
+    fromPath: "/services/",
+    toPath: "/services/support",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+
+  // Support
+  createRedirect({
+    fromPath: "/support",
+    toPath: "/services/support",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+  createRedirect({
+    fromPath: "/support/",
+    toPath: "/services/support",
     redirectInBrowser: true,
     isPermanent: true,
   });
@@ -123,7 +215,7 @@ exports.onCreateNode = async ({ node, actions, getNode, reporter }) => {
     return;
   }
 
-  // if the path is defined on the frontmatter (like for posts) use that as slug
+  // if the path is defined on the frontmatter (like for blogs) use that as slug
   let path = node.frontmatter && node.frontmatter.path;
 
   if (!path) {
@@ -229,23 +321,228 @@ function createBlogArticles(createPage, data) {
   });
 }
 
-function createDocPages(createPage, data) {
+function createDocPages(createPage, data, products) {
   const docTemplate = path.resolve(`src/templates/doc-page-template.tsx`);
   const { pages } = data;
 
   // Create Single Pages
   pages.forEach((page) => {
-    const path = page.childMdx.fields.slug;
+    const slug = page.childMdx.fields.slug;
     const originPath = `${page.relativeDirectory}/${page.name}.md`;
 
+    const product = getProductFromSlug(slug, products);
+
+    if (product && product.version === product.latestStableVersion) {
+      const unversionedSlug = slug.replace(
+        product.basePath,
+        "/docs/" + product.path
+      );
+
+      // Instead of duplicating the page here, we could just create a page that
+      // does a JS redirect to the actual (versioned) slug. Google's crawler
+      // should handle that just fine. But just to be fully backwards compatible,
+      // this duplicates all of the versioned pages of the latest
+      // stable version as unversioned pages.
+      // If v12 is the stable version, two versions will live side by side:
+      // /docs/hotchocolate/v12/whatever
+      // /docs/hotchocolate/whatever
+
+      createPage({
+        path: unversionedSlug,
+        component: docTemplate,
+        context: {
+          originPath,
+        },
+      });
+    }
+
     createPage({
-      path,
+      path: slug,
       component: docTemplate,
       context: {
         originPath,
       },
     });
   });
+}
+
+function createHotChocolateRedirects(product, createRedirect) {
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/code-first`,
+    toPath: "/docs/hotchocolate/defining-a-schema",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/schema-first`,
+    toPath: "/docs/hotchocolate/defining-a-schema",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/schema`,
+    toPath: "/docs/hotchocolate/defining-a-schema",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/schema/object-type`,
+    toPath: "/docs/hotchocolate/defining-a-schema/object-types",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/schema/interface-type`,
+    toPath: "/docs/hotchocolate/defining-a-schema/interfaces",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/schema/union-type`,
+    toPath: "/docs/hotchocolate/defining-a-schema/unions",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/schema/input-object-type`,
+    toPath: "/docs/hotchocolate/defining-a-schema/input-object-types",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/schema/enum-type`,
+    toPath: "/docs/hotchocolate/defining-a-schema/enums",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/schema/descriptions`,
+    toPath: "/docs/hotchocolate/defining-a-schema/documentation",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/schema/custom-scalar-types`,
+    toPath: "/docs/hotchocolate/defining-a-schema/scalars",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/schema/directives`,
+    toPath: "/docs/hotchocolate/defining-a-schema/directives",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/schema/relay`,
+    toPath: "/docs/hotchocolate/defining-a-schema/relay",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/schema/resolvers`,
+    toPath: "/docs/hotchocolate/fetching-data/resolvers",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/data-fetching`,
+    toPath: "/docs/hotchocolate/fetching-data/dataloader",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/data-fetching/pagination`,
+    toPath: "/docs/hotchocolate/fetching-data/pagination",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/data-fetching/filters`,
+    toPath: "/docs/hotchocolate/fetching-data/filtering",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/execution-engine/instrumentation`,
+    toPath: "/docs/hotchocolate/server/instrumentation",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/execution-engine/apollo-tracing`,
+    toPath: "/docs/hotchocolate/server/instrumentation#apollo-tracing",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/execution-engine/persisted-queries`,
+    toPath: "/docs/hotchocolate/performance/persisted-queries",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/execution-engine/custom-context-data`,
+    toPath: "/docs/hotchocolate/execution-engine",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/execution-engine/subscriptions`,
+    toPath: "/docs/hotchocolate/defining-a-schema/subscriptions",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/execution-engine/type-conversion`,
+    toPath: "/docs/hotchocolate/defining-a-schema/scalars#custom-converters",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/execution-engine/type-conversion`,
+    toPath: "/docs/hotchocolate/defining-a-schema/scalars#custom-converters",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/security/security`,
+    toPath: "/docs/hotchocolate/security",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/stitching`,
+    toPath: "/docs/hotchocolate/distributed-schema",
+    redirectInBrowser: true,
+  });
+
+  createRedirect({
+    fromPath: `/docs/hotchocolate/${product.latestStableVersion}/tutorials`,
+    toPath: "/docs/hotchocolate/integrations/entity-framework",
+    redirectInBrowser: true,
+  });
+}
+
+const productAndVersionPattern = /^\/docs\/([\w-]+)(?:\/(v\d+))?/;
+
+function getProductFromSlug(slug, products) {
+  const productMatch = productAndVersionPattern.exec(slug);
+
+  if (!productMatch) {
+    return null;
+  }
+
+  const productName = productMatch[1] || "";
+  const productVersion = productMatch[2] || "";
+
+  const product = products.find((p) => p?.path === productName);
+
+  return {
+    ...product,
+    version: productVersion,
+    basePath: productMatch[0],
+  };
 }
 
 function getGitLog(filepath) {

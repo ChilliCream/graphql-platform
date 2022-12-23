@@ -1,9 +1,3 @@
 <Project>
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
-
-  <PropertyGroup>
-    <TestTargetFrameworks Condition="'$(IsMacOsArm)' != 'true'">net6.0; net5.0; netcoreapp3.1</TestTargetFrameworks>
-    <TestTargetFrameworks Condition="'$(IsMacOsArm)' == 'true'">net6.0</TestTargetFrameworks>
-  </PropertyGroup>
-
 </Project>

@@ -15,6 +15,7 @@ public static class MongoDbSchemaBuilderExtensions
     /// The <see cref="ISchemaBuilder"/>.
     /// </param>
     /// <param name="name"></param>
+    /// <param name="compatabilityMode">Uses the old behaviour of naming the filters</param>
     /// <returns>
     /// Returns the <see cref="ISchemaBuilder"/>.
     /// </returns>

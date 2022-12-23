@@ -1,6 +1,5 @@
 using System;
 using System.Buffers;
-using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -37,31 +36,20 @@ public abstract class DescriptorBase<T>
         if (Definition.HasConfigurations)
         {
             var i = 0;
-            var buffered = 0;
-            var length = Definition.Configurations.Count;
-            CreateConfiguration[] rented = ArrayPool<CreateConfiguration>.Shared.Rent(length);
-            IList<ITypeSystemMemberConfiguration> configurations = Definition.Configurations;
+            var configurations = Definition.Configurations;
 
             do
             {
                 if (configurations[i] is { On: ApplyConfigurationOn.Create } config)
                 {
                     configurations.RemoveAt(i);
-                    rented[buffered++] = (CreateConfiguration)config;
+                    ((CreateConfiguration)config).Configure(Context);
                 }
                 else
                 {
                     i++;
                 }
             } while (i < configurations.Count);
-
-            for (i = 0; i < buffered; i++)
-            {
-                rented[i].Configure(Context);
-            }
-
-            rented.AsSpan().Slice(0, length).Clear();
-            ArrayPool<CreateConfiguration>.Shared.Return(rented, true);
         }
 
         return Definition;
@@ -121,7 +109,7 @@ public abstract class DescriptorBase<T>
         var configuration = new CompleteConfiguration(
             (c, d) => configure(c, (T)d),
             Definition,
-            ApplyConfigurationOn.Naming);
+            ApplyConfigurationOn.BeforeNaming);
 
         Definition.Configurations.Add(configuration);
 
@@ -142,7 +130,7 @@ public abstract class DescriptorBase<T>
         var configuration = new CompleteConfiguration(
             (c, d) => configure(c, (T)d),
             Definition,
-            ApplyConfigurationOn.Completion);
+            ApplyConfigurationOn.BeforeCompletion);
 
         Definition.Configurations.Add(configuration);
 

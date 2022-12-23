@@ -19,9 +19,9 @@ public static class HotChocolateValidationServiceCollectionExtensions
 
     public static IValidationBuilder AddValidation(
         this IServiceCollection services,
-        NameString schemaName = default)
+        string? schemaName = default)
     {
-        schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
+        schemaName ??= Schema.DefaultName;
 
         services.AddValidationCore();
 

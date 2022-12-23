@@ -57,7 +57,7 @@ namespace HotChocolate.Stitching
             // act
             using (IServiceScope scope = services.CreateScope())
             {
-                IReadOnlyQueryRequest request =
+                IQueryRequest request =
                     QueryRequestBuilder.New()
                         .SetQuery(@"
                         {
@@ -78,10 +78,10 @@ namespace HotChocolate.Stitching
         public class DummyInterceptor
             : IHttpStitchingRequestInterceptor
         {
-            public Task<IReadOnlyQueryResult> OnResponseReceivedAsync(
-                IReadOnlyQueryRequest request,
+            public Task<IQueryResult> OnResponseReceivedAsync(
+                IQueryRequest request,
                 HttpResponseMessage response,
-                IReadOnlyQueryResult result)
+                IQueryResult result)
             {
                 return Task.FromResult(
                     QueryResultBuilder.FromResult(result)

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Data.Projections;
 using HotChocolate.Resolvers;

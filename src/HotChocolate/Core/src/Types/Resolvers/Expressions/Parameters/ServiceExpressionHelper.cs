@@ -98,21 +98,21 @@ public static class ServiceExpressionHelper
 
     private static Expression BuildDefaultService(ParameterInfo parameter, Expression context)
     {
-        Type parameterType = parameter.ParameterType;
-        MethodInfo argumentMethod = _getServiceMethod.MakeGenericMethod(parameterType);
+        var parameterType = parameter.ParameterType;
+        var argumentMethod = _getServiceMethod.MakeGenericMethod(parameterType);
         return Expression.Call(context, argumentMethod);
     }
 
     private static Expression BuildLocalService(ParameterInfo parameter, Expression context)
     {
-        ConstantExpression key = Expression.Constant(
+        var key = Expression.Constant(
             parameter.ParameterType.FullName ??
             parameter.ParameterType.Name,
             typeof(string));
 
-        MemberExpression contextData = Expression.Property(context, _contextData);
+        var contextData = Expression.Property(context, _contextData);
 
-        MethodInfo getScopedState =
+        var getScopedState =
             parameter.HasDefaultValue
                 ? _getScopedStateWithDefault.MakeGenericMethod(parameter.ParameterType)
                 : _getScopedState.MakeGenericMethod(parameter.ParameterType);

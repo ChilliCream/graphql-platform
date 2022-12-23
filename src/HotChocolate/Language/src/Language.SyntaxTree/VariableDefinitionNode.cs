@@ -78,7 +78,7 @@ public sealed class VariableDefinitionNode : ISyntaxNode, IHasDirectives
             yield return DefaultValue;
         }
 
-        foreach (DirectiveNode directive in Directives)
+        foreach (var directive in Directives)
         {
             yield return directive;
         }

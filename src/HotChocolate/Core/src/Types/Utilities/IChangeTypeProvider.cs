@@ -22,7 +22,7 @@ public interface IChangeTypeProvider
     /// The source type.
     /// </param>
     /// <param name="target">
-    /// The traget type.
+    /// The target type.
     /// </param>
     /// <param name="root">
     /// The root change type provider that has access to
