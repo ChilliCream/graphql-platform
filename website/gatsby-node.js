@@ -115,7 +115,7 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
     isPermanent: true,
   });
 
-  // company
+  // Company
   createRedirect({
     fromPath: "/company",
     toPath: "/",
@@ -125,6 +125,34 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
   createRedirect({
     fromPath: "/company/",
     toPath: "/",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+
+  // Services
+  createRedirect({
+    fromPath: "/services",
+    toPath: "/services/support",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+  createRedirect({
+    fromPath: "/services/",
+    toPath: "/services/support",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+
+  // Support
+  createRedirect({
+    fromPath: "/support",
+    toPath: "/services/support",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+  createRedirect({
+    fromPath: "/support/",
+    toPath: "/services/support",
     redirectInBrowser: true,
     isPermanent: true,
   });
