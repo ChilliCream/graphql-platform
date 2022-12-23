@@ -3,9 +3,9 @@
     "bool": {
       "filter": [
         {
-          "prefix": {
+          "wildcard": {
             "baz.bar": {
-              "value": "he"
+              "wildcard": "he*"
             }
           }
         }

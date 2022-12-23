@@ -115,7 +115,35 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
     /// <inheritdoc />
     protected override IQuery Rewrite(TermOperation operation)
     {
-        return new PrefixQuery {Field = operation.Path, Value = operation.Value};
+        return new TermQuery
+        {
+            Field = operation.Path,
+            Value = operation.Value
+        };
+    }
+
+    /// <inheritdoc />
+    protected override IQuery Rewrite(WildCardOperation operation)
+    {
+        return operation.WildCardOperationKind switch
+        {
+            WildCardOperationKind.StartsWith => new WildcardQuery
+            {
+                Field = operation.Path,
+                Wildcard = $"{operation.Value}*"
+            },
+            WildCardOperationKind.EndsWith => new WildcardQuery
+            {
+                Field = operation.Path,
+                Wildcard = $"*{operation.Value}"
+            },
+            WildCardOperationKind.Contains => new WildcardQuery
+            {
+                Field = operation.Path,
+                Wildcard = $"*{operation.Value}*"
+            },
+            _ => throw new InvalidOperationException()
+        };
     }
 
     /// <inheritdoc />

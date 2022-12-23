@@ -2,22 +2,21 @@ using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using static HotChocolate.Data.Filters.DefaultFilterOperations;
 
 namespace HotChocolate.Data.ElasticSearch.Filters;
 
 /// <summary>
-/// This filter operation handler maps a NotStartsWith operation field to a
+/// This filter operation handler maps a StartsWith operation field to a
 /// <see cref="ISearchOperation"/>
 /// </summary>
-public class ElasticSearchStringNotStartsWithOperationHandler
-    : ElasticSearchStringStartsWithOperationHandler
+public class ElasticSearchStringStartsWithHandler
+    : ElasticSearchOperationHandlerBase
 {
     /// <summary>
     /// Initializes a new instance of
-    /// <see cref="ElasticSearchStringNotStartsWithOperationHandler"/>
+    /// <see cref="ElasticSearchStringStartsWithHandler"/>
     /// </summary>
-    public ElasticSearchStringNotStartsWithOperationHandler(InputParser inputParser)
+    public ElasticSearchStringStartsWithHandler(InputParser inputParser)
         : base(inputParser)
     {
     }
@@ -28,7 +27,10 @@ public class ElasticSearchStringNotStartsWithOperationHandler
         IFilterInputTypeDefinition typeDefinition,
         IFilterFieldDefinition fieldDefinition)
         => context.Type is StringOperationFilterInputType &&
-            fieldDefinition is FilterOperationFieldDefinition { Id: NotStartsWith };
+            fieldDefinition is FilterOperationFieldDefinition
+            {
+                Id: DefaultFilterOperations.StartsWith
+            };
 
     /// <inheritdoc />
     public override ISearchOperation HandleOperation(
@@ -37,8 +39,17 @@ public class ElasticSearchStringNotStartsWithOperationHandler
         IValueNode value,
         object? parsedValue)
     {
-        ISearchOperation operation =
-            base.HandleOperation(context, field, value, parsedValue);
-        return ElasticSearchOperationHelpers.Negate(operation);
+        if (parsedValue is not string val)
+        {
+            throw ThrowHelper.Filtering_WrongValueProvided(field);
+        }
+
+        IElasticFilterMetadata metadata = field.GetElasticMetadata();
+
+        return new WildCardOperation(
+            context.GetPath(),
+            metadata.Kind,
+            WildCardOperationKind.StartsWith,
+            val);
     }
 }

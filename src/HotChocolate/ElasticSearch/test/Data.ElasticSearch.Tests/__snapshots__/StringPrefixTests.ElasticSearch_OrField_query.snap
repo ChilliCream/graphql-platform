@@ -6,16 +6,16 @@
           "bool": {
             "should": [
               {
-                "prefix": {
+                "wildcard": {
                   "bar": {
-                    "value": "th"
+                    "wildcard": "th*"
                   }
                 }
               },
               {
-                "prefix": {
+                "wildcard": {
                   "bar": {
-                    "value": "I"
+                    "wildcard": "I*"
                   }
                 }
               }
