@@ -1,4 +1,4 @@
-using HotChocolate.Configuration;
+﻿using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -6,17 +6,17 @@ using HotChocolate.Types;
 namespace HotChocolate.Data.ElasticSearch.Filters;
 
 /// <summary>
-/// This filter operation handler maps a StartsWith operation field to a
+/// This filter operation handler maps a Contains operation field to a
 /// <see cref="ISearchOperation"/>
 /// </summary>
-public class ElasticSearchStringStartsWithOperationHandler
+public class ElasticSearchStringContainsHandler
     : ElasticSearchOperationHandlerBase
 {
     /// <summary>
     /// Initializes a new instance of
-    /// <see cref="ElasticSearchStringStartsWithOperationHandler"/>
+    /// <see cref="ElasticSearchStringContainsHandler"/>
     /// </summary>
-    public ElasticSearchStringStartsWithOperationHandler(InputParser inputParser)
+    public ElasticSearchStringContainsHandler(InputParser inputParser)
         : base(inputParser)
     {
     }
@@ -27,10 +27,10 @@ public class ElasticSearchStringStartsWithOperationHandler
         IFilterInputTypeDefinition typeDefinition,
         IFilterFieldDefinition fieldDefinition)
         => context.Type is StringOperationFilterInputType &&
-            fieldDefinition is FilterOperationFieldDefinition
-            {
-                Id: DefaultFilterOperations.StartsWith
-            };
+           fieldDefinition is FilterOperationFieldDefinition
+           {
+               Id: DefaultFilterOperations.Contains
+           };
 
     /// <inheritdoc />
     public override ISearchOperation HandleOperation(
@@ -46,9 +46,10 @@ public class ElasticSearchStringStartsWithOperationHandler
 
         IElasticFilterMetadata metadata = field.GetElasticMetadata();
 
-        return new TermOperation(
+        return new WildCardOperation(
             context.GetPath(),
             metadata.Kind,
+            WildCardOperationKind.Contains,
             val);
     }
 }

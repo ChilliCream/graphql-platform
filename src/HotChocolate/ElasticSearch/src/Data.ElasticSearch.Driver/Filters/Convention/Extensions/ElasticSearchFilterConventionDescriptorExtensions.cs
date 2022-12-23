@@ -143,19 +143,16 @@ public static class ElasticSearchFilterConventionDescriptorExtensions
         descriptor.AddFieldHandler<ElasticSearchStringEqualsOperationHandler>();
         descriptor.AddFieldHandler<ElasticSearchStringNotEqualsOperationHandler>();
 
-        descriptor.AddFieldHandler<ElasticSearchStringStartsWithOperationHandler>();
-        descriptor.AddFieldHandler<ElasticSearchStringNotStartsWithOperationHandler>();
-
-        /*
+        descriptor.AddFieldHandler<ElasticSearchStringStartsWithHandler>();
+        descriptor.AddFieldHandler<ElasticSearchStringNotStartsWithHandler>();
 
         descriptor.AddFieldHandler<ElasticSearchInOperationHandler>();
         descriptor.AddFieldHandler<ElasticSearchNotInOperationHandler>();
+
         descriptor.AddFieldHandler<ElasticSearchStringEndsWithHandler>();
         descriptor.AddFieldHandler<ElasticSearchStringNotEndsWithHandler>();
         descriptor.AddFieldHandler<ElasticSearchStringContainsHandler>();
         descriptor.AddFieldHandler<ElasticSearchStringNotContainsHandler>();
-
-        */
 
         descriptor.AddFieldHandler<ElasticSearchComparableGreaterThanHandler>();
         descriptor.AddFieldHandler<ElasticSearchComparableNotGreaterThanHandler>();
