@@ -44,6 +44,10 @@ public class RangeTests : TestBase
             descriptor.Operation(DefaultFilterOperations.LowerThan).Type<DecimalType>();
             descriptor.Operation(DefaultFilterOperations.GreaterThanOrEquals).Type<DecimalType>();
             descriptor.Operation(DefaultFilterOperations.LowerThanOrEquals).Type<DecimalType>();
+            descriptor.Operation(DefaultFilterOperations.NotGreaterThan).Type<DecimalType>();
+            descriptor.Operation(DefaultFilterOperations.NotGreaterThanOrEquals).Type<DecimalType>();
+            descriptor.Operation(DefaultFilterOperations.NotLowerThan).Type<DecimalType>();
+            descriptor.Operation(DefaultFilterOperations.NotLowerThanOrEquals).Type<DecimalType>();
         }
     }
 
@@ -86,6 +90,35 @@ public class RangeTests : TestBase
     }
 
     [Fact]
+    public async Task ElasticSearch_Range_NotGreaterThan()
+    {
+        await IndexDocuments(_data);
+
+        IRequestExecutor executorAsync = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .UseFiltering<FooFilterType>()
+                .UseTestReport(Client)
+                .ResolveTestData(Client, _data))
+            .AddElasticSearchFiltering()
+            .BuildTestExecutorAsync();
+
+        const string query = @"
+        {
+            test(where: { value :{ ngt: 0}}) {
+                name
+                value
+            }
+        }
+        ";
+
+        IExecutionResult result = await executorAsync.ExecuteAsync(query);
+        result.MatchQuerySnapshot();
+    }
+
+    [Fact]
     public async Task ElasticSearch_Range_GreaterThanOrEquals()
     {
         await IndexDocuments(_data);
@@ -104,6 +137,35 @@ public class RangeTests : TestBase
         const string query = @"
         {
             test(where: { value :{ gte: 0}}) {
+                name
+                value
+            }
+        }
+        ";
+
+        IExecutionResult result = await executorAsync.ExecuteAsync(query);
+        result.MatchQuerySnapshot();
+    }
+
+    [Fact]
+    public async Task ElasticSearch_Range_NotGreaterThanOrEquals()
+    {
+        await IndexDocuments(_data);
+
+        IRequestExecutor executorAsync = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .UseFiltering<FooFilterType>()
+                .UseTestReport(Client)
+                .ResolveTestData(Client, _data))
+            .AddElasticSearchFiltering()
+            .BuildTestExecutorAsync();
+
+        const string query = @"
+        {
+            test(where: { value :{ ngte: 0}}) {
                 name
                 value
             }
@@ -144,6 +206,35 @@ public class RangeTests : TestBase
     }
 
     [Fact]
+    public async Task ElasticSearch_Range_NotLowerThan()
+    {
+        await IndexDocuments(_data);
+
+        IRequestExecutor executorAsync = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .UseFiltering<FooFilterType>()
+                .UseTestReport(Client)
+                .ResolveTestData(Client, _data))
+            .AddElasticSearchFiltering()
+            .BuildTestExecutorAsync();
+
+        const string query = @"
+        {
+            test(where: { value :{ nlt: 0}}) {
+                name
+                value
+            }
+        }
+        ";
+
+        IExecutionResult result = await executorAsync.ExecuteAsync(query);
+        result.MatchQuerySnapshot();
+    }
+
+    [Fact]
     public async Task ElasticSearch_Range_LowerThanOrEquals()
     {
         await IndexDocuments(_data);
@@ -162,6 +253,35 @@ public class RangeTests : TestBase
         const string query = @"
         {
             test(where: { value :{ lte: 0}}) {
+                name
+                value
+            }
+        }
+        ";
+
+        IExecutionResult result = await executorAsync.ExecuteAsync(query);
+        result.MatchQuerySnapshot();
+    }
+
+    [Fact]
+    public async Task ElasticSearch_Range_NotLowerThanOrEquals()
+    {
+        await IndexDocuments(_data);
+
+        IRequestExecutor executorAsync = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .UseFiltering<FooFilterType>()
+                .UseTestReport(Client)
+                .ResolveTestData(Client, _data))
+            .AddElasticSearchFiltering()
+            .BuildTestExecutorAsync();
+
+        const string query = @"
+        {
+            test(where: { value :{ nlte: 0}}) {
                 name
                 value
             }
