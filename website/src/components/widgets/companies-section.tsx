@@ -43,6 +43,10 @@ import SytadelleLogoSvg from "@/images/companies/sytadelle.svg";
 import TravelSoftLogoSvg from "@/images/companies/travel-soft.svg";
 import XMLogoSvg from "@/images/companies/xm.svg";
 import ZioskLogoSvg from "@/images/companies/ziosk.svg";
+import FulcrumLogoSvg from "@/images/companies/fulcrum.svg";
+import SpectrumMedicalLogoSvg from "@/images/companies/spectrum-medical.svg";
+import TrackmanLogoSvg from "@/images/companies/trackman.svg";
+import VptechLogoSvg from "@/images/companies/vptech.svg";
 
 export const CompaniesSection: FC = () => (
   <Section>
@@ -110,6 +114,11 @@ export const CompaniesSection: FC = () => (
               <Company {...EzeepLogoSvg} />
             </Link>
           </Logo>
+          <Logo width={150}>
+            <Link to="https://fulcrumpro.com/">
+              <Company {...FulcrumLogoSvg} />
+            </Link>
+          </Logo>
           <Logo width={120}>
             <Link to="https://gia.ch">
               <Company {...GiaLogoSvg} />
@@ -165,6 +174,11 @@ export const CompaniesSection: FC = () => (
               <Company {...SonikaLogoSvg} />
             </Link>
           </Logo>
+          <Logo width={200}>
+            <Link to="https://www.spectrummedical.com/">
+              <Company {...SpectrumMedicalLogoSvg} />
+            </Link>
+          </Logo>
           <Logo width={120}>
             <Link to="https://www.speedwaymotors.com">
               <Company {...SpeedwayMotorsLogoSvg} />
@@ -191,8 +205,18 @@ export const CompaniesSection: FC = () => (
             </Link>
           </Logo>
           <Logo width={180}>
+            <Link to="http://trackman.com/">
+              <Company {...TrackmanLogoSvg} />
+            </Link>
+          </Logo>
+          <Logo width={180}>
             <Link to="https://travel-soft.com">
               <Company {...TravelSoftLogoSvg} />
+            </Link>
+          </Logo>
+          <Logo width={140}>
+            <Link to="https://careers.veepee.com/vptech/">
+              <Company {...VptechLogoSvg} />
             </Link>
           </Logo>
           <Logo width={120}>
