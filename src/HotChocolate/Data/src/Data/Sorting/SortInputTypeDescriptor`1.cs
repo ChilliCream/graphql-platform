@@ -57,7 +57,9 @@ public class SortInputTypeDescriptor<T>
                 handledProperties,
                 include: (_, member) => member is PropertyInfo &&
                     !handledProperties.Contains(member) &&
-                    !Context.TypeInspector.GetReturnType(member).IsArrayOrList);
+                    !Context.TypeInspector.GetReturnType(member).IsArrayOrList &&
+                    !member.IsDefined(typeof(GraphQLIgnoreSortAttribute)) &&
+                    !Context.TypeInspector.GetReturnType(member).Type.IsDefined(typeof(GraphQLIgnoreSortAttribute)));
         }
 
         base.OnCompleteFields(fields, handledProperties);
