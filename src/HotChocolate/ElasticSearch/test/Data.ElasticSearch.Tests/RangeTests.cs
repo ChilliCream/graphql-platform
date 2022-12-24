@@ -16,17 +16,23 @@ public class RangeTests : TestBase
         new Foo()
         {
             Name = "A",
-            Value = 1
+            Value = 1,
+            FValue = 1,
+            DateTimeValue = DateTime.Parse("2022-12-22T15:05:22+0000")
         },
         new Foo()
         {
             Name = "B",
-            Value = 0
+            Value = 0,
+            FValue = 0,
+            DateTimeValue = DateTime.Parse("2022-12-23T15:05:22+0000")
         },
         new Foo()
         {
             Name = "C",
-            Value = -1
+            Value = -1,
+            FValue = -1,
+            DateTimeValue = DateTime.Parse("2022-12-24T15:05:22+0000")
         },
     };
 
@@ -36,7 +42,7 @@ public class RangeTests : TestBase
     {
     }
 
-    public class TestOperationType : DecimalOperationFilterInputType
+    public class DoubleOperationType : DecimalOperationFilterInputType
     {
         protected override void Configure(IFilterInputTypeDescriptor descriptor)
         {
@@ -51,30 +57,68 @@ public class RangeTests : TestBase
         }
     }
 
+    public class FloatOperationType : FloatOperationFilterInputType
+    {
+        protected override void Configure(IFilterInputTypeDescriptor descriptor)
+        {
+            descriptor.Operation(DefaultFilterOperations.GreaterThan).Type<DecimalType>();
+            descriptor.Operation(DefaultFilterOperations.LowerThan).Type<DecimalType>();
+            descriptor.Operation(DefaultFilterOperations.GreaterThanOrEquals).Type<DecimalType>();
+            descriptor.Operation(DefaultFilterOperations.LowerThanOrEquals).Type<DecimalType>();
+            descriptor.Operation(DefaultFilterOperations.NotGreaterThan).Type<DecimalType>();
+            descriptor.Operation(DefaultFilterOperations.NotGreaterThanOrEquals).Type<DecimalType>();
+            descriptor.Operation(DefaultFilterOperations.NotLowerThan).Type<DecimalType>();
+            descriptor.Operation(DefaultFilterOperations.NotLowerThanOrEquals).Type<DecimalType>();
+        }
+    }
+
+    public class DateTimeOperationType : DateTimeOperationFilterInputType
+    {
+        protected override void Configure(IFilterInputTypeDescriptor descriptor)
+        {
+            descriptor.Operation(DefaultFilterOperations.GreaterThan).Type<DateTimeType>();
+            descriptor.Operation(DefaultFilterOperations.LowerThan).Type<DateTimeType>();
+            descriptor.Operation(DefaultFilterOperations.GreaterThanOrEquals).Type<DateTimeType>();
+            descriptor.Operation(DefaultFilterOperations.LowerThanOrEquals).Type<DateTimeType>();
+            descriptor.Operation(DefaultFilterOperations.NotGreaterThan).Type<DateTimeType>();
+            descriptor.Operation(DefaultFilterOperations.NotGreaterThanOrEquals).Type<DateTimeType>();
+            descriptor.Operation(DefaultFilterOperations.NotLowerThan).Type<DateTimeType>();
+            descriptor.Operation(DefaultFilterOperations.NotLowerThanOrEquals).Type<DateTimeType>();
+        }
+    }
+
+    public class StringOperationType : StringOperationFilterInputType
+    {
+        protected override void Configure(IFilterInputTypeDescriptor descriptor)
+        {
+            descriptor.Operation(DefaultFilterOperations.GreaterThan).Type<StringType>();
+            descriptor.Operation(DefaultFilterOperations.LowerThan).Type<StringType>();
+            descriptor.Operation(DefaultFilterOperations.GreaterThanOrEquals).Type<StringType>();
+            descriptor.Operation(DefaultFilterOperations.LowerThanOrEquals).Type<StringType>();
+            descriptor.Operation(DefaultFilterOperations.NotGreaterThan).Type<StringType>();
+            descriptor.Operation(DefaultFilterOperations.NotGreaterThanOrEquals).Type<StringType>();
+            descriptor.Operation(DefaultFilterOperations.NotLowerThan).Type<StringType>();
+            descriptor.Operation(DefaultFilterOperations.NotLowerThanOrEquals).Type<StringType>();
+        }
+    }
+
     public class FooFilterType : FilterInputType<Foo>
     {
         protected override void Configure(IFilterInputTypeDescriptor<Foo> descriptor)
         {
             descriptor.BindFieldsExplicitly();
-            descriptor.Field(x => x.Value).Type<TestOperationType>();
+            descriptor.Field(x => x.Value).Type<DoubleOperationType>();
+            descriptor.Field(x => x.FValue).Type<FloatOperationType>();
+            descriptor.Field(x => x.DateTimeValue).Type<DateTimeOperationType>();
         }
     }
 
+    #region Double
     [Fact]
-    public async Task ElasticSearch_Range_GreaterThan()
+    public async Task ElasticSearch_Range_Double_GreaterThan()
     {
         await IndexDocuments(_data);
-
-        IRequestExecutor executorAsync = await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(x => x
-                .Name("Query")
-                .Field("test")
-                .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
-                .ResolveTestData(Client, _data))
-            .AddElasticSearchFiltering()
-            .BuildTestExecutorAsync();
+        IRequestExecutor executorAsync = await CreateExecutorAsync();
 
         const string query = @"
         {
@@ -90,20 +134,10 @@ public class RangeTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_NotGreaterThan()
+    public async Task ElasticSearch_Range_Double_NotGreaterThan()
     {
         await IndexDocuments(_data);
-
-        IRequestExecutor executorAsync = await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(x => x
-                .Name("Query")
-                .Field("test")
-                .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
-                .ResolveTestData(Client, _data))
-            .AddElasticSearchFiltering()
-            .BuildTestExecutorAsync();
+        IRequestExecutor executorAsync = await CreateExecutorAsync();
 
         const string query = @"
         {
@@ -119,20 +153,10 @@ public class RangeTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_GreaterThanOrEquals()
+    public async Task ElasticSearch_Range_Double_GreaterThanOrEquals()
     {
         await IndexDocuments(_data);
-
-        IRequestExecutor executorAsync = await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(x => x
-                .Name("Query")
-                .Field("test")
-                .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
-                .ResolveTestData(Client, _data))
-            .AddElasticSearchFiltering()
-            .BuildTestExecutorAsync();
+        IRequestExecutor executorAsync = await CreateExecutorAsync();
 
         const string query = @"
         {
@@ -148,20 +172,10 @@ public class RangeTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_NotGreaterThanOrEquals()
+    public async Task ElasticSearch_Range_Double_NotGreaterThanOrEquals()
     {
         await IndexDocuments(_data);
-
-        IRequestExecutor executorAsync = await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(x => x
-                .Name("Query")
-                .Field("test")
-                .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
-                .ResolveTestData(Client, _data))
-            .AddElasticSearchFiltering()
-            .BuildTestExecutorAsync();
+        IRequestExecutor executorAsync = await CreateExecutorAsync();
 
         const string query = @"
         {
@@ -177,20 +191,10 @@ public class RangeTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_LowerThan()
+    public async Task ElasticSearch_Range_Double_LowerThan()
     {
         await IndexDocuments(_data);
-
-        IRequestExecutor executorAsync = await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(x => x
-                .Name("Query")
-                .Field("test")
-                .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
-                .ResolveTestData(Client, _data))
-            .AddElasticSearchFiltering()
-            .BuildTestExecutorAsync();
+        IRequestExecutor executorAsync = await CreateExecutorAsync();
 
         const string query = @"
         {
@@ -206,20 +210,10 @@ public class RangeTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_NotLowerThan()
+    public async Task ElasticSearch_Range_Double_NotLowerThan()
     {
         await IndexDocuments(_data);
-
-        IRequestExecutor executorAsync = await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(x => x
-                .Name("Query")
-                .Field("test")
-                .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
-                .ResolveTestData(Client, _data))
-            .AddElasticSearchFiltering()
-            .BuildTestExecutorAsync();
+        IRequestExecutor executorAsync = await CreateExecutorAsync();
 
         const string query = @"
         {
@@ -235,20 +229,10 @@ public class RangeTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_LowerThanOrEquals()
+    public async Task ElasticSearch_Range_Double_LowerThanOrEquals()
     {
         await IndexDocuments(_data);
-
-        IRequestExecutor executorAsync = await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(x => x
-                .Name("Query")
-                .Field("test")
-                .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
-                .ResolveTestData(Client, _data))
-            .AddElasticSearchFiltering()
-            .BuildTestExecutorAsync();
+        IRequestExecutor executorAsync = await CreateExecutorAsync();
 
         const string query = @"
         {
@@ -264,20 +248,10 @@ public class RangeTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_NotLowerThanOrEquals()
+    public async Task ElasticSearch_Range_Double_NotLowerThanOrEquals()
     {
         await IndexDocuments(_data);
-
-        IRequestExecutor executorAsync = await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(x => x
-                .Name("Query")
-                .Field("test")
-                .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
-                .ResolveTestData(Client, _data))
-            .AddElasticSearchFiltering()
-            .BuildTestExecutorAsync();
+        IRequestExecutor executorAsync = await CreateExecutorAsync();
 
         const string query = @"
         {
@@ -293,20 +267,10 @@ public class RangeTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_LowerThan_And_GreaterThan_Combined()
+    public async Task ElasticSearch_Range_Double_LowerThan_And_GreaterThan_Combined()
     {
         await IndexDocuments(_data);
-
-        IRequestExecutor executorAsync = await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(x => x
-                .Name("Query")
-                .Field("test")
-                .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
-                .ResolveTestData(Client, _data))
-            .AddElasticSearchFiltering()
-            .BuildTestExecutorAsync();
+        IRequestExecutor executorAsync = await CreateExecutorAsync();
 
         const string query = @"
         {
@@ -320,11 +284,203 @@ public class RangeTests : TestBase
         IExecutionResult result = await executorAsync.ExecuteAsync(query);
         result.MatchQuerySnapshot();
     }
+    #endregion
+
+    #region Float
+    [Fact]
+    public async Task ElasticSearch_Range_Float_GreaterThan()
+    {
+        await IndexDocuments(_data);
+        IRequestExecutor executorAsync = await CreateExecutorAsync();
+
+        const string query = @"
+        {
+            test(where: { fValue :{ gt: 0}}) {
+                name
+                value
+            }
+        }
+        ";
+
+        IExecutionResult result = await executorAsync.ExecuteAsync(query);
+        result.MatchQuerySnapshot();
+    }
+
+    [Fact]
+    public async Task ElasticSearch_Range_Float_NotGreaterThan()
+    {
+        await IndexDocuments(_data);
+        IRequestExecutor executorAsync = await CreateExecutorAsync();
+
+        const string query = @"
+        {
+            test(where: { fValue :{ ngt: 0}}) {
+                name
+                value
+            }
+        }
+        ";
+
+        IExecutionResult result = await executorAsync.ExecuteAsync(query);
+        result.MatchQuerySnapshot();
+    }
+
+    [Fact]
+    public async Task ElasticSearch_Range_Float_GreaterThanOrEquals()
+    {
+        await IndexDocuments(_data);
+        IRequestExecutor executorAsync = await CreateExecutorAsync();
+
+        const string query = @"
+        {
+            test(where: { fValue :{ gte: 0}}) {
+                name
+                value
+            }
+        }
+        ";
+
+        IExecutionResult result = await executorAsync.ExecuteAsync(query);
+        result.MatchQuerySnapshot();
+    }
+
+    [Fact]
+    public async Task ElasticSearch_Range_Float_NotGreaterThanOrEquals()
+    {
+        await IndexDocuments(_data);
+        IRequestExecutor executorAsync = await CreateExecutorAsync();
+
+        const string query = @"
+        {
+            test(where: { fValue :{ ngte: 0}}) {
+                name
+                value
+            }
+        }
+        ";
+
+        IExecutionResult result = await executorAsync.ExecuteAsync(query);
+        result.MatchQuerySnapshot();
+    }
+
+    [Fact]
+    public async Task ElasticSearch_Range_Float_LowerThan()
+    {
+        await IndexDocuments(_data);
+        IRequestExecutor executorAsync = await CreateExecutorAsync();
+
+        const string query = @"
+        {
+            test(where: { fValue :{ lt: 0}}) {
+                name
+                value
+            }
+        }
+        ";
+
+        IExecutionResult result = await executorAsync.ExecuteAsync(query);
+        result.MatchQuerySnapshot();
+    }
+
+    [Fact]
+    public async Task ElasticSearch_Range_Float_NotLowerThan()
+    {
+        await IndexDocuments(_data);
+        IRequestExecutor executorAsync = await CreateExecutorAsync();
+
+        const string query = @"
+        {
+            test(where: { fValue :{ nlt: 0}}) {
+                name
+                value
+            }
+        }
+        ";
+
+        IExecutionResult result = await executorAsync.ExecuteAsync(query);
+        result.MatchQuerySnapshot();
+    }
+
+    [Fact]
+    public async Task ElasticSearch_Range_Float_LowerThanOrEquals()
+    {
+        await IndexDocuments(_data);
+        IRequestExecutor executorAsync = await CreateExecutorAsync();
+
+        const string query = @"
+        {
+            test(where: { fValue :{ lte: 0}}) {
+                name
+                value
+            }
+        }
+        ";
+
+        IExecutionResult result = await executorAsync.ExecuteAsync(query);
+        result.MatchQuerySnapshot();
+    }
+
+    [Fact]
+    public async Task ElasticSearch_Range_Float_NotLowerThanOrEquals()
+    {
+        await IndexDocuments(_data);
+        IRequestExecutor executorAsync = await CreateExecutorAsync();
+
+        const string query = @"
+        {
+            test(where: { fValue :{ nlte: 0}}) {
+                name
+                value
+            }
+        }
+        ";
+
+        IExecutionResult result = await executorAsync.ExecuteAsync(query);
+        result.MatchQuerySnapshot();
+    }
+
+    [Fact]
+    public async Task ElasticSearch_Range_Float_LowerThan_And_GreaterThan_Combined()
+    {
+        await IndexDocuments(_data);
+        IRequestExecutor executorAsync = await CreateExecutorAsync();
+
+        const string query = @"
+        {
+            test(where: { and: [{ fValue :{ lt: 1}} { fValue :{ gt: -1}}]}) {
+                name
+                value
+            }
+        }
+        ";
+
+        IExecutionResult result = await executorAsync.ExecuteAsync(query);
+        result.MatchQuerySnapshot();
+    }
+    #endregion
+
+    private async Task<IRequestExecutor> CreateExecutorAsync()
+    {
+        return await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .UseFiltering<FooFilterType>()
+                .UseTestReport(Client)
+                .ResolveTestData(Client, _data))
+            .AddElasticSearchFiltering()
+            .BuildTestExecutorAsync();
+    }
 
     public class Foo
     {
         public string Name { get; set; } = string.Empty;
 
         public double Value { get; set; }
+
+        public float FValue { get; set; }
+
+        public DateTime DateTimeValue { get; set; }
     }
 }
