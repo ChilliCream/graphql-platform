@@ -24,6 +24,7 @@ import CompassLogoSvg from "@/images/companies/compass.svg";
 import E2mLogoSvg from "@/images/companies/e2m.svg";
 import ExlrtLogoSvg from "@/images/companies/exlrt.svg";
 import EzeepLogoSvg from "@/images/companies/ezeep.svg";
+import FulcrumLogoSvg from "@/images/companies/fulcrum.svg";
 import GiaLogoSvg from "@/images/companies/gia.svg";
 import HiloLogoSvg from "@/images/companies/hilo.svg";
 import IncloudLogoSvg from "@/images/companies/incloud.svg";
@@ -32,15 +33,19 @@ import MotiviewLogoSvg from "@/images/companies/motiview.svg";
 import OrderinLogoSvg from "@/images/companies/orderin.svg";
 import PoweredSoftLogoSvg from "@/images/companies/powered-soft.svg";
 import PushpayLogoSvg from "@/images/companies/pushpay.svg";
+import RailCargoAustriaLogoSvg from "@/images/companies/rail-cargo-austria.svg";
 import Seven2OneLogoSvg from "@/images/companies/seven-2-one.svg";
 import SolyticLogoSvg from "@/images/companies/solytic.svg";
 import SonikaLogoSvg from "@/images/companies/sonika.svg";
+import SpectrumMedicalLogoSvg from "@/images/companies/spectrum-medical.svg";
 import SpeedwayMotorsLogoSvg from "@/images/companies/speedway-motors.svg";
 import SplashbackLogoSvg from "@/images/companies/splashback.svg";
 import SweetGeeksLogoSvg from "@/images/companies/sweetgeeks.svg";
 import SwissLifeLogoSvg from "@/images/companies/swiss-life.svg";
 import SytadelleLogoSvg from "@/images/companies/sytadelle.svg";
+import TrackmanLogoSvg from "@/images/companies/trackman.svg";
 import TravelSoftLogoSvg from "@/images/companies/travel-soft.svg";
+import VptechLogoSvg from "@/images/companies/vptech.svg";
 import XMLogoSvg from "@/images/companies/xm.svg";
 import ZioskLogoSvg from "@/images/companies/ziosk.svg";
 
@@ -110,6 +115,11 @@ export const CompaniesSection: FC = () => (
               <Company {...EzeepLogoSvg} />
             </Link>
           </Logo>
+          <Logo width={150}>
+            <Link to="https://fulcrumpro.com/">
+              <Company {...FulcrumLogoSvg} />
+            </Link>
+          </Logo>
           <Logo width={120}>
             <Link to="https://gia.ch">
               <Company {...GiaLogoSvg} />
@@ -150,6 +160,11 @@ export const CompaniesSection: FC = () => (
               <Company {...PushpayLogoSvg} />
             </Link>
           </Logo>
+          <Logo width={260}>
+            <Link to="http://www.railcargo.at">
+              <Company {...RailCargoAustriaLogoSvg} />
+            </Link>
+          </Logo>
           <Logo width={120}>
             <Link to="https://www.seven2one.de">
               <Company {...Seven2OneLogoSvg} />
@@ -163,6 +178,11 @@ export const CompaniesSection: FC = () => (
           <Logo width={130}>
             <Link to="https://sonika.se">
               <Company {...SonikaLogoSvg} />
+            </Link>
+          </Logo>
+          <Logo width={200}>
+            <Link to="https://www.spectrummedical.com/">
+              <Company {...SpectrumMedicalLogoSvg} />
             </Link>
           </Logo>
           <Logo width={120}>
@@ -191,8 +211,18 @@ export const CompaniesSection: FC = () => (
             </Link>
           </Logo>
           <Logo width={180}>
+            <Link to="http://trackman.com/">
+              <Company {...TrackmanLogoSvg} />
+            </Link>
+          </Logo>
+          <Logo width={180}>
             <Link to="https://travel-soft.com">
               <Company {...TravelSoftLogoSvg} />
+            </Link>
+          </Logo>
+          <Logo width={140}>
+            <Link to="https://careers.veepee.com/vptech/">
+              <Company {...VptechLogoSvg} />
             </Link>
           </Logo>
           <Logo width={120}>
