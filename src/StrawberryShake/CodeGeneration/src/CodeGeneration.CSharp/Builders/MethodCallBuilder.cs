@@ -147,7 +147,7 @@ public class MethodCallBuilder : ICode
 
         if (_methodName.Length > 0)
         {
-            for (int i = 0; i < _methodName.Length - 1; i++)
+            for (var i = 0; i < _methodName.Length - 1; i++)
             {
                 writer.Write(_methodName[i]);
                 if (i < _methodName.Length - 2)
@@ -173,7 +173,7 @@ public class MethodCallBuilder : ICode
             if (_generics.Count > 0)
             {
                 writer.Write("<");
-                for (int i = 0; i < _generics.Count; i++)
+                for (var i = 0; i < _generics.Count; i++)
                 {
                     _generics[i].Build(writer);
                     if (i == _generics.Count - 1)
@@ -228,7 +228,7 @@ public class MethodCallBuilder : ICode
 
                 using (writer.IncreaseIndent())
                 {
-                    for (int i = 0; i < _arguments.Count; i++)
+                    for (var i = 0; i < _arguments.Count; i++)
                     {
                         writer.WriteIndent();
                         _arguments[i].Build(writer);
@@ -257,7 +257,7 @@ public class MethodCallBuilder : ICode
 
         using (writer.IncreaseIndent())
         {
-            foreach (ICode code in _chainedCode)
+            foreach (var code in _chainedCode)
             {
                 writer.WriteLine();
                 writer.WriteIndent();

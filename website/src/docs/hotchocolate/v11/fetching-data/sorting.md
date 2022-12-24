@@ -2,8 +2,6 @@
 title: Sorting
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 # What is sorting
 
 Ordering results of a query dynamically is a common case. With Hot Chocolate sorting, you can expose a sorting argument, that abstracts the complexity of ordering logic.
@@ -56,11 +54,9 @@ enum SortEnumType {
 
 # Getting started
 
-Sorting is part of the `HotChocolate.Data` package. You can add the dependency with the `dotnet` cli
+Sorting is part of the `HotChocolate.Data` package.
 
-```bash
-  dotnet add package HotChocolate.Data
-```
+<PackageInstallation packageName="HotChocolate.Data" />
 
 To use sorting you need to register it on the schema:
 
@@ -115,7 +111,7 @@ public class Query
 
 # Customization
 
-Under the hood, sorting is based ontop of normal Hot Chocolate input types. You can easily customize them with a very familiar fluent interface. The sorting input types follow the same `descriptor` scheme as you are used to from the normal input types. Just extend the base class `SortInputType<T>` and override the descriptor method.
+Under the hood, sorting is based on normal Hot Chocolate input types. You can easily customize them with a very familiar fluent interface. The sorting input types follow the same `descriptor` scheme as you are used to from the normal input types. Just extend the base class `SortInputType<T>` and override the descriptor method.
 
 `ISortInputTypeDescriptor<T>` supports most of the methods of `IInputTypeDescriptor<T>`. By default, operations are generated for all fields of the type.
 Members that are collections are skipped because you cannot order based on lists.
@@ -224,7 +220,7 @@ If you want to change the behavior sorting globally, you want to create a conven
 
 To use a sort convention you have to extend `SortConvention` and override the `Configure` method. Alternatively, you can directly configure the convention over the constructor argument.
 You then have to register your custom convention on the schema builder with `AddConvention`.
-By default a new convention is empty. To add the default behaviour you have to add `AddDefaults`.
+By default a new convention is empty. To add the default behavior you have to add `AddDefaults`.
 
 ```csharp
 public class CustomConvention
@@ -244,7 +240,7 @@ services.AddGraphQLServer()
         x.AddDefaults()))
 ```
 
-Often you just want to extend the default behaviour of sorting. If this is the case, you can also use `SortConventionExtension`
+Often you just want to extend the default behavior of sorting. If this is the case, you can also use `SortConventionExtension`
 
 ```csharp
 public class CustomConventionExtension

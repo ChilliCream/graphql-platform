@@ -33,11 +33,11 @@ public sealed class MongoDbCombinedProjectionDefinition : MongoDbProjectionDefin
 
         foreach (var sort in _projections)
         {
-            BsonDocument renderedProjection = sort.Render(
+            var renderedProjection = sort.Render(
                 documentSerializer,
                 serializerRegistry);
 
-            foreach (BsonElement element in renderedProjection.Elements)
+            foreach (var element in renderedProjection.Elements)
             {
                 document.Remove(element.Name);
                 document.Add(element);

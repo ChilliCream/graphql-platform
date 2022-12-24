@@ -189,7 +189,7 @@ You should now be able to start the GraphQL server.
 dotnet run
 ```
 
-The server should be accessible through plaground under the following URL `http://127.0.0.1:5000/playground`.
+The server should be accessible through playground under the following URL `http://127.0.0.1:5000/playground`.
 
 Add the following query and execute it:
 
@@ -213,5 +213,3 @@ I hope this little field trip into our instrumentation API gives a little outloo
 
 We will add stitching related events with the next view preview builds.
 
-[hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/hotchocolate

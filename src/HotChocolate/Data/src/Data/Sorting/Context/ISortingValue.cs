@@ -1,3 +1,5 @@
+using HotChocolate.Language;
+
 namespace HotChocolate.Data.Sorting;
 
 /// <summary>

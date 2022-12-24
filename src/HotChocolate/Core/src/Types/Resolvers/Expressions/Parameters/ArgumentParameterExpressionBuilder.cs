@@ -75,7 +75,6 @@ internal class ArgumentParameterExpressionBuilder : IParameterExpressionBuilder
                 parameter.ParameterType);
         }
 
-        return Expression.Call(context, argumentMethod,
-            Expression.Constant(new NameString(name)));
+        return Expression.Call(context, argumentMethod, Expression.Constant(name));
     }
 }

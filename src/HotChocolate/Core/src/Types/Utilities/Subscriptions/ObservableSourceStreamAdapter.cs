@@ -32,7 +32,7 @@ internal sealed class ObservableSourceStreamAdapter<T>
 
             while (!cancellationToken.IsCancellationRequested)
             {
-                if (_queue.TryDequeue(out T item))
+                if (_queue.TryDequeue(out var item))
                 {
                     yield return item;
                 }

@@ -90,12 +90,12 @@ public sealed class DirectiveDefinitionNode : ITypeSystemDefinitionNode, IHasNam
 
         yield return Name;
 
-        foreach (InputValueDefinitionNode argument in Arguments)
+        foreach (var argument in Arguments)
         {
             yield return argument;
         }
 
-        foreach (NameNode location in Locations)
+        foreach (var location in Locations)
         {
             yield return location;
         }

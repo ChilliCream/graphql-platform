@@ -15,7 +15,7 @@ internal sealed class SchemaTypeReferenceHandler : ITypeRegistrarHandler
 
         if (!typeRegistrar.IsResolved(typeReference))
         {
-            ITypeSystemMember tsm = typeRef.Type;
+            var tsm = typeRef.Type;
 
             // if it is a type object we will make sure it is unwrapped.
             if (typeRef.Type is IType type)

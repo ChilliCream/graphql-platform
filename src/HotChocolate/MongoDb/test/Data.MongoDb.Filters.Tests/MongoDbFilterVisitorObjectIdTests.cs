@@ -1,11 +1,9 @@
-using System;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
-using Xunit;
 
 namespace HotChocolate.Data.MongoDb.Filters;
 
@@ -15,18 +13,18 @@ public class MongoDbFilterVisitorObjectIdTests
 {
     private static readonly Foo[] _fooEntities =
     {
-            new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f69") },
-            new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f6a") },
-            new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f6b") }
-        };
+        new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f69") },
+        new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f6a") },
+        new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f6b") }
+    };
 
     private static readonly FooNullable[] _fooNullableEntities =
     {
-            new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f69") },
-            new() { },
-            new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f6a") },
-            new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f6b") }
-        };
+        new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f69") },
+        new() { },
+        new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f6a") },
+        new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f6b") }
+    };
 
     public MongoDbFilterVisitorObjectIdTests(MongoResource resource)
     {
@@ -37,819 +35,972 @@ public class MongoDbFilterVisitorObjectIdTests
     public async Task Create_ObjectIdEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { eq: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
+                .Create());
+
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { eq: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
+                .Create());
+
+        var res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { eq: null}}){ objectId}}")
+                .Create());
+
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { eq: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
-
-        res1.MatchDocumentSnapshot("6124e80f3f5fc839830c1f69");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { eq: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
-
-        res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { eq: null}}){ objectId}}")
-                .Create());
-
-        res3.MatchDocumentSnapshot("null");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "6124e80f3f5fc839830c1f69"), res2, "6124e80f3f5fc839830c1f6a"), res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectIdNotEqual_Expression()
     {
-        IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { neq: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
+                .SetQuery(
+                    "{ root(where: { objectId: { neq: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
                 .Create());
 
-        res1.MatchDocumentSnapshot("6124e80f3f5fc839830c1f69");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { neq: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
+                .SetQuery(
+                    "{ root(where: { objectId: { neq: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { neq: null}}){ objectId}}")
+                .SetQuery(
+                    "{ root(where: { objectId: { neq: null}}){ objectId}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("null");
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "6124e80f3f5fc839830c1f69"), res2, "6124e80f3f5fc839830c1f6a"), res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectIdGreaterThan_Expression()
     {
-        IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        // arrange
+        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { gt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
+                .Create());
+
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { gt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
+                .Create());
+
+        var res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { gt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
+                .Create());
+
+        var res4 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { gt: null}}){ objectId}}")
+                .Create());
+
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { gt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
-
-        res1.MatchDocumentSnapshot("6124e80f3f5fc839830c1f69");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { gt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
-
-        res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { gt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
-                .Create());
-
-        res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
-
-        IExecutionResult res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { gt: null}}){ objectId}}")
-                .Create());
-
-        res4.MatchDocumentSnapshot("null");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
+                            Snapshot
+                                .Create(), res1, "6124e80f3f5fc839830c1f69"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectIdNotGreaterThan_Expression()
     {
-        IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        // arrange
+        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { ngt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
+                .Create());
+
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { ngt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
+                .Create());
+
+        var res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { ngt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
+                .Create());
+
+        var res4 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { ngt: null}}){ objectId}}")
+                .Create());
+
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { ngt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
-
-        res1.MatchDocumentSnapshot("6124e80f3f5fc839830c1f69");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { ngt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
-
-        res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { ngt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
-                .Create());
-
-        res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
-
-        IExecutionResult res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { ngt: null}}){ objectId}}")
-                .Create());
-
-        res4.MatchDocumentSnapshot("null");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
+                            Snapshot
+                                .Create(), res1, "6124e80f3f5fc839830c1f69"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+            .MatchAsync();
     }
 
 
     [Fact]
     public async Task Create_ObjectIdGreaterThanOrEquals_Expression()
     {
-        IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        // arrange
+        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { gte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
+                .Create());
+
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { gte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
+                .Create());
+
+        var res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { gte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
+                .Create());
+
+        var res4 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { gte: null}}){ objectId}}")
+                .Create());
+
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { gte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
-
-        res1.MatchDocumentSnapshot("6124e80f3f5fc839830c1f69");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { gte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
-
-        res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { gte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
-                .Create());
-
-        res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
-
-        IExecutionResult res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { gte: null}}){ objectId}}")
-                .Create());
-
-        res4.MatchDocumentSnapshot("null");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
+                            Snapshot
+                                .Create(), res1, "6124e80f3f5fc839830c1f69"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectIdNotGreaterThanOrEquals_Expression()
     {
-        IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        // arrange
+        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { ngte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
+                .Create());
+
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { ngte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
+                .Create());
+
+        var res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { ngte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
+                .Create());
+
+        var res4 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { ngte: null}}){ objectId}}")
+                .Create());
+
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { ngte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
-
-        res1.MatchDocumentSnapshot("6124e80f3f5fc839830c1f69");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { ngte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
-
-        res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { ngte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
-                .Create());
-
-        res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
-
-        IExecutionResult res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { ngte: null}}){ objectId}}")
-                .Create());
-
-        res4.MatchDocumentSnapshot("null");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
+                            Snapshot
+                                .Create(), res1, "6124e80f3f5fc839830c1f69"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectIdLowerThan_Expression()
     {
-        IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        // arrange
+        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { objectId: { lt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
                 .Create());
 
-        res1.MatchDocumentSnapshot("6124e80f3f5fc839830c1f69");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { objectId: { lt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { objectId: { lt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
-
-        IExecutionResult res4 = await tester.ExecuteAsync(
+        var res4 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { objectId: { lt: null}}){ objectId}}")
                 .Create());
 
-        res4.MatchDocumentSnapshot("null");
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
+                            Snapshot
+                                .Create(), res1, "6124e80f3f5fc839830c1f69"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectIdNotLowerThan_Expression()
     {
-        IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        // arrange
+        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { nlt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
+                .Create());
+
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { nlt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
+                .Create());
+
+        var res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { nlt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
+                .Create());
+
+        var res4 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { nlt: null}}){ objectId}}")
+                .Create());
+
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { nlt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
-
-        res1.MatchDocumentSnapshot("6124e80f3f5fc839830c1f69");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { nlt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
-
-        res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { nlt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
-                .Create());
-
-        res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
-
-        IExecutionResult res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { nlt: null}}){ objectId}}")
-                .Create());
-
-        res4.MatchDocumentSnapshot("null");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
+                            Snapshot
+                                .Create(), res1, "6124e80f3f5fc839830c1f69"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+            .MatchAsync();
     }
 
 
     [Fact]
     public async Task Create_ObjectIdLowerThanOrEquals_Expression()
     {
-        IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        // arrange
+        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { lte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
+                .Create());
+
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { lte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
+                .Create());
+
+        var res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { lte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
+                .Create());
+
+        var res4 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { lte: null}}){ objectId}}")
+                .Create());
+
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { lte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
-
-        res1.MatchDocumentSnapshot("6124e80f3f5fc839830c1f69");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { lte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
-
-        res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { lte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
-                .Create());
-
-        res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
-
-        IExecutionResult res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { lte: null}}){ objectId}}")
-                .Create());
-
-        res4.MatchDocumentSnapshot("null");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
+                            Snapshot
+                                .Create(), res1, "6124e80f3f5fc839830c1f69"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectIdNotLowerThanOrEquals_Expression()
     {
-        IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        // arrange
+        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { nlte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
+                .Create());
+
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { nlte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
+                .Create());
+
+        var res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { nlte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
+                .Create());
+
+        var res4 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { nlte: null}}){ objectId}}")
+                .Create());
+
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { nlte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
-
-        res1.MatchDocumentSnapshot("6124e80f3f5fc839830c1f69");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { nlte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
-
-        res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { nlte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
-                .Create());
-
-        res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
-
-        IExecutionResult res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { nlte: null}}){ objectId}}")
-                .Create());
-
-        res4.MatchDocumentSnapshot("null");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
+                            Snapshot
+                                .Create(), res1, "6124e80f3f5fc839830c1f69"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectIdIn_Expression()
     {
-        IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { in: [ \"6124e80f3f5fc839830c1f69\", \"6124e80f3f5fc839830c1f6a\" ]}}){ objectId}}")
+                .SetQuery(@"{
+                    root(where: {
+                        objectId: { in: [
+                                ""6124e80f3f5fc839830c1f69"",
+                                ""6124e80f3f5fc839830c1f6a""
+                            ]}})
+                        {
+                            objectId
+                        }
+                    }")
                 .Create());
 
-        res1.MatchDocumentSnapshot("6124e80f3f5fc839830c1f69and6124e80f3f5fc839830c1f6a");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { in: [ null, \"6124e80f3f5fc839830c1f6b\" ]}}){ objectId}}")
+                .SetQuery(@"{
+                    root(where: {
+                        objectId: {
+                            in: [ null, ""6124e80f3f5fc839830c1f6b"" ]
+                        }}) {
+                        objectId
+                    }
+                }")
                 .Create());
 
-        res2.MatchDocumentSnapshot("band6124e80f3f5fc839830c1f6b");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { in: [ null, \"6124e80f3f5fc839830c1f6b\" ]}}){ objectId}}")
+                .SetQuery(@"{
+                    root(where: {
+                        objectId: {
+                            in: [ null, ""6124e80f3f5fc839830c1f6b"" ]
+                        }}) {
+                        objectId
+                    }
+                }")
                 .Create());
 
-        res3.MatchDocumentSnapshot("nullAnd6124e80f3f5fc839830c1f6b");
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "6124e80f3f5fc839830c1f69and6124e80f3f5fc839830c1f6a"), res2, "band6124e80f3f5fc839830c1f6b"), res3, "nullAnd6124e80f3f5fc839830c1f6b")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectIdNotIn_Expression()
     {
-        IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        // arrange
+        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        // act
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { nin: [ \"6124e80f3f5fc839830c1f69\", \"6124e80f3f5fc839830c1f6a\" ]}}){ objectId}}")
+                .SetQuery(
+                    @"{
+                      root(
+                        where: {
+                          objectId: {
+                            nin: [""6124e80f3f5fc839830c1f69"", ""6124e80f3f5fc839830c1f6a""]
+                          }
+                        }
+                      ) {
+                        objectId
+                      }
+                    }")
                 .Create());
 
-        res1.MatchDocumentSnapshot("6124e80f3f5fc839830c1f69and6124e80f3f5fc839830c1f6a");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
+                .SetQuery(
+                    @"{
+                      root(
+                        where: {
+                          objectId: {
+                            nin: [null, ""6124e80f3f5fc839830c1f6b""]
+                          }
+                        }
+                      ) {
+                        objectId
+                      }
+                    }")
                 .SetQuery("{ root(where: { objectId: { nin: [ null, \"6124e80f3f5fc839830c1f6b\" ]}}){ objectId}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("band6124e80f3f5fc839830c1f6b");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { nin: [ null, \"6124e80f3f5fc839830c1f6b\" ]}}){ objectId}}")
+                .SetQuery(
+                    @"{
+                      root(
+                        where: {
+                          objectId: {
+                            nin: [null, ""6124e80f3f5fc839830c1f6b""]
+                          }
+                        }
+                      ) {
+                        objectId
+                      }
+                    }")
                 .Create());
 
-        res3.MatchDocumentSnapshot("nullAnd6124e80f3f5fc839830c1f6b");
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "6124e80f3f5fc839830c1f69and6124e80f3f5fc839830c1f6a"), res2, "band6124e80f3f5fc839830c1f6b"), res3, "nullAnd6124e80f3f5fc839830c1f6b")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectIdNullableEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester =
+        var tester =
             CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
 
         // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { eq: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
+                .Create());
+
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { eq: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
+                .Create());
+
+        var res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { eq: null}}){ objectId}}")
+                .Create());
+
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { eq: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
-
-        res1.MatchDocumentSnapshot("a");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { eq: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
-
-        res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { eq: null}}){ objectId}}")
-                .Create());
-
-        res3.MatchDocumentSnapshot("null");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "a"), res2, "6124e80f3f5fc839830c1f6a"), res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectIdNullableNotEqual_Expression()
     {
-        IRequestExecutor tester =
-            CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        // arrange
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
 
         // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { neq: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
+                .Create());
+
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { neq: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
+                .Create());
+
+        var res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { neq: null}}){ objectId}}")
+                .Create());
+
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { neq: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
-
-        res1.MatchDocumentSnapshot("a");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { neq: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
-
-        res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { neq: null}}){ objectId}}")
-                .Create());
-
-        res3.MatchDocumentSnapshot("null");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "a"), res2, "6124e80f3f5fc839830c1f6a"), res3, "null")
+            .MatchAsync();
     }
-
 
     [Fact]
     public async Task Create_ObjectIdNullableGreaterThan_Expression()
     {
-        IRequestExecutor tester =
-            CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        // arrange
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { objectId: { gt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
                 .Create());
 
-        res1.MatchDocumentSnapshot("a");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { objectId: { gt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { objectId: { gt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
-
-        IExecutionResult res4 = await tester.ExecuteAsync(
+        var res4 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { objectId: { gt: null}}){ objectId}}")
                 .Create());
 
-        res4.MatchDocumentSnapshot("null");
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
+                            Snapshot
+                                .Create(), res1, "a"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectIdNullableNotGreaterThan_Expression()
     {
-        IRequestExecutor tester =
-            CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        // arrange
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
 
         // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { ngt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
+                .Create());
+
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { ngt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
+                .Create());
+
+        var res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { ngt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
+                .Create());
+
+        var res4 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { ngt: null}}){ objectId}}")
+                .Create());
+
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { ngt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
-
-        res1.MatchDocumentSnapshot("a");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { ngt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
-
-        res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { ngt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
-                .Create());
-
-        res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
-
-        IExecutionResult res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { ngt: null}}){ objectId}}")
-                .Create());
-
-        res4.MatchDocumentSnapshot("null");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
+                            Snapshot
+                                .Create(), res1, "a"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+            .MatchAsync();
     }
 
 
     [Fact]
     public async Task Create_ObjectIdNullableGreaterThanOrEquals_Expression()
     {
-        IRequestExecutor tester =
-            CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        // arrange
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
 
         // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { gte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
+                .Create());
+
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { gte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
+                .Create());
+
+        var res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { gte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
+                .Create());
+
+        var res4 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { gte: null}}){ objectId}}")
+                .Create());
+
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { gte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
-
-        res1.MatchDocumentSnapshot("a");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { gte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
-
-        res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { gte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
-                .Create());
-
-        res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
-
-        IExecutionResult res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { gte: null}}){ objectId}}")
-                .Create());
-
-        res4.MatchDocumentSnapshot("null");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
+                            Snapshot
+                                .Create(), res1, "a"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectIdNullableNotGreaterThanOrEquals_Expression()
     {
-        IRequestExecutor tester =
-            CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        // arrange
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
 
         // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { ngte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
+                .Create());
+
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { ngte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
+                .Create());
+
+        var res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { ngte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
+                .Create());
+
+        var res4 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { ngte: null}}){ objectId}}")
+                .Create());
+
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { ngte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
-
-        res1.MatchDocumentSnapshot("a");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { ngte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
-
-        res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { ngte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
-                .Create());
-
-        res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
-
-        IExecutionResult res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { ngte: null}}){ objectId}}")
-                .Create());
-
-        res4.MatchDocumentSnapshot("null");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
+                            Snapshot
+                                .Create(), res1, "a"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectIdNullableLowerThan_Expression()
     {
-        IRequestExecutor tester =
-            CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        // arrange
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { objectId: { lt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
                 .Create());
 
-        res1.MatchDocumentSnapshot("a");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { objectId: { lt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { objectId: { lt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
-
-        IExecutionResult res4 = await tester.ExecuteAsync(
+        var res4 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { objectId: { lt: null}}){ objectId}}")
                 .Create());
 
-        res4.MatchDocumentSnapshot("null");
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
+                            Snapshot
+                                .Create(), res1, "a"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectIdNullableNotLowerThan_Expression()
     {
-        IRequestExecutor tester =
-            CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        // arrange
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
 
         // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { nlt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
+                .Create());
+
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { nlt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
+                .Create());
+
+        var res3 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { nlt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
+                .Create());
+
+        var res4 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { objectId: { nlt: null}}){ objectId}}")
+                .Create());
+
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { nlt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
-                .Create());
-
-        res1.MatchDocumentSnapshot("a");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { nlt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
-                .Create());
-
-        res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { nlt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
-                .Create());
-
-        res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
-
-        IExecutionResult res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { nlt: null}}){ objectId}}")
-                .Create());
-
-        res4.MatchDocumentSnapshot("null");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
+                            Snapshot
+                                .Create(), res1, "a"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+            .MatchAsync();
     }
 
 
     [Fact]
     public async Task Create_ObjectIdNullableLowerThanOrEquals_Expression()
     {
-        IRequestExecutor tester =
+        var tester =
             CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { lte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
+                .SetQuery(
+                    "{ root(where: { objectId: { lte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
                 .Create());
 
-        res1.MatchDocumentSnapshot("a");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { lte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
+                .SetQuery(
+                    "{ root(where: { objectId: { lte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { lte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
+                .SetQuery(
+                    "{ root(where: { objectId: { lte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
-
-        IExecutionResult res4 = await tester.ExecuteAsync(
+        var res4 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { lte: null}}){ objectId}}")
+                .SetQuery(
+                    "{ root(where: { objectId: { lte: null}}){ objectId}}")
                 .Create());
 
-        res4.MatchDocumentSnapshot("null");
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
+                            Snapshot
+                                .Create(), res1, "a"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectIdNullableNotLowerThanOrEquals_Expression()
     {
-        IRequestExecutor tester =
-            CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        // arrange
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { nlte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
+                .SetQuery(
+                    "{ root(where: { objectId: { nlte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
                 .Create());
 
-        res1.MatchDocumentSnapshot("a");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { nlte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
+                .SetQuery(
+                    "{ root(where: { objectId: { nlte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { nlte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
+                .SetQuery(
+                    "{ root(where: { objectId: { nlte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
-
-        IExecutionResult res4 = await tester.ExecuteAsync(
+        var res4 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { objectId: { nlte: null}}){ objectId}}")
                 .Create());
 
-        res4.MatchDocumentSnapshot("null");
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        SnapshotExtensions.AddResult(
+                            Snapshot
+                                .Create(), res1, "a"), res2, "6124e80f3f5fc839830c1f6a"), res3, "6124e80f3f5fc839830c1f6b"), res4, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectIdNullableIn_Expression()
     {
-        IRequestExecutor tester =
-            CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        // arrange
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
 
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        // act
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { in: [ \"6124e80f3f5fc839830c1f69\", \"6124e80f3f5fc839830c1f6a\" ]}}){ objectId}}")
+                .SetQuery(
+                    "{ root(where: { objectId: { in: [ \"6124e80f3f5fc839830c1f69\", " +
+                    "\"6124e80f3f5fc839830c1f6a\" ]}}){ objectId}}")
                 .Create());
 
-        res1.MatchDocumentSnapshot("6124e80f3f5fc839830c1f69and6124e80f3f5fc839830c1f6a");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { in: [ \"6124e80f3f5fc839830c1f6a\", \"6124e80f3f5fc839830c1f6b\" ]}}){ objectId}}")
+                .SetQuery(
+                    "{ root(where: { objectId: { in: [ \"6124e80f3f5fc839830c1f6a\", " +
+                    "\"6124e80f3f5fc839830c1f6b\" ]}}){ objectId}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("band6124e80f3f5fc839830c1f6b");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { in: [ \"6124e80f3f5fc839830c1f6a\", null ]}}){ objectId}}")
+                .SetQuery(
+                    "{ root(where: { objectId: { in: [ \"6124e80f3f5fc839830c1f6a\", " +
+                    "null ]}}){ objectId}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("bandNull");
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "6124e80f3f5fc839830c1f69and6124e80f3f5fc839830c1f6a"), res2, "band6124e80f3f5fc839830c1f6b"), res3, "bandNull")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ObjectIdNullableNotIn_Expression()
     {
-        IRequestExecutor tester =
-            CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        // arrange
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
 
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        // act
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { objectId: { nin: [ \"6124e80f3f5fc839830c1f69\", \"6124e80f3f5fc839830c1f6a\" ]}}){ objectId}}")
+                .SetQuery(
+                    "{ root(where: { objectId: { nin: [ \"6124e80f3f5fc839830c1f69\", " +
+                    "\"6124e80f3f5fc839830c1f6a\" ]}}){ objectId}}")
                 .Create());
 
-        res1.MatchDocumentSnapshot("6124e80f3f5fc839830c1f69and6124e80f3f5fc839830c1f6a");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { objectId: { nin: [ \"6124e80f3f5fc839830c1f6a\", \"6124e80f3f5fc839830c1f6b\" ]}}){ objectId}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("band6124e80f3f5fc839830c1f6b");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { objectId: { nin: [ \"6124e80f3f5fc839830c1f6a\", null ]}}){ objectId}}")
                 .Create());
 
-        res3.MatchDocumentSnapshot("bandNull");
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    SnapshotExtensions.AddResult(
+                        Snapshot
+                            .Create(), res1, "6124e80f3f5fc839830c1f69and6124e80f3f5fc839830c1f6a"), res2, "band6124e80f3f5fc839830c1f6b"), res3, "bandNull")
+            .MatchAsync();
     }
 
     public class Foo
@@ -868,13 +1019,11 @@ public class MongoDbFilterVisitorObjectIdTests
         public ObjectId? ObjectId { get; set; }
     }
 
-    public class FooFilterType
-        : FilterInputType<Foo>
+    public class FooFilterType : FilterInputType<Foo>
     {
     }
 
-    public class FooNullableFilterType
-        : FilterInputType<FooNullable>
+    public class FooNullableFilterType : FilterInputType<FooNullable>
     {
     }
 }

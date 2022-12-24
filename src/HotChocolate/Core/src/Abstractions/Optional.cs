@@ -31,7 +31,6 @@ public readonly struct Optional<T>
     /// <summary>
     /// The name value.
     /// </summary>
-    [MaybeNull]
     public T? Value { get; }
 
     object? IOptional.Value => Value;
@@ -39,6 +38,9 @@ public readonly struct Optional<T>
     /// <summary>
     /// <c>true</c> if the optional was explicitly set.
     /// </summary>
+    #if NET5_0_OR_GREATER
+    [MemberNotNullWhen(true, nameof(Value))]
+    #endif
     public bool HasValue { get; }
 
     /// <summary>

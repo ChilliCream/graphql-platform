@@ -15,15 +15,15 @@ public static class SortingContextResolverContextExtensions
     /// </summary>
     public static ISortingContext? GetSortingContext(this IResolverContext context)
     {
-        IObjectField field = context.Selection.Field;
+        var field = context.Selection.Field;
         if (!field.ContextData.TryGetValue(ContextArgumentNameKey, out var argumentNameObj) ||
-            argumentNameObj is not NameString argumentName)
+            argumentNameObj is not string argumentName)
         {
             return null;
         }
 
-        IInputField argument = context.Selection.Field.Arguments[argumentName];
-        IValueNode sorting = context.ArgumentLiteral<IValueNode>(argumentName);
+        var argument = context.Selection.Field.Arguments[argumentName];
+        var sorting = context.ArgumentLiteral<IValueNode>(argumentName);
 
         if (argument.Type is not ListType listType ||
             listType.ElementType().NamedType() is not ISortInputType sortingInput)

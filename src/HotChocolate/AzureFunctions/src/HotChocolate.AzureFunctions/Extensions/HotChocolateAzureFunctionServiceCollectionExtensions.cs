@@ -33,33 +33,57 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
     /// </exception>
     public static IRequestExecutorBuilder AddGraphQLFunction(
         this IServiceCollection services,
-        int maxAllowedRequestSize = 20 * 1000 * 1000,
-        string apiRoute = "/api/graphql")
+        int maxAllowedRequestSize = GraphQLAzureFunctionsConstants.DefaultMaxRequests,
+        string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute)
     {
         if (services is null)
         {
             throw new ArgumentNullException(nameof(services));
         }
 
-        IRequestExecutorBuilder executorBuilder =
+        var executorBuilder =
             services.AddGraphQLServer(maxAllowedRequestSize: maxAllowedRequestSize);
 
+        // Register AzFunc Custom Binding Extensions for In-Process Functions.
+        // NOTE: This does not work for Isolated Process due to (but is not harmful at all of
+        // isolated process; it just remains dormant):
+        // 1) Bindings always execute in-process and values must be marshaled between
+        // the Host Process & the Isolated Process Worker!
+        // 2) Currently only String values are supported (obviously due to above complexities).
+        // More Info. here (using Blob binding docs):
+        // https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-storage-
+        // blob-input?tabs=isolated-process%2Cextensionv5&pivots=programming-language-csharp#usage
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<IExtensionConfigProvider, GraphQLExtensions>());
 
+        // Add the Request Executor Dependency...
+        services.AddAzureFunctionsGraphQLRequestExecutorDependency(apiRoute);
+
+        return executorBuilder;
+    }
+
+    /// <summary>
+    /// Internal method to adds the Request Executor dependency for Azure Functions both
+    /// in-process and isolate-process. Normal configuration should use AddGraphQLFunction()
+    /// extension instead which correctly call this internally.
+    /// </summary>
+    private static IServiceCollection AddAzureFunctionsGraphQLRequestExecutorDependency(
+        this IServiceCollection services,
+        string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute
+    )
+    {
         services.AddSingleton<IGraphQLRequestExecutor>(sp =>
         {
             PathString path = apiRoute.TrimEnd('/');
-            IFileProvider fileProvider = CreateFileProvider();
+            var fileProvider = CreateFileProvider();
             var options = new GraphQLServerOptions();
 
-            foreach (Action<GraphQLServerOptions> configure in
-                sp.GetServices<Action<GraphQLServerOptions>>())
+            foreach (var configure in sp.GetServices<Action<GraphQLServerOptions>>())
             {
                 configure(options);
             }
 
-            RequestDelegate pipeline =
+            var pipeline =
                 new PipelineBuilder()
                     .UseMiddleware<WebSocketSubscriptionMiddleware>()
                     .UseMiddleware<HttpPostMiddleware>()
@@ -74,7 +98,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
             return new DefaultGraphQLRequestExecutor(pipeline, options);
         });
 
-        return executorBuilder;
+        return services;
     }
 
     /// <summary>
@@ -109,7 +133,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
 
     private static IFileProvider CreateFileProvider()
     {
-        Type type = typeof(HttpMultipartMiddleware);
+        var type = typeof(HttpMultipartMiddleware);
         var resourceNamespace = typeof(MiddlewareBase).Namespace + ".Resources";
         return new EmbeddedFileProvider(type.Assembly, resourceNamespace);
     }

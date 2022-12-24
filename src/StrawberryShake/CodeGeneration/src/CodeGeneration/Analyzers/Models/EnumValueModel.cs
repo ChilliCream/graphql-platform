@@ -1,6 +1,6 @@
 using System;
-using HotChocolate;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models;
 
@@ -10,12 +10,12 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models;
 public sealed class EnumValueModel
 {
     public EnumValueModel(
-        NameString name,
+        string name,
         string? description,
         IEnumValue value,
         string? underlyingValue)
     {
-        Name = name.EnsureNotEmpty(nameof(name));
+        Name = name.EnsureGraphQLName();
         Description = description;
         Value = value ?? throw new ArgumentNullException(nameof(value));
         UnderlyingValue = underlyingValue;
@@ -24,7 +24,7 @@ public sealed class EnumValueModel
     /// <summary>
     /// The enum value name. This is the string that is being used to
     /// </summary>
-    public NameString Name { get; }
+    public string Name { get; }
 
     public string? Description { get; }
 

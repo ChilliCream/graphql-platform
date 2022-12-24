@@ -1,106 +1,268 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
+using static System.Runtime.InteropServices.MemoryMarshal;
+using static System.StringComparer;
+using static HotChocolate.Execution.Properties.Resources;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing;
 
+/// <summary>
+/// The operation compiler will analyze a specific operation of a GraphQL request document
+/// and create from it an optimized executable operation tree.
+/// </summary>
 public sealed partial class OperationCompiler
 {
-    private readonly ISchema _schema;
-    private readonly FragmentCollection _fragments;
+    private static readonly ImmutableList<ISelectionSetOptimizer> _emptyOptimizers =
+        ImmutableList<ISelectionSetOptimizer>.Empty;
     private readonly InputParser _parser;
+    private readonly Stack<BacklogItem> _backlog = new();
+    private readonly Dictionary<Selection, SelectionSetInfo[]> _selectionLookup = new();
+    private readonly Dictionary<SelectionSetRef, int> _selectionSetIdLookup = new();
+    private readonly Dictionary<int, SelectionVariants> _selectionVariants = new();
+    private readonly Dictionary<string, FragmentDefinitionNode> _fragmentDefinitions = new(Ordinal);
+    private readonly Dictionary<string, object?> _contextData = new();
+    private readonly List<IOperationOptimizer> _operationOptimizers = new();
+    private readonly List<ISelectionSetOptimizer> _selectionSetOptimizers = new();
+    private readonly List<Selection> _selections = new();
+    private IncludeCondition[] _includeConditions = Array.Empty<IncludeCondition>();
+    private CompilerContext? _deferContext;
     private int _nextSelectionId;
+    private int _nextSelectionSetRefId;
+    private int _nextSelectionSetId;
     private int _nextFragmentId;
+    private bool _hasIncrementalParts;
 
-    private OperationCompiler(ISchema schema, FragmentCollection fragments, InputParser parser)
+    public OperationCompiler(InputParser parser)
     {
-        _schema = schema ?? throw new ArgumentNullException(nameof(schema));
-        _fragments = fragments ?? throw new ArgumentNullException(nameof(fragments));
         _parser = parser ?? throw new ArgumentNullException(nameof(parser));
     }
 
-    internal ISchema Schema => _schema;
-
-    internal FragmentCollection Fragments => _fragments;
-
-    internal int GetNextId() => _nextSelectionId++;
-
-    public static IPreparedOperation Compile(
+    public IOperation Compile(
         string operationId,
+        OperationDefinitionNode operationDefinition,
+        ObjectType operationType,
         DocumentNode document,
-        OperationDefinitionNode operation,
         ISchema schema,
-        ObjectType rootType,
-        InputParser inputParser,
-        IEnumerable<ISelectionOptimizer>? optimizers = null)
+        IReadOnlyList<IOperationCompilerOptimizer>? optimizers = null)
     {
-        if (operationId == null)
+        if (string.IsNullOrEmpty(operationId))
         {
-            throw new ArgumentNullException(nameof(operationId));
+            throw new ArgumentException(
+                OperationCompiler_OperationIdNullOrEmpty,
+                nameof(operationId));
         }
 
-        if (document == null)
+        if (operationDefinition is null)
+        {
+            throw new ArgumentNullException(nameof(operationDefinition));
+        }
+
+        if (operationType is null)
+        {
+            throw new ArgumentNullException(nameof(operationType));
+        }
+
+        if (document is null)
         {
             throw new ArgumentNullException(nameof(document));
         }
 
-        if (operation == null)
-        {
-            throw new ArgumentNullException(nameof(operation));
-        }
-
-        if (schema == null)
+        if (schema is null)
         {
             throw new ArgumentNullException(nameof(schema));
         }
 
-        if (rootType == null)
+        try
         {
-            throw new ArgumentNullException(nameof(rootType));
-        }
+            // prepare optimizers
+            PrepareOptimizers(optimizers);
 
-        if (operation.SelectionSet.Selections.Count == 0)
+            var rootOptimizers = _emptyOptimizers;
+
+            if (_selectionSetOptimizers.Count > 0)
+            {
+                rootOptimizers = ImmutableList.CreateRange(_selectionSetOptimizers);
+            }
+
+            // collect root fields
+            var rootPath = SelectionPath.Root;
+            var id = GetOrCreateSelectionSetRefId(operationDefinition.SelectionSet, rootPath);
+            var variants = GetOrCreateSelectionVariants(id);
+            SelectionSetInfo[] infos = { new(operationDefinition.SelectionSet, 0) };
+
+            var context = new CompilerContext(schema, document);
+            context.Initialize(operationType, variants, infos, rootPath, rootOptimizers);
+            CompileSelectionSet(context);
+
+            // process consecutive selections
+            while (_backlog.Count > 0)
+            {
+                var current = _backlog.Pop();
+                var type = current.Type;
+                variants = GetOrCreateSelectionVariants(current.SelectionSetId);
+
+                if (!variants.ContainsSelectionSet(type))
+                {
+                    infos = _selectionLookup[current.Selection];
+                    context.Initialize(type, variants, infos, current.Path, current.Optimizers);
+                    CompileSelectionSet(context);
+                }
+            }
+
+            // create operation
+            return CreateOperation(
+                operationId,
+                operationDefinition,
+                operationType,
+                document,
+                schema);
+        }
+        finally
         {
-            throw OperationCompiler_NoOperationSelections(operation);
+            _nextSelectionId = 0;
+            _nextSelectionSetRefId = 0;
+            _nextSelectionId = 0;
+            _nextFragmentId = 0;
+            _hasIncrementalParts = false;
+
+            _backlog.Clear();
+            _selectionLookup.Clear();
+            _selectionSetIdLookup.Clear();
+            _selectionVariants.Clear();
+            _fragmentDefinitions.Clear();
+            _contextData.Clear();
+            _operationOptimizers.Clear();
+            _selectionSetOptimizers.Clear();
+            _selections.Clear();
+
+            _includeConditions = Array.Empty<IncludeCondition>();
+            _deferContext = null;
         }
-
-        var fragments = new FragmentCollection(schema, document);
-        var compiler = new OperationCompiler(schema, fragments, inputParser);
-        var selectionSetLookup = new Dictionary<SelectionSetNode, SelectionVariants>();
-        var backlog = new Stack<CompilerContext>();
-
-        // creates and enqueues the root compiler context.
-        CompilerContext.New(
-            backlog,
-            rootType,
-            operation.SelectionSet,
-            optimizers?.ToImmutableList() ?? ImmutableList<ISelectionOptimizer>.Empty,
-            selectionSetLookup);
-
-        // processes the backlog and by doing so traverses the query graph.
-        compiler.Visit(backlog);
-
-        return new Operation(operationId, document, operation, rootType, selectionSetLookup);
     }
 
-    private void Visit(Stack<CompilerContext> backlog)
+    private Operation CreateOperation(
+        string operationId,
+        OperationDefinitionNode operationDefinition,
+        ObjectType operationType,
+        DocumentNode document,
+        ISchema schema)
     {
-        while (backlog.Count > 0)
+        var variants = new SelectionVariants[_selectionVariants.Count];
+
+        if (_operationOptimizers.Count == 0)
         {
-            CompileSelectionSet(backlog.Pop());
+            CompleteResolvers(schema);
+
+            // if we do not have any optimizers we will copy
+            // the variants and seal them in one go.
+            foreach (var item in _selectionVariants)
+            {
+                variants[item.Key] = item.Value;
+                item.Value.Seal();
+            }
         }
+        else
+        {
+            // if we have optimizers we will first copy the variants to its array,
+            // after that we will run the optimizers and give them a chance to do some
+            // more mutations on the compiled selection variants.
+            // after we have executed all optimizers we will seal the selection variants.
+            var context = new OperationOptimizerContext(
+                operationId,
+                document,
+                operationDefinition,
+                schema,
+                operationType,
+                variants,
+                _includeConditions,
+                _contextData,
+                _hasIncrementalParts);
+
+            foreach (var item in _selectionVariants)
+            {
+                variants[item.Key] = item.Value;
+            }
+
+#if NET5_0_OR_GREATER
+            ref var optSpace = ref GetReference(CollectionsMarshal.AsSpan(_operationOptimizers));
+
+            for (var i = 0; i < _operationOptimizers.Count; i++)
+            {
+                Unsafe.Add(ref optSpace, i).OptimizeOperation(context);
+            }
+#else
+            for (var i = 0; i < _operationOptimizers.Count; i++)
+            {
+                _operationOptimizers[i].OptimizeOperation(context);
+            }
+#endif
+
+            CompleteResolvers(schema);
+
+            ref var varSpace = ref GetReference(variants.AsSpan());
+
+            for (var i = 0; i < _operationOptimizers.Count; i++)
+            {
+                Unsafe.Add(ref varSpace, i).Seal();
+            }
+        }
+
+        return new Operation(
+            operationId,
+            document,
+            operationDefinition,
+            operationType,
+            variants,
+            _includeConditions,
+            new Dictionary<string, object?>(_contextData),
+            _hasIncrementalParts);
+    }
+
+    private void CompleteResolvers(ISchema schema)
+    {
+#if NET5_0_OR_GREATER
+        ref var searchSpace = ref GetReference(CollectionsMarshal.AsSpan(_selections));
+
+        for (var i = 0; i < _selections.Count; i++)
+        {
+            var selection = Unsafe.Add(ref searchSpace, i);
+
+            if (selection.ResolverPipeline is null && selection.PureResolver is null)
+            {
+                var field = selection.Field;
+                var syntaxNode = selection.SyntaxNode;
+                var resolver = CreateFieldMiddleware(schema, field, syntaxNode);
+                var pureResolver = TryCreatePureField(field, syntaxNode);
+                selection.SetResolvers(resolver, pureResolver);
+            }
+        }
+
+#else
+        foreach (var selection in _selections)
+        {
+            if (selection.ResolverPipeline is null && selection.PureResolver is null)
+            {
+                var field = selection.Field;
+                var syntaxNode = selection.SyntaxNode;
+                var resolver = CreateFieldMiddleware(schema, field, syntaxNode);
+                var pureResolver = TryCreatePureField(field, syntaxNode);
+                selection.SetResolvers(resolver, pureResolver);
+            }
+        }
+#endif
     }
 
     private void CompileSelectionSet(CompilerContext context)
     {
         // We first collect the fields that we find in the selection set ...
-        CollectFields(context, context.SelectionSet, null);
+        CollectFields(context);
 
         // next we will call the selection set optimizers to rewrite the
         // selection set if necessary.
@@ -113,22 +275,25 @@ public sealed partial class OperationCompiler
 
     private void CompleteSelectionSet(CompilerContext context)
     {
-        foreach (Selection selection in context.Fields.Values)
+        var selections = new Selection[context.Fields.Values.Count];
+        var fragments = context.Fragments.Count is 0
+            ? Array.Empty<Fragment>()
+            : new Fragment[context.Fragments.Count];
+        var selectionIndex = 0;
+        var isConditional = false;
+
+        foreach (var selection in context.Fields.Values)
         {
-            // we now mark the selection read-only and add it to the final selection-set.
-            selection.MakeReadOnly();
-            context.Selections.Add(selection);
-
-            // if one selection of a selection-set is conditional,
-            // then the whole set is conditional and has to be post processed during execution.
-            if (!context.IsConditional && (selection.IsConditional || selection.IsInternal))
-            {
-                context.IsConditional = true;
-            }
-
             // if the field of the selection returns a composite type we will traverse
             // the child selection-sets as well.
-            INamedType fieldType = selection.Type.NamedType();
+            var fieldType = selection.Type.NamedType();
+            var selectionSetId = -1;
+
+            if (selection.IsConditional)
+            {
+                isConditional = true;
+            }
+
             if (fieldType.IsCompositeType())
             {
                 if (selection.SelectionSet is null)
@@ -138,53 +303,103 @@ public sealed partial class OperationCompiler
                     throw QueryCompiler_CompositeTypeSelectionSet(selection.SyntaxNode);
                 }
 
-                IReadOnlyList<ObjectType> possibleTypes = _schema.GetPossibleTypes(fieldType);
+                var selectionPath = context.Path.Append(selection.ResponseName);
+                selectionSetId = GetOrCreateSelectionSetRefId(selection.SelectionSet, selectionPath);
+                var selectionVariants = GetOrCreateSelectionVariants(selectionSetId);
+                var possibleTypes = context.Schema.GetPossibleTypes(fieldType);
 
                 for (var i = possibleTypes.Count - 1; i >= 0; i--)
                 {
-                    // we branch the context which will enqueue the new context
-                    // to the work backlog.
-                    context.TryBranch(possibleTypes[i], selection);
+                    var objectType = possibleTypes[i];
+
+                    if (!selectionVariants.ContainsSelectionSet(objectType))
+                    {
+                        _backlog.Push(
+                            new BacklogItem(
+                                objectType,
+                                selectionSetId,
+                                selection,
+                                selectionPath,
+                                ResolveOptimizers(context.Optimizers, selection.Field)));
+                    }
                 }
+
+                // We are waiting for the latest stream and defer spec discussions to be codified
+                // before we change the overall stream handling.
+                //
+                // For now we only allow streams on lists of composite types.
+                if (selection.SyntaxNode.IsStreamable())
+                {
+                     var streamDirective = selection.SyntaxNode.GetStreamDirectiveNode();
+                     var nullValue = NullValueNode.Default;
+                     var ifValue = streamDirective?.GetIfArgumentValueOrDefault() ?? nullValue;
+                     long ifConditionFlags = 0;
+
+                     if (ifValue.Kind is not SyntaxKind.NullValue)
+                     {
+                         var ifCondition = new IncludeCondition(ifValue, nullValue);
+                         ifConditionFlags = GetSelectionIncludeCondition(ifCondition, 0);
+                     }
+
+                     selection.MarkAsStream(ifConditionFlags);
+                     _hasIncrementalParts = true;
+                }
+            }
+
+            selection.SetSelectionSetId(selectionSetId);
+            selections[selectionIndex++] = selection;
+            _selections.Add(selection);
+        }
+
+        if (context.Fragments.Count > 0)
+        {
+            for (var i = 0; i < context.Fragments.Count; i++)
+            {
+                fragments[i] = context.Fragments[i];
             }
         }
 
-        context.Complete();
+        context.SelectionVariants.AddSelectionSet(
+            _nextSelectionSetId++,
+            context.Type,
+            selections,
+            fragments,
+            isConditional);
+    }
+
+    private void CollectFields(CompilerContext context)
+    {
+        for (var i = 0; i < context.SelectionInfos.Length; i++)
+        {
+            var selectionSetInfo = context.SelectionInfos[i];
+
+            CollectFields(
+                context,
+                selectionSetInfo.SelectionSet,
+                selectionSetInfo.IncludeCondition);
+        }
     }
 
     private void CollectFields(
         CompilerContext context,
         SelectionSetNode selectionSet,
-        SelectionIncludeCondition? includeCondition)
+        long includeCondition)
     {
-        for (var i = 0; i < selectionSet.Selections.Count; i++)
+        for (var j = 0; j < selectionSet.Selections.Count; j++)
         {
-            ISelectionNode selection = selectionSet.Selections[i];
-            SelectionIncludeCondition? selectionCondition = includeCondition;
-
-            if (selectionCondition is null)
-            {
-                var reference = new SelectionReference(context.SelectionPath, selection);
-                context.IncludeConditionLookup.TryGetValue(reference, out selectionCondition);
-            }
-
-            ResolveFields(
-                context,
-                selection,
-                ExtractVisibility(selection, selectionCondition));
+            ResolveFields(context, selectionSet.Selections[j], includeCondition);
         }
     }
-
 
     private void ResolveFields(
         CompilerContext context,
         ISelectionNode selection,
-        SelectionIncludeCondition? includeCondition)
+        long includeCondition)
     {
         switch (selection.Kind)
         {
             case SyntaxKind.Field:
-                ResolveFieldSelection(
+                ResolveField(
                     context,
                     (FieldNode)selection,
                     includeCondition);
@@ -206,52 +421,42 @@ public sealed partial class OperationCompiler
         }
     }
 
-    private void ResolveFieldSelection(
+    private void ResolveField(
         CompilerContext context,
         FieldNode selection,
-        SelectionIncludeCondition? includeCondition)
+        long includeCondition)
     {
-        NameString fieldName = selection.Name.Value;
-        NameString responseName = selection.Alias is null
-            ? selection.Name.Value
-            : selection.Alias.Value;
+        includeCondition = GetSelectionIncludeCondition(selection, includeCondition);
 
-        if (context.Type.Fields.TryGetField(fieldName, out IObjectField? field))
+        var fieldName = selection.Name.Value;
+        var responseName = selection.Alias?.Value ?? fieldName;
+
+        if (context.Type.Fields.TryGetField(fieldName, out var field))
         {
-            IType fieldType = field.Type.RewriteNullability(selection.Required);
+            var fieldType = field.Type.RewriteNullability(selection.Required);
 
-            if ((selection.SelectionSet is null ||
-                selection.SelectionSet.Selections.Count == 0) &&
-                fieldType.NamedType().IsCompositeType())
-            {
-                throw OperationCompiler_NoCompositeSelections(selection);
-            }
-
-            if (context.Fields.TryGetValue(responseName, out Selection? preparedSelection))
+            if (context.Fields.TryGetValue(responseName, out var preparedSelection))
             {
                 preparedSelection.AddSelection(selection, includeCondition);
+
+                if (selection.SelectionSet is not null)
+                {
+                    var selectionSetInfo = new SelectionSetInfo(
+                        selection.SelectionSet!,
+                        includeCondition);
+                    var selectionInfos = _selectionLookup[preparedSelection];
+                    var next = selectionInfos.Length;
+                    Array.Resize(ref selectionInfos, next + 1);
+                    selectionInfos[next] = selectionSetInfo;
+                    _selectionLookup[preparedSelection] = selectionInfos;
+                }
             }
             else
             {
-                Func<object, IAsyncEnumerable<object?>>? createStream = null;
-                var isStreamable = selection.IsStreamable();
-
-                if (field.MaybeStream || fieldType.IsListType() && isStreamable)
-                {
-                    IType elementType = fieldType.ElementType();
-
-                    if (elementType.IsCompositeType())
-                    {
-                        Type runtimeType = elementType.ToRuntimeType();
-                        CreateStreamDelegate streamDelegate = CreateStream(runtimeType);
-                        createStream = o => streamDelegate(o);
-                    }
-                }
-
                 // if this is the first time we find a selection to this field we have to
                 // create a new prepared selection.
                 preparedSelection = new Selection(
-                    GetNextId(),
+                    GetNextSelectionId(),
                     context.Type,
                     field,
                     fieldType,
@@ -261,33 +466,18 @@ public sealed partial class OperationCompiler
                                 selection.SelectionSet.Selections))
                         : selection,
                     responseName: responseName,
-                    resolverPipeline: CreateFieldMiddleware(field, selection),
-                    pureResolver: TryCreatePureField(field, selection),
-                    strategy: field.IsParallelExecutable
-                        ? null // use default strategy
-                        : SelectionExecutionStrategy.Serial,
+                    isParallelExecutable: field.IsParallelExecutable,
                     arguments: CoerceArgumentValues(field, selection, responseName),
-                    includeCondition: includeCondition,
-                    internalSelection: context.IsInternalSelection,
-                    createStream: createStream,
-                    isStreamable: isStreamable);
+                    includeConditions: includeCondition == 0 ? null : new[] { includeCondition });
 
                 context.Fields.Add(responseName, preparedSelection);
-            }
 
-            if (includeCondition is not null && selection.SelectionSet is not null)
-            {
-                SelectionPath selectionPath = context.SelectionPath.Append(responseName);
-
-                for (var i = 0; i < selection.SelectionSet.Selections.Count; i++)
+                if (selection.SelectionSet is not null)
                 {
-                    ISelectionNode child = selection.SelectionSet.Selections[i];
-                    var reference = new SelectionReference(selectionPath, child);
-
-                    if (!context.IncludeConditionLookup.ContainsKey(reference))
-                    {
-                        context.IncludeConditionLookup.Add(reference, includeCondition);
-                    }
+                    var selectionSetInfo = new SelectionSetInfo(
+                        selection.SelectionSet!,
+                        includeCondition);
+                    _selectionLookup.Add(preparedSelection, new[] { selectionSetInfo });
                 }
             }
         }
@@ -297,44 +487,96 @@ public sealed partial class OperationCompiler
         }
     }
 
+    private void ResolveInlineFragment(
+        CompilerContext context,
+        InlineFragmentNode inlineFragment,
+        long includeCondition)
+    {
+        ResolveFragment(
+            context,
+            inlineFragment,
+            inlineFragment.TypeCondition,
+            inlineFragment.SelectionSet,
+            inlineFragment.Directives,
+            includeCondition);
+    }
+
     private void ResolveFragmentSpread(
         CompilerContext context,
         FragmentSpreadNode fragmentSpread,
-        SelectionIncludeCondition? includeCondition)
+        long includeCondition)
     {
-        if (_fragments.GetFragment(fragmentSpread.Name.Value) is { } fragmentInfo &&
-            DoesTypeApply(fragmentInfo.TypeCondition, context.Type))
+        var fragmentDef = GetFragmentDefinition(context, fragmentSpread);
+
+        ResolveFragment(
+            context,
+            fragmentSpread,
+            fragmentDef.TypeCondition,
+            fragmentDef.SelectionSet,
+            fragmentSpread.Directives,
+            includeCondition);
+    }
+
+    private void ResolveFragment(
+        CompilerContext context,
+        ISelectionNode selection,
+        NamedTypeNode? typeCondition,
+        SelectionSetNode selectionSet,
+        IReadOnlyList<DirectiveNode> directives,
+        long includeCondition)
+    {
+        if (typeCondition is null ||
+            (context.Schema.TryGetTypeFromAst(typeCondition, out IType typeCon) &&
+                DoesTypeApply(typeCon, context.Type)))
         {
-            FragmentDefinitionNode fragmentDefinition = fragmentInfo.FragmentDefinition!;
+            includeCondition = GetSelectionIncludeCondition(selection, includeCondition);
 
-            if (fragmentDefinition.SelectionSet.Selections.Count == 0)
+            if (directives.IsDeferrable())
             {
-                throw OperationCompiler_FragmentNoSelections(fragmentDefinition);
-            }
+                var deferDirective = directives.GetDeferDirectiveNode();
+                var nullValue = NullValueNode.Default;
+                var ifValue = deferDirective?.GetIfArgumentValueOrDefault() ?? nullValue;
 
-            var reference = new SpreadReference(context.SelectionPath, fragmentSpread);
+                long ifConditionFlags = 0;
+                if (ifValue.Kind is not SyntaxKind.NullValue)
+                {
+                    var ifCondition = new IncludeCondition(ifValue, nullValue);
+                    ifConditionFlags = GetSelectionIncludeCondition(ifCondition, includeCondition);
+                }
 
-            if (!context.Spreads.TryGetValue(reference, out SelectionSetNode? selectionSet))
-            {
-                selectionSet = fragmentDefinition.SelectionSet.WithSelections(
-                    fragmentDefinition.SelectionSet.Selections);
-                context.Spreads.Add(reference, selectionSet);
-            }
+                var id = GetOrCreateSelectionSetRefId(selectionSet, context.Path);
+                var variants = GetOrCreateSelectionVariants(id);
+                var infos = new SelectionSetInfo[] { new(selectionSet, includeCondition) };
 
-            if (fragmentSpread.IsDeferrable() &&
-                AllowFragmentDeferral(context, fragmentSpread, fragmentDefinition))
-            {
-                CompilerContext deferContext = context.Branch(selectionSet);
-                CompileSelectionSet(deferContext);
+                if (!variants.ContainsSelectionSet(context.Type))
+                {
+                    var deferContext = RentContext(context);
+                    deferContext.Initialize(context.Type, variants, infos, context.Path);
+                    CompileSelectionSet(deferContext);
+                    ReturnContext(deferContext);
+                }
 
-                context.RegisterFragment(new Fragment(
-                    _nextFragmentId++,
+                var fragment = new Fragment(
+                    GetNextFragmentId(),
                     context.Type,
-                    fragmentSpread,
-                    fragmentDefinition,
-                    deferContext.GetSelectionSet(),
-                    context.IsInternalSelection,
-                    includeCondition));
+                    selection,
+                    directives,
+                    variants.GetSelectionSet(context.Type),
+                    includeCondition,
+                    ifConditionFlags);
+
+                context.Fragments.Add(fragment);
+                _hasIncrementalParts = true;
+
+                // if we have if condition flags there will be a runtime validation if something
+                // shall be deferred, so we need to prepare for both cases.
+                //
+                // this means that we will collect the fields with our if condition flags as
+                // if the fragment was not deferred.
+                if (ifConditionFlags is not 0)
+                {
+                    CollectFields(context, selectionSet, ifConditionFlags);
+                }
             }
             else
             {
@@ -343,435 +585,279 @@ public sealed partial class OperationCompiler
         }
     }
 
-    private void ResolveInlineFragment(
+    private static bool DoesTypeApply(IType typeCondition, IObjectType current)
+        => typeCondition.Kind switch
+        {
+            TypeKind.Object => ReferenceEquals(typeCondition, current),
+            TypeKind.Interface => current.IsImplementing((InterfaceType)typeCondition),
+            TypeKind.Union => ((UnionType)typeCondition).Types.ContainsKey(current.Name),
+            _ => false
+        };
+
+    private FragmentDefinitionNode GetFragmentDefinition(
         CompilerContext context,
-        InlineFragmentNode inlineFragment,
-        SelectionIncludeCondition? includeCondition)
+        FragmentSpreadNode fragmentSpread)
     {
-        if (inlineFragment.SelectionSet.Selections.Count == 0)
-        {
-            throw OperationCompiler_FragmentNoSelections(inlineFragment);
-        }
+        var fragmentName = fragmentSpread.Name.Value;
 
-        if (_fragments.GetFragment(context.Type, inlineFragment) is { } fragmentInfo &&
-            DoesTypeApply(fragmentInfo.TypeCondition, context.Type))
+        if (!_fragmentDefinitions.TryGetValue(fragmentName, out var value))
         {
-            var reference = new SpreadReference(context.SelectionPath, inlineFragment);
+            var document = context.Document;
 
-            if (!context.Spreads.TryGetValue(reference, out SelectionSetNode? selectionSet))
+            for (var i = 0; i < document.Definitions.Count; i++)
             {
-                selectionSet = inlineFragment.SelectionSet.WithSelections(
-                    inlineFragment.SelectionSet.Selections);
-                context.Spreads.Add(reference, selectionSet);
+                if (document.Definitions[i] is FragmentDefinitionNode fragmentDefinition &&
+                    fragmentDefinition.Name.Value.EqualsOrdinal(fragmentName))
+                {
+                    value = fragmentDefinition;
+                    _fragmentDefinitions.Add(fragmentName, value);
+                    goto EXIT;
+                }
             }
 
-            if (inlineFragment.IsDeferrable() &&
-                AllowFragmentDeferral(context, inlineFragment))
-            {
-                CompilerContext deferContext = context.Branch(selectionSet);
-                CompileSelectionSet(deferContext);
+            throw new InvalidOperationException(
+                string.Format(
+                    OperationCompiler_FragmentNotFound,
+                    fragmentName));
+        }
 
-                context.RegisterFragment(new Fragment(
-                    _nextFragmentId++,
-                    context.Type,
-                    inlineFragment,
-                    deferContext.GetSelectionSet(),
-                    context.IsInternalSelection,
-                    includeCondition));
+        EXIT:
+        return value;
+    }
+
+    internal int GetNextSelectionId() => _nextSelectionId++;
+
+    private int GetNextFragmentId() => _nextFragmentId++;
+
+    private int GetOrCreateSelectionSetRefId(SelectionSetNode selectionSet, SelectionPath path)
+    {
+        var selectionSetRef = new SelectionSetRef(selectionSet, path);
+
+        if (!_selectionSetIdLookup.TryGetValue(selectionSetRef, out var selectionSetId))
+        {
+            selectionSetId = _nextSelectionSetRefId++;
+            _selectionSetIdLookup.Add(selectionSetRef, selectionSetId);
+        }
+
+        return selectionSetId;
+    }
+
+    private SelectionVariants GetOrCreateSelectionVariants(int selectionSetId)
+    {
+        if (!_selectionVariants.TryGetValue(selectionSetId, out var variants))
+        {
+            variants = new SelectionVariants(selectionSetId);
+            _selectionVariants.Add(selectionSetId, variants);
+        }
+        return variants;
+    }
+
+    private long GetSelectionIncludeCondition(
+        ISelectionNode selectionSyntax,
+        long parentIncludeCondition)
+    {
+        var condition = IncludeCondition.FromSelection(selectionSyntax);
+
+        if (condition.IsDefault)
+        {
+            return parentIncludeCondition;
+        }
+
+        var pos = Array.IndexOf(_includeConditions, condition);
+
+        if (pos == -1)
+        {
+            pos = _includeConditions.Length;
+
+            if (pos == 64)
+            {
+                throw new InvalidOperationException(OperationCompiler_ToManyIncludeConditions);
+            }
+
+            if (_includeConditions.Length == 0)
+            {
+                _includeConditions = new IncludeCondition[1];
             }
             else
             {
-                CollectFields(
-                    context,
-                    selectionSet,
-                    includeCondition);
+                Array.Resize(ref _includeConditions, pos + 1);
             }
+
+            _includeConditions[pos] = condition;
         }
+
+        long selectionIncludeCondition = 2 ^ pos;
+
+        if (parentIncludeCondition == 0)
+        {
+            return selectionIncludeCondition;
+        }
+
+        parentIncludeCondition |= selectionIncludeCondition;
+        return parentIncludeCondition;
     }
 
-    private static SelectionIncludeCondition? ExtractVisibility(
-        Language.IHasDirectives selection,
-        SelectionIncludeCondition? visibility)
+    private long GetSelectionIncludeCondition(
+        IncludeCondition condition,
+        long parentIncludeCondition)
     {
-        if (selection.Directives.Count == 0)
+        var pos = Array.IndexOf(_includeConditions, condition);
+
+        if (pos == -1)
         {
-            return visibility;
-        }
+            pos = _includeConditions.Length;
 
-        IValueNode? skip = selection.Directives.SkipValue();
-        IValueNode? include = selection.Directives.IncludeValue();
-
-        if (skip is null && include is null)
-        {
-            return visibility;
-        }
-
-        if (visibility is not null && visibility.Equals(skip, include))
-        {
-            return visibility;
-        }
-
-        return new SelectionIncludeCondition(skip, include, visibility);
-    }
-
-    private static bool DoesTypeApply(IType typeCondition, IObjectType current)
-    {
-        switch (typeCondition.Kind)
-        {
-            case TypeKind.Object:
-                return ReferenceEquals(typeCondition, current);
-
-            case TypeKind.Interface:
-                return current.IsImplementing((InterfaceType)typeCondition);
-
-            case TypeKind.Union:
-                return ((UnionType)typeCondition).Types.ContainsKey(current.Name);
-
-            default:
-                return false;
-        }
-    }
-
-    private IReadOnlyDictionary<NameString, ArgumentValue>? CoerceArgumentValues(
-        IObjectField field,
-        FieldNode selection,
-        string responseName)
-    {
-        if (field.Arguments.Count == 0)
-        {
-            return null;
-        }
-
-        var arguments = new Dictionary<NameString, ArgumentValue>();
-
-        for (var i = 0; i < selection.Arguments.Count; i++)
-        {
-            ArgumentNode argumentValue = selection.Arguments[i];
-            if (field.Arguments.TryGetField(
-                argumentValue.Name.Value,
-                out IInputField? argument))
+            if (pos == 64)
             {
-                arguments[argument.Name.Value] =
-                    CreateArgumentValue(
-                        responseName,
-                        argument,
-                        argumentValue,
-                        argumentValue.Value,
-                        false);
+                throw new InvalidOperationException(OperationCompiler_ToManyIncludeConditions);
             }
-        }
 
-        for (var i = 0; i < field.Arguments.Count; i++)
-        {
-            IInputField argument = field.Arguments[i];
-            if (!arguments.ContainsKey(argument.Name))
+            if (_includeConditions.Length == 0)
             {
-                arguments[argument.Name.Value] =
-                    CreateArgumentValue(
-                        responseName,
-                        argument,
-                        null,
-                        argument.DefaultValue ?? NullValueNode.Default,
-                        true);
+                _includeConditions = new IncludeCondition[1];
             }
-        }
-
-        return arguments;
-    }
-
-    private ArgumentValue CreateArgumentValue(
-        string responseName,
-        IInputField argument,
-        ArgumentNode? argumentValue,
-        IValueNode value,
-        bool isDefaultValue)
-    {
-        ArgumentNonNullValidator.ValidationResult validationResult =
-            ArgumentNonNullValidator.Validate(argument, value, Path.New(argument.Name));
-
-        if (argumentValue is not null && validationResult.HasErrors)
-        {
-            return new ArgumentValue(
-                argument,
-                ErrorHelper.ArgumentNonNullError(
-                    argumentValue,
-                    responseName,
-                    validationResult));
-        }
-
-        if (argument.Type.IsLeafType() && CanBeCompiled(value))
-        {
-            try
+            else
             {
-                return new ArgumentValue(
-                    argument,
-                    value.GetValueKind(),
-                    true,
-                    isDefaultValue,
-                    _parser.ParseLiteral(value, argument),
-                    value);
+                Array.Resize(ref _includeConditions, pos + 1);
             }
-            catch (SerializationException ex)
-            {
-                if (argumentValue is not null)
-                {
-                    return new ArgumentValue(
-                        argument,
-                        ErrorHelper.ArgumentValueIsInvalid(argumentValue, responseName, ex));
-                }
 
-                return new ArgumentValue(
-                    argument,
-                    ErrorHelper.ArgumentDefaultValueIsInvalid(responseName, ex));
-            }
+            _includeConditions[pos] = condition;
         }
 
-        return new ArgumentValue(
-            argument,
-            value.GetValueKind(),
-            false,
-            isDefaultValue,
-            null,
-            value);
-    }
+        long selectionIncludeCondition = 2 ^ pos;
 
-    private static bool CanBeCompiled(IValueNode valueLiteral)
-    {
-        switch (valueLiteral.Kind)
+        if (parentIncludeCondition == 0)
         {
-            case SyntaxKind.Variable:
-            case SyntaxKind.ObjectValue:
-                return false;
-
-            case SyntaxKind.ListValue:
-                var list = (ListValueNode)valueLiteral;
-                for (var i = 0; i < list.Items.Count; i++)
-                {
-                    if (!CanBeCompiled(list.Items[i]))
-                    {
-                        return false;
-                    }
-                }
-                break;
+            return selectionIncludeCondition;
         }
 
-        return true;
+        parentIncludeCondition |= selectionIncludeCondition;
+        return parentIncludeCondition;
     }
 
-    internal FieldDelegate CreateFieldMiddleware(
-        IObjectField field,
-        FieldNode selection)
+    private CompilerContext RentContext(CompilerContext context)
     {
-        FieldDelegate pipeline = field.Middleware;
-
-        if (field.ExecutableDirectives.Count > 0 || selection.Directives.Count > 0)
+        if (_deferContext is null)
         {
-            IReadOnlyList<IDirective> directives = CollectDirectives(field, selection);
-
-            if (directives.Count > 0)
-            {
-                pipeline = Compile(pipeline, directives);
-            }
+            return new CompilerContext(context.Schema, context.Document);
         }
 
-        return pipeline;
+        var temp = _deferContext;
+        _deferContext = null;
+        return temp;
     }
 
-    private PureFieldDelegate? TryCreatePureField(
-        IObjectField field,
-        FieldNode selection)
+    private void ReturnContext(CompilerContext context)
+        => _deferContext ??= context;
+
+    private void PrepareOptimizers(IReadOnlyList<IOperationCompilerOptimizer>? optimizers)
     {
-        if (field.PureResolver is not null && selection.Directives.Count == 0)
-        {
-            return field.PureResolver;
-        }
+        // we only clear the selectionSetOptimizers since we use this list as a temp
+        // to temporarily store the selectionSetOptimizers before they are copied to
+        // the context.
+        _selectionSetOptimizers.Clear();
 
-        return null;
-    }
-
-    private IReadOnlyList<IDirective> CollectDirectives(
-        IObjectField field,
-        FieldNode selection)
-    {
-        var processed = new HashSet<string>();
-        var directives = new List<IDirective>();
-
-        CollectTypeSystemDirectives(
-            processed,
-            directives,
-            field);
-
-        CollectQueryDirectives(
-            processed,
-            directives,
-            field,
-            selection);
-
-        return directives.AsReadOnly();
-    }
-
-    private void CollectQueryDirectives(
-        HashSet<string> processed,
-        List<IDirective> directives,
-        IObjectField field,
-        FieldNode selection)
-    {
-        foreach (IDirective directive in GetFieldSelectionDirectives(field, selection))
-        {
-            if (!directive.Type.IsRepeatable && !processed.Add(directive.Name))
-            {
-                directives.Remove(directives.First(t => t.Type == directive.Type));
-            }
-            directives.Add(directive);
-        }
-    }
-
-    private IEnumerable<IDirective> GetFieldSelectionDirectives(
-        IObjectField field,
-        FieldNode selection)
-    {
-        for (var i = 0; i < selection.Directives.Count; i++)
-        {
-            DirectiveNode directive = selection.Directives[i];
-            if (_schema.TryGetDirectiveType(directive.Name.Value,
-                out DirectiveType? directiveType)
-                && directiveType.HasMiddleware)
-            {
-                yield return Directive.FromDescription(
-                    directiveType,
-                    new DirectiveDefinition(directive),
-                    field);
-            }
-        }
-    }
-
-    private static void CollectTypeSystemDirectives(
-        HashSet<string> processed,
-        List<IDirective> directives,
-        IObjectField field)
-    {
-        for (var i = 0; i < field.ExecutableDirectives.Count; i++)
-        {
-            IDirective directive = field.ExecutableDirectives[i];
-            if (!directive.Type.IsRepeatable && !processed.Add(directive.Name))
-            {
-                directives.Remove(directives.First(t => t.Type == directive.Type));
-            }
-            directives.Add(directive);
-        }
-    }
-
-    private void OptimizeSelectionSet(CompilerContext context)
-    {
-        if (context.Optimizers.Count == 0)
+        if (optimizers is null)
         {
             return;
         }
 
-        var optimizerContext = new SelectionOptimizerContext(this, context);
-
-        if (context.Optimizers.Count == 1)
+        if (optimizers.Count > 0)
         {
-            context.Optimizers[0].OptimizeSelectionSet(optimizerContext);
-            return;
-        }
+            for (var i = 0; i < optimizers.Count; i++)
+            {
+                var optimizer = optimizers[i];
 
-        for (var i = 0; i < context.Optimizers.Count; i++)
-        {
-            context.Optimizers[i].OptimizeSelectionSet(optimizerContext);
+                if (optimizer is ISelectionSetOptimizer selectionSetOptimizer)
+                {
+                    _selectionSetOptimizers.Add(selectionSetOptimizer);
+                }
+
+                if (optimizer is IOperationOptimizer operationOptimizer)
+                {
+                    _operationOptimizers.Add(operationOptimizer);
+                }
+            }
         }
     }
 
-    private bool AllowFragmentDeferral(
-        CompilerContext context,
-        InlineFragmentNode fragment)
+    internal void RegisterNewSelection(Selection newSelection)
     {
-        if (context.Optimizers.Count == 0)
+        if (newSelection.SyntaxNode.SelectionSet is not null)
         {
-            return true;
+            var selectionSetInfo = new SelectionSetInfo(newSelection.SelectionSet!, 0);
+            _selectionLookup.Add(newSelection, new[] { selectionSetInfo });
+        }
+    }
+
+    internal sealed class SelectionPath : IEquatable<SelectionPath>
+    {
+        private SelectionPath(string name, SelectionPath? parent = null)
+        {
+            Name = name;
+            Parent = parent;
         }
 
-        var optimizerContext = new SelectionOptimizerContext(this, context);
+        public string Name { get; }
 
-        if (context.Optimizers.Count == 1)
-        {
-            return context.Optimizers[0].AllowFragmentDeferral(optimizerContext, fragment);
-        }
+        public SelectionPath? Parent { get; }
 
-        for (var i = 0; i < context.Optimizers.Count; i++)
+        public static SelectionPath Root { get; } = new("$root");
+
+        public SelectionPath Append(string name) => new(name, this);
+
+        public bool Equals(SelectionPath? other)
         {
-            if (!context.Optimizers[i].AllowFragmentDeferral(optimizerContext, fragment))
+            if (other is null)
             {
                 return false;
             }
-        }
 
-        return true;
-    }
-
-    private bool AllowFragmentDeferral(
-        CompilerContext context,
-        FragmentSpreadNode fragmentSpread,
-        FragmentDefinitionNode fragmentDefinition)
-    {
-        if (context.Optimizers.Count == 0)
-        {
-            return true;
-        }
-
-        var optimizerContext = new SelectionOptimizerContext(this, context);
-
-        if (context.Optimizers.Count == 1)
-        {
-            return context.Optimizers[0].AllowFragmentDeferral(
-                optimizerContext, fragmentSpread, fragmentDefinition);
-        }
-
-        for (var i = 0; i < context.Optimizers.Count; i++)
-        {
-            if (!context.Optimizers[i].AllowFragmentDeferral(
-                optimizerContext, fragmentSpread, fragmentDefinition))
+            if (ReferenceEquals(this, other))
             {
-                return false;
+                return true;
             }
-        }
 
-        return true;
-    }
-
-    private static FieldDelegate Compile(
-        FieldDelegate fieldPipeline,
-        IReadOnlyList<IDirective> directives)
-    {
-        FieldDelegate next = fieldPipeline;
-
-        for (var i = directives.Count - 1; i >= 0; i--)
-        {
-            if (directives[i] is { Type: { HasMiddleware: true } } directive)
+            if (Name.EqualsOrdinal(other.Name))
             {
-                next = BuildComponent(directive, next);
+                if (ReferenceEquals(Parent, other.Parent))
+                {
+                    return true;
+                }
+
+                return Equals(Parent, other.Parent);
             }
+
+            return false;
         }
 
-        return next;
+        public override bool Equals(object? obj)
+            => ReferenceEquals(this, obj) || (obj is SelectionPath other && Equals(other));
+
+        public override int GetHashCode()
+            => HashCode.Combine(Name, Parent);
     }
 
-    private static FieldDelegate BuildComponent(IDirective directive, FieldDelegate first)
+    private readonly struct SelectionSetRef : IEquatable<SelectionSetRef>
     {
-        FieldDelegate next = first;
-        IReadOnlyList<DirectiveMiddleware> components = directive.MiddlewareComponents;
-
-        for (var i = components.Count - 1; i >= 0; i--)
+        public SelectionSetRef(SelectionSetNode selectionSet, SelectionPath path)
         {
-            DirectiveDelegate component = components[i].Invoke(next);
-            next = context => HasNoErrors(context.Result)
-                ? component.Invoke(new DirectiveContext(context, directive))
-                : default;
+            SelectionSet = selectionSet;
+            Path = path;
         }
 
-        return next;
-    }
+        public SelectionSetNode SelectionSet { get; }
 
-    private static bool HasNoErrors(object? result) =>
-        result is not IError or not IEnumerable<IError>;
+        public SelectionPath Path { get; }
+
+        public bool Equals(SelectionSetRef other)
+            => SelectionSet.Equals(other.SelectionSet, SyntaxComparison.Syntax) &&
+                Path.Equals(other.Path);
+
+        public override bool Equals(object? obj)
+            => obj is SelectionSetRef other && Equals(other);
+
+        public override int GetHashCode()
+            => HashCode.Combine(SelectionSet, Path);
+    }
 }

@@ -4,7 +4,7 @@ namespace HotChocolate.Types;
 
 public interface IDirectiveCollection : IReadOnlyCollection<IDirective>
 {
-    IEnumerable<IDirective> this[NameString key] { get; }
+    IEnumerable<IDirective> this[string key] { get; }
 
-    bool Contains(NameString key);
+    bool Contains(string key);
 }

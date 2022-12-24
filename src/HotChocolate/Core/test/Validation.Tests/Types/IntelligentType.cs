@@ -1,14 +1,13 @@
 using HotChocolate.Types;
 
-namespace HotChocolate.Validation
+namespace HotChocolate.Validation;
+
+public class IntelligentType
+    : InterfaceType
 {
-    public class IntelligentType
-        : InterfaceType
+    protected override void Configure(IInterfaceTypeDescriptor descriptor)
     {
-        protected override void Configure(IInterfaceTypeDescriptor descriptor)
-        {
-            descriptor.Name("Intelligent");
-            descriptor.Field("iq").Type<NonNullType<IntType>>();
-        }
+        descriptor.Name("Intelligent");
+        descriptor.Field("iq").Type<NonNullType<IntType>>();
     }
 }

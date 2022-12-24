@@ -1,0 +1,12 @@
+{
+  "data": {
+    "personNodes": {
+      "nodes": [
+        {
+          "name": "Pascal"
+        }
+      ]
+    },
+    "wait": true
+  }
+}

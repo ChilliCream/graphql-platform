@@ -1,8 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using Moq;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace StrawberryShake.Transport.WebSockets;
 
@@ -13,10 +11,10 @@ public class SessionPoolTests
     {
         // arrange
         Mock<ISocketProtocol> protocol = new();
-        ISocketClientFactory optionsMonitor = new Mock<ISocketClientFactory>().Object;
+        var optionsMonitor = new Mock<ISocketClientFactory>().Object;
 
         // act
-        Exception? exception = Record.Exception(() =>
+        var exception = Record.Exception(() =>
             new SessionPool(optionsMonitor));
 
         // assert
@@ -31,7 +29,7 @@ public class SessionPoolTests
         ISocketClientFactory optionsMonitor = null!;
 
         // act
-        Exception? exception = Record.Exception(() =>
+        var exception = Record.Exception(() =>
             new SessionPool(optionsMonitor));
 
         // assert
@@ -44,14 +42,14 @@ public class SessionPoolTests
         // arrange
         Mock<ISocketClientFactory> optionsMonitorMock = new(MockBehavior.Strict);
         Mock<ISocketProtocol> protocol = new();
-        ISocketClientFactory optionsMonitor = optionsMonitorMock.Object;
+        var optionsMonitor = optionsMonitorMock.Object;
         optionsMonitorMock
             .Setup(x => x.CreateClient("Foo"))
             .Returns(() => new SocketClientStub() { Protocol = protocol.Object, Name = "Foo" });
         var pool = new SessionPool(optionsMonitor);
 
         // act
-        ISession rented = await pool.CreateAsync("Foo");
+        var rented = await pool.CreateAsync("Foo");
 
         // assert
         optionsMonitorMock.VerifyAll();
@@ -64,15 +62,15 @@ public class SessionPoolTests
         // arrange
         Mock<ISocketClientFactory> optionsMonitorMock = new(MockBehavior.Strict);
         Mock<ISocketProtocol> protocol = new();
-        ISocketClientFactory optionsMonitor = optionsMonitorMock.Object;
+        var optionsMonitor = optionsMonitorMock.Object;
         optionsMonitorMock
             .Setup(x => x.CreateClient("Foo"))
             .Returns(() => new SocketClientStub() { Protocol = protocol.Object, Name = "Foo" });
         var pool = new SessionPool(optionsMonitor);
-        ISession first = await pool.CreateAsync("Foo");
+        var first = await pool.CreateAsync("Foo");
 
         // act
-        ISession second = await pool.CreateAsync("Foo");
+        var second = await pool.CreateAsync("Foo");
 
         // assert
         Assert.Equal(first, second);
@@ -84,7 +82,7 @@ public class SessionPoolTests
         // arrange
         Mock<ISocketClientFactory> optionsMonitorMock = new(MockBehavior.Strict);
         Mock<ISocketProtocol> protocol = new();
-        ISocketClientFactory optionsMonitor = optionsMonitorMock.Object;
+        var optionsMonitor = optionsMonitorMock.Object;
         var socket = new SocketClientStub() { Protocol = protocol.Object, Name = "Foo" };
         optionsMonitorMock
             .Setup(x => x.CreateClient("Foo"))
@@ -104,14 +102,14 @@ public class SessionPoolTests
         // arrange
         Mock<ISocketClientFactory> optionsMonitorMock = new(MockBehavior.Strict);
         Mock<ISocketProtocol> protocol = new();
-        ISocketClientFactory optionsMonitor = optionsMonitorMock.Object;
+        var optionsMonitor = optionsMonitorMock.Object;
         var socket = new SocketClientStub() { Protocol = protocol.Object, Name = "Foo" };
         optionsMonitorMock
             .Setup(x => x.CreateClient("Foo"))
             .Returns(() => socket);
         var pool = new SessionPool(optionsMonitor);
-        ISession first = await pool.CreateAsync("Foo");
-        ISession second = await pool.CreateAsync("Foo");
+        var first = await pool.CreateAsync("Foo");
+        var second = await pool.CreateAsync("Foo");
 
         // act
         await first.DisposeAsync();
@@ -126,14 +124,14 @@ public class SessionPoolTests
         // arrange
         Mock<ISocketClientFactory> optionsMonitorMock = new(MockBehavior.Strict);
         Mock<ISocketProtocol> protocol = new();
-        ISocketClientFactory optionsMonitor = optionsMonitorMock.Object;
+        var optionsMonitor = optionsMonitorMock.Object;
         var socket = new SocketClientStub() { Protocol = protocol.Object, Name = "Foo" };
         optionsMonitorMock
             .Setup(x => x.CreateClient("Foo"))
             .Returns(() => socket);
         var pool = new SessionPool(optionsMonitor);
-        ISession first = await pool.CreateAsync("Foo");
-        ISession second = await pool.CreateAsync("Foo");
+        var first = await pool.CreateAsync("Foo");
+        var second = await pool.CreateAsync("Foo");
 
         // act
         await first.DisposeAsync();
@@ -149,13 +147,13 @@ public class SessionPoolTests
         // arrange
         Mock<ISocketClientFactory> optionsMonitorMock = new(MockBehavior.Strict);
         Mock<ISocketProtocol> protocol = new();
-        ISocketClientFactory optionsMonitor = optionsMonitorMock.Object;
+        var optionsMonitor = optionsMonitorMock.Object;
         var socket = new SocketClientStub() { Protocol = protocol.Object, Name = "Foo" };
         optionsMonitorMock
             .Setup(x => x.CreateClient("Foo"))
             .Returns(() => socket);
         var pool = new SessionPool(optionsMonitor);
-        ISession rented = await pool.CreateAsync("Foo");
+        var rented = await pool.CreateAsync("Foo");
 
         // act
         await rented.DisposeAsync();
@@ -170,13 +168,13 @@ public class SessionPoolTests
         // arrange
         Mock<ISocketClientFactory> optionsMonitorMock = new(MockBehavior.Strict);
         Mock<ISocketProtocol> protocol = new();
-        ISocketClientFactory optionsMonitor = optionsMonitorMock.Object;
+        var optionsMonitor = optionsMonitorMock.Object;
         var socket = new SocketClientStub() { Protocol = protocol.Object, Name = "Foo" };
         optionsMonitorMock
             .Setup(x => x.CreateClient("Foo"))
             .Returns(() => socket);
         var pool = new SessionPool(optionsMonitor);
-        ISession rented = await pool.CreateAsync("Foo");
+        var rented = await pool.CreateAsync("Foo");
 
         // act
         await rented.DisposeAsync();
@@ -191,7 +189,7 @@ public class SessionPoolTests
         // arrange
         Mock<ISocketClientFactory> optionsMonitorMock = new(MockBehavior.Strict);
         Mock<ISocketProtocol> protocol = new();
-        ISocketClientFactory optionsMonitor = optionsMonitorMock.Object;
+        var optionsMonitor = optionsMonitorMock.Object;
         var socket = new SocketClientStub() { Protocol = protocol.Object, Name = "Foo" };
         optionsMonitorMock
             .Setup(x => x.CreateClient("Foo"))

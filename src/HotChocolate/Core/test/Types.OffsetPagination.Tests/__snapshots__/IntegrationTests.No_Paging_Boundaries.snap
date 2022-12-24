@@ -1,7 +1,7 @@
 ﻿{
   "errors": [
     {
-      "message": "You must provide take to properly paginate the \u0060StringCollectionSegment\u0060.",
+      "message": "You must provide take to properly paginate the \u0060LettersCollectionSegment\u0060.",
       "path": [
         "letters"
       ],

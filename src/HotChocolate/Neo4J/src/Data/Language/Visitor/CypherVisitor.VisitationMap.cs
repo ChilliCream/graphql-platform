@@ -30,7 +30,7 @@ public partial class CypherVisitor
             return;
         }
 
-        string symbolicName =
+        var symbolicName =
             node.SymbolicName?.Value ??
             node.RequiredSymbolicName.Value;
 
@@ -73,7 +73,7 @@ public partial class CypherVisitor
 
     private void EnterVisitable(Operator op)
     {
-        OperatorType type = op.Type;
+        var type = op.Type;
         if (type == OperatorType.Label)
         {
             return;
@@ -141,7 +141,7 @@ public partial class CypherVisitor
 
     private void EnterVisitable(RelationshipDetails details)
     {
-        RelationshipDirection direction = details.Direction;
+        var direction = details.Direction;
 
         _writer.Write(direction.LeftSymbol);
         if (details.HasContent())
@@ -152,7 +152,7 @@ public partial class CypherVisitor
 
     private void LeaveVisitable(RelationshipDetails details)
     {
-        RelationshipDirection direction = details.Direction;
+        var direction = details.Direction;
 
         if (details.HasContent())
         {

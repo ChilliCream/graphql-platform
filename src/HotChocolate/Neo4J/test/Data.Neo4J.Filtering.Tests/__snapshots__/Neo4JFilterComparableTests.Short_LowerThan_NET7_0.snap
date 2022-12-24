@@ -1,0 +1,80 @@
+Short_LowerThan_12 Result:
+---------------
+{
+  "data": {
+    "root": []
+  }
+}
+---------------
+
+Short_LowerThan_12 Query:
+---------------
+MATCH (fooComp:FooComp) WHERE fooComp.BarShort < 12 RETURN fooComp {.BarShort} ORDER BY fooComp {.BarShort} ASC
+---------------
+
+Short_LowerThan_13 Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barShort": 12
+      }
+    ]
+  }
+}
+---------------
+
+Short_LowerThan_13 Query:
+---------------
+MATCH (fooComp:FooComp) WHERE fooComp.BarShort < 13 RETURN fooComp {.BarShort} ORDER BY fooComp {.BarShort} ASC
+---------------
+
+Short_LowerThan_14 Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barShort": 12
+      },
+      {
+        "barShort": 13
+      }
+    ]
+  }
+}
+---------------
+
+Short_LowerThan_14 Query:
+---------------
+MATCH (fooComp:FooComp) WHERE fooComp.BarShort < 14 RETURN fooComp {.BarShort} ORDER BY fooComp {.BarShort} ASC
+---------------
+
+Short_LowerThan_null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter \u0060lt\u0060 of type ShortOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 33
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "Short!",
+        "filterType": "ShortOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": []
+  }
+}
+---------------

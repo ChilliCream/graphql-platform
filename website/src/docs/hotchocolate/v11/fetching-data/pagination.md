@@ -2,8 +2,6 @@
 title: "Pagination"
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs";
-
 Pagination is one of the most common problems that we have to solve when implementing our backend. Often, sets of data are too large to pass them directly to the consumer of our service.
 
 Pagination solves this problem by giving the consumer the ability to fetch a set in chunks.
@@ -44,7 +42,7 @@ You can learn more about this in the [GraphQL Cursor Connections Specification](
 
 ## Usage
 
-Adding pagination capabilties to our fields is a breeze. All we have to do is add the `UsePaging` middleware.
+Adding pagination capabilities to our fields is a breeze. All we have to do is add the `UsePaging` middleware.
 
 <ExampleTabs>
 <Annotation>
@@ -257,7 +255,7 @@ type CollectionSegmentInfo {
 
 ## Usage
 
-To add _offset-based_ pagination capabilties to our fields we have to add the `UseOffsetPaging` middleware.
+To add _offset-based_ pagination capabilities to our fields we have to add the `UseOffsetPaging` middleware.
 
 <ExampleTabs>
 <Annotation>

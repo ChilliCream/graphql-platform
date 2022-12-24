@@ -1,8 +1,0 @@
-﻿{
-  hero {
-    name
-    friends(a: "foo", b: 123456, c: null, d: true) {
-      name
-    }
-  }
-}

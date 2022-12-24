@@ -12,7 +12,7 @@ public class FilterInputAttributeTests
     public void GenericTypeDescriptorAttribute_Changes_Name()
     {
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddFiltering()
             .AddType<FilterInputType<FooGeneric>>()
             .ModifyOptions(o => o.StrictValidation = false)
@@ -22,14 +22,14 @@ public class FilterInputAttributeTests
         Assert.Equal(
             GenericTypeFilterAttribute.TypeName,
             schema.GetType<FilterInputType<FooGeneric>>(
-                GenericTypeFilterAttribute.TypeName).TypeName().Value);
+                GenericTypeFilterAttribute.TypeName).TypeName());
     }
 
     [Fact]
     public void FilterFieldAttribute_Changes_Name()
     {
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddFiltering()
             .AddType<FilterInputType<FooFields>>()
             .ModifyOptions(o => o.StrictValidation = false)
@@ -42,7 +42,7 @@ public class FilterInputAttributeTests
                 .FirstOrDefault(x => x.Name == FilterFieldAttributeTest.Field));
     }
 
-    [GenericTypeFilterAttribute]
+    [GenericTypeFilter]
     public class FooGeneric
     {
         public string? StringFilterTest { get; set; }

@@ -29,7 +29,7 @@ public static class QueryableSortVisitorContextExtensions
 
         var firstOperation = true;
 
-        foreach (QueryableSortOperation? operation in context.Operations)
+        foreach (var operation in context.Operations)
         {
             if (firstOperation &&
                 !OrderingMethodFinder.OrderMethodExists(source))

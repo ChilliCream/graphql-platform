@@ -35,7 +35,7 @@ public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
     {
         var fullName = assembly.GetName().FullName;
 
-        if (!_cache.TryGetValue(fullName, out XDocument? doc))
+        if (!_cache.TryGetValue(fullName, out var doc))
         {
             var xmlDocumentFileName = GetXmlDocumentationPath(assembly);
 
@@ -59,7 +59,7 @@ public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
                 return null;
             }
 
-            AssemblyName assemblyName = assembly.GetName();
+            var assemblyName = assembly.GetName();
             if (string.IsNullOrEmpty(assemblyName.Name))
             {
                 return null;

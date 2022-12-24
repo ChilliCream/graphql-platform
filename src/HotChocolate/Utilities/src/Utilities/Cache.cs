@@ -34,7 +34,7 @@ public sealed class Cache<TValue>
 
     public bool TryGet(string key, [MaybeNull] out TValue value)
     {
-        if (_map.TryGetValue(key, out Entry? entry))
+        if (_map.TryGetValue(key, out var entry))
         {
             TouchEntryUnsafe(entry);
             value = entry.Value;
@@ -59,7 +59,7 @@ public sealed class Cache<TValue>
 
         var read = true;
 
-        Entry entry = _map.GetOrAdd(key, k =>
+        var entry = _map.GetOrAdd(key, k =>
         {
             read = false;
             return AddNewEntry(k, create());
@@ -94,7 +94,7 @@ public sealed class Cache<TValue>
 
             var index = 0;
             var keys = new string[_usage];
-            Entry current = _head!;
+            var current = _head!;
 
             do
             {
@@ -123,7 +123,7 @@ public sealed class Cache<TValue>
     {
         while (_head is not null && _usage > _size)
         {
-            Entry last = _head.Previous!;
+            var last = _head.Previous!;
             RemoveEntryUnsafe(last);
             _map.TryRemove(last.Key, out _);
         }

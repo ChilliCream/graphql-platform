@@ -3,8 +3,13 @@ using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore;
 
+/// <summary>
+/// The HTTP request interceptor allows to manipulate the GraphQL
+/// request creation and the GraphQL request response creation.
+/// </summary>
 public class DefaultHttpRequestInterceptor : IHttpRequestInterceptor
 {
+    /// <inheritdoc cref="IHttpRequestInterceptor.OnCreateAsync"/>
     public virtual ValueTask OnCreateAsync(
         HttpContext context,
         IRequestExecutor requestExecutor,

@@ -63,7 +63,7 @@ public class RelationshipDetails : Visitable
             return this;
         }
 
-        RelationshipLength newLength = Length == null
+        var newLength = Length == null
             ? new RelationshipLength(minimum, null)
             : new RelationshipLength(minimum, Length.Maximum);
 
@@ -81,7 +81,7 @@ public class RelationshipDetails : Visitable
             return this;
         }
 
-        RelationshipLength newLength = Length == null
+        var newLength = Length == null
             ? new RelationshipLength(null, maximum)
             : new RelationshipLength(Length.Minimum, maximum);
 

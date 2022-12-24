@@ -21,11 +21,8 @@ public abstract class SortProvider<TContext>
     , ISortProviderConvention
     where TContext : ISortVisitorContext
 {
-    private readonly List<ISortFieldHandler<TContext>> _fieldHandlers =
-        new List<ISortFieldHandler<TContext>>();
-
-    private readonly List<ISortOperationHandler<TContext>> _operationHandlers =
-        new List<ISortOperationHandler<TContext>>();
+    private readonly List<ISortFieldHandler<TContext>> _fieldHandlers = new();
+    private readonly List<ISortOperationHandler<TContext>> _operationHandlers = new();
 
     private Action<ISortProviderDescriptor<TContext>>? _configure;
 
@@ -36,8 +33,7 @@ public abstract class SortProvider<TContext>
 
     public SortProvider(Action<ISortProviderDescriptor<TContext>> configure)
     {
-        _configure = configure ??
-            throw new ArgumentNullException(nameof(configure));
+        _configure = configure ?? throw new ArgumentNullException(nameof(configure));
     }
 
     internal new SortProviderDefinition? Definition => base.Definition;
@@ -92,7 +88,7 @@ public abstract class SortProvider<TContext>
             throw SortProvider_NoOperationHandlersConfigured(this);
         }
 
-        IServiceProvider services = new DictionaryServiceProvider(
+        var services = new DictionaryServiceProvider(
             (typeof(ISortProvider), this),
             (typeof(IConventionContext), context),
             (typeof(IDescriptorContext), context.DescriptorContext),
@@ -158,7 +154,7 @@ public abstract class SortProvider<TContext>
     /// </param>
     /// <typeparam name="TEntityType">The runtime type of the entity</typeparam>
     /// <returns>A middleware</returns>
-    public abstract FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName);
+    public abstract FieldMiddleware CreateExecutor<TEntityType>(string argumentName);
 
     /// <summary>
     /// Is called on each field that sorting is applied to. This method can be used to
@@ -168,9 +164,7 @@ public abstract class SortProvider<TContext>
     /// The argument name specified in the <see cref="SortConvention"/>
     /// </param>
     /// <param name="descriptor">The descriptor of the field</param>
-    public virtual void ConfigureField(
-        NameString argumentName,
-        IObjectFieldDescriptor descriptor)
+    public virtual void ConfigureField(string argumentName, IObjectFieldDescriptor descriptor)
     {
     }
 

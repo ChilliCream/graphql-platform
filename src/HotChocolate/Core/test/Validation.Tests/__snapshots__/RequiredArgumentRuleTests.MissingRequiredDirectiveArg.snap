@@ -3,13 +3,19 @@
     "Message": "The argument `if` is required.",
     "Code": null,
     "Path": {
+      "Name": "nonNullBooleanArgField",
       "Parent": {
-        "Parent": null,
-        "Depth": 0,
-        "Name": "arguments"
+        "Name": "arguments",
+        "Parent": {
+          "Parent": null,
+          "Length": -1,
+          "IsRoot": true
+        },
+        "Length": 0,
+        "IsRoot": false
       },
-      "Depth": 1,
-      "Name": "nonNullBooleanArgField"
+      "Length": 1,
+      "IsRoot": false
     },
     "Locations": [
       {

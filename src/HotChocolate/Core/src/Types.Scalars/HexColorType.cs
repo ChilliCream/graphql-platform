@@ -26,7 +26,7 @@ public class HexColorType : RegexType
     /// Initializes a new instance of the <see cref="HexColorType"/> class.
     /// </summary>
     public HexColorType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(

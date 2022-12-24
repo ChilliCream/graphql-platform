@@ -1,13 +1,13 @@
+#nullable enable
+
 using System;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
-
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public class InputParser
@@ -35,7 +35,8 @@ public class InputParser
             throw new ArgumentNullException(nameof(field));
         }
 
-        var runtimeValue = ParseLiteralInternal(value, field.Type, field.Name, 0, true, field);
+        Path path = PathFactory.Instance.New(field.Name);
+        var runtimeValue = ParseLiteralInternal(value, field.Type, path, 0, true, field);
         runtimeValue = FormatValue(field, runtimeValue);
 
         // Caller doesn't care, but to ensure specificity, we set the field's runtime type
@@ -61,7 +62,7 @@ public class InputParser
             throw new ArgumentNullException(nameof(type));
         }
 
-        return ParseLiteralInternal(value, type, path ?? Path.New("root"), 0, true, null);
+        return ParseLiteralInternal(value, type, path ?? Path.Root, 0, true, null);
     }
 
     private object? ParseLiteralInternal(
@@ -118,10 +119,10 @@ public class InputParser
     {
         if (resultValue.Kind == SyntaxKind.ListValue)
         {
-            IList list = CreateList(type);
-            IReadOnlyList<IValueNode> items = ((ListValueNode)resultValue).Items;
+            var list = CreateList(type);
+            var items = ((ListValueNode)resultValue).Items;
             var flatList = !type.ElementType.IsListType();
-            IType elementType = type.ElementType;
+            var elementType = type.ElementType;
 
             if (flatList)
             {
@@ -130,7 +131,7 @@ public class InputParser
                     list.Add(ParseLiteralInternal(
                         items[i],
                         elementType,
-                        path.Append(i),
+                        PathFactory.Instance.Append(path, i),
                         stack,
                         defaults,
                         field));
@@ -140,8 +141,8 @@ public class InputParser
             {
                 for (var i = 0; i < items.Count; i++)
                 {
-                    IValueNode item = items[i];
-                    Path itemPath = path.Append(i);
+                    var item = items[i];
+                    Path itemPath = PathFactory.Instance.Append(path, i);
 
                     if (item.Kind != SyntaxKind.ListValue)
                     {
@@ -162,11 +163,11 @@ public class InputParser
         }
         else
         {
-            IList list = CreateList(type);
+            var list = CreateList(type);
             list.Add(ParseLiteralInternal(
                 resultValue,
                 type.ElementType,
-                path.Append(0),
+                PathFactory.Instance.Append(path, 0),
                 stack,
                 defaults, field));
             return list;
@@ -184,10 +185,10 @@ public class InputParser
         {
             var processedCount = 0;
             bool[]? processedBuffer = null;
-            Span<bool> processed = stack <= 256 && type.Fields.Count <= 32
+            var processed = stack <= 256 && type.Fields.Count <= 32
                 ? stackalloc bool[type.Fields.Count]
                 : processedBuffer = ArrayPool<bool>.Shared.Rent(type.Fields.Count);
-            
+
             if(processedBuffer is not null)
             {
                 processed.Clear();
@@ -203,7 +204,7 @@ public class InputParser
 
             try
             {
-                IReadOnlyList<ObjectFieldNode> fields = ((ObjectValueNode)resultValue).Fields;
+                var fields = ((ObjectValueNode)resultValue).Fields;
                 var oneOf = type.Directives.Contains(WellKnownDirectives.OneOf);
 
                 if (oneOf && fields.Count is 0)
@@ -218,12 +219,12 @@ public class InputParser
 
                 for (var i = 0; i < fields.Count; i++)
                 {
-                    ObjectFieldNode fieldValue = fields[i];
+                    var fieldValue = fields[i];
 
-                    if (type.Fields.TryGetField(fieldValue.Name.Value, out InputField? field))
+                    if (type.Fields.TryGetField(fieldValue.Name.Value, out var field))
                     {
-                        IValueNode literal = fieldValue.Value;
-                        Path fieldPath = path.Append(field.Name);
+                        var literal = fieldValue.Value;
+                        Path fieldPath = PathFactory.Instance.Append(path, field.Name);
 
                         if (literal.Kind is SyntaxKind.NullValue)
                         {
@@ -274,8 +275,8 @@ public class InputParser
                     {
                         if (!processed[i])
                         {
-                            InputField field = type.Fields[i];
-                            Path fieldPath = path.Append(field.Name);
+                            var field = type.Fields[i];
+                            Path fieldPath = PathFactory.Instance.Append(path, field.Name);
                             fieldValues[i] = CreateDefaultValue(field, fieldPath, stack);
                         }
                     }
@@ -312,10 +313,10 @@ public class InputParser
                 throw new SerializationException(ex.Errors[0].WithPath(path), ex.Type, path);
             }
 
-            IError error = ErrorBuilder.FromError(ex.Errors[0])
+            var error = ErrorBuilder.FromError(ex.Errors[0])
                 .SetPath(path)
                 .SetExtension(nameof(field), field.Coordinate.ToString())
-                .SetExtension("fieldType", type.Name.Value)
+                .SetExtension("fieldType", type.Name)
                 .Build();
 
             throw new SerializationException(error, ex.Type, path);
@@ -329,7 +330,7 @@ public class InputParser
             throw new ArgumentNullException(nameof(type));
         }
 
-        return Deserialize(resultValue, type, path ?? Path.New("root"), null);
+        return Deserialize(resultValue, type, path ?? Path.Root, null);
     }
 
     private object? Deserialize(object? resultValue, IType type, Path path, IInputField? field)
@@ -375,12 +376,13 @@ public class InputParser
     {
         if (resultValue is IList serializedList)
         {
-            IList list = CreateList(type);
+            var list = CreateList(type);
 
             for (var i = 0; i < serializedList.Count; i++)
             {
+                Path newPath = PathFactory.Instance.Append(path, i);
                 list.Add(
-                    Deserialize(serializedList[i], type.ElementType, path.Append(i), field));
+                    Deserialize(serializedList[i], type.ElementType, newPath, field));
             }
 
             return list;
@@ -415,11 +417,11 @@ public class InputParser
 
             for (var i = 0; i < type.Fields.Count; i++)
             {
-                InputField field = type.Fields[i];
+                var field = type.Fields[i];
 
-                if (map.TryGetValue(field.Name.Value, out var fieldValue))
+                if (map.TryGetValue(field.Name, out var fieldValue))
                 {
-                    Path fieldPath = path.Append(field.Name);
+                    Path fieldPath = PathFactory.Instance.Append(path, field.Name);
 
                     if (fieldValue is null)
                     {
@@ -448,7 +450,8 @@ public class InputParser
                 }
                 else
                 {
-                    fieldValues[i] = CreateDefaultValue(field, path.Append(field.Name), 0);
+                    Path fieldPath = PathFactory.Instance.Append(path, field.Name);
+                    fieldValues[i] = CreateDefaultValue(field, fieldPath, 0);
                 }
             }
 
@@ -456,7 +459,7 @@ public class InputParser
             {
                 var invalidFieldNames = new List<string>();
 
-                foreach (string key in map.Keys)
+                foreach (var key in map.Keys)
                 {
                     if (!type.Fields.ContainsField(key))
                     {
@@ -506,10 +509,10 @@ public class InputParser
                 throw new SerializationException(ex.Errors[0].WithPath(path), ex.Type, path);
             }
 
-            IError error = ErrorBuilder.FromError(ex.Errors[0])
+            var error = ErrorBuilder.FromError(ex.Errors[0])
                 .SetPath(path)
                 .SetExtension(nameof(field), field.Coordinate.ToString())
-                .SetExtension("fieldType", type.Name.Value)
+                .SetExtension("fieldType", type.Name)
                 .Build();
 
             throw new SerializationException(error, ex.Type, path);
@@ -518,6 +521,8 @@ public class InputParser
 
     private object? CreateDefaultValue(InputField field, Path path, int stack)
     {
+        object? value;
+
         if (field.DefaultValue is null || field.DefaultValue.Kind == SyntaxKind.NullValue)
         {
             if (field.Type.Kind == TypeKind.NonNull)
@@ -525,10 +530,17 @@ public class InputParser
                 throw RequiredInputFieldIsMissing(field, path);
             }
 
-            return field.IsOptional ? new Optional(null, false) : null;
-        }
+            value = null;
 
-        object? value;
+            // if the type is nullable but the runtime type is a non-nullable value
+            // we will create a default instance and assign that instead.
+            if (field.RuntimeType.IsValueType)
+            {
+                value = Activator.CreateInstance(field.RuntimeType);
+            }
+
+            return field.IsOptional ? new Optional(value, false) : value;
+        }
 
         try
         {
@@ -555,7 +567,7 @@ public class InputParser
     {
         return field.Formatter is null || value is null
             ? value
-            : field.Formatter.OnAfterDeserialize(value);
+            : field.Formatter.Format(value);
     }
 
     private object? ConvertValue(Type requestedType, object? value)

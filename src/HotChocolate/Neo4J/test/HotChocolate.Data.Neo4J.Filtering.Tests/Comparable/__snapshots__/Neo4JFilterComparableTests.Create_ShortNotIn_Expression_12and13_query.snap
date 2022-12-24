@@ -1,1 +1,0 @@
-﻿MATCH (fooComp:FooComp) WHERE NOT (fooComp.BarShort IN [ 12, 13 ]) RETURN fooComp {.BarShort}

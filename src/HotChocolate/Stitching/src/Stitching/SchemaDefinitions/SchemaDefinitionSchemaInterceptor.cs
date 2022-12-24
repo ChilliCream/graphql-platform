@@ -3,7 +3,7 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Stitching.SchemaDefinitions;
 
-internal class SchemaDefinitionSchemaInterceptor : SchemaInterceptor
+internal sealed class SchemaDefinitionSchemaInterceptor : TypeInterceptor
 {
     private readonly PublishSchemaDefinitionDescriptor _descriptor;
 
@@ -13,12 +13,12 @@ internal class SchemaDefinitionSchemaInterceptor : SchemaInterceptor
         _descriptor = descriptor;
     }
 
-    public override void OnBeforeCreate(
+    public override void OnBeforeCreateSchema(
         IDescriptorContext context,
-        ISchemaBuilder schemaBuilder) =>
-        context.GetOrAddSchemaDefinitions();
+        ISchemaBuilder schemaBuilder)
+        => context.GetOrAddSchemaDefinitions();
 
-    public override void OnAfterCreate(
+    public override void OnAfterCreateSchema(
         IDescriptorContext context,
         ISchema schema)
     {

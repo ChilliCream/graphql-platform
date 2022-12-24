@@ -58,15 +58,13 @@ namespace HotChocolate.Types.Relay;
     AttributeTargets.Parameter |
     AttributeTargets.Property |
     AttributeTargets.Method)]
+// ReSharper disable once InconsistentNaming
 public class IDAttribute : DescriptorAttribute
 {
     /// <inheritdoc cref="IDAttribute"/>
     public IDAttribute(string? typeName = null)
     {
-        if (typeName is not null)
-        {
-            TypeName = typeName;
-        }
+        TypeName = typeName;
     }
 
     /// <summary>
@@ -89,7 +87,7 @@ public class IDAttribute : DescriptorAttribute
     /// Assuming `<c>User.id</c>` has the value 1. The following string is base64 encoded
     /// </para>
     /// </example>
-    public NameString TypeName { get; }
+    public string? TypeName { get; }
 
     /// <inheritdoc />
     protected internal override void TryConfigure(

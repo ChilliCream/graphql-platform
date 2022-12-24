@@ -12,7 +12,7 @@ internal sealed class ArrayWriter
     private int _capacity;
     private int _start;
     private bool _disposed;
-    
+
     public ArrayWriter()
     {
         _buffer = ArrayPool<byte>.Shared.Rent(_initialBufferSize);
@@ -25,7 +25,7 @@ internal sealed class ArrayWriter
     public ReadOnlyMemory<byte> Body => _buffer.AsMemory().Slice(0, _start);
 
     public byte[] GetInternalBuffer() => _buffer;
-
+    
     public void Advance(int count)
     {
         _start += count;
@@ -50,9 +50,9 @@ internal sealed class ArrayWriter
     {
         if (_capacity < neededCapacity)
         {
-            byte[] buffer = _buffer;
+            var buffer = _buffer;
 
-            int newSize = buffer.Length * 2;
+            var newSize = buffer.Length * 2;
             if (neededCapacity > buffer.Length)
             {
                 newSize += neededCapacity;
@@ -68,10 +68,11 @@ internal sealed class ArrayWriter
 
     public void Clear()
     {
-        ArrayPool<byte>.Shared.Return(_buffer);
-        _buffer = ArrayPool<byte>.Shared.Rent(_initialBufferSize);
-        _capacity = _buffer.Length;
-        _start = 0;
+        if (_start > 0)
+        {
+            _buffer.AsSpan().Slice(0, _start).Clear();
+            _start = 0;
+        }
     }
 
     public void Dispose()

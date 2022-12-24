@@ -1,7 +1,6 @@
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
 #nullable enable

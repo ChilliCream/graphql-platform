@@ -1,0 +1,20 @@
+type Movie {
+  title: String!
+  actors: [Actor!]!
+    @relationship(name: "ACTED_IN", direction: IN)
+}
+
+type Actor {
+  name: String!
+  actedIn: [Movie!]!
+    @relationship(name: "ACTED_IN", direction: OUT)
+}
+
+schema
+  @paging(kind: NONE)
+  @filtering
+  @sorting
+{
+  query: Query
+}
+

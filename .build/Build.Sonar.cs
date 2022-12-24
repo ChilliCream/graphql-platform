@@ -35,8 +35,6 @@ partial class Build
 
             SonarScannerBegin(SonarBeginPrSettings);
 
-            BuildCodeGenServer();
-
             DotNetBuild(SonarBuildAll);
 
             try
@@ -64,8 +62,6 @@ partial class Build
             Log.Information("Creating Sonar analysis for version: {0} ...", GitVersion.SemVer);
 
             SonarScannerBegin(SonarBeginFullSettings);
-
-            BuildCodeGenServer();
 
             DotNetBuild(SonarBuildAll);
 

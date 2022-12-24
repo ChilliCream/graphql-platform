@@ -9,7 +9,7 @@ public class EntityTypeTests
     public void TestEntityTypeSchemaFirstSingleKey()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddDocumentFromString(
                 @"
@@ -33,7 +33,7 @@ public class EntityTypeTests
             .Create();
 
         // act
-        EntityType entityType = schema.GetType<EntityType>("_Entity");
+        var entityType = schema.GetType<EntityType>("_Entity");
 
         // assert
         Assert.Collection(entityType.Types.Values,
@@ -45,7 +45,7 @@ public class EntityTypeTests
     public void TestEntityTypeSchemaFirstMultiKey()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddDocumentFromString(
                 @"
@@ -63,7 +63,7 @@ public class EntityTypeTests
             .Create();
 
         // act
-        EntityType entityType = schema.GetType<EntityType>("_Entity");
+        var entityType = schema.GetType<EntityType>("_Entity");
 
         // assert
         Assert.Collection(entityType.Types.Values, t => Assert.Equal("User", t.Name));
@@ -73,7 +73,7 @@ public class EntityTypeTests
     public void TestEntityTypeSchemaFirstNestedKey()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddDocumentFromString(
                 @"
@@ -94,7 +94,7 @@ public class EntityTypeTests
             .Create();
 
         // act
-        EntityType entityType = schema.GetType<EntityType>("_Entity");
+        var entityType = schema.GetType<EntityType>("_Entity");
 
         // assert
         Assert.Collection(entityType.Types.Values, t => Assert.Equal("User", t.Name));
@@ -112,7 +112,7 @@ public class EntityTypeTests
                 .Create();
         }
 
-        SchemaException exception = Assert.Throws<SchemaException>(CreateSchema);
+        var exception = Assert.Throws<SchemaException>(CreateSchema);
         Assert.Contains(ThrowHelper_EntityType_NoEntities, exception.Message);
     }
 
@@ -120,13 +120,13 @@ public class EntityTypeTests
     public void TestEntityTypeCodeFirstClassKeyAttributeSingleKey()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<Query<Review>>()
             .Create();
 
         // act
-        EntityType entityType = schema.GetType<EntityType>("_Entity");
+        var entityType = schema.GetType<EntityType>("_Entity");
 
         // assert
         Assert.Collection(entityType.Types.Values, t => Assert.Equal("Review", t.Name));
@@ -136,13 +136,13 @@ public class EntityTypeTests
     public void TestEntityTypeCodeFirstClassKeyAttributeMultiKey()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<Query<UserWithClassAttribute>>()
             .Create();
 
         // act
-        EntityType entityType = schema.GetType<EntityType>("_Entity");
+        var entityType = schema.GetType<EntityType>("_Entity");
 
         // assert
         Assert.Collection(
@@ -155,13 +155,13 @@ public class EntityTypeTests
     public void TestEntityTypeCodeFirstPropertyKeyAttributes()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<Query<UserWithPropertyAttributes>>()
             .Create();
 
         // act
-        EntityType entityType = schema.GetType<EntityType>("_Entity");
+        var entityType = schema.GetType<EntityType>("_Entity");
 
         // assert
         Assert.Collection(
@@ -173,13 +173,13 @@ public class EntityTypeTests
     public void TestEntityTypeCodeFirstClassKeyAttributeNestedKey()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<Query<UserWithNestedKeyClassAttribute>>()
             .Create();
 
         // act
-        EntityType entityType = schema.GetType<EntityType>("_Entity");
+        var entityType = schema.GetType<EntityType>("_Entity");
 
         // assert
         Assert.Collection(entityType.Types.Values,

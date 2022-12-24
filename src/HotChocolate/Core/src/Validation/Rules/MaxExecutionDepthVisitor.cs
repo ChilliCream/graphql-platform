@@ -1,6 +1,7 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Validation.Options;
+using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Validation.Rules;
 
@@ -11,6 +12,39 @@ internal sealed class MaxExecutionDepthVisitor : DocumentValidatorVisitor
     public MaxExecutionDepthVisitor(IMaxExecutionDepthOptionsAccessor options)
     {
         _options = options;
+    }
+
+    protected override ISyntaxVisitorAction Enter(
+        DocumentNode node,
+        IDocumentValidatorContext context)
+    {
+        // if the depth analysis was skipped for this request we will just
+        // stop traversing the graph.
+        if (context.ContextData.ContainsKey(SkipDepthAnalysis))
+        {
+            return Break;
+        }
+
+        // if we have a request override we will pick it over the configured value.
+        if (context.ContextData.TryGetValue(MaxAllowedExecutionDepth, out var value) &&
+            value is int maxAllowedDepth)
+        {
+            context.Allowed = maxAllowedDepth;
+        }
+
+        // otherwise we will go with the configured value
+        else if(_options.MaxAllowedExecutionDepth.HasValue)
+        {
+            context.Allowed = _options.MaxAllowedExecutionDepth.Value;
+        }
+
+        // if there is no configured value we will just stop traversing the graph
+        else
+        {
+            return Break;
+        }
+
+        return base.Enter(node, context);
     }
 
     protected override ISyntaxVisitorAction Enter(
@@ -25,13 +59,17 @@ internal sealed class MaxExecutionDepthVisitor : DocumentValidatorVisitor
         OperationDefinitionNode node,
         IDocumentValidatorContext context)
     {
-        context.Max = context.Count > context.Max ? context.Count : context.Max;
+        context.Max = context.Count > context.Max
+            ? context.Count
+            : context.Max;
 
-        if (_options.MaxAllowedExecutionDepth.HasValue &&
-            _options.MaxAllowedExecutionDepth < context.Max)
+        if (context.Allowed < context.Max)
         {
-            context.ReportError(context.MaxExecutionDepth(
-                node, _options.MaxAllowedExecutionDepth.Value, context.Max));
+            context.ReportError(
+                context.MaxExecutionDepth(
+                    node,
+                    context.Allowed,
+                    context.Max));
             return Break;
         }
 
@@ -42,7 +80,7 @@ internal sealed class MaxExecutionDepthVisitor : DocumentValidatorVisitor
         FieldNode node,
         IDocumentValidatorContext context)
     {
-        if (_options.SkipIntrospectionFields && 
+        if (_options.SkipIntrospectionFields &&
             node.Name.Value.StartsWith("__"))
         {
             return Skip;

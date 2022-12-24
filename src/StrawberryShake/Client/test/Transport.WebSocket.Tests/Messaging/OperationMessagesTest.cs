@@ -1,10 +1,7 @@
 using System;
-using System.Buffers;
-using System.Text;
 using System.Text.Json;
 using Snapshooter.Xunit;
 using StrawberryShake.Transport.WebSockets.Messages;
-using Xunit;
 
 namespace StrawberryShake.Transport.WebSockets;
 

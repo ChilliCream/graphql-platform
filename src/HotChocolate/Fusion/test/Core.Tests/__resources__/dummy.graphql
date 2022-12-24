@@ -1,0 +1,48 @@
+type Query {
+  personById(id: ID!): Person
+    @variable(name: "personId", argument: "id")
+    @fetch(select: "personById(id: $personId) { ... Person }", from: "a")
+    @fetch(select: "personById(id: $personId) { ... Person }", from: "b")
+  persons(first: Int, last: Int) : [Person]
+    @variable(name: "first", argument: "first")
+    @variable(name: "last", argument: "last")
+    @fetch(select: "persons(first: $first, last: $last) { ... Person }", from: "a")
+    @fetch(select: "persons(first: $first, last: $last) { ... Person }", from: "b")
+}
+
+type Person
+  @variable(name: "personId", select: "id", from: "a", as: "Int!")
+  @variable(name: "personId", select: "id", from: "b", as: "Int!")
+  @fetch(select: "personById(id: $personId) { ... Person }", from: "a", )
+  @fetch(select: "personById(id: $personId) { ... Person }", from: "b", ) {
+  id: ID!
+    @bind(to: "a")
+    @bind(to: "b")
+    @bind(to: "c")
+  name: String!
+    @bind(to: "a")
+  bio: String
+    @bind(to: "b")
+  friends: [Person!]
+    @bind(to: "a")
+}
+
+schema
+  @fusion(version: 1)
+  @httpClient(name: "a", baseAddress: "https://a/graphql")
+  @httpClient(name: "b", baseAddress: "https://b/graphql") {
+  query: Query
+}
+
+directive @fusion(prefix: String, version: Int! = 1, prefixSelf: Boolean! = false) on SCHEMA
+directive @fetch(from: _SchemaName, select: _FieldSyntax) repeatable on OBJECT | FIELD_DEFINITION
+directive @variable(name: String!, argument: _ArgumentName, select: _FieldSyntax, from: _SchemaName, as: _TypeSyntax) repeatable on OBJECT | FIELD_DEFINITION
+directive @bind(to: _SchemaName, as: _FieldName) repeatable on OBJECT | FIELD_DEFINITION
+directive @httpClient(name: _SchemaName, baseAddress: _URI) repeatable on SCHEMA
+
+scalar _SchemaName
+scalar _FieldName
+scalar _ArgumentName
+scalar _FieldSyntax
+scalar _TypeSyntax
+scalar _URI

@@ -11,484 +11,530 @@ using Xunit;
 
 #nullable enable
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public class InputParserTests
 {
-    public class InputParserTests
+    [Fact]
+    public void Deserialize_InputObject_AllIsSet()
     {
-        [Fact]
-        public void Deserialize_InputObject_AllIsSet()
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddInputObjectType<TestInput>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
+
+        var type = schema.GetType<InputObjectType>("TestInput");
+
+        var fieldData = new Dictionary<string, object?>
         {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddInputObjectType<TestInput>()
-                .ModifyOptions(o => o.StrictValidation = false)
-                .Create();
+            { "field1", "abc" },
+            { "field2", 123 }
+        };
 
-            InputObjectType type = schema.GetType<InputObjectType>("TestInput");
+        // act
+        var parser = new InputParser(new DefaultTypeConverter());
+        var runtimeValue = parser.ParseResult(fieldData, type, Path.Root);
 
-            var fieldData = new Dictionary<string, object?>
-            {
-                { "field1", "abc" },
-                { "field2", 123 }
-            };
+        // assert
+        Assert.IsType<TestInput>(runtimeValue).MatchSnapshot();
+    }
 
-            // act
-            var parser = new InputParser(new DefaultTypeConverter());
-            var runtimeValue = parser.ParseResult(fieldData, type, Path.Root);
+    [Fact]
+    public void Parse_InputObject_AllIsSet()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddInputObjectType<TestInput>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
 
-            // assert
-            Assert.IsType<TestInput>(runtimeValue).MatchSnapshot();
-        }
+        var type = schema.GetType<InputObjectType>("TestInput");
 
-        [Fact]
-        public void Parse_InputObject_AllIsSet()
+        var fieldData = new ObjectValueNode(
+            new ObjectFieldNode("field1", "abc"),
+            new ObjectFieldNode("field2", 123));
+
+        // act
+        var parser = new InputParser(new DefaultTypeConverter());
+        var runtimeValue = parser.ParseLiteral(fieldData, type, Path.Root);
+
+        // assert
+        Assert.IsType<TestInput>(runtimeValue).MatchSnapshot();
+    }
+
+    [Fact]
+    public void Deserialize_InputObject_AllIsSet_ConstructorInit()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddInputObjectType<Test2Input>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
+
+        var type = schema.GetType<InputObjectType>("Test2Input");
+
+        var fieldData = new Dictionary<string, object?>
         {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddInputObjectType<TestInput>()
-                .ModifyOptions(o => o.StrictValidation = false)
-                .Create();
+            { "field1", "abc" },
+            { "field2", 123 }
+        };
 
-            InputObjectType type = schema.GetType<InputObjectType>("TestInput");
+        // act
+        var parser = new InputParser(new DefaultTypeConverter());
+        var runtimeValue = parser.ParseResult(fieldData, type, Path.Root);
 
-            var fieldData = new ObjectValueNode(
-                new ObjectFieldNode("field1", "abc"),
-                new ObjectFieldNode("field2", 123));
+        // assert
+        Assert.IsType<Test2Input>(runtimeValue).MatchSnapshot();
+    }
 
-            // act
-            var parser = new InputParser(new DefaultTypeConverter());
-            var runtimeValue = parser.ParseLiteral(fieldData, type, Path.Root);
+    [Fact]
+    public void Parse_InputObject_AllIsSet_ConstructorInit()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddInputObjectType<Test2Input>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
 
-            // assert
-            Assert.IsType<TestInput>(runtimeValue).MatchSnapshot();
-        }
+        var type = schema.GetType<InputObjectType>("Test2Input");
 
-        [Fact]
-        public void Deserialize_InputObject_AllIsSet_ConstructorInit()
+        var fieldData = new ObjectValueNode(
+            new ObjectFieldNode("field1", "abc"),
+            new ObjectFieldNode("field2", 123));
+
+        // act
+        var parser = new InputParser(new DefaultTypeConverter());
+        var runtimeValue = parser.ParseLiteral(fieldData, type, Path.Root);
+
+        // assert
+        Assert.IsType<Test2Input>(runtimeValue).MatchSnapshot();
+    }
+
+    [Fact]
+    public void Deserialize_InputObject_AllIsSet_MissingRequired()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddInputObjectType<Test2Input>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
+
+        var type = schema.GetType<InputObjectType>("Test2Input");
+
+        var fieldData = new Dictionary<string, object?>
         {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddInputObjectType<Test2Input>()
-                .ModifyOptions(o => o.StrictValidation = false)
-                .Create();
+            { "field2", 123 }
+        };
 
-            InputObjectType type = schema.GetType<InputObjectType>("Test2Input");
+        // act
+        var parser = new InputParser(new DefaultTypeConverter());
+        void Action() => parser.ParseResult(fieldData, type, Path.Root);
 
-            var fieldData = new Dictionary<string, object?>
-            {
-                { "field1", "abc" },
-                { "field2", 123 }
-            };
+        // assert
+        Assert.Throws<SerializationException>(Action).MatchSnapshot();
+    }
 
-            // act
-            var parser = new InputParser(new DefaultTypeConverter());
-            var runtimeValue = parser.ParseResult(fieldData, type, Path.Root);
+    [Fact]
+    public void Parse_InputObject_AllIsSet_MissingRequired()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddInputObjectType<Test2Input>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
 
-            // assert
-            Assert.IsType<Test2Input>(runtimeValue).MatchSnapshot();
-        }
+        var type = schema.GetType<InputObjectType>("Test2Input");
 
-        [Fact]
-        public void Parse_InputObject_AllIsSet_ConstructorInit()
+        var fieldData = new ObjectValueNode(
+            new ObjectFieldNode("field2", 123));
+
+        // act
+        var parser = new InputParser(new DefaultTypeConverter());
+        void Action() => parser.ParseLiteral(fieldData, type, Path.Root);
+
+        // assert
+        Assert.Throws<SerializationException>(Action).MatchSnapshot();
+    }
+
+    [Fact]
+    public void Deserialize_InputObject_AllIsSet_OneInvalidField()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddInputObjectType<TestInput>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
+
+        var type = schema.GetType<InputObjectType>("TestInput");
+
+        var fieldData = new Dictionary<string, object?>
         {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddInputObjectType<Test2Input>()
-                .ModifyOptions(o => o.StrictValidation = false)
-                .Create();
+            { "field2", 123 },
+            { "field3", 123 }
+        };
 
-            InputObjectType type = schema.GetType<InputObjectType>("Test2Input");
+        // act
+        var parser = new InputParser(new DefaultTypeConverter());
 
-            var fieldData = new ObjectValueNode(
-                new ObjectFieldNode("field1", "abc"),
-                new ObjectFieldNode("field2", 123));
+        void Action()
+            => parser.ParseResult(fieldData, type, PathFactory.Instance.New("root"));
 
-            // act
-            var parser = new InputParser(new DefaultTypeConverter());
-            var runtimeValue = parser.ParseLiteral(fieldData, type, Path.Root);
+        // assert
+        Assert.Throws<SerializationException>(Action).MatchSnapshot();
+    }
 
-            // assert
-            Assert.IsType<Test2Input>(runtimeValue).MatchSnapshot();
-        }
+    [Fact]
+    public void Parse_InputObject_AllIsSet_OneInvalidField()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddInputObjectType<TestInput>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
 
-        [Fact]
-        public void Deserialize_InputObject_AllIsSet_MissingRequired()
+        var type = schema.GetType<InputObjectType>("TestInput");
+
+        var fieldData = new ObjectValueNode(
+            new ObjectFieldNode("field2", 123),
+            new ObjectFieldNode("field3", 123));
+
+        // act
+        var parser = new InputParser(new DefaultTypeConverter());
+
+        void Action()
+            => parser.ParseLiteral(fieldData, type, PathFactory.Instance.New("root"));
+
+        // assert
+        Assert.Throws<SerializationException>(Action).MatchSnapshot();
+    }
+
+    [Fact]
+    public void Deserialize_InputObject_AllIsSet_TwoInvalidFields()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddInputObjectType<TestInput>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
+
+        var type = schema.GetType<InputObjectType>("TestInput");
+
+        var fieldData = new Dictionary<string, object?>
         {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddInputObjectType<Test2Input>()
-                .ModifyOptions(o => o.StrictValidation = false)
-                .Create();
+            { "field2", 123 },
+            { "field3", 123 },
+            { "field4", 123 }
+        };
 
-            InputObjectType type = schema.GetType<InputObjectType>("Test2Input");
+        // act
+        var parser = new InputParser(new DefaultTypeConverter());
 
-            var fieldData = new Dictionary<string, object?>
-            {
-                { "field2", 123 }
-            };
+        void Action()
+            => parser.ParseResult(fieldData, type, PathFactory.Instance.New("root"));
 
-            // act
-            var parser = new InputParser(new DefaultTypeConverter());
-            void Action() => parser.ParseResult(fieldData, type, Path.Root);
+        // assert
+        Assert.Throws<SerializationException>(Action).MatchSnapshot();
+    }
 
-            // assert
-            Assert.Throws<SerializationException>(Action).MatchSnapshot();
-        }
+    [Fact]
+    public void Parse_InputObject_AllIsSet_TwoInvalidFields()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddInputObjectType<TestInput>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
 
-        [Fact]
-        public void Parse_InputObject_AllIsSet_MissingRequired()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddInputObjectType<Test2Input>()
-                .ModifyOptions(o => o.StrictValidation = false)
-                .Create();
+        var type = schema.GetType<InputObjectType>("TestInput");
 
-            InputObjectType type = schema.GetType<InputObjectType>("Test2Input");
+        var fieldData = new ObjectValueNode(
+            new ObjectFieldNode("field2", 123),
+            new ObjectFieldNode("field3", 123),
+            new ObjectFieldNode("field4", 123));
 
-            var fieldData = new ObjectValueNode(
-                new ObjectFieldNode("field2", 123));
+        // act
+        var parser = new InputParser(new DefaultTypeConverter());
 
-            // act
-            var parser = new InputParser(new DefaultTypeConverter());
-            void Action() => parser.ParseLiteral(fieldData, type, Path.Root);
+        void Action()
+            => parser.ParseLiteral(fieldData, type, PathFactory.Instance.New("root"));
 
-            // assert
-            Assert.Throws<SerializationException>(Action).MatchSnapshot();
-        }
+        // assert
+        Assert.Throws<SerializationException>(Action).MatchSnapshot();
+    }
 
-        [Fact]
-        public void Deserialize_InputObject_AllIsSet_OneInvalidField()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddInputObjectType<TestInput>()
-                .ModifyOptions(o => o.StrictValidation = false)
-                .Create();
+    [Fact]
+    public void Parse_InputObject_WithDefault_Values()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddInputObjectType<Test3Input>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
 
-            InputObjectType type = schema.GetType<InputObjectType>("TestInput");
+        var type = schema.GetType<InputObjectType>("Test3Input");
 
-            var fieldData = new Dictionary<string, object?>
-            {
-                { "field2", 123 },
-                { "field3", 123 }
-            };
+        var fieldData = new ObjectValueNode(
+            new ObjectFieldNode("field2", 123));
 
-            // act
-            var parser = new InputParser(new DefaultTypeConverter());
-            void Action() => parser.ParseResult(fieldData, type, Path.Root.Append("root"));
+        // act
+        var parser = new InputParser();
+        var obj = parser.ParseLiteral(fieldData, type, PathFactory.Instance.New("root"));
 
-            // assert
-            Assert.Throws<SerializationException>(Action).MatchSnapshot();
-        }
+        // assert
+        Assert.Equal("DefaultAbc", Assert.IsType<Test3Input>(obj).Field1);
+    }
 
-        [Fact]
-        public void Parse_InputObject_AllIsSet_OneInvalidField()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddInputObjectType<TestInput>()
-                .ModifyOptions(o => o.StrictValidation = false)
-                .Create();
+    [Fact]
+    public void Parse_InputObject_NonNullViolation()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddInputObjectType<Test3Input>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
 
-            InputObjectType type = schema.GetType<InputObjectType>("TestInput");
+        var type = new NonNullType(schema.GetType<InputObjectType>("Test3Input"));
 
-            var fieldData = new ObjectValueNode(
-                new ObjectFieldNode("field2", 123),
-                new ObjectFieldNode("field3", 123));
+        // act
+        var parser = new InputParser();
 
-            // act
-            var parser = new InputParser(new DefaultTypeConverter());
-            void Action() => parser.ParseLiteral(fieldData, type, Path.Root.Append("root"));
-
-            // assert
-            Assert.Throws<SerializationException>(Action).MatchSnapshot();
-        }
-
-        [Fact]
-        public void Deserialize_InputObject_AllIsSet_TwoInvalidFields()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddInputObjectType<TestInput>()
-                .ModifyOptions(o => o.StrictValidation = false)
-                .Create();
-
-            InputObjectType type = schema.GetType<InputObjectType>("TestInput");
-
-            var fieldData = new Dictionary<string, object?>
-            {
-                { "field2", 123 },
-                { "field3", 123 },
-                { "field4", 123 }
-            };
-
-            // act
-            var parser = new InputParser(new DefaultTypeConverter());
-            void Action() => parser.ParseResult(fieldData, type, Path.Root.Append("root"));
-
-            // assert
-            Assert.Throws<SerializationException>(Action).MatchSnapshot();
-        }
-
-        [Fact]
-        public void Parse_InputObject_AllIsSet_TwoInvalidFields()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddInputObjectType<TestInput>()
-                .ModifyOptions(o => o.StrictValidation = false)
-                .Create();
-
-            InputObjectType type = schema.GetType<InputObjectType>("TestInput");
-
-            var fieldData = new ObjectValueNode(
-                new ObjectFieldNode("field2", 123),
-                new ObjectFieldNode("field3", 123),
-                new ObjectFieldNode("field4", 123));
-
-            // act
-            var parser = new InputParser(new DefaultTypeConverter());
-            void Action() => parser.ParseLiteral(fieldData, type, Path.Root.Append("root"));
-
-            // assert
-            Assert.Throws<SerializationException>(Action).MatchSnapshot();
-        }
-
-        [Fact]
-        public void Parse_InputObject_WithDefault_Values()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddInputObjectType<Test3Input>()
-                .ModifyOptions(o => o.StrictValidation = false)
-                .Create();
-
-            InputObjectType type = schema.GetType<InputObjectType>("Test3Input");
-
-            var fieldData = new ObjectValueNode(
-                new ObjectFieldNode("field2", 123));
-
-            // act
-            var parser = new InputParser();
-            var obj = parser.ParseLiteral(fieldData, type, Path.Root.Append("root"));
-
-            // assert
-            Assert.Equal("DefaultAbc", Assert.IsType<Test3Input>(obj).Field1);
-        }
-
-        [Fact]
-        public void Parse_InputObject_NonNullViolation()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddInputObjectType<Test3Input>()
-                .ModifyOptions(o => o.StrictValidation = false)
-                .Create();
-
-            var type = new NonNullType(schema.GetType<InputObjectType>("Test3Input"));
-
-            // act
-            var parser = new InputParser();
-            void Action()
-                => parser.ParseLiteral(NullValueNode.Default, type, Path.Root.Append("root"));
-
-            // assert
-            Assert.Throws<SerializationException>(Action).MatchSnapshot();
-        }
-
-        [Fact]
-        public void Parse_InputObject_NullableEnumList()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddInputObjectType<FooInput>()
-                .ModifyOptions(o => o.StrictValidation = false)
-                .Create();
-
-            var type = new NonNullType(schema.GetType<InputObjectType>("FooInput"));
-
-            var listData = new ListValueNode(
+        void Action()
+            => parser.ParseLiteral(
                 NullValueNode.Default,
-                new EnumValueNode("BAZ"));
+                type,
+                PathFactory.Instance.New("root"));
 
-            var fieldData = new ObjectValueNode(
-                new ObjectFieldNode("bars", listData));
+        // assert
+        Assert.Throws<SerializationException>(Action).MatchSnapshot();
+    }
 
-            // act
-            var parser = new InputParser();
-            var runtimeData = parser.ParseLiteral(fieldData, type, Path.Root.Append("root"));
+    [Fact]
+    public void Parse_InputObject_NullableEnumList()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddInputObjectType<FooInput>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
 
-            // assert
-            Assert.Collection(
-                Assert.IsType<FooInput>(runtimeData).Bars,
-                t => Assert.Null(t),
-                t => Assert.Equal(Bar.Baz, t));
-        }
+        var type = new NonNullType(schema.GetType<InputObjectType>("FooInput"));
 
-        [Fact]
-        public async Task Integration_InputObjectDefaultValue_ValueIsInitialized()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<Query4>()
-                .BuildRequestExecutorAsync();
+        var listData = new ListValueNode(
+            NullValueNode.Default,
+            new EnumValueNode("BAZ"));
 
-            // act
-            IReadOnlyQueryRequest query = QueryRequestBuilder.Create(@"
+        var fieldData = new ObjectValueNode(
+            new ObjectFieldNode("bars", listData));
+
+        // act
+        var parser = new InputParser();
+        var runtimeData =
+            parser.ParseLiteral(fieldData, type, PathFactory.Instance.New("root"));
+
+        // assert
+        Assert.Collection(
+            Assert.IsType<FooInput>(runtimeData).Bars,
+            t => Assert.Null(t),
+            t => Assert.Equal(Bar.Baz, t));
+    }
+
+    [Fact]
+    public async Task Integration_InputObjectDefaultValue_ValueIsInitialized()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query4>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var query = QueryRequestBuilder.Create(@"
             {
                 loopback(input: {field2: 1}) {
                     field1
                     field2
                 }
             }");
-            IExecutionResult result = await executor.ExecuteAsync(query, CancellationToken.None);
+        var result = await executor.ExecuteAsync(query, CancellationToken.None);
 
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
 
-        [Fact]
-        public void OneOf_A_and_B_Are_Set()
+    [Fact]
+    public void OneOf_A_and_B_Are_Set()
+    {
+        // arrange
+        var schema =
+            SchemaBuilder.New()
+                .AddInputObjectType<OneOfInput>()
+                .AddDirectiveType<OneOfDirectiveType>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+        var oneOfInput = schema.GetType<InputObjectType>(nameof(OneOfInput));
+
+        var parser = new InputParser();
+
+        var data = new ObjectValueNode(
+            new ObjectFieldNode("a", "abc"),
+            new ObjectFieldNode("b", 123));
+
+        // act
+        void Fail()
+            => parser.ParseLiteral(data, oneOfInput, PathFactory.Instance.New("root"));
+
+        // assert
+        Assert.Throws<SerializationException>(Fail).Errors.MatchSnapshot();
+    }
+
+    [Fact]
+    public void OneOf_A_is_Null_and_B_has_Value()
+    {
+        // arrange
+        var schema =
+            SchemaBuilder.New()
+                .AddInputObjectType<OneOfInput>()
+                .AddDirectiveType<OneOfDirectiveType>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+        var oneOfInput = schema.GetType<InputObjectType>(nameof(OneOfInput));
+
+        var parser = new InputParser();
+
+        var data = new ObjectValueNode(
+            new ObjectFieldNode("a", NullValueNode.Default),
+            new ObjectFieldNode("b", 123));
+
+        // act
+        void Fail()
+            => parser.ParseLiteral(data, oneOfInput, PathFactory.Instance.New("root"));
+
+        // assert
+        Assert.Throws<SerializationException>(Fail).Errors.MatchSnapshot();
+    }
+
+    [Fact]
+    public void OneOf_only_B_has_Value()
+    {
+        // arrange
+        var schema =
+            SchemaBuilder.New()
+                .AddInputObjectType<OneOfInput>()
+                .AddDirectiveType<OneOfDirectiveType>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+        var oneOfInput = schema.GetType<InputObjectType>(nameof(OneOfInput));
+
+        var parser = new InputParser();
+
+        var data = new ObjectValueNode(
+            new ObjectFieldNode("b", 123));
+
+        // act
+        var runtimeValue =
+            parser.ParseLiteral(data, oneOfInput, PathFactory.Instance.New("root"));
+
+        // assert
+        runtimeValue.MatchSnapshot();
+    }
+
+    [Fact]
+    public void Force_NonNull_Struct_To_Be_Optional()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddInputObjectType<Test4Input>(d => d.Field(t => t.Field2).Type<IntType>())
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
+
+        var type = schema.GetType<InputObjectType>("Test4Input");
+
+        var fieldData = new Dictionary<string, object?>
         {
-            // arrange
-            ISchema schema =
-                SchemaBuilder.New()
-                    .AddInputObjectType<OneOfInput>()
-                    .AddDirectiveType<OneOfDirectiveType>()
-                    .ModifyOptions(o => o.StrictValidation = false)
-                    .Create();
+            { "field1", "abc" }
+        };
 
-            InputObjectType oneOfInput = schema.GetType<InputObjectType>(nameof(OneOfInput));
+        // act
+        var parser = new InputParser(new DefaultTypeConverter());
+        var runtimeValue = parser.ParseResult(fieldData, type, Path.Root);
 
-            var parser = new InputParser();
+        // assert
+        Assert.IsType<Test4Input>(runtimeValue).MatchSnapshot();
+    }
 
-            var data = new ObjectValueNode(
-                new ObjectFieldNode("a", "abc"),
-                new ObjectFieldNode("b", 123));
+    public class TestInput
+    {
+        public string? Field1 { get; set; }
 
-            // act
-            void Fail() => parser.ParseLiteral(data, oneOfInput, Path.Root.Append("root"));
+        public int? Field2 { get; set; }
+    }
 
-            // assert
-            Assert.Throws<SerializationException>(Fail).Errors.MatchSnapshot();
-        }
-
-        [Fact]
-        public void OneOf_A_is_Null_and_B_has_Value()
+    public class Test2Input
+    {
+        public Test2Input(string field1)
         {
-            // arrange
-            ISchema schema =
-                SchemaBuilder.New()
-                    .AddInputObjectType<OneOfInput>()
-                    .AddDirectiveType<OneOfDirectiveType>()
-                    .ModifyOptions(o => o.StrictValidation = false)
-                    .Create();
-
-            InputObjectType oneOfInput = schema.GetType<InputObjectType>(nameof(OneOfInput));
-
-            var parser = new InputParser();
-
-            var data = new ObjectValueNode(
-                new ObjectFieldNode("a", NullValueNode.Default),
-                new ObjectFieldNode("b", 123));
-
-            // act
-            void Fail() => parser.ParseLiteral(data, oneOfInput, Path.Root.Append("root"));
-
-            // assert
-            Assert.Throws<SerializationException>(Fail).Errors.MatchSnapshot();
+            Field1 = field1;
         }
 
-        [Fact]
-        public void OneOf_only_B_has_Value()
+        public string Field1 { get; }
+
+        public int? Field2 { get; set; }
+    }
+
+    public class Test3Input
+    {
+        public Test3Input(string field1)
         {
-            // arrange
-            ISchema schema =
-                SchemaBuilder.New()
-                    .AddInputObjectType<OneOfInput>()
-                    .AddDirectiveType<OneOfDirectiveType>()
-                    .ModifyOptions(o => o.StrictValidation = false)
-                    .Create();
-
-            InputObjectType oneOfInput = schema.GetType<InputObjectType>(nameof(OneOfInput));
-
-            var parser = new InputParser();
-
-            var data = new ObjectValueNode(
-                new ObjectFieldNode("b", 123));
-
-            // act
-            var runtimeValue = parser.ParseLiteral(data, oneOfInput, Path.Root.Append("root"));
-
-            // assert
-            runtimeValue.MatchSnapshot();
+            Field1 = field1;
         }
 
-        public class TestInput
-        {
-            public string? Field1 { get; set; }
+        [DefaultValue("DefaultAbc")]
+        public string Field1 { get; }
 
-            public int? Field2 { get; set; }
-        }
+        public int? Field2 { get; set; }
+    }
 
-        public class Test2Input
-        {
-            public Test2Input(string field1)
-            {
-                Field1 = field1;
-            }
+    public class FooInput
+    {
+        public List<Bar?> Bars { get; set; } = new();
+    }
 
-            public string Field1 { get; }
+    public class Query4
+    {
+        public Test4 Loopback(Test4 input) => input;
+    }
 
-            public int? Field2 { get; set; }
-        }
+    public class Test4
+    {
+        [DefaultValue("DefaultAbc")]
+        public string? Field1 { get; set; }
 
-        public class Test3Input
-        {
-            public Test3Input(string field1)
-            {
-                Field1 = field1;
-            }
+        public int? Field2 { get; set; }
+    }
 
-            [DefaultValue("DefaultAbc")]
-            public string Field1 { get; }
+    public enum Bar
+    {
+        Baz
+    }
 
-            public int? Field2 { get; set; }
-        }
+    [OneOf]
+    public class OneOfInput
+    {
+        public string? A { get; set; }
 
-        public class FooInput
-        {
-            public List<Bar?> Bars { get; set; } = new();
-        }
+        public int? B { get; set; }
 
-        public class Query4
-        {
-            public Test4 Loopback(Test4 input) => input;
-        }
+        public string? C { get; set; }
+    }
 
-        public class Test4
-        {
-            [DefaultValue("DefaultAbc")]
-            public string? Field1 { get; set; }
+    public class Test4Input
+    {
+        public string Field1 { get; set; } = default!;
 
-            public int? Field2 { get; set; }
-        }
-
-        public enum Bar
-        {
-            Baz
-        }
-
-        [OneOf]
-        public class OneOfInput
-        {
-            public string? A { get; set; }
-
-            public int? B { get; set; }
-
-            public string? C { get; set; }
-        }
+        public int Field2 { get; set; } = default!;
     }
 }

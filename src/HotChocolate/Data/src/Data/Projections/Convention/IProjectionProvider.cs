@@ -31,6 +31,6 @@ public interface IProjectionProvider : IConvention
     /// Either a new rewritten selection or the same one if no rewriting was performed
     /// </returns>
     Selection RewriteSelection(
-        SelectionOptimizerContext context,
+        SelectionSetOptimizerContext context,
         Selection selection);
 }

@@ -44,7 +44,7 @@ internal sealed class TypeReferenceResolver
             throw new ArgumentNullException(nameof(typeRef));
         }
 
-        if (_typeLookup.TryNormalizeReference(typeRef, out ITypeReference? namedTypeRef))
+        if (_typeLookup.TryNormalizeReference(typeRef, out var namedTypeRef))
         {
             return namedTypeRef;
         }
@@ -65,19 +65,19 @@ internal sealed class TypeReferenceResolver
             return true;
         }
 
-        if (!_typeLookup.TryNormalizeReference(typeRef, out ITypeReference? namedTypeRef))
+        if (!_typeLookup.TryNormalizeReference(typeRef, out var namedTypeRef))
         {
             type = null;
             return false;
         }
 
-        TypeId typeId = CreateId(typeRef, namedTypeRef);
+        var typeId = CreateId(typeRef, namedTypeRef);
         if (_typeCache.TryGetValue(typeId, out type))
         {
             return true;
         }
 
-        if (!_typeRegistry.TryGetType(namedTypeRef, out RegisteredType? registeredType) ||
+        if (!_typeRegistry.TryGetType(namedTypeRef, out var registeredType) ||
             registeredType.Type is not INamedType)
         {
             type = null;
@@ -89,7 +89,7 @@ internal sealed class TypeReferenceResolver
         switch (typeRef)
         {
             case ExtendedTypeReference r:
-                ITypeFactory typeFactory = _typeInspector.CreateTypeFactory(r.Type);
+                var typeFactory = _typeInspector.CreateTypeFactory(r.Type);
                 type = typeFactory.CreateType(namedType);
                 _typeCache[typeId] = type;
                 return true;
@@ -116,13 +116,13 @@ internal sealed class TypeReferenceResolver
             throw new ArgumentNullException(nameof(typeRef));
         }
 
-        if (!_typeLookup.TryNormalizeReference(typeRef, out ITypeReference? namedTypeRef))
+        if (!_typeLookup.TryNormalizeReference(typeRef, out var namedTypeRef))
         {
             directiveType = null;
             return false;
         }
 
-        if (_typeRegistry.TryGetType(namedTypeRef, out RegisteredType? registeredType) &&
+        if (_typeRegistry.TryGetType(namedTypeRef, out var registeredType) &&
             registeredType.Type is DirectiveType d)
         {
             directiveType = d;
@@ -155,7 +155,7 @@ internal sealed class TypeReferenceResolver
         switch (typeRef)
         {
             case ExtendedTypeReference r:
-                ITypeInfo typeInfo = _typeInspector.CreateTypeInfo(r.Type);
+                var typeInfo = _typeInspector.CreateTypeInfo(r.Type);
                 return new TypeId(namedTypeRef, CreateFlags(typeInfo));
 
             case SyntaxTypeReference r:
@@ -195,7 +195,7 @@ internal sealed class TypeReferenceResolver
     private static int CreateFlags(ITypeNode type)
     {
         var flags = 1;
-        ITypeNode current = type;
+        var current = type;
 
         while (current is not NamedTypeNode)
         {

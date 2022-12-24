@@ -3,7 +3,7 @@ namespace HotChocolate.Stitching.Schemas.Inventory;
 public class Query
 {
     public InventoryInfo GetInventoryInfo(
-        int upc,
+        int upc, 
         [Service] InventoryInfoRepository repository) =>
         repository.GetInventoryInfo(upc);
 

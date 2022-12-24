@@ -2,10 +2,7 @@
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.Data.Spatial.Tests</AssemblyName>
-    <RootNamespace>HotChocolate</RootNamespace>
-    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <NeutralLanguage>en</NeutralLanguage>
+    <RootNamespace>HotChocolate.Data.Spatial</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,11 +15,6 @@
 
   <ItemGroup>
     <PackageReference Include="NetTopologySuite" Version="2.0.0" />
-  </ItemGroup>
-
-  <!--For Visual Studio for Mac Test Explorer we need this reference here-->
-  <ItemGroup>
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
   </ItemGroup>
 
 </Project>

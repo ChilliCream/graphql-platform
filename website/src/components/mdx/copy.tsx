@@ -59,7 +59,7 @@ const CopySuccessToast: FC = () => {
 const ToastText = styled.div`
   font-size: 1.25rem;
   font-family: ${FONT_FAMILY};
-  font-weight: bold;
+  font-weight: 600;
   color: ${THEME_COLORS.textContrast};
 `;
 

@@ -1,5 +1,4 @@
 using System.Linq;
-using HotChocolate.Execution.Processing;
 
 #nullable enable
 
@@ -34,18 +33,18 @@ internal sealed class MutationConventionMiddleware
         var inputLiteral = context.ArgumentLiteral<ObjectValueNode>(_inputArgumentName)
             .Fields.ToDictionary(t => t.Name.Value, t => t.Value);
 
-        var arguments = new Dictionary<NameString, ArgumentValue>();
+        var arguments = new Dictionary<string, ArgumentValue>(StringComparer.Ordinal);
         var preservedArguments = context.ReplaceArguments(arguments);
         var inputArgument = preservedArguments[_inputArgumentName];
 
-        foreach (ResolverArgument argument in _resolverArguments)
+        foreach (var argument in _resolverArguments)
         {
             input.TryGetValue(argument.Name, out var value);
 
-            inputLiteral.TryGetValue(argument.Name, out IValueNode? valueLiteral);
+            inputLiteral.TryGetValue(argument.Name, out var valueLiteral);
             valueLiteral ??= NullValueNode.Default;
 
-            if (!valueLiteral.TryGetValueKind(out ValueKind kind))
+            if (!valueLiteral.TryGetValueKind(out var kind))
             {
                 kind = ValueKind.Unknown;
             }
@@ -63,19 +62,11 @@ internal sealed class MutationConventionMiddleware
 
         try
         {
-            await _next(context);
-
-            if (context.Result is null)
-            {
-                context.Result = Null;
-            }
+            await _next(context).ConfigureAwait(false);
         }
         finally
         {
             context.ReplaceArguments(preservedArguments);
         }
     }
-
-    internal static object Null { get; } = new object();
 }
-

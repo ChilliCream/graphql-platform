@@ -1,40 +1,39 @@
-using System.Threading.Tasks;
+using CookieCrumble;
+using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using NetTopologySuite.Geometries;
 using Squadron;
-using Xunit;
 
-namespace HotChocolate.Data.Filters.Spatial;
+namespace HotChocolate.Data.Spatial.Filters;
 
-public class QueryableFilterVisitorContainsTests
-    : SchemaCache
-    , IClassFixture<PostgreSqlResource<PostgisConfig>>
+[Collection("Postgres")]
+public class QueryableFilterVisitorContainsTests : SchemaCache
 {
-    private static readonly Polygon _truePolygon = new Polygon(
+    private static readonly Polygon _truePolygon = new(
         new LinearRing(new[]
         {
-                new Coordinate(0, 0),
-                new Coordinate(0, 2),
-                new Coordinate(2, 2),
-                new Coordinate(2, 0),
-                new Coordinate(0, 0)
+            new Coordinate(0, 0),
+            new Coordinate(0, 2),
+            new Coordinate(2, 2),
+            new Coordinate(2, 0),
+            new Coordinate(0, 0)
         }));
 
-    private static readonly Polygon _falsePolygon = new Polygon(
+    private static readonly Polygon _falsePolygon = new(
         new LinearRing(new[]
         {
-                new Coordinate(0, 0),
-                new Coordinate(0, -2),
-                new Coordinate(-2, -2),
-                new Coordinate(-2, 0),
-                new Coordinate(0, 0)
+            new Coordinate(0, 0),
+            new Coordinate(0, -2),
+            new Coordinate(-2, -2),
+            new Coordinate(-2, 0),
+            new Coordinate(0, 0)
         }));
 
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { Id = 1, Bar = _truePolygon },
-            new Foo { Id = 2, Bar = _falsePolygon }
-        };
+        new() { Id = 1, Bar = _truePolygon },
+        new() { Id = 2, Bar = _falsePolygon }
+    };
 
     public QueryableFilterVisitorContainsTests(PostgreSqlResource<PostgisConfig> resource)
         : base(resource)
@@ -45,11 +44,10 @@ public class QueryableFilterVisitorContainsTests
     public async Task Create_Contains_Expression()
     {
         // arrange
-        IRequestExecutor tester = await CreateSchemaAsync<Foo, FooFilterType>(_fooEntities);
+        var tester = await CreateSchemaAsync<Foo, FooFilterType>(_fooEntities);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"{
@@ -68,79 +66,83 @@ public class QueryableFilterVisitorContainsTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot("1");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"{
-                            root(where: {
-                                bar: {
-                                    contains: {
-                                        geometry: {
-                                            type: Point,
-                                            coordinates: [-1, -1]
-                                        }
+                        root(where: {
+                            bar: {
+                                contains: {
+                                    geometry: {
+                                        type: Point,
+                                        coordinates: [-1, -1]
                                     }
                                 }
-                            }){
+                            }}){
                                 id
                             }
                         }")
                 .Create());
 
-        res2.MatchSqlSnapshot("2");
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "1"), res2, "2")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_NotContains_Expression()
     {
         // arrange
-        IRequestExecutor tester = await CreateSchemaAsync<Foo, FooFilterType>(_fooEntities);
+        var tester = await CreateSchemaAsync<Foo, FooFilterType>(_fooEntities);
 
         // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"{
+                        root(where: {
+                            bar: {
+                                ncontains: {
+                                    geometry: {
+                                        type: Point,
+                                        coordinates: [1, 1]
+                                    }
+                                }
+                            }
+                        }){
+                            id
+                        }
+                    }")
+                .Create());
+
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"{
+                        root(where: {
+                            bar: {
+                                ncontains: {
+                                    geometry: {
+                                        type: Point,
+                                        coordinates: [-1, -1]
+                                    }
+                                }
+                            }
+                        }){
+                            id
+                        }
+                    }")
+                .Create());
+
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
-                    @"{
-                            root(where: {
-                                bar: {
-                                    ncontains: {
-                                        geometry: {
-                                            type: Point,
-                                            coordinates: [1, 1]
-                                        }
-                                    }
-                                }
-                            }){
-                                id
-                            }
-                        }")
-                .Create());
-
-        res1.MatchSqlSnapshot("2");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
-                    @"{
-                            root(where: {
-                                bar: {
-                                    ncontains: {
-                                        geometry: {
-                                            type: Point,
-                                            coordinates: [-1, -1]
-                                        }
-                                    }
-                                }
-                            }){
-                                id
-                            }
-                        }")
-                .Create());
-
-        res2.MatchSqlSnapshot("1");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "2"), res2, "1")
+            .MatchAsync();
     }
 
     public class Foo

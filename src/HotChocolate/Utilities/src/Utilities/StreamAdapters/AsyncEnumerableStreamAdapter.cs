@@ -17,7 +17,7 @@ internal sealed class AsyncEnumerableStreamAdapter<T> : IAsyncEnumerable<object?
     public async IAsyncEnumerator<object?> GetAsyncEnumerator(
         CancellationToken cancellationToken = default)
     {
-        await foreach (T item in _stream.WithCancellation(cancellationToken))
+        await foreach (var item in _stream.WithCancellation(cancellationToken))
         {
             if (cancellationToken.IsCancellationRequested)
             {

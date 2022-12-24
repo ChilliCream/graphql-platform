@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -5,6 +7,7 @@ using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -12,6 +15,8 @@ public class InputObjectTypeDescriptor
     : DescriptorBase<InputObjectTypeDefinition>
     , IInputObjectTypeDescriptor
 {
+    private readonly List<InputFieldDescriptor> _fields = new();
+
     protected InputObjectTypeDescriptor(IDescriptorContext context, Type runtimeType)
         : base(context)
     {
@@ -40,16 +45,16 @@ public class InputObjectTypeDescriptor
     {
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
 
-        foreach (InputFieldDefinition field in definition.Fields)
+        foreach (var field in definition.Fields)
         {
-            Fields.Add(InputFieldDescriptor.From(Context, field));
+            _fields.Add(InputFieldDescriptor.From(Context, field));
         }
     }
 
     protected internal override InputObjectTypeDefinition Definition { get; protected set; } =
         new();
 
-    protected List<InputFieldDescriptor> Fields { get; } = new();
+    protected ICollection<InputFieldDescriptor> Fields => _fields;
 
     protected override void OnCreateDefinition(
         InputObjectTypeDefinition definition)
@@ -63,38 +68,87 @@ public class InputObjectTypeDescriptor
             Definition.AttributesAreApplied = true;
         }
 
-        var fields = new Dictionary<NameString, InputFieldDefinition>();
-        var handledProperties = new HashSet<PropertyInfo>();
+        var fields = TypeMemHelper.RentInputFieldDefinitionMap();
+        var handledMembers = TypeMemHelper.RentMemberSet();
 
-        FieldDescriptorUtilities.AddExplicitFields(
-            Fields.Select(t => t.CreateDefinition()),
-            f => f.Property,
-            fields,
-            handledProperties);
+        foreach (var fieldDescriptor in _fields)
+        {
+            var fieldDefinition = fieldDescriptor.CreateDefinition();
 
-        OnCompleteFields(fields, handledProperties);
+            if (!fieldDefinition.Ignore && !string.IsNullOrEmpty(fieldDefinition.Name))
+            {
+                fields[fieldDefinition.Name] = fieldDefinition;
+            }
 
+            if (fieldDefinition.Property is { } prop)
+            {
+                handledMembers.Add(prop);
+            }
+        }
+
+        OnCompleteFields(fields, handledMembers);
+
+        Definition.Fields.Clear();
         Definition.Fields.AddRange(fields.Values);
+
+        TypeMemHelper.Return(fields);
+        TypeMemHelper.Return(handledMembers);
 
         base.OnCreateDefinition(definition);
     }
 
-    protected virtual void OnCompleteFields(
-        IDictionary<NameString, InputFieldDefinition> fields,
-        ISet<PropertyInfo> handledProperties)
+    protected void InferFieldsFromFieldBindingType(
+        IDictionary<string, InputFieldDefinition> fields,
+        ISet<MemberInfo> handledMembers)
     {
+        if (Definition.Fields.IsImplicitBinding())
+        {
+            var inspector = Context.TypeInspector;
+            var naming = Context.Naming;
+            var type = Definition.RuntimeType;
+            var members = inspector.GetMembers(type);
+
+            foreach (var member in members)
+            {
+                if (member.MemberType is MemberTypes.Property)
+                {
+                    var name = naming.GetMemberName(member, MemberKind.InputObjectField);
+
+                    if (handledMembers.Add(member) &&
+                        !fields.ContainsKey(name))
+                    {
+                        var descriptor = InputFieldDescriptor.New(
+                            Context,
+                            (PropertyInfo)member);
+
+                        _fields.Add(descriptor);
+                        handledMembers.Add(member);
+
+                        // the create definition call will trigger the OnCompleteField call
+                        // on the field description and trigger the initialization of the
+                        // fields arguments.
+                        fields[name] = descriptor.CreateDefinition();
+                    }
+                }
+            }
+        }
     }
 
+    protected virtual void OnCompleteFields(
+        IDictionary<string, InputFieldDefinition> fields,
+        ISet<MemberInfo> handledMembers)
+    { }
+
     public IInputObjectTypeDescriptor SyntaxNode(
-        InputObjectTypeDefinitionNode inputObjectTypeDefinitionNode)
+        InputObjectTypeDefinitionNode inputObjectTypeDefinition)
     {
-        Definition.SyntaxNode = inputObjectTypeDefinitionNode;
+        Definition.SyntaxNode = inputObjectTypeDefinition;
         return this;
     }
 
-    public IInputObjectTypeDescriptor Name(NameString value)
+    public IInputObjectTypeDescriptor Name(string value)
     {
-        Definition.Name = value.EnsureNotEmpty(nameof(value));
+        Definition.Name = value;
         return this;
     }
 
@@ -104,20 +158,17 @@ public class InputObjectTypeDescriptor
         return this;
     }
 
-    public IInputFieldDescriptor Field(NameString name)
+    public IInputFieldDescriptor Field(string name)
     {
-        InputFieldDescriptor fieldDescriptor =
-            Fields.FirstOrDefault(t => t.Definition.Name.Equals(name));
+        var fieldDescriptor = _fields.Find(t => t.Definition.Name.EqualsOrdinal(name));
 
         if (fieldDescriptor is not null)
         {
             return fieldDescriptor;
         }
 
-        fieldDescriptor = new InputFieldDescriptor(
-            Context,
-            name.EnsureNotEmpty(nameof(name)));
-        Fields.Add(fieldDescriptor);
+        fieldDescriptor = new InputFieldDescriptor(Context, name);
+        _fields.Add(fieldDescriptor);
         return fieldDescriptor;
     }
 
@@ -136,42 +187,36 @@ public class InputObjectTypeDescriptor
     }
 
     public IInputObjectTypeDescriptor Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments)
     {
         Definition.AddDirective(name, arguments);
         return this;
     }
 
-    public static InputObjectTypeDescriptor New(
-        IDescriptorContext context) =>
-        new InputObjectTypeDescriptor(context);
+    public static InputObjectTypeDescriptor New(IDescriptorContext context) => new(context);
 
-    public static InputObjectTypeDescriptor New(
-        IDescriptorContext context,
-        Type clrType) =>
-        new InputObjectTypeDescriptor(context, clrType);
+    public static InputObjectTypeDescriptor New(IDescriptorContext context, Type clrType)
+        => new(context, clrType);
 
-    public static InputObjectTypeDescriptor<T> New<T>(
-        IDescriptorContext context) =>
-        new InputObjectTypeDescriptor<T>(context);
+    public static InputObjectTypeDescriptor<T> New<T>(IDescriptorContext context) => new(context);
 
     public static InputObjectTypeDescriptor FromSchemaType(
         IDescriptorContext context,
         Type schemaType)
     {
-        InputObjectTypeDescriptor descriptor = New(context, schemaType);
+        var descriptor = New(context, schemaType);
         descriptor.Definition.RuntimeType = typeof(object);
         return descriptor;
     }
 
     public static InputObjectTypeDescriptor From(
         IDescriptorContext context,
-        InputObjectTypeDefinition definition) =>
-        new InputObjectTypeDescriptor(context, definition);
+        InputObjectTypeDefinition definition)
+        => new(context, definition);
 
     public static InputObjectTypeDescriptor<T> From<T>(
         IDescriptorContext context,
-        InputObjectTypeDefinition definition) =>
-        new InputObjectTypeDescriptor<T>(context, definition);
+        InputObjectTypeDefinition definition)
+        => new(context, definition);
 }

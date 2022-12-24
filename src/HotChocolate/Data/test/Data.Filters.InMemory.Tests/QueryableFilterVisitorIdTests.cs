@@ -1,8 +1,7 @@
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
-using HotChocolate.Tests;
 using HotChocolate.Types.Relay;
-using Xunit;
 
 namespace HotChocolate.Data.Filters;
 
@@ -47,77 +46,78 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
     public async Task Create_StringIdEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterInput>(
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(
             _fooEntities,
             configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: \"Rm8KZHRlc3RhdGVzdA==\"}}){ bar}}")
                 .Create());
 
-        res1.MatchSnapshot("testatest");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: \"Rm8KZHRlc3RidGVzdA==\"}}){ bar}}")
                 .Create());
 
-        res2.MatchSnapshot("testbtest");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: null}}){ bar}}")
                 .Create());
 
-        res3.MatchSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .Add(res1, "testatest")
+            .Add(res2, "testbtest")
+            .Add(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_StringIdNotEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterInput>(
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(
             _fooEntities,
             configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: \"Rm8KZHRlc3RhdGVzdA==\"}}){ bar}}")
                 .Create());
 
-        res1.MatchSnapshot("testatest");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: \"Rm8KZHRlc3RidGVzdA==\"}}){ bar}}")
                 .Create());
 
-        res2.MatchSnapshot("testbtest");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: null}}){ bar}}")
                 .Create());
 
-        res3.MatchSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .Add(res1, "testatest")
+            .Add(res2, "testbtest")
+            .Add(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_StringIdIn_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterInput>(
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(
             _fooEntities,
             configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(@"{
                             root(where: {
@@ -130,35 +130,37 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
                         }")
                 .Create());
 
-        res1.MatchSnapshot("testatestAndtestb");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { bar: { in: [\"Rm8KZHRlc3RidGVzdA==\" null]}}){ bar}}")
                 .Create());
 
-        res2.MatchSnapshot("testbtestAndNull");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { in: [ \"Rm8KZHRlc3RhdGVzdA==\" ]}}){ bar}}")
                 .Create());
 
-        res3.MatchSnapshot("testatest");
+        // assert
+        await Snapshot
+            .Create()
+            .Add(res1, "testatestAndtestb")
+            .Add(res2, "testbtestAndNull")
+            .Add(res3, "testatest")
+            .MatchAsync();
+
     }
 
     [Fact]
     public async Task Create_StringIdNotIn_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterInput>(
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(
             _fooEntities,
             configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(@"{
                             root(where: {
@@ -171,99 +173,103 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
                         }")
                 .Create());
 
-        res1.MatchSnapshot("testatestAndtestb");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { bar: { nin: [\"Rm8KZHRlc3RidGVzdA==\" null]}}){ bar}}")
                 .Create());
 
-        res2.MatchSnapshot("testbtestAndNull");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { nin: [ \"Rm8KZHRlc3RhdGVzdA==\" ]}}){ bar}}")
                 .Create());
 
-        res3.MatchSnapshot("testatest");
+        // assert
+        await Snapshot
+            .Create()
+            .Add(res1, "testatestAndtestb")
+            .Add(res2, "testbtestAndNull")
+            .Add(res3, "testatest")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_NullableStringIdEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
             _fooNullableEntities,
             configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: \"Rm8KZHRlc3RhdGVzdA==\"}}){ bar}}")
                 .Create());
 
-        res1.MatchSnapshot("testatest");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: \"Rm8KZHRlc3RidGVzdA==\"}}){ bar}}")
                 .Create());
 
-        res2.MatchSnapshot("testbtest");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: null}}){ bar}}")
                 .Create());
 
-        res3.MatchSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .Add(res1, "testatest")
+            .Add(res2, "testbtest")
+            .Add(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_NullableStringIdNotEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
             _fooNullableEntities,
             configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: \"Rm8KZHRlc3RhdGVzdA==\"}}){ bar}}")
                 .Create());
 
-        res1.MatchSnapshot("testatest");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: \"Rm8KZHRlc3RidGVzdA==\"}}){ bar}}")
                 .Create());
 
-        res2.MatchSnapshot("testbtest");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: null}}){ bar}}")
                 .Create());
 
-        res3.MatchSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .Add(res1, "testatest")
+            .Add(res2, "testbtest")
+            .Add(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_NullableStringIdIn_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
             _fooNullableEntities,
             configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(@"{
                             root(where: {
@@ -276,385 +282,411 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
                         }")
                 .Create());
 
-        res1.MatchSnapshot("testatestAndtestb");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { bar: { in: [\"Rm8KZHRlc3RidGVzdA==\" null]}}){ bar}}")
                 .Create());
 
-        res2.MatchSnapshot("testbtestAndNull");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { in: [ \"Rm8KZHRlc3RhdGVzdA==\" ]}}){ bar}}")
                 .Create());
 
-        res3.MatchSnapshot("testatest");
+        // assert
+        await Snapshot
+            .Create()
+            .Add(res1, "testatestAndtestb")
+            .Add(res2, "testbtestAndNull")
+            .Add(res3, "testatest")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_NullableStringIdNotIn_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
+        var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
             _fooNullableEntities,
             configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"{
-                            root(where: {
-                                bar: {
-                                    nin: [ ""Rm8KZHRlc3RhdGVzdA==""  ""Rm8KZHRlc3RidGVzdA=="" ]
-                                }
-                            }){
-                                bar
+                        root(where: {
+                            bar: {
+                                nin: [ ""Rm8KZHRlc3RhdGVzdA==""  ""Rm8KZHRlc3RidGVzdA=="" ]
                             }
-                        }")
+                        }){
+                            bar
+                        }
+                    }")
                 .Create());
 
-        res1.MatchSnapshot("testatestAndtestb");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery(
-                    "{ root(where: { bar: { nin: [\"Rm8KZHRlc3RidGVzdA==\" null]}}){ bar}}")
+                .SetQuery("{ root(where: { bar: { nin: [\"Rm8KZHRlc3RidGVzdA==\" null]}}){ bar}}")
                 .Create());
 
-        res2.MatchSnapshot("testbtestAndNull");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { nin: [ \"Rm8KZHRlc3RhdGVzdA==\" ]}}){ bar}}")
                 .Create());
 
-        res3.MatchSnapshot("testatest");
+        // assert
+        await Snapshot
+            .Create()
+            .Add(res1, "testatestAndtestb")
+            .Add(res2, "testbtestAndNull")
+            .Add(res3, "testatest")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ShortEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema<FooShort, FooShortFilterInput>(
+        var tester = _cache.CreateSchema<FooShort, FooShortFilterInput>(
             _fooShortEntities,
             configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { eq: \"Rm9vCnMxMg==\"}}){ barShort}}")
                 .Create());
 
-        res1.MatchSnapshot("12");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { eq: \"Rm9vCnMxMw==\"}}){ barShort}}")
                 .Create());
 
-        res2.MatchSnapshot("13");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { eq: null}}){ barShort}}")
                 .Create());
 
-        res3.MatchSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .Add(res1, "12")
+            .Add(res2, "13")
+            .Add(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ShortNotEqual_Expression()
     {
-        IRequestExecutor tester = _cache.CreateSchema<FooShort, FooShortFilterInput>(
+        // arrange
+        var tester = _cache.CreateSchema<FooShort, FooShortFilterInput>(
             _fooShortEntities,
             configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { neq: \"Rm9vCnMxMg==\"}}){ barShort}}")
                 .Create());
 
-        res1.MatchSnapshot("12");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { neq: \"Rm9vCnMxMw==\"}}){ barShort}}")
                 .Create());
 
-        res2.MatchSnapshot("13");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { neq: null}}){ barShort}}")
                 .Create());
 
-        res3.MatchSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .Add(res1, "12")
+            .Add(res2, "13")
+            .Add(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ShortNullableEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester =
+        var tester =
             _cache.CreateSchema<FooShortNullable, FooShortNullableFilterInput>(
                 _fooShortNullableEntities,
                 configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { eq: \"Rm9vCnMxMg==\"}}){ barShort}}")
                 .Create());
 
-        res1.MatchSnapshot("12");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { eq: \"Rm9vCnMxMw==\"}}){ barShort}}")
                 .Create());
 
-        res2.MatchSnapshot("13");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { eq: null}}){ barShort}}")
                 .Create());
 
-        res3.MatchSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .Add(res1, "12")
+            .Add(res2, "13")
+            .Add(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ShortNullableNotEqual_Expression()
     {
-        IRequestExecutor tester =
+        // arrange
+        var tester =
             _cache.CreateSchema<FooShortNullable, FooShortNullableFilterInput>(
                 _fooShortNullableEntities,
                 configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { neq: \"Rm9vCnMxMg==\"}}){ barShort}}")
                 .Create());
 
-        res1.MatchSnapshot("12");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { neq: \"Rm9vCnMxMw==\"}}){ barShort}}")
                 .Create());
 
-        res2.MatchSnapshot("13");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { neq: null}}){ barShort}}")
                 .Create());
 
-        res3.MatchSnapshot("null");
+        // assert
+        await Snapshot
+            .Create()
+            .Add(res1, "12")
+            .Add(res2, "13")
+            .Add(res3, "null")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ShortIn_Expression()
     {
-        IRequestExecutor tester = _cache.CreateSchema<FooShort, FooShortFilterInput>(
+        // arrange
+        var tester = _cache.CreateSchema<FooShort, FooShortFilterInput>(
             _fooShortEntities,
             configure: sb => sb.AddGlobalObjectIdentification(false));
 
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        // act
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"{
-                            root(where: {
-                                barShort: {
-                                    in: [ ""Rm9vCnMxMg=="", ""Rm9vCnMxMw==""]
-                                }
-                            }){
-                                barShort
+                        root(where: {
+                            barShort: {
+                                in: [ ""Rm9vCnMxMg=="", ""Rm9vCnMxMw==""]
                             }
-                        }")
+                        }){
+                            barShort
+                        }
+                    }")
                 .Create());
 
-        res1.MatchSnapshot("12and13");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"{
-                            root(where: {
-                                barShort: {
-                                    in: [ ""Rm9vCnMxMw=="", ""Rm9vCnMxNA==""]
-                                }
-                            }){
-                                barShort
+                        root(where: {
+                            barShort: {
+                                in: [ ""Rm9vCnMxMw=="", ""Rm9vCnMxNA==""]
                             }
-                        }")
+                        }){
+                            barShort
+                        }
+                    }")
                 .Create());
 
-        res2.MatchSnapshot("13and14");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { barShort: { in: [ null, \"Rm9vCnMxNA==\"]}}){ barShort}}")
                 .Create());
 
-        res3.MatchSnapshot("nullAnd14");
+        // assert
+        await Snapshot
+            .Create()
+            .Add(res1, "12and13")
+            .Add(res2, "13and14")
+            .Add(res3, "nullAnd14")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ShortNotIn_Expression()
     {
-        IRequestExecutor tester = _cache.CreateSchema<FooShort, FooShortFilterInput>(
+        // arrange
+        var tester = _cache.CreateSchema<FooShort, FooShortFilterInput>(
             _fooShortEntities,
             configure: sb => sb.AddGlobalObjectIdentification(false));
 
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        // act
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"{
-                            root(where: {
-                                barShort: {
-                                    nin: [ ""Rm9vCnMxMg=="", ""Rm9vCnMxMw==""]
-                                }
-                            }){
-                                barShort
+                        root(where: {
+                            barShort: {
+                                nin: [ ""Rm9vCnMxMg=="", ""Rm9vCnMxMw==""]
                             }
-                        }")
+                        }){
+                            barShort
+                        }
+                    }")
                 .Create());
 
-        res1.MatchSnapshot("12and13");
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ root(where: { barShort: { nin: " +
+                    "[ \"Rm9vCnMxMg==\", \"Rm9vCnMxNA==\"]}}){ barShort}}")
+                .Create());
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { barShort: { nin: [ null, \"Rm9vCnMxNA==\"]}}){ barShort}}")
                 .Create());
 
-        res2.MatchSnapshot("13and14");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
-                    "{ root(where: { barShort: { nin: [ null, \"Rm9vCnMxNA==\"]}}){ barShort}}")
-                .Create());
-
-        res3.MatchSnapshot("nullAnd14");
+        // assert
+        await Snapshot
+            .Create()
+            .Add(res1, "12and13")
+            .Add(res2, "13and14")
+            .Add(res3, "nullAnd14")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ShortNullableIn_Expression()
     {
-        IRequestExecutor tester =
+        // arrange
+        var tester =
             _cache.CreateSchema<FooShortNullable, FooShortNullableFilterInput>(
                 _fooShortNullableEntities,
                 configure: sb => sb.AddGlobalObjectIdentification(false));
 
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        // act
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"{
-                            root(where: {
-                                barShort: {
-                                    in: [ ""Rm9vCnMxMg=="", ""Rm9vCnMxMw==""]
-                                }
-                            }){
-                                barShort
+                        root(where: {
+                            barShort: {
+                                in: [ ""Rm9vCnMxMg=="", ""Rm9vCnMxMw==""]
                             }
-                        }")
+                        }){
+                            barShort
+                        }
+                    }")
                 .Create());
 
-        res1.MatchSnapshot("12and13");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"{ root(where: {
-                                barShort: {
-                                    in: [ ""Rm9vCnMxMw=="", ""Rm9vCnMxNA==""]
-                                }
-                            }){
-                                barShort
+                            barShort: {
+                                in: [ ""Rm9vCnMxMw=="", ""Rm9vCnMxNA==""]
                             }
-                        }")
+                        }){
+                            barShort
+                        }
+                    }")
                 .Create());
 
-        res2.MatchSnapshot("13and14");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { barShort: { in: [ \"Rm9vCnMxMw==\", null ]}}){ barShort}}")
                 .Create());
 
-        res3.MatchSnapshot("13andNull");
+        // assert
+        await Snapshot
+            .Create()
+            .Add(res1, "12and13")
+            .Add(res2, "13and14")
+            .Add(res3, "13andNull")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ShortNullableNotIn_Expression()
     {
-        IRequestExecutor tester =
+        // assert
+        var tester =
             _cache.CreateSchema<FooShortNullable, FooShortNullableFilterInput>(
                 _fooShortNullableEntities,
                 configure: sb => sb.AddGlobalObjectIdentification(false));
 
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        // act
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"{
-                            root(where: {
-                                barShort: {
-                                    nin: [ ""Rm9vCnMxMg=="", ""Rm9vCnMxMw==""]
-                                }
-                            }){
-                                barShort
+                        root(where: {
+                            barShort: {
+                                nin: [ ""Rm9vCnMxMg=="", ""Rm9vCnMxMw==""]
                             }
-                        }")
+                        }){
+                            barShort
+                        }
+                    }")
                 .Create());
 
-        res1.MatchSnapshot("12and13");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"{
-                            root(where: {
-                                barShort: {
-                                    nin: [ ""Rm9vCnMxMw=="", ""Rm9vCnMxNA==""]
-                                }
-                            }){
-                                barShort
+                        root(where: {
+                            barShort: {
+                                nin: [ ""Rm9vCnMxMw=="", ""Rm9vCnMxNA==""]
                             }
-                        }")
+                        }){
+                            barShort
+                        }
+                    }")
                 .Create());
 
-        res2.MatchSnapshot("13and14");
-
-        IExecutionResult res3 = await tester.ExecuteAsync(
+        var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"{
-                            root(where: {
-                                barShort: {
-                                    nin: [ ""Rm9vCnMxMw=="", null ]
-                                }
-                            }){
-                                barShort
+                        root(where: {
+                            barShort: {
+                                nin: [ ""Rm9vCnMxMw=="", null ]
                             }
-                        }")
+                        }){
+                            barShort
+                        }
+                    }")
                 .Create());
 
-        res3.MatchSnapshot("13andNull");
+        // assert
+        await Snapshot
+            .Create()
+            .Add(res1, "12and13")
+            .Add(res2, "13and14")
+            .Add(res3, "13andNull")
+            .MatchAsync();
     }
 
     public class Foo

@@ -11,7 +11,7 @@ public class Review
     }
 
     public int Id { get; }
-    public int AuthorId { get; }
-    public int Upc { get; }
+    public int AuthorId { get; } 
+    public int Upc { get; } 
     public string Body { get; }
 }

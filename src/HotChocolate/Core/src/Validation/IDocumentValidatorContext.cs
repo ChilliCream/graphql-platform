@@ -18,6 +18,11 @@ public interface IDocumentValidatorContext : ISyntaxVisitorContext
     ISchema Schema { get; }
 
     /// <summary>
+    /// Gets the current operation type.
+    /// </summary>
+    OperationType? OperationType { get; set; }
+
+    /// <summary>
     /// Gets a non-null string type.
     /// </summary>
     IOutputType NonNullString { get; }
@@ -25,7 +30,7 @@ public interface IDocumentValidatorContext : ISyntaxVisitorContext
     /// <summary>
     /// Specifies the max allowed validation errors.
     /// </summary>
-    int MaxAllowedErrors { get;}
+    int MaxAllowedErrors { get; }
 
     /// <summary>
     /// The current visitation path of syntax nodes.
@@ -123,9 +128,14 @@ public interface IDocumentValidatorContext : ISyntaxVisitorContext
     int Count { get; set; }
 
     /// <summary>
-    /// Gets ors sets a single max value counter.
+    /// Gets or sets a single max value counter.
     /// </summary>
     int Max { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value representing an allowed limit.
+    /// </summary>
+    int Allowed { get; set; }
 
     /// <summary>
     /// Gets a list of objects that can be used by validation rules.

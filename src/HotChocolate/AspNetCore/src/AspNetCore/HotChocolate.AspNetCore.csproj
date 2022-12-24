@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <PackageId>HotChocolate.AspNetCore</PackageId>
@@ -11,10 +11,12 @@
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests" />
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests.Utilities" />
+    <InternalsVisibleTo Include="HotChocolate.AzureFunctions.IsolatedProcess" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Subscriptions.InMemory\HotChocolate.Subscriptions.InMemory.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types.Scalars.Upload\HotChocolate.Types.Scalars.Upload.csproj" />
     <ProjectReference Include="..\Transport.Sockets\HotChocolate.Transport.Sockets.csproj" />
   </ItemGroup>
@@ -39,9 +41,6 @@
     </EmbeddedResource>
     <None Remove="Subscriptions\Protocols\Apollo\**" />
     <EmbeddedResource Remove="Subscriptions\Protocols\Apollo\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="Properties\AspNetCoreResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

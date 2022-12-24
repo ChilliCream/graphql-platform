@@ -1,0 +1,47 @@
+testatest
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testbtest"
+      },
+      {
+        "bar": null
+      }
+    ]
+  }
+}
+---------------
+
+testbtest
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testatest"
+      },
+      {
+        "bar": null
+      }
+    ]
+  }
+}
+---------------
+
+null
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testatest"
+      },
+      {
+        "bar": "testbtest"
+      }
+    ]
+  }
+}
+---------------

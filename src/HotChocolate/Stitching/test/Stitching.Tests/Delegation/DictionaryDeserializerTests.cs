@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Stitching.Processing;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,9 +18,9 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
@@ -45,9 +44,9 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
@@ -71,9 +70,9 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
@@ -99,9 +98,9 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
@@ -125,9 +124,9 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
@@ -151,9 +150,9 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
@@ -179,9 +178,9 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
@@ -207,9 +206,9 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType(x =>
@@ -219,8 +218,8 @@ public class DictionaryDeserializerTests
                         .Type<ListType<EnumType<Foo>>>())
                 .BuildSchemaAsync();
 
-        ObjectType queryType = schema.GetType<ObjectType>("Query");
-        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+        var queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out var fooField);
 
         // act
         var value = DictionaryDeserializer.DeserializeResult(
@@ -241,9 +240,9 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType(x =>
@@ -253,8 +252,8 @@ public class DictionaryDeserializerTests
                         .Type<EnumType<Foo>>())
                 .BuildSchemaAsync();
 
-        ObjectType queryType = schema.GetType<ObjectType>("Query");
-        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+        var queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out var fooField);
 
         // act
         var value = DictionaryDeserializer.DeserializeResult(
@@ -272,9 +271,9 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType(x =>
@@ -284,8 +283,8 @@ public class DictionaryDeserializerTests
                         .Type<EnumType<Foo>>())
                 .BuildSchemaAsync();
 
-        ObjectType queryType = schema.GetType<ObjectType>("Query");
-        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+        var queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out var fooField);
 
         // act
         var value = DictionaryDeserializer.DeserializeResult(
@@ -303,9 +302,9 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType(x =>
@@ -315,8 +314,8 @@ public class DictionaryDeserializerTests
                         .Type<EnumType<Foo>>())
                 .BuildSchemaAsync();
 
-        ObjectType queryType = schema.GetType<ObjectType>("Query");
-        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+        var queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out var fooField);
 
         // act
         var value = DictionaryDeserializer.DeserializeResult(
@@ -334,9 +333,9 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType(x =>
@@ -346,8 +345,8 @@ public class DictionaryDeserializerTests
                         .Type<ListType<EnumType<Foo>>>())
                 .BuildSchemaAsync();
 
-        ObjectType queryType = schema.GetType<ObjectType>("Query");
-        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+        var queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out var fooField);
 
         // act
         var value = DictionaryDeserializer.DeserializeResult(
@@ -368,9 +367,9 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType(x =>
@@ -380,8 +379,8 @@ public class DictionaryDeserializerTests
                         .Type<ListType<ListType<EnumType<Foo>>>>())
                 .BuildSchemaAsync();
 
-        ObjectType queryType = schema.GetType<ObjectType>("Query");
-        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+        var queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out var fooField);
 
 
         // act
@@ -389,7 +388,7 @@ public class DictionaryDeserializerTests
             fooField!.Type,
             new List<object>
             {
-                    new List<object> { new EnumValueNode(Foo.Bar), new EnumValueNode(Foo.Baz) }
+                new List<object> { new EnumValueNode(Foo.Bar), new EnumValueNode(Foo.Baz) }
             },
             inputParser,
             path);
@@ -406,9 +405,9 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType(x =>
@@ -418,11 +417,11 @@ public class DictionaryDeserializerTests
                         .Type<ListType<NonNullType<EnumType<Foo>>>>())
                 .BuildSchemaAsync();
 
-        ObjectType queryType = schema.GetType<ObjectType>("Query");
-        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+        var queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out var fooField);
 
         // act
-        object value = DictionaryDeserializer.DeserializeResult(
+        var value = DictionaryDeserializer.DeserializeResult(
             fooField!.Type,
             new List<object> { new EnumValueNode(Foo.Bar), new EnumValueNode(Foo.Baz) },
             inputParser,
@@ -440,9 +439,9 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType(x =>
@@ -452,8 +451,8 @@ public class DictionaryDeserializerTests
                         .Type<ListType<ListType<NonNullType<EnumType<Foo>>>>>())
                 .BuildSchemaAsync();
 
-        ObjectType queryType = schema.GetType<ObjectType>("Query");
-        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+        var queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out var fooField);
 
 
         // act
@@ -461,7 +460,7 @@ public class DictionaryDeserializerTests
             fooField!.Type,
             new List<object>
             {
-                    new List<object> { new EnumValueNode(Foo.Bar), new EnumValueNode(Foo.Baz) }
+                new List<object> { new EnumValueNode(Foo.Bar), new EnumValueNode(Foo.Baz) }
             },
             inputParser,
             path);
@@ -479,9 +478,9 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType(x =>
@@ -491,8 +490,8 @@ public class DictionaryDeserializerTests
                         .Type<ListType<IntType>>())
                 .BuildSchemaAsync();
 
-        ObjectType queryType = schema.GetType<ObjectType>("Query");
-        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+        var queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out var fooField);
 
         // act
         var value = DictionaryDeserializer.DeserializeResult(
@@ -513,9 +512,9 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType(x =>
@@ -525,8 +524,8 @@ public class DictionaryDeserializerTests
                         .Type<IntType>())
                 .BuildSchemaAsync();
 
-        ObjectType queryType = schema.GetType<ObjectType>("Query");
-        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+        var queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out var fooField);
 
         // act
         var value = DictionaryDeserializer.DeserializeResult(
@@ -544,9 +543,9 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType(x =>
@@ -556,8 +555,8 @@ public class DictionaryDeserializerTests
                         .Type<IntType>())
                 .BuildSchemaAsync();
 
-        ObjectType queryType = schema.GetType<ObjectType>("Query");
-        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+        var queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out var fooField);
 
         // act
         var value = DictionaryDeserializer.DeserializeResult(
@@ -575,9 +574,9 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType(x =>
@@ -587,8 +586,8 @@ public class DictionaryDeserializerTests
                         .Type<ListType<IntType>>())
                 .BuildSchemaAsync();
 
-        ObjectType queryType = schema.GetType<ObjectType>("Query");
-        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+        var queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out var fooField);
 
         // act
         var value = DictionaryDeserializer.DeserializeResult(
@@ -609,9 +608,9 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType(x =>
@@ -621,8 +620,8 @@ public class DictionaryDeserializerTests
                         .Type<ListType<ListType<IntType>>>())
                 .BuildSchemaAsync();
 
-        ObjectType queryType = schema.GetType<ObjectType>("Query");
-        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+        var queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out var fooField);
 
 
         // act
@@ -644,9 +643,9 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType(x =>
@@ -656,8 +655,8 @@ public class DictionaryDeserializerTests
                         .Type<ListType<NonNullType<IntType>>>())
                 .BuildSchemaAsync();
 
-        ObjectType queryType = schema.GetType<ObjectType>("Query");
-        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+        var queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out var fooField);
 
         // act
         var value = DictionaryDeserializer.DeserializeResult(
@@ -678,9 +677,9 @@ public class DictionaryDeserializerTests
     {
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
-        Path path = Path.New("root");
+        Path path = PathFactory.Instance.New("root");
 
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType(x =>
@@ -690,8 +689,8 @@ public class DictionaryDeserializerTests
                         .Type<ListType<ListType<NonNullType<IntType>>>>())
                 .BuildSchemaAsync();
 
-        ObjectType queryType = schema.GetType<ObjectType>("Query");
-        queryType.Fields.TryGetField("Foo", out ObjectField fooField);
+        var queryType = schema.GetType<ObjectType>("Query");
+        queryType.Fields.TryGetField("Foo", out var fooField);
 
 
         // act

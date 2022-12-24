@@ -2,9 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Security.Cryptography;
-using StrawberryShake.Helper;
 using StrawberryShake.Internal;
 using StrawberryShake.Json;
 
@@ -26,12 +24,14 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
     /// <param name="document">The GraphQL query document containing this operation.</param>
     /// <param name="variables">The request variable values.</param>
     /// <param name="strategy">The request strategy to the connection.</param>
+    /// <param name="files">The files of this request</param>
     public OperationRequest(
         string name,
         IDocument document,
         IReadOnlyDictionary<string, object?>? variables = null,
+        IReadOnlyDictionary<string, Upload?>? files = null,
         RequestStrategy strategy = RequestStrategy.Default)
-        : this(null, name, document, variables, strategy)
+        : this(null, name, document, variables, files,  strategy)
     {
     }
 
@@ -43,17 +43,20 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
     /// <param name="document">The GraphQL query document containing this operation.</param>
     /// <param name="variables">The request variable values.</param>
     /// <param name="strategy">The request strategy to the connection.</param>
+    /// <param name="files">The files of this request</param>
     public OperationRequest(
         string? id,
         string name,
         IDocument document,
         IReadOnlyDictionary<string, object?>? variables = null,
+        IReadOnlyDictionary<string, Upload?>? files = null,
         RequestStrategy strategy = RequestStrategy.Default)
     {
         Id = id;
         Name = name ?? throw new ArgumentNullException(nameof(name));
         Document = document ?? throw new ArgumentNullException(nameof(document));
         Variables = variables ?? ImmutableDictionary<string, object?>.Empty;
+        Files = files ?? ImmutableDictionary<string, Upload?>.Empty;
         Strategy = strategy;
     }
 
@@ -67,6 +70,7 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
     /// <param name="extensions">The request extension values.</param>
     /// <param name="contextData">The local context data.</param>
     /// <param name="strategy">The request strategy to the connection.</param>
+    /// <param name="files">The files of the request</param>
     public void Deconstruct(
         out string? id,
         out string name,
@@ -74,6 +78,7 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
         out IReadOnlyDictionary<string, object?> variables,
         out IReadOnlyDictionary<string, object?>? extensions,
         out IReadOnlyDictionary<string, object?>? contextData,
+        out IReadOnlyDictionary<string, Upload?>? files,
         out RequestStrategy strategy)
     {
         id = Id;
@@ -82,6 +87,7 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
         variables = Variables;
         extensions = _extensions;
         contextData = _contextData;
+        files = Files;
         strategy = Strategy;
     }
 
@@ -104,6 +110,11 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
     /// Gets the request variable values.
     /// </summary>
     public IReadOnlyDictionary<string, object?> Variables { get; }
+
+    /// <summary>
+    /// The files of the request
+    /// </summary>
+    public IReadOnlyDictionary<string, Upload?> Files { get; }
 
     /// <summary>
     /// Gets the request extension values.
@@ -159,7 +170,7 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
         return Id == other.Id &&
             Name == other.Name &&
             Document.Equals(other.Document) &&
-            EqualsVariables(other.Variables);
+            ComparisonHelper.DictionaryEqual(Variables, other.Variables);
     }
 
     public override bool Equals(object? obj)
@@ -180,44 +191,6 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
         }
 
         return Equals((OperationRequest)obj);
-    }
-
-    private bool EqualsVariables(IReadOnlyDictionary<string, object?> others)
-    {
-        // the variables dictionary is the same or both are null.
-        if (ReferenceEquals(Variables, others))
-        {
-            return true;
-        }
-
-        if (Variables.Count != others.Count)
-        {
-            return false;
-        }
-
-        foreach (var key in Variables.Keys)
-        {
-            if (!Variables.TryGetValue(key, out var a) ||
-                !others.TryGetValue(key, out var b))
-            {
-                return false;
-            }
-
-            if (a is IEnumerable e1 && b is IEnumerable e2)
-            {
-                // Check the contents of the collection, assuming order is important
-                if (!ComparisonHelper.SequenceEqual(e1, e2))
-                {
-                    return false;
-                }
-            }
-            else if (!Equals(a, b))
-            {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     public string GetHash()
@@ -245,9 +218,9 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
                 Name.GetHashCode() * 397 ^
                 Document.GetHashCode() * 397;
 
-            foreach (KeyValuePair<string, object?> variable in Variables)
+            foreach (var variable in Variables)
             {
-                if (variable.Value is IEnumerable inner)
+                if (variable.Value is not string && variable.Value is IEnumerable inner)
                 {
                     hash ^= GetHashCodeFromList(inner) * 397;
                 }
@@ -261,13 +234,13 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
         }
     }
 
-    private int GetHashCodeFromList(IEnumerable enumerable)
+    private static int GetHashCodeFromList(IEnumerable enumerable)
     {
         var hash = 17;
 
         foreach (var element in enumerable)
         {
-            if (element is IEnumerable inner)
+            if (element is not string && element is IEnumerable inner)
             {
                 hash ^= GetHashCodeFromList(inner) * 397;
             }

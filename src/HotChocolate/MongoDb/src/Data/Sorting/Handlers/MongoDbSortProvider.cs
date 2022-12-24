@@ -9,8 +9,7 @@ using MongoDB.Driver;
 namespace HotChocolate.Data.MongoDb.Sorting;
 
 /// <inheritdoc />
-public class MongoDbSortProvider
-    : SortProvider<MongoDbSortVisitorContext>
+public class MongoDbSortProvider : SortProvider<MongoDbSortVisitorContext>
 {
     /// <inheritdoc/>
     public MongoDbSortProvider()
@@ -32,7 +31,7 @@ public class MongoDbSortProvider
     { get; } = new();
 
     /// <inheritdoc />
-    public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
+    public override FieldMiddleware CreateExecutor<TEntityType>(string argumentName)
     {
         return next => context => ExecuteAsync(next, context);
 
@@ -40,8 +39,8 @@ public class MongoDbSortProvider
             FieldDelegate next,
             IMiddlewareContext context)
         {
-            IInputField argument = context.Selection.Field.Arguments[argumentName];
-            IValueNode filter = context.ArgumentLiteral<IValueNode>(argumentName);
+            var argument = context.Selection.Field.Arguments[argumentName];
+            var filter = context.ArgumentLiteral<IValueNode>(argumentName);
 
             if (filter is not NullValueNode &&
                 argument.Type is ListType listType &&
@@ -52,11 +51,11 @@ public class MongoDbSortProvider
 
                 Visitor.Visit(filter, visitorContext);
 
-                if (!visitorContext.TryCreateQuery(out MongoDbSortDefinition? order) ||
+                if (!visitorContext.TryCreateQuery(out var order) ||
                     visitorContext.Errors.Count > 0)
                 {
                     context.Result = Array.Empty<TEntityType>();
-                    foreach (IError error in visitorContext.Errors)
+                    foreach (var error in visitorContext.Errors)
                     {
                         context.ReportError(error.WithPath(context.Path));
                     }

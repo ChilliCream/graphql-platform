@@ -28,7 +28,7 @@ public class ResultDataFactoryGenerator : TypeMapperGenerator
         out string? path,
         out string ns)
     {
-        ComplexTypeDescriptor descriptor =
+        var descriptor =
             typeDescriptor as ComplexTypeDescriptor ??
             throw new InvalidOperationException(
                 "A result data factory can only be generated for complex types");
@@ -37,14 +37,14 @@ public class ResultDataFactoryGenerator : TypeMapperGenerator
         path = State;
         ns = CreateStateNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal);
 
-        ClassBuilder classBuilder =
+        var classBuilder =
             ClassBuilder
                 .New()
                 .SetName(fileName)
                 .AddImplements(
                     TypeNames.IOperationResultDataFactory.WithGeneric(descriptor.RuntimeType));
 
-        ConstructorBuilder constructorBuilder = classBuilder
+        var constructorBuilder = classBuilder
             .AddConstructor()
             .SetTypeName(descriptor.Name);
 
@@ -58,25 +58,25 @@ public class ResultDataFactoryGenerator : TypeMapperGenerator
                 constructorBuilder);
         }
 
-        MethodCallBuilder returnStatement = MethodCallBuilder
+        var returnStatement = MethodCallBuilder
             .New()
             .SetReturn()
             .SetNew()
             .SetMethodName(descriptor.RuntimeType.Name);
 
-        foreach (PropertyDescriptor property in descriptor.Properties)
+        foreach (var property in descriptor.Properties)
         {
             returnStatement
                 .AddArgument(BuildMapMethodCall(settings, _info, property));
         }
 
-        IfBuilder ifHasCorrectType = IfBuilder
+        var ifHasCorrectType = IfBuilder
             .New()
             .SetCondition(
                 $"{_dataInfo} is {CreateResultInfoName(descriptor.RuntimeType.Name)} {_info}")
             .AddCode(returnStatement);
 
-        MethodBuilder createMethod = classBuilder
+        var createMethod = classBuilder
             .AddMethod("Create")
             .SetAccessModifier(AccessModifier.Public)
             .SetReturnType(descriptor.RuntimeType.Name)

@@ -58,8 +58,10 @@ internal static class ThrowHelper
             $"The TimeSpan serializer could not serialize value {value}. The provided value " +
             $"was not in format {format.ToString()}"));
 
-
     internal static GraphQLClientException UuidSerializer_CouldNotParse(string guid) =>
         new(new ClientError(
             $"The Guid serializer could not parse value {guid}. Invalid format."));
+
+    internal static NotSupportedException UploadScalar_OutputNotSupported() =>
+        new("The upload scalar can only be used in upload");
 }

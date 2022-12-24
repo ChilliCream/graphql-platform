@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -12,11 +12,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Execution" />
     <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
     <InternalsVisibleTo Include="HotChocolate.Validation" />
     <InternalsVisibleTo Include="HotChocolate.Types.CursorPagination" />
+    <InternalsVisibleTo Include="HotChocolate.Types.OffsetPagination" />
     <InternalsVisibleTo Include="HotChocolate.ApolloFederation" />
     <InternalsVisibleTo Include="HotChocolate.Data" />
+    <InternalsVisibleTo Include="StrawberryShake.CodeGeneration" />
 
     <!--Legacy Support-->
     <InternalsVisibleTo Include="HotChocolate.Types.Filters" />
@@ -26,6 +29,7 @@
     <!--Tests-->
     <InternalsVisibleTo Include="HotChocolate.Types.Filters.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Types.Sorting.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Types.Tests" />
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Data.Filters.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Data.Sorting.Tests" />
@@ -36,14 +40,13 @@
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="3.1.4" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.4" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.7.0" />
-    <PackageReference Include="System.Text.Json" Version="4.7.0" />
+    <PackageReference Include="System.Text.Json" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Utilities\src\Utilities\HotChocolate.Utilities.csproj" />
     <ProjectReference Include="..\..\..\Utilities\src\Utilities.Introspection\HotChocolate.Utilities.Introspection.csproj" />
     <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
-    <ProjectReference Include="..\Subscriptions\HotChocolate.Subscriptions.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -51,6 +54,30 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>TypeResources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Types\ObjectType.Initialization.cs">
+      <DependentUpon>ObjectType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Utilities\DefaultTypeConverter.Setup.cs">
+      <DependentUpon>DefaultTypeConverter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaBuilder.Create.cs">
+      <DependentUpon>SchemaBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaBuilder.Lazy.cs">
+      <DependentUpon>SchemaBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaBuilder.Setup.cs">
+      <DependentUpon>SchemaBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaErrorBuilder.Error.cs">
+      <DependentUpon>SchemaErrorBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\EnumType.Initialization.cs">
+      <DependentUpon>EnumType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Scalars\ScalarType.Initialization.cs">
+      <DependentUpon>ScalarType.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 

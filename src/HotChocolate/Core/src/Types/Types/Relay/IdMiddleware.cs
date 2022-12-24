@@ -4,7 +4,7 @@ namespace HotChocolate.Types.Relay;
 
 public static class IdMiddleware
 {
-    public static ResultConverterDefinition Create()
+    public static ResultFormatterDefinition Create()
         => new((context, result) =>
                 result is not null
                     ? context.Service<IIdSerializer>().Serialize(

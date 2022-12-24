@@ -13,6 +13,7 @@ public enum ArgumentKind
     Field,
     DocumentSyntax,
     OperationDefinitionSyntax,
+    Operation,
     FieldSyntax,
     Selection,
     Context,

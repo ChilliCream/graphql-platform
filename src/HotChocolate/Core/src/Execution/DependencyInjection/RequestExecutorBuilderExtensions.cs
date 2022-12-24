@@ -1,12 +1,16 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Options;
+using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
@@ -283,6 +287,36 @@ public static partial class RequestExecutorBuilderExtensions
             builder,
             (services, options) => options.RequestExecutorOptionsActions.Add(
                 new RequestExecutorOptionsAction((o, ct) => modify(services, o, ct))));
+    }
+
+    /// <summary>
+    /// Adds a delegate that will be used to modify the <see cref="RequestParserOptions"/>.
+    /// </summary>
+    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
+    /// <param name="modify">
+    /// A delegate that is used to modify the <see cref="RequestParserOptions"/>.
+    /// </param>
+    /// <returns>
+    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
+    /// and its execution.
+    /// </returns>
+    public static IRequestExecutorBuilder ModifyParserOptions(
+        this IRequestExecutorBuilder builder,
+        Action<RequestParserOptions> modify)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (modify is null)
+        {
+            throw new ArgumentNullException(nameof(modify));
+        }
+
+        builder.Services.AddSingleton(modify);
+
+        return builder;
     }
 
     /// <summary>
