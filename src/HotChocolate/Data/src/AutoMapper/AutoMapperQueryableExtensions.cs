@@ -54,7 +54,7 @@ public static class AutoMapperQueryableExtensions
         {
             foreach (var assignment in scope.Level.Peek())
             {
-                var expression = Expression.Convert(assignment.Expression, typeof(object));
+                var expression = Expression.Convert(assignment.Expression, typeof(TTarget));
                 yield return Expression.Lambda<Func<T, TTarget>>(expression, scope.Parameter);
             }
         }
