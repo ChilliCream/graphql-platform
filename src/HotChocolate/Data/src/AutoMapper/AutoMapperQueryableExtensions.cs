@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using AutoMapper;
@@ -39,9 +40,23 @@ public static class AutoMapperQueryableExtensions
         QueryableProjectionVisitor.Default.Visit(visitorContext);
 
 #pragma warning disable CS8631
-        Expression<Func<TResult, object?>> projection = visitorContext.Project<TResult, object?>();
+        var membersToExpand = visitorContext.GetMembersToExpand<TResult, object?>();
 #pragma warning restore CS8631
 
-        return queryable.ProjectTo(mapper.ConfigurationProvider, projection);
+        return queryable.ProjectTo(mapper.ConfigurationProvider, membersToExpand.ToArray());
+    }
+
+    private static IEnumerable<Expression<Func<T, TTarget>>> GetMembersToExpand<T, TTarget>(
+        this QueryableProjectionContext context)
+        where T : TTarget
+    {
+        if (context.TryGetQueryableScope(out var scope))
+        {
+            foreach (var assignment in scope.Level.Peek())
+            {
+                var expression = Expression.Convert(assignment.Expression, typeof(object));
+                yield return Expression.Lambda<Func<T, TTarget>>(expression, scope.Parameter);
+            }
+        }
     }
 }
