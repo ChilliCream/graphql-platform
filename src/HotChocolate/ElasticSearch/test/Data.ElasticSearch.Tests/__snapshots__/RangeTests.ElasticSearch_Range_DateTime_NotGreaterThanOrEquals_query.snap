@@ -7,8 +7,8 @@
             "must_not": [
               {
                 "range": {
-                  "value": {
-                    "lte": 0.0
+                  "dateTimeValue": {
+                    "gt": "2022-12-23T15:05:22Z"
                   }
                 }
               }

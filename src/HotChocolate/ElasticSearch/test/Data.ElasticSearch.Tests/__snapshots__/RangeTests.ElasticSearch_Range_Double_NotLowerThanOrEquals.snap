@@ -2,12 +2,10 @@
   "data": {
     "test": [
       {
-        "name": "B",
-        "value": 0
-      },
-      {
-        "name": "C",
-        "value": -1
+        "name": "A",
+        "value": 1,
+        "fValue": 1,
+        "dateTimeValue": "2022-12-22T16:05:22.000\u002B01:00"
       }
     ]
   }

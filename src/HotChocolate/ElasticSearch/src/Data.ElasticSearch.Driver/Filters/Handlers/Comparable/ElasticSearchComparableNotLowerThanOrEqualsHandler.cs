@@ -4,7 +4,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.ElasticSearch.Filters.Comparable;
 
-public class ElasticSearchComparableNotLowerThanOrEqualsHandler : ElasticSearchComparableGreaterThanHandler
+public class ElasticSearchComparableNotLowerThanOrEqualsHandler : ElasticSearchComparableLowerThanOrEqualsHandler
 {
     /// <inheritdoc />
     public ElasticSearchComparableNotLowerThanOrEqualsHandler(InputParser inputParser) : base(inputParser)
