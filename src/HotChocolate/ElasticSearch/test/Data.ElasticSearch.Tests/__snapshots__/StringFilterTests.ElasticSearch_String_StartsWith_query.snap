@@ -1,0 +1,15 @@
+﻿{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "wildcard": {
+            "description": {
+              "wildcard": "mutat*"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
