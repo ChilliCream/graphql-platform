@@ -22,4 +22,7 @@ public static class ElasticSearchDataRequestBuilderExtensions
         this IRequestExecutorBuilder builder,
         string? name = null) =>
         builder.ConfigureSchema(s => s.AddElasticSearchFiltering(name));
+
+    public static IRequestExecutorBuilder AddElasticSearchSorting(this IRequestExecutorBuilder builder,
+        string? name = null) => builder.ConfigureSchema(s => s.AddElasticSearchSorting(name));
 }

@@ -1,6 +1,6 @@
 ﻿namespace HotChocolate.Data.ElasticSearch;
 
-public class ElasticSearchSortOperation : ISearchOperation
+public class ElasticSearchSortOperation
 {
     public ElasticSearchSortOperation(string path, ElasticSearchSortDirection direction)
     {

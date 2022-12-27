@@ -5,7 +5,7 @@ using HotChocolate.Internal;
 namespace HotChocolate.Data.ElasticSearch.Sorting;
 
 public class ElasticSearchSortVisitorContext
-    : SortVisitorContext<ISearchOperation>
+    : SortVisitorContext<ElasticSearchSortOperation>
 {
     /// <inheritdoc />
     public ElasticSearchSortVisitorContext(

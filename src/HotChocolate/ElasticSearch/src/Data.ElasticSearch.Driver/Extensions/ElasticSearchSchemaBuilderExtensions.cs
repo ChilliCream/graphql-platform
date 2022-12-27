@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Data.ElasticSearch.Sorting.Convention;
 
 namespace HotChocolate.Data.ElasticSearch;
 
@@ -22,4 +23,9 @@ public static class ElasticSearchSchemaBuilderExtensions
         this ISchemaBuilder builder,
         string? name = null) =>
         builder.AddFiltering(new ElasticSearchFilterConvention(), name);
+
+    public static ISchemaBuilder AddElasticSearchSorting(
+        this ISchemaBuilder builder,
+        string? name = null) =>
+        builder.AddSorting(x => x.AddElasticSearchDefaults(), name);
 }

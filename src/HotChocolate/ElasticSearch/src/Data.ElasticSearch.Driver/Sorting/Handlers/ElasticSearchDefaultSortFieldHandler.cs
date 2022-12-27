@@ -7,14 +7,11 @@ using HotChocolate.Language.Visitors;
 namespace HotChocolate.Data.ElasticSearch.Sorting.Handlers;
 
 public class ElasticSearchDefaultSortFieldHandler
-    : SortFieldHandler<ElasticSearchSortVisitorContext, ISearchOperation>
+    : SortFieldHandler<ElasticSearchSortVisitorContext, ElasticSearchSortOperation>
 {
     /// <inheritdoc />
     public override bool CanHandle(ITypeCompletionContext context, ISortInputTypeDefinition typeDefinition,
-        ISortFieldDefinition fieldDefinition)
-    {
-        throw new NotImplementedException();
-    }
+        ISortFieldDefinition fieldDefinition) => fieldDefinition.Member is not null;
 
 
     /// <inheritdoc />

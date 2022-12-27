@@ -1,6 +1,9 @@
 ﻿using HotChocolate.Data.ElasticSearch.Filters;
+using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.ElasticSearch.Sorting;
 
@@ -12,6 +15,13 @@ public class ElasticSearchSortProvider : SortProvider<ElasticSearchSortVisitorCo
         : base(configure)
     {
     }
+
+    /// <summary>
+    /// The visitor thar will traverse a incoming query and execute the sorting handlers
+    /// </summary>
+    protected virtual SortVisitor<ElasticSearchSortVisitorContext, ElasticSearchSortOperation>
+        Visitor
+    { get; } = new();
 
     /// <inheritdoc />
     public override FieldMiddleware CreateExecutor<TEntityType>(string argumentName)
@@ -45,7 +55,20 @@ public class ElasticSearchSortProvider : SortProvider<ElasticSearchSortVisitorCo
         /// <inheritdoc />
         public IReadOnlyList<ElasticSearchSortOperation> Create(IResolverContext context, IAbstractElasticClient client)
         {
-            throw new NotImplementedException();
+            ElasticSearchSortVisitorContext? visitorContext = null;
+            IInputField argument = context.Selection.Field.Arguments[_argumentName];
+            IValueNode sort = context.ArgumentLiteral<IValueNode>(_argumentName);
+
+            if (argument.Type.ElementType().NamedType() is ISortInputType sortInputType)
+            {
+                visitorContext = new ElasticSearchSortVisitorContext(sortInputType, client);
+
+                _provider.Visitor.Visit(sort, visitorContext);
+
+                return visitorContext.Operations.ToArray();
+            }
+
+            return Array.Empty<ElasticSearchSortOperation>();
         }
     }
 }

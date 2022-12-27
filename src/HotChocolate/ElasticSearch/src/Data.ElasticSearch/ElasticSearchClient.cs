@@ -43,8 +43,20 @@ internal class ElasticSearchClient : IAbstractElasticClient
     /// <inheritdoc />
     public string GetName(ISortField field)
     {
-        throw new NotImplementedException();
+        if (field.Member is PropertyInfo propertyInfo)
+        {
+            return AddKeywordSuffix(_client.Infer.Field(new Field(propertyInfo)));
+        }
+
+        if (field.Member is { Name: { } memberName })
+        {
+            return AddKeywordSuffix(memberName);
+        }
+
+        return AddKeywordSuffix(field.Name);
     }
+
+    private string AddKeywordSuffix(string val) => $"{val}.keyword";
 
     /// <summary>
     /// Creates a new instance of <see cref="ElasticSearchClient"/> based on the

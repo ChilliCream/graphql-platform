@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Data.ElasticSearch.Filters;
+using HotChocolate.Data.ElasticSearch.Sorting;
 using HotChocolate.Resolvers;
 using Nest;
 
@@ -17,16 +18,38 @@ public static class ElasticSearchResolverContextExtensions
         this IElasticClient client,
         IResolverContext context)
     {
-        if (!context.TryGetQueryFactory(out IElasticQueryFactory? factory))
+        var searchRequest = new SearchRequest
         {
-            return null;
+            Query = new MatchAllQuery()
+        };
+
+        if (context.TryGetQueryFactory(out IElasticQueryFactory? factory))
+        {
+            BoolOperation? operation = factory.Create(context, ElasticSearchClient.From(client));
+            if (operation is not null)
+            {
+                searchRequest.Query = CreateQuery(operation);
+            }
         }
 
-        BoolOperation? operation = factory.Create(context, ElasticSearchClient.From(client));
+        if (context.TryGetSortFactory(out IElasticSortFactory? sortFactory))
+        {
+            var sorting = sortFactory
+                .Create(context, ElasticSearchClient.From(client))
+                .Select(sortOperation => new FieldSort
+                {
+                    Field = new Field(sortOperation.Path),
+                    Order = sortOperation.Direction == ElasticSearchSortDirection.Ascending
+                        ? SortOrder.Ascending
+                        : SortOrder.Descending
+                })
+                .OfType<ISort>()
+                .ToList();
 
-        return operation is not null
-            ? new SearchRequest { Query = CreateQuery(operation) }
-            : null;
+            searchRequest.Sort = sorting;
+        }
+
+        return searchRequest;
     }
 
     /// <summary>
@@ -37,37 +60,80 @@ public static class ElasticSearchResolverContextExtensions
         this IElasticClient client,
         IResolverContext context)
     {
-        if (!context.TryGetQueryFactory(out IElasticQueryFactory? factory))
+        var searchRequest = new SearchRequest<T>
         {
-            return null;
+            Query = new MatchAllQuery()
+        };
+
+        if (context.TryGetQueryFactory(out IElasticQueryFactory? factory))
+        {
+            BoolOperation? operation = factory.Create(context, ElasticSearchClient.From(client));
+            if (operation is not null)
+            {
+                searchRequest.Query = CreateQuery(operation);
+            }
         }
 
-        BoolOperation? operation = factory.Create(context, ElasticSearchClient.From(client));
+        if (context.TryGetSortFactory(out IElasticSortFactory? sortFactory))
+        {
+            var sorting = sortFactory
+                .Create(context, ElasticSearchClient.From(client))
+                .Select(sortOperation => new FieldSort
+                {
+                    Field = new Field(sortOperation.Path),
+                    Order = sortOperation.Direction == ElasticSearchSortDirection.Ascending
+                        ? SortOrder.Ascending
+                        : SortOrder.Descending
+                })
+                .OfType<ISort>()
+                .ToList();
 
-        return operation is not null
-            ? new SearchRequest<T> { Query = CreateQuery(operation) }
-            : null;
+            searchRequest.Sort = sorting;
+        }
+
+        return searchRequest;
     }
 
     /// <summary>
     /// Creates a new <see cref="SearchDescriptor{T}"/> based on the current
     /// <paramref name="context"/>
     /// </summary>
-    public static SearchDescriptor<T>? CreateSearchDescriptor<T>(
+    public static SearchDescriptor<T> CreateSearchDescriptor<T>(
         this IElasticClient client,
         IResolverContext context)
         where T : class
     {
-        if (!context.TryGetQueryFactory(out IElasticQueryFactory? factory))
+
+        var searchDescriptor = new SearchDescriptor<T>();
+        searchDescriptor.Query(q => q.MatchAll());
+
+        if (context.TryGetQueryFactory(out IElasticQueryFactory? factory))
         {
-            return null;
+            BoolOperation? operation = factory.Create(context, ElasticSearchClient.From(client));
+            if (operation is not null)
+            {
+                searchDescriptor.Query(_ => CreateQuery(operation));
+            }
         }
 
-        BoolOperation? operation = factory.Create(context, ElasticSearchClient.From(client));
+        if (context.TryGetSortFactory(out IElasticSortFactory? sortFactory))
+        {
+            var sorting = sortFactory.Create(context, ElasticSearchClient.From(client));
+            searchDescriptor.Sort(descriptor =>
+            {
+                foreach (var sortOperation in sorting)
+                {
+                    descriptor.Field(new Field(sortOperation.Path),
+                        sortOperation.Direction == ElasticSearchSortDirection.Ascending
+                            ? SortOrder.Ascending
+                            : SortOrder.Descending);
+                }
 
-        return operation is not null
-            ? new SearchDescriptor<T>().Query(_ => CreateQuery(operation))
-            : null;
+                return descriptor;
+            });
+        }
+
+        return searchDescriptor;
     }
 
     private static bool TryGetQueryFactory(
@@ -76,6 +142,21 @@ public static class ElasticSearchResolverContextExtensions
     {
         if (context.LocalContextData.TryGetValue(nameof(IElasticQueryFactory), out object? value) &&
             value is IElasticQueryFactory f)
+        {
+            factory = f;
+            return true;
+        }
+
+        factory = null;
+        return false;
+    }
+
+    private static bool TryGetSortFactory(
+        this IResolverContext context,
+        [NotNullWhen(true)] out IElasticSortFactory? factory)
+    {
+        if (context.LocalContextData.TryGetValue(nameof(IElasticSortFactory), out object? value) &&
+            value is IElasticSortFactory f)
         {
             factory = f;
             return true;
