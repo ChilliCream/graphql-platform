@@ -1,4 +1,5 @@
 using HotChocolate.Data.Filters;
+using HotChocolate.Data.Sorting;
 
 namespace HotChocolate.Data.ElasticSearch.Filters;
 
@@ -12,4 +13,9 @@ public interface IAbstractElasticClient
     /// Gets the name of the field as a string value
     /// </summary>
     string GetName(IFilterField field);
+
+    /// <summary>
+    /// Gets the name of the field as a string value
+    /// </summary>
+    string GetName(ISortField field);
 }

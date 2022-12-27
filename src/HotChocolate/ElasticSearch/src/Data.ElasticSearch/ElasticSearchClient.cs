@@ -1,6 +1,7 @@
 using System.Reflection;
 using HotChocolate.Data.ElasticSearch.Filters;
 using HotChocolate.Data.Filters;
+using HotChocolate.Data.Sorting;
 using Nest;
 
 namespace HotChocolate.Data.ElasticSearch;
@@ -37,6 +38,12 @@ internal class ElasticSearchClient : IAbstractElasticClient
         }
 
         return field.Name;
+    }
+
+    /// <inheritdoc />
+    public string GetName(ISortField field)
+    {
+        throw new NotImplementedException();
     }
 
     /// <summary>
