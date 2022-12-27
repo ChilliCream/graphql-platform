@@ -28,10 +28,6 @@ public class ElasticSearchComparableGreaterThanHandler : ElasticSearchComparable
             {
                 GreaterThan = new RangeOperationValue<double>(floatValue)
             },
-            string stringValue => new RangeOperation<string>(context.GetPath(), ElasticSearchOperationKind.Filter)
-            {
-                GreaterThan = new RangeOperationValue<string>(stringValue)
-            },
             DateTime dateTimeVal => new RangeOperation<DateTime>(context.GetPath(), ElasticSearchOperationKind.Filter)
             {
                 GreaterThan = new RangeOperationValue<DateTime>(dateTimeVal)

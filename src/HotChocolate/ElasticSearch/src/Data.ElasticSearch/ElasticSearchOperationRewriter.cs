@@ -87,19 +87,6 @@ public class ElasticSearchOperationRewriter : SearchOperationRewriter<IQuery>
     }
 
     /// <inheritdoc />
-    protected override IQuery Rewrite(RangeOperation<string> operation)
-    {
-        return new TermRangeQuery
-        {
-            Field = operation.Path,
-            GreaterThan = operation.GreaterThan?.Value,
-            LessThan = operation.LowerThan?.Value,
-            GreaterThanOrEqualTo = operation.GreaterThanOrEquals?.Value,
-            LessThanOrEqualTo = operation.LowerThanOrEquals?.Value
-        };
-    }
-
-    /// <inheritdoc />
     protected override IQuery Rewrite(RangeOperation<DateTime> operation)
     {
         return new DateRangeQuery

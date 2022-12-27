@@ -20,7 +20,6 @@ public abstract class SearchOperationRewriter<T>
         {
             BoolOperation o => Rewrite(o),
             MatchOperation o => Rewrite(o),
-            RangeOperation<string> o => Rewrite(o),
             RangeOperation<double> o => Rewrite(o),
             RangeOperation<long> o => Rewrite(o),
             RangeOperation<DateTime> o => Rewrite(o),
@@ -44,13 +43,6 @@ public abstract class SearchOperationRewriter<T>
     /// <param name="operation">The operation to rewrite</param>
     /// <returns>The rewritten operation</returns>
     protected abstract T Rewrite(MatchOperation operation);
-
-    /// <summary>
-    /// Rewrites <see cref="RangeOperation"/> to <typeparamref name="T"/>
-    /// </summary>
-    /// <param name="operation">The operation to rewrite</param>
-    /// <returns>The rewritten operation</returns>
-    protected abstract T Rewrite(RangeOperation<string> operation);
 
     /// <summary>
     /// Rewrites <see cref="RangeOperation"/> to <typeparamref name="T"/>
