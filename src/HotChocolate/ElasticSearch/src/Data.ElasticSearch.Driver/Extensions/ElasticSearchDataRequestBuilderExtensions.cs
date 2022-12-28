@@ -27,6 +27,14 @@ public static class ElasticSearchDataRequestBuilderExtensions
     public static IRequestExecutorBuilder AddElasticSearchSorting(this IRequestExecutorBuilder builder,
         string? name = null) => builder.ConfigureSchema(s => s.AddElasticSearchSorting(name));
 
+    /// <summary>
+    /// Adds offset and cursor pagination providers for elastic search
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <param name="providerName"></param>
+    /// <param name="defaultProvider"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
     public static IRequestExecutorBuilder AddElasticSearchPagingProvider(
         this IRequestExecutorBuilder builder,
         string? providerName = null,
@@ -38,6 +46,10 @@ public static class ElasticSearchDataRequestBuilderExtensions
         }
 
         builder.AddOffsetPagingProvider<ElasticSearchOffsetPagingProvider>(
+            providerName,
+            defaultProvider);
+
+        builder.AddCursorPagingProvider<ElasticSearchCursorPagingProvider>(
             providerName,
             defaultProvider);
 

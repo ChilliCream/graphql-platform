@@ -1,0 +1,26 @@
+﻿{
+  "data": {
+    "test": {
+      "edges": [
+        {
+          "node": {
+            "index": 19
+          },
+          "cursor": "MTk="
+        }
+      ],
+      "nodes": [
+        {
+          "index": 19
+        }
+      ],
+      "pageInfo": {
+        "hasNextPage": false,
+        "hasPreviousPage": true,
+        "startCursor": "MTk=",
+        "endCursor": "MTk="
+      },
+      "totalCount": 20
+    }
+  }
+}
