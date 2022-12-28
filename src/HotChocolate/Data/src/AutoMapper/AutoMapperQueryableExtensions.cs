@@ -46,17 +46,41 @@ public static class AutoMapperQueryableExtensions
         return queryable.ProjectTo(mapper.ConfigurationProvider, membersToExpand.ToArray());
     }
 
-    private static IEnumerable<Expression<Func<T, TTarget>>> GetMembersToExpand<T, TTarget>(
+    public static IEnumerable<Expression<Func<T, TTarget>>> GetMembersToExpand<T, TTarget>(
         this QueryableProjectionContext context)
         where T : TTarget
     {
         if (context.TryGetQueryableScope(out var scope))
-        {
-            foreach (var assignment in scope.Level.Peek())
+            foreach (var memberAssignment in scope.Level.Peek())
             {
-                var expression = Expression.Convert(assignment.Expression, typeof(TTarget));
-                yield return Expression.Lambda<Func<T, TTarget>>(expression, scope.Parameter);
+                foreach (var expression in memberAssignment.Expression.Unpack())
+                {
+                    yield return Expression.Lambda<Func<T, TTarget>>(Expression.Convert(expression, typeof(TTarget)), scope.Parameter);
+                }
             }
+    }
+
+    private static IEnumerable<Expression> Unpack(this Expression expression)
+    {
+        switch (expression)
+        {
+            case MethodCallExpression methodCallExpression when methodCallExpression.Arguments[0] is MethodCallExpression nestedMethodCallExpression:
+                foreach (MemberAssignment binding in ((MemberInitExpression)((LambdaExpression)nestedMethodCallExpression.Arguments[1]).Body).Bindings)
+                {
+                    foreach (var expr in binding.Expression.Unpack())
+                        yield return Expression.Call(
+                            typeof(Enumerable),
+                            nameof(Enumerable.Select),
+                            new[] { nestedMethodCallExpression.Arguments[0].Type.GenericTypeArguments[0], expr.Type },
+                            nestedMethodCallExpression.Arguments[0],
+                            Expression.Lambda(expr, ((LambdaExpression)nestedMethodCallExpression.Arguments[1]).Parameters[0])
+                        );
+                }
+
+                break;
+            case MemberExpression memberExpression:
+                yield return expression;
+                break;
         }
     }
 }
