@@ -1,5 +1,4 @@
-﻿using HotChocolate.Data.ElasticSearch.Filters;
-using HotChocolate.Data.Filters;
+﻿using HotChocolate.Data.ElasticSearch.Execution;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -32,43 +31,27 @@ public class ElasticSearchSortProvider : SortProvider<ElasticSearchSortVisitorCo
             FieldDelegate next,
             IMiddlewareContext context)
         {
-            context.LocalContextData =
-                context.LocalContextData.SetItem(nameof(IElasticSortFactory),
-                    new ElasticSortFactory(this, argumentName));
-            await next(context).ConfigureAwait(false);
-        }
-    }
-
-    private class ElasticSortFactory : IElasticSortFactory
-    {
-        private readonly ElasticSearchSortProvider _provider;
-        private readonly string _argumentName;
-
-        public ElasticSortFactory(
-            ElasticSearchSortProvider provider,
-            string argumentName)
-        {
-            _provider = provider;
-            _argumentName = argumentName;
-        }
-
-        /// <inheritdoc />
-        public IReadOnlyList<ElasticSearchSortOperation> Create(IResolverContext context, IAbstractElasticClient client)
-        {
             ElasticSearchSortVisitorContext? visitorContext = null;
-            IInputField argument = context.Selection.Field.Arguments[_argumentName];
-            IValueNode sort = context.ArgumentLiteral<IValueNode>(_argumentName);
+            var argument = context.Selection.Field.Arguments[argumentName];
+            IValueNode sort = context.ArgumentLiteral<IValueNode>(argumentName);
 
             if (argument.Type.ElementType().NamedType() is ISortInputType sortInputType)
             {
-                visitorContext = new ElasticSearchSortVisitorContext(sortInputType, client);
+                visitorContext = new ElasticSearchSortVisitorContext(sortInputType);
 
-                _provider.Visitor.Visit(sort, visitorContext);
+                Visitor.Visit(sort, visitorContext);
 
-                return visitorContext.Operations.ToArray();
+                await next(context).ConfigureAwait(false);
+
+                if (context.Result is IElasticSearchExecutable executable)
+                {
+                    executable.WithSorting(visitorContext.Operations.ToArray());
+                }
             }
-
-            return Array.Empty<ElasticSearchSortOperation>();
+            else
+            {
+                await next(context).ConfigureAwait(false);
+            }
         }
     }
 }

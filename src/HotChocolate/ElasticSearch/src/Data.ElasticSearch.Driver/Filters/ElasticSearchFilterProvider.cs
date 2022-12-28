@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
+using HotChocolate.Data.ElasticSearch.Execution;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -42,69 +43,47 @@ public class ElasticSearchFilterProvider
             FieldDelegate next,
             IMiddlewareContext context)
         {
-            context.LocalContextData =
-                context.LocalContextData.SetItem(nameof(IElasticQueryFactory),
-                    new ElasticQueryFactory(this, argumentName));
-            await next(context).ConfigureAwait(false);
-        }
-    }
-
-    public override IFilterMetadata? CreateMetaData(
-        ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition)
-    {
-        if (!fieldDefinition.ContextData
-                .TryGetValue(nameof(ElasticFilterMetadata), out object? metadata))
-        {
-            return null;
-        }
-
-        fieldDefinition.ContextData.Remove(nameof(ElasticFilterMetadata));
-
-        return metadata as ElasticFilterMetadata;
-    }
-
-    private class ElasticQueryFactory : IElasticQueryFactory
-    {
-        private readonly ElasticSearchFilterProvider _provider;
-        private readonly string _argumentName;
-
-        public ElasticQueryFactory(
-            ElasticSearchFilterProvider provider,
-            string argumentName)
-        {
-            _provider = provider;
-            _argumentName = argumentName;
-        }
-
-        public BoolOperation? Create(
-            IResolverContext context,
-            IAbstractElasticClient client)
-        {
             ElasticSearchFilterVisitorContext? visitorContext = null;
-            IInputField argument = context.Selection.Field.Arguments[_argumentName];
-            IValueNode filter = context.ArgumentLiteral<IValueNode>(_argumentName);
+            var argument = context.Selection.Field.Arguments[argumentName];
+            var filter = context.ArgumentLiteral<IValueNode>(argumentName);
 
             if (filter is not NullValueNode && argument.Type is IFilterInputType filterInput)
             {
-                visitorContext = new ElasticSearchFilterVisitorContext(filterInput, client);
+                visitorContext = new ElasticSearchFilterVisitorContext(filterInput);
 
-                _provider.Visitor.Visit(filter, visitorContext);
+                Visitor.Visit(filter, visitorContext);
 
-                if (!visitorContext.TryCreateQuery(out BoolOperation? whereQuery) ||
-                    visitorContext.Errors.Count > 0)
+                if (visitorContext.Errors.Count > 0)
                 {
-                    foreach (IError error in visitorContext.Errors)
+                    context.Result = Array.Empty<TEntityType>();
+                    foreach (var error in visitorContext.Errors)
                     {
                         context.ReportError(error.WithPath(context.Path));
                     }
                 }
+                else
+                {
+                    if (!visitorContext.TryCreateQuery(out BoolOperation? whereQuery) ||
+                        visitorContext.Errors.Count > 0)
+                    {
+                        foreach (IError error in visitorContext.Errors)
+                        {
+                            context.ReportError(error.WithPath(context.Path));
+                        }
+                    }
+                    await next(context).ConfigureAwait(false);
 
-                return whereQuery;
+
+                    if (context.Result is IElasticSearchExecutable executable)
+                    {
+                        context.Result = executable.WithFiltering(whereQuery!);
+                    }
+                }
             }
-
-            return null;
+            else
+            {
+                await next(context).ConfigureAwait(false);
+            }
         }
     }
 }

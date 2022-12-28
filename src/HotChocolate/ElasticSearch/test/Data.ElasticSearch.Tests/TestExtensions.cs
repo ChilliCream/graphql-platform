@@ -6,8 +6,10 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Elasticsearch.Net;
+using HotChocolate.Data.ElasticSearch.Execution;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Nest;
@@ -32,17 +34,7 @@ public static class TestExtensions
         IEnumerable<T> data)
         where T : class
         => field
-            .Type<ListType<ObjectType<T>>>()
-            .Resolve(async context =>
-            {
-                SearchDescriptor<T> searchRequest = client.CreateSearchDescriptor<T>(context)!;
-                searchRequest.Explain();
-
-                ISearchResponse<T> result =
-                    await client.SearchAsync<T>(searchRequest);
-
-                return result.Hits.Select(x => x.Source);
-            });
+            .Resolve(_ => client.AsExecutable<T>());
 
     public static ValueTask<IRequestExecutor> BuildTestExecutorAsync(
         this IRequestExecutorBuilder builder) =>
@@ -52,12 +44,12 @@ public static class TestExtensions
                 {
                     await next(context);
 
-                    if (context.ContextData.TryGetValue(nameof(SearchRequest), out var queryString))
+                    if (context.ContextData.TryGetValue(nameof(IElasticSearchExecutable), out var val) && val is IElasticSearchExecutable executable)
                     {
                         context.Result =
                             QueryResultBuilder
                                 .FromResult(context.Result!.ExpectQueryResult())
-                                .SetContextData(nameof(SearchRequest), queryString)
+                                .SetContextData(nameof(SearchRequest), executable.Print())
                                 .Create();
                     }
                 })
@@ -68,18 +60,13 @@ public static class TestExtensions
             .GetRequestExecutorAsync();
 
     public static IObjectFieldDescriptor UseTestReport(
-        this IObjectFieldDescriptor descriptor,
-        IElasticClient client) =>
+        this IObjectFieldDescriptor descriptor) =>
         descriptor.Use(next => async context =>
         {
             await next(context);
-            MemoryStream stream = new();
-            SerializableData<SearchRequest> data = new(client.CreateSearchRequest(context)!);
-            data.Write(stream, new ConnectionSettings(new InMemoryConnection()));
-            stream.Position = 0;
-            JsonDocument deserialized = await JsonDocument.ParseAsync(stream);
-            JsonSerializerOptions options = new() { WriteIndented = true };
-            context.ContextData[nameof(SearchRequest)] =
-                JsonSerializer.Serialize(deserialized, options);
+            if (context.Result is IElasticSearchExecutable executable)
+            {
+                context.ContextData[nameof(IElasticSearchExecutable)] = executable;
+            }
         });
 }

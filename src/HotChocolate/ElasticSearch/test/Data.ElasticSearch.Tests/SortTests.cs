@@ -79,7 +79,7 @@ public class SortTests : TestBase
                 .Name("Query")
                 .Field("test")
                 .UseSorting<SortInputType<Foo>>()
-                .UseTestReport(Client)
+                .UseTestReport()
                 .ResolveTestData(Client, _data))
             .AddElasticSearchSorting()
             .BuildTestExecutorAsync();

@@ -86,7 +86,7 @@ public class StringPrefixTests : TestBase
                 .Name("Query")
                 .Field("test")
                 .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
+                .UseTestReport()
                 .ResolveTestData(Client, _data))
             .AddElasticSearchFiltering()
             .BuildTestExecutorAsync();
@@ -114,7 +114,7 @@ public class StringPrefixTests : TestBase
                 .Name("Query")
                 .Field("test")
                 .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
+                .UseTestReport()
                 .ResolveTestData(Client, _data))
             .AddElasticSearchFiltering()
             .BuildTestExecutorAsync();
@@ -142,7 +142,7 @@ public class StringPrefixTests : TestBase
                 .Name("Query")
                 .Field("test")
                 .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
+                .UseTestReport()
                 .ResolveTestData(Client, _data))
             .AddElasticSearchFiltering()
             .BuildTestExecutorAsync();
@@ -170,7 +170,7 @@ public class StringPrefixTests : TestBase
                 .Name("Query")
                 .Field("test")
                 .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
+                .UseTestReport()
                 .ResolveTestData(Client, _data))
             .AddElasticSearchFiltering()
             .BuildTestExecutorAsync();
@@ -198,7 +198,7 @@ public class StringPrefixTests : TestBase
                 .Name("Query")
                 .Field("test")
                 .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
+                .UseTestReport()
                 .ResolveTestData(Client, _data))
             .AddElasticSearchFiltering()
             .BuildTestExecutorAsync();
@@ -230,7 +230,7 @@ public class StringPrefixTests : TestBase
                 .Name("Query")
                 .Field("test")
                 .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
+                .UseTestReport()
                 .ResolveTestData(Client, _data))
             .AddElasticSearchFiltering()
             .BuildTestExecutorAsync();
@@ -262,7 +262,7 @@ public class StringPrefixTests : TestBase
                 .Name("Query")
                 .Field("test")
                 .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
+                .UseTestReport()
                 .ResolveTestData(Client, _data))
             .AddElasticSearchFiltering()
             .BuildTestExecutorAsync();
@@ -290,7 +290,7 @@ public class StringPrefixTests : TestBase
                 .Name("Query")
                 .Field("test")
                 .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
+                .UseTestReport()
                 .ResolveTestData(Client, _data))
             .AddElasticSearchFiltering()
             .BuildTestExecutorAsync();
@@ -318,7 +318,7 @@ public class StringPrefixTests : TestBase
                 .Name("Query")
                 .Field("test")
                 .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
+                .UseTestReport()
                 .ResolveTestData(Client, _data))
             .AddElasticSearchFiltering()
             .BuildTestExecutorAsync();
@@ -346,7 +346,7 @@ public class StringPrefixTests : TestBase
                 .Name("Query")
                 .Field("test")
                 .UseFiltering<FooFilterType>()
-                .UseTestReport(Client)
+                .UseTestReport()
                 .ResolveTestData(Client, _data))
             .AddElasticSearchFiltering()
             .BuildTestExecutorAsync();

@@ -1,5 +1,4 @@
-﻿using HotChocolate.Data.ElasticSearch.Filters;
-using HotChocolate.Data.Sorting;
+﻿using HotChocolate.Data.Sorting;
 using HotChocolate.Internal;
 
 namespace HotChocolate.Data.ElasticSearch.Sorting;
@@ -7,12 +6,11 @@ namespace HotChocolate.Data.ElasticSearch.Sorting;
 public class ElasticSearchSortVisitorContext
     : SortVisitorContext<ElasticSearchSortOperation>
 {
+
+
     /// <inheritdoc />
-    public ElasticSearchSortVisitorContext(
-        ISortInputType initialType,
-        IAbstractElasticClient elasticClient) : base(initialType)
+    public ElasticSearchSortVisitorContext(ISortInputType initialType) : base(initialType)
     {
-        ElasticClient = elasticClient;
         RuntimeTypes = new Stack<IExtendedType>();
         RuntimeTypes.Push(initialType.EntityType);
     }
@@ -21,11 +19,6 @@ public class ElasticSearchSortVisitorContext
     /// The already visited runtime types
     /// </summary>
     public Stack<IExtendedType> RuntimeTypes { get; }
-
-    /// <summary>
-    /// The client that is used to execute the query
-    /// </summary>
-    public IAbstractElasticClient ElasticClient { get; }
 
     /// <summary>
     /// The path from the root to the current position in the input object

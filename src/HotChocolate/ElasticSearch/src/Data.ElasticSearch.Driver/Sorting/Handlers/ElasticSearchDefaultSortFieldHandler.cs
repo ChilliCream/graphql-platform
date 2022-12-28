@@ -35,7 +35,7 @@ public class ElasticSearchDefaultSortFieldHandler
             return false;
         }
 
-        context.Path.Push(context.ElasticClient.GetName(field));
+        context.Path.Push(field.Name);
         context.RuntimeTypes.Push(field.RuntimeType);
         action = SyntaxVisitor.Continue;
         return true;
