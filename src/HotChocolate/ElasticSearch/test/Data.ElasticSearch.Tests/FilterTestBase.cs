@@ -1,4 +1,6 @@
-﻿using HotChocolate.Execution;
+﻿using HotChocolate.Data.ElasticSearch.Filters;
+using HotChocolate.Data.Filters;
+using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
@@ -7,6 +9,7 @@ namespace HotChocolate.Data.ElasticSearch;
 
 public abstract class FilterTestBase<TData, TFilterType> : TestBase
     where TData : class
+    where TFilterType : FilterInputType<TData>
 {
     /// <inheritdoc />
     protected FilterTestBase(ElasticsearchResource resource) : base(resource)
@@ -35,6 +38,7 @@ public abstract class FilterTestBase<TData, TFilterType> : TestBase
     {
         return await new ServiceCollection()
             .AddGraphQL()
+            .AddFiltering(x => x.BindRuntimeType<TData,TFilterType>().AddElasticSearchDefaults())
             .AddQueryType(x => x
                 .Name("Query")
                 .Field("test")

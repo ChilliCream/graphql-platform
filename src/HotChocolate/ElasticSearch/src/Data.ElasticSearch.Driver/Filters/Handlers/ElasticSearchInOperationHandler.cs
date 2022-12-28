@@ -25,8 +25,7 @@ public class ElasticSearchInOperationHandler
         ITypeCompletionContext context,
         IFilterInputTypeDefinition typeDefinition,
         IFilterFieldDefinition fieldDefinition)
-        => context.Type is IListFilterInputType &&
-           fieldDefinition is FilterOperationFieldDefinition { Id: DefaultFilterOperations.In };
+        => fieldDefinition is FilterOperationFieldDefinition { Id: DefaultFilterOperations.In };
 
     /// <inheritdoc />
     public override ISearchOperation HandleOperation(
