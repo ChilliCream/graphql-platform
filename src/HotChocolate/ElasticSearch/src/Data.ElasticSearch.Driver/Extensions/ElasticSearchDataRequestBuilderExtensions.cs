@@ -1,4 +1,5 @@
 using HotChocolate.Data.ElasticSearch;
+using HotChocolate.Data.ElasticSearch.Paging;
 using HotChocolate.Execution.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -25,4 +26,21 @@ public static class ElasticSearchDataRequestBuilderExtensions
 
     public static IRequestExecutorBuilder AddElasticSearchSorting(this IRequestExecutorBuilder builder,
         string? name = null) => builder.ConfigureSchema(s => s.AddElasticSearchSorting(name));
+
+    public static IRequestExecutorBuilder AddElasticSearchPagingProvider(
+        this IRequestExecutorBuilder builder,
+        string? providerName = null,
+        bool defaultProvider = false)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        builder.AddOffsetPagingProvider<ElasticSearchOffsetPagingProvider>(
+            providerName,
+            defaultProvider);
+
+        return builder;
+    }
 }

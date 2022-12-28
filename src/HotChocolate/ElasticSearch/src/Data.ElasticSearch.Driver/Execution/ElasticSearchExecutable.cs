@@ -5,8 +5,7 @@ using HotChocolate.Data.Sorting;
 namespace HotChocolate.Data.ElasticSearch.Execution;
 
 public abstract class ElasticSearchExecutable<T> :
-    IElasticSearchExecutable,
-    IExecutable<T>
+    IElasticSearchExecutable<T>
 {
     protected BoolOperation? Filters { get; private set; }
 
@@ -31,12 +30,6 @@ public abstract class ElasticSearchExecutable<T> :
     public abstract object Source { get; }
 
     /// <inheritdoc />
-    public abstract string GetName(IFilterField field);
-
-    /// <inheritdoc />
-    public abstract string GetName(ISortField field);
-
-    /// <inheritdoc />
     public IElasticSearchExecutable WithFiltering(BoolOperation filters)
     {
         Filters = filters;
@@ -57,4 +50,10 @@ public abstract class ElasticSearchExecutable<T> :
         Skip = skip;
         return this;
     }
+
+    /// <inheritdoc />
+    public abstract Task<IList<T>> ExecuteAsync(CancellationToken cancellationToken);
+
+    /// <inheritdoc />
+    public abstract Task<int> CountAsync(CancellationToken cancellationToken);
 }

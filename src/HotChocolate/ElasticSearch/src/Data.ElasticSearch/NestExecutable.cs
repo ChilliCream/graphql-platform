@@ -32,32 +32,20 @@ public sealed class NestExecutable<T> : ElasticSearchExecutable<T> where T : cla
     }
 
     /// <inheritdoc />
-    public override string GetName(IFilterField field)
+    public override async Task<IList<T>> ExecuteAsync(CancellationToken cancellationToken)
     {
-        IElasticFilterMetadata metadata = field.GetElasticMetadata();
-        if (metadata.Name is { }) return metadata.Name;
-
-        if (field.Member is PropertyInfo propertyInfo) return _elasticClient.Infer.Field(new Field(propertyInfo));
-
-        if (field.Member is {Name: { } memberName}) return memberName;
-
-        return field.Name;
+        var searchDescriptor = CreateQuery();
+        var result = await _elasticClient.SearchAsync<T>(searchDescriptor, cancellationToken);
+        return result.Hits.Select(hit => hit.Source).ToList();
     }
 
     /// <inheritdoc />
-    public override string GetName(ISortField field)
+    public override async Task<int> CountAsync(CancellationToken cancellationToken)
     {
-        if (field.Member is PropertyInfo propertyInfo)
-        {
-            return AddKeywordSuffix(_elasticClient.Infer.Field(new Field(propertyInfo)));
-        }
-
-        if (field.Member is { Name: { } memberName })
-        {
-            return AddKeywordSuffix(memberName);
-        }
-
-        return AddKeywordSuffix(field.Name);
+        var searchDescriptor = CreateQuery();
+        searchDescriptor.Size = 0;
+        var result = await _elasticClient.SearchAsync<T>(searchDescriptor, cancellationToken);
+        return (int)result.Total;
     }
 
     /// <inheritdoc />
@@ -84,9 +72,8 @@ public sealed class NestExecutable<T> : ElasticSearchExecutable<T> where T : cla
     /// <inheritdoc />
     public override async ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
     {
-        var searchDescriptor = CreateQuery();
-        var result = await _elasticClient.SearchAsync<T>(searchDescriptor, cancellationToken);
-        return result.Hits.Select(hit => hit.Source).ToList();
+        var result = await ExecuteAsync(cancellationToken);
+        return result.ToList();
     }
 
     private string AddKeywordSuffix(string val) => $"{val}.keyword";

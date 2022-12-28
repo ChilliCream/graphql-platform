@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\ElasticSearch\src\Data.ElasticSearch\HotChocolate.Data.ElasticSearch.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types.OffsetPagination\HotChocolate.Types.OffsetPagination.csproj" />
   </ItemGroup>
 
   <ItemGroup>
