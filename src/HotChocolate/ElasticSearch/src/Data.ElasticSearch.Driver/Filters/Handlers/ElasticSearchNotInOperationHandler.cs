@@ -25,8 +25,7 @@ public class ElasticSearchNotInOperationHandler : ElasticSearchInOperationHandle
         ITypeCompletionContext context,
         IFilterInputTypeDefinition typeDefinition,
         IFilterFieldDefinition fieldDefinition)
-        => context.Type is StringOperationFilterInputType &&
-           fieldDefinition is FilterOperationFieldDefinition
+        => fieldDefinition is FilterOperationFieldDefinition
            {
                Id: DefaultFilterOperations.NotIn
            };

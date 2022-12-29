@@ -1,4 +1,5 @@
-﻿using HotChocolate.Configuration;
+﻿using System.Collections;
+using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -34,11 +35,21 @@ public class ElasticSearchInOperationHandler
         IValueNode value,
         object? parsedValue)
     {
+
         if (parsedValue is null)
         {
             throw new InvalidOperationException();
         }
 
-        return new TermOperation(context.GetPath(), ElasticSearchOperationKind.Filter, parsedValue);
+        var enumerable = ((IEnumerable)parsedValue).Cast<object>().ToList();
+        var shouldOperations = enumerable
+            .Select(val => new MatchOperation(context.GetPath(), ElasticSearchOperationKind.Filter, val.ToString()))
+            .ToList();
+
+        return new BoolOperation(
+            Array.Empty<ISearchOperation>(),
+            shouldOperations,
+            Array.Empty<ISearchOperation>(),
+            Array.Empty<ISearchOperation>());
     }
 }
