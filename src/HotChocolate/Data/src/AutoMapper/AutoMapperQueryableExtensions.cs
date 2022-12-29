@@ -1,12 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using HotChocolate.Data.Projections.Expressions;
 using HotChocolate.Resolvers;
-using static HotChocolate.Data.Projections.Expressions.QueryableProjectionProvider;
+using System.Linq.Expressions;
+using System.Reflection;
 
 namespace HotChocolate.Data;
 
@@ -32,7 +29,7 @@ public static class AutoMapperQueryableExtensions
         IMapper mapper = context.Service<IMapper>();
 
         // ensure projections are only applied once
-        context.LocalContextData = context.LocalContextData.SetItem(SkipProjectionKey, true);
+        context.LocalContextData = context.LocalContextData.SetItem(QueryableProjectionProvider.SkipProjectionKey, true);
 
         QueryableProjectionContext visitorContext =
             new(context, context.ObjectType, context.Selection.Field.Type.UnwrapRuntimeType());
@@ -40,47 +37,37 @@ public static class AutoMapperQueryableExtensions
         QueryableProjectionVisitor.Default.Visit(visitorContext);
 
 #pragma warning disable CS8631
-        var membersToExpand = visitorContext.GetMembersToExpand<TResult, object?>();
+        Expression<Func<TResult, object?>> projection = visitorContext.Project<TResult, object?>();
 #pragma warning restore CS8631
 
-        return queryable.ProjectTo(mapper.ConfigurationProvider, membersToExpand.ToArray());
-    }
+        var memberInfos = MemberVisitor.GetMemberPath(projection);
+        var membersToExpand = new List<string>();
 
-    public static IEnumerable<Expression<Func<T, TTarget>>> GetMembersToExpand<T, TTarget>(
-        this QueryableProjectionContext context)
-        where T : TTarget
-    {
-        if (context.TryGetQueryableScope(out var scope))
-            foreach (var memberAssignment in scope.Level.Peek())
+        for (var i = 0; i < memberInfos.Length; i++)
+        {
+            var current = memberInfos[i];
+            var path = current.Name;
+            for (var j = i; j >= 0; j--)
             {
-                foreach (var expression in memberAssignment.Expression.Unpack())
+                if (memberInfos[j].HasProperty(current))
                 {
-                    yield return Expression.Lambda<Func<T, TTarget>>(Expression.Convert(expression, typeof(TTarget)), scope.Parameter);
+                    current = memberInfos[j];
+
+                    path = $"{current.Name}.{path}";
+                    if (memberInfos[j].ReflectedType == typeof(TResult))
+                        break;
                 }
             }
+            membersToExpand.Add(path);
+        }
+
+        return queryable.ProjectTo<TResult>(mapper.ConfigurationProvider, null, membersToExpand.Distinct().ToArray());
     }
 
-    private static IEnumerable<Expression> Unpack(this Expression expression)
+    private static bool HasProperty(this MemberInfo member, MemberInfo property)
     {
-        switch (expression)
-        {
-            case MethodCallExpression methodCallExpression when methodCallExpression.Arguments[0] is MethodCallExpression nestedMethodCallExpression:
-                foreach (MemberAssignment binding in ((MemberInitExpression)((LambdaExpression)nestedMethodCallExpression.Arguments[1]).Body).Bindings)
-                {
-                    foreach (var expr in binding.Expression.Unpack())
-                        yield return Expression.Call(
-                            typeof(Enumerable),
-                            nameof(Enumerable.Select),
-                            new[] { nestedMethodCallExpression.Arguments[0].Type.GenericTypeArguments[0], expr.Type },
-                            nestedMethodCallExpression.Arguments[0],
-                            Expression.Lambda(expr, ((LambdaExpression)nestedMethodCallExpression.Arguments[1]).Parameters[0])
-                        );
-                }
-
-                break;
-            case MemberExpression memberExpression:
-                yield return expression;
-                break;
-        }
+        return member.ReflectedType!.GetRuntimeProperties().Any(p =>
+        p.PropertyType == property.ReflectedType ||
+            (p.PropertyType.IsGenericType && p.PropertyType.GenericTypeArguments[0] == property.ReflectedType));
     }
 }
