@@ -1,19 +1,15 @@
 using System;
-using System.Text;
 
 namespace HotChocolate.Language;
 
 [Serializable]
-public class SyntaxException
-    : Exception
+public sealed class SyntaxException : Exception
 {
-    internal SyntaxException(Utf8GraphQLReader reader, string message)
-        : base(message)
+    internal SyntaxException(Utf8GraphQLReader reader, string message) : base(message)
     {
         Position = reader.Position;
         Line = reader.Line;
         Column = reader.Column;
-        SourceText = Encoding.UTF8.GetString(reader.GraphQLData.ToArray());
     }
 
     internal SyntaxException(Utf8GraphQLReader reader, string message, params object[] args)
@@ -26,6 +22,4 @@ public class SyntaxException
     public int Line { get; }
 
     public int Column { get; }
-
-    public string SourceText { get; }
 }
