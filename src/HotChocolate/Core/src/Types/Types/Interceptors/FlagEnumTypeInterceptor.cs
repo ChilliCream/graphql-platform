@@ -33,27 +33,30 @@ public class FlagsEnumInterceptor : TypeInterceptor
         _typeInitializer = typeInitializer;
     }
 
-    public override bool CanHandle(ITypeSystemObjectContext context)
-        => !context.IsIntrospectionType;
-
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
         switch (definition)
         {
             case ObjectTypeDefinition o:
                 ProcessOutputFields(o.Fields);
+
                 break;
+
             case InterfaceTypeDefinition i:
                 ProcessOutputFields(i.Fields);
+
                 break;
+
             case InputObjectTypeDefinition i:
                 ProcessInputFields(i.Fields);
+
                 break;
+
             case DirectiveTypeDefinition i:
                 ProcessArguments(i.Arguments);
+
                 break;
         }
     }
@@ -64,7 +67,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
         {
             ProcessArguments(field.Arguments);
 
-            if (IsFlagsEnum(field.Type, out Type? fieldType))
+            if (IsFlagsEnum(field.Type, out var fieldType))
             {
                 var type = CreateObjectType(fieldType);
                 field.Type = CreateTypeReference(field.Type, type);
@@ -76,7 +79,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
     {
         foreach (var arg in argumentDefinitions)
         {
-            if (IsFlagsEnum(arg.Type, out Type? t))
+            if (IsFlagsEnum(arg.Type, out var t))
             {
                 var type = CreateInputObjectType(t);
                 arg.Type = CreateTypeReference(arg.Type, type.Name);
@@ -85,7 +88,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
         }
     }
 
-    private void ProcessInputFields(IList<InputFieldDefinition> fields)
+    private void ProcessInputFields(IEnumerable<InputFieldDefinition> fields)
     {
         foreach (var field in fields)
         {
@@ -130,6 +133,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
 
         _outputTypeCache[type] = typeName;
         RegisterType(ObjectType.CreateUnsafe(objectTypeDefinition));
+
         return typeName;
     }
 
@@ -167,6 +171,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
 
         result = new RegisteredInputType(typeName, formatter);
         _inputTypeCache[type] = result;
+
         return result;
     }
 
@@ -175,10 +180,11 @@ public class FlagsEnumInterceptor : TypeInterceptor
         if (reference is not ExtendedTypeReference extReference)
         {
             type = null;
+
             return false;
         }
 
-        IExtendedType extendedType = extReference.Type;
+        var extendedType = extReference.Type;
 
         while (extendedType.ElementType is not null)
         {
@@ -186,6 +192,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
         }
 
         type = extendedType.Type;
+
         return extendedType.Type.IsDefined(typeof(FlagsAttribute), false);
     }
 
@@ -200,9 +207,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
         return $"is{char.ToUpper(valueName[0])}{valueName.Substring(1)}";
     }
 
-    private static ITypeReference? CreateTypeReference(
-        ITypeReference? reference,
-        string typeName)
+    private static ITypeReference? CreateTypeReference(ITypeReference? reference, string typeName)
     {
         if (reference is not ExtendedTypeReference extReference)
         {
@@ -210,6 +215,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
         }
 
         var referenceName = Rewrite(extReference.Type, typeName);
+
         return TypeReference.Parse(referenceName);
 
         static string Rewrite(IExtendedType reference, string typeName)
@@ -224,7 +230,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
         }
     }
 
-    private struct RegisteredInputType
+    private readonly struct RegisteredInputType
     {
         public RegisteredInputType(string name, IInputValueFormatter formatter)
         {
@@ -237,7 +243,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
         public IInputValueFormatter Formatter { get; }
     }
 
-    private class FlagsEnumFormatter<T> : IInputValueFormatter where T : struct, Enum
+    private sealed class FlagsEnumFormatter<T> : IInputValueFormatter where T : struct, Enum
     {
         private readonly Dictionary<string, object> _flags;
         private readonly InputObjectType _inputType;
@@ -248,12 +254,12 @@ public class FlagsEnumInterceptor : TypeInterceptor
             _inputType = inputType;
         }
 
-        public object OnAfterDeserialize(object? runtimeValue)
+        public object Format(object? runtimeValue)
         {
             if (runtimeValue is IDictionary<string, object> dict)
             {
                 T? value = null;
-                foreach (KeyValuePair<string, object> key in dict)
+                foreach (var key in dict)
                 {
                     if (key.Value is true)
                     {
@@ -277,7 +283,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
                 var list = new List<object>(l.Count);
                 for (var i = 0; i < l.Count; i++)
                 {
-                    list.Add(OnAfterDeserialize(l[i]));
+                    list.Add(Format(l[i]));
                 }
 
                 return list;
@@ -299,22 +305,26 @@ public class FlagsEnumInterceptor : TypeInterceptor
                 case 1:
                     byte b =
                         (byte)(Unsafe.As<T, byte>(ref e) | Unsafe.As<T, byte>(ref flag));
+
                     return Unsafe.As<byte, T>(ref b);
 
                 //short, ushort
                 case 2:
                     short s =
                         (short)(Unsafe.As<T, short>(ref e) | Unsafe.As<T, short>(ref flag));
+
                     return Unsafe.As<short, T>(ref s);
 
                 //int, uint
                 case 4:
                     uint i = Unsafe.As<T, uint>(ref e) | Unsafe.As<T, uint>(ref flag);
+
                     return Unsafe.As<uint, T>(ref i);
 
                 //long , ulong
                 case 8:
                     ulong l = Unsafe.As<T, ulong>(ref e) | Unsafe.As<T, ulong>(ref flag);
+
                     return Unsafe.As<ulong, T>(ref l);
 
                 default:
