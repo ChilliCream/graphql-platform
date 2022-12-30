@@ -1,15 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
-using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter;
 using Snapshooter.Xunit;
-using Xunit;
 using static HotChocolate.Types.Interceptors.FlagEnumInterceptorTests.FlagsEnum;
 
 namespace HotChocolate.Types.Interceptors;
@@ -104,7 +99,7 @@ public class FlagEnumInterceptorTests
 
         var executor3 = await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x => x.Name("Query").Field("test").Resolve(Baz | Bar | Foo))
+            .AddQueryType(x => x.Name("Query").Field("test").Resolve(Baz | Bar | FlagsEnum.Foo))
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
         var result3 = await executor3.ExecuteAsync("{ test {isBar isBaz isFoo }}");
@@ -165,7 +160,8 @@ public class FlagEnumInterceptorTests
 
         var executor3 = await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x => x.Name("Query").Field("test").Resolve((FlagsEnum?)Baz | Bar | Foo))
+            .AddQueryType(x
+                => x.Name("Query").Field("test").Resolve((FlagsEnum?)Baz | Bar | FlagsEnum.Foo))
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
         var result3 = await executor3.ExecuteAsync("{ test {isBar isBaz isFoo }}");
@@ -239,6 +235,7 @@ public class FlagEnumInterceptorTests
                 .Resolve(ctx =>
                 {
                     result1 = ctx.ArgumentValue<FlagsEnum>("input");
+
                     return "";
                 }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
@@ -255,6 +252,7 @@ public class FlagEnumInterceptorTests
                 .Resolve(ctx =>
                 {
                     result2 = ctx.ArgumentValue<FlagsEnum>("input");
+
                     return "";
                 }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
@@ -262,7 +260,7 @@ public class FlagEnumInterceptorTests
         await executor2.ExecuteAsync("{ test(input: {isBar: true, isBaz: false, isFoo: true}) }");
 
         Assert.Equal(result1, Bar);
-        Assert.Equal(result2, Bar | Foo);
+        Assert.Equal(result2, Bar | FlagsEnum.Foo);
     }
 
     [Fact]
@@ -278,6 +276,7 @@ public class FlagEnumInterceptorTests
                 .Resolve(ctx =>
                 {
                     result1 = ctx.ArgumentValue<List<FlagsEnum>>("input")[0];
+
                     return "";
                 }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
@@ -294,6 +293,7 @@ public class FlagEnumInterceptorTests
                 .Resolve(ctx =>
                 {
                     result2 = ctx.ArgumentValue<List<List<FlagsEnum>>>("input")[0][0];
+
                     return "";
                 }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
@@ -301,7 +301,7 @@ public class FlagEnumInterceptorTests
         await executor2.ExecuteAsync("{ test(input: {isBar: true, isBaz: false, isFoo: true}) }");
 
         Assert.Equal(result1, Bar);
-        Assert.Equal(result2, Bar | Foo);
+        Assert.Equal(result2, Bar | FlagsEnum.Foo);
     }
 
     [Fact]
@@ -317,6 +317,7 @@ public class FlagEnumInterceptorTests
                 .Resolve(ctx =>
                 {
                     result1 = ctx.ArgumentValue<SimpleInput>("input").Single;
+
                     return "";
                 }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
@@ -324,7 +325,7 @@ public class FlagEnumInterceptorTests
         await executor1.ExecuteAsync(
             "{ test(input: {single: {isBar: true, isBaz: false, isFoo: true}}) }");
 
-        Assert.Equal(result1, Bar | Foo);
+        Assert.Equal(result1, Bar | FlagsEnum.Foo);
     }
 
     [Fact]
@@ -340,6 +341,7 @@ public class FlagEnumInterceptorTests
                 .Resolve(ctx =>
                 {
                     enumValue = ctx.ArgumentValue<SimpleInput>("input").Single;
+
                     return "";
                 }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
@@ -363,6 +365,7 @@ public class FlagEnumInterceptorTests
                 .Resolve(ctx =>
                 {
                     enumValue = ctx.ArgumentValue<SimpleInput>("input").Single;
+
                     return "";
                 }))
             .AddDocumentFromString("extend input FlagsEnumFlagsInput { isAsd : Boolean }")
@@ -395,6 +398,7 @@ public class FlagEnumInterceptorTests
                 .Resolve(ctx =>
                 {
                     result = ctx.ArgumentValue<object>("input");
+
                     return "";
                 }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
@@ -407,18 +411,18 @@ public class FlagEnumInterceptorTests
 
     public class OutputQuery
     {
-        public FlagsEnum Single() => Bar | Foo;
+        public FlagsEnum Single() => Bar | FlagsEnum.Foo;
 
-        public FlagsEnum[] List() => new[] { Bar | Foo };
+        public FlagsEnum[] List() => new[] { Bar | FlagsEnum.Foo };
 
-        public FlagsEnum[][] NestedList() => new[] { new[] { Bar | Foo } };
+        public FlagsEnum[][] NestedList() => new[] { new[] { Bar | FlagsEnum.Foo } };
 
-        public FlagsEnum? NullableSingle() => Bar | Foo;
+        public FlagsEnum? NullableSingle() => Bar | FlagsEnum.Foo;
 
-        public FlagsEnum?[]? NullableList() => new FlagsEnum?[] { Bar | Foo };
+        public FlagsEnum?[]? NullableList() => new FlagsEnum?[] { Bar | FlagsEnum.Foo };
 
         public FlagsEnum?[]?[]? NullableNestedList()
-            => new[] { new FlagsEnum?[] { Bar | Foo } };
+            => new[] { new FlagsEnum?[] { Bar | FlagsEnum.Foo } };
     }
 
     [GraphQLDescription("This is the type desc")]
@@ -529,7 +533,6 @@ public class FlagEnumInterceptorTests
         Bar = 2,
         Baz = 4
     }
-
 
     [Flags]
     public enum LongEnum : long
