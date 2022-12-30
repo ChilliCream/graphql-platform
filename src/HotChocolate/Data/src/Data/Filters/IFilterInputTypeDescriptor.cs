@@ -47,18 +47,6 @@ public interface IFilterInputTypeDescriptor
     IFilterFieldDescriptor Field(string name);
 
     /// <summary>
-    /// Defines a <see cref="FilterField" /> with the specified name and also
-    /// configures the type of the field
-    /// </summary>
-    /// <param name="name">
-    /// The name of the field.
-    /// </param>
-    /// <param name="configure">The configuration of the type of the field</param>
-    IFilterFieldDescriptor Field(
-        string name,
-        Action<IFilterInputTypeDescriptor> configure);
-
-    /// <summary>
     /// Ignore the specified property.
     /// </summary>
     /// <param name="operationId">
