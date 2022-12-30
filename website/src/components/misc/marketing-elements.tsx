@@ -1,8 +1,14 @@
 import styled from "styled-components";
-import CheckIconSvg from "../../images/check.svg";
-import EnvelopeIconSvg from "../../images/envelope.svg";
-import SlackIconSvg from "../../images/slack.svg";
-import { THEME_COLORS } from "../../shared-style";
+
+import { Brand } from "@/components/sprites";
+import { THEME_COLORS } from "@/shared-style";
+
+// Brands
+import SlackIconSvg from "@/images/brands/slack.svg";
+
+// Icons
+import CheckIconSvg from "@/images/check.svg";
+import EnvelopeIconSvg from "@/images/envelope.svg";
 
 export const SectionRow = styled.div`
   display: flex;
@@ -82,7 +88,7 @@ export const ContentContainer = styled.div<{ noImage?: boolean }>`
   }
 `;
 
-export const SectionTitle = styled.h1<{ centerAlways?: boolean }>`
+export const SectionTitle = styled.h2<{ centerAlways?: boolean }>`
   flex: 0 0 auto;
   font-size: 1.75em;
   color: ${THEME_COLORS.text};
@@ -127,7 +133,7 @@ export const EnvelopeIcon = styled(EnvelopeIconSvg)`
   }
 `;
 
-export const SlackIcon = styled(SlackIconSvg)`
+export const SlackIcon = styled(Brand).attrs(SlackIconSvg)`
   width: 24px;
   height: 24px;
   vertical-align: middle;

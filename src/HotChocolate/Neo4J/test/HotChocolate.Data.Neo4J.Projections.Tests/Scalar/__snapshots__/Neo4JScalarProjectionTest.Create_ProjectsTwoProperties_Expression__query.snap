@@ -1,1 +1,0 @@
-﻿MATCH (fooScalar:FooScalar) RETURN fooScalar {.Bar, .Baz}

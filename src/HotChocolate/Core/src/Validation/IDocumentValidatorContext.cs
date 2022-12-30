@@ -128,9 +128,14 @@ public interface IDocumentValidatorContext : ISyntaxVisitorContext
     int Count { get; set; }
 
     /// <summary>
-    /// Gets ors sets a single max value counter.
+    /// Gets or sets a single max value counter.
     /// </summary>
     int Max { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value representing an allowed limit.
+    /// </summary>
+    int Allowed { get; set; }
 
     /// <summary>
     /// Gets a list of objects that can be used by validation rules.

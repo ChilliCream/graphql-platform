@@ -69,6 +69,22 @@ public static class QueryRequestBuilderExtensions
         builder.SetGlobalState(WellKnownContextData.NonPersistedQueryAllowed, true);
 
     /// <summary>
+    /// Skips the request execution depth analysis.
+    /// </summary>
+    public static IQueryRequestBuilder SkipExecutionDepthAnalysis(
+        this IQueryRequestBuilder builder) =>
+        builder.SetGlobalState(WellKnownContextData.SkipDepthAnalysis, null);
+
+    /// <summary>
+    /// Set allowed execution depth for this request and override the
+    /// global allowed execution depth.
+    /// </summary>
+    public static IQueryRequestBuilder SetMaximumAllowedExecutionDepth(
+        this IQueryRequestBuilder builder,
+        int maximumAllowedDepth) =>
+        builder.SetGlobalState(WellKnownContextData.MaxAllowedExecutionDepth, maximumAllowedDepth);
+
+    /// <summary>
     /// Registers a cleanup task for execution resources with the <see cref="IQueryResultBuilder"/>.
     /// </summary>
     /// <param name="builder">

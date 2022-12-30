@@ -76,6 +76,9 @@
     <Compile Update="Types\EnumType.Initialization.cs">
       <DependentUpon>EnumType.cs</DependentUpon>
     </Compile>
+    <Compile Update="Types\Scalars\ScalarType.Initialization.cs">
+      <DependentUpon>ScalarType.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

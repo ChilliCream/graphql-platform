@@ -1,10 +1,11 @@
 import { createGlobalStyle } from "styled-components";
+
 import {
   DEFAULT_THEME_COLORS,
   FONT_FAMILY,
   FONT_FAMILY_HEADING,
   THEME_COLORS,
-} from "../../shared-style";
+} from "@/shared-style";
 
 export const GlobalStyle = createGlobalStyle`
   :root {
@@ -243,15 +244,5 @@ export const GlobalStyle = createGlobalStyle`
   h5:hover a.anchor,
   h6:hover a.anchor {
     visibility: visible;
-  }
-
-  .sr-only:not(:focus):not(:active) {
-    clip: rect(0 0 0 0);
-    clip-path: inset(50%);
-    height: 1px;
-    overflow: hidden;
-    position: absolute;
-    white-space: nowrap;
-    width: 1px;
   }
 `;

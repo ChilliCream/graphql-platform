@@ -1,0 +1,1 @@
+MATCH (u:User) RETURN u {.name} ORDER BY u {.name} ASC

@@ -1,205 +1,238 @@
 import React, { FC } from "react";
 import styled from "styled-components";
-import { THEME_COLORS } from "../../shared-style";
-import { Link } from "../misc/link";
+
+import { Link } from "@/components/misc/link";
 import {
   ContentContainer,
   Section,
   SectionRow,
   SectionTitle,
-} from "../misc/marketing-elements";
+} from "@/components/misc/marketing-elements";
+import { Company } from "@/components/sprites";
+import { THEME_COLORS } from "@/shared-style";
+
 // Logos
-import AdditivLogoSvg from "../../images/companies/additiv.svg";
-import AeiLogoSvg from "../../images/companies/aei.svg";
-import AtminaLogoSvg from "../../images/companies/atmina.svg";
-import AutoguruLogoSvg from "../../images/companies/autoguru.svg";
-import BdnaLogoSvg from "../../images/companies/bdna.svg";
-import BeyableLogoSvg from "../../images/companies/beyable.svg";
-import BiqhLogoSvg from "../../images/companies/biqh.svg";
-import CarmmunityLogoSvg from "../../images/companies/carmmunity.svg";
-import CompassLogoSvg from "../../images/companies/compass.svg";
-import E2mLogoSvg from "../../images/companies/e2m.svg";
-import ExlrtLogoSvg from "../../images/companies/exlrt.svg";
-import EzeepLogoSvg from "../../images/companies/ezeep.svg";
-import GiaLogoSvg from "../../images/companies/gia.svg";
-import HiloLogoSvg from "../../images/companies/hilo.svg";
-import IncloudLogoSvg from "../../images/companies/incloud.svg";
-import InfoslipsLogoSvg from "../../images/companies/infoslips.svg";
-import MotiviewLogoSvg from "../../images/companies/motiview.svg";
-import OrderinLogoSvg from "../../images/companies/orderin.svg";
-import PoweredSoftLogoSvg from "../../images/companies/powered-soft.svg";
-import PushpayLogoSvg from "../../images/companies/pushpay.svg";
-import Seven2OneLogoSvg from "../../images/companies/seven-2-one.svg";
-import SolyticLogoSvg from "../../images/companies/solytic.svg";
-import SonikaLogoSvg from "../../images/companies/sonika.svg";
-import SpeedwayMotorsLogoSvg from "../../images/companies/speedway-motors.svg";
-import SplashbackLogoSvg from "../../images/companies/splashback.svg";
-import SweetGeeksLogoSvg from "../../images/companies/sweetgeeks.svg";
-import SwissLifeLogoSvg from "../../images/companies/swiss-life.svg";
-import SytadelleLogoSvg from "../../images/companies/sytadelle.svg";
-import TravelSoftLogoSvg from "../../images/companies/travel-soft.svg";
-import XMLogoSvg from "../../images/companies/xm.svg";
-import ZioskLogoSvg from "../../images/companies/ziosk.svg";
+import AdditivLogoSvg from "@/images/companies/additiv.svg";
+import AeiLogoSvg from "@/images/companies/aei.svg";
+import AtminaLogoSvg from "@/images/companies/atmina.svg";
+import AutoguruLogoSvg from "@/images/companies/autoguru.svg";
+import BdnaLogoSvg from "@/images/companies/bdna.svg";
+import BeyableLogoSvg from "@/images/companies/beyable.svg";
+import BiqhLogoSvg from "@/images/companies/biqh.svg";
+import CarmmunityLogoSvg from "@/images/companies/carmmunity.svg";
+import CompassLogoSvg from "@/images/companies/compass.svg";
+import E2mLogoSvg from "@/images/companies/e2m.svg";
+import ExlrtLogoSvg from "@/images/companies/exlrt.svg";
+import EzeepLogoSvg from "@/images/companies/ezeep.svg";
+import FulcrumLogoSvg from "@/images/companies/fulcrum.svg";
+import GiaLogoSvg from "@/images/companies/gia.svg";
+import HiloLogoSvg from "@/images/companies/hilo.svg";
+import IncloudLogoSvg from "@/images/companies/incloud.svg";
+import InfoslipsLogoSvg from "@/images/companies/infoslips.svg";
+import MotiviewLogoSvg from "@/images/companies/motiview.svg";
+import OrderinLogoSvg from "@/images/companies/orderin.svg";
+import PoweredSoftLogoSvg from "@/images/companies/powered-soft.svg";
+import PushpayLogoSvg from "@/images/companies/pushpay.svg";
+import RailCargoAustriaLogoSvg from "@/images/companies/rail-cargo-austria.svg";
+import Seven2OneLogoSvg from "@/images/companies/seven-2-one.svg";
+import SolyticLogoSvg from "@/images/companies/solytic.svg";
+import SonikaLogoSvg from "@/images/companies/sonika.svg";
+import SpectrumMedicalLogoSvg from "@/images/companies/spectrum-medical.svg";
+import SpeedwayMotorsLogoSvg from "@/images/companies/speedway-motors.svg";
+import SplashbackLogoSvg from "@/images/companies/splashback.svg";
+import SweetGeeksLogoSvg from "@/images/companies/sweetgeeks.svg";
+import SwissLifeLogoSvg from "@/images/companies/swiss-life.svg";
+import SytadelleLogoSvg from "@/images/companies/sytadelle.svg";
+import TrackmanLogoSvg from "@/images/companies/trackman.svg";
+import TravelSoftLogoSvg from "@/images/companies/travel-soft.svg";
+import VptechLogoSvg from "@/images/companies/vptech.svg";
+import XMLogoSvg from "@/images/companies/xm.svg";
+import ZioskLogoSvg from "@/images/companies/ziosk.svg";
 
 export const CompaniesSection: FC = () => (
   <Section>
     <SectionRow>
       <ContentContainer noImage>
-        <SectionTitle centerAlways>Companies who trust us</SectionTitle>
+        <SectionTitle centerAlways>Companies Who Trust Us</SectionTitle>
         <Logos>
           <Logo width={140}>
             <Link to="https://additiv.com">
-              <AdditivLogoSvg />
+              <Company {...AdditivLogoSvg} />
             </Link>
           </Logo>
           <Logo width={160}>
             <Link to="https://aeieng.com">
-              <AeiLogoSvg />
+              <Company {...AeiLogoSvg} />
             </Link>
           </Logo>
           <Logo width={100}>
             <Link to="https://atmina.de">
-              <AtminaLogoSvg />
+              <Company {...AtminaLogoSvg} />
             </Link>
           </Logo>
           <Logo width={180}>
             <Link to="https://www.autoguru.com.au">
-              <AutoguruLogoSvg />
+              <Company {...AutoguruLogoSvg} />
             </Link>
           </Logo>
           <Logo width={150}>
             <Link to="https://bdna.com.au">
-              <BdnaLogoSvg />
+              <Company {...BdnaLogoSvg} />
             </Link>
           </Logo>
           <Logo width={150}>
             <Link to="https://www.beyable.com">
-              <BeyableLogoSvg />
+              <Company {...BeyableLogoSvg} />
             </Link>
           </Logo>
           <Logo width={100}>
             <Link to="https://www.biqh.com">
-              <BiqhLogoSvg />
+              <Company {...BiqhLogoSvg} />
             </Link>
           </Logo>
           <Logo width={180}>
             <Link to="https://carmmunity.io">
-              <CarmmunityLogoSvg />
+              <Company {...CarmmunityLogoSvg} />
             </Link>
           </Logo>
           <Logo width={180}>
             <Link to="https://www.compass.education">
-              <CompassLogoSvg />
+              <Company {...CompassLogoSvg} />
             </Link>
           </Logo>
           <Logo width={90}>
             <Link to="https://www.e2m.energy">
-              <E2mLogoSvg />
+              <Company {...E2mLogoSvg} />
             </Link>
           </Logo>
           <Logo width={130}>
             <Link to="https://www.exlrt.com">
-              <ExlrtLogoSvg />
+              <Company {...ExlrtLogoSvg} />
             </Link>
           </Logo>
           <Logo width={100}>
             <Link to="https://www.ezeep.com">
-              <EzeepLogoSvg />
+              <Company {...EzeepLogoSvg} />
+            </Link>
+          </Logo>
+          <Logo width={150}>
+            <Link to="https://fulcrumpro.com/">
+              <Company {...FulcrumLogoSvg} />
             </Link>
           </Logo>
           <Logo width={120}>
             <Link to="https://gia.ch">
-              <GiaLogoSvg />
+              <Company {...GiaLogoSvg} />
             </Link>
           </Logo>
           <Logo width={70}>
             <Link to="https://www.hiloenergie.com">
-              <HiloLogoSvg />
+              <Company {...HiloLogoSvg} />
             </Link>
           </Logo>
           <Logo width={200}>
             <Link to="https://www.incloud.de">
-              <IncloudLogoSvg />
+              <Company {...IncloudLogoSvg} />
             </Link>
           </Logo>
           <Logo width={130}>
             <Link to="https://www.infoslips.com">
-              <InfoslipsLogoSvg />
+              <Company {...InfoslipsLogoSvg} />
             </Link>
           </Logo>
           <Logo width={160}>
             <Link to="https://motitech.co.uk">
-              <MotiviewLogoSvg />
+              <Company {...MotiviewLogoSvg} />
             </Link>
           </Logo>
           <Logo width={160}>
             <Link to="https://orderin.co.za">
-              <OrderinLogoSvg />
+              <Company {...OrderinLogoSvg} />
             </Link>
           </Logo>
           <Logo width={110}>
             <Link to="https://poweredsoft.com">
-              <PoweredSoftLogoSvg />
+              <Company {...PoweredSoftLogoSvg} />
             </Link>
           </Logo>
           <Logo width={180}>
             <Link to="https://pushpay.com">
-              <PushpayLogoSvg />
+              <Company {...PushpayLogoSvg} />
+            </Link>
+          </Logo>
+          <Logo width={260}>
+            <Link to="http://www.railcargo.at">
+              <Company {...RailCargoAustriaLogoSvg} />
             </Link>
           </Logo>
           <Logo width={120}>
             <Link to="https://www.seven2one.de">
-              <Seven2OneLogoSvg />
+              <Company {...Seven2OneLogoSvg} />
             </Link>
           </Logo>
           <Logo width={150}>
             <Link to="https://www.solytic.com">
-              <SolyticLogoSvg />
+              <Company {...SolyticLogoSvg} />
             </Link>
           </Logo>
           <Logo width={130}>
             <Link to="https://sonika.se">
-              <SonikaLogoSvg />
+              <Company {...SonikaLogoSvg} />
+            </Link>
+          </Logo>
+          <Logo width={200}>
+            <Link to="https://www.spectrummedical.com/">
+              <Company {...SpectrumMedicalLogoSvg} />
             </Link>
           </Logo>
           <Logo width={120}>
             <Link to="https://www.speedwaymotors.com">
-              <SpeedwayMotorsLogoSvg />
+              <Company {...SpeedwayMotorsLogoSvg} />
             </Link>
           </Logo>
           <Logo width={180}>
             <Link to="https://splashback.io">
-              <SplashbackLogoSvg />
+              <Company {...SplashbackLogoSvg} />
             </Link>
           </Logo>
           <Logo width={120}>
             <Link to="https://sweetgeeks.dk">
-              <SweetGeeksLogoSvg />
+              <Company {...SweetGeeksLogoSvg} />
             </Link>
           </Logo>
           <Logo width={110}>
             <Link to="https://www.swisslife.ch">
-              <SwissLifeLogoSvg />
+              <Company {...SwissLifeLogoSvg} />
             </Link>
           </Logo>
           <Logo width={160}>
             <Link to="https://www.sytadelle.fr">
-              <SytadelleLogoSvg />
+              <Company {...SytadelleLogoSvg} />
+            </Link>
+          </Logo>
+          <Logo width={180}>
+            <Link to="http://trackman.com/">
+              <Company {...TrackmanLogoSvg} />
             </Link>
           </Logo>
           <Logo width={180}>
             <Link to="https://travel-soft.com">
-              <TravelSoftLogoSvg />
+              <Company {...TravelSoftLogoSvg} />
+            </Link>
+          </Logo>
+          <Logo width={140}>
+            <Link to="https://careers.veepee.com/vptech/">
+              <Company {...VptechLogoSvg} />
             </Link>
           </Logo>
           <Logo width={120}>
             <Link to="https://xm.com">
-              <XMLogoSvg />
+              <Company {...XMLogoSvg} />
             </Link>
           </Logo>
           <Logo width={120}>
             <Link to="https://www.ziosk.com">
-              <ZioskLogoSvg />
+              <Company {...ZioskLogoSvg} />
             </Link>
           </Logo>
         </Logos>
@@ -219,7 +252,7 @@ const Logos = styled.div`
 const Logo = styled.div<{ width?: number }>`
   flex: 0 0 auto;
   margin: 30px;
-  width: ${({ width }) => width || 160}px;
+  width: ${({ width = 160 }) => width}px;
 
   > a > svg {
     fill: ${THEME_COLORS.text};

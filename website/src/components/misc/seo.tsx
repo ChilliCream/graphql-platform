@@ -28,11 +28,12 @@ export const SEO: FC<SEOProps> = ({
 }) => {
   const { site, image } = useStaticQuery(
     graphql`
-      query {
+      query SEO {
         site {
           siteMetadata {
             title
             description
+            company
             author
             siteUrl
           }
@@ -49,11 +50,14 @@ export const SEO: FC<SEOProps> = ({
     `
   );
 
+  const metaSiteUrl = site.siteMetadata.siteUrl;
   const metaAuthor = `@${site.siteMetadata.author}`;
+  const metaCompany = site.siteMetadata.company;
   const metaDescription = description || site.siteMetadata.description;
-  const metaImageUrl = `${site.siteMetadata.siteUrl}${
+  const metaImageUrl = `${metaSiteUrl}${
     imageUrl ?? image?.childImageSharp!.gatsbyImageData!.images.fallback.src
   }`;
+  const metaType = isArticle ? "article" : "website";
 
   return (
     <Helmet
@@ -69,7 +73,7 @@ export const SEO: FC<SEOProps> = ({
         },
         {
           property: `og:url`,
-          content: site.siteMetadata.siteUrl,
+          content: metaSiteUrl,
         },
         {
           property: `og:title`,
@@ -81,7 +85,7 @@ export const SEO: FC<SEOProps> = ({
         },
         {
           property: `og:type`,
-          content: !!isArticle ? `article` : `website`,
+          content: metaType,
         },
         {
           property: `og:image`,
@@ -109,7 +113,26 @@ export const SEO: FC<SEOProps> = ({
         },
         ...meta!,
       ]}
-    />
+    >
+      <script type="application/ld+json">
+        {JSON.stringify({
+          "@context": "https://schema.org/",
+          "@type": metaType,
+          "@id": metaSiteUrl,
+          headline: title,
+          description: metaDescription,
+          author: {
+            "@type": "Organization",
+            name: metaCompany,
+            contactPoint: {
+              "@type": "ContactPoint",
+              email: "mailto:contact@chillicream.com",
+              contactType: "Customer Support",
+            },
+          },
+        })}
+      </script>
+    </Helmet>
   );
 };
 

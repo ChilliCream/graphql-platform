@@ -24,7 +24,8 @@ The execution engine picks up the `IExecutable` and executes it efficiently.
 [UseProjection]
 [UseSorting]
 [UseFiltering]
-public IExecutable<Person> GetPersons([ScopedService] IAsyncSession session) => new Neo4JExecutable<Person>(session);
+public IExecutable<Person> GetPersons([ScopedService] IAsyncSession session) =>
+    new Neo4JExecutable<Person>(session);
 ```
 
 # Filtering
@@ -48,12 +49,7 @@ _GraphQL Query:_
 
 ```graphql
 query GetPersons {
-  persons(
-    where: {
-      name: { eq: "Yorker Shorton" }
-      addresses: { some: { street: { eq: "04 Leroy Trail" } } }
-    }
-  ) {
+  persons(where: { name: { eq: "Yorker Shorton" } }) {
     name
     addresses {
       street
@@ -67,7 +63,7 @@ _Cypher Query_
 
 ```cypher
 MATCH (person:Person)
-WHERE person.name = 'Yorker Shorton" AND
+WHERE person.name = 'Yorker Shorton"
 RETURN person {.name}
 ```
 
@@ -160,45 +156,18 @@ services
 
 ## Cursor Pagination
 
-To use cursor based pagination annotate your resolver with `[UseNeo4JPaging]` or `.UseNeo4JPaging()`
-
-```csharp
-[UseNeo4JDatabase("neo4j")]
-[UsePaging]
-[UseProjection]
-public IExecutable<Person> GetPersons([ScopedService] IAsyncSession session) => new Neo4JExecutable<Person>(session);
-```
-
-You can then execute queries like the following one:
-
-```graphql
-query GetPersons {
-  persons(first: 50, after: "OTk=") {
-    nodes {
-      name
-      addresses {
-        city
-      }
-    }
-    pageInfo {
-      endCursor
-      hasNextPage
-      hasPreviousPage
-      startCursor
-    }
-  }
-}
-```
+Not Implemented!
 
 ## Offset Pagination
 
-To use cursor based pagination annotate your resolver with `[UseNeo4JPaging]` or `.UseNeo4JPaging()`
+To use offset based pagination annotate your resolver with `[UseOffsetPaging]` or `.UseNeo4JPaging()`
 
 ```csharp
 [UseNeo4JDatabase("neo4j")]
 [UseOffsetPaging]
 [UseProjection]
-public IExecutable<Person> GetPersons([ScopedService] IAsyncSession session) => new Neo4JExecutable<Person>(session);
+public IExecutable<Person> GetPersons([ScopedService] IAsyncSession session) =>
+    new Neo4JExecutable<Person>(session);
 ```
 
 You can then execute queries like the following one:

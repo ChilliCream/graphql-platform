@@ -1,0 +1,47 @@
+ComparableSorting_Short_ASC Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": 12
+      },
+      {
+        "bar": 13
+      },
+      {
+        "bar": 14
+      }
+    ]
+  }
+}
+---------------
+
+ComparableSorting_Short_ASC Query:
+---------------
+MATCH (fooComp:FooComp) RETURN fooComp ORDER BY fooComp.Bar ASC
+---------------
+
+ComparableSorting_Short_DESC Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": 14
+      },
+      {
+        "bar": 13
+      },
+      {
+        "bar": 12
+      }
+    ]
+  }
+}
+---------------
+
+ComparableSorting_Short_DESC Query:
+---------------
+MATCH (fooComp:FooComp) RETURN fooComp ORDER BY fooComp.Bar DESC
+---------------

@@ -29,7 +29,7 @@ public static class JsonRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        builder.ConfigureSchema(sb => sb.AddSchemaDirective(new FromJsonSchemaDirective()));
+        builder.ConfigureSchema(sb => sb.TryAddSchemaDirective(new FromJsonSchemaDirective()));
         return builder;
     }
 }

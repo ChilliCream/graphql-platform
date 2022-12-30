@@ -4,8 +4,8 @@
       "message": "The GraphQL document has an execution depth of 6 which exceeds the max allowed execution depth of 3.",
       "locations": [
         {
-          "line": 2,
-          "column": 17
+          "line": 1,
+          "column": 1
         }
       ],
       "extensions": {

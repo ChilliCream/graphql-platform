@@ -80,7 +80,20 @@ public class StatementBuilder
 
         _match?.Visit(visitor);
         _return?.Visit(visitor);
-        _orderBy?.Visit(visitor);
+        if (_orderBy is not null)
+        {
+            _orderBy?.Visit(visitor);
+        }
+        else if (_return is not null)
+        {
+            var selections = _return.Items.ReturnItems.GetChildren();
+
+            _orderBy = new OrderBy(
+                selections.Select(x => Cypher.Sort(x).Ascending()).ToList());
+
+            _orderBy.Visit(visitor);
+        }
+
         _skip?.Visit(visitor);
         _limit?.Visit(visitor);
 
