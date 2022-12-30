@@ -1,42 +1,31 @@
 exports.onCreateWebpackConfig = (
-  { actions, loaders, getConfig },
+  { actions, getConfig, rules },
   options = {}
 ) => {
-  const prevConfig = getConfig();
+  const config = getConfig();
+  const imagesRule = rules.images();
+  const imagesRuleTest = String(imagesRule.test);
 
   const { rule, ...rest } = options;
 
-  actions.replaceWebpackConfig({
-    ...prevConfig,
-    module: {
-      ...prevConfig.module,
-      rules: [
-        ...prevConfig.module.rules.map((item) => {
-          const { test } = item;
-
-          if (
-            test &&
-            test.toString() === "/\\.(ico|svg|jpg|jpeg|png|gif|webp)(\\?.*)?$/"
-          ) {
-            return {
-              ...item,
-              test: /\.(ico|jpg|jpeg|png|gif|webp)(\?.*)?$/,
-            };
-          }
-
-          return { ...item };
-        }),
+  config.module.rules = [
+    ...config.module.rules.filter(
+      (item) => String(item.test) !== imagesRuleTest
+    ),
+    {
+      ...rule,
+      use: [
         {
-          test: /\.svg$/,
-          ...rule,
-          use: [
-            {
-              loader: require.resolve("svg-sprite-loader"),
-              options: rest,
-            },
-          ],
+          loader: require.resolve("svg-sprite-loader"),
+          options: rest,
         },
       ],
     },
-  });
+    {
+      ...imagesRule,
+      test: new RegExp(imagesRuleTest.replace("svg|", "").slice(1, -1)),
+    },
+  ];
+
+  actions.replaceWebpackConfig(config);
 };

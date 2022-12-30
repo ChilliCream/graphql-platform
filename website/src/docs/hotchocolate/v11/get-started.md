@@ -2,8 +2,6 @@
 title: "Get started with Hot Chocolate"
 ---
 
-> We are still working on the documentation for Hot Chocolate so help us by finding typos, missing things or write some additional docs with us.
-
 In this tutorial, we will walk you through the basics of creating a GraphQL server with Hot Chocolate. If you want to dig deeper into Hot Chocolate, we have our [GraphQL workshop](https://github.com/ChilliCream/graphql-workshop), which touches on topics like schema design, DataLoader, and many more things.
 
 In this tutorial, we will teach you how to:
