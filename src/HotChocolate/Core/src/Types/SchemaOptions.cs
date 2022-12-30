@@ -122,6 +122,41 @@ public class SchemaOptions : IReadOnlySchemaOptions
     public bool EnsureAllNodesCanBeResolved { get; set; }
 
     /// <summary>
+    /// Defines if flag enums should be inferred as object value nodes
+    /// </summary>
+    /// <example>
+    /// Given the following enum
+    /// <br/>
+    /// <code>
+    /// [Flags]
+    /// public enum Example { First, Second, Third }
+    ///
+    /// public class Query { public Example Loopback(Example input) => input;
+    /// </code>
+    /// <br/>
+    /// The following schema is produced
+    /// <br/>
+    /// <code>
+    /// type Query {
+    ///    loopback(input: ExampleFlagsInput!): ExampleFlags
+    /// }
+    ///
+    /// type ExampleFlags {
+    ///    isFirst: Boolean!
+    ///    isSecond: Boolean!
+    ///    isThird: Boolean!
+    /// }
+    ///
+    /// input ExampleFlagsInput {
+    ///    isFirst: Boolean
+    ///    isSecond: Boolean
+    ///    isThird: Boolean
+    /// }
+    /// </code>
+    /// </example>
+    public bool EnableFlagEnums { get; set; }
+
+    /// <summary>
     /// Creates a mutable options object from a read-only options object.
     /// </summary>
     /// <param name="options">The read-only options object.</param>

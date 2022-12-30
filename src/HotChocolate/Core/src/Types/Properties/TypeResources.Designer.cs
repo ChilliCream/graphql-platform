@@ -1904,5 +1904,29 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ErrorHelper_NodeResolverMissing", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_Flags_Enum_Shape_Unknown {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Flags_Enum_Shape_Unknown", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_Flags_Parser_NoSelection {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Flags_Parser_NoSelection", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_Flags_Parser_UnknownSelection {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Flags_Parser_UnknownSelection", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_Flags_IllegalFlagEnumName {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Flags_IllegalFlagEnumName", resourceCulture);
+            }
+        }
     }
 }

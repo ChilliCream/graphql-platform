@@ -48,98 +48,60 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
         DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck;
         EnableOneOf = options.EnableOneOf;
         EnsureAllNodesCanBeResolved = options.EnsureAllNodesCanBeResolved;
+        EnableFlagEnums = options.EnableFlagEnums;
     }
 
-    /// <summary>
-    /// Gets the name of the query type.
-    /// </summary>
+    /// <inheritdoc />
     public string QueryTypeName { get; }
 
-    /// <summary>
-    /// Gets or sets the name of the mutation type.
-    /// </summary>
+    /// <inheritdoc />
     public string MutationTypeName { get; }
 
-    /// <summary>
-    /// Gets or sets the name of the subscription type.
-    /// </summary>
+    /// <inheritdoc />
     public string SubscriptionTypeName { get; }
 
-    /// <summary>
-    /// Defines if the schema allows the query type to be omitted.
-    /// </summary>"
+    /// <inheritdoc />
     public bool StrictValidation { get; }
 
-    /// <summary>
-    /// Defines if the CSharp XML documentation shall be integrated.
-    /// </summary>
+    /// <inheritdoc />
     public bool UseXmlDocumentation { get; }
 
-    /// <summary>
-    /// A delegate which resolves the name of the XML documentation file to be read.
-    /// Only used if <seealso cref="UseXmlDocumentation"/> is true.
-    /// </summary>
+    /// <inheritdoc />
     public Func<Assembly, string>? ResolveXmlDocumentationFileName { get; }
 
-    /// <summary>
-    /// Defines if fields shall be sorted by name.
-    /// Default: <c>false</c>
-    /// </summary>
+    /// <inheritdoc />
     public bool SortFieldsByName { get; }
 
-    /// <summary>
-    /// Defines if syntax nodes shall be preserved on the type system objects
-    /// </summary>
+    /// <inheritdoc />
     public bool PreserveSyntaxNodes { get; }
 
-    /// <summary>
-    /// Defines if types shall be removed from the schema that are
-    /// unreachable from the root types.
-    /// </summary>
+    /// <inheritdoc />
     public bool RemoveUnreachableTypes { get; }
 
-    /// <summary>
-    /// Defines the default binding behavior.
-    /// </summary>
+    /// <inheritdoc />
     public BindingBehavior DefaultBindingBehavior { get; }
 
     /// <inheritdoc />
     public FieldBindingFlags DefaultFieldBindingFlags { get; }
 
-    /// <summary>
-    /// Defines on which fields a middleware pipeline can be applied on.
-    /// </summary>
+    /// <inheritdoc />
     public FieldMiddlewareApplication FieldMiddleware { get; }
 
-    /// <summary>
-    /// Defines if the experimental directive introspection feature shall be enabled.
-    /// </summary>
+    /// <inheritdoc />
     public bool EnableDirectiveIntrospection { get; }
 
-    /// <summary>
-    /// The default directive visibility when directive introspection is enabled.
-    /// </summary>
+    /// <inheritdoc />
     public DirectiveVisibility DefaultDirectiveVisibility { get; }
 
-    /// <summary>
-    /// Defines that the default resolver execution strategy.
-    /// </summary>
     public ExecutionStrategy DefaultResolverStrategy { get; }
 
-    /// <summary>
-    /// Defines if the order of important middleware components shall be validated.
-    /// </summary>
+    /// <inheritdoc />
     public bool ValidatePipelineOrder { get; }
 
-    /// <summary>
-    /// Defines if the runtime types of types shall be validated.
-    /// </summary>
+    /// <inheritdoc />
     public bool StrictRuntimeTypeValidation { get; }
 
-    /// <summary>
-    /// Defines a delegate that determines if a runtime
-    /// is an instance of an <see cref="ObjectType{T}"/>.
-    /// </summary>
+    /// <inheritdoc />
     public IsOfTypeFallback? DefaultIsOfTypeCheck { get; }
 
     /// <inheritdoc />
@@ -147,4 +109,7 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
 
     /// <inheritdoc />
     public bool EnsureAllNodesCanBeResolved { get; }
+
+    /// <inheritdoc />
+    public bool EnableFlagEnums { get; }
 }

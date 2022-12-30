@@ -43,6 +43,12 @@ public partial class SchemaBuilder
                     builder._typeInterceptors.Add(typeof(TypeValidationTypeInterceptor));
                 }
 
+                if (context.Options.EnableFlagEnums &&
+                    !builder._typeInterceptors.Contains(typeof(FlagsEnumInterceptor)))
+                {
+                    builder._typeInterceptors.Add(typeof(FlagsEnumInterceptor));
+                }
+
                 InitializeInterceptors(
                     context.Services,
                     builder._typeInterceptors,

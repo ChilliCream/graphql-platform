@@ -1,0 +1,10 @@
+﻿{
+  "errors": [
+    {
+      "message": "The value isAsd is not known for type FlagsEnumFlagsInput"
+    }
+  ],
+  "data": {
+    "test": null
+  }
+}
