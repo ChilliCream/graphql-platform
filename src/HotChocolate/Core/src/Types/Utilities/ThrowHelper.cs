@@ -534,42 +534,34 @@ internal static class ThrowHelper
     }
 
     public static GraphQLException MissingIfArgument(DirectiveNode directive)
-        => new(
-            ErrorBuilder.New()
-                .SetMessage(
-                    ThrowHelper_MissingDirectiveIfArgument,
-                    directive.Name.Value)
-                .AddLocation(directive)
-                .Build());
+        => new(ErrorBuilder.New()
+            .SetMessage(
+                ThrowHelper_MissingDirectiveIfArgument,
+                directive.Name.Value)
+            .AddLocation(directive)
+            .Build());
 
     public static InvalidOperationException Flags_Enum_Shape_Unknown(Type type)
-        => new(
-            string.Format(
-                CultureInfo.InvariantCulture,
-                ThrowHelper_Flags_Enum_Shape_Unknown,
-                type.FullName ?? type.Name));
+        => new(string.Format(
+            CultureInfo.InvariantCulture,
+            ThrowHelper_Flags_Enum_Shape_Unknown,
+            type.FullName ?? type.Name));
 
     public static GraphQLException Flags_Parser_NoSelection(InputObjectType type)
-        => new(
-            ErrorBuilder
-                .New()
-                .SetMessage(ThrowHelper_Flags_Parser_NoSelection, type.Name)
-                .Build());
+        => new(ErrorBuilder.New()
+            .SetMessage(ThrowHelper_Flags_Parser_NoSelection, type.Name)
+            .Build());
 
     public static GraphQLException Flags_Parser_UnknownSelection(string value, InputObjectType type)
-        => new(
-            ErrorBuilder
-                .New()
-                .SetMessage(ThrowHelper_Flags_Parser_UnknownSelection, value, type.Name)
-                .Build());
+        => new(ErrorBuilder.New()
+            .SetMessage(ThrowHelper_Flags_Parser_UnknownSelection, value, type.Name)
+            .Build());
 
     public static SchemaException Flags_IllegalFlagEnumName(Type type, string? valueName)
-        => new(
-            SchemaErrorBuilder
-                .New()
-                .SetMessage(
-                    ThrowHelper_Flags_IllegalFlagEnumName,
-                    type.FullName ?? type.Name,
-                    valueName ?? "value is null")
-                .Build());
+        => new(SchemaErrorBuilder.New()
+            .SetMessage(
+                ThrowHelper_Flags_IllegalFlagEnumName,
+                type.FullName ?? type.Name,
+                valueName ?? "value is null")
+            .Build());
 }
