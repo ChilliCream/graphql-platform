@@ -51,17 +51,6 @@ internal static class ThrowHelper
             SchemaErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_SubscribeAttribute_TopicTypeUnspecified,
-                    "You need to specify the topic type on {0}.{1}. (SubscribeAttribute)",
-                    member.DeclaringType!.FullName,
-                    member.Name)
-                .SetExtension("member", member)
-                .Build());
-
-    public static SchemaException SubscribeAttribute_TopicOnParameterAndMethod(MemberInfo member) =>
-        new SchemaException(
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    "The topic is declared multiple times on {0}.{1}. (TopicAttribute)",
                     member.DeclaringType!.FullName,
                     member.Name)
                 .SetExtension("member", member)
