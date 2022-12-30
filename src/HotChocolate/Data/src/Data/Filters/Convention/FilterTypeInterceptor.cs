@@ -82,7 +82,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition)
+        DefinitionBase definition)
     {
         if (definition is not FilterInputTypeDefinition { EntityType: { } } def)
         {
@@ -123,9 +123,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
         }
     }
 
-    private IFilterConvention GetConvention(
-        IDescriptorContext context,
-        string? scope)
+    private IFilterConvention GetConvention(IDescriptorContext context, string? scope)
     {
         if (!_conventions.TryGetValue(scope ?? "", out var convention))
         {
