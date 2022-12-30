@@ -304,28 +304,6 @@
   <data name="GlobalIdInputValueFormatter_IdsHaveInvalidFormat" xml:space="preserve">
     <value>The IDs `{0}` have an invalid format.</value>
   </data>
-  <data name="Filtering_InlineFilterTypeHadNoFields" xml:space="preserve">
-    <value>The type ({0}) of the field {1} in type {2} does not defined any fields.
-You most likely customized a type but did not allow any operations or fields on it.
-Make sure to call e.g. `.Field(x => x.Example).AllowEq())` on the field, to whitelist the allowed operations or `.Field(x => x.Bar, descriptor => descriptor.Field(x => x.SubField))` to allow a field form the sub type.</value>
-  </data>
-  <data name="Filtering_FieldHadNoType" xml:space="preserve">
-    <value>There was an issue creating the type of the field {0} in type {1}. The field {0} has not type defined. For customization the original field needs to declare a type.</value>
-  </data>
-  <data name="Filtering_DefinitionForTypeNotFound" xml:space="preserve">
-    <value>There was an issue creating the type of the field {0} in type {1}. The type definiton of {2} was not found. Make sure you only call `AllowXYZ` on fields with a type that is either a FilterOperationInputType or a FilterInputType!</value>
-  </data>
-  <data name="Sorting_InlineFilterTypeHadNoFields" xml:space="preserve">
-    <value>The type ({0}) of the field {1} in type {2} does not defined any fields.
-You most likely customized a type but did not allow any fields on it.
-Make sure to call `.Field(x => x.Bar, descriptor => descriptor.Field(x => x.SubField))` to allow a field of the sub type.</value>
-  </data>
-  <data name="Sorting_FieldHadNoType" xml:space="preserve">
-    <value>There was an issue creating the type of the field {0} in type {1}. The field {0} has not type defined. For customization the original field needs to declare a type.</value>
-  </data>
-  <data name="Sorting_DefinitionForTypeNotFound" xml:space="preserve">
-    <value>There was an issue creating the type of the field {0} in type {1}. The type definiton of {2} was not found. Make sure you only customize fields of type SortInputType!</value>
-  </data>
   <data name="SelectionContext_NoTypeForAbstractFieldProvided" xml:space="preserve">
     <value>The type {0} is an abstract type. You need to provide a type for a selection of a interface or union. Possible types are: {1}</value>
   </data>
