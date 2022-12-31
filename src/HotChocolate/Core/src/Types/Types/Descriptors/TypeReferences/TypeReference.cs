@@ -89,6 +89,14 @@ public abstract class TypeReference : ITypeReference
         return new SchemaTypeReference(type, scope: scope);
     }
 
+    public static NameDirectiveReference CreateDirective(
+        string directiveName) =>
+        new(directiveName);
+
+    public static ExtendedTypeDirectiveReference CreateDirective(
+        IExtendedType type) =>
+        new(type);
+
     public static SyntaxTypeReference Create(
         ITypeNode type,
         TypeContext context = TypeContext.None,

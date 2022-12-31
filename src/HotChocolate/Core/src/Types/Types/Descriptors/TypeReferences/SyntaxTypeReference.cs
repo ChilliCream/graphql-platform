@@ -9,7 +9,7 @@ public sealed class SyntaxTypeReference
     : TypeReference
     , IEquatable<SyntaxTypeReference>
 {
-    public SyntaxTypeReference(
+    internal SyntaxTypeReference(
         ITypeNode type,
         TypeContext context,
         string? scope = null,

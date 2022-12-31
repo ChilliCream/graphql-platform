@@ -248,7 +248,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
                         directiveDefinition.Type,
                         TypeDependencyFulfilled.Completed));
 
-                discoveryContext.RegisterDependency(directiveDefinition.Reference);
+                discoveryContext.Dependencies.Add(new(directiveDefinition.Type));
             }
 
             // since this type has now a key directive we also need to add this type to

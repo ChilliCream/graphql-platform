@@ -16,7 +16,7 @@ public class DirectiveTypeDefinition
     , IHasRuntimeType
 {
     private Type _clrType = typeof(object);
-    private HashSet<DirectiveLocation>? _locations;
+    private List<DirectiveMiddleware>? _middlewareComponents;
     private BindableList<DirectiveArgumentDefinition>? _arguments;
 
     /// <summary>
@@ -63,17 +63,37 @@ public class DirectiveTypeDefinition
     }
 
     /// <summary>
+    /// Gets or the associated middleware components.
+    /// </summary>
+    public IList<DirectiveMiddleware> MiddlewareComponents =>
+        _middlewareComponents ??= new List<DirectiveMiddleware>();
+
+    /// <summary>
     /// Defines the location on which a directive can be annotated.
     /// </summary>
-    public ISet<DirectiveLocation> Locations => _locations ??= new HashSet<DirectiveLocation>();
+    public DirectiveLocation Locations { get; set; }
 
     /// <summary>
     /// Gets the directive arguments.
     /// </summary>
-    public IBindableList<DirectiveArgumentDefinition> Arguments =>
-        _arguments ??= new BindableList<DirectiveArgumentDefinition>();
+    public IBindableList<DirectiveArgumentDefinition> Arguments
+        => _arguments ??= new BindableList<DirectiveArgumentDefinition>();
 
+    /// <summary>
+    /// Specifies if this directive definition has an arguments.
+    /// </summary>
     public bool HasArguments => _arguments is { Count: > 0 };
+
+
+    /// <summary>
+    /// Gets or sets the input object runtime value factory delegate.
+    /// </summary>
+    public Func<object?[], object>? CreateInstance { get; set; }
+
+    /// <summary>
+    /// Gets or sets the delegate to extract the field values from the runtime value.
+    /// </summary>
+    public Action<object, object?[]>? GetFieldData { get; set; }
 
     public override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
     {
@@ -90,16 +110,16 @@ public class DirectiveTypeDefinition
     }
 
     /// <summary>
-    /// Defines the location on which a directive can be annotated.
+    /// Gets or the associated middleware components.
     /// </summary>
-    internal IReadOnlyCollection<DirectiveLocation> GetLocations()
+    internal IReadOnlyList<DirectiveMiddleware> GetMiddlewareComponents()
     {
-        if (_locations is null)
+        if (_middlewareComponents is null)
         {
-            return Array.Empty<DirectiveLocation>();
+            return Array.Empty<DirectiveMiddleware>();
         }
 
-        return _locations;
+        return _middlewareComponents;
     }
 
     /// <summary>

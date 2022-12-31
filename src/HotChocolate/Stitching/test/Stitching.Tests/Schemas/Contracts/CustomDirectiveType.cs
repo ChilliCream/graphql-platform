@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Schemas.Contracts;
@@ -12,8 +11,7 @@ public class CustomDirectiveType : DirectiveType
         descriptor.Argument("d").Type<DateTimeType>();
         descriptor.Use(next => ctx =>
         {
-            ctx.Result = ctx.Directive.GetArgument<DateTime>("d")
-                .ToUniversalTime();
+            ctx.Result = ctx.Directive.GetArgumentValue<DateTime>("d").ToUniversalTime();
             return next.Invoke(ctx);
         });
     }

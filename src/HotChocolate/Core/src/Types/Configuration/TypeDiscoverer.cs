@@ -144,7 +144,11 @@ DISCOVER:
         {
             foreach (var typeRef in _unregistered)
             {
-                _handlers[(int)typeRef.Kind].Handle(_typeRegistrar, typeRef);
+                var index = (int)typeRef.Kind;
+                if (_handlers.Length > index)
+                {
+                    _handlers[index].Handle(_typeRegistrar, typeRef);
+                }
             }
 
             _unregistered.Clear();

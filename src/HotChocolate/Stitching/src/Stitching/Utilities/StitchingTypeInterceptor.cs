@@ -85,14 +85,13 @@ internal sealed class StitchingTypeInterceptor : TypeInterceptor
 
     private static bool IsDelegatedField(DirectiveDefinition directiveDef)
     {
-        if (directiveDef.Reference is NameDirectiveReference nameRef &&
-            nameRef.Name.Equals(DirectiveNames.Delegate))
+        if (directiveDef.Type is NameDirectiveReference { Name: DirectiveNames.Delegate })
         {
             return true;
         }
 
-        if (directiveDef.Reference is ClrTypeDirectiveReference typeRef &&
-            typeRef.ClrType == typeof(DelegateDirective))
+        if (directiveDef.Type is ExtendedTypeDirectiveReference typeRef &&
+            typeRef.Type.Type == typeof(DelegateDirective))
         {
             return true;
         }

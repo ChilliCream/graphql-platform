@@ -1,4 +1,3 @@
-using Xunit;
 using HotChocolate.Language;
 using System.Linq;
 
@@ -60,7 +59,7 @@ public class UnionTypeExtensionTests
 
         // assert
         var type = schema.GetType<UnionType>("Foo");
-        Assert.True(type.Directives.Contains("dummy"));
+        Assert.True(type.Directives.ContainsDirective("dummy"));
     }
 
     [Fact]

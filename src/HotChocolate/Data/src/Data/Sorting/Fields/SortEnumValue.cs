@@ -43,8 +43,10 @@ public sealed class SortEnumValue : ISortEnumValue
         Handler = enumValueDefinition.Handler;
         Operation = enumValueDefinition.Operation;
 
-        _directives = new DirectiveCollection(this, enumValueDefinition.GetDirectives());
-        _directives.CompleteCollection(completionContext);
+        _directives = DirectiveCollection.CreateAndComplete(
+            completionContext,
+            this,
+            enumValueDefinition.GetDirectives());
     }
 
     public EnumValueDefinitionNode? SyntaxNode { get; }

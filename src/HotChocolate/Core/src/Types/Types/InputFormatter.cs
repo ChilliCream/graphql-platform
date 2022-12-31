@@ -149,6 +149,43 @@ public class InputFormatter
         }
     }
 
+    public DirectiveNode FormatDirective(object runtimeValue, DirectiveType type, Path? path = null)
+    {
+        path ??= PathFactory.Instance.Append(Path.Root, type.Name);
+
+        var fields = new List<ArgumentNode>();
+        var fieldValues = new object?[type.Arguments.Count];
+        type.GetFieldValues(runtimeValue, fieldValues);
+
+        for (var i = 0; i < fieldValues.Length; i++)
+        {
+            var field = type.Arguments[i];
+            var fieldValue = fieldValues[i];
+            Path fieldPath = PathFactory.Instance.Append(path, field.Name);
+
+            if (field.IsOptional)
+            {
+                var optional = (IOptional)fieldValue!;
+                if (optional.HasValue)
+                {
+                    AddField(optional.Value, field.Name, field.Type, fieldPath);
+                }
+            }
+            else
+            {
+                AddField(fieldValue, field.Name, field.Type, fieldPath);
+            }
+        }
+
+        return new DirectiveNode(type.Name, fields);
+
+        void AddField(object? fieldValue, string fieldName, IInputType fieldType, Path fieldPath)
+        {
+            var value = FormatValueInternal(fieldValue, fieldType, fieldPath);
+            fields.Add(new ArgumentNode(fieldName, value));
+        }
+    }
+
     public IValueNode FormatResult(object? resultValue, IType type, Path? path = null)
     {
         if (type is null)

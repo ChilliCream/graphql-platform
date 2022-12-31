@@ -8,7 +8,6 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types;
 
@@ -23,10 +22,10 @@ public class DirectiveTypeTests : TypeTestBase
             CreateDirective(new CustomDirectiveType());
 
         // assert
-        Assert.True(directiveType.HasMiddleware);
-        Assert.NotEmpty(directiveType.MiddlewareComponents);
+        Assert.NotNull(directiveType.Middleware);
         Assert.Equal(typeof(CustomDirective), directiveType.RuntimeType);
-        Assert.Collection(directiveType.Arguments,
+        Assert.Collection(
+            directiveType.Arguments,
             t => Assert.Equal("argument", t.Name));
     }
 
@@ -36,13 +35,14 @@ public class DirectiveTypeTests : TypeTestBase
         // arrange
         // act
         DirectiveType directiveType =
-            CreateDirective(new CustomDirectiveType(),
-                b => b.ModifyOptions(o =>
-                    o.DefaultBindingBehavior = BindingBehavior.Explicit));
+            CreateDirective(
+                new CustomDirectiveType(),
+                b => b.ModifyOptions(
+                    o =>
+                        o.DefaultBindingBehavior = BindingBehavior.Explicit));
 
         // assert
-        Assert.True(directiveType.HasMiddleware);
-        Assert.NotEmpty(directiveType.MiddlewareComponents);
+        Assert.NotNull(directiveType.Middleware);
         Assert.Equal(typeof(CustomDirective), directiveType.RuntimeType);
         Assert.Empty(directiveType.Arguments);
     }
@@ -56,8 +56,7 @@ public class DirectiveTypeTests : TypeTestBase
             CreateDirective(new Custom2DirectiveType());
 
         // assert
-        Assert.True(directiveType.HasMiddleware);
-        Assert.NotEmpty(directiveType.MiddlewareComponents);
+        Assert.NotNull(directiveType.Middleware);
         Assert.Equal(typeof(CustomDirective), directiveType.RuntimeType);
         Assert.Empty(directiveType.Arguments);
     }
@@ -66,17 +65,17 @@ public class DirectiveTypeTests : TypeTestBase
     public void ConfigureDirectiveWithResolver()
     {
         // arrange
-        var directiveType = new DirectiveType(t => t
-            .Name("Foo")
-            .Location(DirectiveLocation.Field)
-            .Use(_ => _ => default));
+        var directiveType = new DirectiveType(
+            t => t
+                .Name("Foo")
+                .Location(DirectiveLocation.Field)
+                .Use(_ => _ => default));
 
         // act
         directiveType = CreateDirective(directiveType);
 
         // assert
-        Assert.True(directiveType.HasMiddleware);
-        Assert.NotEmpty(directiveType.MiddlewareComponents);
+        Assert.NotNull(directiveType.Middleware);
         Assert.Equal(typeof(object), directiveType.RuntimeType);
     }
 
@@ -110,13 +109,14 @@ public class DirectiveTypeTests : TypeTestBase
                 .Location(DirectiveLocation.Object)
                 .Argument("a").Type<StringType>());
 
-        var objectType = new ObjectType(t =>
-        {
-            t.Name("Bar");
-            t.Directive("foo", new ArgumentNode("a", "1"));
-            t.Directive("foo", new ArgumentNode("a", "2"));
-            t.Field("foo").Resolve(() => "baz");
-        });
+        var objectType = new ObjectType(
+            t =>
+            {
+                t.Name("Bar");
+                t.Directive("foo", new ArgumentNode("a", "1"));
+                t.Directive("foo", new ArgumentNode("a", "2"));
+                t.Field("foo").Resolve(() => "baz");
+            });
 
         // act
         var schema = SchemaBuilder.New()
@@ -129,12 +129,12 @@ public class DirectiveTypeTests : TypeTestBase
             schema.GetType<ObjectType>("Bar").Directives,
             t =>
             {
-                Assert.Equal("foo", t.Name);
+                Assert.Equal("foo", t.Type.Name);
                 Assert.Equal("1", t.GetArgumentValue<string>("a"));
             },
             t =>
             {
-                Assert.Equal("foo", t.Name);
+                Assert.Equal("foo", t.Type.Name);
                 Assert.Equal("2", t.GetArgumentValue<string>("a"));
             });
     }
@@ -152,12 +152,13 @@ public class DirectiveTypeTests : TypeTestBase
                 .Argument("a").Type<StringType>());
 
 
-        var objectType = new ObjectType(t =>
-        {
-            t.Name("Bar");
-            t.Directive("foo", new ArgumentNode("a", "1"));
-            t.Field("foo").Resolve(() => "baz").Directive("foo", new ArgumentNode("a", "2"));
-        });
+        var objectType = new ObjectType(
+            t =>
+            {
+                t.Name("Bar");
+                t.Directive("foo", new ArgumentNode("a", "1"));
+                t.Field("foo").Resolve(() => "baz").Directive("foo", new ArgumentNode("a", "2"));
+            });
 
         // act
         var schema = SchemaBuilder.New()
@@ -166,19 +167,22 @@ public class DirectiveTypeTests : TypeTestBase
             .Create();
 
         // assert
-        IReadOnlyCollection<IDirective> collection =
+        IReadOnlyCollection<Directive> collection =
             schema.GetType<ObjectType>("Bar")
-                .Fields["foo"].ExecutableDirectives;
+                .Fields["foo"].Directives
+                .Where(t => t.Type.Middleware is not null)
+                .ToList();
 
-        Assert.Collection(collection,
+        Assert.Collection(
+            collection,
             t =>
             {
-                Assert.Equal("foo", t.Name);
+                Assert.Equal("foo", t.Type.Name);
                 Assert.Equal("1", t.GetArgumentValue<string>("a"));
             },
             t =>
             {
-                Assert.Equal("foo", t.Name);
+                Assert.Equal("foo", t.Type.Name);
                 Assert.Equal("2", t.GetArgumentValue<string>("a"));
             });
     }
@@ -192,13 +196,14 @@ public class DirectiveTypeTests : TypeTestBase
                 .Location(DirectiveLocation.Object)
                 .Argument("a").Type<StringType>());
 
-        var objectType = new ObjectType(t =>
-        {
-            t.Name("Bar");
-            t.Directive("foo", new ArgumentNode("a", "1"));
-            t.Directive("foo", new ArgumentNode("a", "2"));
-            t.Field("foo").Resolve(() => "baz");
-        });
+        var objectType = new ObjectType(
+            t =>
+            {
+                t.Name("Bar");
+                t.Directive("foo", new ArgumentNode("a", "1"));
+                t.Directive("foo", new ArgumentNode("a", "2"));
+                t.Field("foo").Resolve(() => "baz");
+            });
 
         // act
         void Action() =>
@@ -209,7 +214,8 @@ public class DirectiveTypeTests : TypeTestBase
 
         // assert
         var exception = Assert.Throws<SchemaException>(Action);
-        Assert.Collection(exception.Errors,
+        Assert.Collection(
+            exception.Errors,
             t =>
             {
                 Assert.Equal(
@@ -231,13 +237,14 @@ public class DirectiveTypeTests : TypeTestBase
                 .Argument("a").Type<StringType>());
 
 
-        var objectType = new ObjectType(t =>
-        {
-            t.Name("Bar");
-            t.Directive("foo", new ArgumentNode("a", "1"));
-            t.Field("foo").Resolve(() => "baz")
-                .Directive("foo", new ArgumentNode("a", "2"));
-        });
+        var objectType = new ObjectType(
+            t =>
+            {
+                t.Name("Bar");
+                t.Directive("foo", new ArgumentNode("a", "1"));
+                t.Field("foo").Resolve(() => "baz")
+                    .Directive("foo", new ArgumentNode("a", "2"));
+            });
 
         // act
         var schema = SchemaBuilder.New()
@@ -246,14 +253,17 @@ public class DirectiveTypeTests : TypeTestBase
             .Create();
 
         // assert
-        IReadOnlyCollection<IDirective> collection =
+        IReadOnlyCollection<Directive> collection =
             schema.GetType<ObjectType>("Bar")
-                .Fields["foo"].ExecutableDirectives;
+                .Fields["foo"].Directives
+                .Where(t => t.Type.Middleware is not null)
+                .ToList();
 
-        Assert.Collection(collection,
+        Assert.Collection(
+            collection,
             t =>
             {
-                Assert.Equal("foo", t.Name);
+                Assert.Equal("foo", t.Type.Name);
                 Assert.Equal("2", t.GetArgumentValue<string>("a"));
             });
     }
@@ -292,16 +302,19 @@ public class DirectiveTypeTests : TypeTestBase
         // arrange
         // act
         var schema = SchemaBuilder.New()
-            .AddQueryType(c => c
-                .Name("Query")
-                .Directive("foo")
-                .Field("foo")
-                .Type<StringType>()
-                .Resolve("bar"))
-            .AddDirectiveType(new DirectiveType<CustomDirective2>(d => d
-                .Name("foo")
-                .Location(DirectiveLocation.Object)
-                .Ignore(t => t.Argument2)))
+            .AddQueryType(
+                c => c
+                    .Name("Query")
+                    .Directive("foo")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("bar"))
+            .AddDirectiveType(
+                new DirectiveType<CustomDirective2>(
+                    d => d
+                        .Name("foo")
+                        .Location(DirectiveLocation.Object)
+                        .Ignore(t => t.Argument2)))
             .Create();
 
         // assert
@@ -314,22 +327,24 @@ public class DirectiveTypeTests : TypeTestBase
         // arrange
         // act
         var schema = SchemaBuilder.New()
-            .AddQueryType(c => c
-                .Name("Query")
-                .Directive("foo")
-                .Field("foo")
-                .Type<StringType>()
-                .Resolve("bar"))
-            .AddDirectiveType(new DirectiveType<CustomDirective2>(d => d
-                .Name("foo")
-                .Location(DirectiveLocation.Object)
-                .Use(_ => _ => default)))
+            .AddQueryType(
+                c => c
+                    .Name("Query")
+                    .Directive("foo")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("bar"))
+            .AddDirectiveType(
+                new DirectiveType<CustomDirective2>(
+                    d => d
+                        .Name("foo")
+                        .Location(DirectiveLocation.Object)
+                        .Use(_ => _ => default)))
             .Create();
 
         // assert
         var directive = schema.GetDirectiveType("foo");
-        Assert.Collection(directive.MiddlewareComponents,
-            t => Assert.NotNull(t));
+        Assert.NotNull(directive.Middleware);
     }
 
     [Fact]
@@ -338,21 +353,24 @@ public class DirectiveTypeTests : TypeTestBase
         // arrange
         // act
         var schema = SchemaBuilder.New()
-            .AddQueryType(c => c
-                .Name("Query")
-                .Directive("foo")
-                .Field("foo")
-                .Type<StringType>()
-                .Resolve("bar"))
-            .AddDirectiveType(new DirectiveType<CustomDirective2>(d => d
-                .Name("foo")
-                .Location(DirectiveLocation.Object)
-                .Use<DirectiveMiddleware>()))
+            .AddQueryType(
+                c => c
+                    .Name("Query")
+                    .Directive("foo")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("bar"))
+            .AddDirectiveType(
+                new DirectiveType<CustomDirective2>(
+                    d => d
+                        .Name("foo")
+                        .Location(DirectiveLocation.Object)
+                        .Use<DirectiveMiddleware>()))
             .Create();
 
         // assert
         var directive = schema.GetDirectiveType("foo");
-        Assert.Collection(directive.MiddlewareComponents, Assert.NotNull);
+        Assert.NotNull(directive.Middleware);
     }
 
     [Fact]
@@ -361,21 +379,24 @@ public class DirectiveTypeTests : TypeTestBase
         // arrange
         // act
         var schema = SchemaBuilder.New()
-            .AddQueryType(c => c
-                .Name("Query")
-                .Directive("foo")
-                .Field("foo")
-                .Type<StringType>()
-                .Resolve("bar"))
-            .AddDirectiveType(new DirectiveType<CustomDirective2>(d => d
-                .Name("foo")
-                .Location(DirectiveLocation.Object)
-                .Use((_, next) => new DirectiveMiddleware(next))))
+            .AddQueryType(
+                c => c
+                    .Name("Query")
+                    .Directive("foo")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("bar"))
+            .AddDirectiveType(
+                new DirectiveType<CustomDirective2>(
+                    d => d
+                        .Name("foo")
+                        .Location(DirectiveLocation.Object)
+                        .Use((_, next) => new DirectiveMiddleware(next))))
             .Create();
 
         // assert
         var directive = schema.GetDirectiveType("foo");
-        Assert.Collection(directive.MiddlewareComponents, Assert.NotNull);
+        Assert.NotNull(directive.Middleware);
     }
 
     [Fact]
@@ -385,14 +406,17 @@ public class DirectiveTypeTests : TypeTestBase
         // act
         void Action() =>
             SchemaBuilder.New()
-                .AddQueryType(c => c.Name("Query")
-                    .Directive("foo")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolve("bar"))
-                .AddDirectiveType(new DirectiveType<CustomDirective2>(d => d.Name("foo")
-                    .Location(DirectiveLocation.Object)
-                    .Use(null)))
+                .AddQueryType(
+                    c => c.Name("Query")
+                        .Directive("foo")
+                        .Field("foo")
+                        .Type<StringType>()
+                        .Resolve("bar"))
+                .AddDirectiveType(
+                    new DirectiveType<CustomDirective2>(
+                        d => d.Name("foo")
+                            .Location(DirectiveLocation.Object)
+                            .Use(null)))
                 .Create();
 
         // assert
@@ -405,21 +429,24 @@ public class DirectiveTypeTests : TypeTestBase
         // arrange
         // act
         var schema = SchemaBuilder.New()
-            .AddQueryType(c => c
-                .Name("Query")
-                .Directive("foo")
-                .Field("foo")
-                .Type<StringType>()
-                .Resolve("bar"))
-            .AddDirectiveType(new DirectiveType(d => d
-                .Name("foo")
-                .Location(DirectiveLocation.Object)
-                .Use(_ => _ => default)))
+            .AddQueryType(
+                c => c
+                    .Name("Query")
+                    .Directive("foo")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("bar"))
+            .AddDirectiveType(
+                new DirectiveType(
+                    d => d
+                        .Name("foo")
+                        .Location(DirectiveLocation.Object)
+                        .Use(_ => _ => default)))
             .Create();
 
         // assert
         var directive = schema.GetDirectiveType("foo");
-        Assert.Collection(directive.MiddlewareComponents, Assert.NotNull);
+        Assert.NotNull(directive.Middleware);
     }
 
     [Fact]
@@ -428,21 +455,24 @@ public class DirectiveTypeTests : TypeTestBase
         // arrange
         // act
         var schema = SchemaBuilder.New()
-            .AddQueryType(c => c
-                .Name("Query")
-                .Directive("foo")
-                .Field("foo")
-                .Type<StringType>()
-                .Resolve("bar"))
-            .AddDirectiveType(new DirectiveType(d => d
-                .Name("foo")
-                .Location(DirectiveLocation.Object)
-                .Use<DirectiveMiddleware>()))
+            .AddQueryType(
+                c => c
+                    .Name("Query")
+                    .Directive("foo")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("bar"))
+            .AddDirectiveType(
+                new DirectiveType(
+                    d => d
+                        .Name("foo")
+                        .Location(DirectiveLocation.Object)
+                        .Use<DirectiveMiddleware>()))
             .Create();
 
         // assert
         var directive = schema.GetDirectiveType("foo");
-        Assert.Collection(directive.MiddlewareComponents, Assert.NotNull);
+        Assert.NotNull(directive.Middleware);
     }
 
     [Fact]
@@ -451,21 +481,24 @@ public class DirectiveTypeTests : TypeTestBase
         // arrange
         // act
         var schema = SchemaBuilder.New()
-            .AddQueryType(c => c
-                .Name("Query")
-                .Directive("foo")
-                .Field("foo")
-                .Type<StringType>()
-                .Resolve("bar"))
-            .AddDirectiveType(new DirectiveType(d => d
-                .Name("foo")
-                .Location(DirectiveLocation.Object)
-                .Use((_, next) => new DirectiveMiddleware(next))))
+            .AddQueryType(
+                c => c
+                    .Name("Query")
+                    .Directive("foo")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("bar"))
+            .AddDirectiveType(
+                new DirectiveType(
+                    d => d
+                        .Name("foo")
+                        .Location(DirectiveLocation.Object)
+                        .Use((_, next) => new DirectiveMiddleware(next))))
             .Create();
 
         // assert
         var directive = schema.GetDirectiveType("foo");
-        Assert.Collection(directive.MiddlewareComponents, Assert.NotNull);
+        Assert.NotNull(directive.Middleware);
     }
 
     [Fact]
@@ -475,14 +508,17 @@ public class DirectiveTypeTests : TypeTestBase
         // act
         void Action() =>
             SchemaBuilder.New()
-                .AddQueryType(c => c.Name("Query")
-                    .Directive("foo")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolve("bar"))
-                .AddDirectiveType(new DirectiveType(d => d.Name("foo")
-                    .Location(DirectiveLocation.Object)
-                    .Use(null)))
+                .AddQueryType(
+                    c => c.Name("Query")
+                        .Directive("foo")
+                        .Field("foo")
+                        .Type<StringType>()
+                        .Resolve("bar"))
+                .AddDirectiveType(
+                    new DirectiveType(
+                        d => d.Name("foo")
+                            .Location(DirectiveLocation.Object)
+                            .Use(null)))
                 .Create();
 
         // assert
@@ -495,16 +531,19 @@ public class DirectiveTypeTests : TypeTestBase
         // arrange
         // act
         var schema = SchemaBuilder.New()
-            .AddQueryType(c => c
-                .Name("Query")
-                .Directive("foo")
-                .Field("foo")
-                .Type<StringType>()
-                .Resolve("bar"))
-            .AddDirectiveType(new DirectiveType<DirectiveWithDefaults>(d => d
-                .Name("foo")
-                .Location(DirectiveLocation.Object)
-                .Use<DirectiveMiddleware>()))
+            .AddQueryType(
+                c => c
+                    .Name("Query")
+                    .Directive("foo")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("bar"))
+            .AddDirectiveType(
+                new DirectiveType<DirectiveWithDefaults>(
+                    d => d
+                        .Name("foo")
+                        .Location(DirectiveLocation.Object)
+                        .Use<DirectiveMiddleware>()))
             .Create();
 
         // assert
@@ -529,13 +568,15 @@ public class DirectiveTypeTests : TypeTestBase
         // act
         var executor = await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x => x
-                .Name("Query")
-                .Field("bar")
-                .Resolve("asd")
-                .Directive<DeprecatedDirective>())
-            .AddDirectiveType(new DirectiveType<DeprecatedDirective>(
-                x => x.Location(DirectiveLocation.FieldDefinition)))
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("bar")
+                    .Resolve("asd")
+                    .Directive<DeprecatedDirective>())
+            .AddDirectiveType(
+                new DirectiveType<DeprecatedDirective>(
+                    x => x.Location(DirectiveLocation.FieldDefinition)))
             .BuildRequestExecutorAsync();
 
         // assert
@@ -549,13 +590,15 @@ public class DirectiveTypeTests : TypeTestBase
         // act
         Func<Task> call = async () => await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x => x
-                .Name("Query")
-                .Field("bar")
-                .Resolve("asd")
-                .Directive<DeprecatedNonNull>())
-            .AddDirectiveType(new DirectiveType<DeprecatedNonNull>(
-                x => x.Location(DirectiveLocation.FieldDefinition)))
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("bar")
+                    .Resolve("asd")
+                    .Directive<DeprecatedNonNull>())
+            .AddDirectiveType(
+                new DirectiveType<DeprecatedNonNull>(
+                    x => x.Location(DirectiveLocation.FieldDefinition)))
             .BuildRequestExecutorAsync();
 
         // assert
@@ -570,18 +613,20 @@ public class DirectiveTypeTests : TypeTestBase
         // act
         var executor = await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x => x
-                .Name("Query")
-                .Field("bar")
-                .Resolve("asd")
-                .Directive("Qux"))
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("bar")
+                    .Resolve("asd")
+                    .Directive("Qux"))
             .AddDirectiveType(
-                new DirectiveType(x => x
-                    .Name("Qux")
-                    .Location(DirectiveLocation.FieldDefinition)
-                    .Argument("bar")
-                    .Type<IntType>()
-                    .Deprecated("a")))
+                new DirectiveType(
+                    x => x
+                        .Name("Qux")
+                        .Location(DirectiveLocation.FieldDefinition)
+                        .Argument("bar")
+                        .Type<IntType>()
+                        .Deprecated("a")))
             .BuildRequestExecutorAsync();
 
         // assert
@@ -595,18 +640,20 @@ public class DirectiveTypeTests : TypeTestBase
         // act
         Func<Task> call = async () => await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x => x
-                .Name("Query")
-                .Field("bar")
-                .Resolve("asd")
-                .Directive("Qux"))
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("bar")
+                    .Resolve("asd")
+                    .Directive("Qux"))
             .AddDirectiveType(
-                new DirectiveType(x => x
-                    .Name("Qux")
-                    .Location(DirectiveLocation.FieldDefinition)
-                    .Argument("bar")
-                    .Type<NonNullType<IntType>>()
-                    .Deprecated("a")))
+                new DirectiveType(
+                    x => x
+                        .Name("Qux")
+                        .Location(DirectiveLocation.FieldDefinition)
+                        .Argument("bar")
+                        .Type<NonNullType<IntType>>()
+                        .Deprecated("a")))
             .BuildRequestExecutorAsync();
 
         // assert
@@ -621,12 +668,14 @@ public class DirectiveTypeTests : TypeTestBase
         // act
         var schema = await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x => x
-                .Name("Query")
-                .Field("bar")
-                .Resolve("asd")
-                .Directive("Qux"))
-            .AddDocumentFromString(@"
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("bar")
+                    .Resolve("asd")
+                    .Directive("Qux"))
+            .AddDocumentFromString(
+                @"
                     directive @Qux(bar: String @deprecated(reason: ""reason"")) on FIELD_DEFINITION
                 ")
             .BuildSchemaAsync();
@@ -643,7 +692,8 @@ public class DirectiveTypeTests : TypeTestBase
         Func<Task> call = async () => await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(x => x.Name("Query").Field("bar").Resolve("asd").Directive("Qux"))
-            .AddDocumentFromString(@"
+            .AddDocumentFromString(
+                @"
                     directive @Qux(bar: String! @deprecated(reason: ""reason"")) on FIELD_DEFINITION
                 ")
             .BuildSchemaAsync();
@@ -703,20 +753,16 @@ public class DirectiveTypeTests : TypeTestBase
 
     public class DeprecatedDirective
     {
-        [Obsolete("reason")]
-        public int? ObsoleteWithReason { get; set; }
+        [Obsolete("reason")] public int? ObsoleteWithReason { get; set; }
 
-        [Obsolete]
-        public int? Obsolete { get; set; }
+        [Obsolete] public int? Obsolete { get; set; }
 
-        [GraphQLDeprecated("reason")]
-        public int? Deprecated { get; set; }
+        [GraphQLDeprecated("reason")] public int? Deprecated { get; set; }
     }
 
     public class DeprecatedNonNull
     {
-        [Obsolete("reason")]
-        public int ObsoleteWithReason { get; set; }
+        [Obsolete("reason")] public int ObsoleteWithReason { get; set; }
     }
 
     public class CustomDirective
@@ -727,13 +773,14 @@ public class DirectiveTypeTests : TypeTestBase
     public class CustomDirective2
     {
         public string Argument1 { get; set; }
+
         public string Argument2 { get; set; }
     }
 
     public class DirectiveWithDefaults
     {
-        [DefaultValue("abc")]
-        public string Argument1 { get; set; }
+        [DefaultValue("abc")] public string Argument1 { get; set; }
+
         public string Argument2 { get; set; }
     }
 }

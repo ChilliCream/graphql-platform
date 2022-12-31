@@ -11,7 +11,6 @@ namespace HotChocolate.Configuration;
 
 internal sealed partial class RegisteredType : ITypeDiscoveryContext
 {
-    private readonly List<ITypeReference> _directiveReferences = new();
     private List<ISchemaError>? _errors;
 
     public string? Scope { get; }

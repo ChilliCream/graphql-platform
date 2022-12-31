@@ -22,7 +22,7 @@ public sealed class DirectiveDefinition
     public DirectiveDefinition(DirectiveNode directiveNode)
     {
         Value = directiveNode ?? throw new ArgumentNullException(nameof(directiveNode));
-        Type = TypeReference.Create(directiveNode.Name.Value);
+        Type = TypeReference.CreateDirective(directiveNode.Name.Value);
     }
 
     /// <summary>
@@ -31,16 +31,16 @@ public sealed class DirectiveDefinition
     /// <param name="directive">
     /// The runtime instance of a directive.
     /// </param>
-    /// <param name="directiveType">
+    /// <param name="extendedTypeDirectiveType">
     /// The type reference to refer to the directive type.
     /// </param>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="directive"/> or <paramref name="directiveType"/> is <c>null</c>.
+    /// <paramref name="directive"/> or <paramref name="extendedTypeDirectiveType"/> is <c>null</c>.
     /// </exception>
-    public DirectiveDefinition(object directive, ITypeReference directiveType)
+    public DirectiveDefinition(object directive, ExtendedTypeDirectiveReference extendedTypeDirectiveType)
     {
         Value = directive ?? throw new ArgumentNullException(nameof(directive));
-        Type = directiveType ?? throw new ArgumentNullException(nameof(directiveType));
+        Type = extendedTypeDirectiveType ?? throw new ArgumentNullException(nameof(extendedTypeDirectiveType));
     }
 
     public ITypeReference Type { get; }

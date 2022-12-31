@@ -1,6 +1,5 @@
 using HotChocolate.Types;
 using HotChocolate.Tests;
-using Xunit;
 
 namespace HotChocolate.Execution;
 
@@ -170,7 +169,7 @@ public class SchemaDirectiveTests
             {
                 await next(context);
 
-                if (context.Directive.Name != "upper")
+                if (context.Directive.Type.Name != "upper")
                 {
                     throw new QueryException("Not the upper directive.");
                 }
@@ -195,7 +194,7 @@ public class SchemaDirectiveTests
             {
                 await next(context);
 
-                if (context.Directive.Name != "lower")
+                if (context.Directive.Type.Name != "lower")
                 {
                     throw new QueryException("Not the lower directive.");
                 }

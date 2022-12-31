@@ -25,3 +25,8 @@ internal interface IHasProperty
 {
     PropertyInfo? Property { get; }
 }
+
+internal interface IHasOptional
+{
+    bool IsOptional { get; }
+}

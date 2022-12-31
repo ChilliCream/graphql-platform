@@ -4,7 +4,6 @@ using System;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Language.SyntaxComparison;
-using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate.Types;
 
@@ -35,9 +34,9 @@ public sealed class Directive
     public DirectiveType Type { get; }
 
     /// <summary>
-    /// Gets an argument value of the directive by its  <paramref name="argumentName"/>.
+    /// Gets an argument value of the directive by its  <paramref name="name"/>.
     /// </summary>
-    /// <param name="argumentName">
+    /// <param name="name">
     /// The argument name.
     /// </param>
     /// <typeparam name="T">
@@ -46,30 +45,14 @@ public sealed class Directive
     /// <returns>
     /// Returns the argument value.
     /// </returns>
-    public T GetArgumentValue<T>(string argumentName)
+    public T GetArgumentValue<T>(string name)
     {
-        if (argumentName is null)
+        if (name is null)
         {
-            throw new ArgumentNullException(argumentName);
+            throw new ArgumentNullException(name);
         }
 
-        if (!Type.Arguments.TryGetField(argumentName, out var argument))
-        {
-            throw new ArgumentException(
-                string.Format(
-                    Directive_GetArgumentValue_UnknownArgument,
-                    Type.Name,
-                    argumentName));
-        }
-
-        var value = GetArgumentValueOrNull(argumentName);
-
-        if (value is null)
-        {
-            value = argument.DefaultValue ?? NullValueNode.Default;
-        }
-
-        return Type.ParseArgumentValue<T>(argument, value);
+        return Type.ParseArgument<T>(name, GetArgumentValueOrNull(name));
     }
 
     private IValueNode? GetArgumentValueOrNull(string argumentValue)
@@ -90,7 +73,7 @@ public sealed class Directive
     }
 
     public T AsValue<T>()
-        => (T)(_runtimeValue ??= Type.Parse<T>(_syntaxNode))!;
+        => (T)(_runtimeValue ??= Type.Parse(_syntaxNode));
 
     public DirectiveNode AsSyntaxNode(bool removeDefaults = false)
     {

@@ -3,7 +3,6 @@ using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.ApolloFederation.Directives;
 
@@ -24,8 +23,9 @@ public class ExternalDirectiveTests : FederationTypesTestBase
         Assert.NotNull(directive);
         Assert.IsType<ExternalDirectiveType>(directive);
         Assert.Equal(WellKnownTypeNames.External, directive!.Name);
-        Assert.Empty(directive!.Arguments);
-        Assert.Collection(directive!.Locations,
+        Assert.Empty(directive.Arguments);
+        Assert.Collection(
+            directive.Locations,
             t => Assert.Equal(DirectiveLocation.FieldDefinition, t));
     }
 
@@ -52,11 +52,7 @@ public class ExternalDirectiveTests : FederationTypesTestBase
         // assert
         Assert.Collection(
             query.Fields["field"].Directives,
-            item => Assert.Equal(
-                WellKnownTypeNames.External,
-                item.Name
-            )
-        );
+            item => Assert.Equal(WellKnownTypeNames.External, item.Type.Name));
         schema.ToString().MatchSnapshot();
     }
 
@@ -77,7 +73,7 @@ public class ExternalDirectiveTests : FederationTypesTestBase
                     "
             )
             .AddDirectiveType<ExternalDirectiveType>()
-            .Use(next => context => default)
+            .Use(_ => _ => default)
             .Create();
 
         // act
@@ -86,11 +82,7 @@ public class ExternalDirectiveTests : FederationTypesTestBase
         // assert
         Assert.Collection(
             queryInterface.Fields["field"].Directives,
-            item => Assert.Equal(
-                WellKnownTypeNames.External,
-                item.Name
-            )
-        );
+            item => Assert.Equal(WellKnownTypeNames.External, item.Type.Name));
         schema.ToString().MatchSnapshot();
     }
 
@@ -111,11 +103,7 @@ public class ExternalDirectiveTests : FederationTypesTestBase
         // assert
         Assert.Collection(
             query.Fields["idCode"].Directives,
-            item => Assert.Equal(
-                WellKnownTypeNames.External,
-                item.Name
-            )
-        );
+            item => Assert.Equal(WellKnownTypeNames.External, item.Type.Name));
         schema.ToString().MatchSnapshot();
     }
 }

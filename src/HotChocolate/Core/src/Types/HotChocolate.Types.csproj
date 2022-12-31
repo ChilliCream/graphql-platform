@@ -85,6 +85,15 @@
     <Compile Update="Types\InputObjectType.Initialization.cs">
       <DependentUpon>InputObjectType.cs</DependentUpon>
     </Compile>
+    <Compile Update="Types\DirectiveType.Initialization.cs">
+      <DependentUpon>DirectiveType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Configuration\RegisteredType.CompletionContext.cs">
+      <DependentUpon>RegisteredType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Configuration\RegisteredType.DiscoveryContext.cs">
+      <DependentUpon>RegisteredType.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

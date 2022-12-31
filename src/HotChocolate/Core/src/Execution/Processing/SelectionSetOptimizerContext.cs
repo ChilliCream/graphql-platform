@@ -5,7 +5,6 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.Properties.Resources;
-using NameUtils = HotChocolate.Utilities.NameUtils;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -18,6 +17,7 @@ public readonly ref struct SelectionSetOptimizerContext
     private readonly OperationCompiler _compiler;
     private readonly OperationCompiler.CompilerContext _compilerContext;
     private readonly Dictionary<Selection, OperationCompiler.SelectionSetInfo[]> _selectionLookup;
+    private readonly CreateFieldPipeline _createFieldPipeline;
 
     /// <summary>
     /// Initializes a new instance of <see cref="SelectionSetOptimizerContext"/>
@@ -26,11 +26,13 @@ public readonly ref struct SelectionSetOptimizerContext
         OperationCompiler compiler,
         OperationCompiler.CompilerContext compilerContext,
         Dictionary<Selection, OperationCompiler.SelectionSetInfo[]> selectionLookup,
-        Dictionary<string, object?> contextData)
+        Dictionary<string, object?> contextData,
+        CreateFieldPipeline createFieldPipeline)
     {
         _compiler = compiler;
         _compilerContext = compilerContext;
         _selectionLookup = selectionLookup;
+        _createFieldPipeline = createFieldPipeline;
         ContextData = contextData;
     }
 
@@ -91,7 +93,7 @@ public readonly ref struct SelectionSetOptimizerContext
     /// Returns a <see cref="FieldDelegate" /> representing the field resolver pipeline.
     /// </returns>
     public FieldDelegate CompileResolverPipeline(IObjectField field, FieldNode selection)
-        => OperationCompiler.CreateFieldMiddleware(Schema, field, selection);
+        => _createFieldPipeline(Schema, field, selection);
 
     /// <summary>
     /// Adds an additional selection for internal purposes.

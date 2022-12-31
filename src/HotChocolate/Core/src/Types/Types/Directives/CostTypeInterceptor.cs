@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -122,13 +123,18 @@ internal class CostTypeInterceptor : TypeInterceptor
 
     private static bool IsCostDirective(DirectiveDefinition directive)
     {
-        if (directive.Reference is NameDirectiveReference { Name: "cost" })
+        if (directive.Type is SyntaxTypeReference { Name: "cost" })
         {
             return true;
         }
 
-        if (directive.Reference is ClrTypeDirectiveReference { ClrType: { } type } &&
-            type == typeof(CostDirective))
+        if (directive.Type is ExtendedTypeReference { Type.Type: { } runtimeType } &&
+            runtimeType == typeof(CostDirective))
+        {
+            return true;
+        }
+
+        if (directive.Type is SchemaTypeReference { Type: CostDirectiveType })
         {
             return true;
         }

@@ -11,5 +11,10 @@ public interface IDirectiveContext : IMiddlewareContext
     /// <summary>
     /// Gets the directive that is being executed.
     /// </summary>
-    IDirective Directive { get; }
+    Directive Directive { get; }
+
+    /// <summary>
+    /// Unwraps the inner context.
+    /// </summary>
+    IMiddlewareContext Unwrap();
 }

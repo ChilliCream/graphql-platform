@@ -12,8 +12,7 @@ public sealed class TypeDependency
         ITypeReference type,
         TypeDependencyFulfilled fulfilled = TypeDependencyFulfilled.Default)
     {
-        Type = type ??
-            throw new ArgumentNullException(nameof(type));
+        Type = type ?? throw new ArgumentNullException(nameof(type));
         Fulfilled = fulfilled;
     }
 
@@ -42,8 +41,6 @@ public sealed class TypeDependency
                 nameof(type));
         }
 
-        return new TypeDependency(
-            Descriptors.TypeReference.Create(type),
-            fulfilled);
+        return new TypeDependency(TypeReference.Create(type), fulfilled);
     }
 }

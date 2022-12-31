@@ -3,25 +3,26 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
-namespace HotChocolate.Execution.Processing;
+namespace HotChocolate.Resolvers;
 
 internal sealed class DirectiveContext : IDirectiveContext
 {
     private readonly IMiddlewareContext _middlewareContext;
 
-    public DirectiveContext(IMiddlewareContext middlewareContext, IDirective directive)
+    public DirectiveContext(IMiddlewareContext middlewareContext, Directive directive)
     {
         _middlewareContext = middlewareContext;
         Directive = directive;
     }
 
-    public IDirective Directive { get; }
+    public Directive Directive { get; }
 
-   public ISchema Schema => _middlewareContext.Schema;
+    public ISchema Schema => _middlewareContext.Schema;
 
     public IObjectType ObjectType => _middlewareContext.ObjectType;
 
@@ -137,4 +138,7 @@ internal sealed class DirectiveContext : IDirectiveContext
 
     IResolverContext IResolverContext.Clone()
         => Clone();
+
+    public IMiddlewareContext Unwrap()
+        => _middlewareContext;
 }

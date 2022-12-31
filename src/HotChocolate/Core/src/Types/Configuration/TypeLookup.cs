@@ -69,6 +69,22 @@ internal sealed class TypeLookup
                 _refs[typeRef] = r;
                 namedTypeRef = r;
                 return true;
+
+            case NameDirectiveReference dirRef:
+                if (_typeRegistry.TryGetTypeRef(dirRef.Name, out namedTypeRef))
+                {
+                    _refs[typeRef] = namedTypeRef;
+                    return true;
+                }
+                break;
+
+            case ExtendedTypeDirectiveReference dirRef:
+                if (TryNormalizeExtendedTypeReference(TypeReference.Create(dirRef.Type), out namedTypeRef))
+                {
+                    _refs[typeRef] = namedTypeRef;
+                    return true;
+                }
+                break;
         }
 
         namedTypeRef = null;

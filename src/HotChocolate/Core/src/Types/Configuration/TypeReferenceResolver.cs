@@ -247,13 +247,9 @@ internal sealed class TypeReferenceResolver
         }
 
         public static bool operator ==(TypeId left, TypeId right)
-        {
-            return left.Equals(right);
-        }
+            => left.Equals(right);
 
         public static bool operator !=(TypeId left, TypeId right)
-        {
-            return !left.Equals(right);
-        }
+            => !left.Equals(right);
     }
 }

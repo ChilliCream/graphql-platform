@@ -77,9 +77,6 @@ public abstract class NamedTypeBase<TDefinition>
         base.OnRegisterDependencies(context, definition);
 
         UpdateRuntimeType(definition);
-
-        context.RegisterDependencyRange(
-            definition.GetDirectives().Select(t => t.Reference));
     }
 
     /// <inheritdoc />

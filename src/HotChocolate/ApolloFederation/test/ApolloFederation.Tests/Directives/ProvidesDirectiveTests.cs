@@ -3,7 +3,6 @@ using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.ApolloFederation.Directives;
 
@@ -67,10 +66,7 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
         Assert.Collection(testType.Fields.Single(field => field.Name == "product").Directives,
             providesDirective =>
             {
-                Assert.Equal(
-                    WellKnownTypeNames.Provides,
-                    providesDirective.Name
-                );
+                Assert.Equal(WellKnownTypeNames.Provides, providesDirective.Type.Name);
                 Assert.Equal("fields", providesDirective.AsSyntaxNode().Arguments[0].Name.ToString());
                 Assert.Equal("\"name\"", providesDirective.AsSyntaxNode().Arguments[0].Value.ToString());
             });
@@ -122,7 +118,7 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
             {
                 Assert.Equal(
                     WellKnownTypeNames.Provides,
-                    providesDirective.Name);
+                    providesDirective.Type.Name);
                 Assert.Equal(
                     "fields",
                     providesDirective.AsSyntaxNode().Arguments[0].Name.ToString());
@@ -155,7 +151,7 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
             {
                 Assert.Equal(
                     WellKnownTypeNames.Provides,
-                    providesDirective.Name);
+                    providesDirective.Type.Name);
                 Assert.Equal(
                     "fields",
                     providesDirective.AsSyntaxNode().Arguments[0].Name.ToString());

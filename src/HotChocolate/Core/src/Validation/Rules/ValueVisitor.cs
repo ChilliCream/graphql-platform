@@ -198,7 +198,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
 
         if (namedType is InputObjectType inputObjectType)
         {
-            if (inputObjectType.Directives.Contains(WellKnownDirectives.OneOf))
+            if (inputObjectType.Directives.ContainsDirective(WellKnownDirectives.OneOf))
             {
                 if (node.Fields.Count == 0 || node.Fields.Count > 1)
                 {

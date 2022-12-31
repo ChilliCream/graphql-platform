@@ -55,6 +55,7 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
 
     protected static string ToHexString(ReadOnlySpan<byte> hash)
     {
+
         if (hash.Length == 0)
         {
             return string.Empty;

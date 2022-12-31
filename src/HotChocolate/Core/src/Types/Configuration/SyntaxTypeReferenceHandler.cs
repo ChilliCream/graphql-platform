@@ -38,3 +38,36 @@ internal sealed class SyntaxTypeReferenceHandler : ITypeRegistrarHandler
         }
     }
 }
+
+/*
+internal sealed class NameDirectiveReferenceHandler : ITypeRegistrarHandler
+{
+    private readonly HashSet<string> _handled = new();
+    private readonly ITypeInspector _typeInspector;
+
+    public NameDirectiveReferenceHandler(ITypeInspector typeInspector)
+    {
+        _typeInspector = typeInspector ??
+            throw new ArgumentNullException(nameof(typeInspector));
+    }
+
+    public TypeReferenceKind Kind => TypeReferenceKind.DirectiveName;
+
+    public void Handle(ITypeRegistrar typeRegistrar, ITypeReference typeReference)
+    {
+        var typeRef = (NameDirectiveReference)typeReference;
+
+        if (_handled.Add(typeRef.Name))
+        {
+            var namedTypeReference = _typeInspector.GetTypeRef(scalarType);
+
+            if (!typeRegistrar.IsResolved(namedTypeReference))
+            {
+                typeRegistrar.Register(
+                    typeRegistrar.CreateInstance(namedTypeReference.Type.Type),
+                    typeRef.Scope);
+            }
+        }
+    }
+}
+*/

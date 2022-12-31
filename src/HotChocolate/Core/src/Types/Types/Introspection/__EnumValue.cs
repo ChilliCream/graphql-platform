@@ -11,6 +11,7 @@ using static HotChocolate.Types.Descriptors.TypeReference;
 namespace HotChocolate.Types.Introspection;
 
 [Introspection]
+// ReSharper disable once InconsistentNaming
 internal sealed class __EnumValue : ObjectType<IEnumValue>
 {
     protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
@@ -69,6 +70,7 @@ internal sealed class __EnumValue : ObjectType<IEnumValue>
 
     public static class Names
     {
+        // ReSharper disable once InconsistentNaming
         public const string __EnumValue = "__EnumValue";
         public const string Name = "name";
         public const string Description = "description";

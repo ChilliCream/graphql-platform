@@ -11,6 +11,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
+using static HotChocolate.Types.Descriptors.Definitions.TypeDependencyFulfilled;
 
 #nullable enable
 
@@ -167,7 +168,7 @@ internal sealed class TypeInitializer
                 {
                     var typeReference = TypeReference.Create(interfaceType.Type);
                     ((ObjectType)objectType.Type).Definition!.Interfaces.Add(typeReference);
-                    objectType.Dependencies.Add(new(typeReference, TypeDependencyFulfilled.Completed));
+                    objectType.Dependencies.Add(new(typeReference, Completed));
                 }
             }
         }
@@ -181,7 +182,7 @@ internal sealed class TypeInitializer
                 {
                     var typeReference = TypeReference.Create(interfaceType.Type);
                     ((InterfaceType)implementing.Type).Definition!.Interfaces.Add(typeReference);
-                    implementing.Dependencies.Add(new(typeReference, TypeDependencyFulfilled.Completed));
+                    implementing.Dependencies.Add(new(typeReference, Completed));
                 }
             }
         }
@@ -191,7 +192,7 @@ internal sealed class TypeInitializer
     {
         _interceptor.OnBeforeCompleteTypeNames();
 
-        if (ProcessTypes(TypeDependencyKind.Named, type => CompleteTypeName(type)))
+        if (ProcessTypes(Named, type => CompleteTypeName(type)))
         {
             _interceptor.OnTypesCompletedName();
         }
@@ -394,7 +395,7 @@ internal sealed class TypeInitializer
 
         _interceptor.OnBeforeCompleteTypes();
 
-        ProcessTypes(TypeDependencyFulfilled.Completed, CompleteType);
+        ProcessTypes(Completed, CompleteType);
         EnsureNoErrors();
 
         _interceptor.OnTypesCompleted();
@@ -449,7 +450,9 @@ internal sealed class TypeInitializer
                 .Where(t => !processed.Contains(t.References[0])))
             {
                 // the name might not be set at this point.
-                var name = type.Type.Name ?? type.References[0].ToString()!;
+                var name = string.IsNullOrEmpty(type.Type.Name)
+                    ? type.References[0].ToString()!
+                    : type.Type.Name;
 
                 IReadOnlyList<ITypeReference> needed =
                     TryNormalizeDependencies(
@@ -572,9 +575,7 @@ internal sealed class TypeInitializer
 
         foreach (var dependency in dependencies)
         {
-            if (!_typeLookup.TryNormalizeReference(
-                dependency.Type,
-                out var nr))
+            if (!_typeLookup.TryNormalizeReference(dependency.Type, out var nr))
             {
                 normalized = null;
                 n.Add(dependency.Type);

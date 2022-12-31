@@ -1,20 +1,15 @@
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
-using Xunit;
+using CookieCrumble;
 
 namespace HotChocolate.Types;
 
 public class DirectiveTests : TypeTestBase
 {
-    private readonly ITypeInspector _typeInspector = new DefaultTypeInspector();
-
     [Fact]
-    public void ConvertCustomDirectiveToDirectiveNode()
+    public void Directive_AsSyntaxNode()
     {
         // arrange
         var schema = CreateSchema();
@@ -29,12 +24,10 @@ public class DirectiveTests : TypeTestBase
         };
 
         // act
-        var directive = Directive.FromDescription(
+        var directive = new Directive(
             directiveType,
-            new DirectiveDefinition(
-                fooDirective,
-                _typeInspector.GetTypeRef(fooDirective.GetType())),
-            new object());
+            directiveType.Format(fooDirective),
+            fooDirective);
         var directiveNode = directive.AsSyntaxNode();
 
         // assert
@@ -59,7 +52,7 @@ public class DirectiveTests : TypeTestBase
     }
 
     [Fact]
-    public void MapCustomDirectiveToDifferentType()
+    public void Directive_AsValue_FooDirective()
     {
         // arrange
         var schema = CreateSchema();
@@ -74,20 +67,18 @@ public class DirectiveTests : TypeTestBase
         };
 
         // act
-        var directive = Directive.FromDescription(
+        var directive = new Directive(
             directiveType,
-            new DirectiveDefinition(
-                fooDirective,
-                _typeInspector.GetTypeRef(fooDirective.GetType())),
-            new object());
-        var mappedObject = directive.AsValue<FooChild>();
+            directiveType.Format(fooDirective));
+        var runtimeValue = directive.AsValue<FooDirective>();
 
         // assert
-        Assert.Equal("123", mappedObject.Bar);
+        Assert.Equal("123", runtimeValue.Bar);
+        Assert.Equal("456", runtimeValue.Child.Bar);
     }
 
     [Fact]
-    public void GetArgumentFromCustomDirective()
+    public void Directive_AsValue_Object()
     {
         // arrange
         var schema = CreateSchema();
@@ -102,12 +93,63 @@ public class DirectiveTests : TypeTestBase
         };
 
         // act
-        var directive = Directive.FromDescription(
+        var directive = new Directive(
             directiveType,
-            new DirectiveDefinition(
-                fooDirective,
-                _typeInspector.GetTypeRef(fooDirective.GetType())),
-            new object());
+            directiveType.Format(fooDirective));
+
+        // assert
+        var runtimeValue = Assert.IsType<FooDirective>(directive.AsValue<object>());
+        Assert.Equal("123", runtimeValue.Bar);
+        Assert.Equal("456", runtimeValue.Child.Bar);
+    }
+
+
+    [Fact]
+    public void Directive_AsValue_Same()
+    {
+        // arrange
+        var schema = CreateSchema();
+        var directiveType = schema.GetDirectiveType("Foo");
+        var fooDirective = new FooDirective
+        {
+            Bar = "123",
+            Child = new FooChild
+            {
+                Bar = "456"
+            }
+        };
+
+        // act
+        var directive = new Directive(
+            directiveType,
+            directiveType.Format(fooDirective),
+            fooDirective);
+        var runtimeValue = directive.AsValue<FooDirective>();
+
+        // assert
+        Assert.Same(fooDirective, runtimeValue);
+    }
+
+    [Fact]
+    public void Directive_GetArgumentValue()
+    {
+        // arrange
+        var schema = CreateSchema();
+        var directiveType = schema.GetDirectiveType("Foo");
+        var fooDirective = new FooDirective
+        {
+            Bar = "123",
+            Child = new FooChild
+            {
+                Bar = "456"
+            }
+        };
+
+        // act
+        var directive = new Directive(
+            directiveType,
+            directiveType.Format(fooDirective),
+            fooDirective);
         var barValue = directive.GetArgumentValue<string>("bar");
 
         // assert
@@ -115,12 +157,15 @@ public class DirectiveTests : TypeTestBase
     }
 
     [Fact]
-    public async Task QueryDirectives_AreAddedToTheSchema()
+    public async Task Directive_Query_Directives_Are_Not_Removed_Without_Usage()
     {
         // arrange
         var schema = await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x => x.Name("Query").Field("foo").Resolve("Bar"))
+            .AddQueryType(d => d
+                .Name("Query")
+                .Field("foo")
+                .Resolve("Bar"))
             .AddType<FooQueryDirectiveType>()
             .BuildSchemaAsync();
 
@@ -132,7 +177,7 @@ public class DirectiveTests : TypeTestBase
     }
 
     [Fact]
-    public void ExplicitArguments()
+    public void Directive_With_Explicit_Arguments()
     {
         SchemaBuilder.New()
             .AddDirectiveType<FooDirectiveTypeExplicit>()
@@ -155,8 +200,7 @@ public class DirectiveTests : TypeTestBase
         });
     }
 
-    public class FooQueryDirectiveType
-        : DirectiveType<FooDirective>
+    public class FooQueryDirectiveType : DirectiveType<FooDirective>
     {
         protected override void Configure(
             IDirectiveTypeDescriptor<FooDirective> descriptor)
@@ -166,8 +210,7 @@ public class DirectiveTests : TypeTestBase
         }
     }
 
-    public class FooDirectiveType
-        : DirectiveType<FooDirective>
+    public class FooDirectiveType : DirectiveType<FooDirective>
     {
         protected override void Configure(
             IDirectiveTypeDescriptor<FooDirective> descriptor)
@@ -177,8 +220,7 @@ public class DirectiveTests : TypeTestBase
         }
     }
 
-    public class FooDirectiveTypeExplicit
-        : DirectiveType<FooDirective>
+    public class FooDirectiveTypeExplicit : DirectiveType<FooDirective>
     {
         protected override void Configure(
             IDirectiveTypeDescriptor<FooDirective> descriptor)

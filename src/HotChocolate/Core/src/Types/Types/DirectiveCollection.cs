@@ -15,15 +15,11 @@ namespace HotChocolate.Types;
 
 public sealed class DirectiveCollection : IDirectiveCollection
 {
-    private readonly object _source;
-    private readonly DirectiveLocation _location;
     private readonly Directive[] _directives;
 
-    private DirectiveCollection(object source, Directive[] directives)
+    private DirectiveCollection(Directive[] directives)
     {
-        _source = source ?? throw new ArgumentNullException(nameof(source));
         _directives = directives ?? throw new ArgumentNullException(nameof(directives));
-        _location = DirectiveHelper.InferDirectiveLocation(source);
     }
 
     public int Count => _directives.Length;
@@ -84,9 +80,26 @@ public sealed class DirectiveCollection : IDirectiveCollection
     internal static DirectiveCollection CreateAndComplete(
         ITypeCompletionContext context,
         object source,
-        IReadOnlyList<DirectiveDefinition>? definitions)
+        IReadOnlyList<DirectiveDefinition> definitions)
     {
+        if (context is null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        if (source is null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        if (definitions is null)
+        {
+            throw new ArgumentNullException(nameof(definitions));
+        }
+
+        var location = DirectiveHelper.InferDirectiveLocation(source);
         var directives = new Directive[definitions.Count];
+        var directiveNames = TypeMemHelper.RentNameSet();
 
         for (var i = 0; i < directives.Length; i++)
         {
@@ -95,13 +108,42 @@ public sealed class DirectiveCollection : IDirectiveCollection
 
             if (context.TryGetDirectiveType(definition.Type, out var directiveType))
             {
+                if ((directiveType.Locations & location) != location)
+                {
+                    var directiveNode = definition.Value as DirectiveNode;
+                    var directiveValue = directiveNode is null ? definition.Value : null;
+
+                    context.ReportError(
+                        ErrorHelper.DirectiveCollection_LocationNotAllowed(
+                            directiveType,
+                            location,
+                            context.Type,
+                            directiveNode,
+                            directiveValue));
+                    continue;
+                }
+
+                if (!directiveNames.Add(directiveType.Name) && !directiveType.IsRepeatable)
+                {
+                    var directiveNode = definition.Value as DirectiveNode;
+                    var directiveValue = directiveNode is null ? definition.Value : null;
+
+                    context.ReportError(
+                        ErrorHelper.DirectiveCollection_DirectiveIsUnique(
+                            directiveType,
+                            context.Type,
+                            directiveNode,
+                            directiveValue));
+                    continue;
+                }
+
                 directives[i] = value is DirectiveNode syntaxNode
                     ? new Directive(directiveType, syntaxNode)
                     : new Directive(directiveType, directiveType.Format(value), value);
             }
         }
 
-        return new DirectiveCollection(source, directives);
+        return new DirectiveCollection(directives);
     }
 
     internal ReadOnlySpan<Directive> AsSpan()
