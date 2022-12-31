@@ -241,7 +241,7 @@ public class DirectiveDescriptorTests
         // assert
         var description =
             descriptor.CreateDefinition();
-        Assert.Collection(description.Locations,
+        Assert.Collection(description.Locations.AsEnumerable(),
             t => Assert.Equal(DirectiveLocation.Enum, t),
             t => Assert.Equal(DirectiveLocation.EnumValue, t));
     }

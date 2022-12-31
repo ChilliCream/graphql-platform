@@ -111,7 +111,6 @@ public sealed class DirectiveCollection : IDirectiveCollection
                 if ((directiveType.Locations & location) != location)
                 {
                     var directiveNode = definition.Value as DirectiveNode;
-                    var directiveValue = directiveNode is null ? definition.Value : null;
 
                     context.ReportError(
                         ErrorHelper.DirectiveCollection_LocationNotAllowed(
@@ -119,21 +118,20 @@ public sealed class DirectiveCollection : IDirectiveCollection
                             location,
                             context.Type,
                             directiveNode,
-                            directiveValue));
+                            source));
                     continue;
                 }
 
                 if (!directiveNames.Add(directiveType.Name) && !directiveType.IsRepeatable)
                 {
                     var directiveNode = definition.Value as DirectiveNode;
-                    var directiveValue = directiveNode is null ? definition.Value : null;
 
                     context.ReportError(
                         ErrorHelper.DirectiveCollection_DirectiveIsUnique(
                             directiveType,
                             context.Type,
                             directiveNode,
-                            directiveValue));
+                            source));
                     continue;
                 }
 

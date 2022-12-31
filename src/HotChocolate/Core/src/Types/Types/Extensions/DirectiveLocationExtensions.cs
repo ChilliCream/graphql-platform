@@ -110,11 +110,6 @@ public static class DirectiveLocationExtensions
             yield return DirectiveLocation.Mutation;
         }
 
-        if ((locations & DirectiveLocation.Query) == DirectiveLocation.Query)
-        {
-            yield return DirectiveLocation.Query;
-        }
-
         if ((locations & DirectiveLocation.Subscription) == DirectiveLocation.Subscription)
         {
             yield return DirectiveLocation.Subscription;

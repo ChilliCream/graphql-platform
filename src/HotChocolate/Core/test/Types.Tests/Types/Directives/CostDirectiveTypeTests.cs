@@ -249,7 +249,7 @@ public class CostDirectiveTypeTests : TypeTestBase
                 Assert.Equal("defaultMultiplier", t.Name);
                 Assert.IsType<IntType>(t.Type);
             });
-        Assert.Collection(directive.Locations,
+        Assert.Collection(directive.Locations.AsEnumerable(),
             t => Assert.Equal(DirectiveLocation.FieldDefinition, t));
     }
 }

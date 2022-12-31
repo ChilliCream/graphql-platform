@@ -304,7 +304,7 @@ public class SchemaCoordinateTests
         var member = schema.GetMember("@qux(a:)");
 
         // assert
-        var argument = Assert.IsType<Argument>(member);
+        var argument = Assert.IsType<DirectiveArgument>(member);
         Assert.Equal("a", argument.Name);
         Assert.Equal("qux", argument.DeclaringType.Name);
     }
@@ -657,7 +657,7 @@ public class SchemaCoordinateTests
 
         // assert
         Assert.True(success);
-        var argument = Assert.IsType<Argument>(member);
+        var argument = Assert.IsType<DirectiveArgument>(member);
         Assert.Equal("a", argument.Name);
         Assert.Equal("qux", argument.DeclaringType.Name);
     }
