@@ -155,7 +155,11 @@ public static class JsonObjectTypeExtensions
                 };
                 return;
             case ScalarNames.DateTime:
-                def.PureResolver = ctx => ctx.GetProperty(propertyName)?.GetDateTimeOffset();
+                def.PureResolver = ctx =>
+                {
+                    var value = ctx.GetProperty(propertyName);
+                    return String.IsNullOrWhiteSpace(value) ? null : value.GetDateTimeOffset();
+                };
                 return;
             default:
                 throw ThrowHelper.CannotInferTypeFromJsonObj(type.Name);
