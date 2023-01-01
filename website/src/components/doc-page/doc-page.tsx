@@ -57,6 +57,7 @@ export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
   const { fields, frontmatter, body } = data.file!.childMdx!;
   const slug = fields!.slug!;
   const title = frontmatter!.title!;
+  const description = frontmatter!.description;
 
   const product = useProductInformation(slug, data.productsConfig?.products);
 
@@ -119,6 +120,7 @@ export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
                 <ArticleTitle>{title}</ArticleTitle>
               </ArticleHeader>
               <ArticleContent>
+                {description && <p>{description}</p>}
                 <MDXRenderer>{body}</MDXRenderer>
                 <ArticleContentFooter
                   lastUpdated={fields!.lastUpdated!}
@@ -154,6 +156,7 @@ export const DocPageGraphQLFragment = graphql`
         }
         frontmatter {
           title
+          description
         }
         body
         ...ArticleSections
