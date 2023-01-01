@@ -10,9 +10,9 @@ public interface IInputObjectTypeDescriptor<T>
     , IFluent
 {
     IInputObjectTypeDescriptor<T> SyntaxNode(
-        InputObjectTypeDefinitionNode inputObjectTypeDefinitionNode);
+        InputObjectTypeDefinitionNode inputObjectTypeDefinition);
 
-    IInputObjectTypeDescriptor<T> Name(NameString value);
+    IInputObjectTypeDescriptor<T> Name(string value);
 
     IInputObjectTypeDescriptor<T> Description(string value);
 
@@ -30,7 +30,7 @@ public interface IInputObjectTypeDescriptor<T>
     /// </summary>
     IInputObjectTypeDescriptor<T> BindFieldsImplicitly();
 
-    IInputFieldDescriptor Field(NameString name);
+    IInputFieldDescriptor Field(string name);
 
     IInputFieldDescriptor Field<TValue>(
         Expression<Func<T, TValue>> property);
@@ -43,6 +43,6 @@ public interface IInputObjectTypeDescriptor<T>
         where TDirective : class, new();
 
     IInputObjectTypeDescriptor<T> Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments);
 }

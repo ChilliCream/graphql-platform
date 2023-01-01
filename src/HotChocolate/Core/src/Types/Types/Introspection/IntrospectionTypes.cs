@@ -50,12 +50,12 @@ public static class IntrospectionTypes
     /// <summary>
     /// Defines if the type name represents an introspection type.
     /// </summary>
-    public static bool IsIntrospectionType(NameString typeName) =>
-        typeName.HasValue && _typeNames.Contains(typeName.Value);
+    public static bool IsIntrospectionType(string typeName)
+        => !string.IsNullOrEmpty(typeName)  && _typeNames.Contains(typeName);
 
     /// <summary>
     /// Defines if the type represents an introspection type.
     /// </summary>
-    public static bool IsIntrospectionType(INamedType type) =>
-        IsIntrospectionType(type.Name);
+    public static bool IsIntrospectionType(INamedType type)
+        => IsIntrospectionType(type.Name);
 }

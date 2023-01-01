@@ -1,5 +1,4 @@
-using System;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -10,7 +9,6 @@ using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 using Squadron;
-using Xunit;
 
 namespace HotChocolate.Data.MongoDb.Filters;
 
@@ -18,22 +16,22 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
 {
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { Bar = true },
-            new Foo { Bar = false }
-        };
+        new() { Bar = true },
+        new() { Bar = false }
+    };
 
     private static readonly Bar[] _barEntities =
     {
-            new Bar { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
-            new Bar { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) }
-        };
+        new() { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
+        new() { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) }
+    };
 
     private static readonly Baz[] _bazEntities =
     {
-            new Baz { Bar = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
-            new Baz { Bar = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) },
-            new Baz { Bar = new DateTimeOffset(1996, 1, 11, 0, 0, 0, TimeSpan.Zero) }
-        };
+        new() { Bar = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
+        new() { Bar = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) },
+        new() { Bar = new DateTimeOffset(1996, 1, 11, 0, 0, 0, TimeSpan.Zero) }
+    };
 
     private readonly MongoResource _resource;
 
@@ -46,32 +44,31 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
     public async Task BsonElement_Rename()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema(
+        var tester = CreateSchema(
             () =>
             {
-                IMongoCollection<Foo> collection =
-                    _resource.CreateCollection<Foo>("data_" + Guid.NewGuid().ToString("N"));
-
-                collection.InsertMany(_fooEntities);
-
-                return collection.Find(FilterDefinition<Foo>.Empty).AsExecutable();
+                var col = _resource.CreateCollection<Foo>("data_" + Guid.NewGuid().ToString("N"));
+                col.InsertMany(_fooEntities);
+                return col.Find(FilterDefinition<Foo>.Empty).AsExecutable();
             });
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: true}}){ bar}}")
                 .Create());
 
-        res1.MatchDocumentSnapshot("true");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: false}}){ bar}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("false");
+        // arrange
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "true"), res2, "false")
+            .MatchAsync();
     }
 
     [Fact]
@@ -83,66 +80,64 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
                 .SetSerializer(new DateTimeOffsetSerializer(BsonType.String))
                 .SetElementName("testName"));
 
-        IRequestExecutor tester = CreateSchema(
+        var tester = CreateSchema(
             () =>
             {
-                IMongoCollection<Bar> collection =
-                    _resource.CreateCollection<Bar>("data_" + Guid.NewGuid().ToString("N"));
-
-                collection.InsertMany(_barEntities);
-
-                return collection.Find(FilterDefinition<Bar>.Empty).AsExecutable();
+                var col = _resource.CreateCollection<Bar>("data_" + Guid.NewGuid().ToString("N"));
+                col.InsertMany(_barEntities);
+                return col.Find(FilterDefinition<Bar>.Empty).AsExecutable();
             });
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { baz: { eq: \"2020-01-11T00:00:00Z\"}}){ baz}}")
                 .Create());
 
-        res1.MatchDocumentSnapshot("2020-01-11");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { baz: { eq: \"2020-01-12T00:00:00Z\"}}){ baz}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("2020-01-12");
+        // arrange
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "2020-01-11"), res2, "2020-01-12")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task FindFluent_CombineQuery()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema(
+        var tester = CreateSchema(
             () =>
             {
-                IMongoCollection<Baz> collection =
-                    _resource.CreateCollection<Baz>("data_" + Guid.NewGuid().ToString("N"));
-
-                collection.InsertMany(_bazEntities);
-
-                return collection
+                var col = _resource.CreateCollection<Baz>("data_" + Guid.NewGuid().ToString("N"));
+                col.InsertMany(_bazEntities);
+                return col
                     .Find(x => x.Bar > new DateTimeOffset(2000, 1, 1, 0, 0, 0, TimeSpan.Zero))
                     .AsExecutable();
             });
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: \"2020-01-11T00:00:00Z\"}}){ bar}}")
                 .Create());
 
-        res1.MatchDocumentSnapshot("2020-01-11");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: \"2020-01-12T00:00:00Z\"}}){ bar}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("2020-01-12");
+        // arrange
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "2020-01-11"), res2, "2020-01-12")
+            .MatchAsync();
     }
     public class Foo
     {
@@ -194,7 +189,7 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
                 next => async context =>
                 {
                     await next(context);
-                    if (context.ContextData.TryGetValue("query", out object? queryString))
+                    if (context.ContextData.TryGetValue("query", out var queryString))
                     {
                         context.Result =
                             QueryResultBuilder

@@ -1,5 +1,4 @@
 using System;
-using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
 using HotChocolate.Execution.Configuration;
 using HotChocolate;

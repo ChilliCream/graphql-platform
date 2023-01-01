@@ -7,8 +7,10 @@
       "a": "aaabacadaeafagah",
       "b": "babbbcbdbebfbgbh"
     },
+    "Items": null,
     "Errors": null,
     "Extensions": null,
+    "Incremental": null,
     "ContextData": null,
     "HasNext": null
   },
@@ -19,8 +21,10 @@
     "Data": {
       "a": "aaabacadaeafagah"
     },
+    "Items": null,
     "Errors": null,
     "Extensions": null,
+    "Incremental": null,
     "ContextData": null,
     "HasNext": null
   },
@@ -31,8 +35,10 @@
     "Data": {
       "c": "cacbcccdcecfcgch"
     },
+    "Items": null,
     "Errors": null,
     "Extensions": null,
+    "Incremental": null,
     "ContextData": null,
     "HasNext": null
   }

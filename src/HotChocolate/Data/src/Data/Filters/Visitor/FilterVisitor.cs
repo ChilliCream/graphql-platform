@@ -26,7 +26,7 @@ public class FilterVisitor<TContext, T>
                 context,
                 field,
                 node,
-                out ISyntaxVisitorAction? action))
+                out var action))
         {
             return action;
         }
@@ -43,7 +43,7 @@ public class FilterVisitor<TContext, T>
                 context,
                 field,
                 node,
-                out ISyntaxVisitorAction? action))
+                out var action))
         {
             return action;
         }
@@ -54,6 +54,6 @@ public class FilterVisitor<TContext, T>
         TContext context,
         Queue<T> operations,
         FilterCombinator combinator,
-        [NotNullWhen(true)] out T combined) =>
+        [NotNullWhen(true)] out T? combined) =>
         _combinator.TryCombineOperations(context, operations, combinator, out combined);
 }

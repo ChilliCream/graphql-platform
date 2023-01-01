@@ -1,0 +1,53 @@
+atest
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testbtest"
+      }
+    ]
+  }
+}
+---------------
+
+btest
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testatest"
+      }
+    ]
+  }
+}
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter \u0060nendsWith\u0060 of type StringOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 35
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "String!",
+        "filterType": "StringOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": []
+  }
+}
+---------------

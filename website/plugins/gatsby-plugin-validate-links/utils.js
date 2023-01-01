@@ -18,7 +18,7 @@ async function getDocumentsCache(files, cache, getCache) {
     }
 
     if (!cacheEntry) {
-      return null;
+      continue;
     }
 
     documents[cacheEntry.slug] = cacheEntry;

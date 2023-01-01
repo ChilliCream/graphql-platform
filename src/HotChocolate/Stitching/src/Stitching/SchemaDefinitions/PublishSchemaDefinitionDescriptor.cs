@@ -16,8 +16,8 @@ public class PublishSchemaDefinitionDescriptor : IPublishSchemaDefinitionDescrip
     private readonly IRequestExecutorBuilder _builder;
     private readonly string _key = Guid.NewGuid().ToString();
     private readonly List<DirectiveNode> _schemaDirectives = new List<DirectiveNode>();
-    private Func<IServiceProvider, ISchemaDefinitionPublisher>? _publisherFactory;
-    private NameString _name;
+    private Func<IServiceProvider,  ISchemaDefinitionPublisher>? _publisherFactory;
+    private string _name;
     private RemoteSchemaDefinition? _schemaDefinition;
 
     public PublishSchemaDefinitionDescriptor(IRequestExecutorBuilder builder)
@@ -27,7 +27,7 @@ public class PublishSchemaDefinitionDescriptor : IPublishSchemaDefinitionDescrip
 
     public bool HasPublisher => _publisherFactory is not null;
 
-    public IPublishSchemaDefinitionDescriptor SetName(NameString name)
+    public IPublishSchemaDefinitionDescriptor SetName(string name)
     {
         _name = name;
         return this;
@@ -48,11 +48,11 @@ public class PublishSchemaDefinitionDescriptor : IPublishSchemaDefinitionDescrip
                         .Run(() => File.ReadAllBytes(fileName), ct)
                         .ConfigureAwait(false);
 #else
-                    byte[] content = await File
+                var content = await File
                     .ReadAllBytesAsync(fileName, ct)
                     .ConfigureAwait(false);
 #endif
-                    s.AddTypeExtensions(Utf8GraphQLParser.Parse(content), _key);
+                s.AddTypeExtensions(Utf8GraphQLParser.Parse(content), _key);
             });
 
         return this;
@@ -65,7 +65,7 @@ public class PublishSchemaDefinitionDescriptor : IPublishSchemaDefinitionDescrip
         _builder.ConfigureSchemaAsync(
             async (s, ct) =>
             {
-                Stream? stream = assembly.GetManifestResourceStream(key);
+                var stream = assembly.GetManifestResourceStream(key);
 
                 if (stream is null)
                 {
@@ -73,11 +73,11 @@ public class PublishSchemaDefinitionDescriptor : IPublishSchemaDefinitionDescrip
                 }
 
 #if NET5_0 || NET6_0
-                    await using (stream)
+                await using (stream)
 #else
-                    using (stream)
+                using (stream)
 #endif
-                    {
+                {
                     var buffer = new byte[stream.Length];
                     await stream.ReadAsync(buffer, 0, buffer.Length, ct).ConfigureAwait(false);
                     s.AddTypeExtensions(Utf8GraphQLParser.Parse(buffer), _key);
@@ -112,7 +112,7 @@ public class PublishSchemaDefinitionDescriptor : IPublishSchemaDefinitionDescrip
     }
 
     public IPublishSchemaDefinitionDescriptor IgnoreType(
-        NameString typeName)
+        string typeName)
     {
         _schemaDirectives.Add(new DirectiveNode(
             DirectiveNames.RemoveType,
@@ -121,8 +121,8 @@ public class PublishSchemaDefinitionDescriptor : IPublishSchemaDefinitionDescrip
     }
 
     public IPublishSchemaDefinitionDescriptor RenameType(
-        NameString typeName,
-        NameString newTypeName)
+        string typeName,
+        string newTypeName)
     {
         _schemaDirectives.Add(new DirectiveNode(
             DirectiveNames.RenameType,
@@ -132,9 +132,9 @@ public class PublishSchemaDefinitionDescriptor : IPublishSchemaDefinitionDescrip
     }
 
     public IPublishSchemaDefinitionDescriptor RenameField(
-        NameString typeName,
-        NameString fieldName,
-        NameString newFieldName)
+        string typeName,
+        string fieldName,
+        string newFieldName)
     {
         _schemaDirectives.Add(new DirectiveNode(
             DirectiveNames.RenameField,
@@ -161,7 +161,7 @@ public class PublishSchemaDefinitionDescriptor : IPublishSchemaDefinitionDescrip
         }
 
         _schemaDefinition = new RemoteSchemaDefinition(
-            _name.HasValue ? _name : schema.Name,
+            !string.IsNullOrEmpty(_name) ? _name : schema.Name,
             schema.ToDocument(),
             extensionDocuments);
 
@@ -175,7 +175,7 @@ public class PublishSchemaDefinitionDescriptor : IPublishSchemaDefinitionDescrip
         if (_publisherFactory is not null &&
             _schemaDefinition is not null)
         {
-            ISchemaDefinitionPublisher publisher = _publisherFactory(applicationServices);
+            var publisher = _publisherFactory(applicationServices);
             await publisher.PublishAsync(_schemaDefinition, cancellationToken)
                 .ConfigureAwait(false);
         }

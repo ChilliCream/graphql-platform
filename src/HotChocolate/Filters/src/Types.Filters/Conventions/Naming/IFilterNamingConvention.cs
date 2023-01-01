@@ -1,17 +1,16 @@
 using System;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.Types.Filters
+namespace HotChocolate.Types.Filters;
+
+[Obsolete("Use HotChocolate.Data.")]
+public interface IFilterNamingConvention : IConvention
 {
-    [Obsolete("Use HotChocolate.Data.")]
-    public interface IFilterNamingConvention : IConvention
-    {
-        NameString ArgumentName { get; }
+    string ArgumentName { get; }
 
-        NameString ArrayFilterPropertyName { get; }
+    string ArrayFilterPropertyName { get; }
 
-        NameString CreateFieldName(FilterFieldDefintion definition, FilterOperationKind kind);
+    string CreateFieldName(FilterFieldDefintion definition, FilterOperationKind kind);
 
-        NameString GetFilterTypeName(IDescriptorContext context, Type entityType);
-    }
+    string GetFilterTypeName(IDescriptorContext context, Type entityType);
 }

@@ -1,20 +1,20 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HotChocolate.Validation
-{
-    public class NoUnusedFragmentsRuleTests
-        : DocumentValidatorVisitorTestBase
-    {
-        public NoUnusedFragmentsRuleTests()
-            : base(services => services.AddFragmentRules())
-        {
-        }
+namespace HotChocolate.Validation;
 
-        [Fact]
-        public void AllFragmentNamesAreUsed()
-        {
-            ExpectValid(@"
+public class NoUnusedFragmentsRuleTests
+    : DocumentValidatorVisitorTestBase
+{
+    public NoUnusedFragmentsRuleTests()
+        : base(services => services.AddFragmentRules())
+    {
+    }
+
+    [Fact]
+    public void AllFragmentNamesAreUsed()
+    {
+        ExpectValid(@"
                 {
                     human {
                         ...HumanFields1
@@ -34,12 +34,12 @@ namespace HotChocolate.Validation
                     name
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void AllFragmentNamesAreUsedByMultipleOperations()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void AllFragmentNamesAreUsedByMultipleOperations()
+    {
+        ExpectValid(@"
                 query Foo {
                     human(id: 4) {
                     ...HumanFields1
@@ -61,12 +61,12 @@ namespace HotChocolate.Validation
                     name
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void ContainsUnknownFragments()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void ContainsUnknownFragments()
+    {
+        ExpectErrors(@"
                 query Foo {
                     human(id: 4) {
                     ...HumanFields1
@@ -94,12 +94,12 @@ namespace HotChocolate.Validation
                     name
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void ContainsUnknownFragmentsWithRefCycle()
-        {
-            ExpectErrors(@"
+    [Fact]
+    public void ContainsUnknownFragmentsWithRefCycle()
+    {
+        ExpectErrors(@"
                 query Foo {
                     human(id: 4) {
                     ...HumanFields1
@@ -129,11 +129,11 @@ namespace HotChocolate.Validation
                     ...Unused1
                 }
             ");
-        }
-        [Fact]
-        public void ContainsUnknownAndUndefFragments()
-        {
-            ExpectErrors(@"
+    }
+    [Fact]
+    public void ContainsUnknownAndUndefFragments()
+    {
+        ExpectErrors(@"
                query Foo {
                     human(id: 4) {
                     ...bar
@@ -143,6 +143,5 @@ namespace HotChocolate.Validation
                     name
                 }
             ");
-        }
     }
 }

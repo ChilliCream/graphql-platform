@@ -1,6 +1,0 @@
-﻿SELECT "d"."Id", "d"."LastName", "d"."Name"
-FROM "Data" AS "d"
-ORDER BY (
-    SELECT COUNT(*)
-    FROM "Bar" AS "b"
-    WHERE "d"."Id" = "b"."FooId")

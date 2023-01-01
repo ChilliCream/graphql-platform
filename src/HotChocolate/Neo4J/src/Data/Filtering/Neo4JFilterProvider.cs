@@ -1,16 +1,12 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Execution;
 using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
 
 namespace HotChocolate.Data.Neo4J.Filtering;
 
-public class Neo4JFilterProvider
-    : FilterProvider<Neo4JFilterVisitorContext>
+public class Neo4JFilterProvider : FilterProvider<Neo4JFilterVisitorContext>
 {
     /// <inheritdoc />
     public Neo4JFilterProvider()
@@ -31,7 +27,7 @@ public class Neo4JFilterProvider
         new(new Neo4JFilterCombinator());
 
     /// <inheritdoc />
-    public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
+    public override FieldMiddleware CreateExecutor<TEntityType>(string argumentName)
     {
         return next => context => ExecuteAsync(next, context);
 
@@ -39,35 +35,34 @@ public class Neo4JFilterProvider
             FieldDelegate next,
             IMiddlewareContext context)
         {
-            Neo4JFilterVisitorContext? visitorContext = null;
-            IInputField argument = context.Field.Arguments[argumentName];
-            IValueNode filter = context.ArgumentLiteral<IValueNode>(argumentName);
+            var argument = context.Selection.Arguments[argumentName];
+            var filter = context.ArgumentLiteral<IValueNode>(argumentName);
 
             if (filter is not NullValueNode && argument.Type is IFilterInputType filterInput)
             {
-                visitorContext = new Neo4JFilterVisitorContext(filterInput);
+                var visitorContext = new Neo4JFilterVisitorContext(filterInput);
 
                 Visitor.Visit(filter, visitorContext);
 
-                if (!visitorContext.TryCreateQuery(out CompoundCondition whereQuery) ||
-                    visitorContext.Errors.Count > 0)
+                if (visitorContext.Errors.Count > 0)
                 {
                     context.Result = Array.Empty<TEntityType>();
-                    foreach (IError error in visitorContext.Errors)
+                    foreach (var error in visitorContext.Errors)
                     {
                         context.ReportError(error.WithPath(context.Path));
                     }
                 }
                 else
                 {
-                    context.LocalContextData =
-                        context.LocalContextData.SetItem("Filter", whereQuery);
+                    var query = visitorContext.CreateQuery();
+
+                    context.LocalContextData = context.LocalContextData.SetItem("Filter", query);
 
                     await next(context).ConfigureAwait(false);
 
                     if (context.Result is INeo4JExecutable executable)
                     {
-                        context.Result = executable.WithFiltering(whereQuery);
+                        context.Result = executable.WithFiltering(query);
                     }
                 }
             }

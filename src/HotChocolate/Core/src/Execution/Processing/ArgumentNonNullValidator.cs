@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -53,7 +54,7 @@ internal static class ArgumentNonNullValidator
 
     private static ValidationResult ValidateInnerType(IType type, IValueNode? value, Path path)
     {
-        IType innerType = type.IsNonNullType() ? type.InnerType() : type;
+        var innerType = type.IsNonNullType() ? type.InnerType() : type;
 
         if (innerType is ListType listType)
         {
@@ -78,22 +79,22 @@ internal static class ArgumentNonNullValidator
         ObjectValueNode value,
         Path path)
     {
-        var fields = new Dictionary<NameString, IValueNode>();
+        var fields = new Dictionary<string, IValueNode>(StringComparer.Ordinal);
 
         for (var i = 0; i < value.Fields.Count; i++)
         {
-            ObjectFieldNode field = value.Fields[i];
+            var field = value.Fields[i];
             fields[field.Name.Value] = field.Value;
         }
 
-        foreach (InputField field in type.Fields)
+        foreach (var field in type.Fields)
         {
-            fields.TryGetValue(field.Name, out IValueNode? fieldValue);
+            fields.TryGetValue(field.Name, out var fieldValue);
 
-            ValidationResult report = Validate(
+            var report = Validate(
                 field,
                 fieldValue,
-                path.Append(field.Name));
+                PathFactory.Instance.Append(path, field.Name));
 
             if (report.HasErrors)
             {
@@ -106,12 +107,13 @@ internal static class ArgumentNonNullValidator
 
     private static ValidationResult ValidateList(ListType type, ListValueNode list, Path path)
     {
-        IType elementType = type.ElementType();
+        var elementType = type.ElementType();
         var i = 0;
 
-        foreach (IValueNode element in list.Items)
+        foreach (var element in list.Items)
         {
-            ValidationResult error = Validate(elementType, element, path.Append(i++));
+            var error =
+                Validate(elementType, element, PathFactory.Instance.Append(path, i++));
             if (error.HasErrors)
             {
                 return error;

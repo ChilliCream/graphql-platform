@@ -30,22 +30,28 @@ public static class ObjectTypeDescriptorExtensions
     /// <summary>
     /// Specifies an interface that is implemented by this <see cref="ObjectType"/>.
     /// </summary>
+    /// <param name="descriptor">
+    /// The type descriptor.
+    /// </param>
     /// <param name="typeName">
     /// The type name of the interface.
     /// </param>
     public static IObjectTypeDescriptor Implements(
-        this IObjectTypeDescriptor descriptor, 
-        NameString typeName)
+        this IObjectTypeDescriptor descriptor,
+        string typeName)
         => descriptor.Implements(new NamedTypeNode(typeName));
 
     /// <summary>
     /// Specifies an interface that is implemented by this <see cref="ObjectType"/>.
     /// </summary>
+    /// <param name="descriptor">
+    /// The type descriptor.
+    /// </param>
     /// <param name="typeName">
     /// The type name of the interface.
     /// </param>
     public static IObjectTypeDescriptor<T> Implements<T>(
-        this IObjectTypeDescriptor<T> descriptor, 
-        NameString typeName)
+        this IObjectTypeDescriptor<T> descriptor,
+        string typeName)
         => descriptor.Implements(new NamedTypeNode(typeName));
 }

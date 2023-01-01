@@ -38,7 +38,7 @@ type Person {
 
 The above schema allows to fetch a person by its internal identifier and each person has a list of friends that is represented by a list of persons.
 
-Since GraphQL requests are not fixed requests like REST requests, the developer really defines what data he/she wants. This avoids overfetching data that you do not need and also saves you unecessary roundtrips to the GraphQL backend.
+Since GraphQL requests are not fixed requests like REST requests, the developer really defines what data he/she wants. This avoids over-fetching data that you do not need and also saves you unnecessary round-trips to the GraphQL backend.
 
 So, a query against the above schema could look like the following:
 
@@ -54,7 +54,7 @@ So, a query against the above schema could look like the following:
 }
 ```
 
-The above request fetches two persons in one go without the need to call the backend twice. The problem for the GraphQL backend is that field resolvers are atomic and do not have any knoledge about the query as a whole. So, a field resolver does not know that it will be called multiple times in parallel to fetch similar or equal data from the same data source.
+The above request fetches two persons in one go without the need to call the backend twice. The problem for the GraphQL backend is that field resolvers are atomic and do not have any knowledge about the query as a whole. So, a field resolver does not know that it will be called multiple times in parallel to fetch similar or equal data from the same data source.
 
 This basically represents the first case where _DataLoaders_ help us by batching requests against our database or backend service. Currently, we allow _DataLoaders_ per request and globally.
 
@@ -69,11 +69,11 @@ public async Task<Person> GetPerson(string id, [Service]IPersonRepository reposi
 
 The above example would result in two calls to the person repository that would than fetch the persons one by one from our data source.
 
-If you think that through you can see that each GraphQL request would cause multiple requests to our data source resulting in slugish performance and uneccessary roundtrips to our data source.
+If you think that through you can see that each GraphQL request would cause multiple requests to our data source resulting in sluggish performance and unnecessary round-trips to our data source.
 
-This, means that we reduced the roundtrips from our client to our server with GraphQL but multiplied the roundtrips between the data sources and the service layer.
+This, means that we reduced the round-trips from our client to our server with GraphQL but multiplied the round-trips between the data sources and the service layer.
 
-With _DataLoaders_ we can now centralise our person fetching and reduce the number of round trips to our data source.
+With _DataLoaders_ we can now centralize our person fetching and reduce the number of round trips to our data source.
 
 First, we have to create a _DataLoader_ that now acts as intermediary between a field resolver and the data source.
 
@@ -108,7 +108,7 @@ public Task<Person> GetPerson(string id, [DataLoader]PersonDataLoader personLoad
 }
 ```
 
-Next, we have to register our _DataLoader_ with the schema. By default, _DataLoaders_ are registerd as per-request meaning that the execution engine will create one instance of each _DataLoader_ per-request **if** a field resolver has requested a _DataLoader_. This ensures that, _DataLoaders_ that are not beeing requested are not instantiated unnecessarily.
+Next, we have to register our _DataLoader_ with the schema. By default, _DataLoaders_ are registered as per-request meaning that the execution engine will create one instance of each _DataLoader_ per-request **if** a field resolver has requested a _DataLoader_. This ensures that, _DataLoaders_ that are not being requested are not instantiated unnecessarily.
 
 ```csharp
 Schema.Create(c =>
@@ -174,13 +174,13 @@ This is the second problem class the _DataLoader_ utility helps us with since th
 
 For more information about our _DataLoader_ implementation head over to our _DataLoader_ [GitHub repository](https://github.com/ChilliCream/greendonut).
 
-As a side note, you are not bound to our _DataLoader_ implementation. If you want to create your own implementation of _DataLoaders_ or if you already have a _DataLoader_ implementation then you can hook this up to our execution engine as well. I will explain this in the _DataLoader_ documentation once I have finalised it.
+As a side note, you are not bound to our _DataLoader_ implementation. If you want to create your own implementation of _DataLoaders_ or if you already have a _DataLoader_ implementation then you can hook this up to our execution engine as well. I will explain this in the _DataLoader_ documentation once I have finalized it.
 
 ## Custom Context Objects
 
 Custom context objects are basically custom .net objects that you can declare with the GraphQL engine and access throughout your request execution. Custom context objects can use dependency injection and have the same scoping as the _DataLoaders_.
 
-For example you could declare a class that handles authorithation for your service like an IPrincipal and access this in each resolver.
+For example you could declare a class that handles authorization for your service like an IPrincipal and access this in each resolver.
 
 ```csharp
 public Task<ResolverResult<Person>> GetPerson(string id, [State]MyPrincipal principal)
@@ -194,9 +194,9 @@ public Task<ResolverResult<Person>> GetPerson(string id, [State]MyPrincipal prin
 }
 ```
 
-Moreover, you can use this custom context to store states in or caches during execution time. This will become especially usefull with our next version when we allow the writing of custom schema directives and field resolver middlewares.
+Moreover, you can use this custom context to store states in or caches during execution time. This will become especially useful with our next version when we allow the writing of custom schema directives and field resolver middlewares.
 
-Custom context objects are registerd like _DataLoaders_:
+Custom context objects are registered like _DataLoaders_:
 
 ```csharp
 Schema.Create(c =>
@@ -207,7 +207,7 @@ Schema.Create(c =>
 });
 ```
 
-Like with _DataLoaders_ we have muliple `RegisterCustomContext` overloads that allow for more control over how the object is created.
+Like with _DataLoaders_ we have multiple `RegisterCustomContext` overloads that allow for more control over how the object is created.
 
 ## Query Validation
 
@@ -226,7 +226,7 @@ We plan for full compliance with the June 2018 spec version with version 0.6.0.
 
 ## Dependency Injection
 
-We reworked out dependency injection approach and have now integreaded the request services during request execution. Meaning you are now able to access HttpContext directly as a field resolver argument.
+We reworked out dependency injection approach and have now integrated the request services during request execution. Meaning you are now able to access HttpContext directly as a field resolver argument.
 
 This was already possible with the old version through the accessor as a constructor injection.
 
@@ -250,6 +250,3 @@ It is important to know that http related services are only available if the exe
 From a design standpoint you should avoid accessing this directly and think about a custom context object which would provide some abstraction.
 
 I will write some more on dependency injection sometime later this week.
-
-[hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/hotchocolate

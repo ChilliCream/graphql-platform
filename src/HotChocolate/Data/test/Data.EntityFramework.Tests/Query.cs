@@ -175,7 +175,7 @@ public class QueryType : ObjectType
             .UseDbContext<BookContext>()
             .Resolve(ctx =>
             {
-                BookContext context = ctx.DbContext<BookContext>();
+                var context = ctx.DbContext<BookContext>();
 
                 return context.Books;
             });
@@ -184,7 +184,7 @@ public class QueryType : ObjectType
             .Field("booksWithMissingContext")
             .Resolve(ctx =>
             {
-                BookContext context = ctx.DbContext<BookContext>();
+                var context = ctx.DbContext<BookContext>();
 
                 return context.Books;
             });

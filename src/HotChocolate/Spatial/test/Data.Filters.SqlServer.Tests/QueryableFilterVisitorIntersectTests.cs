@@ -1,40 +1,40 @@
-using System.Threading.Tasks;
+using CookieCrumble;
+using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using NetTopologySuite.Geometries;
 using Squadron;
-using Xunit;
 
-namespace HotChocolate.Data.Filters.Spatial;
+namespace HotChocolate.Data.Spatial.Filters;
 
+[Collection("Postgres")]
 public class QueryableFilterVisitorIntersectsTests
     : SchemaCache
-    , IClassFixture<PostgreSqlResource<PostgisConfig>>
 {
     private static readonly Polygon _truePolygon =
-        new Polygon(new LinearRing(new[]
+        new(new LinearRing(new[]
         {
-                new Coordinate(0, 0),
-                new Coordinate(100, 0),
-                new Coordinate(100, 100),
-                new Coordinate(0, 100),
-                new Coordinate(0, 0),
+            new Coordinate(0, 0),
+            new Coordinate(100, 0),
+            new Coordinate(100, 100),
+            new Coordinate(0, 100),
+            new Coordinate(0, 0),
         }));
 
     private static readonly Polygon _falsePolygon =
-        new Polygon(new LinearRing(new[]
+        new(new LinearRing(new[]
         {
-                new Coordinate(1000, 1000),
-                new Coordinate(100000, 1000),
-                new Coordinate(100000, 100000),
-                new Coordinate(1000, 100000),
-                new Coordinate(1000, 1000),
+            new Coordinate(1000, 1000),
+            new Coordinate(100000, 1000),
+            new Coordinate(100000, 100000),
+            new Coordinate(1000, 100000),
+            new Coordinate(1000, 1000),
         }));
 
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { Id = 1, Bar = _truePolygon },
-            new Foo { Id = 2, Bar = _falsePolygon }
-        };
+        new() { Id = 1, Bar = _truePolygon },
+        new() { Id = 2, Bar = _falsePolygon }
+    };
 
     public QueryableFilterVisitorIntersectsTests(PostgreSqlResource<PostgisConfig> resource)
         : base(resource)
@@ -45,67 +45,69 @@ public class QueryableFilterVisitorIntersectsTests
     public async Task Create_Intersects_Query()
     {
         // arrange
-        IRequestExecutor tester = await CreateSchemaAsync<Foo, FooFilterType>(_fooEntities);
+        var tester = await CreateSchemaAsync<Foo, FooFilterType>(_fooEntities);
 
         // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"{
+                        root(where: {
+                            bar: {
+                                intersects: {
+                                    geometry: {
+                                        type: Polygon,
+                                        coordinates: [
+                                            [
+                                                [10 10],
+                                                [10 90],
+                                                [90 90],
+                                                [90 10],
+                                                [10 10]
+                                            ]
+                                        ]
+                                    }
+                                }
+                            }
+                        }){
+                            id
+                        }
+                    }")
+            .Create());
+
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"{
+                        root(where: {
+                            bar: {
+                                nintersects: {
+                                    geometry: {
+                                        type: Polygon,
+                                        coordinates: [
+                                            [
+                                                [10 10],
+                                                [10 90],
+                                                [90 90],
+                                                [90 10],
+                                                [10 10]
+                                            ]
+                                        ]
+                                    }
+                                }
+                            }
+                        }){
+                            id
+                        }
+                    }")
+            .Create());
+
         // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
-                    @"{
-                            root(where: {
-                                bar: {
-                                    intersects: {
-                                        geometry: {
-                                            type: Polygon,
-                                            coordinates: [
-                                                [
-                                                    [10 10],
-                                                    [10 90],
-                                                    [90 90],
-                                                    [90 10],
-                                                    [10 10]
-                                                ]
-                                            ]
-                                        }
-                                    }
-                                }
-                            }){
-                                id
-                            }
-                        }")
-                .Create());
-
-        res1.MatchSqlSnapshot("true");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
-                    @"{
-                            root(where: {
-                                bar: {
-                                    nintersects: {
-                                        geometry: {
-                                            type: Polygon,
-                                            coordinates: [
-                                                [
-                                                    [10 10],
-                                                    [10 90],
-                                                    [90 90],
-                                                    [90 10],
-                                                    [10 10]
-                                                ]
-                                            ]
-                                        }
-                                    }
-                                }
-                            }){
-                                id
-                            }
-                        }")
-                .Create());
-
-        res2.MatchSqlSnapshot("false");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "true"), res2, "false")
+            .MatchAsync();
     }
 
     public class Foo
@@ -115,8 +117,7 @@ public class QueryableFilterVisitorIntersectsTests
         public Polygon Bar { get; set; } = null!;
     }
 
-    public class FooFilterType
-        : FilterInputType<Foo>
+    public class FooFilterType : FilterInputType<Foo>
     {
     }
 }

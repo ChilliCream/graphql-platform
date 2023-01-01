@@ -1,28 +1,36 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.Spatial;
 
 public class TransformationIntegrationTests
 {
     private const string WKT4326 =
-        "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4326\"]]";
+        "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563," +
+        "AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\"," +
+        "0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\"," +
+        "\"9122\"]],AUTHORITY[\"EPSG\",\"4326\"]]";
     private const string WKT26918 =
-        "PROJCS[\"NAD83 \\/ UTM zone 18N\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101,AUTHORITY[\"EPSG\",\"7019\"]],TOWGS84[0,0,0,0,0,0,0],AUTHORITY[\"EPSG\",\"6269\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4269\"]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-75],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH],AUTHORITY[\"EPSG\",\"26918\"]]";
+        "PROJCS[\"NAD83 \\/ UTM zone 18N\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\"," +
+        "SPHEROID[\"GRS 1980\",6378137,298.257222101,AUTHORITY[\"EPSG\",\"7019\"]],TOWGS84" +
+        "[0,0,0,0,0,0,0],AUTHORITY[\"EPSG\",\"6269\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\"," +
+        "\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[" +
+        "\"EPSG\",\"4269\"]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[" +
+        "\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-75],PARAMETER[" +
+        "\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[" +
+        "\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"Easting\"," +
+        "EAST],AXIS[\"Northing\",NORTH],AUTHORITY[\"EPSG\",\"26918\"]]";
 
     [Fact]
     public void Execute_UnknownDefaultCRS()
     {
         // arrange
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddQueryType<Query>()
             .AddSpatialTypes(x => x
                 .DefaultSrid(4326)
@@ -30,17 +38,17 @@ public class TransformationIntegrationTests
             .TryAddTypeInterceptor<RoundTypeIntercetor>();
 
         // act
-        Exception? ex = Record.Exception(() => builder.Create());
+        var ex = Record.Exception(() => builder.Create());
 
         // assert
-        Assert.IsType<SchemaException>(ex).Message.MatchSnapshot();
+        Assert.IsType<SchemaException>(ex).MatchSnapshot();
     }
 
     [Fact]
     public async Task Execute_InputUnknownCRS_RaiseException()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<Query>()
             .AddSpatialTypes(x => x
                 .DefaultSrid(4326)
@@ -48,10 +56,10 @@ public class TransformationIntegrationTests
             .TryAddTypeInterceptor<RoundTypeIntercetor>()
             .Create();
 
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     test(
@@ -67,14 +75,14 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Execute_OutputUnknownCRS_RaiseException()
     {
         // arrange
-        LineString lineString = NtsGeometryServices.Instance
+        var lineString = NtsGeometryServices.Instance
             .CreateGeometryFactory(4326)
             .CreateLineString(new[]
             {
@@ -83,13 +91,13 @@ public class TransformationIntegrationTests
                     new Coordinate(40, 40)
             });
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString(
                 @"
-                        type Query {
-                            test: GeoJSONLineStringType
-                        }
-                    ")
+                    type Query {
+                        test: GeoJSONLineStringType
+                    }
+                ")
             .AddSpatialTypes(x => x
                 .DefaultSrid(4326)
                 .AddCoordinateSystemFromString(4326, WKT4326))
@@ -97,10 +105,10 @@ public class TransformationIntegrationTests
             .TryAddTypeInterceptor<RoundTypeIntercetor>()
             .Create();
 
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     test(crs: 26918) {
@@ -111,14 +119,14 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Execute_CoordinateZM_RaiseException()
     {
         // arrange
-        LineString lineString = NtsGeometryServices.Instance
+        var lineString = NtsGeometryServices.Instance
             .CreateGeometryFactory(4326)
             .CreateLineString(new[]
             {
@@ -128,7 +136,7 @@ public class TransformationIntegrationTests
                     new Coordinate(40, 40)
             });
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString(
                 @"
                         type Query {
@@ -143,10 +151,10 @@ public class TransformationIntegrationTests
             .TryAddTypeInterceptor<RoundTypeIntercetor>()
             .Create();
 
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     test(crs: 26918) {
@@ -157,14 +165,14 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Execute_CoordinateM_RaiseException()
     {
         // arrange
-        LineString lineString = NtsGeometryServices.Instance
+        var lineString = NtsGeometryServices.Instance
             .CreateGeometryFactory(4326)
             .CreateLineString(new[]
             {
@@ -174,7 +182,7 @@ public class TransformationIntegrationTests
                     new Coordinate(40, 40)
             });
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString(
                 @"
                         type Query {
@@ -189,10 +197,10 @@ public class TransformationIntegrationTests
             .TryAddTypeInterceptor<RoundTypeIntercetor>()
             .Create();
 
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     test(crs: 26918) {
@@ -203,14 +211,14 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Execute_CoordinateZ_NotRaiseException()
     {
         // arrange
-        LineString lineString = NtsGeometryServices.Instance
+        var lineString = NtsGeometryServices.Instance
             .CreateGeometryFactory(4326)
             .CreateLineString(new[]
             {
@@ -220,7 +228,7 @@ public class TransformationIntegrationTests
                     new Coordinate(40, 40)
             });
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString(
                 @"
                         type Query {
@@ -235,10 +243,10 @@ public class TransformationIntegrationTests
             .TryAddTypeInterceptor<RoundTypeIntercetor>()
             .Create();
 
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     test(crs: 26918) {
@@ -249,23 +257,23 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Execute_NoTransformer_NotTransformedInput()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<Query>()
             .AddSpatialTypes()
             .TryAddTypeInterceptor<RoundTypeIntercetor>()
             .Create();
 
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     test(
@@ -281,14 +289,14 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Execute_CrsEqualToDefault_NotTransformArgument()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<Query>()
             .AddSpatialTypes(x => x
                 .DefaultSrid(4326)
@@ -297,10 +305,10 @@ public class TransformationIntegrationTests
             .TryAddTypeInterceptor<RoundTypeIntercetor>()
             .Create();
 
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     test(
@@ -316,14 +324,14 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Execute_CrsEmpty_NotTransformArgument()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<Query>()
             .AddSpatialTypes(x => x
                 .DefaultSrid(4326)
@@ -332,10 +340,10 @@ public class TransformationIntegrationTests
             .TryAddTypeInterceptor<RoundTypeIntercetor>()
             .Create();
 
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     test(
@@ -350,14 +358,14 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Execute_NoDefault_NotTransformation()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<Query>()
             .AddSpatialTypes(x => x
                 .AddCoordinateSystemFromString(4326, WKT4326)
@@ -365,10 +373,10 @@ public class TransformationIntegrationTests
             .TryAddTypeInterceptor<RoundTypeIntercetor>()
             .Create();
 
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     test(
@@ -384,14 +392,14 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Execute_CrsEmpty_TakeDefaultSrid()
     {
         // arrange
-        LineString lineString = new LineString(new[]
+        var lineString = new LineString(new[]
         {
                 new Coordinate(30, 10),
                 new Coordinate(10, 30),
@@ -399,7 +407,7 @@ public class TransformationIntegrationTests
                 new Coordinate(40, 40)
             });
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString(
                 @"
                         type Query {
@@ -414,10 +422,10 @@ public class TransformationIntegrationTests
             .TryAddTypeInterceptor<RoundTypeIntercetor>()
             .Create();
 
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"{
                     test(crs: 26918) {
                         type
@@ -427,14 +435,14 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Execute_Transformer_TransformedArgument()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<Query>()
             .AddSpatialTypes(x => x
                 .DefaultSrid(4326)
@@ -443,10 +451,10 @@ public class TransformationIntegrationTests
             .TryAddTypeInterceptor<RoundTypeIntercetor>()
             .Create();
 
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     test(
@@ -462,14 +470,14 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Execute_Transformer_TransformArgumentAndBack()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<Query>()
             .AddSpatialTypes(x => x
                 .DefaultSrid(4326)
@@ -478,10 +486,10 @@ public class TransformationIntegrationTests
             .TryAddTypeInterceptor<RoundTypeIntercetor>()
             .Create();
 
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     test(
@@ -498,14 +506,14 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Execute_SourceDifferentThanCrsRequest_Transform()
     {
         // arrange
-        LineString lineString = NtsGeometryServices.Instance
+        var lineString = NtsGeometryServices.Instance
             .CreateGeometryFactory(4326)
             .CreateLineString(new[]
             {
@@ -514,7 +522,7 @@ public class TransformationIntegrationTests
                     new Coordinate(40, 40)
             });
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString(
                 @"
                         type Query {
@@ -529,10 +537,10 @@ public class TransformationIntegrationTests
             .TryAddTypeInterceptor<RoundTypeIntercetor>()
             .Create();
 
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     test(crs: 26918) {
@@ -543,14 +551,14 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Execute_SourceEqualToCrsRequest_NotTransform()
     {
         // arrange
-        LineString lineString = NtsGeometryServices.Instance
+        var lineString = NtsGeometryServices.Instance
             .CreateGeometryFactory(4326)
             .CreateLineString(new[]
             {
@@ -559,7 +567,7 @@ public class TransformationIntegrationTests
                     new Coordinate(40, 40)
             });
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString(
                 @"
                         type Query {
@@ -574,10 +582,10 @@ public class TransformationIntegrationTests
             .TryAddTypeInterceptor<RoundTypeIntercetor>()
             .Create();
 
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     test(crs: 4326) {
@@ -588,14 +596,14 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Execute_Transformer_RegisterWithExtensions()
     {
         // arrange
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType<Query>()
             .AddSpatialTypes(x => x
                 .DefaultSrid(4326)
@@ -604,10 +612,10 @@ public class TransformationIntegrationTests
             .TryAddTypeInterceptor<RoundTypeIntercetor>()
             .Create();
 
-        IRequestExecutor executor = schema.MakeExecutable();
+        var executor = schema.MakeExecutable();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"
                 {
                     test(
@@ -623,7 +631,7 @@ public class TransformationIntegrationTests
                 }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     public class Query
@@ -639,14 +647,13 @@ public class TransformationIntegrationTests
     {
         public override void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
+            DefinitionBase definition)
         {
             if (definition is ObjectTypeDefinition o)
             {
                 foreach (var field in o.Fields)
                 {
-                    if (field.Name is { Value: "test" })
+                    if (field.Name.EqualsOrdinal("test"))
                     {
                         field.MiddlewareDefinitions.Insert(0,
                             new(next => async context =>

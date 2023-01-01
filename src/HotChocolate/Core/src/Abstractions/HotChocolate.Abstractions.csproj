@@ -25,6 +25,15 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>AbstractionResources.resx</DependentUpon>
     </Compile>
+    <Compile Update="Execution\IQueryRequestBuilder.cs">
+      <DependentUpon>IQueryResult.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IndexerPathSegment.cs">
+      <DependentUpon>Path.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NamePathSegment.cs">
+      <DependentUpon>Path.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

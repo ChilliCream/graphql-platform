@@ -1,8 +1,8 @@
 using System;
 using HotChocolate;
-using HotChocolate.Configuration;
 using HotChocolate.Execution.Configuration;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
@@ -29,7 +29,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
     public static IRequestExecutorBuilder ModifyOptions(
         this IRequestExecutorBuilder builder,
-        Action<ISchemaOptions> configure)
+        Action<SchemaOptions> configure)
     {
         if (builder is null)
         {

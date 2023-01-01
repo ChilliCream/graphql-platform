@@ -1,11 +1,13 @@
 using System;
 using System.Reflection;
 using HotChocolate.Internal;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.Utilities.ThrowHelper;
+using static HotChocolate.Types.Pagination.PagingDefaults;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -26,6 +28,9 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
     /// <param name="resolvePagingProvider">
     /// A delegate allowing to dynamically define a paging resolver for a field.
     /// </param>
+    /// <param name="collectionSegmentName">
+    /// The name of the collection segment.
+    /// </param>
     /// <param name="options">
     /// The paging settings that shall be applied to this field.
     /// </param>
@@ -39,6 +44,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         Type? itemType = null,
         GetOffsetPagingProvider? resolvePagingProvider = null,
+        string? collectionSegmentName = null,
         PagingOptions options = default)
         where TSchemaType : IOutputType =>
         UseOffsetPaging(
@@ -46,6 +52,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
             typeof(TSchemaType),
             itemType,
             resolvePagingProvider,
+            collectionSegmentName,
             options);
 
     /// <summary>
@@ -63,6 +70,9 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
     /// <param name="resolvePagingProvider">
     /// A delegate allowing to dynamically define a paging resolver for a field.
     /// </param>
+    /// <param name="collectionSegmentName">
+    /// The name of the collection segment.
+    /// </param>
     /// <param name="options">
     /// The paging settings that shall be applied to this field.
     /// </param>
@@ -74,6 +84,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
         Type? itemType = null,
         Type? entityType = null,
         GetOffsetPagingProvider? resolvePagingProvider = null,
+        string? collectionSegmentName = null,
         PagingOptions options = default)
     {
         if (descriptor is null)
@@ -95,8 +106,29 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
             .Extend()
             .OnBeforeCreate((c, d) =>
             {
-                MemberInfo? resolverMember = d.ResolverMember ?? d.Member;
-                d.Type = CreateTypeRef(c, resolverMember, itemType, options);
+                var pagingOptions = c.GetSettings(options);
+                if (string.IsNullOrEmpty(collectionSegmentName))
+                {
+                    collectionSegmentName =
+                        pagingOptions.InferCollectionSegmentNameFromField ??
+                        InferCollectionSegmentNameFromField
+                            ? EnsureCollectionSegmentNameCasing(d.Name)
+                            : null;
+                }
+
+                ITypeReference? typeRef = itemType is not null
+                    ? c.TypeInspector.GetTypeRef(itemType)
+                    : null;
+
+                if (typeRef is null &&
+                    d.Type is SyntaxTypeReference syntaxTypeRef &&
+                    syntaxTypeRef.Type.IsListType())
+                {
+                    typeRef = syntaxTypeRef.WithType(syntaxTypeRef.Type.ElementType());
+                }
+
+                var resolverMember = d.ResolverMember ?? d.Member;
+                d.Type = CreateTypeRef(c, resolverMember, collectionSegmentName, typeRef, options);
                 d.CustomSettings.Add(typeof(CollectionSegment));
             });
 
@@ -109,6 +141,9 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
     /// <param name="descriptor">
     /// The object field descriptor.
     /// </param>
+    /// <param name="collectionSegmentName">
+    /// The name of the collection segment.
+    /// </param>
     /// <param name="options">
     /// The paging settings that shall be applied to this field.
     /// </param>
@@ -120,9 +155,10 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
     /// </returns>
     public static IInterfaceFieldDescriptor UseOffsetPaging<TSchemaType>(
         this IInterfaceFieldDescriptor descriptor,
+        string? collectionSegmentName = null,
         PagingOptions options = default)
         where TSchemaType : class, IOutputType =>
-        UseOffsetPaging(descriptor, typeof(TSchemaType), options);
+        UseOffsetPaging(descriptor, typeof(TSchemaType), collectionSegmentName, options);
 
     /// <summary>
     /// Applies the offset paging middleware to the current field.
@@ -130,8 +166,11 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
     /// <param name="descriptor">
     /// The object field descriptor.
     /// </param>
-    /// <param name="type">
+    /// <param name="itemType">
     /// The schema type representation of the item type.
+    /// </param>
+    /// <param name="collectionSegmentName">
+    /// The name of the collection segment.
     /// </param>
     /// <param name="options">
     /// The paging settings that shall be applied to this field.
@@ -141,7 +180,8 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
     /// </returns>
     public static IInterfaceFieldDescriptor UseOffsetPaging(
         this IInterfaceFieldDescriptor descriptor,
-        Type? type = null,
+        Type? itemType = null,
+        string? collectionSegmentName = null,
         PagingOptions options = default)
     {
         if (descriptor is null)
@@ -149,10 +189,36 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
             throw new ArgumentNullException(nameof(descriptor));
         }
 
+        descriptor.AddOffsetPagingArguments();
+
         descriptor
-            .AddOffsetPagingArguments()
             .Extend()
-            .OnBeforeCreate((c, d) => d.Type = CreateTypeRef(c, d.Member, type, options));
+            .OnBeforeCreate((c, d) =>
+            {
+                var pagingOptions = c.GetSettings(options);
+                if (string.IsNullOrEmpty(collectionSegmentName))
+                {
+                    collectionSegmentName =
+                        pagingOptions.InferCollectionSegmentNameFromField ??
+                        InferCollectionSegmentNameFromField
+                            ? EnsureCollectionSegmentNameCasing(d.Name)
+                            : null;
+                }
+
+                ITypeReference? typeRef = itemType is not null
+                    ? c.TypeInspector.GetTypeRef(itemType)
+                    : null;
+
+                if (typeRef is null &&
+                    d.Type is SyntaxTypeReference syntaxTypeRef &&
+                    syntaxTypeRef.Type.IsListType())
+                {
+                    typeRef = syntaxTypeRef.WithType(syntaxTypeRef.Type.ElementType());
+                }
+
+                var resolverMember =  d.Member;
+                d.Type = CreateTypeRef(c, resolverMember, collectionSegmentName, typeRef, options);
+            });
 
         return descriptor;
     }
@@ -192,36 +258,46 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
     private static ITypeReference CreateTypeRef(
         IDescriptorContext context,
         MemberInfo? resolverMember,
-        Type? type,
+        string? collectionSegmentName,
+        ITypeReference? itemsType,
         PagingOptions options)
     {
-        // first we will try and infer the schema type of the collection.
-        IExtendedType schemaType = PagingHelper.GetSchemaType(
-            context.TypeInspector,
-            resolverMember,
-            type);
+        var typeInspector = context.TypeInspector;
 
-        // we need to ensure that the schema type is a valid output type. For this we create a
-        // type info which decomposes the type into its logical type components and is able
-        // to check if the named type component is really an output type.
-        if (!context.TypeInspector.TryCreateTypeInfo(schemaType, out ITypeInfo? typeInfo) ||
-            !typeInfo.IsOutputType())
+        itemsType ??= TypeReference.Create(
+            PagingHelper.GetSchemaType(context, resolverMember),
+            TypeContext.Output);
+
+        // if the node type is a syntax type reference we will try to preserve the actual
+        // runtime type for later usage.
+        if (itemsType.Kind == TypeReferenceKind.Syntax &&
+            PagingHelper.TryGetNamedType(typeInspector, resolverMember, out var namedType))
         {
-            throw OffsetPagingObjectFieldDescriptorExtensions_InvalidType();
+            context.TryBindRuntimeType(
+                ((SyntaxTypeReference)itemsType).Type.NamedType().Name.Value,
+                namedType);
         }
 
         options = context.GetSettings(options);
 
-        // once we have identified the correct type we will create the
-        // paging result type from it.
-        IExtendedType connectionType = context.TypeInspector.GetType(
-            options.IncludeTotalCount ?? false
-                ? typeof(CollectionSegmentCountType<>).MakeGenericType(schemaType.Source)
-                : typeof(CollectionSegmentType<>).MakeGenericType(schemaType.Source));
-
         // last but not leas we create a type reference that can be put on the field definition
         // to tell the type discovery that this field needs this result type.
-        return TypeReference.Create(connectionType, TypeContext.Output);
+        return collectionSegmentName is null
+            ? TypeReference.Create(
+                "HotChocolate_Types_CollectionSegment",
+                itemsType,
+                _ => new CollectionSegmentType(
+                    null,
+                    itemsType,
+                    options.IncludeTotalCount ?? false),
+                TypeContext.Output)
+            : TypeReference.Create(
+                collectionSegmentName + "CollectionSegment",
+                TypeContext.Output,
+                factory: _ => new CollectionSegmentType(
+                    collectionSegmentName,
+                    itemsType,
+                    options.IncludeTotalCount ?? false));
     }
 
     private static OffsetPagingProvider ResolvePagingProvider(
@@ -237,8 +313,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                     : entry => providerName.Equals(entry.Name, StringComparison.Ordinal);
             PagingProviderEntry? defaultEntry = null;
 
-
-            foreach (PagingProviderEntry? entry in services.GetServices<PagingProviderEntry>())
+            foreach (var entry in services.GetServices<PagingProviderEntry>())
             {
                 // the first provider is expected to be the default provider.
                 defaultEntry ??= entry;
@@ -262,5 +337,17 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
 
         // if no provider was added we will fallback to the queryable paging provider.
         return new QueryableOffsetPagingProvider();
+    }
+
+    private static string EnsureCollectionSegmentNameCasing(string collectionSegmentName)
+    {
+        if (char.IsUpper(collectionSegmentName[0]))
+        {
+            return collectionSegmentName;
+        }
+
+        return string.Concat(
+            char.ToUpper(collectionSegmentName[0]),
+            collectionSegmentName.Substring(1));
     }
 }

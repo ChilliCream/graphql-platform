@@ -3,7 +3,6 @@
   <PropertyGroup>
     <PackageId>HotChocolate.Language.Visitors</PackageId>
     <AssemblyName>HotChocolate.Language.Visitors</AssemblyName>
-    <RootNamespace>HotChocolate.Language</RootNamespace>
     <Description>This package contains the UTF8 based parsers of Hot Chocolate.</Description>
   </PropertyGroup>
 
@@ -17,9 +16,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Update="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

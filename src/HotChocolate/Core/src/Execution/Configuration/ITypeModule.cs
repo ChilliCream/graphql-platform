@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 

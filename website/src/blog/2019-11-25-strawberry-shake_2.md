@@ -42,7 +42,7 @@ In our example we are using the new .NET CLI local tools. `dotnet new tool-manif
 
 This is the great thing about local tools if you think about it, you can install tools to your repository and have always the right set of tools available to you in the moment you clone that repository.
 
-The next command `dotnet tool install StrawberryShake.Tools --version 11.0.0-preview.58 --local` installs our _Strawberry Shake_ tools. Once we have a final release of _Strawberry Shake_ you do not need to speciefy the version anymore.
+The next command `dotnet tool install StrawberryShake.Tools --version 11.0.0-preview.58 --local` installs our _Strawberry Shake_ tools. Once we have a final release of _Strawberry Shake_ you do not need to specify the version anymore.
 
 Next we need a little project. Let’s create a new console application so that we can easily run and debug what we are doing.
 
@@ -316,7 +316,7 @@ Rebuild your project and voila ... `Episode.NewHope` is now correctly cased.
 
 The nice thing is that we are just describing what we want to change in this schema extension file, so every time you update the server schema, we will preserve this file and reapply the type extensions to the newly downloaded schema.
 
-## Subscriptions
+##  Subscriptions
 
 OK, OK, most of this was already in place, so let us have a look at something more challenging like subscriptions.
 
@@ -579,7 +579,7 @@ The client API can be used with other dependency injection container and also wi
 
 We initially had a limited builder API for this but decided to give it a do over. So, at the moment you could look at the generated dependency injection code and build your own integration.
 
-We will allow with future build to add custom generators that can provide additional code for custom use cases. The way that would work is that such a generator would sit in a NuGet package that is being added to the project. The custom generator would register its generators to an item group and _Strawberry Shake_ would pick those up and integrate them. These custom generators however are somewhere in the version 12 timeframe.
+We will allow with future build to add custom generators that can provide additional code for custom use cases. The way that would work is that such a generator would sit in a NuGet package that is being added to the project. The custom generator would register its generators to an item group and _Strawberry Shake_ would pick those up and integrate them. These custom generators however are somewhere in the version 12 time-frame.
 
 ## Roadmap
 
@@ -591,12 +591,12 @@ We have some more ground to cover before we have this version complete.
    We are working on making the _MSBuild_ integration better. There are still instances with _VSCode_ where you have to compile twice. This is OK for a preview,but we are on it and think that in the next view preview builds we will have this fixed. With _Visual Studio for Windows_ you can already enjoy design time code generation. This means that when you save a GraphQL file the generator will update the C# files.
 
 1. Tooling
-   We are heavy at work on _Bananacake Pop_ which is our GraphQL IDE that will help you write and analyze GraphQL queries.
-   We plan to use what we have done for _Bananacake Pop_ to create a nice integration with _VSCode_. We want to have a rich integration with which you can work on huge schemas.
+   We are heavy at work on _Banana Cake Pop_ which is our GraphQL IDE that will help you write and analyze GraphQL queries.
+   We plan to use what we have done for _Banana Cake Pop_ to create a nice integration with _VSCode_. We want to have a rich integration with which you can work on huge schemas.
 
    Beyond _VSCode_ we are looking at writing a nice integration with _Visual Studio for Windows_ and _Visual Studio for macOS_ that will make _Strawberry Shake_ and _GraphQL_ a first-class citizen in Microsoft IDEs.
 
-   We hope to deliver all of this in the version 11 timeframe.
+   We hope to deliver all of this in the version 11 time-frame.
 
 1. Persisted Query Support
    Persisted queries are one of our very next features that we will add to the client. We want to allow the same flows that we support on the server side.
@@ -611,9 +611,6 @@ We have some more ground to cover before we have this version complete.
 1. Defer / Stream
    We are planning to add support for defer and stream to the client. This feature depends on our server implementation so we will have to see how far we are on execution plans before we can start on it for the client.
 
-I hope you enjoy what we are building. We are tying to bring GraphQL on .NET to the next level. While we still are miles away from what the JavaScript world has to offer we hope to close these gaps over the next year and even pull ahead in some areas. We love GraphQL and are passionate about it. We strongly believe that with our newest member _Strawberry Shake_ we really can make things like _Xamarin_ and _Blazor_ so much better. We have planned a lot more and hope to bring data fetching in .NET to a whole new level over the next year. Ideally you just want to decalre in your .NET component the data that you need and all the client logic is infered from that, kind of the way relay works in JavaScript.
+I hope you enjoy what we are building. We are tying to bring GraphQL on .NET to the next level. While we still are miles away from what the JavaScript world has to offer we hope to close these gaps over the next year and even pull ahead in some areas. We love GraphQL and are passionate about it. We strongly believe that with our newest member _Strawberry Shake_ we really can make things like _Xamarin_ and _Blazor_ so much better. We have planned a lot more and hope to bring data fetching in .NET to a whole new level over the next year. Ideally you just want to declare in your .NET component the data that you need and all the client logic is inferred from that, kind of the way relay works in JavaScript.
 
 If you want to get into contact with us head over to our slack channel and join our community.
-
-[hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/hotchocolate

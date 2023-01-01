@@ -6,61 +6,60 @@ using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Tests.TestHelper;
 
-namespace HotChocolate.Execution.Integration.EmbeddedResolvers
+namespace HotChocolate.Execution.Integration.EmbeddedResolvers;
+
+public class EmbeddedResolverTests
 {
-    public class EmbeddedResolverTests
+    [Fact]
+    public async Task ResolverResultIsObject()
     {
-        [Fact]
-        public async Task ResolverResultIsObject()
-        {
-            Snapshot.FullName();
-            await ExpectValid(
+        Snapshot.FullName();
+        await ExpectValid(
                 "{ foo { bar { baz }}}",
                 configure: c => c.AddQueryType<QueryType>())
-                .MatchSnapshotAsync();
-        }
+            .MatchSnapshotAsync();
+    }
 
-        public class QueryType
-            : ObjectType
+    public class QueryType
+        : ObjectType
+    {
+        protected override void Configure(IObjectTypeDescriptor descriptor)
         {
-            protected override void Configure(IObjectTypeDescriptor descriptor)
-            {
-                descriptor.Name("Query");
-                descriptor.Field<QueryType>(t => t.GetFoo()).Type<FooType>();
-            }
-
-            public object GetFoo()
-            {
-                return new object();
-            }
+            descriptor.Name("Query");
+            descriptor.Field<QueryType>(t => t.GetFoo()).Type<FooType>();
         }
 
-        public class FooType
-            : ObjectType
+        public object GetFoo()
         {
-            protected override void Configure(IObjectTypeDescriptor descriptor)
-            {
-                descriptor.Name("Foo");
-                descriptor.Field<FooType>(t => t.Bar()).Type<BarType>();
-            }
-
-            public Bar Bar()
-            {
-                return new Bar();
-            }
+            return new object();
         }
+    }
 
-        public class BarType
-            : ObjectType<Bar>
+    public class FooType
+        : ObjectType
+    {
+        protected override void Configure(IObjectTypeDescriptor descriptor)
         {
-            protected override void Configure(IObjectTypeDescriptor<Bar> descriptor)
-            {
-            }
+            descriptor.Name("Foo");
+            descriptor.Field<FooType>(t => t.Bar()).Type<BarType>();
         }
 
-        public class Bar
+        public Bar Bar()
         {
-            public string Baz { get; } = "Bar";
+            return new Bar();
         }
+    }
+
+    public class BarType
+        : ObjectType<Bar>
+    {
+        protected override void Configure(IObjectTypeDescriptor<Bar> descriptor)
+        {
+        }
+    }
+
+    public class Bar
+    {
+        public string Baz { get; } = "Bar";
     }
 }

@@ -2,7 +2,6 @@
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.Descriptors.TypeReference;
@@ -16,10 +15,10 @@ internal sealed class __EnumValue : ObjectType<IEnumValue>
 {
     protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
     {
-        SyntaxTypeReference stringType = Create(ScalarNames.String);
-        SyntaxTypeReference nonNullStringType = Parse($"{ScalarNames.String}!");
-        SyntaxTypeReference nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
-        SyntaxTypeReference appDirectiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
+        var stringType = Create(ScalarNames.String);
+        var nonNullStringType = Parse($"{ScalarNames.String}!");
+        var nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
+        var appDirectiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
 
         var def = new ObjectTypeDefinition(
             Names.__EnumValue,
@@ -51,7 +50,7 @@ internal sealed class __EnumValue : ObjectType<IEnumValue>
     private static class Resolvers
     {
         public static object Name(IPureResolverContext context)
-            => context.Parent<IEnumValue>().Name.Value;
+            => context.Parent<IEnumValue>().Name;
 
         public static object? Description(IPureResolverContext context)
             => context.Parent<IEnumValue>().Description;

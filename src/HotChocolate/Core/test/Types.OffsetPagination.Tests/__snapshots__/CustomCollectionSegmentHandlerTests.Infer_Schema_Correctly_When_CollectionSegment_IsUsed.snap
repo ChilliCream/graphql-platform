@@ -10,14 +10,16 @@ type CollectionSegmentInfo {
   hasPreviousPage: Boolean!
 }
 
-type Query {
-  items(skip: Int take: Int): StringCollectionSegment
-}
-
-type StringCollectionSegment {
-  items: [String]
+"A segment of a collection."
+type ItemsCollectionSegment {
   "Information to aid in pagination."
   pageInfo: CollectionSegmentInfo!
+  "A flattened list of the items."
+  items: [String]
+}
+
+type Query {
+  items(skip: Int take: Int): ItemsCollectionSegment
 }
 
 "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."

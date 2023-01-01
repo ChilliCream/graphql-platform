@@ -3,7 +3,7 @@ using HotChocolate.Properties;
 
 namespace HotChocolate;
 
-public readonly struct Location
+public readonly struct Location : IComparable<Location>
 {
     public Location(int line, int column)
     {
@@ -30,4 +30,16 @@ public readonly struct Location
     public int Line { get; }
 
     public int Column { get; }
+
+    public int CompareTo(Location other)
+    {
+        var lineComparison = Line.CompareTo(other.Line);
+
+        if (lineComparison != 0)
+        {
+            return lineComparison;
+        }
+
+        return Column.CompareTo(other.Column);
+    }
 }

@@ -15,7 +15,7 @@ public interface ISocket
     bool IsClosed { get; }
 
     /// <summary>
-    /// Reads a message from a socket and writes them to the specified <param name="writer" />.
+    /// Reads a message from a socket and writes them to the specified <paramref name="writer" />.
     /// </summary>
     /// <param name="writer">
     /// The writer to which the message is written to.

@@ -39,11 +39,11 @@ internal class NamedDependencyDescriptor
     }
 
     public INamedDependencyDescriptor DependsOn(
-        NameString typeName) =>
+        string typeName) =>
         DependsOn(typeName, false);
 
     public new INamedDependencyDescriptor DependsOn(
-        NameString typeName,
+        string typeName,
         bool mustBeNamed)
     {
         base.DependsOn(typeName, mustBeNamed);

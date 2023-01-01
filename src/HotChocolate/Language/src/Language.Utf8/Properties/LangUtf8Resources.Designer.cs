@@ -11,7 +11,7 @@ namespace HotChocolate.Language.Properties {
     using System;
     
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class LangUtf8Resources {
@@ -66,12 +66,6 @@ namespace HotChocolate.Language.Properties {
         internal static string Parser_InvalidToken {
             get {
                 return ResourceManager.GetString("Parser_InvalidToken", resourceCulture);
-            }
-        }
-        
-        internal static string QuerySyntaxRewriter_NotSupported {
-            get {
-                return ResourceManager.GetString("QuerySyntaxRewriter_NotSupported", resourceCulture);
             }
         }
         
@@ -204,6 +198,18 @@ namespace HotChocolate.Language.Properties {
         internal static string ThrowHelper_UnexpectedToken {
             get {
                 return ResourceManager.GetString("ThrowHelper_UnexpectedToken", resourceCulture);
+            }
+        }
+        
+        internal static string Utf8GraphQLReader_Read_MaxAllowedTokensReached {
+            get {
+                return ResourceManager.GetString("Utf8GraphQLReader_Read_MaxAllowedTokensReached", resourceCulture);
+            }
+        }
+        
+        internal static string Utf8GraphQLParser_Start_MaxAllowedNodesReached {
+            get {
+                return ResourceManager.GetString("Utf8GraphQLParser_Start_MaxAllowedNodesReached", resourceCulture);
             }
         }
     }

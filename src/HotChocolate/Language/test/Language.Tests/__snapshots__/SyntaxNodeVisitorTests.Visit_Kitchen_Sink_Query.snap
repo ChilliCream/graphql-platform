@@ -1637,7 +1637,8 @@
           ]
         }
       }
-    ]
+    ],
+    "Count": 155
   },
   {
     "Kind": "OperationDefinition",

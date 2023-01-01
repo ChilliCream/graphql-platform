@@ -57,7 +57,7 @@ If you think that through you can see that each GraphQL request would cause mult
 
 This, means that we reduced the round-trips from our client to our server with GraphQL but multiplied the round-trips between the data sources and the service layer.
 
-With _DataLoader_ we can now centralise our person fetching and reduce the number of round trips to our data source.
+With _DataLoader_ we can now centralize our person fetching and reduce the number of round trips to our data source.
 
 In order to use _DataLoader_ with Hot Chocolate we have to add the _DataLoader_ registry. The _DataLoader_ registry basically manages the data loader instances and interacts with the execution engine.
 

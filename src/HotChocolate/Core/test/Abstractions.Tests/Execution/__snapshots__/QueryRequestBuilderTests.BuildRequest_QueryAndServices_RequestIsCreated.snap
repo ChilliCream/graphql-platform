@@ -9,6 +9,5 @@
   "Extensions": null,
   "ContextData": null,
   "Services": {},
-  "InitialValue": null,
-  "AllowedOperations": null
+  "Flags": "AllowAll"
 }

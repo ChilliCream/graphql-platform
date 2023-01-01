@@ -23,15 +23,14 @@ public sealed partial class OperationStore : IOperationStore
     private readonly IEntityStore _entityStore;
     private readonly OperationStoreObservable _operationStoreObservable = new();
     private readonly IDisposable _entityChangeObserverSession;
-    private readonly Channel<OperationUpdate> _updates =
-        Channel.CreateUnbounded<OperationUpdate>();
+    private readonly Channel<OperationUpdate> _updates = Channel.CreateUnbounded<OperationUpdate>();
     private bool _disposed;
 
     public OperationStore(IEntityStore entityStore)
     {
         _entityStore = entityStore ?? throw new ArgumentNullException(nameof(entityStore));
         _entityChangeObserverSession = _entityStore.Watch().Subscribe(OnEntityUpdate);
-        BeginProcessOperationUpdates();
+        BeginProcessOperationUpdates(_cts.Token);
     }
 
     public void Set<T>(
@@ -54,7 +53,7 @@ public sealed partial class OperationStore : IOperationStore
             throw new ObjectDisposedException(nameof(OperationStore));
         }
 
-        StoredOperation<T> storedOperation = GetOrAddStoredOperation<T>(operationRequest);
+        var storedOperation = GetOrAddStoredOperation<T>(operationRequest);
         storedOperation.SetResult(operationResult);
         OnUpdate(storedOperation, OperationUpdateKind.Updated);
     }
@@ -113,7 +112,7 @@ public sealed partial class OperationStore : IOperationStore
             throw new ObjectDisposedException(nameof(OperationStore));
         }
 
-        ICollection<IStoredOperation> results = _results.Values;
+        var results = _results.Values;
         _results.Clear();
 
         foreach (var result in results)
@@ -222,7 +221,7 @@ public sealed partial class OperationStore : IOperationStore
 
         var updated = new List<StoredOperationVersion>();
 
-        foreach (IStoredOperation operation in _results.Values)
+        foreach (var operation in _results.Values)
         {
             if (operation.Version < update.Version &&
                 update.UpdatedEntityIds.Overlaps(operation.EntityIds))

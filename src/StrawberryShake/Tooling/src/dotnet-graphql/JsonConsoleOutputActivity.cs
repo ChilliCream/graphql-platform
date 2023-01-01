@@ -36,7 +36,7 @@ namespace StrawberryShake.Tools
 
         public void WriteErrors(IEnumerable<HotChocolate.IError> errors)
         {
-            foreach (HotChocolate.IError error in errors)
+            foreach (var error in errors)
             {
                 _hasErrors = true;
                 _data.Errors.Add(new JsonConsoleOutputErrorData(error));

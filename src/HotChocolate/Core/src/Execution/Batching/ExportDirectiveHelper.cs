@@ -25,7 +25,7 @@ internal static class ExportDirectiveHelper
         {
             exp.Add(new ExportedVariable(
                 context.Directive.ToObject<ExportDirective>().As
-                    ?? context.Selection.Field.Name.Value,
+                    ?? context.Selection.Field.Name,
                 context.Selection.Type,
                 context.Result));
         }

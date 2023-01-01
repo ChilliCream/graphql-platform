@@ -3,6 +3,7 @@ using HotChocolate.Data.Sorting;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Data.ThrowHelper;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Data;
 
 public static class SortDescriptorContextExtensions

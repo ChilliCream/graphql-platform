@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -21,12 +22,12 @@ public class InputObjectTypeDefinition : TypeDefinitionBase<InputObjectTypeDefin
     /// Initializes a new instance of <see cref="EnumTypeDefinition"/>.
     /// </summary>
     public InputObjectTypeDefinition(
-        NameString name,
+        string name,
         string? description = null,
         Type? runtimeType = null)
         : base(runtimeType ?? typeof(object))
     {
-        Name = name;
+        Name = name.EnsureGraphQLName();
         Description = description;
     }
 
@@ -56,7 +57,7 @@ public class InputObjectTypeDefinition : TypeDefinitionBase<InputObjectTypeDefin
             configs.AddRange(Configurations);
         }
 
-        foreach (InputFieldDefinition field in Fields)
+        foreach (var field in Fields)
         {
             if (field.HasConfigurations)
             {
@@ -76,7 +77,7 @@ public class InputObjectTypeDefinition : TypeDefinitionBase<InputObjectTypeDefin
         {
             target.Fields.Clear();
 
-            foreach (InputFieldDefinition? field in Fields)
+            foreach (var field in Fields)
             {
                 target.Fields.Add(field);
             }
@@ -90,10 +91,10 @@ public class InputObjectTypeDefinition : TypeDefinitionBase<InputObjectTypeDefin
     {
         base.MergeInto(target);
 
-        foreach (InputFieldDefinition? field in Fields)
+        foreach (var field in Fields)
         {
-            InputFieldDefinition? targetField =
-                target.Fields.FirstOrDefault(t => field.Name.Equals(t.Name));
+            var targetField =
+                target.Fields.FirstOrDefault(t => field.Name.EqualsOrdinal(t.Name));
 
             if (field.Ignore)
             {

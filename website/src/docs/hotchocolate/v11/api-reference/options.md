@@ -11,7 +11,7 @@ Hot Chocolate distinguishes between schema and execution options. Schema options
 | `SubscriptionTypeName` | `string` | `Subscription` | The name of the subscription type.                                          |
 | `StrictValidation`     | `bool`   | `true`         | Defines if the schema is allowed to have errors like missing resolvers etc. |
 
-The schema options allow to alter the overall execution behaviour. The options can be set during schema creation.
+The schema options allow to alter the overall execution behavior. The options can be set during schema creation.
 
 ```csharp
 SchemaBuilder.New()

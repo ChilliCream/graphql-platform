@@ -25,9 +25,9 @@ internal sealed class SyntaxTypeReferenceHandler : ITypeRegistrarHandler
         var typeRef = (SyntaxTypeReference)typeReference;
 
         if (_handled.Add(typeRef.Name) &&
-            Scalars.TryGetScalar(typeRef.Name, out Type? scalarType))
+            Scalars.TryGetScalar(typeRef.Name, out var scalarType))
         {
-            ExtendedTypeReference namedTypeReference = _typeInspector.GetTypeRef(scalarType);
+            var namedTypeReference = _typeInspector.GetTypeRef(scalarType);
 
             if (!typeRegistrar.IsResolved(namedTypeReference))
             {

@@ -1,38 +1,33 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using HotChocolate.Data.Projections.Expressions.Handlers;
-using HotChocolate.Language;
-using HotChocolate.Resolvers;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.Projections.Expressions;
 
-public class QueryableProjectionVisitor
-    : ProjectionVisitor<QueryableProjectionContext>
+public class QueryableProjectionVisitor : ProjectionVisitor<QueryableProjectionContext>
 {
     protected override ISelectionVisitorAction VisitObjectType(
         IOutputField field,
         ObjectType objectType,
-        SelectionSetNode? selectionSet,
+        ISelection selection,
         QueryableProjectionContext context)
     {
         var isAbstractType = field.Type.NamedType().IsAbstractType();
-        if (isAbstractType && context.TryGetQueryableScope(out QueryableProjectionScope? scope))
+        if (isAbstractType && context.TryGetQueryableScope(out var scope))
         {
-            IReadOnlyList<IFieldSelection> selections =
-                context.Context.GetSelections(objectType, selectionSet, true);
+            var selections = context.ResolverContext.GetSelections(objectType, selection, true);
 
             if (selections.Count == 0)
             {
                 return Continue;
             }
 
-            context.PushInstance(
-                Expression.Convert(context.GetInstance(), objectType.RuntimeType));
+            context.PushInstance(Expression.Convert(context.GetInstance(), objectType.RuntimeType));
             scope.Level.Push(new Queue<MemberAssignment>());
 
-            ISelectionVisitorAction res =
-                base.VisitObjectType(field, objectType, selectionSet, context);
+            var res = base.VisitObjectType(field, objectType, selection, context);
 
             context.PopInstance();
             scope.AddAbstractType(objectType.RuntimeType, scope.Level.Pop());
@@ -40,7 +35,7 @@ public class QueryableProjectionVisitor
             return res;
         }
 
-        return base.VisitObjectType(field, objectType, selectionSet, context);
+        return base.VisitObjectType(field, objectType, selection, context);
     }
 
     public static readonly QueryableProjectionVisitor Default = new();

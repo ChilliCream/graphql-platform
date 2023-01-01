@@ -48,7 +48,7 @@ public static class StringFieldDefinitionHelper
         }
 
         // now lets go and do the more difficult variant
-        string[] nameParts = fieldName.Split('.');
+        var nameParts = fieldName.Split('.');
         if (nameParts.Length <= 1)
         {
             // if we only have 1, then it's no different than what we did above
@@ -58,7 +58,7 @@ public static class StringFieldDefinitionHelper
 
         IBsonArraySerializer? arraySerializer;
         resolvedFieldSerializer = documentSerializer;
-        for (int i = 0; i < nameParts.Length; i++)
+        for (var i = 0; i < nameParts.Length; i++)
         {
             if (nameParts[i] == "$" || nameParts[i].All(char.IsDigit))
             {

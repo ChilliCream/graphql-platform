@@ -23,7 +23,7 @@ internal sealed class ObjectTypeParameterExpressionBuilder
 
     public override Expression Build(ParameterInfo parameter, Expression context)
     {
-        Expression expression = base.Build(parameter, context);
+        var expression = base.Build(parameter, context);
 
         return parameter.ParameterType == typeof(ObjectType)
             ? Expression.Convert(expression, typeof(ObjectType))

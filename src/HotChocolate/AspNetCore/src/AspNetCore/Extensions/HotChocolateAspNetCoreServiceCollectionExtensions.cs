@@ -5,6 +5,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using static HotChocolate.AspNetCore.ServerDefaults;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
@@ -37,8 +38,8 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         }
 
         services.AddGraphQLCore();
-        services.TryAddSingleton<IHttpResultSerializer>(
-            new DefaultHttpResultSerializer());
+        services.TryAddSingleton<IHttpResponseFormatter>(
+            new DefaultHttpResponseFormatter());
         services.TryAddSingleton<IHttpRequestParser>(
             sp => new DefaultHttpRequestParser(
                 sp.GetRequiredService<IDocumentCache>(),
@@ -47,7 +48,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
                 sp.GetRequiredService<ParserOptions>()));
         services.TryAddSingleton<IServerDiagnosticEvents>(sp =>
         {
-            IServerDiagnosticEventListener[] listeners =
+            var listeners =
                 sp.GetServices<IServerDiagnosticEventListener>().ToArray();
             return listeners.Length switch
             {
@@ -76,9 +77,9 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddGraphQLServer(
         this IServiceCollection services,
-        NameString schemaName = default,
-        int maxAllowedRequestSize = MaxAllowedRequestSize) =>
-        services
+        string? schemaName = default,
+        int maxAllowedRequestSize = MaxAllowedRequestSize)
+        => services
             .AddGraphQLServerCore(maxAllowedRequestSize)
             .AddGraphQL(schemaName)
             .AddDefaultHttpRequestInterceptor()
@@ -98,7 +99,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddGraphQLServer(
         this IRequestExecutorBuilder builder,
-        NameString schemaName = default) =>
+        string? schemaName = default) =>
         builder.Services.AddGraphQLServer(schemaName);
 
     [Obsolete(

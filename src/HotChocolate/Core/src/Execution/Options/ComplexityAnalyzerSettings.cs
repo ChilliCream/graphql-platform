@@ -65,7 +65,7 @@ public class ComplexityAnalyzerSettings : ICostSettings
         var cost = context.Complexity + context.ChildComplexity;
         var needsDefaultMultiplier = true;
 
-        foreach (MultiplierPathString multiplier in context.Multipliers)
+        foreach (var multiplier in context.Multipliers)
         {
             if (context.TryGetArgumentValue(multiplier, out int value))
             {

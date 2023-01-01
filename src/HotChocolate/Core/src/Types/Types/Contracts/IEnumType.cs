@@ -35,9 +35,7 @@ public interface IEnumType : ILeafType
     /// <c>true</c> if the <paramref name="name"/> represents a value of this enum type;
     /// otherwise, <c>false</c>.
     /// </returns>
-    bool TryGetValue(
-        NameString name,
-        [NotNullWhen(true)] out IEnumValue? value);
+    bool TryGetValue(string name, [NotNullWhen(true)] out IEnumValue? value);
 
     /// <summary>
     /// Tries to get the <paramref name="runtimeValue"/> for
@@ -53,7 +51,5 @@ public interface IEnumType : ILeafType
     /// <c>true</c> if the <paramref name="name"/> represents a value of this enum type;
     /// otherwise, <c>false</c>.
     /// </returns>
-    bool TryGetRuntimeValue(
-        NameString name,
-        [NotNullWhen(true)] out object? runtimeValue);
+    bool TryGetRuntimeValue(string name, [NotNullWhen(true)] out object? runtimeValue);
 }

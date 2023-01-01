@@ -29,7 +29,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     private readonly Dictionary<OperationType, CreateRef> _operations = new();
     private readonly Dictionary<(Type, string?), List<CreateConvention>> _conventions = new();
     private readonly Dictionary<Type, (CreateRef, CreateRef)> _clrTypes = new();
-    private readonly List<object> _schemaInterceptors = new();
+
     private readonly List<object> _typeInterceptors = new()
     {
         typeof(IntrospectionTypeInterceptor),
@@ -37,6 +37,7 @@ public partial class SchemaBuilder : ISchemaBuilder
         typeof(CostTypeInterceptor),
         typeof(MiddlewareValidationTypeInterceptor)
     };
+
     private SchemaOptions _options = new();
     private IsOfTypeFallback? _isOfType;
     private IServiceProvider? _services;
@@ -112,7 +113,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     }
 
     /// <inheritdoc />
-    public ISchemaBuilder ModifyOptions(Action<ISchemaOptions> configure)
+    public ISchemaBuilder ModifyOptions(Action<SchemaOptions> configure)
     {
         if (configure is null)
         {
@@ -197,7 +198,7 @@ public partial class SchemaBuilder : ISchemaBuilder
 
         if (!_conventions.TryGetValue(
             (convention, scope),
-            out List<CreateConvention>? factories))
+            out var factories))
         {
             factories = new List<CreateConvention>();
             _conventions[(convention, scope)] = factories;
@@ -233,10 +234,10 @@ public partial class SchemaBuilder : ISchemaBuilder
                 nameof(schemaType));
         }
 
-        TypeContext context = SchemaTypeReference.InferTypeContext(schemaType);
+        var context = SchemaTypeReference.InferTypeContext(schemaType);
         _clrTypes[runtimeType] =
             (ti => ti.GetTypeRef(runtimeType, context),
-            ti => ti.GetTypeRef(schemaType, context));
+                ti => ti.GetTypeRef(schemaType, context));
 
         return this;
     }
@@ -278,9 +279,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     }
 
     /// <inheritdoc />
-    public ISchemaBuilder AddRootType(
-        Type rootType,
-        OperationType operation)
+    public ISchemaBuilder AddRootType(Type rootType, OperationType operation)
     {
         if (rootType is null)
         {
@@ -324,9 +323,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     }
 
     /// <inheritdoc />
-    public ISchemaBuilder AddRootType(
-        ObjectType rootType,
-        OperationType operation)
+    public ISchemaBuilder AddRootType(ObjectType rootType, OperationType operation)
     {
         if (rootType is null)
         {
@@ -342,7 +339,26 @@ public partial class SchemaBuilder : ISchemaBuilder
                 nameof(operation));
         }
 
-        SchemaTypeReference reference = TypeReference.Create(rootType);
+        var reference = TypeReference.Create(rootType);
+        _operations.Add(operation, _ => reference);
+        _types.Add(_ => reference);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public ISchemaBuilder TryAddRootType(Func<ObjectType> rootType, OperationType operation)
+    {
+        if (rootType is null)
+        {
+            throw new ArgumentNullException(nameof(rootType));
+        }
+
+        if (_operations.ContainsKey(operation))
+        {
+            return this;
+        }
+
+        var reference = TypeReference.Create(rootType());
         _operations.Add(operation, _ => reference);
         _types.Add(_ => reference);
         return this;
@@ -391,7 +407,7 @@ public partial class SchemaBuilder : ISchemaBuilder
             throw new ArgumentNullException(nameof(interceptor));
         }
 
-        if (!typeof(ITypeInitializationInterceptor).IsAssignableFrom(interceptor))
+        if (!typeof(TypeInterceptor).IsAssignableFrom(interceptor))
         {
             throw new ArgumentException(
                 TypeResources.SchemaBuilder_Interceptor_NotSuppported,
@@ -407,7 +423,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     }
 
     /// <inheritdoc />
-    public ISchemaBuilder TryAddTypeInterceptor(ITypeInitializationInterceptor interceptor)
+    public ISchemaBuilder TryAddTypeInterceptor(TypeInterceptor interceptor)
     {
         if (interceptor is null)
         {
@@ -417,45 +433,6 @@ public partial class SchemaBuilder : ISchemaBuilder
         if (!_typeInterceptors.Contains(interceptor))
         {
             _typeInterceptors.Add(interceptor);
-        }
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public ISchemaBuilder TryAddSchemaInterceptor(Type interceptor)
-    {
-        if (interceptor is null)
-        {
-            throw new ArgumentNullException(nameof(interceptor));
-        }
-
-        if (!typeof(ISchemaInterceptor).IsAssignableFrom(interceptor))
-        {
-            throw new ArgumentException(
-                TypeResources.SchemaBuilder_Interceptor_NotSuppported,
-                nameof(interceptor));
-        }
-
-        if (!_schemaInterceptors.Contains(interceptor))
-        {
-            _schemaInterceptors.Add(interceptor);
-        }
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public ISchemaBuilder TryAddSchemaInterceptor(ISchemaInterceptor interceptor)
-    {
-        if (interceptor is null)
-        {
-            throw new ArgumentNullException(nameof(interceptor));
-        }
-
-        if (!_schemaInterceptors.Contains(interceptor))
-        {
-            _schemaInterceptors.Add(interceptor);
         }
 
         return this;

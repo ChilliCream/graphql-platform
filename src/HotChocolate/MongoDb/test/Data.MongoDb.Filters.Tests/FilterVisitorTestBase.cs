@@ -1,11 +1,8 @@
-using System;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Bson;
-using MongoDB.Driver;
 using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Filters;
@@ -17,12 +14,12 @@ public class FilterVisitorTestBase
         params TResult[] results)
         where TResult : class
     {
-        IMongoCollection<TResult> collection =
+        var collection =
             mongoResource.CreateCollection<TResult>("data_" + Guid.NewGuid().ToString("N"));
 
         collection.InsertMany(results);
 
-        return ctx => collection.AsExecutable();
+        return _ => collection.AsExecutable();
     }
 
     protected IRequestExecutor CreateSchema<TEntity, T>(
@@ -32,7 +29,7 @@ public class FilterVisitorTestBase
         where TEntity : class
         where T : FilterInputType<TEntity>
     {
-        Func<IResolverContext, IExecutable<TEntity>> resolver = BuildResolver(
+        var resolver = BuildResolver(
             mongoResource,
             entities);
 

@@ -30,7 +30,7 @@ internal static class ConstructorBuilderExtensions
         string name,
         Action<ParameterBuilder> configure)
     {
-        ParameterBuilder? parameterBuilder = ParameterBuilder.New().SetName(name);
+        var parameterBuilder = ParameterBuilder.New().SetName(name);
         configure(parameterBuilder);
         builder.AddParameter(parameterBuilder);
         return builder;
@@ -40,7 +40,7 @@ internal static class ConstructorBuilderExtensions
         this ConstructorBuilder builder,
         string? name = null)
     {
-        ParameterBuilder parameterBuilder = ParameterBuilder.New();
+        var parameterBuilder = ParameterBuilder.New();
 
         if (name is not null)
         {

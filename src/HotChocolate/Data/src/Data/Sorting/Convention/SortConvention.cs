@@ -36,7 +36,7 @@ public class SortConvention
     private IDictionary<ITypeReference, List<ConfigureSortEnumType>> _enumTypeConfigs =
         default!;
 
-    private NameString _argumentName;
+    private string _argumentName = default!;
     private ISortProvider _provider = default!;
     private ITypeInspector _typeInspector = default!;
     private Type? _defaultBinding;
@@ -100,9 +100,9 @@ public class SortConvention
             x => x.Id,
             SortOperation.FromDefinition);
 
-        foreach (SortOperation? operation in _operations.Values)
+        foreach (var operation in _operations.Values)
         {
-            if (!operation.Name.HasValue)
+            if (string.IsNullOrEmpty(operation.Name))
             {
                 throw SortConvention_OperationIsNotNamed(this, operation);
             }
@@ -116,7 +116,7 @@ public class SortConvention
 
         if (_provider is ISortProviderConvention init)
         {
-            IReadOnlyList<ISortProviderExtension> extensions =
+            var extensions =
                 CollectExtensions(context.Services, Definition);
             init.Initialize(context);
             MergeExtensions(context, init, extensions);
@@ -131,26 +131,15 @@ public class SortConvention
     }
 
     /// <inheritdoc />
-    public virtual NameString GetTypeName(Type runtimeType) =>
+    public virtual string GetTypeName(Type runtimeType) =>
         _namingConventions.GetTypeName(runtimeType, TypeKind.Object) + _typePostFix;
-
-    public NameString GetTypeName(ISortInputType parentType, SortFieldDefinition fieldDefinition)
-    {
-        string parentName = parentType.Name;
-        if (parentName.EndsWith(_typePostFix, StringComparison.Ordinal))
-        {
-            parentName = parentName.Remove(parentName.Length - _typePostFix.Length);
-        }
-
-        return parentName + NameHelpers.UppercaseFirstLetter(fieldDefinition.Name) + _typePostFix;
-    }
 
     /// <inheritdoc />
     public virtual string? GetTypeDescription(Type runtimeType) =>
         _namingConventions.GetTypeDescription(runtimeType, TypeKind.InputObject);
 
     /// <inheritdoc />
-    public virtual NameString GetFieldName(MemberInfo member) =>
+    public virtual string GetFieldName(MemberInfo member) =>
         _namingConventions.GetMemberName(member, MemberKind.InputObjectField);
 
     /// <inheritdoc />
@@ -167,7 +156,7 @@ public class SortConvention
 
         if (TryCreateSortType(
             _typeInspector.GetReturnType(member, true),
-            out Type? returnType))
+            out var returnType))
         {
             return _typeInspector.GetTypeRef(returnType, TypeContext.Input, Scope);
         }
@@ -176,9 +165,9 @@ public class SortConvention
     }
 
     /// <inheritdoc />
-    public NameString GetOperationName(int operation)
+    public string GetOperationName(int operation)
     {
-        if (_operations.TryGetValue(operation, out SortOperation? operationConvention))
+        if (_operations.TryGetValue(operation, out var operationConvention))
         {
             return operationConvention.Name;
         }
@@ -189,7 +178,7 @@ public class SortConvention
     /// <inheritdoc />
     public string? GetOperationDescription(int operationId)
     {
-        if (_operations.TryGetValue(operationId, out SortOperation? operationConvention))
+        if (_operations.TryGetValue(operationId, out var operationConvention))
         {
             return operationConvention.Description;
         }
@@ -198,7 +187,7 @@ public class SortConvention
     }
 
     /// <inheritdoc />
-    public NameString GetArgumentName() => _argumentName;
+    public string GetArgumentName() => _argumentName;
 
     /// <inheritdoc cref="ISortConvention"/>
     public void ApplyConfigurations(
@@ -207,9 +196,9 @@ public class SortConvention
     {
         if (_inputTypeConfigs.TryGetValue(
             typeReference,
-            out List<ConfigureSortInputType>? configurations))
+            out var configurations))
         {
-            foreach (ConfigureSortInputType configure in configurations)
+            foreach (var configure in configurations)
             {
                 configure(descriptor);
             }
@@ -227,9 +216,9 @@ public class SortConvention
     {
         if (_enumTypeConfigs.TryGetValue(
             typeReference,
-            out List<ConfigureSortEnumType>? configurations))
+            out var configurations))
         {
-            foreach (ConfigureSortEnumType configure in configurations)
+            foreach (var configure in configurations)
             {
                 configure(descriptor);
             }
@@ -248,7 +237,7 @@ public class SortConvention
         SortEnumValueDefinition fieldDefinition,
         [NotNullWhen(true)] out ISortOperationHandler? handler)
     {
-        foreach (ISortOperationHandler sortFieldHandler in _provider.OperationHandlers)
+        foreach (var sortFieldHandler in _provider.OperationHandlers)
         {
             if (sortFieldHandler.CanHandle(context, typeDefinition, fieldDefinition))
             {
@@ -267,7 +256,7 @@ public class SortConvention
         ISortFieldDefinition fieldDefinition,
         [NotNullWhen(true)] out ISortFieldHandler? handler)
     {
-        foreach (ISortFieldHandler sortFieldHandler in _provider.FieldHandlers)
+        foreach (var sortFieldHandler in _provider.FieldHandlers)
         {
             if (sortFieldHandler.CanHandle(context, typeDefinition, fieldDefinition))
             {
@@ -321,13 +310,13 @@ public class SortConvention
         IServiceProvider serviceProvider,
         SortConventionDefinition definition)
     {
-        List<ISortProviderExtension> extensions = new List<ISortProviderExtension>();
+        var extensions = new List<ISortProviderExtension>();
         extensions.AddRange(definition.ProviderExtensions);
-        foreach (Type? extensionType in definition.ProviderExtensionsTypes)
+        foreach (var extensionType in definition.ProviderExtensionsTypes)
         {
             if (serviceProvider.TryGetOrCreateService<ISortProviderExtension>(
                 extensionType,
-                out ISortProviderExtension? createdExtension))
+                out var createdExtension))
             {
                 extensions.Add(createdExtension);
             }

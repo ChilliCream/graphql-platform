@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using HotChocolate.Data.Projections.Extensions;
+using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.EntityFrameworkCore;
-using Xunit;
 
 namespace HotChocolate.Data.Projections;
 
@@ -11,51 +10,48 @@ public class QueryableProjectionHashSetTests
 {
     private static readonly Bar[] _barEntities =
     {
-            new Bar
+        new()
+        {
+            Foo = new Foo
             {
-                Foo = new Foo
+                BarShort = 12,
+                BarBool = true,
+                BarEnum = BarEnum.BAR,
+                BarString = "testatest",
+                NestedObject = new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
+                ObjectSet = new HashSet<BarDeep>
                 {
-                    BarShort = 12,
-                    BarBool = true,
-                    BarEnum = BarEnum.BAR,
-                    BarString = "testatest",
-                    NestedObject =
-                        new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
-                    ObjectSet = new HashSet<BarDeep>
-                    {
-                        new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a" } }
-                    }
-                }
-            },
-            new Bar
-            {
-                Foo = new Foo
-                {
-                    BarShort = 14,
-                    BarBool = true,
-                    BarEnum = BarEnum.BAZ,
-                    BarString = "testbtest",
-                    NestedObject =
-                        new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "d" } },
-                    ObjectSet = new HashSet<BarDeep>
-                    {
-                        new BarDeep { Foo = new FooDeep { BarShort = 14, BarString = "d" } }
-                    }
+                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a" } }
                 }
             }
-        };
+        },
+        new()
+        {
+            Foo = new Foo
+            {
+                BarShort = 14,
+                BarBool = true,
+                BarEnum = BarEnum.BAZ,
+                BarString = "testbtest",
+                NestedObject = new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "d" } },
+                ObjectSet = new HashSet<BarDeep>
+                {
+                    new() { Foo = new FooDeep { BarShort = 14, BarString = "d" } }
+                }
+            }
+        }
+    };
 
-    private readonly SchemaCache _cache = new SchemaCache();
+    private readonly SchemaCache _cache = new();
 
     [Fact]
     public async Task Create_DeepFilterObjectTwoProjections()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -73,18 +69,21 @@ public class QueryableProjectionHashSetTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ListObjectDifferentLevelProjection()
     {
         // arrange
-        IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     @"
@@ -103,7 +102,11 @@ public class QueryableProjectionHashSetTests
                         }")
                 .Create());
 
-        res1.MatchSqlSnapshot();
+        // assert
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     private static void OnModelCreating(ModelBuilder modelBuilder)

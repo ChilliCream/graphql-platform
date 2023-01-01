@@ -3,20 +3,25 @@
   "Label": null,
   "Path": null,
   "Data": null,
+  "Items": null,
   "Errors": [
     {
-      "Message": "The query request contains no document.",
-      "Code": "HC0015",
+      "Message": "The specified persisted query key is invalid.",
+      "Code": "HC0020",
       "Path": null,
       "Locations": null,
       "Extensions": {
-        "code": "HC0015"
+        "code": "HC0020",
+        "requestedKey": "does_not_exist"
       },
       "Exception": null,
       "SyntaxNode": null
     }
   ],
   "Extensions": null,
-  "ContextData": null,
+  "Incremental": null,
+  "ContextData": {
+    "HotChocolate.Execution.Transport.HttpStatusCode": 400
+  },
   "HasNext": null
 }

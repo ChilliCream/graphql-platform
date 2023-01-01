@@ -1,0 +1,91 @@
+a Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "objectArray": [
+            {
+              "foo": {
+                "barString": "a"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+---------------
+
+a SQL:
+---------------
+WITH mt_temp_id_list1CTE as (
+select ctid, unnest(CAST(ARRAY(SELECT jsonb_array_elements(CAST(d.data -> 'Foo' ->> 'ObjectArray' as jsonb))) as jsonb[])) as data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d
+)
+  , mt_temp_id_list2CTE as (
+select ctid, data from mt_temp_id_list1CTE as d where d.data -> 'Foo' ->> 'BarString' = :p0
+)
+ select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where d.ctid in (select ctid from mt_temp_id_list2CTE)
+---------------
+
+b Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "objectArray": [
+            {
+              "foo": {
+                "barString": "d"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+---------------
+
+b SQL:
+---------------
+WITH mt_temp_id_list1CTE as (
+select ctid, unnest(CAST(ARRAY(SELECT jsonb_array_elements(CAST(d.data -> 'Foo' ->> 'ObjectArray' as jsonb))) as jsonb[])) as data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d
+)
+  , mt_temp_id_list2CTE as (
+select ctid, data from mt_temp_id_list1CTE as d where d.data -> 'Foo' ->> 'BarString' = :p0
+)
+ select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where d.ctid in (select ctid from mt_temp_id_list2CTE)
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter \u0060eq\u0060 of type StringOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 70
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "String!",
+        "filterType": "StringOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": []
+  }
+}
+---------------

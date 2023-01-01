@@ -3,8 +3,10 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Serialization;
 using HotChocolate.Utilities;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
@@ -79,17 +81,11 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Adds the <see cref="DefaultHttpResultSerializer"/> with specific serialization settings
+    /// Adds the <see cref="DefaultHttpResponseFormatter"/> with specific formatter options
     /// to the DI.
     /// </summary>
     /// <param name="services">
     /// The <see cref="IServiceCollection"/>.
-    /// </param>
-    /// <param name="batchSerialization">
-    /// Specifies the batch serialization format.
-    /// </param>
-    /// <param name="deferSerialization">
-    /// Specifies the defer/stream serialization format.
     /// </param>
     /// <param name="indented">
     /// Defines whether the underlying <see cref="Utf8JsonWriter"/>
@@ -101,39 +97,80 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <returns>
     /// Returns the <see cref="IServiceCollection"/> so that configuration can be chained.
     /// </returns>
-    public static IServiceCollection AddHttpResultSerializer(
+    public static IServiceCollection AddHttpResponseFormatter(
         this IServiceCollection services,
-        HttpResultSerialization batchSerialization = HttpResultSerialization.MultiPartChunked,
-        HttpResultSerialization deferSerialization = HttpResultSerialization.MultiPartChunked,
         bool indented = false)
     {
-        services.RemoveAll<IHttpResultSerializer>();
-        services.AddSingleton<IHttpResultSerializer>(
-            new DefaultHttpResultSerializer(
-                batchSerialization,
-                deferSerialization,
-                indented));
+        services.RemoveAll<IHttpResponseFormatter>();
+        services.AddSingleton<IHttpResponseFormatter>(new DefaultHttpResponseFormatter(indented));
         return services;
     }
 
     /// <summary>
-    /// Adds a custom http request serializer to the DI.
+    /// Adds the <see cref="DefaultHttpResponseFormatter"/> with specific formatter options
+    /// to the DI.
+    /// </summary>
+    /// <param name="services">
+    /// The <see cref="IServiceCollection"/>.
+    /// </param>
+    /// <param name="options">
+    /// The JSON result formatter options
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IServiceCollection"/> so that configuration can be chained.
+    /// </returns>
+    public static IServiceCollection AddHttpResponseFormatter(
+        this IServiceCollection services,
+        JsonResultFormatterOptions options)
+    {
+        services.RemoveAll<IHttpResponseFormatter>();
+        services.AddSingleton<IHttpResponseFormatter>(new DefaultHttpResponseFormatter(options));
+        return services;
+    }
+
+    /// <summary>
+    /// Adds a custom HTTP response formatter to the DI.
     /// </summary>
     /// <param name="services">
     /// The <see cref="IServiceCollection"/>.
     /// </param>
     /// <typeparam name="T">
-    /// The type of the custom <see cref="IHttpResultSerializer"/>.
+    /// The type of the custom <see cref="IHttpResponseFormatter"/>.
     /// </typeparam>
     /// <returns>
     /// Returns the <see cref="IServiceCollection"/> so that configuration can be chained.
     /// </returns>
-    public static IServiceCollection AddHttpResultSerializer<T>(
+    public static IServiceCollection AddHttpResponseFormatter<T>(
         this IServiceCollection services)
-        where T : class, IHttpResultSerializer
+        where T : class, IHttpResponseFormatter
     {
-        services.RemoveAll<IHttpResultSerializer>();
-        services.AddSingleton<IHttpResultSerializer, T>();
+        services.RemoveAll<IHttpResponseFormatter>();
+        services.AddSingleton<IHttpResponseFormatter, T>();
+        return services;
+    }
+
+    /// <summary>
+    /// Adds a custom HTTP response formatter to the DI.
+    /// </summary>
+    /// <param name="services">
+    /// The <see cref="IServiceCollection"/>.
+    /// </param>
+    /// <param name="factory">
+    /// The service factory.
+    /// </param>
+    /// <typeparam name="T">
+    /// The type of the custom <see cref="IHttpResponseFormatter"/>.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the <see cref="IServiceCollection"/> so that configuration can be chained.
+    /// </returns>
+    public static IServiceCollection AddHttpResponseFormatter<T>(
+        this IServiceCollection services,
+        Func<IServiceProvider, T> factory)
+        where T : class, IHttpResponseFormatter
+    {
+        services.RemoveAll<IHttpResponseFormatter>();
+        services.AddSingleton<IHttpResponseFormatter>(factory);
         return services;
     }
 }

@@ -12,7 +12,7 @@ public static class FilterVisitorContextExtensions
     public static FilterScope<T> AddScope<T>(
         this IFilterVisitorContext<T> context)
     {
-        FilterScope<T>? closure = context.CreateScope();
+        var closure = context.CreateScope();
         context.Scopes.Push(closure);
         return closure;
     }

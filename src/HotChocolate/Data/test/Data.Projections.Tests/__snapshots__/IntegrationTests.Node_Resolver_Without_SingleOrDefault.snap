@@ -1,0 +1,9 @@
+{
+  "data": {
+    "node": {
+      "id": "QmFyCmRB",
+      "__typename": "Bar",
+      "fieldOfBar": "fieldOfBar"
+    }
+  }
+}

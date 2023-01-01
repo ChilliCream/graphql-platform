@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.AzureFunctions;
 
 [Extension("GraphQLExtensions")]
-internal class GraphQLExtensions : IExtensionConfigProvider
+internal sealed class GraphQLExtensions : IExtensionConfigProvider
 {
     private readonly IServiceProvider _services;
 

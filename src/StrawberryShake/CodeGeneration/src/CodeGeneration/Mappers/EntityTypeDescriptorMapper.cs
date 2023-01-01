@@ -1,6 +1,6 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Descriptors;
@@ -26,23 +26,23 @@ public static class EntityTypeDescriptorMapper
         ClientModel model,
         IMapperContext context)
     {
-        var entityTypes = new Dictionary<NameString, Dictionary<NameString, bool>>();
-        var descriptions = new Dictionary<NameString, string?>();
+        var entityTypes = new Dictionary<string, Dictionary<string, bool>>(StringComparer.Ordinal);
+        var descriptions = new Dictionary<string, string?>(StringComparer.Ordinal);
 
-        foreach (OperationModel operation in model.Operations)
+        foreach (var operation in model.Operations)
         {
-            foreach (OutputTypeModel outputType in
+            foreach (var outputType in
                 operation.OutputTypes.Where(t => !t.IsInterface && !t.IsFragment))
             {
-                INamedType namedType = outputType.Type.NamedType();
+                var namedType = outputType.Type.NamedType();
                 descriptions[namedType.Name] = outputType.Description;
                 if (namedType.IsEntity())
                 {
                     if (!entityTypes.TryGetValue(
                         namedType.Name,
-                        out Dictionary<NameString, bool>? components))
+                        out var components))
                     {
-                        components = new Dictionary<NameString, bool>();
+                        components = new Dictionary<string, bool>(StringComparer.Ordinal);
                         entityTypes.Add(namedType.Name, components);
                     }
 
@@ -53,7 +53,7 @@ public static class EntityTypeDescriptorMapper
 
                     if (outputType.Deferred.Count > 0)
                     {
-                        foreach (DeferredFragmentModel deferred in outputType.Deferred.Values)
+                        foreach (var deferred in outputType.Deferred.Values)
                         {
                             components[deferred.Class.Name] = true;
                         }
@@ -62,9 +62,9 @@ public static class EntityTypeDescriptorMapper
             }
         }
 
-        foreach ((NameString key, Dictionary<NameString, bool>? value) in entityTypes)
+        foreach (var (key, value) in entityTypes)
         {
-            RuntimeTypeInfo runtimeType = CreateEntityType(key, context.Namespace);
+            var runtimeType = CreateEntityType(key, context.Namespace);
             descriptions.TryGetValue(key, out var description);
             var properties = new Dictionary<string, PropertyDescriptor>();
 
@@ -74,9 +74,9 @@ public static class EntityTypeDescriptorMapper
                 properties,
                 description);
 
-            foreach ((NameString typeName, var isFragment) in value.OrderBy(t => t.Value))
+            foreach (var (typeName, isFragment) in value.OrderBy(t => t.Value))
             {
-                ComplexTypeDescriptor type = context.GetType<ComplexTypeDescriptor>(typeName);
+                var type = context.GetType<ComplexTypeDescriptor>(typeName);
 
                 if (isFragment)
                 {
@@ -89,7 +89,7 @@ public static class EntityTypeDescriptorMapper
                     properties.Add(indicator.Name, indicator);
                 }
 
-                foreach (PropertyDescriptor property in type.Properties)
+                foreach (var property in type.Properties)
                 {
                     if (!properties.ContainsKey(property.Name))
                     {

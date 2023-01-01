@@ -1,13 +1,16 @@
+#nullable enable
+
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Configuration;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
-using static HotChocolate.Types.Relay.NodeResolverCompilerHelper;
 
 #nullable enable
 
@@ -25,15 +28,28 @@ public abstract class NodeDescriptorBase : DescriptorBase<NodeDefinition>
 
     protected abstract IObjectFieldDescriptor ConfigureNodeField();
 
+    /// <summary>
+    /// Specifies a delegate to resolve the node from its id.
+    /// </summary>
+    /// <param name="fieldResolver">
+    /// The delegate to resolve the node from its id.
+    /// </param>
     public virtual IObjectFieldDescriptor ResolveNode(
         FieldResolverDelegate fieldResolver)
     {
-        Definition.Resolver = fieldResolver ??
+        Definition.ResolverField ??= new ObjectFieldDefinition();
+        Definition.ResolverField.Resolver = fieldResolver ??
             throw new ArgumentNullException(nameof(fieldResolver));
 
         return ConfigureNodeField();
     }
 
+    /// <summary>
+    /// Specifies a delegate to resolve the node from its id.
+    /// </summary>
+    /// <param name="fieldResolver">
+    /// The delegate to resolve the node from its id.
+    /// </param>
     public IObjectFieldDescriptor ResolveNode<TId>(
         NodeResolverDelegate<object, TId> fieldResolver)
     {
@@ -55,6 +71,15 @@ public abstract class NodeDescriptorBase : DescriptorBase<NodeDefinition>
         });
     }
 
+    /// <summary>
+    /// Specifies a member expression from which the node resolver is compiled from.
+    /// </summary>
+    /// <param name="method">
+    /// The node resolver member expression.
+    /// </param>
+    /// <typeparam name="TResolver">
+    /// The declaring node resolver member type.
+    /// </typeparam>
     public IObjectFieldDescriptor ResolveNodeWith<TResolver>(
         Expression<Func<TResolver, object?>> method)
     {
@@ -63,17 +88,14 @@ public abstract class NodeDescriptorBase : DescriptorBase<NodeDefinition>
             throw new ArgumentNullException(nameof(method));
         }
 
-        MemberInfo? member = method.TryExtractMember();
+        var member = method.TryExtractMember();
 
         if (member is MethodInfo m)
         {
-            FieldResolverDelegates resolver =
-                Context.ResolverCompiler.CompileResolve(
-                    m,
-                    typeof(object),
-                    typeof(TResolver),
-                    ParameterExpressionBuilders);
-            return ResolveNode(resolver.Resolver!);
+            Definition.ResolverField ??= new ObjectFieldDefinition();
+            Definition.ResolverField.Member = m;
+            Definition.ResolverField.ResolverType = typeof(TResolver);
+            return ConfigureNodeField();
         }
 
         throw new ArgumentException(
@@ -81,6 +103,12 @@ public abstract class NodeDescriptorBase : DescriptorBase<NodeDefinition>
             nameof(member));
     }
 
+    /// <summary>
+    /// Specifies a method from which a node resolver shall be compiled from.
+    /// </summary>
+    /// <param name="method">
+    /// The node resolver method.
+    /// </param>
     public IObjectFieldDescriptor ResolveNodeWith(MethodInfo method)
     {
         if (method is null)
@@ -88,33 +116,67 @@ public abstract class NodeDescriptorBase : DescriptorBase<NodeDefinition>
             throw new ArgumentNullException(nameof(method));
         }
 
-        FieldResolverDelegates resolver =
-            Context.ResolverCompiler.CompileResolve(
-                method,
-                typeof(object),
-                method.DeclaringType ?? typeof(object),
-                ParameterExpressionBuilders);
+        Definition.ResolverField ??= new ObjectFieldDefinition();
+        Definition.ResolverField.Member = method;
+        Definition.ResolverField.ResolverType = method.DeclaringType ?? typeof(object);
+        return ConfigureNodeField();
+    }
 
-        return ResolveNode(resolver.Resolver!);
+    protected void CompleteResolver(ITypeCompletionContext context, ObjectTypeDefinition definition)
+    {
+        var descriptorContext = context.DescriptorContext;
+
+        if (Definition.ResolverField is not null)
+        {
+            // we let the descriptor complete on the definition object.
+            ObjectFieldDescriptor
+                .From(descriptorContext, Definition.ResolverField)
+                .CreateDefinition();
+
+            // after that all middleware should be available on the field definition and we can
+            // start compiling the resolver and the resolver pipeline.
+            if (Definition.ResolverField.Resolver is null &&
+                Definition.ResolverField.Member is not null)
+            {
+                Definition.ResolverField.Resolvers =
+                    Context.ResolverCompiler.CompileResolve(
+                        Definition.ResolverField.Member,
+                        typeof(object),
+                        Definition.ResolverField.ResolverType,
+                        NodeResolverCompilerHelper.ParameterExpressionBuilders);
+            }
+
+            if (Definition.ResolverField.Resolver is not null)
+            {
+                var pipeline = FieldMiddlewareCompiler.Compile(
+                    context.GlobalComponents,
+                    Definition.ResolverField.GetMiddlewareDefinitions(),
+                    Definition.ResolverField.GetResultConverters(),
+                    Definition.ResolverField.Resolver,
+                    false);
+
+                definition.ContextData[WellKnownContextData.NodeResolver] =
+                    new NodeResolverInfo(null, pipeline!);
+            }
+        }
     }
 
     protected static class ConverterHelper
     {
-        private static ResultConverterDefinition? _resultConverter;
+        private static ResultFormatterDefinition? _resultConverter;
 
-        private static ResultConverterDefinition Converter
+        private static ResultFormatterDefinition Formatter
         {
             get => _resultConverter ??= IdMiddleware.Create();
         }
 
         public static IObjectFieldDescriptor TryAdd(IObjectFieldDescriptor descriptor)
         {
-            IList<ResultConverterDefinition> converters =
-                descriptor.Extend().Definition.ResultConverters;
+            var converters = descriptor.Extend().Definition.FormatterDefinitions;
 
-            if (!converters.Contains(Converter))
+            if (!converters.Contains(Formatter))
             {
-                converters.Add(Converter);
+                converters.Add(Formatter);
             }
 
             return descriptor;

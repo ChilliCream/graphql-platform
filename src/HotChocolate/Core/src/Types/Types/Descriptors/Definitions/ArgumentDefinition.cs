@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -21,13 +22,13 @@ public class ArgumentDefinition : FieldDefinitionBase<InputValueDefinitionNode>
     /// Initializes a new instance of <see cref="ArgumentDefinition"/>.
     /// </summary>
     public ArgumentDefinition(
-        NameString name,
+        string name,
         string? description = null,
         ITypeReference? type = null,
         IValueNode? defaultValue = null,
         object? runtimeDefaultValue = null)
     {
-        Name = name;
+        Name = name.EnsureGraphQLName();
         Description = description;
         Type = type;
         DefaultValue = defaultValue;

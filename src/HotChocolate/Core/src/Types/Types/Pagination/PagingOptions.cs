@@ -41,6 +41,12 @@ public struct PagingOptions
     public bool? InferConnectionNameFromField { get; set; }
 
     /// <summary>
+    /// CollectionSegment names are by default inferred from the field name to
+    /// which they are bound to as opposed to the node type name.
+    /// </summary>
+    public bool? InferCollectionSegmentNameFromField { get; set; }
+
+    /// <summary>
     /// The name of the paging provider that shall be used.
     /// </summary>
     public string? ProviderName { get; set; }

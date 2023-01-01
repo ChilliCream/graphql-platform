@@ -3,9 +3,14 @@
     "Message": "The specified directive is not valid the current location.",
     "Code": null,
     "Path": {
-      "Parent": null,
-      "Depth": 0,
-      "Name": "name"
+      "Name": "name",
+      "Parent": {
+        "Parent": null,
+        "Length": -1,
+        "IsRoot": true
+      },
+      "Length": 0,
+      "IsRoot": false
     },
     "Locations": [
       {

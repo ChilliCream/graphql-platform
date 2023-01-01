@@ -4,8 +4,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Sorting;
 
-public interface ISortVisitorContext
-    : ISyntaxVisitorContext
+public interface ISortVisitorContext : ISyntaxVisitorContext
 {
     Stack<IType> Types { get; }
 

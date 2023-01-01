@@ -8,7 +8,7 @@ public abstract class FilterTestBase
 {
     public ISchema CreateSchema(Action<ISchemaBuilder> configure)
     {
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddFiltering(x => x
                 .AddDefaults()
                 .AddSpatialOperations()

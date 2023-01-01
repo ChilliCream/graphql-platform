@@ -10,5 +10,5 @@ public interface IConfigureRequestExecutorSetup : IConfigureOptions<RequestExecu
     /// <summary>
     /// The schema name to which this instance provides configurations to.
     /// </summary>
-    NameString SchemaName { get; }
+    string SchemaName { get; }
 }

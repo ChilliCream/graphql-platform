@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using HotChocolate.Properties;
+using System.Threading.Tasks;
+using static HotChocolate.Properties.AbstractionResources;
 
 namespace HotChocolate;
 
@@ -17,7 +19,7 @@ public class AggregateError : Error
     /// The errors.
     /// </param>
     public AggregateError(IEnumerable<IError> errors)
-        : base(AbstractionResources.AggregateError_Message)
+        : base(AggregateError_Message)
     {
         if (errors is null)
         {
@@ -34,7 +36,7 @@ public class AggregateError : Error
     /// The errors.
     /// </param>
     public AggregateError(params IError[] errors)
-        : base(AbstractionResources.AggregateError_Message)
+        : base(AggregateError_Message)
     {
         Errors = errors ?? throw new ArgumentNullException(nameof(errors));
     }

@@ -81,12 +81,12 @@ public partial class TypeMapperGenerator
                 .SetCode("false");
         }
 
-        MethodCallBuilder constructorCall = MethodCallBuilder
+        var constructorCall = MethodCallBuilder
             .Inline()
             .SetNew()
             .SetMethodName(objectTypeDescriptor.RuntimeType.Name);
 
-        foreach (PropertyDescriptor prop in objectTypeDescriptor.Properties)
+        foreach (var prop in objectTypeDescriptor.Properties)
         {
             var propAccess = $"{_dataParameterName}.{prop.Name}";
             if (prop.Type.IsEntity() || prop.Type.IsData())
