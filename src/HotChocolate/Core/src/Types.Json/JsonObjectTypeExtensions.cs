@@ -158,7 +158,7 @@ public static class JsonObjectTypeExtensions
                 def.PureResolver = ctx =>
                 {
                     var value = ctx.GetProperty(propertyName);
-                    return String.IsNullOrWhiteSpace(value) ? null : value.GetDateTimeOffset();
+                    return string.IsNullOrWhiteSpace(value?.GetString()) ? null : value?.GetDateTimeOffset();
                 };
                 return;
             default:
