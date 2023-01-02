@@ -73,6 +73,10 @@ public static class SchemaHelper
                             scalar.Name.Value,
                             scalar.Description?.Value));
                     }
+                    else if (scalar.Name.Value == ScalarNames.Any)
+                    {
+                        builder.AddType(new AnyType());
+                    }
                 }
 
                 builder.AddDocument(document);
