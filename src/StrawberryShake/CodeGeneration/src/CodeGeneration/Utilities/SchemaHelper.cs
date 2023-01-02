@@ -61,6 +61,10 @@ namespace StrawberryShake.CodeGeneration.Utilities
                             document.Definitions.OfType<ObjectTypeExtensionNode>(),
                             typeEntityPatterns);
                     }
+                    else if (scalar.Name.Value == ScalarNames.Any)
+                    {
+                        builder.AddType(new AnyType());
+                    }
                 }
                 else
                 {
