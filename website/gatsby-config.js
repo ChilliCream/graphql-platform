@@ -187,6 +187,10 @@ module.exports = {
             allow: `/`,
             disallow: [`/docs/hotchocolate/v10/`, `/docs/hotchocolate/v11/`],
           },
+          {
+            userAgent: `Algolia Crawler`,
+            allow: `/`,
+          },
         ],
       },
     },
