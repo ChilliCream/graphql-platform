@@ -61,10 +61,6 @@ namespace StrawberryShake.CodeGeneration.Utilities
                             document.Definitions.OfType<ObjectTypeExtensionNode>(),
                             typeEntityPatterns);
                     }
-                    else if (scalar.Name.Value == ScalarNames.Any)
-                    {
-                        builder.AddType(new AnyType());
-                    }
                 }
                 else
                 {
@@ -75,6 +71,10 @@ namespace StrawberryShake.CodeGeneration.Utilities
                             builder.AddType(new AnyType(
                                 scalar.Name.Value,
                                 scalar.Description?.Value));
+                        }
+                        else if (scalar.Name.Value == ScalarNames.Any)
+                        {
+                            builder.AddType(new AnyType());
                         }
                     }
 
