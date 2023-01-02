@@ -149,16 +149,7 @@ public sealed class ObjectField
                 {
                     (middlewareDefinitions ?? fieldMiddlewareDefinitions.ToList()).Insert(
                         0,
-                        new FieldMiddlewareDefinition(
-                            next =>
-                            {
-                                var directiveDelegate = m(next);
-                                return ctx =>
-                                {
-                                    var directiveCtx = new DirectiveContext(ctx, directive);
-                                    return directiveDelegate(directiveCtx);
-                                };
-                            }));
+                        new FieldMiddlewareDefinition(next => m(next, directive)));
                 }
             }
 

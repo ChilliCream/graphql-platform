@@ -1029,9 +1029,6 @@ Type: `{0}`</value>
   <data name="ErrorHelper_CompleteInterfacesHelper_UnableToResolveInterface" xml:space="preserve">
     <value>Unable to resolve the interface type. For more details look at the error object.</value>
   </data>
-  <data name="ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong" xml:space="preserve">
-    <value>The argument `{0}` value type is wrong.</value>
-  </data>
   <data name="ErrorHelper_DirectiveCollection_ArgumentDoesNotExist" xml:space="preserve">
     <value>The argument `{0}` does not exist on the directive `{1}`.</value>
   </data>
@@ -1064,5 +1061,8 @@ Type: `{0}`</value>
   </data>
   <data name="Directive_GetArgumentValue_UnknownArgument" xml:space="preserve">
     <value>The directive '{0}' has no argument with the name '{1}'.</value>
+  </data>
+  <data name="ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong" xml:space="preserve">
+    <value>The directive arguments have invalid values: '{0}' at {1}.</value>
   </data>
 </root>

@@ -13,19 +13,13 @@ namespace HotChocolate.Types;
 public sealed class Directive
 {
     private readonly DirectiveNode _syntaxNode;
-    private object? _runtimeValue;
+    private readonly object _runtimeValue;
 
-    // ReSharper disable once IntroduceOptionalParameters.Global
-    public Directive(DirectiveType type, DirectiveNode syntaxNode)
-        : this(type, syntaxNode, null)
-    {
-    }
-
-    public Directive(DirectiveType type, DirectiveNode syntaxNode, object? runtimeValue)
+    internal Directive(DirectiveType type, DirectiveNode syntaxNode, object runtimeValue)
     {
         Type = type ?? throw new ArgumentNullException(nameof(type));
         _syntaxNode = syntaxNode ?? throw new ArgumentNullException(nameof(syntaxNode));
-        _runtimeValue = runtimeValue;
+        _runtimeValue = runtimeValue ?? throw new ArgumentNullException(nameof(runtimeValue));
     }
 
     /// <summary>
@@ -72,8 +66,7 @@ public sealed class Directive
         return null;
     }
 
-    public T AsValue<T>()
-        => (T)(_runtimeValue ??= Type.Parse(_syntaxNode));
+    public T AsValue<T>() => (T)_runtimeValue;
 
     public DirectiveNode AsSyntaxNode(bool removeDefaults = false)
     {

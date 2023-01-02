@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -100,6 +101,7 @@ public sealed class DirectiveCollection : IDirectiveCollection
         var location = DirectiveHelper.InferDirectiveLocation(source);
         var directives = new Directive[definitions.Count];
         var directiveNames = TypeMemHelper.RentNameSet();
+        var hasErrors = false;
 
         for (var i = 0; i < directives.Length; i++)
         {
@@ -110,6 +112,8 @@ public sealed class DirectiveCollection : IDirectiveCollection
             {
                 if ((directiveType.Locations & location) != location)
                 {
+                    hasErrors = true;
+
                     var directiveNode = definition.Value as DirectiveNode;
 
                     context.ReportError(
@@ -124,6 +128,8 @@ public sealed class DirectiveCollection : IDirectiveCollection
 
                 if (!directiveNames.Add(directiveType.Name) && !directiveType.IsRepeatable)
                 {
+                    hasErrors = true;
+
                     var directiveNode = definition.Value as DirectiveNode;
 
                     context.ReportError(
@@ -135,10 +141,58 @@ public sealed class DirectiveCollection : IDirectiveCollection
                     continue;
                 }
 
-                directives[i] = value is DirectiveNode syntaxNode
-                    ? new Directive(directiveType, syntaxNode)
-                    : new Directive(directiveType, directiveType.Format(value), value);
+                DirectiveNode? syntaxNode = null;
+                object? runtimeValue = null;
+
+                try
+                {
+                    // We will parse or format the directive.
+                    // This will also validate the directive instance values which could
+                    // cause and error.
+                    if (value is DirectiveNode node)
+                    {
+                        syntaxNode = node;
+                        runtimeValue = directiveType.Parse(node);
+                    }
+                    else
+                    {
+                        syntaxNode = directiveType.Format(value);
+                        runtimeValue = value;
+                    }
+                }
+                catch (SerializationException ex)
+                {
+                    hasErrors = true;
+
+                    Debug.Assert(
+                        ex.Path is not null,
+                        "The path is always passed in with directives!");
+
+                    context.ReportError(
+                        ErrorHelper.DirectiveCollection_ArgumentError(
+                            directiveType,
+                            syntaxNode,
+                            source,
+                            ex.Path,
+                            ex));
+                }
+
+                if (syntaxNode is not null && runtimeValue is not null)
+                {
+                    directives[i] = new Directive(directiveType, syntaxNode, runtimeValue);
+                }
             }
+        }
+
+        // If we had any errors while building the directives list we will
+        // clean the null entries out so that the list is consistent.
+        // We only do that so we can collect other schema errors as well and do
+        // not have to fully fail here but have one SchemaException at the end of
+        // the schema creation that contains a list of errors.
+        if (hasErrors)
+        {
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+            directives = directives.Where(t => t is not null).ToArray();
         }
 
         return new DirectiveCollection(directives);

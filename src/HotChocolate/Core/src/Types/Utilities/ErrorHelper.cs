@@ -333,55 +333,32 @@ internal static class ErrorHelper
             .SetExtension("Source", source)
             .Build();
 
-    public static ISchemaError DirectiveCollection_ArgumentValueTypeIsWrong(
+    public static ISchemaError DirectiveCollection_ArgumentError(
         DirectiveType directiveType,
-        ITypeSystemObject type,
         DirectiveNode? syntaxNode,
         object source,
-        string argumentName)
-        => SchemaErrorBuilder.New()
-            .SetMessage(
-                ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong,
-                argumentName)
-            .SetCode(ErrorCodes.Schema.ArgumentValueTypeWrong)
+        Path path,
+        SerializationException exception)
+    {
+        var message = string.Format(
+            ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong,
+            exception.Message,
+            path);
+
+        if (syntaxNode is not null)
+        {
+            message += Environment.NewLine;
+            message += syntaxNode.ToString(true);
+        }
+
+        return SchemaErrorBuilder.New()
+            .SetMessage(message)
+            .SetCode(ErrorCodes.Schema.InvalidArgument)
             .SetTypeSystemObject(directiveType)
             .AddSyntaxNode(syntaxNode)
             .SetExtension("Source", source)
             .Build();
-
-    public static ISchemaError DirectiveCollection_ArgumentDoesNotExist(
-        DirectiveType directiveType,
-        ITypeSystemObject type,
-        DirectiveNode? syntaxNode,
-        object source,
-        string argumentName)
-        => SchemaErrorBuilder.New()
-            .SetMessage(
-                ErrorHelper_DirectiveCollection_ArgumentDoesNotExist,
-                argumentName,
-                directiveType.Name)
-            .SetCode(ErrorCodes.Schema.InvalidArgument)
-            .SetTypeSystemObject(type)
-            .AddSyntaxNode(syntaxNode)
-            .SetExtension("Source", source)
-            .Build();
-
-    public static ISchemaError DirectiveCollection_ArgumentNonNullViolation(
-        DirectiveType directiveType,
-        ITypeSystemObject type,
-        DirectiveNode? syntaxNode,
-        object source,
-        string argumentName)
-        => SchemaErrorBuilder.New()
-            .SetMessage(
-                ErrorHelper_DirectiveCollection_ArgumentNonNullViolation,
-                argumentName,
-                directiveType.Name)
-            .SetCode(ErrorCodes.Schema.NonNullArgument)
-            .SetTypeSystemObject(type)
-            .AddSyntaxNode(syntaxNode)
-            .SetExtension("Source", source)
-            .Build();
+    }
 
     public static ISchemaError ObjectType_UnableToInferOrResolveType(
         string typeName,

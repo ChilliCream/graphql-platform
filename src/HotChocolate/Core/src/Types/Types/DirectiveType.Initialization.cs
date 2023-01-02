@@ -5,6 +5,7 @@ using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Properties;
+using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Internal.FieldInitHelper;
@@ -70,9 +71,10 @@ public partial class DirectiveType
         _inputFormatter = context.DescriptorContext.InputFormatter;
 
         SyntaxNode = definition.SyntaxNode;
-        Locations =  (DirectiveLocation)definition.Locations;
+        Locations =  definition.Locations;
         Arguments = OnCompleteFields(context, definition);
         IsPublic = definition.IsPublic;
+        Middleware = OnCompleteMiddleware(context, definition);
 
         _createInstance = OnCompleteCreateInstance(context, definition);
         _getFieldValues = OnCompleteGetFieldValues(context, definition);
@@ -148,6 +150,33 @@ public partial class DirectiveType
         }
 
         return getFieldValues;
+    }
+
+    protected virtual DirectiveMiddleware? OnCompleteMiddleware(
+        ITypeCompletionContext context,
+        DirectiveTypeDefinition definition)
+    {
+        if (definition.MiddlewareComponents.Count == 0)
+        {
+            return null;
+        }
+
+        if (definition.MiddlewareComponents.Count == 1)
+        {
+            return definition.MiddlewareComponents[0];
+        }
+
+        return (initial, directive) =>
+        {
+            var next = initial;
+
+            for (var i = definition.MiddlewareComponents.Count - 1; i >= 0; i--)
+            {
+                next = definition.MiddlewareComponents[i](next, directive);
+            }
+
+            return next;
+        };
     }
 
     private object CreateDictionaryInstance(object?[] fieldValues)

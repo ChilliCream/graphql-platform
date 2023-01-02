@@ -29,7 +29,7 @@ public class DefaultAuthorizationHandler : IAuthorizationHandler
         IMiddlewareContext context,
         AuthorizeDirective directive)
     {
-        if (!TryGetAuthenticatedPrincipal(context, out ClaimsPrincipal? principal))
+        if (!TryGetAuthenticatedPrincipal(context, out var principal))
         {
             return AuthorizeResult.NotAuthenticated;
         }
@@ -102,10 +102,10 @@ public class DefaultAuthorizationHandler : IAuthorizationHandler
         AuthorizeDirective directive,
         ClaimsPrincipal principal)
     {
-        IServiceProvider services = context.Service<IServiceProvider>();
-        IAuthorizationService? authorizeService =
+        var services = context.Service<IServiceProvider>();
+        var authorizeService =
             services.GetService<IAuthorizationService>();
-        IAuthorizationPolicyProvider? policyProvider =
+        var policyProvider =
             services.GetService<IAuthorizationPolicyProvider>();
 
         if (authorizeService == null || policyProvider == null)
@@ -143,7 +143,7 @@ public class DefaultAuthorizationHandler : IAuthorizationHandler
 
         if (policy is not null)
         {
-            AuthorizationResult result =
+            var result =
                 await authorizeService.AuthorizeAsync(principal, context, policy)
                     .ConfigureAwait(false);
             return result.Succeeded ? AuthorizeResult.Allowed : AuthorizeResult.NotAllowed;

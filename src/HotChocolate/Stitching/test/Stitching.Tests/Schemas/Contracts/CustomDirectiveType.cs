@@ -9,9 +9,9 @@ public class CustomDirectiveType : DirectiveType
         descriptor.Name("custom");
         descriptor.Location(DirectiveLocation.Field);
         descriptor.Argument("d").Type<DateTimeType>();
-        descriptor.Use(next => ctx =>
+        descriptor.Use((next, directive) => ctx =>
         {
-            ctx.Result = ctx.Directive.GetArgumentValue<DateTime>("d").ToUniversalTime();
+            ctx.Result = directive.GetArgumentValue<DateTime>("d").ToUniversalTime();
             return next.Invoke(ctx);
         });
     }

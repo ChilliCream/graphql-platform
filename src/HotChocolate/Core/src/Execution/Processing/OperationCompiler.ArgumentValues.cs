@@ -211,19 +211,12 @@ public sealed partial class OperationCompiler
                 && directiveType.Middleware is not null
                 && (directiveType.IsRepeatable || !processed.Add(directiveType.Name)))
             {
-                var directive = new Directive(directiveType, directiveNode);
+                var directive = new Directive(
+                    directiveType,
+                    directiveNode,
+                    directiveType.Parse(directiveNode));
                 var directiveMiddleware = directiveType.Middleware;
-
-                pipelineComponents.Add(
-                    next =>
-                    {
-                        var directiveDelegate = directiveMiddleware(next);
-                        return ctx =>
-                        {
-                            var directiveCtx = new DirectiveContext(ctx, directive);
-                            return directiveDelegate(directiveCtx);
-                        };
-                    });
+                pipelineComponents.Add(next => directiveMiddleware(next, directive));
             }
         }
     }

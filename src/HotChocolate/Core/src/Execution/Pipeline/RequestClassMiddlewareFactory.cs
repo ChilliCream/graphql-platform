@@ -97,8 +97,7 @@ internal static class RequestClassMiddlewareFactory
                 new TypeParameterHandler(typeof(IRequestContextAccessor), requestOptions)
             };
 
-        var constructor =
-            middleware.GetConstructors().SingleOrDefault(t => t.IsPublic);
+        var constructor = middleware.GetConstructors().SingleOrDefault(t => t.IsPublic);
 
         if (constructor is not null)
         {

@@ -28,10 +28,8 @@ public class KeyDirectiveTests : FederationTypesTestBase
         Assert.Equal(WellKnownTypeNames.Key, directive!.Name);
         Assert.Single(directive.Arguments);
         AssertDirectiveHasFieldsArgument(directive);
-        Assert.Collection(directive.Locations,
-            t => Assert.Equal(DirectiveLocation.Object, t),
-            t => Assert.Equal(DirectiveLocation.Interface, t));
-
+        Assert.True(directive.Locations.HasFlag(DirectiveLocation.Object));
+        Assert.True(directive.Locations.HasFlag(DirectiveLocation.Interface));
     }
 
     [Fact]

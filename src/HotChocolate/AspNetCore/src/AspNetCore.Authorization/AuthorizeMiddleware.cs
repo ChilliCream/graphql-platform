@@ -9,39 +9,38 @@ namespace HotChocolate.AspNetCore.Authorization;
 internal sealed class AuthorizeMiddleware
 {
     private readonly FieldDelegate _next;
-    private readonly IAuthorizationHandler _authorizationHandler;
+    private readonly IAuthorizationHandler _handler;
+    private readonly AuthorizeDirective _directive;
 
-    public AuthorizeMiddleware(FieldDelegate next, IAuthorizationHandler authorizationHandler)
+    public AuthorizeMiddleware(
+        FieldDelegate next,
+        IAuthorizationHandler authorizationHandler,
+        AuthorizeDirective directive)
     {
         _next = next ??
             throw new ArgumentNullException(nameof(next));
-        _authorizationHandler = authorizationHandler ??
+        _handler = authorizationHandler ??
             throw new ArgumentNullException(nameof(authorizationHandler));
+        _directive = directive ??
+            throw new ArgumentNullException(nameof(directive));
     }
 
-    public async Task InvokeAsync(IDirectiveContext context)
+    public async Task InvokeAsync(IMiddlewareContext context)
     {
-        AuthorizeDirective directive = context.Directive
-            .AsValue<AuthorizeDirective>();
-
-        if (directive.Apply == ApplyPolicy.AfterResolver)
+        if (_directive.Apply == ApplyPolicy.AfterResolver)
         {
             await _next(context).ConfigureAwait(false);
 
-            AuthorizeResult state =
-                await _authorizationHandler.AuthorizeAsync(context, directive)
-                    .ConfigureAwait(false);
+            var state = await _handler.AuthorizeAsync(context, _directive).ConfigureAwait(false);
 
             if (state != AuthorizeResult.Allowed && !IsErrorResult(context))
             {
-                SetError(context, directive, state);
+                SetError(context, state);
             }
         }
         else
         {
-            AuthorizeResult state =
-                await _authorizationHandler.AuthorizeAsync(context, directive)
-                    .ConfigureAwait(false);
+            var state = await _handler.AuthorizeAsync(context, _directive).ConfigureAwait(false);
 
             if (state == AuthorizeResult.Allowed)
             {
@@ -49,7 +48,7 @@ internal sealed class AuthorizeMiddleware
             }
             else
             {
-                SetError(context, directive, state);
+                SetError(context, state);
             }
         }
     }
@@ -59,7 +58,6 @@ internal sealed class AuthorizeMiddleware
 
     private void SetError(
         IMiddlewareContext context,
-        AuthorizeDirective directive,
         AuthorizeResult state)
         => context.Result = state switch
         {
@@ -74,7 +72,7 @@ internal sealed class AuthorizeMiddleware
                 => ErrorBuilder.New()
                     .SetMessage(
                         AuthResources.AuthorizeMiddleware_PolicyNotFound,
-                        directive.Policy!)
+                        _directive.Policy!)
                     .SetCode(ErrorCodes.Authentication.PolicyNotFound)
                     .SetPath(context.Path)
                     .AddLocation(context.Selection.SyntaxNode)

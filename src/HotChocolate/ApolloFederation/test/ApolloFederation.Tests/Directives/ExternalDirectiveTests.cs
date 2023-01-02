@@ -24,9 +24,7 @@ public class ExternalDirectiveTests : FederationTypesTestBase
         Assert.IsType<ExternalDirectiveType>(directive);
         Assert.Equal(WellKnownTypeNames.External, directive!.Name);
         Assert.Empty(directive.Arguments);
-        Assert.Collection(
-            directive.Locations,
-            t => Assert.Equal(DirectiveLocation.FieldDefinition, t));
+        Assert.Equal(DirectiveLocation.FieldDefinition, directive.Locations);
     }
 
     [Fact]

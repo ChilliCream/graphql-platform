@@ -7,7 +7,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
+using CookieCrumble;
 
 namespace HotChocolate.Types;
 
@@ -69,7 +69,7 @@ public class DirectiveTypeTests : TypeTestBase
             t => t
                 .Name("Foo")
                 .Location(DirectiveLocation.Field)
-                .Use(_ => _ => default));
+                .Use((_, _) => _ => default));
 
         // act
         directiveType = CreateDirective(directiveType);
@@ -140,54 +140,6 @@ public class DirectiveTypeTests : TypeTestBase
     }
 
     [Fact]
-    public void ExecutableRepeatableDirectives()
-    {
-        // arrange
-        var directiveType = new DirectiveType(
-            t => t.Name("foo")
-                .Repeatable()
-                .Location(DirectiveLocation.Object)
-                .Location(DirectiveLocation.FieldDefinition)
-                .Use(_ => _ => default)
-                .Argument("a").Type<StringType>());
-
-
-        var objectType = new ObjectType(
-            t =>
-            {
-                t.Name("Bar");
-                t.Directive("foo", new ArgumentNode("a", "1"));
-                t.Field("foo").Resolve(() => "baz").Directive("foo", new ArgumentNode("a", "2"));
-            });
-
-        // act
-        var schema = SchemaBuilder.New()
-            .AddQueryType(objectType)
-            .AddDirectiveType(directiveType)
-            .Create();
-
-        // assert
-        IReadOnlyCollection<Directive> collection =
-            schema.GetType<ObjectType>("Bar")
-                .Fields["foo"].Directives
-                .Where(t => t.Type.Middleware is not null)
-                .ToList();
-
-        Assert.Collection(
-            collection,
-            t =>
-            {
-                Assert.Equal("foo", t.Type.Name);
-                Assert.Equal("1", t.GetArgumentValue<string>("a"));
-            },
-            t =>
-            {
-                Assert.Equal("foo", t.Type.Name);
-                Assert.Equal("2", t.GetArgumentValue<string>("a"));
-            });
-    }
-
-    [Fact]
     public void UniqueDirective()
     {
         // arrange
@@ -233,7 +185,7 @@ public class DirectiveTypeTests : TypeTestBase
             t => t.Name("foo")
                 .Location(DirectiveLocation.Object)
                 .Location(DirectiveLocation.FieldDefinition)
-                .Use(_ => _ => default)
+                .Use((_, _) => _ => default)
                 .Argument("a").Type<StringType>());
 
 
@@ -339,7 +291,7 @@ public class DirectiveTypeTests : TypeTestBase
                     d => d
                         .Name("foo")
                         .Location(DirectiveLocation.Object)
-                        .Use(_ => _ => default)))
+                        .Use((_, _) => _ => default)))
             .Create();
 
         // assert
@@ -441,7 +393,7 @@ public class DirectiveTypeTests : TypeTestBase
                     d => d
                         .Name("foo")
                         .Location(DirectiveLocation.Object)
-                        .Use(_ => _ => default)))
+                        .Use((_, _) => _ => default)))
             .Create();
 
         // assert
@@ -506,8 +458,8 @@ public class DirectiveTypeTests : TypeTestBase
     {
         // arrange
         // act
-        void Action() =>
-            SchemaBuilder.New()
+        static void Action()
+            => SchemaBuilder.New()
                 .AddQueryType(
                     c => c.Name("Query")
                         .Directive("foo")
@@ -562,7 +514,7 @@ public class DirectiveTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task AnnotationBased_Depreacted_NullableArguments_Valid()
+    public async Task AnnotationBased_Deprecated_NullableArguments_Valid()
     {
         // arrange
         // act
@@ -580,26 +532,27 @@ public class DirectiveTypeTests : TypeTestBase
             .BuildRequestExecutorAsync();
 
         // assert
-        executor.Schema.ToString().MatchSnapshot();
+        executor.Schema.MatchSnapshot();
     }
 
     [Fact]
-    public async Task AnnotationBased_DepreactedInputTypes_NonNullableField_Invalid()
+    public async Task AnnotationBased_DeprecatedInputTypes_NonNullableField_Invalid()
     {
         // arrange
         // act
-        Func<Task> call = async () => await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(
-                x => x
-                    .Name("Query")
-                    .Field("bar")
-                    .Resolve("asd")
-                    .Directive<DeprecatedNonNull>())
-            .AddDirectiveType(
-                new DirectiveType<DeprecatedNonNull>(
-                    x => x.Location(DirectiveLocation.FieldDefinition)))
-            .BuildRequestExecutorAsync();
+        static async Task call() =>
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(
+                    x => x
+                        .Name("Query")
+                        .Field("bar")
+                        .Resolve("asd")
+                        .Directive<DeprecatedNonNull>())
+                .AddDirectiveType(
+                    new DirectiveType<DeprecatedNonNull>(
+                        x => x.Location(DirectiveLocation.FieldDefinition)))
+                .BuildRequestExecutorAsync();
 
         // assert
         var exception = await Assert.ThrowsAsync<SchemaException>(call);
@@ -607,7 +560,7 @@ public class DirectiveTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task CodeFirst_Depreacted_NullableArguments_Valid()
+    public async Task CodeFirst_Deprecated_NullableArguments_Valid()
     {
         // arrange
         // act
@@ -630,31 +583,32 @@ public class DirectiveTypeTests : TypeTestBase
             .BuildRequestExecutorAsync();
 
         // assert
-        executor.Schema.ToString().MatchSnapshot();
+        executor.Schema.MatchSnapshot();
     }
 
     [Fact]
-    public async Task CodeFirst_DepreactedInputTypes_NonNullableField_Invalid()
+    public async Task CodeFirst_DeprecatedInputTypes_NonNullableField_Invalid()
     {
         // arrange
         // act
-        Func<Task> call = async () => await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(
-                x => x
-                    .Name("Query")
-                    .Field("bar")
-                    .Resolve("asd")
-                    .Directive("Qux"))
-            .AddDirectiveType(
-                new DirectiveType(
+        static async Task call()
+            => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(
                     x => x
-                        .Name("Qux")
-                        .Location(DirectiveLocation.FieldDefinition)
-                        .Argument("bar")
-                        .Type<NonNullType<IntType>>()
-                        .Deprecated("a")))
-            .BuildRequestExecutorAsync();
+                        .Name("Query")
+                        .Field("bar")
+                        .Resolve("asd")
+                        .Directive("Qux", new ArgumentNode("bar", 1)))
+                .AddDirectiveType(
+                    new DirectiveType(
+                        x => x
+                            .Name("Qux")
+                            .Location(DirectiveLocation.FieldDefinition)
+                            .Argument("bar")
+                            .Type<NonNullType<IntType>>()
+                            .Deprecated("a")))
+                .BuildRequestExecutorAsync();
 
         // assert
         var exception = await Assert.ThrowsAsync<SchemaException>(call);
@@ -662,7 +616,7 @@ public class DirectiveTypeTests : TypeTestBase
     }
 
     [Fact]
-    public async Task SchemaFirst_DepreactedDirective_NullableFields_Valid()
+    public async Task SchemaFirst_DeprecatedDirective_NullableFields_Valid()
     {
         // arrange
         // act
@@ -675,32 +629,135 @@ public class DirectiveTypeTests : TypeTestBase
                     .Resolve("asd")
                     .Directive("Qux"))
             .AddDocumentFromString(
-                @"
-                    directive @Qux(bar: String @deprecated(reason: ""reason"")) on FIELD_DEFINITION
-                ")
+                @"directive @Qux(bar: String @deprecated(reason: ""reason""))
+                    on FIELD_DEFINITION")
             .BuildSchemaAsync();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
-    public async Task SchemaFirst_DepreactedDirective_NonNullableField_Invalid()
+    public async Task SchemaFirst_DeprecatedDirective_NonNullableField_Invalid()
     {
         // arrange
         // act
-        Func<Task> call = async () => await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(x => x.Name("Query").Field("bar").Resolve("asd").Directive("Qux"))
-            .AddDocumentFromString(
-                @"
-                    directive @Qux(bar: String! @deprecated(reason: ""reason"")) on FIELD_DEFINITION
-                ")
-            .BuildSchemaAsync();
+        static async Task call()
+            => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x
+                    .Name("Query")
+                    .Field("bar")
+                    .Resolve("asd")
+                    .Directive("Qux", new ArgumentNode("bar", "abc")))
+                .AddDocumentFromString(
+                    @"directive @Qux(bar: String! @deprecated(reason: ""reason""))
+                        on FIELD_DEFINITION")
+                .BuildSchemaAsync();
 
         // assert
         var exception = await Assert.ThrowsAsync<SchemaException>(call);
         exception.Errors.Single().ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void Directive_ValidateArgs_InvalidArg()
+    {
+        // arrange
+        var sourceText = @"
+            type Query {
+                foo: String @a(d:1 e:true)
+            }
+
+            directive @a(c:Int d:Int! e:Int) on FIELD_DEFINITION";
+
+        // act
+        void Action() =>
+            SchemaBuilder.New()
+                .AddDocumentFromString(sourceText)
+                .AddResolver("Query", "foo", "bar")
+                .Create();
+
+        // assert
+        var errors = Assert.Throws<SchemaException>(Action).Errors;
+        Assert.Equal(1, errors.Count);
+        Assert.Equal(ErrorCodes.Schema.InvalidArgument, errors[0].Code);
+        errors[0].Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public void Directive_ValidateArgs_ArgMissing()
+    {
+        // arrange
+        var sourceText = @"
+            type Query {
+                foo: String @a
+            }
+
+            directive @a(c:Int d:Int! e:Int) on FIELD_DEFINITION";
+
+        // act
+        void Action() =>
+            SchemaBuilder.New()
+                .AddDocumentFromString(sourceText)
+                .AddResolver("Query", "foo", "bar")
+                .Create();
+
+        // assert
+        var errors = Assert.Throws<SchemaException>(Action).Errors;
+        Assert.Equal(1, errors.Count);
+        Assert.Equal(ErrorCodes.Schema.InvalidArgument, errors[0].Code);
+        errors[0].Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public void Directive_ValidateArgs_NonNullArgIsNull()
+    {
+        // arrange
+        var sourceText = @"
+            type Query {
+                foo: String @a(d: null)
+            }
+
+            directive @a(c:Int d:Int! e:Int) on FIELD_DEFINITION";
+
+        // act
+        void Action() =>
+            SchemaBuilder.New()
+                .AddDocumentFromString(sourceText)
+                .AddResolver("Query", "foo", "bar")
+                .Create();
+
+        // assert
+        var errors = Assert.Throws<SchemaException>(Action).Errors;
+        Assert.Equal(1, errors.Count);
+        Assert.Equal(ErrorCodes.Schema.InvalidArgument, errors[0].Code);
+        errors[0].Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public void Directive_ValidateArgs_Overflow()
+    {
+        // arrange
+        var sourceText = $@"
+            type Query {{
+                foo: String @a(d: {long.MaxValue})
+            }}
+
+            directive @a(c:Int d:Int! e:Int) on FIELD_DEFINITION";
+
+        // act
+        void Action() =>
+            SchemaBuilder.New()
+                .AddDocumentFromString(sourceText)
+                .AddResolver("Query", "foo", "bar")
+                .Create();
+
+        // assert
+        var errors = Assert.Throws<SchemaException>(Action).Errors;
+        Assert.Equal(1, errors.Count);
+        Assert.Equal(ErrorCodes.Schema.InvalidArgument, errors[0].Code);
+        errors[0].Message.MatchSnapshot();
     }
 
     public class DirectiveWithSyntaxTypeArg : DirectiveType
@@ -721,7 +778,7 @@ public class DirectiveTypeTests : TypeTestBase
             descriptor.Name("Custom");
             descriptor.Location(DirectiveLocation.Enum);
             descriptor.Location(DirectiveLocation.Field);
-            descriptor.Use(_ => _ => default);
+            descriptor.Use((_, _) => _ => default);
         }
     }
 
@@ -733,7 +790,7 @@ public class DirectiveTypeTests : TypeTestBase
             descriptor.Name("Custom");
             descriptor.Location(DirectiveLocation.Enum);
             descriptor.Location(DirectiveLocation.Field);
-            descriptor.Use(_ => _ => default);
+            descriptor.Use((_, _) => _ => default);
             descriptor.BindArgumentsImplicitly().BindArgumentsExplicitly();
         }
     }
@@ -747,7 +804,7 @@ public class DirectiveTypeTests : TypeTestBase
             _next = next;
         }
 
-        public Task InvokeAsync(IDirectiveContext context) =>
+        public Task InvokeAsync(IMiddlewareContext context) =>
             Task.CompletedTask;
     }
 

@@ -38,11 +38,11 @@ public sealed class AuthorizeDirective : ISerializable
         }
         else
         {
-            ArgumentNode? policyArgument = node.Arguments
+            var policyArgument = node.Arguments
                 .FirstOrDefault(t => t.Name.Value == "policy");
-            ArgumentNode? rolesArgument = node.Arguments
+            var rolesArgument = node.Arguments
                 .FirstOrDefault(t => t.Name.Value == "roles");
-            ArgumentNode? resolverArgument = node.Arguments
+            var resolverArgument = node.Arguments
                 .FirstOrDefault(t => t.Name.Value == "apply");
 
             Policy = (policyArgument is not null

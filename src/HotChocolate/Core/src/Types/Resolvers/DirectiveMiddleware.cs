@@ -1,3 +1,5 @@
+using HotChocolate.Types;
+
 namespace HotChocolate.Resolvers;
 
 /// <summary>
@@ -11,4 +13,4 @@ namespace HotChocolate.Resolvers;
 /// <returns>
 /// Returns the field middleware that is created by this factory.
 /// </returns>
-public delegate DirectiveDelegate DirectiveMiddleware(FieldDelegate next);
+public delegate FieldDelegate DirectiveMiddleware(FieldDelegate next, Directive directive);

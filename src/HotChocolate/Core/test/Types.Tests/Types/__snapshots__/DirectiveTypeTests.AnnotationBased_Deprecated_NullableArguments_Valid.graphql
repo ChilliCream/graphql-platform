@@ -1,9 +1,9 @@
-﻿schema {
+schema {
   query: Query
 }
 
 type Query {
-  bar: String @DeprecatedDirective
+  bar: String @DeprecatedDirective(obsoleteWithReason: null, obsolete: null, deprecated: null)
 }
 
 directive @DeprecatedDirective(obsoleteWithReason: Int @deprecated(reason: "reason") obsolete: Int @deprecated deprecated: Int @deprecated(reason: "reason")) on FIELD_DEFINITION

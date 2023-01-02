@@ -1839,12 +1839,6 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong {
-            get {
-                return ResourceManager.GetString("ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong", resourceCulture);
-            }
-        }
-        
         internal static string ErrorHelper_DirectiveCollection_ArgumentDoesNotExist {
             get {
                 return ResourceManager.GetString("ErrorHelper_DirectiveCollection_ArgumentDoesNotExist", resourceCulture);
@@ -1908,6 +1902,12 @@ namespace HotChocolate.Properties {
         internal static string Directive_GetArgumentValue_UnknownArgument {
             get {
                 return ResourceManager.GetString("Directive_GetArgumentValue_UnknownArgument", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong {
+            get {
+                return ResourceManager.GetString("ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong", resourceCulture);
             }
         }
     }
