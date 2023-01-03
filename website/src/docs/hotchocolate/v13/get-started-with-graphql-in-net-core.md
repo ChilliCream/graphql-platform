@@ -6,9 +6,7 @@ description: "In this tutorial, we will walk you through the basics of creating 
 import { ApiChoiceTabs } from "../../../components/mdx/api-choice-tabs"
 import { InputChoiceTabs } from "../../../components/mdx/input-choice-tabs"
 
-<iframe width="560" height="315"
-src="https://www.youtube.com/embed/qrh97hToWpM"frameborder="0"
-allowfullscreen></iframe>
+<Video videoId="qrh97hToWpM" />
 
 # Setup
 

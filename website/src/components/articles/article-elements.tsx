@@ -23,13 +23,6 @@ export const ArticleHeader = styled.header<ArticleHeaderProps>`
   }
 `;
 
-export const ArticleVideoContainer = styled.div`
-  position: relative;
-  overflow: hidden;
-  padding-top: 56.22%;
-  border-radius: var(--border-radius) var(--border-radius) 0 0;
-`;
-
 export interface ArticleVideoProps {
   readonly videoId: string;
 }
@@ -48,7 +41,24 @@ export const ArticleVideo = styled.iframe.attrs<ArticleVideoProps>(
   left: 0;
   width: 100%;
   height: 100%;
+`;
+
+export const ArticleHeaderVideoContainer = styled.div`
+  position: relative;
+  overflow: hidden;
+  padding-top: 56.22%;
   border-radius: var(--border-radius) var(--border-radius) 0 0;
+
+  > ${ArticleVideo} {
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+  }
+`;
+
+export const ArticleContentVideoContainer = styled.div`
+  position: relative;
+  overflow: hidden;
+  padding-top: 56.22%;
+  margin-bottom: 20px;
 `;
 
 export const ArticleTitle = styled.h1`

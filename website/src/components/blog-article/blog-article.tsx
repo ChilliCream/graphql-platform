@@ -9,9 +9,9 @@ import { ArticleComments } from "@/components/articles/article-comments";
 import {
   ArticleContent,
   ArticleHeader,
+  ArticleHeaderVideoContainer,
   ArticleTitle,
   ArticleVideo,
-  ArticleVideoContainer,
 } from "@/components/articles/article-elements";
 import { BlogArticleFragment } from "@/graphql-types";
 import { BlogArticleMetadata } from "./blog-article-metadata";
@@ -41,9 +41,9 @@ export const BlogArticle: FC<BlogArticleProps> = ({ data }) => {
         <Article>
           <ArticleHeader kind="blog">
             {featuredVideoId && (
-              <ArticleVideoContainer>
+              <ArticleHeaderVideoContainer>
                 <ArticleVideo videoId={featuredVideoId} />
-              </ArticleVideoContainer>
+              </ArticleHeaderVideoContainer>
             )}
             {featuredImage && !featuredVideoId && (
               <GatsbyImage image={featuredImage} alt={title} />

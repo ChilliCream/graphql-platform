@@ -10,9 +10,7 @@ As part of a specification Relay proposes some schema design principles for Grap
 
 [Learn more about the Relay GraphQL Server Specification](https://relay.dev/docs/guides/graphql-server-specification)
 
-<iframe width="560" height="315"
-src="https://www.youtube.com/embed/qWguoAMzn9E"frameborder="0"
-allowfullscreen></iframe>
+<Video videoId="qWguoAMzn9E" />
 
 # Global identifiers
 
