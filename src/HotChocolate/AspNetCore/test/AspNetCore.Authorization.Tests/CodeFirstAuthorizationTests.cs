@@ -1,4 +1,5 @@
 using CookieCrumble;
+using HotChocolate.Authorization;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;

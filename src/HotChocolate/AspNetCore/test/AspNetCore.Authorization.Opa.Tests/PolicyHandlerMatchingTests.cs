@@ -1,6 +1,7 @@
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using HotChocolate.Authorization;
 using HotChocolate.Resolvers;
 using Xunit;
 
@@ -10,8 +11,11 @@ public class PolicyHandlerMatchingTests
 {
     private class DummyHandler : IPolicyResultHandler
     {
-        public Task<AuthorizeResult> HandleAsync(string policyPath, HttpResponseMessage response,
-            IMiddlewareContext context) => Task.FromResult(AuthorizeResult.Allowed);
+        public Task<AuthorizeResult> HandleAsync(
+            string policyPath,
+            HttpResponseMessage response,
+            IMiddlewareContext context)
+            => Task.FromResult(AuthorizeResult.Allowed);
     }
 
     [Fact]
@@ -26,7 +30,7 @@ public class PolicyHandlerMatchingTests
         // assert
         Assert.Throws<InvalidOperationException>((Func<IPolicyResultHandler>)FindHandler);
     }
-    
+
     [Fact]
     public void MatchesExact()
     {
@@ -34,10 +38,10 @@ public class PolicyHandlerMatchingTests
         var options = new OpaOptions();
         var handler = new DummyHandler();
         options.PolicyResultHandlers.Add("my/policy", handler);
-        
+
         // act
         var foundHandler = options.GetResultHandlerFor("my/policy");
-        
+
         // assert
         Assert.Equal(handler, foundHandler);
     }
@@ -49,10 +53,10 @@ public class PolicyHandlerMatchingTests
         var options = new OpaOptions();
         var handler = new DummyHandler();
         options.PolicyResultHandlers.Add("graphql\\/.*", handler);
-        
+
         // act
         var foundHandler = options.GetResultHandlerFor("graphql/policy");
-        
+
         // assert
         Assert.Equal(handler, foundHandler);
     }
@@ -66,10 +70,10 @@ public class PolicyHandlerMatchingTests
         options.PolicyResultHandlers.Add("graphql\\/.*", regexHandler);
         var exactHandler = new DummyHandler();
         options.PolicyResultHandlers.Add("graphql/policy", exactHandler);
-        
+
         // act
         var foundHandler = options.GetResultHandlerFor("graphql/policy");
-        
+
         // assert
         Assert.Equal(exactHandler, foundHandler);
     }
@@ -84,7 +88,7 @@ public class PolicyHandlerMatchingTests
         options.PolicyResultHandlers.Add("graphql\\/.*", regexHandler);
         var exactHandler = new DummyHandler();
         options.PolicyResultHandlers.Add("graphql\\/p.*", exactHandler);
-        
+
         // act
         IPolicyResultHandler FindHandler() => options.GetResultHandlerFor("graphql/policy");
 

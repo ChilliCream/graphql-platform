@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(LibraryTargetFrameworks)</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Authorization</PackageId>
+    <AssemblyName>HotChocolate.Authorization</AssemblyName>
+    <RootNamespace>HotChocolate.Authorization</RootNamespace>
+    <Description>This package contains the authorization abstractions for Hot Chocolate.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+  </ItemGroup>
+
+</Project>

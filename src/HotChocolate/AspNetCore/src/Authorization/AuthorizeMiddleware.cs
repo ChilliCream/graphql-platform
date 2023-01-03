@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Authorization.Properties;
 using HotChocolate.Resolvers;
+using static HotChocolate.Authorization.Properties.AuthResources;
 
-namespace HotChocolate.AspNetCore.Authorization;
+namespace HotChocolate.Authorization;
 
 internal sealed class AuthorizeMiddleware
 {
@@ -63,7 +63,7 @@ internal sealed class AuthorizeMiddleware
         {
             AuthorizeResult.NoDefaultPolicy
                 => ErrorBuilder.New()
-                    .SetMessage(AuthResources.AuthorizeMiddleware_NoDefaultPolicy)
+                    .SetMessage(AuthorizeMiddleware_NoDefaultPolicy)
                     .SetCode(ErrorCodes.Authentication.NoDefaultPolicy)
                     .SetPath(context.Path)
                     .AddLocation(context.Selection.SyntaxNode)
@@ -71,7 +71,7 @@ internal sealed class AuthorizeMiddleware
             AuthorizeResult.PolicyNotFound
                 => ErrorBuilder.New()
                     .SetMessage(
-                        AuthResources.AuthorizeMiddleware_PolicyNotFound,
+                        AuthorizeMiddleware_PolicyNotFound,
                         _directive.Policy!)
                     .SetCode(ErrorCodes.Authentication.PolicyNotFound)
                     .SetPath(context.Path)
@@ -79,7 +79,7 @@ internal sealed class AuthorizeMiddleware
                     .Build(),
             _
                 => ErrorBuilder.New()
-                    .SetMessage(AuthResources.AuthorizeMiddleware_NotAuthorized)
+                    .SetMessage(AuthorizeMiddleware_NotAuthorized)
                     .SetCode(state == AuthorizeResult.NotAllowed
                         ? ErrorCodes.Authentication.NotAuthorized
                         : ErrorCodes.Authentication.NotAuthenticated)

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 
-namespace HotChocolate.AspNetCore.Authorization;
+namespace HotChocolate.Authorization;
 
 public sealed class AuthorizeDirective
 {

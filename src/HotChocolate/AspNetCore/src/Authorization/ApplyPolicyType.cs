@@ -1,6 +1,6 @@
 using HotChocolate.Types;
 
-namespace HotChocolate.AspNetCore.Authorization;
+namespace HotChocolate.Authorization;
 
 public sealed class ApplyPolicyType
     : EnumType<ApplyPolicy>

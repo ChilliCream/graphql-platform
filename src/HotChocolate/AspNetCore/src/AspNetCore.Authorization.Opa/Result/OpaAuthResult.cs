@@ -1,8 +1,10 @@
+using HotChocolate.Authorization;
+
 namespace HotChocolate.AspNetCore.Authorization;
 
-public class OpaAuthzResult<T> : IOpaAuthzResult<T>
+public class OpaAuthResult<T> : IOpaAuthzResult<T>
 {
-    public OpaAuthzResult(AuthorizeResult result, T? payload)
+    public OpaAuthResult(AuthorizeResult result, T? payload)
     {
         Result = result;
         Payload = payload;

@@ -1,3 +1,4 @@
+using HotChocolate.Authorization;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.AspNetCore.Authorization;

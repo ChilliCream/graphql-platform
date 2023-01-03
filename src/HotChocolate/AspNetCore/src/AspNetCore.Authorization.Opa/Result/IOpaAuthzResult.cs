@@ -1,3 +1,5 @@
+using HotChocolate.Authorization;
+
 namespace HotChocolate.AspNetCore.Authorization;
 
 public interface IOpaAuthzResult<out T> : IOpaAuthzResult

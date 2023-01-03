@@ -17,13 +17,19 @@ public sealed class OpaService : IOpaService
         _options = options.Value ?? throw new ArgumentNullException(nameof(options));
     }
 
-    public async Task<HttpResponseMessage?> QueryAsync(string policyPath, QueryRequest request, CancellationToken token)
+    public async Task<HttpResponseMessage?> QueryAsync(
+        string policyPath,
+        QueryRequest request,
+        CancellationToken token)
     {
         if (policyPath is null) throw new ArgumentNullException(nameof(policyPath));
         if (request is null) throw new ArgumentNullException(nameof(request));
 
-        HttpResponseMessage response = await _httpClient
-            .PostAsync(policyPath, request.ToJsonContent(_options.JsonSerializerOptions), token).ConfigureAwait(false);
+        var response = await _httpClient.PostAsync(
+            policyPath,
+            request.ToJsonContent(_options.JsonSerializerOptions),
+            token)
+            .ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
         return response;
     }

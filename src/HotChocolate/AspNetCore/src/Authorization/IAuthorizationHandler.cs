@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
-namespace HotChocolate.AspNetCore.Authorization;
+namespace HotChocolate.Authorization;
 
 /// <summary>
 /// Represents the authorization process.

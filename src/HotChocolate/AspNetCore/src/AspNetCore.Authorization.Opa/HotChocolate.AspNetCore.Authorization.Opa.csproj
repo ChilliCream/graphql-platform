@@ -21,6 +21,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
-    <ProjectReference Include="..\AspNetCore.Authorization\HotChocolate.AspNetCore.Authorization.csproj" />
+    <ProjectReference Include="..\Authorization\HotChocolate.Authorization.csproj" />
   </ItemGroup>
 </Project>

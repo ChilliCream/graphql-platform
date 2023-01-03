@@ -24,18 +24,17 @@ public class Claims
 public class AuthorizationTestData : IEnumerable<object[]>
 {
     private readonly string SchemaCode = $@"
-            type Query {{
-                default: String @authorize
-                age: String @authorize(policy: ""{Policies.HasDefinedAge}"")
-                roles: String @authorize(roles: [""a""])
-                roles_ab: String @authorize(roles: [""a"" ""b""])
-                piped: String
-                    @authorize(policy: ""a"")
-                    @authorize(policy: ""b"")
-                afterResolver: String
-                    @authorize(policy: ""a"" apply: AFTER_RESOLVER)
-            }}
-        ";
+        type Query {{
+            default: String @authorize
+            age: String @authorize(policy: ""{Policies.HasDefinedAge}"")
+            roles: String @authorize(roles: [""a""])
+            roles_ab: String @authorize(roles: [""a"" ""b""])
+            piped: String
+                @authorize(policy: ""a"")
+                @authorize(policy: ""b"")
+            afterResolver: String
+                @authorize(policy: ""a"" apply: AFTER_RESOLVER)
+        }}";
 
     private readonly FieldMiddleware _schemaMiddleware = next => context =>
     {
@@ -46,10 +45,9 @@ public class AuthorizationTestData : IEnumerable<object[]>
     private Action<IRequestExecutorBuilder> CreateSchema() =>
         sb => sb
             .AddDocumentFromString(SchemaCode)
-            .AddAuthorization()
-            .AddOpaAuthorizationHandler((c, o) =>
+            .AddOpaAuthorization((_, o) =>
             {
-                o.TimeoutMs = 60000;
+                o.Timeout = TimeSpan.FromMilliseconds(60000);
             })
             .AddOpaResultHandler<HasAgeDefinedResponse>(Policies.HasDefinedAge,
                x => x switch
@@ -62,11 +60,11 @@ public class AuthorizationTestData : IEnumerable<object[]>
     private Action<IRequestExecutorBuilder> CreateSchemaWithBuilder() =>
         sb => sb
             .AddDocumentFromString(SchemaCode)
-            .AddAuthorization()
-            .AddOpaAuthorizationHandler((c, o) =>
-            {
-                o.TimeoutMs = 60000;
-            })
+            .AddOpaAuthorization(
+                (_, o) =>
+                {
+                    o.Timeout = TimeSpan.FromMilliseconds(60000);
+                })
             .AddOpaResultHandler<HasAgeDefinedResponse>(Policies.HasDefinedAge,
                 x => x switch
                 {

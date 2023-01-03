@@ -1,5 +1,5 @@
 using System;
-using HotChocolate.AspNetCore.Authorization;
+using HotChocolate.Authorization;
 
 namespace HotChocolate.Types;
 

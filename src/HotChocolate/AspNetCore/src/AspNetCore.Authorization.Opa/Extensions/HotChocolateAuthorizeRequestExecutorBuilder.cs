@@ -5,7 +5,6 @@ using Microsoft.Extensions.Configuration;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using HotChocolate.Resolvers;
 using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -27,16 +26,17 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> for chaining in more configurations.
     /// </returns>
-    public static IRequestExecutorBuilder AddOpaAuthorizationHandler(
-        this IRequestExecutorBuilder builder, Action<IConfiguration, OpaOptions>? configure = null)
+    public static IRequestExecutorBuilder AddOpaAuthorization(
+        this IRequestExecutorBuilder builder,
+        Action<IConfiguration, OpaOptions>? configure = null)
     {
         builder.AddAuthorizationHandler<OpaAuthorizationHandler>();
         builder.Services.AddSingleton<IOpaQueryRequestFactory, DefaultQueryRequestFactory>();
         builder.Services.AddHttpClient<IOpaService, OpaService>((f, c) =>
         {
-            IOptions<OpaOptions>? options = f.GetRequiredService<IOptions<OpaOptions>>();
+            var options = f.GetRequiredService<IOptions<OpaOptions>>();
             c.BaseAddress = options.Value.BaseAddress;
-            c.Timeout = TimeSpan.FromMilliseconds(options.Value.TimeoutMs);
+            c.Timeout = options.Value.Timeout;
         });
 
         builder.Services.AddOptions<OpaOptions>().Configure<IServiceProvider>((o, f) =>
@@ -46,7 +46,10 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
             };
-            jsonOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, false));
+            jsonOptions.Converters.Add(
+                new JsonStringEnumConverter(
+                    JsonNamingPolicy.CamelCase,
+                    false));
             o.JsonSerializerOptions = jsonOptions;
             configure?.Invoke(f.GetRequiredService<IConfiguration>(), o);
         });
@@ -54,7 +57,8 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
         return builder;
     }
 
-    public static IRequestExecutorBuilder AddOpaResultHandler<T>(this IRequestExecutorBuilder builder,
+    public static IRequestExecutorBuilder AddOpaResultHandler<T>(
+        this IRequestExecutorBuilder builder,
         string policyPath, Func<IServiceProvider, T?>? factory = null)
         where T : class, IPolicyResultHandler
     {
@@ -67,43 +71,49 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
             builder.Services.AddSingleton<T>();
         }
 
-        builder.Services.AddOptions<OpaOptions>()
-            .Configure<IServiceProvider>((o, f) =>
-            {
-                o.PolicyResultHandlers.Add(policyPath, f.GetRequiredService<T>());
-            });
+        builder.Services
+            .AddOptions<OpaOptions>()
+            .Configure<IServiceProvider>(
+                (o, f) => o.PolicyResultHandlers.Add(policyPath, f.GetRequiredService<T>()));
         return builder;
     }
 
-    public static IRequestExecutorBuilder AddOpaResultHandler<T>(this IRequestExecutorBuilder builder,
-        string policyPath, Func<PolicyResultContext<T>, Task<IOpaAuthzResult<T>>> makeDecisionFunc,
+    public static IRequestExecutorBuilder AddOpaResultHandler<T>(
+        this IRequestExecutorBuilder builder,
+        string policyPath,
+        Func<PolicyResultContext<T>, Task<IOpaAuthzResult<T>>> makeDecisionFunc,
         OnAfterResult<T>? onAllowed = null,
         OnAfterResult<T>? onNotAllowed = null,
         OnAfterResult<T>? onNotAuthenticated = null,
         OnAfterResult<T>? onPolicyNotFound = null,
         OnAfterResult<T>? onNoDefaultPolicy = null)
-    {
-        return builder.AddOpaResultHandler(policyPath,
-            f => new DelegatePolicyResultHandler<T>(makeDecisionFunc, f.GetRequiredService<IOptions<OpaOptions>>())
-            {
-                OnAllowedFunc = onAllowed,
-                OnNotAllowedFunc = onNotAllowed,
-                OnNotAuthenticatedFunc = onNotAuthenticated,
-                OnPolicyNotFoundFunc = onPolicyNotFound,
-                OnNoDefaultPolicyFunc = onNoDefaultPolicy
-            });
-    }
+        => builder.AddOpaResultHandler(policyPath,
+            f => new DelegatePolicyResultHandler<T>(
+                makeDecisionFunc,
+                f.GetRequiredService<IOptions<OpaOptions>>())
+                {
+                    OnAllowedFunc = onAllowed,
+                    OnNotAllowedFunc = onNotAllowed,
+                    OnNotAuthenticatedFunc = onNotAuthenticated,
+                    OnPolicyNotFoundFunc = onPolicyNotFound,
+                    OnNoDefaultPolicyFunc = onNoDefaultPolicy
+                });
 
-    public static IRequestExecutorBuilder AddOpaResultHandler<T>(this IRequestExecutorBuilder builder,
-        string policyPath, Func<PolicyResultContext<T>, IOpaAuthzResult<T>> makeDecisionFunc,
+    public static IRequestExecutorBuilder AddOpaResultHandler<T>(
+        this IRequestExecutorBuilder builder,
+        string policyPath,
+        Func<PolicyResultContext<T>, IOpaAuthzResult<T>> makeDecisionFunc,
         OnAfterResult<T>? onAllowed = null,
         OnAfterResult<T>? onNotAllowed = null,
         OnAfterResult<T>? onNotAuthenticated = null,
         OnAfterResult<T>? onPolicyNotFound = null,
-        OnAfterResult<T>? onNoDefaultPolicy = null
-    )
-    {
-        return builder.AddOpaResultHandler(policyPath, ctx => Task.FromResult(makeDecisionFunc(ctx)),
-            onAllowed, onNotAllowed, onNotAuthenticated, onPolicyNotFound, onNoDefaultPolicy);
-    }
+        OnAfterResult<T>? onNoDefaultPolicy = null)
+        => builder.AddOpaResultHandler(
+            policyPath,
+            ctx => Task.FromResult(makeDecisionFunc(ctx)),
+            onAllowed,
+            onNotAllowed,
+            onNotAuthenticated,
+            onPolicyNotFound,
+            onNoDefaultPolicy);
 }

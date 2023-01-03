@@ -3,7 +3,7 @@ using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.AspNetCore.Authorization;
+namespace HotChocolate.Authorization;
 
 [AttributeUsage(
     AttributeTargets.Class

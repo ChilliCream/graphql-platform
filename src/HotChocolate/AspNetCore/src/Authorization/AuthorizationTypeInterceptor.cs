@@ -9,9 +9,9 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.AspNetCore.Authorization.AuthorizeDirectiveType.Names;
+using static HotChocolate.Authorization.AuthorizeDirectiveType.Names;
 
-namespace HotChocolate.AspNetCore.Authorization;
+namespace HotChocolate.Authorization;
 
 internal sealed class AuthorizationTypeInterceptor : TypeInterceptor
 {

@@ -1,4 +1,4 @@
-namespace HotChocolate.AspNetCore.Authorization;
+namespace HotChocolate.Authorization;
 
 public enum ApplyPolicy
 {

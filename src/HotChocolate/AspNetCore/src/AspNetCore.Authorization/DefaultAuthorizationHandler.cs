@@ -5,9 +5,11 @@ using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading.Tasks;
+using HotChocolate.Authorization;
 using HotChocolate.Resolvers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
+using IAuthorizationHandler = HotChocolate.Authorization.IAuthorizationHandler;
 
 namespace HotChocolate.AspNetCore.Authorization;
 

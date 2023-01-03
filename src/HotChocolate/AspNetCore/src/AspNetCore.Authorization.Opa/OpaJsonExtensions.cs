@@ -10,7 +10,9 @@ namespace HotChocolate.AspNetCore.Authorization;
 
 internal static class OpaJsonExtensions
 {
-    internal static HttpContent ToJsonContent(this QueryRequest request, JsonSerializerOptions options)
+    internal static HttpContent ToJsonContent(
+        this QueryRequest request,
+        JsonSerializerOptions options)
     {
 #if NET6_0
         return JsonContent.Create(request, options: options);
@@ -20,14 +22,17 @@ internal static class OpaJsonExtensions
 #endif
     }
 
-    internal static async Task<T?> FromJsonAsync<T>(this HttpContent content, JsonSerializerOptions options,
+    internal static async Task<T?> FromJsonAsync<T>(
+        this HttpContent content,
+        JsonSerializerOptions options,
         CancellationToken token)
     {
 #if NET6_0
         return await content.ReadFromJsonAsync<T>(options, token).ConfigureAwait(false);
 #else
         return await JsonSerializer
-            .DeserializeAsync<T>(await content.ReadAsStreamAsync().ConfigureAwait(false), options, token)
+            .DeserializeAsync<T>(
+                await content.ReadAsStreamAsync().ConfigureAwait(false), options, token)
             .ConfigureAwait(false);
 #endif
     }

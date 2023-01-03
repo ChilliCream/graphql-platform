@@ -1,4 +1,5 @@
 using CookieCrumble;
+using HotChocolate.Authorization;
 using HotChocolate.Types;
 
 namespace HotChocolate.AspNetCore.Authorization;
@@ -16,7 +17,7 @@ public class AuthorizeDirectiveTests
 
         // assert
         Assert.Null(authorizeDirective.Policy);
-        Assert.Collection(authorizeDirective.Roles,
+        Assert.Collection(authorizeDirective.Roles!,
             t => Assert.Equal("a", t),
             t => Assert.Equal("b", t));
     }
