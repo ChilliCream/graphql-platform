@@ -24,6 +24,7 @@ public abstract class SearchOperationRewriter<T>
             MatchOperation o => Rewrite(o),
             RangeOperation o => Rewrite(o),
             TermOperation o => Rewrite(o),
+            WildcardOperation o => Rewrite(o),
             ExistsOperation o => Rewrite(o),
             _ => throw new ArgumentOutOfRangeException(nameof(operation), operation, null)
         };
@@ -56,6 +57,13 @@ public abstract class SearchOperationRewriter<T>
     /// <param name="operation">The operation to rewrite</param>
     /// <returns>The rewritten operation</returns>
     protected abstract T Rewrite(TermOperation operation);
+
+    /// <summary>
+    /// Rewrites <see cref="WildcardOperation"/> to <typeparamref name="T"/>
+    /// </summary>
+    /// <param name="operation">The operation to rewrite</param>
+    /// <returns>The rewritten operation</returns>
+    protected abstract T Rewrite(WildcardOperation operation);
 
     /// <summary>
     /// Rewrites <see cref="ExistsOperation"/> to <typeparamref name="T"/>
