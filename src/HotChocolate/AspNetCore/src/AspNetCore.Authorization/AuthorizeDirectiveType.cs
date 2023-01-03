@@ -7,7 +7,7 @@ public sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
     protected override void Configure(IDirectiveTypeDescriptor<AuthorizeDirective> descriptor)
     {
         descriptor
-            .Name("authorize")
+            .Name(Names.Authorize)
             .Location(DirectiveLocation.Schema)
             .Location(DirectiveLocation.Object)
             .Location(DirectiveLocation.FieldDefinition)
@@ -36,5 +36,10 @@ public sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
             .DefaultValue(ApplyPolicy.BeforeResolver);
 
         descriptor.Use<AuthorizeMiddleware>();
+    }
+
+    public static class Names
+    {
+        public const string Authorize = "authorize";
     }
 }

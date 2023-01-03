@@ -230,6 +230,7 @@ internal sealed class TypeInitializer
             _isOfType);
 
         registeredType.Type.CompleteName(registeredType);
+        registeredType.Status = TypeStatus.Named;
 
         if (registeredType.IsNamedType || registeredType.IsDirectiveType)
         {
@@ -383,23 +384,29 @@ internal sealed class TypeInitializer
 
     private void CompleteTypes()
     {
-        static bool CompleteType(RegisteredType registeredType)
-        {
-            if (!registeredType.IsExtension)
-            {
-                registeredType.Status = TypeStatus.Named;
-                registeredType.Type.CompleteType(registeredType);
-            }
-            return true;
-        }
-
         _interceptor.OnBeforeCompleteTypes();
 
-        ProcessTypes(Completed, CompleteType);
+        ProcessTypes(Completed, type => CompleteType(type));
         EnsureNoErrors();
 
         _interceptor.OnTypesCompleted();
         _interceptor.OnAfterCompleteTypes();
+    }
+
+    internal bool CompleteType(RegisteredType registeredType)
+    {
+        if (registeredType.Status is TypeStatus.Completed)
+        {
+            return true;
+        }
+
+        if (!registeredType.IsExtension)
+        {
+            registeredType.Type.CompleteType(registeredType);
+            registeredType.Status = TypeStatus.Completed;
+        }
+
+        return true;
     }
 
     private void FinalizeTypes()

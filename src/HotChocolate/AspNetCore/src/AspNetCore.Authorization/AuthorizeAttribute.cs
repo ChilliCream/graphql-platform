@@ -20,7 +20,7 @@ public class AuthorizeAttribute : DescriptorAttribute
 
     public ApplyPolicy Apply { get; set; } = ApplyPolicy.BeforeResolver;
 
-    protected override void TryConfigure(
+    protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
         ICustomAttributeProvider element)
