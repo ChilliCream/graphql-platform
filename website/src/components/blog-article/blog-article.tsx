@@ -10,6 +10,8 @@ import {
   ArticleContent,
   ArticleHeader,
   ArticleTitle,
+  ArticleVideo,
+  ArticleVideoContainer,
 } from "@/components/articles/article-elements";
 import { BlogArticleFragment } from "@/graphql-types";
 import { BlogArticleMetadata } from "./blog-article-metadata";
@@ -30,6 +32,7 @@ export const BlogArticle: FC<BlogArticleProps> = ({ data }) => {
     : [];
   const featuredImage =
     frontmatter!.featuredImage?.childImageSharp?.gatsbyImageData;
+  const featuredVideoId = frontmatter!.featuredVideoId;
 
   return (
     <Container>
@@ -37,7 +40,14 @@ export const BlogArticle: FC<BlogArticleProps> = ({ data }) => {
       <ArticleWrapper>
         <Article>
           <ArticleHeader kind="blog">
-            {featuredImage && <GatsbyImage image={featuredImage} alt={title} />}
+            {featuredVideoId && (
+              <ArticleVideoContainer>
+                <ArticleVideo videoId={featuredVideoId} />
+              </ArticleVideoContainer>
+            )}
+            {featuredImage && !featuredVideoId && (
+              <GatsbyImage image={featuredImage} alt={title} />
+            )}
             <ArticleTitle>{title}</ArticleTitle>
             <BlogArticleMetadata data={mdx!} />
             <BlogArticleTags tags={existingTags} />
@@ -62,8 +72,10 @@ export const BlogArticleGraphQLFragment = graphql`
             gatsbyImageData(layout: CONSTRAINED, width: 800, quality: 100)
           }
         }
+        featuredVideoId
         path
         title
+        description
         ...BlogArticleTags
       }
       body

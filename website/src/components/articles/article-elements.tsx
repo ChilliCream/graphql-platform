@@ -23,6 +23,34 @@ export const ArticleHeader = styled.header<ArticleHeaderProps>`
   }
 `;
 
+export const ArticleVideoContainer = styled.div`
+  position: relative;
+  overflow: hidden;
+  padding-top: 56.22%;
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
+`;
+
+export interface ArticleVideoProps {
+  readonly videoId: string;
+}
+
+export const ArticleVideo = styled.iframe.attrs<ArticleVideoProps>(
+  ({ videoId }) => ({
+    src: `https://www.youtube.com/embed/${videoId}`,
+    frameBorder: 0,
+    allowFullScreen: true,
+  })
+)<ArticleVideoProps>`
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
+`;
+
 export const ArticleTitle = styled.h1`
   margin: 20px 20px 10px;
   font-size: 2em;
