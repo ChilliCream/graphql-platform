@@ -333,6 +333,7 @@ export interface NavigationProps {
 
 export const Navigation = styled.nav<NavigationProps>`
   ${DocPageStickySideBarStyle}
+
   padding: 25px 0 0;
   transition: margin-left 250ms;
   background-color: white;
@@ -345,11 +346,12 @@ export const Navigation = styled.nav<NavigationProps>`
 
   ${({ height }) =>
     IsTablet(`
-      margin-left: -350px;
+      margin-left: -100%;
       height: ${height};
       position: fixed;
       top: 60px;
       left: 0;
+
       ${BoxShadow}
   `)}
 `;

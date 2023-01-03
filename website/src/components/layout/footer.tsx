@@ -141,7 +141,7 @@ const Container = styled.footer`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 40px 0 60px;
+  padding: 40px 0;
   width: 100%;
   background-color: #252d3c;
   color: ${THEME_COLORS.footerText};

@@ -10,7 +10,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import styled, { createGlobalStyle } from "styled-components";
+import styled from "styled-components";
 
 import { IconContainer } from "@/components/misc/icon-container";
 import { Link } from "@/components/misc/link";
@@ -144,7 +144,6 @@ export const Header: FC = () => {
 
   return (
     <Container ref={containerRef}>
-      <BodyStyle disableScrolling={topNavOpen} />
       <ContainerWrapper>
         <LogoLink to="/">
           <LogoIcon {...LogoIconSvg} />
@@ -200,17 +199,6 @@ const Container = styled.header`
 
   &.shadow {
     box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
-  }
-`;
-
-const BodyStyle = createGlobalStyle<{ disableScrolling: boolean }>`
-  body {
-    overflow-y: ${({ disableScrolling }) =>
-      disableScrolling ? "hidden" : "initial"};
-
-    @media only screen and (min-width: 992px) {
-      overflow-y: initial;
-    }
   }
 `;
 
