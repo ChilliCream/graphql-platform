@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
@@ -21,4 +22,7 @@ public interface IAuthorizationHandler
     ValueTask<AuthorizeResult> AuthorizeAsync(
         IMiddlewareContext context,
         AuthorizeDirective directive);
+
+    ValueTask<AuthorizeResult> AuthorizeAsync(
+        IReadOnlyList<AuthorizeDirective> directive);
 }

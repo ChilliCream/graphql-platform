@@ -10,8 +10,8 @@ namespace HotChocolate.Validation;
 public interface IDocumentValidator
 {
     /// <summary>
-    /// Specifies that the validator needs to be invoked for 
-    /// every request and that the validation result cannot be 
+    /// Specifies that the validator needs to be invoked for
+    /// every request and that the validation result cannot be
     /// fully cached.
     /// </summary>
     bool HasDynamicRules { get; }
@@ -25,21 +25,8 @@ public interface IDocumentValidator
     /// <param name="document">
     /// The document to validate.
     /// </param>
-    /// <returns>
-    /// The result of the document validation.
-    /// </returns>
-    DocumentValidatorResult Validate(
-        ISchema schema,
-        DocumentNode document);
-
-    /// <summary>
-    /// Validates the current document against the current schema context.
-    /// </summary>
-    /// <param name="schema">
-    /// The schema.
-    /// </param>
-    /// <param name="document">
-    /// The document to validate.
+    /// <param name="documentId">
+    /// A unique string identifying this document.
     /// </param>
     /// <param name="contextData">
     /// Arbitrary execution context data that can be used during the document validation.
@@ -53,6 +40,7 @@ public interface IDocumentValidator
     DocumentValidatorResult Validate(
         ISchema schema,
         DocumentNode document,
+        string documentId,
         IDictionary<string, object?> contextData,
         bool onlyNonCacheable = false);
 }

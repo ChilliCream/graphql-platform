@@ -55,13 +55,8 @@ public sealed class DocumentValidator : IDocumentValidator
     /// <inheritdoc />
     public DocumentValidatorResult Validate(
         ISchema schema,
-        DocumentNode document) =>
-        Validate(schema, document, new Dictionary<string, object?>());
-
-    /// <inheritdoc />
-    public DocumentValidatorResult Validate(
-        ISchema schema,
         DocumentNode document,
+        string documentId,
         IDictionary<string, object?> contextData,
         bool onlyNonCacheable = false)
     {
@@ -75,6 +70,11 @@ public sealed class DocumentValidator : IDocumentValidator
             throw new ArgumentNullException(nameof(document));
         }
 
+        if (documentId is null)
+        {
+            throw new ArgumentNullException(nameof(documentId));
+        }
+
         if (onlyNonCacheable && _nonCacheableRules.Length == 0)
         {
             return DocumentValidatorResult.Ok;
@@ -85,7 +85,7 @@ public sealed class DocumentValidator : IDocumentValidator
 
         try
         {
-            PrepareContext(schema, document, context, contextData);
+            PrepareContext(schema, document, documentId, context, contextData);
 
             foreach (var rule in rules)
             {
@@ -110,10 +110,12 @@ public sealed class DocumentValidator : IDocumentValidator
     private void PrepareContext(
         ISchema schema,
         DocumentNode document,
+        string documentId,
         DocumentValidatorContext context,
         IDictionary<string, object?> contextData)
     {
         context.Schema = schema;
+        context.DocumentId = documentId;
 
         for (var i = 0; i < document.Definitions.Count; i++)
         {

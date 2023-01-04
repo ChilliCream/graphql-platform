@@ -34,6 +34,8 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
         }
     }
 
+    public string DocumentId { get; set; } = default!;
+
     public OperationType? OperationType { get; set; }
 
     public IOutputType NonNullString
@@ -138,6 +140,7 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
         _nonNullString = null;
         VariableValues = null;
         ContextData = default!;
+        DocumentId = default!;
         Path.Clear();
         SelectionSets.Clear();
         FieldSets.Clear();

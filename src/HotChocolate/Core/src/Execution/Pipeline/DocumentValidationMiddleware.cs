@@ -29,7 +29,7 @@ internal sealed class DocumentValidationMiddleware
 
     public async ValueTask InvokeAsync(IRequestContext context)
     {
-        if (context.Document is null)
+        if (context.Document is null || context.DocumentId is null)
         {
             context.Result = StateInvalidForDocumentValidation();
         }
@@ -42,6 +42,7 @@ internal sealed class DocumentValidationMiddleware
                     context.ValidationResult = _documentValidator.Validate(
                         context.Schema,
                         context.Document,
+                        context.DocumentId,
                         context.ContextData,
                         context.ValidationResult is not null);
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -11,6 +12,7 @@ using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Authorization.AuthorizeDirectiveType.Names;
+using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Authorization;
 
@@ -166,12 +168,16 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                     }
                     else if (fieldDef.Name.EqualsOrdinal(IntrospectionFields.TypeName))
                     {
-                        if (!state.Options.SkipTypeNameField)
+                        if (!options.SkipTypeNameField)
                         {
                             ApplyAuthMiddleware(fieldDef, typeReg, schemaServices);
                         }
 
-                        if(state.)
+                        if (options.ConfigureTypeNameField is not null)
+                        {
+                            // ObjectFieldDescriptor.From(_context, fieldDef)
+                            // options.ConfigureTypeNameField?.Invoke();
+                        }
                     }
                     else if (fieldDef.Name.EqualsOrdinal(IntrospectionFields.Type))
                     {
@@ -181,8 +187,8 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                     {
 
                     }
-                    else if (contextData.ContainsKey(WellKnownContextData.IsNodeField) ||
-                        contextData.ContainsKey(WellKnownContextData.IsNodeField))
+                    else if (contextData.ContainsKey(IsNodeField) ||
+                        contextData.ContainsKey(IsNodeField))
                     {
 
                     }
@@ -508,23 +514,4 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         public override int GetHashCode()
             => TypeDef.GetHashCode();
     }
-}
-
-public class AuthorizationOptions
-{
-    public Func<AuthorizeDirective, bool> SkipNodeFields { get; set; } = _ => false;
-
-    public bool SkipTypeNameField { get; set; } = true;
-
-    public bool SkipSchemaField { get; set; }
-
-    public bool SkipTypeField { get; set; }
-
-    public Action<IObjectFieldDescriptor>? ConfigureNodeFields { get; set; }
-
-    public Action<IObjectFieldDescriptor>? ConfigureTypeNameField { get; set; }
-
-    public Action<IObjectFieldDescriptor>? ConfigureTypeField { get; set; }
-
-    public Action<IObjectFieldDescriptor>? ConfigureSchemaField { get; set; }
 }

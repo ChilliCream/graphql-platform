@@ -13,5 +13,10 @@ public enum ApplyPolicy
     /// <summary>
     /// After the resolver was executed.
     /// </summary>
-    AfterResolver = 1
+    AfterResolver = 1,
+
+    /// <summary>
+    /// The policy is applied in the validation step before the execution.
+    /// </summary>
+    Validation = 2,
 }

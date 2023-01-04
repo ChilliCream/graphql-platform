@@ -236,4 +236,9 @@ public static class WellKnownContextData
     /// The key to retrieve the authorization options from the context.
     /// </summary>
     public const string AuthorizationOptions =  "HotChocolate.Authorization.Options";
+
+    /// <summary>
+    /// The key to check if this schema contains request policies.
+    /// </summary>
+    public const string AuthorizationRequestPolicy =  "HotChocolate.Authorization.RequestPolicy";
 }
