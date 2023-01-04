@@ -1,6 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using HotChocolate.Authorization;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;

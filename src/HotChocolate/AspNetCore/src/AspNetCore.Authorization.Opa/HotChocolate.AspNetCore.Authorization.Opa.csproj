@@ -20,7 +20,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
-    <ProjectReference Include="..\Authorization\HotChocolate.Authorization.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
   </ItemGroup>
 </Project>

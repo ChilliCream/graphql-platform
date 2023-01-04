@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
-using static HotChocolate.Authorization.Properties.AuthResources;
+using static HotChocolate.Authorization.Properties.AuthCoreResources;
 
 namespace HotChocolate.Authorization;
 
@@ -53,7 +53,7 @@ internal sealed class AuthorizeMiddleware
         }
     }
 
-    private bool IsErrorResult(IMiddlewareContext context)
+    private static bool IsErrorResult(IMiddlewareContext context)
         => context.Result is IError or IEnumerable<IError>;
 
     private void SetError(

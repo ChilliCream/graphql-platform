@@ -2,8 +2,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Authorization;
 
-public sealed class ApplyPolicyType
-    : EnumType<ApplyPolicy>
+public sealed class ApplyPolicyType : EnumType<ApplyPolicy>
 {
     protected override void Configure(
         IEnumTypeDescriptor<ApplyPolicy> descriptor)

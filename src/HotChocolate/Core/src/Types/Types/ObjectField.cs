@@ -147,7 +147,7 @@ public sealed class ObjectField
 
                 if (directive.Type.Middleware is { } m)
                 {
-                    (middlewareDefinitions ?? fieldMiddlewareDefinitions.ToList()).Insert(
+                    (middlewareDefinitions ??= fieldMiddlewareDefinitions.ToList()).Insert(
                         0,
                         new FieldMiddlewareDefinition(next => m(next, directive)));
                 }

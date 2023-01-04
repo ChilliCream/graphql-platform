@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
 
 namespace HotChocolate.Authorization;
 
@@ -32,13 +30,15 @@ public sealed class AuthorizeDirective
     public IReadOnlyList<string>? Roles { get; }
 
     /// <summary>
+    /// <para>
     /// Gets a value indicating if the resolver has to be executed
     /// before the policy is run or after the policy is run.
-    ///
+    /// </para>
+    /// <para>
     /// The before policy option is good if the actual object is needed
     /// for the policy to be evaluated.
-    ///
-    /// The default is BeforeResolver.
+    /// </para>
+    /// <para>The default is BeforeResolver.</para>
     /// </summary>
     public ApplyPolicy Apply { get; }
 }

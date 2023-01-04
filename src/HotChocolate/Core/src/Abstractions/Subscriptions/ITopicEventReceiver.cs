@@ -32,7 +32,30 @@ public interface ITopicEventReceiver
     /// </returns>
     ValueTask<ISourceStream<TMessage>> SubscribeAsync<TMessage>(
         string topicName,
-        int? bufferCapacity = null,
-        TopicBufferFullMode? bufferFullMode = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Subscribes to the specified event <paramref name="topicName" />.
+    /// </summary>
+    /// <param name="topicName">
+    /// The topic name to which the event message belongs to.
+    /// </param>
+    /// <param name="bufferCapacity">
+    ///
+    /// </param>
+    /// <param name="bufferFullMode">
+    ///
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>
+    /// Returns a <see cref="ISourceStream{TMessage}" />
+    /// for the given event <paramref name="topicName" />.
+    /// </returns>
+    ValueTask<ISourceStream<TMessage>> SubscribeAsync<TMessage>(
+        string topicName,
+        int? bufferCapacity,
+        TopicBufferFullMode? bufferFullMode,
         CancellationToken cancellationToken = default);
 }

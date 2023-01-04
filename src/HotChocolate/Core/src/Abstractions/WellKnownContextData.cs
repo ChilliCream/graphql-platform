@@ -231,4 +231,9 @@ public static class WellKnownContextData
     /// the query field.
     /// </summary>
     public const string MutationQueryField =  "HotChocolate.Relay.Mutations.QueryField";
+
+    /// <summary>
+    /// The key to retrieve the authorization options from the context.
+    /// </summary>
+    public const string AuthorizationOptions =  "HotChocolate.Authorization.Options";
 }

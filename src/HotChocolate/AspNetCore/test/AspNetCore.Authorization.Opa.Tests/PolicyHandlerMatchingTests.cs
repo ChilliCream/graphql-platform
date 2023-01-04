@@ -1,9 +1,5 @@
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
 using HotChocolate.Authorization;
 using HotChocolate.Resolvers;
-using Xunit;
 
 namespace HotChocolate.AspNetCore.Authorization;
 
