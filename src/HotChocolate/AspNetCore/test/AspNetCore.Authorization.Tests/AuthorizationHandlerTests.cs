@@ -43,7 +43,16 @@ public class AuthorizationHandlerTests
     {
         public ValueTask<AuthorizeResult> AuthorizeAsync(
             IMiddlewareContext context,
-            AuthorizeDirective directive)
+            AuthorizeDirective directive,
+            CancellationToken cancellationToken = default)
+        {
+            return new((AuthorizeResult)context.ContextData["auth"]!);
+        }
+
+        public ValueTask<AuthorizeResult> AuthorizeAsync(
+            AuthorizationContext context,
+            IReadOnlyList<AuthorizeDirective> directives,
+            CancellationToken cancellationToken = default)
         {
             return new((AuthorizeResult)context.ContextData["auth"]!);
         }

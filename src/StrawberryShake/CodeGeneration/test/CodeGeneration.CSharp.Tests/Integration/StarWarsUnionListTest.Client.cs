@@ -161,7 +161,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 if (Search != null)
                 {
                     foreach (var Search_elm in Search)
@@ -230,7 +230,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 return hash;
             }
         }
@@ -294,7 +294,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 if (Friends != null)
                 {
@@ -361,7 +361,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 return hash;
             }
@@ -429,7 +429,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 if (Nodes != null)
                 {
                     foreach (var Nodes_elm in Nodes)
@@ -501,7 +501,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 return hash;
             }
@@ -563,7 +563,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 return hash;
             }
@@ -932,7 +932,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
             }
 
             var searchResults = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.ISearchHero_Search?>();
-            foreach (global::StrawberryShake.EntityId? child in list)
+            foreach (var child in list)
             {
                 searchResults.Add(MapISearchHero_Search(child, snapshot));
             }
@@ -1032,7 +1032,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
             }
 
             var searchResults = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
-            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
+            foreach (var child in obj.Value.EnumerateArray())
             {
                 searchResults.Add(Update_ISearchHero_SearchEntity(session, child, entityIds));
             }
@@ -1047,7 +1047,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
                 return null;
             }
 
-            global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
+            var entityId = _idSerializer.Parse(obj.Value);
             entityIds.Add(entityId);
             if (entityId.Name.Equals("Starship", global::System.StringComparison.Ordinal))
             {
@@ -1128,7 +1128,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
             }
 
             var characters = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
-            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
+            foreach (var child in obj.Value.EnumerateArray())
             {
                 characters.Add(Update_ISearchHero_Search_Friends_NodesEntity(session, child, entityIds));
             }
@@ -1143,7 +1143,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
                 return null;
             }
 
-            global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
+            var entityId = _idSerializer.Parse(obj.Value);
             entityIds.Add(entityId);
             if (entityId.Name.Equals("Droid", global::System.StringComparison.Ordinal))
             {
@@ -1267,7 +1267,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
             }
 
             var characters = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.ISearchHero_Search_Friends_Nodes?>();
-            foreach (global::StrawberryShake.EntityId? child in list)
+            foreach (var child in list)
             {
                 characters.Add(MapISearchHero_Search_Friends_Nodes(child, snapshot));
             }
@@ -1367,7 +1367,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
         {Indented = false};
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
-            global::System.String __typename = obj.GetProperty("__typename").GetString()!;
+            var __typename = obj.GetProperty("__typename").GetString()!;
             return __typename switch
             {
                 "Starship" => ParseStarshipEntityId(obj, __typename),

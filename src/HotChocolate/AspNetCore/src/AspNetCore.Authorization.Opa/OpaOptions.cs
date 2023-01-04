@@ -19,7 +19,7 @@ public sealed class OpaOptions
 
     public Dictionary<string, IPolicyResultHandler> PolicyResultHandlers { get; } = new();
 
-    public IPolicyResultHandler GetResultHandlerFor(string policyPath)
+    public PolicyResultHandler GetResultHandlerFor(string policyPath)
     {
         if (PolicyResultHandlers.TryGetValue(policyPath, out var handler))
         {

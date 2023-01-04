@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Authorization;
 using HotChocolate.Resolvers;
@@ -16,32 +17,37 @@ namespace HotChocolate.AspNetCore.Authorization;
 /// <summary>
 /// The default authorization implementation that uses Microsoft.AspNetCore.Authorization.
 /// </summary>
-public class DefaultAuthorizationHandler : IAuthorizationHandler
+public sealed class DefaultAuthorizationHandler : IAuthorizationHandler
 {
     /// <summary>
     /// Authorize current directive using Microsoft.AspNetCore.Authorization.
     /// </summary>
     /// <param name="context">The current middleware context.</param>
     /// <param name="directive">The authorization directive.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>
     /// Returns a value indicating if the current session is authorized to
     /// access the resolver data.
     /// </returns>
     public async ValueTask<AuthorizeResult> AuthorizeAsync(
         IMiddlewareContext context,
-        AuthorizeDirective directive)
+        AuthorizeDirective directive,
+        CancellationToken cancellationToken)
     {
         if (!TryGetAuthenticatedPrincipal(context, out var principal))
         {
             return AuthorizeResult.NotAuthenticated;
         }
 
-        if (IsInAnyRole(principal!, directive.Roles))
+        if (IsInAnyRole(principal, directive.Roles))
         {
             if (NeedsPolicyValidation(directive))
             {
                 return await AuthorizeWithPolicyAsync(
-                        context, directive, principal!)
+                        context.Services,
+                        directive,
+                        principal,
+                        context)
                     .ConfigureAwait(false);
             }
 
@@ -49,6 +55,40 @@ public class DefaultAuthorizationHandler : IAuthorizationHandler
         }
 
         return AuthorizeResult.NotAllowed;
+    }
+
+    public async ValueTask<AuthorizeResult> AuthorizeAsync(
+        AuthorizationContext context,
+        IReadOnlyList<AuthorizeDirective> directives,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetAuthenticatedPrincipal(context, out var principal))
+        {
+            return AuthorizeResult.NotAuthenticated;
+        }
+
+        foreach (var directive in directives)
+        {
+            if (IsInAnyRole(principal, directive.Roles))
+            {
+                if (NeedsPolicyValidation(directive))
+                {
+                    var result = await AuthorizeWithPolicyAsync(
+                            context.Services,
+                            directive,
+                            principal,
+                            directive)
+                        .ConfigureAwait(false);
+
+                    if (result is not AuthorizeResult.Allowed)
+                    {
+                        return result;
+                    }
+                }
+            }
+        }
+
+        return AuthorizeResult.Allowed;
     }
 
 
@@ -62,9 +102,31 @@ public class DefaultAuthorizationHandler : IAuthorizationHandler
         [NotNullWhen(true)] out ClaimsPrincipal? principal)
 #endif
     {
-        if (context.ContextData.TryGetValue(nameof(ClaimsPrincipal), out var o)
-            && o is ClaimsPrincipal p
-            && p.Identities.Any(t => t.IsAuthenticated))
+        if (context.ContextData.TryGetValue(nameof(ClaimsPrincipal), out var o) &&
+            o is ClaimsPrincipal p &&
+            p.Identities.Any(t => t.IsAuthenticated))
+        {
+            principal = p;
+            return true;
+        }
+
+        principal = null;
+        return false;
+    }
+
+#if NETSTANDARD2_0
+    private static bool TryGetAuthenticatedPrincipal(
+        AuthorizationContext context,
+        out ClaimsPrincipal? principal)
+#else
+    private static bool TryGetAuthenticatedPrincipal(
+        AuthorizationContext context,
+        [NotNullWhen(true)] out ClaimsPrincipal? principal)
+#endif
+    {
+        if (context.ContextData.TryGetValue(nameof(ClaimsPrincipal), out var o) &&
+            o is ClaimsPrincipal p &&
+            p.Identities.Any(t => t.IsAuthenticated))
         {
             principal = p;
             return true;
@@ -95,20 +157,18 @@ public class DefaultAuthorizationHandler : IAuthorizationHandler
     }
 
     private static bool NeedsPolicyValidation(AuthorizeDirective directive)
-        => directive.Roles == null
-           || directive.Roles.Count == 0
-           || !string.IsNullOrEmpty(directive.Policy);
+        => directive.Roles == null ||
+            directive.Roles.Count == 0 ||
+            !string.IsNullOrEmpty(directive.Policy);
 
     private static async Task<AuthorizeResult> AuthorizeWithPolicyAsync(
-        IMiddlewareContext context,
+        IServiceProvider services,
         AuthorizeDirective directive,
-        ClaimsPrincipal principal)
+        ClaimsPrincipal principal,
+        object resource)
     {
-        var services = context.Service<IServiceProvider>();
-        var authorizeService =
-            services.GetService<IAuthorizationService>();
-        var policyProvider =
-            services.GetService<IAuthorizationPolicyProvider>();
+        var authorizeService = services.GetService<IAuthorizationService>();
+        var policyProvider = services.GetService<IAuthorizationPolicyProvider>();
 
         if (authorizeService == null || policyProvider == null)
         {
@@ -121,8 +181,8 @@ public class DefaultAuthorizationHandler : IAuthorizationHandler
 
         AuthorizationPolicy? policy = null;
 
-        if ((directive.Roles is null || directive.Roles.Count == 0)
-            && string.IsNullOrWhiteSpace(directive.Policy))
+        if ((directive.Roles is null || directive.Roles.Count == 0) &&
+            string.IsNullOrWhiteSpace(directive.Policy))
         {
             policy = await policyProvider.GetDefaultPolicyAsync()
                 .ConfigureAwait(false);
@@ -146,9 +206,13 @@ public class DefaultAuthorizationHandler : IAuthorizationHandler
         if (policy is not null)
         {
             var result =
-                await authorizeService.AuthorizeAsync(principal, context, policy)
+                await authorizeService
+                    .AuthorizeAsync(principal, resource, policy)
                     .ConfigureAwait(false);
-            return result.Succeeded ? AuthorizeResult.Allowed : AuthorizeResult.NotAllowed;
+
+            return result.Succeeded
+                ? AuthorizeResult.Allowed
+                : AuthorizeResult.NotAllowed;
         }
 
         return AuthorizeResult.NotAllowed;

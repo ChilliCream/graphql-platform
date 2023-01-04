@@ -62,5 +62,11 @@ namespace HotChocolate.Authorization.Properties {
                 return ResourceManager.GetString("AuthorizeMiddleware_PolicyNotFound", resourceCulture);
             }
         }
+        
+        internal static string AuthorizeMiddleware_PoliciesMissing {
+            get {
+                return ResourceManager.GetString("AuthorizeMiddleware_PoliciesMissing", resourceCulture);
+            }
+        }
     }
 }

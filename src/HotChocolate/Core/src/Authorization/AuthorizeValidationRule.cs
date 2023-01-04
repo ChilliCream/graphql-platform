@@ -6,17 +6,17 @@ using HotChocolate.Validation;
 
 namespace HotChocolate.Authorization;
 
-internal class AuthValidationRule : IDocumentValidatorRule
+internal sealed class AuthorizeValidationRule : IDocumentValidatorRule
 {
-    private readonly AuthDocumentValidatorVisitor _visitor = new();
+    private readonly AuthorizeValidationVisitor _visitor = new();
     private readonly IAuthorizationCache _cache;
 
-    public AuthValidationRule(IAuthorizationCache cache)
+    public AuthorizeValidationRule(IAuthorizationCache cache)
     {
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
     }
 
-    public bool IsCacheable => false;
+    public bool IsCacheable => true;
 
     public void Validate(IDocumentValidatorContext context, DocumentNode document)
     {
@@ -29,7 +29,9 @@ internal class AuthValidationRule : IDocumentValidatorRule
                     context.ContextData[AuthContextData.Directives]!).ToArray();
                 _cache.TryAddDirectives(context.DocumentId, directives);
             }
-            context.ContextData[""] = directives;
+
+            // update context data with the array result.
+            context.ContextData[AuthContextData.Directives] = directives;
         }
     }
 }

@@ -9,19 +9,17 @@ using HotChocolate.Validation;
 
 namespace HotChocolate.Authorization;
 
-internal sealed class AuthDocumentValidatorVisitor: TypeDocumentValidatorVisitor
+internal sealed class AuthorizeValidationVisitor : TypeDocumentValidatorVisitor
 {
-    private const string _state = "HotChocolate.Authorization.AuthDirectiveCollection";
-
     protected override ISyntaxVisitorAction Enter(
         DocumentNode node,
         IDocumentValidatorContext context)
     {
-        if (!context.ContextData.TryGetValue(_state, out var value) ||
+        if (!context.ContextData.TryGetValue(AuthContextData.Directives, out var value) ||
             value is not HashSet<AuthorizeDirective> authDirectives)
         {
             authDirectives = new HashSet<AuthorizeDirective>();
-            context.ContextData[_state] = authDirectives;
+            context.ContextData[AuthContextData.Directives] = authDirectives;
         }
 
         authDirectives.Clear();
@@ -122,7 +120,10 @@ internal sealed class AuthDocumentValidatorVisitor: TypeDocumentValidatorVisitor
             if (directive.Type is AuthorizeDirectiveType)
             {
                 var authDirective = directive.AsValue<AuthorizeDirective>();
-                authDirectives.Add(authDirective);
+                if (authDirective.Apply is ApplyPolicy.Validation)
+                {
+                    authDirectives.Add(authDirective);
+                }
             }
         }
     }
@@ -192,5 +193,5 @@ internal sealed class AuthDocumentValidatorVisitor: TypeDocumentValidatorVisitor
 
     private static HashSet<AuthorizeDirective> GetAuthDirectives(
         IDocumentValidatorContext context)
-        => (HashSet<AuthorizeDirective>)context.ContextData[_state]!;
+        => (HashSet<AuthorizeDirective>)context.ContextData[AuthContextData.Directives]!;
 }

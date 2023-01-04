@@ -20,8 +20,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
         public async Task Execute_StarWarsGetFriendsDeferInList_Test()
         {
             // arrange
-            CancellationToken ct = new CancellationTokenSource(20_000).Token;
-            using IWebHost host = TestServerHelper.CreateServer(_ => { }, out var port);
+            var ct = new CancellationTokenSource(20_000).Token;
+            using var host = TestServerHelper.CreateServer(_ => { }, out var port);
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddHttpClient(
                 StarWarsGetFriendsDeferInListClient.ClientName,

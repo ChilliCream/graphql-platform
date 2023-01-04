@@ -162,7 +162,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 if (Hero != null)
                 {
                     hash ^= 397 * Hero.GetHashCode();
@@ -228,7 +228,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 if (Friends != null)
                 {
                     hash ^= 397 * Friends.GetHashCode();
@@ -294,7 +294,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 if (Friends != null)
                 {
                     hash ^= 397 * Friends.GetHashCode();
@@ -366,7 +366,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 if (Nodes != null)
                 {
                     foreach (var Nodes_elm in Nodes)
@@ -438,7 +438,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 return hash;
             }
@@ -500,7 +500,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 if (CharacterName != null)
                 {
                     hash ^= 397 * CharacterName.GetHashCode();
@@ -572,7 +572,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 if (CharacterName != null)
                 {
                     hash ^= 397 * CharacterName.GetHashCode();
@@ -1018,7 +1018,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
                 return null;
             }
 
-            global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
+            var entityId = _idSerializer.Parse(obj.Value);
             entityIds.Add(entityId);
             if (entityId.Name.Equals("Droid", global::System.StringComparison.Ordinal))
             {
@@ -1075,7 +1075,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
             }
 
             var characters = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
-            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
+            foreach (var child in obj.Value.EnumerateArray())
             {
                 characters.Add(Update_IGetHero_Hero_Friends_NodesEntity(session, child, entityIds));
             }
@@ -1090,7 +1090,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
                 return null;
             }
 
-            global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
+            var entityId = _idSerializer.Parse(obj.Value);
             entityIds.Add(entityId);
             if (entityId.Name.Equals("Droid", global::System.StringComparison.Ordinal))
             {
@@ -1203,7 +1203,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
             }
 
             var characters = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.IGetHero_Hero_Friends_Nodes?>();
-            foreach (global::StrawberryShake.EntityId? child in list)
+            foreach (var child in list)
             {
                 characters.Add(MapIGetHero_Hero_Friends_Nodes(child, snapshot));
             }
@@ -1284,7 +1284,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
             }
 
             var characters = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.IGetHero_Hero_Friends_Nodes?>();
-            foreach (global::StrawberryShake.EntityId? child in list)
+            foreach (var child in list)
             {
                 characters.Add(MapIGetHero_Hero_Friends_Nodes(child, snapshot));
             }
@@ -1429,7 +1429,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
         {Indented = false};
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
-            global::System.String __typename = obj.GetProperty("__typename").GetString()!;
+            var __typename = obj.GetProperty("__typename").GetString()!;
             return __typename switch
             {
                 "Droid" => ParseDroidEntityId(obj, __typename),

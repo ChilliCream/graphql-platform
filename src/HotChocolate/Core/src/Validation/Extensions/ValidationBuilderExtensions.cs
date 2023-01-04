@@ -149,4 +149,20 @@ public static partial class HotChocolateValidationBuilderExtensions
                 }
             }));
     }
+
+    public static IValidationBuilder TryAddValidationResultAggregator<T>(
+        this IValidationBuilder builder,
+        Func<IServiceProvider, ValidationOptions, T> factory)
+        where T : class, IValidationResultAggregator
+    {
+        return builder.ConfigureValidation((s, m) =>
+            m.Modifiers.Add(o =>
+            {
+                var instance = factory(s, o);
+                if (o.PostRules.All(t => t.GetType() != instance.GetType()))
+                {
+                    o.PostRules.Add(instance);
+                }
+            }));
+    }
 }

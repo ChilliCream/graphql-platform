@@ -27,4 +27,7 @@
   <data name="AuthorizeMiddleware_PolicyNotFound" xml:space="preserve">
     <value>The `{0}` authorization policy does not exist.</value>
   </data>
+  <data name="AuthorizeMiddleware_PoliciesMissing" xml:space="preserve">
+    <value>Found missing authorization policies!</value>
+  </data>
 </root>

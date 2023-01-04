@@ -1,4 +1,5 @@
 using System;
+using System.Security.AccessControl;
 using HotChocolate;
 using HotChocolate.Authorization;
 using HotChocolate.Execution.Configuration;
@@ -23,7 +24,15 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
     public static IRequestExecutorBuilder AddAuthorizationCore(
         this IRequestExecutorBuilder builder)
     {
-        builder.ConfigureSchema(sb => sb.AddAuthorizeDirectiveType());
+        builder.ConfigureSchema(
+            sb => sb.AddAuthorizeDirectiveType());
+        builder.AddValidationRule(
+            (s, _) => new AuthorizeValidationRule(
+                s.GetRequiredService<IAuthorizationCache>()));
+        builder.AddValidationResultAggregator(
+            (s, _) => new AuthorizeValidationResultAggregator(
+                s.GetRequiredService<IAuthorizationHandler>(),
+                s));
         return builder;
     }
 

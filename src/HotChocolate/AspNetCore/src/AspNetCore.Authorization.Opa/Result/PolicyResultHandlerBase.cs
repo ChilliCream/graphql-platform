@@ -1,5 +1,6 @@
 using System;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Authorization;
 using HotChocolate.Resolvers;
@@ -7,44 +8,56 @@ using Microsoft.Extensions.Options;
 
 namespace HotChocolate.AspNetCore.Authorization;
 
-public abstract class PolicyResultHandlerBase<T> : IPolicyResultHandler
+public class PolicyResultHandle
 {
     private readonly IOptions<OpaOptions> _options;
 
-    protected static readonly IOpaAuthzResult<T> PolicyNotFoundResult =
+    protected static IOpaAuthzResult<T> PolicyNotFoundResult { get; } =
         new OpaAuthResult<T>(AuthorizeResult.PolicyNotFound, default);
 
     protected PolicyResultHandlerBase(IOptions<OpaOptions> options)
         => _options = options;
 
-    protected abstract Task<IOpaAuthzResult<T>> MakeDecision(PolicyResultContext<T> context);
+    protected abstract Task<IOpaAuthzResult<T>> MakeDecision(
+        PolicyResultContext<T> context);
 
-    protected virtual Task OnAllowed(IMiddlewareContext context, IOpaAuthzResult<T> result)
-        => Task.CompletedTask;
+    protected virtual ValueTask OnAllowed(
+        AuthorizationContext context,
+        IOpaAuthzResult<T> result)
+        => default;
 
-    protected virtual Task OnNotAllowed(IMiddlewareContext context, IOpaAuthzResult<T> result)
-        => Task.CompletedTask;
+    protected virtual ValueTask OnNotAllowed(
+        AuthorizationContext context,
+        IOpaAuthzResult<T> result)
+        => default;
 
-    protected virtual Task OnPolicyNotFound(IMiddlewareContext context, IOpaAuthzResult<T> result)
-        => Task.CompletedTask;
+    protected virtual ValueTask OnPolicyNotFound(
+        AuthorizationContext context,
+        IOpaAuthzResult<T> result)
+        => default;
 
-    protected virtual Task OnNotAuthenticated(IMiddlewareContext context, IOpaAuthzResult<T> result)
-        => Task.CompletedTask;
+    protected virtual ValueTask OnNotAuthenticated(
+        AuthorizationContext context,
+        IOpaAuthzResult<T> result)
+        => default;
 
-    protected virtual Task OnNoDefaultPolicy(IMiddlewareContext context, IOpaAuthzResult<T> result)
-        => Task.CompletedTask;
+    protected ValueTask OnNoDefaultPolicy(
+        AuthorizationContext context,
+        IOpaAuthzResult<T> result)
+        => default;
 
     public async Task<AuthorizeResult> HandleAsync(
         string policyPath,
         HttpResponseMessage response,
-        IMiddlewareContext context)
+        AuthorizationContext context,
+        CancellationToken cancellationToken)
     {
         async Task<T> Deserialize()
         {
             var responseObj = await response.Content
                 .FromJsonAsync<QueryResponse<T?>>(
                     _options.Value.JsonSerializerOptions,
-                    context.RequestAborted)
+                    cancellationToken)
                 .ConfigureAwait(false);
             return responseObj is { Result: { } result }
                 ? result

@@ -159,7 +159,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUn
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 if (Search != null)
                 {
                     foreach (var Search_elm in Search)
@@ -234,7 +234,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUn
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * __typename.GetHashCode();
                 return hash;
             }
@@ -299,7 +299,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUn
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * __typename.GetHashCode();
                 return hash;
             }
@@ -364,7 +364,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUn
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * __typename.GetHashCode();
                 return hash;
             }
@@ -638,7 +638,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUn
             }
 
             var searchResults = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUnions.ISearchHero_Search?>();
-            foreach (global::StrawberryShake.EntityId? child in list)
+            foreach (var child in list)
             {
                 searchResults.Add(MapISearchHero_Search(child, snapshot));
             }
@@ -738,7 +738,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUn
             }
 
             var searchResults = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
-            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
+            foreach (var child in obj.Value.EnumerateArray())
             {
                 searchResults.Add(Update_ISearchHero_SearchEntity(session, child, entityIds));
             }
@@ -753,7 +753,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUn
                 return null;
             }
 
-            global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
+            var entityId = _idSerializer.Parse(obj.Value);
             entityIds.Add(entityId);
             if (entityId.Name.Equals("Starship", global::System.StringComparison.Ordinal))
             {
@@ -882,7 +882,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUn
         {Indented = false};
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
-            global::System.String __typename = obj.GetProperty("__typename").GetString()!;
+            var __typename = obj.GetProperty("__typename").GetString()!;
             return __typename switch
             {
                 "Starship" => ParseStarshipEntityId(obj, __typename),

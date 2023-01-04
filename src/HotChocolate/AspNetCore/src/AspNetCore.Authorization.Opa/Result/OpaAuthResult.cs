@@ -11,5 +11,6 @@ public class OpaAuthResult<T> : IOpaAuthzResult<T>
     }
 
     public AuthorizeResult Result { get; }
+
     public T? Payload { get; }
 }

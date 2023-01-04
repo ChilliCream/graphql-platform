@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
-using ChilliCream.Testing;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Validation;
 
@@ -20,10 +19,16 @@ public class DocumentValidatorTests
         var queryValidator = CreateValidator();
 
         // act
-        Action a = () => queryValidator.Validate(schema, null!);
+        async Task Error() =>
+            await queryValidator.ValidateAsync(
+                schema,
+                null!,
+                "",
+                new Dictionary<string, object>(),
+                false);
 
         // assert
-        Assert.Throws<ArgumentNullException>(a);
+        Assert.ThrowsAsync<ArgumentNullException>(Error);
     }
 
     [Fact]
@@ -33,18 +38,23 @@ public class DocumentValidatorTests
         var queryValidator = CreateValidator();
 
         // act
-        // act
-        Action a = () => queryValidator.Validate(null!,
-            new DocumentNode(null, new List<IDefinitionNode>()));
+        async Task Error() =>
+            await queryValidator.ValidateAsync(
+                null!,
+                new DocumentNode(null, new List<IDefinitionNode>()),
+                "",
+                new Dictionary<string, object>(),
+                false);
 
         // assert
-        Assert.Throws<ArgumentNullException>(a);
+        Assert.ThrowsAsync<ArgumentNullException>(Error);
     }
 
     [Fact]
-    public void QueryWithTypeSystemDefinitions()
+    public async Task QueryWithTypeSystemDefinitions()
     {
-        ExpectErrors(@"
+        await ExpectErrors(
+            @"
                 query getDogName {
                     dog {
                         name
@@ -58,16 +68,19 @@ public class DocumentValidatorTests
             ",
             t => Assert.Equal(
                 "A document containing TypeSystemDefinition " +
-                "is invalid for execution.", t.Message),
+                "is invalid for execution.",
+                t.Message),
             t => Assert.Equal(
                 "The field `color` does not exist " +
-                "on the type `Dog`.", t.Message));
+                "on the type `Dog`.",
+                t.Message));
     }
 
     [Fact]
-    public void QueryWithOneAnonymousAndOneNamedOperation()
+    public async Task QueryWithOneAnonymousAndOneNamedOperation()
     {
-        ExpectErrors(@"
+        await ExpectErrors(
+            @"
                 {
                     dog {
                         name
@@ -87,14 +100,16 @@ public class DocumentValidatorTests
                 Assert.Equal(
                     "GraphQL allows a short‐hand form for defining query " +
                     "operations when only that one operation exists in " +
-                    "the document.", t.Message);
+                    "the document.",
+                    t.Message);
             });
     }
 
     [Fact]
-    public void TwoQueryOperationsWithTheSameName()
+    public async Task TwoQueryOperationsWithTheSameName()
     {
-        ExpectErrors(@"
+        await ExpectErrors(
+            @"
                 query getName {
                     dog {
                         name
@@ -115,9 +130,10 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public void OperationWithTwoVariablesThatHaveTheSameName()
+    public async Task OperationWithTwoVariablesThatHaveTheSameName()
     {
-        ExpectErrors(@"
+        await ExpectErrors(
+            @"
                 query houseTrainedQuery(
                     $atOtherHomes: Boolean, $atOtherHomes: Boolean) {
                     dog {
@@ -128,13 +144,15 @@ public class DocumentValidatorTests
             t => Assert.Equal(
                 "A document containing operations that " +
                 "define more than one variable with the same " +
-                "name is invalid for execution.", t.Message));
+                "name is invalid for execution.",
+                t.Message));
     }
 
     [Fact]
-    public void DuplicateArgument()
+    public async Task DuplicateArgument()
     {
-        ExpectErrors(@"
+        await ExpectErrors(
+             @"
                 {
                     arguments {
                         ... goodNonNullArg
@@ -145,15 +163,17 @@ public class DocumentValidatorTests
                         nonNullBooleanArg: true, nonNullBooleanArg: true)
                 }
             ",
-            t => Assert.Equal(
-                $"More than one argument with the same name in an argument set " +
-                "is ambiguous and invalid.", t.Message));
+        t => Assert.Equal(
+            $"More than one argument with the same name in an argument set " +
+            "is ambiguous and invalid.",
+            t.Message));
     }
 
     [Fact]
-    public void MissingRequiredArgNonNullBooleanArg()
+    public async Task MissingRequiredArgNonNullBooleanArg()
     {
-        ExpectErrors(@"
+        await ExpectErrors(
+            @"
                 {
                     arguments {
                         ... missingRequiredArg
@@ -170,9 +190,10 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public void DisallowedSecondRootField()
+    public async Task DisallowedSecondRootField()
     {
-        ExpectErrors(@"
+        await ExpectErrors(
+            @"
                 subscription sub {
                     newMessage {
                         body
@@ -186,13 +207,15 @@ public class DocumentValidatorTests
                 t.Message),
             t => Assert.Equal(
                 "The field `disallowedSecondRootFieldNonExisting` does not exist " +
-                "on the type `Subscription`.", t.Message));
+                "on the type `Subscription`.",
+                t.Message));
     }
 
     [Fact]
-    public void FieldIsNotDefinedOnTypeInFragment()
+    public async Task FieldIsNotDefinedOnTypeInFragment()
     {
-        ExpectErrors(@"
+        await ExpectErrors(
+            @"
                 {
                     dog {
                         ... fieldNotDefined
@@ -210,16 +233,19 @@ public class DocumentValidatorTests
             ",
             t => Assert.Equal(
                 "The field `meowVolume` does not exist " +
-                "on the type `Dog`.", t.Message),
+                "on the type `Dog`.",
+                t.Message),
             t => Assert.Equal(
                 "The field `kawVolume` does not exist " +
-                "on the type `Dog`.", t.Message));
+                "on the type `Dog`.",
+                t.Message));
     }
 
     [Fact]
-    public void VariableNotUsedWithinFragment()
+    public async Task VariableNotUsedWithinFragment()
     {
-        ExpectErrors(@"
+        await ExpectErrors(
+            @"
                 query variableNotUsedWithinFragment($atOtherHomes: Boolean) {
                     dog {
                         ...isHouseTrainedWithoutVariableFragment
@@ -232,13 +258,15 @@ public class DocumentValidatorTests
             ",
             t => Assert.Equal(
                 "The following variables were not used: " +
-                "atOtherHomes.", t.Message));
+                "atOtherHomes.",
+                t.Message));
     }
 
     [Fact]
-    public void SkipDirectiveIsInTheWrongPlace()
+    public async Task SkipDirectiveIsInTheWrongPlace()
     {
-        ExpectErrors(@"
+        await ExpectErrors(
+            @"
                 query @skip(if: $foo) {
                     field
                 }
@@ -246,10 +274,10 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public void QueriesWithInvalidVariableTypes()
+    public async Task QueriesWithInvalidVariableTypes()
     {
         // arrange
-        ExpectErrors(
+        await ExpectErrors(
             null,
             new ServiceCollection()
                 .AddValidation()
@@ -317,9 +345,10 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public void ConflictingBecauseAlias()
+    public async Task ConflictingBecauseAlias()
     {
-        ExpectErrors(@"
+        await ExpectErrors(
+            @"
                 fragment conflictingBecauseAlias on Dog {
                     name: nickname
                     name
@@ -332,9 +361,10 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public void InvalidFieldArgName()
+    public async Task InvalidFieldArgName()
     {
-        ExpectErrors(@"
+        await ExpectErrors(
+            @"
                 {
                     dog {
                         ... invalidArgName
@@ -346,16 +376,18 @@ public class DocumentValidatorTests
                 }
             ",
             t => Assert.Equal(
-                "The argument `command` does not exist.", t.Message),
+                "The argument `command` does not exist.",
+                t.Message),
             t => Assert.Equal(
                 "The argument `dogCommand` is required.",
                 t.Message));
     }
 
     [Fact]
-    public void UnusedFragment()
+    public async Task UnusedFragment()
     {
-        ExpectErrors(@"
+        await ExpectErrors(
+            @"
                 fragment nameFragment on Dog { # unused
                     name
                 }
@@ -368,13 +400,15 @@ public class DocumentValidatorTests
             ",
             t => Assert.Equal(
                 "The specified fragment `nameFragment` " +
-                "is not used within the current document.", t.Message));
+                "is not used within the current document.",
+                t.Message));
     }
 
     [Fact]
-    public void DuplicateFragments()
+    public async Task DuplicateFragments()
     {
-        ExpectErrors(@"
+        await ExpectErrors(
+            @"
                 {
                     dog {
                         ...fragmentOne
@@ -397,9 +431,10 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public void ScalarSelectionsNotAllowedOnInt()
+    public async Task ScalarSelectionsNotAllowedOnInt()
     {
-        ExpectErrors(@"
+        await ExpectErrors(
+            @"
                 {
                     dog {
                         barkVolume {
@@ -415,9 +450,10 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public void InlineFragOnScalar()
+    public async Task InlineFragOnScalar()
     {
-        ExpectErrors(@"
+        await ExpectErrors(
+            @"
                 {
                     dog {
                        ... inlineFragOnScalar
@@ -430,15 +466,17 @@ public class DocumentValidatorTests
                     }
                 }
             ",
-            t => Assert.Equal(t.Message,
+            t => Assert.Equal(
+                t.Message,
                 "Fragments can only be declared on unions, interfaces, " +
                 "and objects."));
     }
 
     [Fact]
-    public void FragmentCycle1()
+    public async Task FragmentCycle1()
     {
-        ExpectErrors(@"
+        await ExpectErrors(
+            @"
                 {
                     dog {
                         ...nameFragment
@@ -455,7 +493,8 @@ public class DocumentValidatorTests
                     ...nameFragment
                 }
             ",
-            t => Assert.Equal(t.Message,
+            t => Assert.Equal(
+                t.Message,
                 "The graph of fragment spreads must not form any " +
                 "cycles including spreading itself. Otherwise an " +
                 "operation could infinitely spread or infinitely " +
@@ -463,9 +502,10 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public void UndefinedFragment()
+    public async Task UndefinedFragment()
     {
-        ExpectErrors(@"
+        await ExpectErrors(
+            @"
                 {
                     dog {
                         ...undefinedFragment
@@ -479,9 +519,10 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public void FragmentDoesNotMatchType()
+    public async Task FragmentDoesNotMatchType()
     {
-        ExpectErrors(@"
+        await ExpectErrors(
+            @"
                 {
                     dog {
                         ...fragmentDoesNotMatchType
@@ -499,9 +540,10 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public void NotExistingTypeOnInlineFragment()
+    public async Task NotExistingTypeOnInlineFragment()
     {
-        ExpectErrors(@"
+        await ExpectErrors(
+            @"
                 {
                     dog {
                         ...inlineNotExistingType
@@ -523,9 +565,10 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public void InvalidInputObjectFieldsExist()
+    public async Task InvalidInputObjectFieldsExist()
     {
-        ExpectErrors(@"
+        await ExpectErrors(
+            @"
                 {
                     findDog(complex: { favoriteCookieFlavor: ""Bacon"" })
                     {
@@ -540,9 +583,10 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public void RequiredFieldIsNull()
+    public async Task RequiredFieldIsNull()
     {
-        ExpectErrors(@"
+        await ExpectErrors(
+            @"
                 {
                     findDog2(complex: { name: null })
                     {
@@ -556,9 +600,10 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public void NameFieldIsAmbiguous()
+    public async Task NameFieldIsAmbiguous()
     {
-        ExpectErrors(@"
+        await ExpectErrors(
+            @"
                 {
                     findDog(complex: { name: ""A"", name: ""B"" })
                     {
@@ -571,9 +616,10 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public void UnsupportedDirective()
+    public async Task UnsupportedDirective()
     {
-        ExpectErrors(@"
+        await ExpectErrors(
+            @"
                 {
                     dog {
                         name @foo(bar: true)
@@ -587,9 +633,10 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public void StringIntoInt()
+    public async Task StringIntoInt()
     {
-        ExpectErrors(@"
+        await ExpectErrors(
+            @"
                 {
                     arguments {
                         ...stringIntoInt
@@ -607,9 +654,9 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public void MaxDepthRuleIsIncluded()
+    public async Task MaxDepthRuleIsIncluded()
     {
-        ExpectErrors(
+        await ExpectErrors(
             null,
             new ServiceCollection()
                 .AddValidation()
@@ -619,15 +666,15 @@ public class DocumentValidatorTests
                 .GetRequiredService<IDocumentValidatorFactory>()
                 .CreateValidator(),
             @"
-                    query {
-                        catOrDog
-                        {
-                            ... on Cat {
-                                name
-                            }
+                query {
+                    catOrDog
+                    {
+                        ... on Cat {
+                            name
                         }
                     }
-                ",
+                }
+            ",
             t =>
             {
                 Assert.Equal(
@@ -638,9 +685,10 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public void GoodBooleanArgDefault2()
+    public async Task GoodBooleanArgDefault2()
     {
-        ExpectValid(@"
+        await ExpectValid(
+            @"
                 query {
                     arguments {
                         ... goodBooleanArgDefault
@@ -654,16 +702,16 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public void StarWars_Query_Is_Valid()
+    public async Task StarWars_Query_Is_Valid()
     {
-        ExpectValid(
+        await ExpectValid(
             SchemaBuilder.New().AddStarWarsTypes().Create(),
             null,
             FileResource.Open("StarWars_Request.graphql"));
     }
 
     [Fact]
-    public void DuplicatesWillBeIgnoredOnFieldMerging()
+    public async Task DuplicatesWillBeIgnoredOnFieldMerging()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -683,10 +731,7 @@ public class DocumentValidatorTests
                 }));
 
         document = document.WithDefinitions(
-            new List<IDefinitionNode>(document.Definitions.Skip(1))
-            {
-                operationWithDuplicates
-            });
+            new List<IDefinitionNode>(document.Definitions.Skip(1)) { operationWithDuplicates });
 
         var services = new ServiceCollection()
             .AddValidation()
@@ -697,16 +742,22 @@ public class DocumentValidatorTests
         var validator = factory.CreateValidator();
 
         // act
-        var result = validator.Validate(schema, document);
+        var result = await validator.ValidateAsync(
+            schema,
+            document,
+            "",
+            new Dictionary<string, object>(),
+            false);
 
         // assert
         Assert.False(result.HasErrors);
     }
 
     [Fact]
-    public void Ensure_That_Merged_Fields_Are_Not_In_Violation_Of_Duplicate_Directives_Rule()
+    public async Task Ensure_That_Merged_Fields_Are_Not_In_Violation_Of_Duplicate_Directives_Rule()
     {
-        ExpectValid(@"
+        await ExpectValid(
+            @"
                 query ($a: Boolean!) {
                     dog {
                         ... inlineFragOnScalar
@@ -725,15 +776,16 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public void Ensure_Recursive_Fragments_Fail()
+    public async Task Ensure_Recursive_Fragments_Fail()
     {
-        ExpectErrors("fragment f on Query{...f} {...f}");
+        await ExpectErrors("fragment f on Query{...f} {...f}");
     }
 
     [Fact]
-    public void Ensure_Recursive_Fragments_Fail_2()
+    public async Task Ensure_Recursive_Fragments_Fail_2()
     {
-        ExpectErrors(@"
+        await ExpectErrors(
+            @"
                 fragment f on Query {
                     ...f
                     f {
@@ -748,74 +800,74 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public void Short_Long_Names()
+    public async Task Short_Long_Names()
     {
-        ExpectErrors(FileResource.Open("short_long_names_query.graphql"));
+        await ExpectErrors(FileResource.Open("short_long_names_query.graphql"));
     }
 
     [Fact]
-    public void Anonymous_empty_query_repeated_25000()
+    public async Task Anonymous_empty_query_repeated_25000()
     {
-        ExpectErrors(FileResource.Open("anonymous_empty_query_repeated_25000.graphql"));
+        await ExpectErrors(FileResource.Open("anonymous_empty_query_repeated_25000.graphql"));
     }
 
     [Fact]
-    public void Type_query_repeated_6250()
+    public async Task Type_query_repeated_6250()
     {
-        ExpectErrors(FileResource.Open("__type_query_repeated_6250.graphql"));
+        await ExpectErrors(FileResource.Open("__type_query_repeated_6250.graphql"));
     }
 
     [Fact]
-    public void Typename_query_repeated_4167()
+    public async Task Typename_query_repeated_4167()
     {
-        ExpectErrors(FileResource.Open("__typename_query_repeated_4167.graphql"));
+        await ExpectErrors(FileResource.Open("__typename_query_repeated_4167.graphql"));
     }
 
     [Fact]
-    public void Typename_query()
+    public async Task Typename_query()
     {
-        ExpectValid(FileResource.Open("__typename_query.graphql"));
+        await ExpectValid(FileResource.Open("__typename_query.graphql"));
     }
 
     [Fact]
-    public void Produce_Many_Errors_100_query()
+    public async Task Produce_Many_Errors_100_query()
     {
-        ExpectErrors(FileResource.Open("100_query.graphql"));
+        await ExpectErrors(FileResource.Open("100_query.graphql"));
     }
 
     [Fact]
-    public void Produce_Many_Errors_1000_query()
+    public async Task Produce_Many_Errors_1000_query()
     {
-        ExpectErrors(FileResource.Open("1000_query.graphql"));
+        await ExpectErrors(FileResource.Open("1000_query.graphql"));
     }
 
     [Fact]
-    public void Produce_Many_Errors_10000_query()
+    public async Task Produce_Many_Errors_10000_query()
     {
-        ExpectErrors(FileResource.Open("10000_query.graphql"));
+        await ExpectErrors(FileResource.Open("10000_query.graphql"));
     }
 
     [Fact]
-    public void Produce_Many_Errors_25000_query()
+    public async Task Produce_Many_Errors_25000_query()
     {
-        ExpectErrors(FileResource.Open("25000_query.graphql"));
+        await ExpectErrors(FileResource.Open("25000_query.graphql"));
     }
 
     [Fact]
-    public void Produce_Many_Errors_30000_query()
+    public async Task Produce_Many_Errors_30000_query()
     {
-        ExpectErrors(FileResource.Open("30000_query.graphql"));
+        await ExpectErrors(FileResource.Open("30000_query.graphql"));
     }
 
     [Fact]
-    public void Produce_Many_Errors_50000_query()
+    public async Task Produce_Many_Errors_50000_query()
     {
-        ExpectErrors(FileResource.Open("50000_query.graphql"));
+        await ExpectErrors(FileResource.Open("50000_query.graphql"));
     }
 
-    private void ExpectValid(string sourceText) => ExpectValid(null, null, sourceText);
+    private Task ExpectValid(string sourceText) => ExpectValid(null, null, sourceText);
 
-    private void ExpectValid(ISchema schema, IDocumentValidator validator, string sourceText)
+    private async Task ExpectValid(ISchema schema, IDocumentValidator validator, string sourceText)
     {
         // arrange
         schema ??= ValidationUtils.CreateSchema();
@@ -823,16 +875,21 @@ public class DocumentValidatorTests
         var query = Utf8GraphQLParser.Parse(sourceText);
 
         // act
-        var result = validator.Validate(schema, query);
+        var result = await validator.ValidateAsync(
+            schema,
+            query,
+            "",
+            new Dictionary<string, object>(),
+            false);
 
         // assert
         Assert.Empty(result.Errors);
     }
 
-    private void ExpectErrors(string sourceText, params Action<IError>[] elementInspectors) =>
-        ExpectErrors(null, null, sourceText, elementInspectors);
+    private async Task ExpectErrors(string sourceText, params Action<IError>[] elementInspectors) =>
+        await ExpectErrors(null, null, sourceText, elementInspectors);
 
-    private void ExpectErrors(
+    private async Task ExpectErrors(
         ISchema schema,
         IDocumentValidator validator,
         string sourceText,
@@ -844,7 +901,12 @@ public class DocumentValidatorTests
         var query = Utf8GraphQLParser.Parse(sourceText);
 
         // act
-        var result = validator.Validate(schema, query);
+        var result = await validator.ValidateAsync(
+            schema,
+            query,
+            "",
+            new Dictionary<string, object>(),
+            false);
 
         // assert
         Assert.NotEmpty(result.Errors);

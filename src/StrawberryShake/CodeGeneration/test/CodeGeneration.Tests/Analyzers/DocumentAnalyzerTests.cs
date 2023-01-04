@@ -48,7 +48,8 @@ public class DocumentAnalyzerTests
                 .New()
                 .SetSchema(schema)
                 .AddDocument(document)
-                .Analyze();
+                .AnalyzeAsync()
+                .Result;
 
         // assert
         Assert.Empty(clientModel.InputObjectTypes);
@@ -123,7 +124,8 @@ public class DocumentAnalyzerTests
                 .New()
                 .SetSchema(schema)
                 .AddDocument(document)
-                .Analyze();
+                .AnalyzeAsync()
+                .Result;
 
         // assert
         var human = clientModel.OutputTypes.First(t => t.Name.EqualsOrdinal("GetHero_Hero_Human"));

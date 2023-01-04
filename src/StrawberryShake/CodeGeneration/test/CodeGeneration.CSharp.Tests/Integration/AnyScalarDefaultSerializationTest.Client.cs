@@ -156,7 +156,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.AnyScalarDefaultSeri
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Json.GetHashCode();
                 return hash;
             }
@@ -395,7 +395,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.AnyScalarDefaultSeri
         {Indented = false};
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
-            global::System.String __typename = obj.GetProperty("__typename").GetString()!;
+            var __typename = obj.GetProperty("__typename").GetString()!;
             return __typename switch
             {
                 _ => throw new global::System.NotSupportedException()};

@@ -13,7 +13,7 @@ public class CodeFirstAuthorizationTests
     public async Task Authorize_Person_NoAccess()
     {
         // arrange
-        var handler = new AuthHandler((_, _) => AuthorizeResult.NotAllowed);
+        var handler = new AuthHandler(AuthorizeResult.NotAllowed);
         var services = CreateServices(handler);
         var executor = await services.GetRequestExecutorAsync();
 
@@ -58,7 +58,8 @@ public class CodeFirstAuthorizationTests
         var handler = new AuthHandler(
             (context, _) => context.Result is Street
                 ? AuthorizeResult.Allowed
-                : AuthorizeResult.NotAllowed);
+                : AuthorizeResult.NotAllowed,
+            (_, _) => AuthorizeResult.Allowed);
         var services = CreateServices(handler);
         var executor = await services.GetRequestExecutorAsync();
 
@@ -95,7 +96,8 @@ public class CodeFirstAuthorizationTests
         var handler = new AuthHandler(
             (context, _) => context.Result is Street
                 ? AuthorizeResult.Allowed
-                : AuthorizeResult.NotAllowed);
+                : AuthorizeResult.NotAllowed,
+            (_, _) => AuthorizeResult.Allowed);
         var services = CreateServices(handler);
         var executor = await services.GetRequestExecutorAsync();
 
@@ -144,7 +146,7 @@ public class CodeFirstAuthorizationTests
     public async Task Authorize_Field_Auth_Not_Allowed()
     {
         // arrange
-        var handler = new AuthHandler((_, _) => AuthorizeResult.NotAllowed);
+        var handler = new AuthHandler(AuthorizeResult.NotAllowed);
         var services = CreateServices(handler);
         var executor = await services.GetRequestExecutorAsync();
 
@@ -267,16 +269,44 @@ public class CodeFirstAuthorizationTests
 
     private sealed class AuthHandler : IAuthorizationHandler
     {
-        private readonly Func<IMiddlewareContext, AuthorizeDirective, AuthorizeResult> _func;
+        private readonly Func<IMiddlewareContext, AuthorizeDirective, AuthorizeResult> _func1;
+        private readonly Func<AuthorizationContext, AuthorizeDirective, AuthorizeResult> _func2;
 
-        public AuthHandler(Func<IMiddlewareContext, AuthorizeDirective, AuthorizeResult> func)
+        public AuthHandler(AuthorizeResult result)
         {
-            _func = func;
+            _func1 = (_, _) => result;
+            _func2 = (_, _) => result;
+        }
+
+        public AuthHandler(
+            Func<IMiddlewareContext, AuthorizeDirective, AuthorizeResult> func1,
+            Func<AuthorizationContext, AuthorizeDirective, AuthorizeResult> func2)
+        {
+            _func1 = func1;
+            _func2 = func2;
         }
 
         public ValueTask<AuthorizeResult> AuthorizeAsync(
             IMiddlewareContext context,
-            AuthorizeDirective directive)
-            => new(_func(context, directive));
+            AuthorizeDirective directive,
+            CancellationToken cancellationToken = default)
+            => new(_func1(context, directive));
+
+        public ValueTask<AuthorizeResult> AuthorizeAsync(
+            AuthorizationContext context,
+            IReadOnlyList<AuthorizeDirective> directives,
+            CancellationToken cancellationToken = default)
+        {
+            foreach (var directive in directives)
+            {
+                var result = _func2(context, directive);
+                if (result is not AuthorizeResult.Allowed)
+                {
+                    return new(result);
+                }
+            }
+
+            return new(AuthorizeResult.Allowed);
+        }
     }
 }

@@ -39,12 +39,16 @@ internal sealed class DocumentValidationMiddleware
             {
                 using (_diagnosticEvents.ValidateDocument(context))
                 {
-                    context.ValidationResult = _documentValidator.Validate(
-                        context.Schema,
-                        context.Document,
-                        context.DocumentId,
-                        context.ContextData,
-                        context.ValidationResult is not null);
+                    context.ValidationResult =
+                        await _documentValidator
+                            .ValidateAsync(
+                                context.Schema,
+                                context.Document,
+                                context.DocumentId,
+                                context.ContextData,
+                                context.ValidationResult is not null,
+                                context.RequestAborted)
+                            .ConfigureAwait(false);
 
                     if (!context.IsValidDocument)
                     {

@@ -1,4 +1,5 @@
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Authorization;
 using HotChocolate.Resolvers;
@@ -10,5 +11,6 @@ public interface IPolicyResultHandler
     Task<AuthorizeResult> HandleAsync(
         string policyPath,
         HttpResponseMessage response,
-        IMiddlewareContext context);
+        AuthorizationContext context,
+        CancellationToken cancellationToken);
 }

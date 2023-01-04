@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using HotChocolate.Language;
 
 namespace HotChocolate.Validation;
@@ -34,13 +36,17 @@ public interface IDocumentValidator
     /// <param name="onlyNonCacheable">
     /// Defines that only rules shall be evaluated that are not cacheable.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// The result of the document validation.
     /// </returns>
-    DocumentValidatorResult Validate(
+    ValueTask<DocumentValidatorResult> ValidateAsync(
         ISchema schema,
         DocumentNode document,
         string documentId,
         IDictionary<string, object?> contextData,
-        bool onlyNonCacheable = false);
+        bool onlyNonCacheable,
+        CancellationToken cancellationToken = default);
 }

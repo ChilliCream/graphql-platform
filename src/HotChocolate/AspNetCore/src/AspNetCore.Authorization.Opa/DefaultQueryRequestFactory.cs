@@ -9,11 +9,10 @@ namespace HotChocolate.AspNetCore.Authorization;
 
 public class DefaultQueryRequestFactory : IOpaQueryRequestFactory
 {
-    public QueryRequest CreateRequest(IMiddlewareContext context, AuthorizeDirective directive)
+    public QueryRequest CreateRequest(AuthorizationContext context, AuthorizeDirective directive)
     {
-        var accessor = context.Services.GetService<IHttpContextAccessor>();
-        var http = accessor.HttpContext;
-        var connection = http.Connection;
+        var httpContext = (HttpContext)context.ContextData[nameof(HttpContext)];
+        var connection = httpContext.Connection;
 
         var request = new QueryRequest
         {
@@ -29,22 +28,24 @@ public class DefaultQueryRequestFactory : IOpaQueryRequestFactory
                     },
                 Request = new OriginalRequest
                 {
-                    Headers = http.Request.Headers.ToDictionary(
+                    Headers = httpContext.Request.Headers.ToDictionary(
                         h => h.Key,
                         h => h.Value.ToString()),
-                    Host = http.Request.Host.Value,
-                    Method = http.Request.Method,
-                    Path = http.Request.Path.Value,
-                    Query = http.Request.Query,
-                    Scheme = http.Request.Scheme
+                    Host = httpContext.Request.Host.Value,
+                    Method = httpContext.Request.Method,
+                    Path = httpContext.Request.Path.Value,
+                    Query = httpContext.Request.Query,
+                    Scheme = httpContext.Request.Scheme
                 },
                 Source = new IPAndPort
                 {
-                    IpAddress = connection.RemoteIpAddress.ToString(), Port = connection.RemotePort
+                    IpAddress = connection.RemoteIpAddress.ToString(),
+                    Port = connection.RemotePort
                 },
                 Destination = new IPAndPort
                 {
-                    IpAddress = connection.LocalIpAddress.ToString(), Port = connection.LocalPort
+                    IpAddress = connection.LocalIpAddress.ToString(),
+                    Port = connection.LocalPort
                 }
             }
         };

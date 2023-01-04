@@ -158,7 +158,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 if (Foo != null)
                 {
                     foreach (var Foo_elm in Foo)
@@ -230,7 +230,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 if (Id != null)
                 {
                     hash ^= 397 * Id.GetHashCode();
@@ -296,7 +296,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 if (Foo != null)
                 {
                     hash ^= 397 * Foo.GetHashCode();
@@ -362,7 +362,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 if (Id != null)
                 {
                     hash ^= 397 * Id.GetHashCode();
@@ -428,7 +428,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 if (Foo != null)
                 {
                     hash ^= 397 * Foo.GetHashCode();
@@ -725,7 +725,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State
             }
 
             var bars = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.IGetFoo_Foo?>();
-            foreach (global::StrawberryShake.EntityIdOrData? child in list)
+            foreach (var child in list)
             {
                 bars.Add(MapIGetFoo_Foo(child, snapshot));
             }
@@ -865,7 +865,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State
             }
 
             var bars = new global::System.Collections.Generic.List<global::StrawberryShake.EntityIdOrData?>();
-            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
+            foreach (var child in obj.Value.EnumerateArray())
             {
                 bars.Add(Deserialize_IBarData(session, child, entityIds));
             }
@@ -883,7 +883,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("Baz", global::System.StringComparison.Ordinal) ?? false)
             {
-                global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
+                var entityId = _idSerializer.Parse(obj.Value);
                 if (entityId.Name.Equals("Baz", global::System.StringComparison.Ordinal))
                 {
                     if (session.CurrentSnapshot.TryGetEntity(entityId, out global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.BazEntity? entity))
@@ -906,7 +906,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State
 
             if (typename?.Equals("Baz2", global::System.StringComparison.Ordinal) ?? false)
             {
-                global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
+                var entityId = _idSerializer.Parse(obj.Value);
                 if (entityId.Name.Equals("Baz2", global::System.StringComparison.Ordinal))
                 {
                     if (session.CurrentSnapshot.TryGetEntity(entityId, out global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.Baz2Entity? entity))
@@ -1028,7 +1028,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State
         {Indented = false};
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
-            global::System.String __typename = obj.GetProperty("__typename").GetString()!;
+            var __typename = obj.GetProperty("__typename").GetString()!;
             return __typename switch
             {
                 "Baz" => ParseBazEntityId(obj, __typename),
