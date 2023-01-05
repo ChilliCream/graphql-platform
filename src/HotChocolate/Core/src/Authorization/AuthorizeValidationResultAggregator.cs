@@ -39,6 +39,7 @@ internal sealed class AuthorizeValidationResultAggregator : IValidationResultAgg
 
             if (result is not AuthorizeResult.Allowed)
             {
+                context.ContextData[WellKnownContextData.HttpStatusCode] = 401;
                 context.ReportError(CreateError(result));
             }
         }

@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Authorization;
+using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Types;
 
@@ -14,6 +16,10 @@ public static class AuthorizeObjectFieldDescriptorExtensions
             throw new ArgumentNullException(nameof(descriptor));
         }
 
+        if (apply is ApplyPolicy.Validation)
+        {
+            descriptor.Extend().Context.ContextData[AuthorizationRequestPolicy] = true;
+        }
         return descriptor.Directive(new AuthorizeDirective(apply: apply));
     }
 
@@ -27,6 +33,10 @@ public static class AuthorizeObjectFieldDescriptorExtensions
             throw new ArgumentNullException(nameof(descriptor));
         }
 
+        if (apply is ApplyPolicy.Validation)
+        {
+            descriptor.Extend().Context.ContextData[AuthorizationRequestPolicy] = true;
+        }
         return descriptor.Directive(new AuthorizeDirective(policy, apply: apply));
     }
 

@@ -8,19 +8,27 @@ public sealed class ApplyPolicyType : EnumType<ApplyPolicy>
         IEnumTypeDescriptor<ApplyPolicy> descriptor)
     {
         descriptor
-            .Name("ApplyPolicy")
+            .Name(Names.ApplyPolicy)
             .BindValuesExplicitly();
 
         descriptor
             .Value(ApplyPolicy.BeforeResolver)
-            .Name("BEFORE_RESOLVER");
+            .Name(Names.BeforeResolver);
 
         descriptor
             .Value(ApplyPolicy.AfterResolver)
-            .Name("AFTER_RESOLVER");
+            .Name(Names.AfterResolver);
 
         descriptor
             .Value(ApplyPolicy.Validation)
-            .Name("VALIDATION");
+            .Name(Names.Validation);
+    }
+
+    public static class Names
+    {
+        public const string ApplyPolicy = nameof(ApplyPolicy);
+        public const string BeforeResolver = "BEFORE_RESOLVER";
+        public const string AfterResolver = "AFTER_RESOLVER";
+        public const string Validation = "VALIDATION";
     }
 }

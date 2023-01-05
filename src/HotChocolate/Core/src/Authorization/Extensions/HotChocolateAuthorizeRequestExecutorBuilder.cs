@@ -38,6 +38,27 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
         return builder;
     }
 
+    public static IRequestExecutorBuilder ModifyAuthorizationOptions(
+        this IRequestExecutorBuilder builder,
+        Action<AuthorizationOptions> configure)
+    {
+        builder.ConfigureSchema(
+            sb =>
+            {
+                const string key = WellKnownContextData.AuthorizationOptions;
+
+                if (!sb.ContextData.TryGetValue(key, out var value) ||
+                    value is not AuthorizationOptions options)
+                {
+                    options = new AuthorizationOptions();
+                    sb.ContextData.Add(key, options);
+                }
+
+                configure(options);
+            });
+        return builder;
+    }
+
     /// <summary>
     /// Adds a custom authorization handler.
     /// </summary>

@@ -27,29 +27,39 @@ internal sealed class AuthorizeMiddleware
 
     public async Task InvokeAsync(IMiddlewareContext context)
     {
-        if (_directive.Apply == ApplyPolicy.AfterResolver)
+        switch (_directive.Apply)
         {
-            await _next(context).ConfigureAwait(false);
-
-            var state = await _handler.AuthorizeAsync(context, _directive).ConfigureAwait(false);
-
-            if (state != AuthorizeResult.Allowed && !IsErrorResult(context))
-            {
-                SetError(context, state);
-            }
-        }
-        else
-        {
-            var state = await _handler.AuthorizeAsync(context, _directive).ConfigureAwait(false);
-
-            if (state == AuthorizeResult.Allowed)
+            case ApplyPolicy.AfterResolver:
             {
                 await _next(context).ConfigureAwait(false);
+
+                var state = await _handler.AuthorizeAsync(context, _directive).ConfigureAwait(false);
+
+                if (state != AuthorizeResult.Allowed && !IsErrorResult(context))
+                {
+                    SetError(context, state);
+                }
+                break;
             }
-            else
+
+            case ApplyPolicy.BeforeResolver:
             {
-                SetError(context, state);
+                var state = await _handler.AuthorizeAsync(context, _directive).ConfigureAwait(false);
+
+                if (state == AuthorizeResult.Allowed)
+                {
+                    await _next(context).ConfigureAwait(false);
+                }
+                else
+                {
+                    SetError(context, state);
+                }
+                break;
             }
+
+            default:
+                await _next(context).ConfigureAwait(false);
+                break;
         }
     }
 

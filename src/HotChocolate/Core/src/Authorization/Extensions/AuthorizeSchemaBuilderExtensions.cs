@@ -13,8 +13,11 @@ public static class AuthorizeSchemaBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
+        var type = new AuthorizeDirectiveType();
+
         return builder
-            .AddDirectiveType<AuthorizeDirectiveType>()
+            .AddDirectiveType(type)
+            .TryAddSchemaDirective(type)
             .TryAddTypeInterceptor<AuthorizationTypeInterceptor>();
     }
 }

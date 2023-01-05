@@ -20,7 +20,7 @@ internal sealed class AuthorizeValidationRule : IDocumentValidatorRule
 
     public void Validate(IDocumentValidatorContext context, DocumentNode document)
     {
-        if (context.Schema.ContextData.ContainsKey(WellKnownContextData.AuthorizationRequestPolicy))
+         if (context.Schema.ContextData.ContainsKey(WellKnownContextData.AuthorizationRequestPolicy))
         {
             if (!_cache.TryGetDirectives(context.DocumentId, out var directives))
             {

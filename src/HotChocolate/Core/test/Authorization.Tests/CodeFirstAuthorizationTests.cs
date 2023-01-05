@@ -3,7 +3,9 @@ using HotChocolate.Authorization;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
+using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.AspNetCore.Authorization;
 
@@ -13,7 +15,9 @@ public class CodeFirstAuthorizationTests
     public async Task Authorize_Person_NoAccess()
     {
         // arrange
-        var handler = new AuthHandler(AuthorizeResult.NotAllowed);
+        var handler = new AuthHandler(
+            resolver: AuthorizeResult.NotAllowed,
+            validation: AuthorizeResult.Allowed);
         var services = CreateServices(handler);
         var executor = await services.GetRequestExecutorAsync();
 
@@ -56,8 +60,8 @@ public class CodeFirstAuthorizationTests
     {
         // arrange
         var handler = new AuthHandler(
-            (_, _) => AuthorizeResult.Allowed,
-            (_, _) => AuthorizeResult.NotAllowed);
+            resolver: AuthorizeResult.Allowed,
+            validation: AuthorizeResult.NotAllowed);
         var services = CreateServices(handler);
         var executor = await services.GetRequestExecutorAsync();
 
@@ -74,25 +78,17 @@ public class CodeFirstAuthorizationTests
                   "errors": [
                     {
                       "message": "The current user is not authorized to access this resource.",
-                      "locations": [
-                        {
-                          "line": 1,
-                          "column": 3
-                        }
-                      ],
-                      "path": [
-                        "person"
-                      ],
                       "extensions": {
                         "code": "AUTH_NOT_AUTHORIZED"
                       }
                     }
-                  ],
-                  "data": {
-                    "person": null
-                  }
+                  ]
                 }
                 """);
+
+        Assert.NotNull(result.ContextData);
+        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.Equal(401, value);
     }
 
     [Fact]
@@ -100,10 +96,10 @@ public class CodeFirstAuthorizationTests
     {
         // arrange
         var handler = new AuthHandler(
-            (context, _) => context.Result is Street
+            resolver: (context, _) => context.Result is Street
                 ? AuthorizeResult.Allowed
                 : AuthorizeResult.NotAllowed,
-            (_, _) => AuthorizeResult.Allowed);
+            validation: (_, _) => AuthorizeResult.Allowed);
         var services = CreateServices(handler);
         var executor = await services.GetRequestExecutorAsync();
 
@@ -138,10 +134,10 @@ public class CodeFirstAuthorizationTests
     {
         // arrange
         var handler = new AuthHandler(
-            (context, _) => context.Result is Street
+            resolver: (context, _) => context.Result is Street
                 ? AuthorizeResult.Allowed
                 : AuthorizeResult.NotAllowed,
-            (_, _) => AuthorizeResult.Allowed);
+            validation: (_, _) => AuthorizeResult.Allowed);
         var services = CreateServices(handler);
         var executor = await services.GetRequestExecutorAsync();
 
@@ -190,7 +186,9 @@ public class CodeFirstAuthorizationTests
     public async Task Authorize_Field_Auth_Not_Allowed()
     {
         // arrange
-        var handler = new AuthHandler(AuthorizeResult.NotAllowed);
+        var handler = new AuthHandler(
+            resolver: (_, _) => AuthorizeResult.NotAllowed,
+            validation: (_, _) => AuthorizeResult.Allowed);
         var services = CreateServices(handler);
         var executor = await services.GetRequestExecutorAsync();
 
@@ -233,14 +231,330 @@ public class CodeFirstAuthorizationTests
                 """);
     }
 
-    private static IServiceProvider CreateServices(AuthHandler handler)
+    [Fact]
+    public async Task Authorize_Field_Auth_Not_Allowed_On_Validation()
+    {
+        // arrange
+        var handler = new AuthHandler(
+            resolver: (_, _) => AuthorizeResult.Allowed,
+            validation: (_, d) => d.Policy.EqualsOrdinal("READ_AUTH")
+                ? AuthorizeResult.NotAllowed
+                : AuthorizeResult.Allowed);
+        var services = CreateServices(handler);
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              thisIsAuthorizedOnValidation
+            }
+            """);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "The current user is not authorized to access this resource.",
+                      "extensions": {
+                        "code": "AUTH_NOT_AUTHORIZED"
+                      }
+                    }
+                  ]
+                }
+                """);
+
+        Assert.NotNull(result.ContextData);
+        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.Equal(401, value);
+    }
+
+    [Fact]
+    public async Task Authorize_Schema_Field()
+    {
+        // arrange
+        var handler = new AuthHandler(
+            resolver: (_, _) => AuthorizeResult.Allowed,
+            validation: (_, d) => d.Policy.EqualsOrdinal("READ_INTRO")
+                ? AuthorizeResult.NotAllowed
+                : AuthorizeResult.Allowed);
+        var services = CreateServices(
+            handler,
+            options =>
+            {
+                options.ConfigureSchemaField =
+                    descriptor =>
+                    {
+                        descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation);
+                    };
+            });
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              __schema {
+                description
+              }
+            }
+            """);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "The current user is not authorized to access this resource.",
+                      "extensions": {
+                        "code": "AUTH_NOT_AUTHORIZED"
+                      }
+                    }
+                  ]
+                }
+                """);
+
+        Assert.NotNull(result.ContextData);
+        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.Equal(401, value);
+    }
+
+    [Fact]
+    public async Task Authorize_Type_Field()
+    {
+        // arrange
+        var handler = new AuthHandler(
+            resolver: (_, _) => AuthorizeResult.Allowed,
+            validation: (_, d) => d.Policy.EqualsOrdinal("READ_INTRO")
+                ? AuthorizeResult.NotAllowed
+                : AuthorizeResult.Allowed);
+        var services = CreateServices(
+            handler,
+            options =>
+            {
+                options.ConfigureTypeField =
+                    descriptor =>
+                    {
+                        descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation);
+                    };
+            });
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              __type(name: "Query") {
+                name
+              }
+            }
+            """);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "The current user is not authorized to access this resource.",
+                      "extensions": {
+                        "code": "AUTH_NOT_AUTHORIZED"
+                      }
+                    }
+                  ]
+                }
+                """);
+
+        Assert.NotNull(result.ContextData);
+        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.Equal(401, value);
+    }
+
+    [Fact]
+    public async Task Authorize_Node_Field()
+    {
+        // arrange
+        var handler = new AuthHandler(
+            resolver: (_, _) => AuthorizeResult.Allowed,
+            validation: (_, d) => d.Policy.EqualsOrdinal("READ_NODE")
+                ? AuthorizeResult.NotAllowed
+                : AuthorizeResult.Allowed);
+        var services = CreateServices(
+            handler,
+            options =>
+            {
+                options.ConfigureNodeFields =
+                    descriptor =>
+                    {
+                        descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
+                    };
+            });
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              node(id: "abc") {
+                __typename
+              }
+            }
+            """);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "The current user is not authorized to access this resource.",
+                      "extensions": {
+                        "code": "AUTH_NOT_AUTHORIZED"
+                      }
+                    }
+                  ]
+                }
+                """);
+
+        Assert.NotNull(result.ContextData);
+        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.Equal(401, value);
+    }
+
+    [Fact]
+    public async Task Authorize_Nodes_Field()
+    {
+        // arrange
+        var handler = new AuthHandler(
+            resolver: (_, _) => AuthorizeResult.Allowed,
+            validation: (_, d) => d.Policy.EqualsOrdinal("READ_NODE")
+                ? AuthorizeResult.NotAllowed
+                : AuthorizeResult.Allowed);
+        var services = CreateServices(
+            handler,
+            options =>
+            {
+                options.ConfigureNodeFields =
+                    descriptor =>
+                    {
+                        descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
+                    };
+            });
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              nodes(ids: "abc") {
+                __typename
+              }
+            }
+            """);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "The current user is not authorized to access this resource.",
+                      "extensions": {
+                        "code": "AUTH_NOT_AUTHORIZED"
+                      }
+                    }
+                  ]
+                }
+                """);
+
+        Assert.NotNull(result.ContextData);
+        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.Equal(401, value);
+    }
+
+    [Fact]
+    public async Task Skip_Authorize_On_Node_Field()
+    {
+        // arrange
+        var handler = new AuthHandler(
+            resolver: (_, _) => AuthorizeResult.Allowed,
+            validation: (_, d) => d.Policy.EqualsOrdinal("READ_NODE")
+                ? AuthorizeResult.NotAllowed
+                : AuthorizeResult.Allowed);
+        var services = CreateServices(
+            handler,
+            options =>
+            {
+                options.ConfigureNodeFields =
+                    descriptor =>
+                    {
+                        descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
+                    };
+            });
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              nodes(ids: "abc") {
+                __typename
+              }
+            }
+            """);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "The current user is not authorized to access this resource.",
+                      "extensions": {
+                        "code": "AUTH_NOT_AUTHORIZED"
+                      }
+                    }
+                  ]
+                }
+                """);
+
+        Assert.NotNull(result.ContextData);
+        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.Equal(401, value);
+    }
+
+    private static IServiceProvider CreateServices(
+        AuthHandler handler,
+        Action<AuthorizationOptions>? configure = null)
         => new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType<QueryType>()
+            .AddGlobalObjectIdentification()
             .AddAuthorizationHandler(_ => handler)
+            .ModifyAuthorizationOptions(configure ?? (_ => { }))
             .Services
             .BuildServiceProvider();
-
 
     private sealed class QueryType : ObjectType<Query>
     {
@@ -261,6 +575,12 @@ public class CodeFirstAuthorizationTests
                 .Type<BooleanType>()
                 .Resolve(true)
                 .Authorize("READ_AUTH");
+
+            descriptor
+                .Field("thisIsAuthorizedOnValidation")
+                .Type<BooleanType>()
+                .Resolve(true)
+                .Authorize("READ_AUTH", ApplyPolicy.Validation);
         }
     }
 
@@ -269,6 +589,8 @@ public class CodeFirstAuthorizationTests
         protected override void Configure(IObjectTypeDescriptor<Person> descriptor)
         {
             descriptor.Authorize("READ_PERSON");
+            descriptor.ImplementsNode();
+            descriptor.Field("id").Resolve("abc");
         }
     }
 
@@ -282,9 +604,7 @@ public class CodeFirstAuthorizationTests
 
     private sealed class StreetType : ObjectType<Street>
     {
-        protected override void Configure(IObjectTypeDescriptor<Street> descriptor)
-        {
-        }
+        protected override void Configure(IObjectTypeDescriptor<Street> descriptor) { }
     }
 
     private sealed class CityOrStreetType : UnionType<ICityOrStreet>
@@ -302,7 +622,9 @@ public class CodeFirstAuthorizationTests
             => new("Joe");
 
         public ICityOrStreet? GetCityOrStreet(bool street)
-            => street ? new Street("Somewhere") : new City("Else");
+            => street
+                ? new Street("Somewhere")
+                : new City("Else");
     }
 
     private sealed record Person(string? Name);
@@ -315,28 +637,34 @@ public class CodeFirstAuthorizationTests
 
     private sealed class AuthHandler : IAuthorizationHandler
     {
-        private readonly Func<IMiddlewareContext, AuthorizeDirective, AuthorizeResult> _func1;
-        private readonly Func<AuthorizationContext, AuthorizeDirective, AuthorizeResult> _func2;
+        private readonly Func<IMiddlewareContext, AuthorizeDirective, AuthorizeResult> _resolver;
+        private readonly Func<AuthorizationContext, AuthorizeDirective, AuthorizeResult> _validation;
 
         public AuthHandler(AuthorizeResult result)
         {
-            _func1 = (_, _) => result;
-            _func2 = (_, _) => result;
+            _resolver = (_, _) => result;
+            _validation = (_, _) => result;
+        }
+
+        public AuthHandler(AuthorizeResult resolver, AuthorizeResult validation)
+        {
+            _resolver = (_, _) => resolver;
+            _validation = (_, _) => validation;
         }
 
         public AuthHandler(
-            Func<IMiddlewareContext, AuthorizeDirective, AuthorizeResult> func1,
-            Func<AuthorizationContext, AuthorizeDirective, AuthorizeResult> func2)
+            Func<IMiddlewareContext, AuthorizeDirective, AuthorizeResult> resolver,
+            Func<AuthorizationContext, AuthorizeDirective, AuthorizeResult> validation)
         {
-            _func1 = func1;
-            _func2 = func2;
+            _resolver = resolver;
+            _validation = validation;
         }
 
         public ValueTask<AuthorizeResult> AuthorizeAsync(
             IMiddlewareContext context,
             AuthorizeDirective directive,
             CancellationToken cancellationToken = default)
-            => new(_func1(context, directive));
+            => new(_resolver(context, directive));
 
         public ValueTask<AuthorizeResult> AuthorizeAsync(
             AuthorizationContext context,
@@ -345,7 +673,8 @@ public class CodeFirstAuthorizationTests
         {
             foreach (var directive in directives)
             {
-                var result = _func2(context, directive);
+                var result = _validation(context, directive);
+
                 if (result is not AuthorizeResult.Allowed)
                 {
                     return new(result);

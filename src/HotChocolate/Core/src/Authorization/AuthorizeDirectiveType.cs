@@ -1,11 +1,17 @@
 using System;
+using System.Collections.Generic;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
+using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.Authorization;
 
-public sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
+public sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>, ISchemaDirective
 {
     protected override void Configure(IDirectiveTypeDescriptor<AuthorizeDirective> descriptor)
     {
@@ -18,6 +24,7 @@ public sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
 
         descriptor
             .Argument(t => t.Policy)
+            .Name(Names.Policy)
             .Description(
                 "The name of the authorization policy that determines " +
                 "access to the annotated resource.")
@@ -25,6 +32,7 @@ public sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
 
         descriptor
             .Argument(t => t.Roles)
+            .Name(Names.Roles)
             .Description(
                 "Roles that are allowed to access the " +
                 "annotated resource.")
@@ -32,6 +40,7 @@ public sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
 
         descriptor
             .Argument(t => t.Apply)
+            .Name(Names.Apply)
             .Description(
                 "Defines when when the resolver shall be executed." +
                 "By default the resolver is executed after the policy " +
@@ -42,6 +51,37 @@ public sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
 
         var context = descriptor.Extend().Context;
         descriptor.Use(CreateMiddleware(context.Services));
+    }
+
+    public void ApplyConfiguration(
+        IDescriptorContext context,
+        DirectiveNode directiveNode,
+        IDefinition definition,
+        Stack<IDefinition> path)
+    {
+        if (IsValidationAuthRule(directiveNode))
+        {
+            context.ContextData[WellKnownContextData.AuthorizationRequestPolicy] = true;
+        }
+
+        static bool IsValidationAuthRule(DirectiveNode directiveNode)
+        {
+            var args = directiveNode.Arguments;
+
+            for (var i = 0; i < args.Count; i++)
+            {
+                var arg = args[i];
+
+                if (arg.Name.Value.EqualsOrdinal(Names.Apply) &&
+                    arg.Value is EnumValueNode value &&
+                    value.Value.EqualsOrdinal(ApplyPolicyType.Names.Validation))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 
     private static DirectiveMiddleware CreateMiddleware(
@@ -59,5 +99,8 @@ public sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
     public static class Names
     {
         public const string Authorize = "authorize";
+        public const string Policy = "policy";
+        public const string Roles = "roles";
+        public const string Apply = "apply";
     }
 }
