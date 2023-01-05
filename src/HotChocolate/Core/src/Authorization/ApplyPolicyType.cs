@@ -18,5 +18,9 @@ public sealed class ApplyPolicyType : EnumType<ApplyPolicy>
         descriptor
             .Value(ApplyPolicy.AfterResolver)
             .Name("AFTER_RESOLVER");
+
+        descriptor
+            .Value(ApplyPolicy.Validation)
+            .Name("VALIDATION");
     }
 }

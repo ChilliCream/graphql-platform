@@ -9,9 +9,9 @@ namespace HotChocolate.Authorization;
 internal sealed class AuthorizeValidationRule : IDocumentValidatorRule
 {
     private readonly AuthorizeValidationVisitor _visitor = new();
-    private readonly IAuthorizationCache _cache;
+    private readonly AuthorizationCache _cache;
 
-    public AuthorizeValidationRule(IAuthorizationCache cache)
+    public AuthorizeValidationRule(AuthorizationCache cache)
     {
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
     }

@@ -52,6 +52,50 @@ public class CodeFirstAuthorizationTests
     }
 
     [Fact]
+    public async Task Authorize_Query_NoAccess()
+    {
+        // arrange
+        var handler = new AuthHandler(
+            (_, _) => AuthorizeResult.Allowed,
+            (_, _) => AuthorizeResult.NotAllowed);
+        var services = CreateServices(handler);
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync("{ person { name } }");
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "The current user is not authorized to access this resource.",
+                      "locations": [
+                        {
+                          "line": 1,
+                          "column": 3
+                        }
+                      ],
+                      "path": [
+                        "person"
+                      ],
+                      "extensions": {
+                        "code": "AUTH_NOT_AUTHORIZED"
+                      }
+                    }
+                  ],
+                  "data": {
+                    "person": null
+                  }
+                }
+                """);
+    }
+
+    [Fact]
     public async Task Authorize_CityOrStreet_Skip_Auth_When_Street()
     {
         // arrange
@@ -202,6 +246,8 @@ public class CodeFirstAuthorizationTests
     {
         protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
         {
+            descriptor.Authorize("QUERY", ApplyPolicy.Validation);
+
             descriptor
                 .Field(t => t.GetPerson())
                 .Type<PersonType>();

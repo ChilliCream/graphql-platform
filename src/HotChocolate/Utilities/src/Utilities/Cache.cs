@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Utilities;
@@ -11,28 +10,28 @@ public sealed class Cache<TValue>
     private const int _minimumSize = 10;
     private readonly object _sync = new();
     private readonly ConcurrentDictionary<string, Entry> _map = new(StringComparer.Ordinal);
-    private readonly int _size;
+    private readonly int _capacity;
     private readonly int _order;
     private int _usage;
     private Entry? _head;
 
     public Cache(int size)
     {
-        _size = size < _minimumSize ? _minimumSize : size;
+        _capacity = size < _minimumSize ? _minimumSize : size;
         _order = Convert.ToInt32(size * 0.7);
     }
 
     /// <summary>
     /// Gets the maximum allowed item count that can be stored in this cache.
     /// </summary>
-    public int Size => _size;
+    public int Capacity => _capacity;
 
     /// <summary>
     /// Gets the current item count that is currently stored in this cache.
     /// </summary>
     public int Usage => _usage;
 
-    public bool TryGet(string key, [MaybeNull] out TValue value)
+    public bool TryGet(string key, out TValue? value)
     {
         if (_map.TryGetValue(key, out var entry))
         {
@@ -121,7 +120,7 @@ public sealed class Cache<TValue>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ClearSpaceForNewEntryUnsafe()
     {
-        while (_head is not null && _usage > _size)
+        while (_head is not null && _usage > _capacity)
         {
             var last = _head.Previous!;
             RemoveEntryUnsafe(last);
