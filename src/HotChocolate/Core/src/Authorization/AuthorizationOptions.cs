@@ -9,8 +9,6 @@ public class AuthorizationOptions
 
     public Action<IObjectFieldDescriptor>? ConfigureNodeFields { get; set; }
 
-    public Action<IObjectFieldDescriptor>? ConfigureTypeNameField { get; set; }
-
     public Action<IObjectFieldDescriptor>? ConfigureTypeField { get; set; }
 
     public Action<IObjectFieldDescriptor>? ConfigureSchemaField { get; set; }

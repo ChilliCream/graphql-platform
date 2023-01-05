@@ -46,26 +46,25 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         IDescriptorContext context,
         ISchemaBuilder schemaBuilder)
     {
-        schemaBuilder.SetSchema(
-            d =>
-            {
-                _schemaContextData = d.Extend().Definition.ContextData;
-            });
+        // we capture the schema context data before everything else so that we can
+        // set a marker if the authorization validation rules need to be executed.
+        schemaBuilder.SetSchema(d => _schemaContextData = d.Extend().Definition.ContextData);
     }
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
         DefinitionBase definition)
     {
-        if (completionContext.Type is ObjectType &&
-            definition is ObjectTypeDefinition objectTypeDef)
+        // we collect object types so that we can check if one of them has authorization rules.
+        switch (completionContext.Type)
         {
-            _objectTypes.Add(new ObjectTypeInfo(completionContext, objectTypeDef));
-        }
-        else if (completionContext.Type is UnionType &&
-            definition is UnionTypeDefinition unionTypeDef)
-        {
-            _unionTypes.Add(new UnionTypeInfo(completionContext, unionTypeDef));
+            case ObjectType when definition is ObjectTypeDefinition objectTypeDef:
+                _objectTypes.Add(new ObjectTypeInfo(completionContext, objectTypeDef));
+                break;
+
+            case UnionType when definition is UnionTypeDefinition unionTypeDef:
+                _unionTypes.Add(new UnionTypeInfo(completionContext, unionTypeDef));
+                break;
         }
     }
 
@@ -83,7 +82,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         {
             if (IsAuthorizedType(type.TypeDef))
             {
-                var registration = (RegisteredType)type.Context;
+                var registration = type.TypeReg;
                 var mainTypeRef = registration.TypeReference;
 
                 foreach (var reference in registration.References)
@@ -122,7 +121,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     {
         foreach (var type in _unionTypes)
         {
-            var unionTypeReg = (RegisteredType)type.Context;
+            var unionTypeReg = type.TypeReg;
             var unionTypeRef = unionTypeReg.TypeReference;
             List<ITypeReference>? authTypeRefs = null;
 
@@ -156,65 +155,118 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         {
             if (type.Context.IsQueryType ?? false)
             {
-                var options = state.Options;
-
-                foreach (var fieldDef in type.TypeDef.Fields)
-                {
-                    var contextData = fieldDef.GetContextData();
-
-                    if (fieldDef.Name.EqualsOrdinal(IntrospectionFields.TypeName))
-                    {
-                        if (options.ConfigureTypeNameField is not null)
-                        {
-                            var descriptor = ObjectFieldDescriptor.From(_context, fieldDef);
-                            options.ConfigureTypeNameField?.Invoke(descriptor);
-                            descriptor.CreateDefinition();
-                        }
-                    }
-                    else if (fieldDef.Name.EqualsOrdinal(IntrospectionFields.Type))
-                    {
-                        if (options.ConfigureTypeField is not null)
-                        {
-                            var descriptor = ObjectFieldDescriptor.From(_context, fieldDef);
-                            options.ConfigureTypeField?.Invoke(descriptor);
-                            descriptor.CreateDefinition();
-                        }
-                    }
-                    else if (fieldDef.Name.EqualsOrdinal(IntrospectionFields.Schema))
-                    {
-                        if (options.ConfigureSchemaField is not null)
-                        {
-                            var descriptor = ObjectFieldDescriptor.From(_context, fieldDef);
-                            options.ConfigureSchemaField?.Invoke(descriptor);
-                            descriptor.CreateDefinition();
-                        }
-                    }
-                    else if (contextData.ContainsKey(IsNodeField) ||
-                        contextData.ContainsKey(IsNodeField))
-                    {
-                        if (options.ConfigureNodeFields is not null)
-                        {
-                            var descriptor = ObjectFieldDescriptor.From(_context, fieldDef);
-                            options.ConfigureNodeFields?.Invoke(descriptor);
-                            descriptor.CreateDefinition();
-                        }
-                    }
-                }
+                HandleSpecialQueryFields(type, state);
             }
 
-            foreach (var fieldDef in type.TypeDef.Fields)
+            if (state.AuthTypes.Contains(type.TypeRef))
             {
-                var isNodeField = fieldDef.ContextData.ContainsKey(IsNodeField) ||
-                    fieldDef.ContextData.ContainsKey(IsNodeField);
+                CheckForValidationAuth(type);
+            }
 
-                if (fieldDef.Type is not null &&
-                    _typeLookup.TryNormalizeReference(fieldDef.Type, out var typeRef) &&
-                    state.NeedsAuth.Contains(typeRef))
+            ApplyAuthMiddleware(type, schemaServices, state);
+        }
+    }
+
+    private void HandleSpecialQueryFields(ObjectTypeInfo type, State state)
+    {
+        var options = state.Options;
+
+        foreach (var fieldDef in type.TypeDef.Fields)
+        {
+            var contextData = fieldDef.GetContextData();
+
+            if (fieldDef.Name.EqualsOrdinal(IntrospectionFields.Type))
+            {
+                if (options.ConfigureTypeField is null)
                 {
-                    var typeReg = GetTypeRegistration(typeRef);
+                    continue;
+                }
 
-                    if (typeReg.Kind is TypeKind.Object)
+                var descriptor = ObjectFieldDescriptor.From(_context, fieldDef);
+                options.ConfigureTypeField?.Invoke(descriptor);
+                descriptor.CreateDefinition();
+            }
+            else if (fieldDef.Name.EqualsOrdinal(IntrospectionFields.Schema))
+            {
+                if (options.ConfigureSchemaField is null)
+                {
+                    continue;
+                }
+
+                var descriptor = ObjectFieldDescriptor.From(_context, fieldDef);
+                options.ConfigureSchemaField?.Invoke(descriptor);
+                descriptor.CreateDefinition();
+            }
+            else if (contextData.ContainsKey(IsNodeField) ||
+                contextData.ContainsKey(IsNodeField))
+            {
+                if (options.ConfigureNodeFields is null)
+                {
+                    continue;
+                }
+
+                var descriptor = ObjectFieldDescriptor.From(_context, fieldDef);
+                options.ConfigureNodeFields?.Invoke(descriptor);
+                descriptor.CreateDefinition();
+            }
+        }
+    }
+
+    private void CheckForValidationAuth(ObjectTypeInfo type)
+    {
+        if (_schemaContextData.ContainsKey(AuthorizationRequestPolicy))
+        {
+            return;
+        }
+
+        var directives = GetOrCreateDirectives(type.TypeReg);
+        var length = directives.Count;
+        var start = directives.GetReference();
+
+        for (var i = length - 1; i >= 0; i--)
+        {
+            var directive = Unsafe.Add(ref start, i).AsValue<AuthorizeDirective>();
+
+            if (directive.Apply is ApplyPolicy.Validation)
+            {
+                _schemaContextData[AuthorizationRequestPolicy] = true;
+                return;
+            }
+        }
+    }
+
+    private void ApplyAuthMiddleware(
+        ObjectTypeInfo type,
+        IServiceProvider schemaServices,
+        State state)
+    {
+        foreach (var fieldDef in type.TypeDef.Fields)
+        {
+            var isNodeField = fieldDef.ContextData.ContainsKey(IsNodeField) ||
+                fieldDef.ContextData.ContainsKey(IsNodeField);
+
+            if (fieldDef.Type is not null &&
+                _typeLookup.TryNormalizeReference(fieldDef.Type, out var typeRef) &&
+                state.NeedsAuth.Contains(typeRef))
+            {
+                var typeReg = GetTypeRegistration(typeRef);
+
+                if (typeReg.Kind is TypeKind.Object)
+                {
+                    ApplyAuthMiddleware(
+                        fieldDef,
+                        typeReg,
+                        schemaServices,
+                        isNodeField,
+                        state.Options);
+                }
+                else if (state.AbstractToConcrete.TryGetValue(
+                    typeReg.TypeReference,
+                    out var refs))
+                {
+                    foreach (var objTypeRef in refs)
                     {
+                        typeReg = GetTypeRegistration(objTypeRef);
                         ApplyAuthMiddleware(
                             fieldDef,
                             typeReg,
@@ -222,26 +274,11 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                             isNodeField,
                             state.Options);
                     }
-                    else if (state.AbstractToConcrete.TryGetValue(
-                        typeReg.TypeReference,
-                        out var refs))
-                    {
-                        foreach (var objTypeRef in refs)
-                        {
-                            typeReg = GetTypeRegistration(objTypeRef);
-                            ApplyAuthMiddleware(
-                                fieldDef,
-                                typeReg,
-                                schemaServices,
-                                isNodeField,
-                                state.Options);
-                        }
-                    }
-                    else
-                    {
-                        // TODO : Errors
-                        throw new InvalidOperationException("should not happen!");
-                    }
+                }
+                else
+                {
+                    // TODO : Errors
+                    throw new InvalidOperationException("should not happen!");
                 }
             }
         }
@@ -500,7 +537,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         public ObjectTypeInfo(ITypeCompletionContext context, ObjectTypeDefinition typeDef)
             : base(context, typeDef)
         {
-            TypeRef = ((RegisteredType)context).TypeReference;
+            TypeRef = TypeReg.TypeReference;
         }
 
         public ITypeReference TypeRef { get; }
@@ -518,11 +555,14 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         {
             Context = context;
             TypeDef = typeDef;
+            TypeReg = (RegisteredType)context;
         }
 
         public ITypeCompletionContext Context { get; }
 
         public TDef TypeDef { get; }
+
+        public RegisteredType TypeReg { get; }
 
         public bool Equals(TypeInfo<TDef>? other)
         {

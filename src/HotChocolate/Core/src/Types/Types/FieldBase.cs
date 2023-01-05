@@ -18,6 +18,7 @@ public abstract class FieldBase<TDefinition>
 {
     private TDefinition? _definition;
     private FieldFlags _flags;
+    private IDirectiveCollection? _directives;
 
     protected FieldBase(TDefinition definition, int index)
     {
@@ -52,7 +53,25 @@ public abstract class FieldBase<TDefinition>
     public int Index { get; }
 
     /// <inheritdoc />
-    public IDirectiveCollection Directives { get; private set; }
+    public IDirectiveCollection Directives
+    {
+        get
+        {
+            if (_directives is null)
+            {
+                throw new TypeInitializationException();
+            }
+            return _directives;
+        }
+        internal set
+        {
+            if (_directives is not null)
+            {
+                throw new TypeInitializationException();
+            }
+            _directives = value;
+        }
+    }
 
     /// <inheritdoc />
     public abstract Type RuntimeType { get; }
@@ -92,7 +111,8 @@ public abstract class FieldBase<TDefinition>
         Coordinate = declaringMember is IField field
             ? new FieldCoordinate(context.Type.Name, field.Name, definition.Name)
             : new FieldCoordinate(context.Type.Name, definition.Name);
-        Directives = DirectiveCollection.CreateAndComplete(
+
+        _directives ??= DirectiveCollection.CreateAndComplete(
             context, this, definition.GetDirectives());
         Flags = definition.Flags;
     }
