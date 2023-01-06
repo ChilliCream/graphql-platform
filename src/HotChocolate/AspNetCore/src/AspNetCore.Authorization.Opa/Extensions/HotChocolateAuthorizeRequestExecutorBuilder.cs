@@ -4,7 +4,6 @@ using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.Configuration;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -57,63 +56,15 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
         return builder;
     }
 
-    public static IRequestExecutorBuilder AddOpaResultHandler<T>(
+    public static IRequestExecutorBuilder AddOpaResultHandler(
         this IRequestExecutorBuilder builder,
-        string policyPath, Func<IServiceProvider, T?>? factory = null)
-        where T : class, IPolicyResultHandler
+        string policyPath,
+        ParseResult parseResult)
     {
-        if (factory is not null)
-        {
-            builder.Services.AddSingleton(factory);
-        }
-        else
-        {
-            builder.Services.AddSingleton<T>();
-        }
-
         builder.Services
             .AddOptions<OpaOptions>()
             .Configure<IServiceProvider>(
-                (o, f) => o.PolicyResultHandlers.Add(policyPath, f.GetRequiredService<T>()));
+                (o, _) => o.PolicyResultHandlers.Add(policyPath, parseResult));
         return builder;
     }
-
-    public static IRequestExecutorBuilder AddOpaResultHandler<T>(
-        this IRequestExecutorBuilder builder,
-        string policyPath,
-        Func<PolicyResultContext<T>, Task<IOpaAuthzResult<T>>> makeDecisionFunc,
-        OnAfterResult<T>? onAllowed = null,
-        OnAfterResult<T>? onNotAllowed = null,
-        OnAfterResult<T>? onNotAuthenticated = null,
-        OnAfterResult<T>? onPolicyNotFound = null,
-        OnAfterResult<T>? onNoDefaultPolicy = null)
-        => builder.AddOpaResultHandler(policyPath,
-            f => new DelegatePolicyResultHandler<T>(
-                makeDecisionFunc,
-                f.GetRequiredService<IOptions<OpaOptions>>())
-                {
-                    OnAllowedFunc = onAllowed,
-                    OnNotAllowedFunc = onNotAllowed,
-                    OnNotAuthenticatedFunc = onNotAuthenticated,
-                    OnPolicyNotFoundFunc = onPolicyNotFound,
-                    OnNoDefaultPolicyFunc = onNoDefaultPolicy
-                });
-
-    public static IRequestExecutorBuilder AddOpaResultHandler<T>(
-        this IRequestExecutorBuilder builder,
-        string policyPath,
-        Func<PolicyResultContext<T>, IOpaAuthzResult<T>> makeDecisionFunc,
-        OnAfterResult<T>? onAllowed = null,
-        OnAfterResult<T>? onNotAllowed = null,
-        OnAfterResult<T>? onNotAuthenticated = null,
-        OnAfterResult<T>? onPolicyNotFound = null,
-        OnAfterResult<T>? onNoDefaultPolicy = null)
-        => builder.AddOpaResultHandler(
-            policyPath,
-            ctx => Task.FromResult(makeDecisionFunc(ctx)),
-            onAllowed,
-            onNotAllowed,
-            onNotAuthenticated,
-            onPolicyNotFound,
-            onNoDefaultPolicy);
 }

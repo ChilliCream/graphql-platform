@@ -24,7 +24,7 @@ public sealed class DefaultAuthorizationHandler : IAuthorizationHandler
     /// </summary>
     /// <param name="context">The current middleware context.</param>
     /// <param name="directive">The authorization directive.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="ct">The cancellation token.</param>
     /// <returns>
     /// Returns a value indicating if the current session is authorized to
     /// access the resolver data.
@@ -32,7 +32,7 @@ public sealed class DefaultAuthorizationHandler : IAuthorizationHandler
     public async ValueTask<AuthorizeResult> AuthorizeAsync(
         IMiddlewareContext context,
         AuthorizeDirective directive,
-        CancellationToken cancellationToken)
+        CancellationToken ct)
     {
         if (!TryGetAuthenticatedPrincipal(context, out var principal))
         {
@@ -60,7 +60,7 @@ public sealed class DefaultAuthorizationHandler : IAuthorizationHandler
     public async ValueTask<AuthorizeResult> AuthorizeAsync(
         AuthorizationContext context,
         IReadOnlyList<AuthorizeDirective> directives,
-        CancellationToken cancellationToken)
+        CancellationToken ct)
     {
         if (!TryGetAuthenticatedPrincipal(context, out var principal))
         {

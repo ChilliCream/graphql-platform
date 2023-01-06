@@ -38,12 +38,12 @@ public class AuthorizationAttributeTestData : IEnumerable<object[]>
                 {
                     o.Timeout = TimeSpan.FromMilliseconds(60000);
                 })
-            .AddOpaResultHandler<HasAgeDefinedResponse>(
+            .AddOpaResultHandler(
                 Policies.HasDefinedAge,
-                x => x switch
+                response => response.GetResult<HasAgeDefinedResponse>() switch
                 {
-                    { Result.Allow: true } => x.Allowed(),
-                    _ => x.NotAllowed(),
+                    { Allow: true } => AuthorizeResult.Allowed,
+                    _ => AuthorizeResult.NotAllowed,
                 });
 
     public IEnumerator<object[]> GetEnumerator()

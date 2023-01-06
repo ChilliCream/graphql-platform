@@ -4,5 +4,7 @@ namespace HotChocolate.AspNetCore.Authorization;
 
 public interface IOpaQueryRequestFactory
 {
-    QueryRequest CreateRequest(AuthorizationContext context, AuthorizeDirective directive);
+    OpaQueryRequest CreateRequest(
+        AuthorizationContext context,
+        AuthorizeDirective directive);
 }

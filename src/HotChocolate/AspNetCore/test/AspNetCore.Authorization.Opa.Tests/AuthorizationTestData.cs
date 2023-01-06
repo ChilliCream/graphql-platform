@@ -1,4 +1,5 @@
 using System.Collections;
+using HotChocolate.Authorization;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,14 +9,18 @@ namespace HotChocolate.AspNetCore.Authorization;
 public class HasAgeDefinedResponse
 {
     public bool Allow { get; set; }
+
     public Claims Claims { get; set; }
 }
 
 public class Claims
 {
     public string Birthdate { get; set; }
+
     public long Iat { get; set; }
+
     public string Name { get; set; }
+
     public string Sub { get; set; }
 }
 
@@ -43,16 +48,18 @@ public class AuthorizationTestData : IEnumerable<object[]>
     private Action<IRequestExecutorBuilder> CreateSchema() =>
         sb => sb
             .AddDocumentFromString(SchemaCode)
-            .AddOpaAuthorization((_, o) =>
-            {
-                o.Timeout = TimeSpan.FromMilliseconds(60000);
-            })
-            .AddOpaResultHandler<HasAgeDefinedResponse>(Policies.HasDefinedAge,
-               x => x switch
-               {
-                   { Result.Allow: true } => x.Allowed(),
-                   _ => x.NotAllowed(),
-               })
+            .AddOpaAuthorization(
+                (_, o) =>
+                {
+                    o.Timeout = TimeSpan.FromMilliseconds(60000);
+                })
+            .AddOpaResultHandler(
+                Policies.HasDefinedAge,
+                response => response.GetResult<HasAgeDefinedResponse>() switch
+                {
+                    { Allow: true } => AuthorizeResult.Allowed,
+                    _ => AuthorizeResult.NotAllowed,
+                })
             .UseField(_schemaMiddleware);
 
     private Action<IRequestExecutorBuilder> CreateSchemaWithBuilder() =>
@@ -63,11 +70,12 @@ public class AuthorizationTestData : IEnumerable<object[]>
                 {
                     o.Timeout = TimeSpan.FromMilliseconds(60000);
                 })
-            .AddOpaResultHandler<HasAgeDefinedResponse>(Policies.HasDefinedAge,
-                x => x switch
+            .AddOpaResultHandler(
+                Policies.HasDefinedAge,
+                response => response.GetResult<HasAgeDefinedResponse>() switch
                 {
-                    { Result.Allow: true } => x.Allowed(),
-                    _ => x.NotAllowed(),
+                    { Allow: true } => AuthorizeResult.Allowed,
+                    _ => AuthorizeResult.NotAllowed,
                 })
             .UseField(_schemaMiddleware);
 

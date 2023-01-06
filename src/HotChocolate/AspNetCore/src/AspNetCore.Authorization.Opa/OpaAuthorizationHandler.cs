@@ -1,12 +1,11 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Net.Http;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Authorization;
-using HotChocolate.Execution;
 using HotChocolate.Resolvers;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace HotChocolate.AspNetCore.Authorization;
@@ -14,14 +13,33 @@ namespace HotChocolate.AspNetCore.Authorization;
 /// <summary>
 /// An implementation that delegates auth to OPA (Open Policy Agent) REST API endpoint
 /// </summary>
-public sealed class OpaAuthorizationHandler : IAuthorizationHandler
+internal sealed class OpaAuthorizationHandler : IAuthorizationHandler
 {
+    private readonly IOpaService _opaService;
+    private readonly IOpaQueryRequestFactory _requestFactory;
+    private readonly OpaOptions _options;
+
+    public OpaAuthorizationHandler(
+        IOpaService opaService,
+        IOpaQueryRequestFactory requestFactory,
+        IOptions<OpaOptions> options)
+    {
+        if (options is null)
+        {
+            throw new ArgumentNullException(nameof(options));
+        }
+
+        _opaService = opaService ?? throw new ArgumentNullException(nameof(opaService));
+        _requestFactory = requestFactory ?? throw new ArgumentNullException(nameof(requestFactory));
+        _options = options.Value;
+    }
+
     /// <summary>
     /// Authorize current directive using OPA (Open Policy Agent).
     /// </summary>
     /// <param name="context">The current middleware context.</param>
     /// <param name="directive">The authorization directive.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="ct">The cancellation token.</param>
     /// <returns>
     /// Returns a value indicating if the current session is authorized to
     /// access the resolver data.
@@ -29,78 +47,87 @@ public sealed class OpaAuthorizationHandler : IAuthorizationHandler
     public async ValueTask<AuthorizeResult> AuthorizeAsync(
         IMiddlewareContext context,
         AuthorizeDirective directive,
-        CancellationToken cancellationToken)
+        CancellationToken ct)
     {
-        var opa = context.Services.GetRequiredService<IOpaService>();
-        var factory = context.Services.GetRequiredService<IOpaQueryRequestFactory>();
-        var options = context.Services.GetRequiredService<IOptions<OpaOptions>>();
-
-        var path = directive.Policy ?? string.Empty;
-        var request = factory.CreateRequest(context, directive);
-
-        var response = await opa.QueryAsync(path, request, cancellationToken).ConfigureAwait(false);
-
-        if (response is null)
-        {
-            throw new InvalidOperationException("Opa response must not be null");
-        }
-
-        return await options.Value.GetResultHandlerFor(path)
-            .HandleAsync(path, httpResponse, context)
-            .ConfigureAwait(false);
+        var authorizationContext = new AuthorizationContext(
+            context.Schema,
+            context.Services,
+            context.ContextData,
+            context.Operation.Document,
+            context.Operation.Id);
+        return await AuthorizeAsync(authorizationContext, directive, ct).ConfigureAwait(false);
     }
 
     public async ValueTask<AuthorizeResult> AuthorizeAsync(
         AuthorizationContext context,
         IReadOnlyList<AuthorizeDirective> directives,
-        CancellationToken cancellationToken)
+        CancellationToken ct)
     {
-        var opaService = context.Services.GetRequiredService<IOpaService>();
-        var factory = context.Services.GetRequiredService<IOpaQueryRequestFactory>();
-        var options = context.Services.GetRequiredService<IOptions<OpaOptions>>();
-
-        foreach (var directive in directives)
+        if (directives.Count == 1)
         {
-            var policyPath = directive.Policy ?? string.Empty;
+            return await AuthorizeAsync(context, directives[0], ct).ConfigureAwait(false);
+        }
 
-            var httpResponse = await opaService.QueryAsync(
-                    policyPath,
-                    factory.CreateRequest(context, directive),
-                    cancellationToken)
-                .ConfigureAwait(false);
+        var tasks = Partitioner.Create(directives)
+            .GetPartitions(2)
+            .Select(partition => ExecuteAsync(context, partition, AuthorizeAsync, ct))
+            .ToArray();
 
-            if (httpResponse is null)
+        var first = await Task.WhenAny(tasks).ConfigureAwait(false);
+        var firstResult = await first;
+
+        if (firstResult is not AuthorizeResult.Allowed)
+        {
+            return firstResult;
+        }
+
+        foreach (var task in tasks)
+        {
+            var result = await task.ConfigureAwait(false);
+
+            if (result is not AuthorizeResult.Allowed)
             {
-                throw new InvalidOperationException("Opa response must not be null");
+                return result;
+            }
+        }
+
+        return AuthorizeResult.Allowed;
+
+        static async Task<AuthorizeResult> ExecuteAsync(
+            AuthorizationContext context,
+            IEnumerator<AuthorizeDirective> partition,
+            Authorize authorize,
+            CancellationToken ct)
+        {
+            while (partition.MoveNext() && partition.Current is not null)
+            {
+                var directive = partition.Current;
+                var result = await authorize(context, directive, ct).ConfigureAwait(false);
+
+                if (result is not AuthorizeResult.Allowed)
+                {
+                    return result;
+                }
             }
 
-            return await options.Value.GetResultHandlerFor(policyPath)
-                .HandleAsync(policyPath, httpResponse, context)
-                .ConfigureAwait(false);
+            return AuthorizeResult.Allowed;
         }
     }
 
-    private static async ValueTask<AuthorizeResult> AuthorizeAsync(
+    private async ValueTask<AuthorizeResult> AuthorizeAsync(
         AuthorizationContext context,
-        IOpaService opa,
-        IOpaQueryRequestFactory requestFactory,
-        IOptions<OpaOptions> options,
         AuthorizeDirective directive,
-        CancellationToken cancellationToken)
+        CancellationToken ct)
     {
-        var request = requestFactory.CreateRequest(context, directive);
-
+        var request = _requestFactory.CreateRequest(context, directive);
         var path = directive.Policy ?? string.Empty;
-        var response = await opa.QueryAsync(path, request, cancellationToken).ConfigureAwait(false);
-
-        if (response is null)
-        {
-            throw new InvalidOperationException("Opa response must not be null");
-        }
-
-        return await options.Value
-            .GetResultHandlerFor(path)
-            .HandleAsync(path, response, context)
-            .ConfigureAwait(false);
+        var response = await _opaService.QueryAsync(path, request, ct).ConfigureAwait(false);
+        var parseResult = _options.GetPolicyResultParser(path);
+        return parseResult(response);
     }
+
+    private delegate ValueTask<AuthorizeResult> Authorize(
+        AuthorizationContext context,
+        AuthorizeDirective directive,
+        CancellationToken ct);
 }

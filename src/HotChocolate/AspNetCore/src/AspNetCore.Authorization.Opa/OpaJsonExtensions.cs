@@ -11,7 +11,7 @@ namespace HotChocolate.AspNetCore.Authorization;
 internal static class OpaJsonExtensions
 {
     internal static HttpContent ToJsonContent(
-        this QueryRequest request,
+        this OpaQueryRequest request,
         JsonSerializerOptions options)
     {
 #if NET6_0

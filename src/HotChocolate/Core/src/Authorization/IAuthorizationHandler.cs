@@ -1,9 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Authorization;
@@ -23,7 +21,7 @@ public interface IAuthorizationHandler
     /// <param name="directive">
     /// The authorization directive.
     /// </param>
-    /// <param name="cancellationToken">
+    /// <param name="ct">
     /// The cancellation token.
     /// </param>
     /// <returns>
@@ -33,7 +31,7 @@ public interface IAuthorizationHandler
     ValueTask<AuthorizeResult> AuthorizeAsync(
         IMiddlewareContext context,
         AuthorizeDirective directive,
-        CancellationToken cancellationToken = default);
+        CancellationToken ct = default);
 
     /// <summary>
     /// Executes the authorization validation for the specified <paramref name="directives"/>.
@@ -44,7 +42,7 @@ public interface IAuthorizationHandler
     /// <param name="directives">
     /// The authorization directives.
     /// </param>
-    /// <param name="cancellationToken">
+    /// <param name="ct">
     /// The cancellation token.
     /// </param>
     /// <returns>
@@ -54,27 +52,5 @@ public interface IAuthorizationHandler
     ValueTask<AuthorizeResult> AuthorizeAsync(
         AuthorizationContext context,
         IReadOnlyList<AuthorizeDirective> directives,
-        CancellationToken cancellationToken = default);
-}
-
-public sealed class AuthorizationContext
-{
-    public AuthorizationContext(ISchema schema, IServiceProvider services, IDictionary<string, object?> contextData, DocumentNode document, string documentId)
-    {
-        Schema = schema;
-        Services = services;
-        ContextData = contextData;
-        Document = document;
-        DocumentId = documentId;
-    }
-
-    public ISchema Schema { get; }
-
-    public IServiceProvider Services { get; }
-
-    public IDictionary<string, object?> ContextData { get; }
-
-    public DocumentNode Document { get; }
-
-    public string DocumentId { get; }
+        CancellationToken ct = default);
 }

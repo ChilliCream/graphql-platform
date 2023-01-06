@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using HotChocolate.Authorization;
 
 namespace HotChocolate.AspNetCore.Authorization;
 
@@ -17,9 +18,9 @@ public sealed class OpaOptions
 
     public JsonSerializerOptions JsonSerializerOptions { get; set; } = new();
 
-    public Dictionary<string, IPolicyResultHandler> PolicyResultHandlers { get; } = new();
+    public Dictionary<string, ParseResult> PolicyResultHandlers { get; } = new();
 
-    public PolicyResultHandler GetResultHandlerFor(string policyPath)
+    public ParseResult GetPolicyResultParser(string policyPath)
     {
         if (PolicyResultHandlers.TryGetValue(policyPath, out var handler))
         {
@@ -44,3 +45,5 @@ public sealed class OpaOptions
                 $"No result handler found for policy: {policyPath}");
     }
 }
+
+public delegate AuthorizeResult ParseResult(OpaQueryResponse response);
