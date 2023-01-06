@@ -87,7 +87,7 @@ public sealed class DocumentValidator : IDocumentValidator
             throw new ArgumentNullException(nameof(documentId));
         }
 
-        if (onlyNonCacheable && (_nonCacheableRules.Length == 0 || _aggregators.Length == 0))
+        if (onlyNonCacheable && _nonCacheableRules.Length == 0 && _aggregators.Length == 0)
         {
             return new(DocumentValidatorResult.Ok);
         }
@@ -102,9 +102,9 @@ public sealed class DocumentValidator : IDocumentValidator
 
             var length = rules.Length;
 #if NET6_0_OR_GREATER
-            ref var start = ref MemoryMarshal.GetArrayDataReference(_allRules);
+            ref var start = ref MemoryMarshal.GetArrayDataReference(rules);
 #else
-            ref var start = ref MemoryMarshal.GetReference(_allRules.AsSpan());
+            ref var start = ref MemoryMarshal.GetReference(rules.AsSpan());
 #endif
 
             for (var i = 0; i < length; i++)

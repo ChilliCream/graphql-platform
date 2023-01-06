@@ -97,6 +97,14 @@ public sealed class Directive
                     }
                 }
             }
+            else if (argumentDefinition.DefaultValue is null &&
+                argumentValue.Value.Kind is SyntaxKind.NullValue)
+            {
+                if (rewrittenArguments is null)
+                {
+                    rewrittenArguments ??= new ArgumentNode[_syntaxNode.Arguments.Count];
+                }
+            }
             else if (rewrittenArguments is not null)
             {
                 rewrittenArguments[index++] = arguments[i];

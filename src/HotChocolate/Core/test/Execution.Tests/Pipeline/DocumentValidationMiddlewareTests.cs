@@ -84,7 +84,9 @@ public class DocumentValidationMiddlewareTests
         var requestContext = new Mock<IRequestContext>();
         requestContext.SetupGet(t => t.Request).Returns(request);
         requestContext.SetupGet(t => t.Schema).Returns(default(ISchema));
+        requestContext.SetupGet(t => t.ContextData).Returns(new Dictionary<string, object>());
         requestContext.SetupProperty(t => t.Document, document);
+        requestContext.SetupProperty(t => t.DocumentId, "abc");
         requestContext.SetupProperty(t => t.ValidationResult, validationResult);
 
         // act
@@ -126,6 +128,7 @@ public class DocumentValidationMiddlewareTests
         requestContext.SetupGet(t => t.Schema).Returns(default(ISchema));
         requestContext.SetupGet(t => t.ContextData).Returns(new Dictionary<string, object>());
         requestContext.SetupProperty(t => t.Document, document);
+        requestContext.SetupProperty(t => t.DocumentId, "abc");
         requestContext.SetupProperty(t => t.ValidationResult);
 
         // act
@@ -169,6 +172,7 @@ public class DocumentValidationMiddlewareTests
         requestContext.SetupGet(t => t.Schema).Returns(default(ISchema));
         requestContext.SetupGet(t => t.ContextData).Returns(new Dictionary<string, object>());
         requestContext.SetupProperty(t => t.Document, document);
+        requestContext.SetupProperty(t => t.DocumentId, "abc");
         requestContext.SetupProperty(t => t.ValidationResult);
         requestContext.SetupProperty(t => t.Result);
 
