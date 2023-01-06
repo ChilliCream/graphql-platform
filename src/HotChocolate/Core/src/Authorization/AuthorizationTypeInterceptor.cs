@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+#if NET6_0_OR_GREATER
 using System.Runtime.InteropServices;
+#endif
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -22,7 +24,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     private readonly Dictionary<ObjectType, IDirectiveCollection> _directives = new();
     private readonly HashSet<ITypeReference> _completedTypeRefs = new();
     private readonly HashSet<RegisteredType> _completedTypes = new();
-    private State? _state = null;
+    private State? _state;
 
     private IDescriptorContext _context = default!;
     private TypeInitializer _typeInitializer = default!;
@@ -563,12 +565,9 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     {
         protected TypeInfo(ITypeCompletionContext context, TDef typeDef)
         {
-            Context = context;
             TypeDef = typeDef;
             TypeReg = (RegisteredType)context;
         }
-
-        public ITypeCompletionContext Context { get; }
 
         public TDef TypeDef { get; }
 

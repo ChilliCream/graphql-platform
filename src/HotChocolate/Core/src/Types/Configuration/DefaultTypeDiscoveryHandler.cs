@@ -25,7 +25,6 @@ internal sealed class DefaultTypeDiscoveryHandler : TypeDiscoveryHandler
     {
         ITypeReference? schemaType;
 
-
         if (typeInfo.IsStatic)
         {
             if (IsStaticObjectTypeExtension(typeInfo))

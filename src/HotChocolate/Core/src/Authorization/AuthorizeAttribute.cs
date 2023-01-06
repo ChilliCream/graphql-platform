@@ -2,18 +2,33 @@ using System;
 using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Authorization;
 
 [AttributeUsage(
-    AttributeTargets.Class
-    | AttributeTargets.Struct
-    | AttributeTargets.Property
-    | AttributeTargets.Method,
-    Inherited = true,
+    AttributeTargets.Class |
+    AttributeTargets.Struct |
+    AttributeTargets.Property |
+    AttributeTargets.Method,
     AllowMultiple = true)]
 public class AuthorizeAttribute : DescriptorAttribute
 {
+    public AuthorizeAttribute()
+    {
+    }
+
+    public AuthorizeAttribute(string policy)
+    {
+        Policy = policy;
+    }
+
+    public AuthorizeAttribute(string policy, ApplyPolicy apply)
+    {
+        Policy = policy;
+        Apply = apply;
+    }
+
     public string? Policy { get; set; }
 
     public string[]? Roles { get; set; }
@@ -31,6 +46,11 @@ public class AuthorizeAttribute : DescriptorAttribute
         }
         else if (descriptor is IObjectFieldDescriptor field)
         {
+            if (Apply is ApplyPolicy.Validation)
+            {
+                field.Extend().Context.ContextData[AuthorizationRequestPolicy] = true;
+            }
+
             field.Directive(CreateDirective());
         }
     }
@@ -39,20 +59,14 @@ public class AuthorizeAttribute : DescriptorAttribute
     {
         if (Policy is not null)
         {
-            return new AuthorizeDirective(
-                Policy,
-                apply: Apply);
+            return new AuthorizeDirective(Policy, apply: Apply);
         }
-        else if (Roles is not null)
+
+        if (Roles is not null)
         {
-            return new AuthorizeDirective(
-                Roles,
-                apply: Apply);
+            return new AuthorizeDirective(Roles, apply: Apply);
         }
-        else
-        {
-            return new AuthorizeDirective(
-                apply: Apply);
-        }
+
+        return new AuthorizeDirective(apply: Apply);
     }
 }

@@ -3,13 +3,14 @@ using HotChocolate.Authorization;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.AspNetCore.Authorization;
 
-public class CodeFirstAuthorizationTests
+public class AnnotationBasedAuthorizationTests
 {
     [Fact]
     public async Task Authorize_Person_NoAccess()
@@ -22,7 +23,14 @@ public class CodeFirstAuthorizationTests
         var executor = await services.GetRequestExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync("{ person { name } }");
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              person(id: "UGVyc29uCmRhYmM=") {
+                name
+              }
+            }
+            """);
 
         // assert
         Snapshot
@@ -36,7 +44,7 @@ public class CodeFirstAuthorizationTests
                       "message": "The current user is not authorized to access this resource.",
                       "locations": [
                         {
-                          "line": 1,
+                          "line": 2,
                           "column": 3
                         }
                       ],
@@ -66,7 +74,14 @@ public class CodeFirstAuthorizationTests
         var executor = await services.GetRequestExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync("{ person { name } }");
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              person(id: "UGVyc29uCmRhYmM=") {
+                name
+              }
+            }
+            """);
 
         // assert
         Snapshot
@@ -490,96 +505,106 @@ public class CodeFirstAuthorizationTests
         Assert.Equal(401, value);
     }
 
+    [Fact]
+    public async Task Skip_Authorize_On_Node_Field()
+    {
+        // arrange
+        var handler = new AuthHandler(
+            resolver: (_, _) => AuthorizeResult.Allowed,
+            validation: (_, d) => d.Policy.EqualsOrdinal("READ_NODE")
+                ? AuthorizeResult.NotAllowed
+                : AuthorizeResult.Allowed);
+        var services = CreateServices(
+            handler,
+            options =>
+            {
+                options.ConfigureNodeFields =
+                    descriptor =>
+                    {
+                        descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
+                    };
+            });
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              nodes(ids: "abc") {
+                __typename
+              }
+            }
+            """);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "The current user is not authorized to access this resource.",
+                      "extensions": {
+                        "code": "AUTH_NOT_AUTHORIZED"
+                      }
+                    }
+                  ]
+                }
+                """);
+
+        Assert.NotNull(result.ContextData);
+        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.Equal(401, value);
+    }
+
     private static IServiceProvider CreateServices(
         AuthHandler handler,
         Action<AuthorizationOptions>? configure = null)
         => new ServiceCollection()
             .AddGraphQLServer()
-            .AddQueryType<QueryType>()
+            .AddQueryType<Query>()
+            .AddUnionType<ICityOrStreet>()
+            .AddType<Street>()
+            .AddType<City>()
             .AddGlobalObjectIdentification()
             .AddAuthorizationHandler(_ => handler)
             .ModifyAuthorizationOptions(configure ?? (_ => { }))
             .Services
             .BuildServiceProvider();
 
-    private sealed class QueryType : ObjectType<Query>
+    [Authorize("QUERY", ApplyPolicy.Validation)]
+    public  sealed class Query
     {
-        protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
-        {
-            descriptor.Authorize("QUERY", ApplyPolicy.Validation);
-
-            descriptor
-                .Field(t => t.GetPerson())
-                .Type<PersonType>();
-
-            descriptor
-                .Field(t => t.GetCityOrStreet(default))
-                .Type<CityOrStreetType>();
-
-            descriptor
-                .Field("thisIsAuthorized")
-                .Type<BooleanType>()
-                .Resolve(true)
-                .Authorize("READ_AUTH");
-
-            descriptor
-                .Field("thisIsAuthorizedOnValidation")
-                .Type<BooleanType>()
-                .Resolve(true)
-                .Authorize("READ_AUTH", ApplyPolicy.Validation);
-        }
-    }
-
-    private sealed class PersonType : ObjectType<Person>
-    {
-        protected override void Configure(IObjectTypeDescriptor<Person> descriptor)
-        {
-            descriptor.Authorize("READ_PERSON");
-            descriptor.ImplementsNode();
-            descriptor.Field("id").Resolve("abc");
-        }
-    }
-
-    private sealed class CityType : ObjectType<City>
-    {
-        protected override void Configure(IObjectTypeDescriptor<City> descriptor)
-        {
-            descriptor.Authorize("READ_CITY", apply: ApplyPolicy.AfterResolver);
-        }
-    }
-
-    private sealed class StreetType : ObjectType<Street>
-    {
-        protected override void Configure(IObjectTypeDescriptor<Street> descriptor) { }
-    }
-
-    private sealed class CityOrStreetType : UnionType<ICityOrStreet>
-    {
-        protected override void Configure(IUnionTypeDescriptor descriptor)
-        {
-            descriptor.Type<CityType>();
-            descriptor.Type<StreetType>();
-        }
-    }
-
-    private sealed class Query
-    {
-        public Person? GetPerson()
-            => new("Joe");
+        [NodeResolver]
+        public Person? GetPerson(string id)
+            => new(id, "Joe");
 
         public ICityOrStreet? GetCityOrStreet(bool street)
             => street
                 ? new Street("Somewhere")
                 : new City("Else");
+
+        [Authorize("READ_AUTH")]
+        public bool? ThisIsAuthorized() => true;
+
+        [Authorize("READ_AUTH", ApplyPolicy.Validation)]
+        public bool? ThisIsAuthorizedOnValidation() => true;
+
+        [ID(nameof(Person))] public string Test() => "abc";
     }
 
-    private sealed record Person(string? Name);
+    [Authorize("READ_PERSON")]
+    public  sealed record Person(string Id, string? Name);
 
-    private sealed record Street(string? Value) : ICityOrStreet;
+    public  sealed record Street(string? Value) : ICityOrStreet;
 
-    private sealed record City(string? Value) : ICityOrStreet;
+    [Authorize("READ_CITY", Apply = ApplyPolicy.AfterResolver)]
+    public  sealed record City(string? Value) : ICityOrStreet;
 
-    private interface ICityOrStreet { }
+    [UnionType]
+    public interface ICityOrStreet { }
 
     private sealed class AuthHandler : IAuthorizationHandler
     {
