@@ -1,6 +1,6 @@
 {
   "data": {
-    "__typename": "Query",
+    "__typename": "QUERY",
     "a": "a"
   }
 }

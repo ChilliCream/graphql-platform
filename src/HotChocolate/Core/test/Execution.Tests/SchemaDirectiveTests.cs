@@ -12,8 +12,7 @@ public class SchemaDirectiveTests
         var schema = CreateSchema();
 
         // act
-        var result =
-            schema.MakeExecutable().Execute("{ person { phone } }");
+        var result = schema.MakeExecutable().Execute("{ person { phone } }");
 
         // assert
         result.MatchSnapshot();
@@ -39,9 +38,7 @@ public class SchemaDirectiveTests
         var schema = CreateSchema();
 
         // act
-        var result =
-            schema.MakeExecutable().Execute(
-                "{ person { name @c(append:\"Baz\") } }");
+        var result = schema.MakeExecutable().Execute("{ person { name @c(append:\"Baz\") } }");
 
         // assert
         result.MatchSnapshot();
@@ -59,9 +56,7 @@ public class SchemaDirectiveTests
             .Create();
 
         // act
-        var result =
-            schema.MakeExecutable().Execute(
-                "{ a @lower @upper b: a @upper @lower }");
+        var result = schema.MakeExecutable().Execute("{ a @lower @upper b: a @upper @lower }");
 
         // assert
         result.MatchSnapshot();
@@ -70,7 +65,6 @@ public class SchemaDirectiveTests
     public static ISchema CreateSchema()
         => SchemaBuilder.New()
             .AddDirectiveType<ResolveDirective>()
-            .AddDirectiveType<ADirectiveType>()
             .AddDirectiveType<BDirectiveType>()
             .AddDirectiveType<CDirectiveType>()
             .AddDirectiveType<UpperCaseDirectiveType>()
@@ -93,33 +87,12 @@ public class SchemaDirectiveTests
 
     public class PersonType : ObjectType<Person>
     {
-        protected override void Configure(
-            IObjectTypeDescriptor<Person> descriptor)
+        protected override void Configure(IObjectTypeDescriptor<Person> descriptor)
         {
             descriptor.Directive(new Resolve());
-            descriptor.Directive(new ADirective { Append = "Foo" });
-            descriptor.Field(t => t.Name)
-                .Directive(new BDirective { Append = "Bar" });
+            descriptor.Field(t => t.Name).Directive(new BDirective { Append = "Bar" });
         }
     }
-
-    public class ADirectiveType : DirectiveType<ADirective>
-    {
-        protected override void Configure(IDirectiveTypeDescriptor<ADirective> descriptor)
-        {
-            descriptor.Name("a");
-            descriptor.Location(DirectiveLocation.Object);
-            descriptor.Location(DirectiveLocation.Interface);
-            descriptor.Location(DirectiveLocation.FieldDefinition);
-            descriptor.Use((next, directive) => context =>
-            {
-                var s = directive.AsValue<ADirective>().Append;
-                context.Result += s;
-                return next.Invoke(context);
-            });
-        }
-    }
-
 
     public class BDirectiveType : DirectiveType<BDirective>
     {
@@ -127,14 +100,14 @@ public class SchemaDirectiveTests
             IDirectiveTypeDescriptor<BDirective> descriptor)
         {
             descriptor.Name("b");
-            descriptor.Location(DirectiveLocation.Object);
             descriptor.Location(DirectiveLocation.Interface);
             descriptor.Location(DirectiveLocation.FieldDefinition);
-            descriptor.Use((next, directive) => context =>
+            descriptor.Use((next, directive) => async context =>
             {
+                await next.Invoke(context);
+
                 var s = directive.AsValue<BDirective>().Append;
                 context.Result += s;
-                return next.Invoke(context);
             });
         }
     }
@@ -146,11 +119,12 @@ public class SchemaDirectiveTests
         {
             descriptor.Name("c");
             descriptor.Location(DirectiveLocation.Field);
-            descriptor.Use((_, directive) => context =>
+            descriptor.Use((next, directive) => async context =>
             {
+                await next.Invoke(context);
+
                 var s = directive.AsValue<CDirective>().Append;
                 context.Result += s;
-                return default;
             });
         }
     }
@@ -181,8 +155,7 @@ public class SchemaDirectiveTests
 
     public class LowerCaseDirectiveType : DirectiveType
     {
-        protected override void Configure(
-            IDirectiveTypeDescriptor descriptor)
+        protected override void Configure(IDirectiveTypeDescriptor descriptor)
         {
             descriptor.Name("lower");
             descriptor.Location(DirectiveLocation.Field
@@ -225,9 +198,7 @@ public class SchemaDirectiveTests
 
             descriptor.Use((next, _) => async context =>
             {
-                context.Result = await context.ResolveAsync<object>()
-                    .ConfigureAwait(false);
-
+                context.Result = await context.ResolveAsync<object>().ConfigureAwait(false);
                 await next.Invoke(context).ConfigureAwait(false);
             });
 

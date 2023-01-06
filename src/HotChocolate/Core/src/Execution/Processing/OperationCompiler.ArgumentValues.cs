@@ -209,7 +209,7 @@ public sealed partial class OperationCompiler
             var directiveNode = selection.Directives[i];
             if (schema.TryGetDirectiveType(directiveNode.Name.Value, out var directiveType)
                 && directiveType.Middleware is not null
-                && (directiveType.IsRepeatable || !processed.Add(directiveType.Name)))
+                && (directiveType.IsRepeatable || processed.Add(directiveType.Name)))
             {
                 var directive = new Directive(
                     directiveType,

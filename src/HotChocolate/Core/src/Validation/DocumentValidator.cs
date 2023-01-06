@@ -87,7 +87,7 @@ public sealed class DocumentValidator : IDocumentValidator
             throw new ArgumentNullException(nameof(documentId));
         }
 
-        if (onlyNonCacheable && _nonCacheableRules.Length == 0 && _aggregators.Length == 0)
+        if (onlyNonCacheable && (_nonCacheableRules.Length == 0 || _aggregators.Length == 0))
         {
             return new(DocumentValidatorResult.Ok);
         }
