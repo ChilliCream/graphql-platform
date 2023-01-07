@@ -153,7 +153,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubN
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * OnReview.GetHashCode();
                 return hash;
             }
@@ -224,7 +224,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubN
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * __typename.GetHashCode();
                 hash ^= 397 * Stars.GetHashCode();
                 if (Commentary != null)

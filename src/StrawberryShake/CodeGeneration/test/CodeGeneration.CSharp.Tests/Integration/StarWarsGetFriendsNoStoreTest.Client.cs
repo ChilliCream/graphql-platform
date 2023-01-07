@@ -153,7 +153,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNo
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 if (Hero != null)
                 {
                     hash ^= 397 * Hero.GetHashCode();
@@ -222,7 +222,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNo
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 if (Friends != null)
                 {
@@ -292,7 +292,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNo
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 if (Friends != null)
                 {
@@ -365,7 +365,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNo
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 if (Nodes != null)
                 {
                     foreach (var Nodes_elm in Nodes)
@@ -437,7 +437,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNo
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 return hash;
             }
@@ -499,7 +499,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNo
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 return hash;
             }
@@ -799,7 +799,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNo
             }
 
             var characters = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNoStore.IGetHero_Hero_Friends_Nodes?>();
-            foreach (var child in list)
+            foreach (global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNoStore.State.ICharacterData? child in list)
             {
                 characters.Add(MapIGetHero_Hero_Friends_Nodes(child));
             }
@@ -929,7 +929,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNo
             }
 
             var characters = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNoStore.State.ICharacterData?>();
-            foreach (var child in obj.Value.EnumerateArray())
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
                 characters.Add(Deserialize_ICharacterData(child));
             }

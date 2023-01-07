@@ -160,7 +160,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * __schema.GetHashCode();
                 return hash;
             }
@@ -252,7 +252,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * QueryType.GetHashCode();
                 if (MutationType != null)
                 {
@@ -339,7 +339,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 if (Name != null)
                 {
                     hash ^= 397 * Name.GetHashCode();
@@ -410,7 +410,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 if (Name != null)
                 {
                     hash ^= 397 * Name.GetHashCode();
@@ -481,7 +481,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 if (Name != null)
                 {
                     hash ^= 397 * Name.GetHashCode();
@@ -573,7 +573,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Kind.GetHashCode();
                 if (Name != null)
                 {
@@ -705,7 +705,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 if (Description != null)
                 {
@@ -798,7 +798,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 if (Description != null)
                 {
@@ -892,7 +892,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 if (Description != null)
                 {
@@ -976,7 +976,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Kind.GetHashCode();
                 if (Name != null)
                 {
@@ -1060,7 +1060,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 if (Description != null)
                 {
@@ -1144,7 +1144,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Kind.GetHashCode();
                 if (Name != null)
                 {
@@ -1231,7 +1231,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 if (Description != null)
                 {
@@ -1319,7 +1319,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 if (Description != null)
                 {
@@ -1403,7 +1403,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Kind.GetHashCode();
                 if (Name != null)
                 {
@@ -1486,7 +1486,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Kind.GetHashCode();
                 if (Name != null)
                 {
@@ -1569,7 +1569,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Kind.GetHashCode();
                 if (Name != null)
                 {
@@ -1652,7 +1652,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Kind.GetHashCode();
                 if (Name != null)
                 {
@@ -1735,7 +1735,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Kind.GetHashCode();
                 if (Name != null)
                 {
@@ -1818,7 +1818,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Kind.GetHashCode();
                 if (Name != null)
                 {
@@ -1901,7 +1901,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Kind.GetHashCode();
                 if (Name != null)
                 {
@@ -1984,7 +1984,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Kind.GetHashCode();
                 if (Name != null)
                 {
@@ -2067,7 +2067,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Kind.GetHashCode();
                 if (Name != null)
                 {
@@ -2147,7 +2147,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Kind.GetHashCode();
                 if (Name != null)
                 {
@@ -3400,7 +3400,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             var __Types = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types>();
-            foreach (var child in list)
+            foreach (global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData child in list)
             {
                 __Types.Add(MapNonNullableIIntrospectionQuery___schema_Types(child, snapshot));
             }
@@ -3431,7 +3431,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             var __Fields = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Fields>();
-            foreach (var child in list)
+            foreach (global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__FieldData child in list)
             {
                 __Fields.Add(MapNonNullableIIntrospectionQuery___schema_Types_Fields(child, snapshot));
             }
@@ -3462,7 +3462,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             var __InputValues = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Fields_Args>();
-            foreach (var child in list)
+            foreach (global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__InputValueData child in list)
             {
                 __InputValues.Add(MapNonNullableIIntrospectionQuery___schema_Types_Fields_Args(child, snapshot));
             }
@@ -3583,7 +3583,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             var __InputValues = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_InputFields>();
-            foreach (var child in list)
+            foreach (global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__InputValueData child in list)
             {
                 __InputValues.Add(MapNonNullableIIntrospectionQuery___schema_Types_InputFields(child, snapshot));
             }
@@ -3614,7 +3614,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             var __Types = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Interfaces>();
-            foreach (var child in list)
+            foreach (global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData child in list)
             {
                 __Types.Add(MapNonNullableIIntrospectionQuery___schema_Types_Interfaces(child, snapshot));
             }
@@ -3645,7 +3645,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             var __EnumValues = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_EnumValues>();
-            foreach (var child in list)
+            foreach (global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__EnumValueData child in list)
             {
                 __EnumValues.Add(MapNonNullableIIntrospectionQuery___schema_Types_EnumValues(child, snapshot));
             }
@@ -3676,7 +3676,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             var __Types = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_PossibleTypes>();
-            foreach (var child in list)
+            foreach (global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData child in list)
             {
                 __Types.Add(MapNonNullableIIntrospectionQuery___schema_Types_PossibleTypes(child, snapshot));
             }
@@ -3707,7 +3707,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             var __Directives = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Directives>();
-            foreach (var child in list)
+            foreach (global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__DirectiveData child in list)
             {
                 __Directives.Add(MapNonNullableIIntrospectionQuery___schema_Directives(child, snapshot));
             }
@@ -3738,7 +3738,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             var __InputValues = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Directives_Args>();
-            foreach (var child in list)
+            foreach (global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__InputValueData child in list)
             {
                 __InputValues.Add(MapNonNullableIIntrospectionQuery___schema_Directives_Args(child, snapshot));
             }
@@ -3907,7 +3907,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             var __Types = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData>();
-            foreach (var child in obj.Value.EnumerateArray())
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
                 __Types.Add(Deserialize_NonNullableIIntrospectionQuery___schema_Types(child));
             }
@@ -3949,7 +3949,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             var __Fields = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__FieldData>();
-            foreach (var child in obj.Value.EnumerateArray())
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
                 __Fields.Add(Deserialize_NonNullableIIntrospectionQuery___schema_Types_Fields(child));
             }
@@ -3991,7 +3991,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             var __InputValues = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__InputValueData>();
-            foreach (var child in obj.Value.EnumerateArray())
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
                 __InputValues.Add(Deserialize_NonNullableIIntrospectionQuery___schema_Types_Fields_Args(child));
             }
@@ -4113,7 +4113,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             var __InputValues = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__InputValueData>();
-            foreach (var child in obj.Value.EnumerateArray())
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
                 __InputValues.Add(Deserialize_NonNullableIIntrospectionQuery___schema_Types_InputFields(child));
             }
@@ -4145,7 +4145,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             var __Types = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData>();
-            foreach (var child in obj.Value.EnumerateArray())
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
                 __Types.Add(Deserialize_NonNullableIIntrospectionQuery___schema_Types_Interfaces(child));
             }
@@ -4177,7 +4177,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             var __EnumValues = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__EnumValueData>();
-            foreach (var child in obj.Value.EnumerateArray())
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
                 __EnumValues.Add(Deserialize_NonNullableIIntrospectionQuery___schema_Types_EnumValues(child));
             }
@@ -4209,7 +4209,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             var __Types = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData>();
-            foreach (var child in obj.Value.EnumerateArray())
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
                 __Types.Add(Deserialize_NonNullableIIntrospectionQuery___schema_Types_PossibleTypes(child));
             }
@@ -4241,7 +4241,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             var __Directives = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__DirectiveData>();
-            foreach (var child in obj.Value.EnumerateArray())
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
                 __Directives.Add(Deserialize_NonNullableIIntrospectionQuery___schema_Directives(child));
             }
@@ -4273,7 +4273,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             var __InputValues = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__InputValueData>();
-            foreach (var child in obj.Value.EnumerateArray())
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
                 __InputValues.Add(Deserialize_NonNullableIIntrospectionQuery___schema_Directives_Args(child));
             }
@@ -4492,7 +4492,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {Indented = false};
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
-            var __typename = obj.GetProperty("__typename").GetString()!;
+            global::System.String __typename = obj.GetProperty("__typename").GetString()!;
             return __typename switch
             {
                 _ => throw new global::System.NotSupportedException()};

@@ -81,7 +81,7 @@ public class OperationDocumentHelperTests
         async Task Error() => await CreateOperationDocumentsAsync(queries);
 
         // assert
-        var error = await Assert.ThrowsAsync<ArgumentException>(Error);
+        var error = await Assert.ThrowsAsync<CodeGeneratorException>(Error);
         error.Message.MatchSnapshot();
     }
 
@@ -97,7 +97,7 @@ public class OperationDocumentHelperTests
         async Task Error() => await CreateOperationDocumentsAsync(queries);
 
         // assert
-        var error = await Assert.ThrowsAsync<ArgumentException>(Error);
+        var error = await Assert.ThrowsAsync<CodeGeneratorException>(Error);
         error.Message.MatchSnapshot();
     }
 }

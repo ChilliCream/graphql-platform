@@ -158,7 +158,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnIn
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 if (Hero != null)
                 {
                     hash ^= 397 * Hero.GetHashCode();
@@ -227,7 +227,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnIn
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * __typename.GetHashCode();
                 return hash;
             }
@@ -292,7 +292,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnIn
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * __typename.GetHashCode();
                 return hash;
             }
@@ -614,7 +614,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnIn
                 return null;
             }
 
-            var entityId = _idSerializer.Parse(obj.Value);
+            global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
             entityIds.Add(entityId);
             if (entityId.Name.Equals("Droid", global::System.StringComparison.Ordinal))
             {
@@ -708,7 +708,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnIn
         {Indented = false};
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
-            var __typename = obj.GetProperty("__typename").GetString()!;
+            global::System.String __typename = obj.GetProperty("__typename").GetString()!;
             return __typename switch
             {
                 "Droid" => ParseDroidEntityId(obj, __typename),
