@@ -3,7 +3,7 @@ schema {
 }
 
 type Query {
-  bar: String @DeprecatedDirective(obsoleteWithReason: null, obsolete: null, deprecated: null)
+  bar: String @DeprecatedDirective
 }
 
 directive @DeprecatedDirective(obsoleteWithReason: Int @deprecated(reason: "reason") obsolete: Int @deprecated deprecated: Int @deprecated(reason: "reason")) on FIELD_DEFINITION
