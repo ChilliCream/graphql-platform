@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices;
 using HotChocolate.Configuration.Validation;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -81,9 +82,9 @@ internal sealed class TypeInitializer
         DiscoverTypes();
 
         // now that we have the resolvers sorted and know what types our schema will roughly
-        // consist of we are going to have a look if we can infer interface usage
+        // consist of we are going to have a look if we can infer interface and union usage
         // from .NET classes that implement .NET interfaces.
-        RegisterImplicitInterfaceDependencies();
+        RegisterImplicitAbstractTypeDependencies();
 
         // with all types (implicit and explicit) known we complete the type names.
         CompleteNames();
@@ -138,54 +139,83 @@ internal sealed class TypeInitializer
         _interceptor.OnAfterDiscoverTypes();
     }
 
-    private void RegisterImplicitInterfaceDependencies()
+    private void RegisterImplicitAbstractTypeDependencies()
     {
-        var withRuntimeType = _typeRegistry.Types
-            .Where(t => !t.IsIntrospectionType && t.RuntimeType != typeof(object))
-            .Distinct()
-            .ToList();
+        var processed = new HashSet<RegisteredType>();
+        var interfaceTypes = GetTypesWithRuntimeType(processed, TypeKind.Interface);
+        var unionTypes = GetTypesWithRuntimeType(processed, TypeKind.Union);
+        List<RegisteredType>? objectTypes = null;
 
-        var interfaceTypes = withRuntimeType
-            .Where(t => t.Kind is TypeKind.Interface)
-            .Distinct()
-            .ToList();
-
-        if (interfaceTypes.Count == 0)
+        if (interfaceTypes.Count > 0)
         {
-            return;
-        }
+            objectTypes = GetTypesWithRuntimeType(processed, TypeKind.Object);
 
-        var objectTypes = withRuntimeType
-            .Where(t => t.Kind is TypeKind.Object)
-            .Distinct()
-            .ToList();
-
-        foreach (var objectType in objectTypes)
-        {
-            foreach (var interfaceType in interfaceTypes)
+            foreach (var objectType in objectTypes)
             {
-                if (interfaceType.RuntimeType.IsAssignableFrom(objectType.RuntimeType))
+                foreach (var interfaceType in interfaceTypes)
                 {
-                    var typeReference = TypeReference.Create(interfaceType.Type);
-                    ((ObjectType)objectType.Type).Definition!.Interfaces.Add(typeReference);
-                    objectType.Dependencies.Add(new(typeReference, Completed));
+                    if (interfaceType.RuntimeType.IsAssignableFrom(objectType.RuntimeType))
+                    {
+                        var typeRef = interfaceType.TypeReference;
+                        ((ObjectType)objectType.Type).Definition!.Interfaces.Add(typeRef);
+                        objectType.Dependencies.Add(new(typeRef, Completed));
+                    }
+                }
+            }
+
+            foreach (var implementing in interfaceTypes)
+            {
+                foreach (var interfaceType in interfaceTypes)
+                {
+                    if (!ReferenceEquals(implementing, interfaceType) &&
+                        interfaceType.RuntimeType.IsAssignableFrom(implementing.RuntimeType))
+                    {
+                        var typeRef = interfaceType.TypeReference;
+                        ((InterfaceType)implementing.Type).Definition!.Interfaces.Add(typeRef);
+                        implementing.Dependencies.Add(new(typeRef, Completed));
+                    }
                 }
             }
         }
 
-        foreach (var implementing in interfaceTypes)
+        if (unionTypes.Count > 0)
         {
-            foreach (var interfaceType in interfaceTypes)
+            objectTypes ??= GetTypesWithRuntimeType(processed, TypeKind.Object);
+
+            foreach (var objectType in objectTypes)
             {
-                if (!ReferenceEquals(implementing, interfaceType) &&
-                    interfaceType.RuntimeType.IsAssignableFrom(implementing.RuntimeType))
+                foreach (var unionType in unionTypes)
                 {
-                    var typeReference = TypeReference.Create(interfaceType.Type);
-                    ((InterfaceType)implementing.Type).Definition!.Interfaces.Add(typeReference);
-                    implementing.Dependencies.Add(new(typeReference, Completed));
+                    if (unionType.RuntimeType.IsAssignableFrom(objectType.RuntimeType))
+                    {
+                        var typeRef = objectType.TypeReference;
+                        ((UnionType)unionType.Type).Definition!.Types.Add(typeRef);
+                    }
                 }
             }
         }
+    }
+
+    private List<RegisteredType> GetTypesWithRuntimeType(
+        HashSet<RegisteredType> processed,
+        TypeKind kind)
+    {
+        var interfaces = new List<RegisteredType>();
+
+        for (var i = 0; i < _typeRegistry.Types.Count; i++)
+        {
+            var type = _typeRegistry.Types[i];
+
+            if (type.Kind == kind &&
+                processed.Add(type) &&
+                !type.IsIntrospectionType &&
+                type.RuntimeType != typeof(object))
+            {
+                interfaces.Add(type);
+            }
+        }
+
+        return interfaces;
     }
 
     private void CompleteNames()

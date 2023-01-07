@@ -206,7 +206,7 @@ internal sealed class TypeRegistry
             return;
         }
 
-        if (!registeredType.IsNamedType && !registeredType.IsDirectiveType)
+        if (registeredType is { IsNamedType: false, IsDirectiveType: false })
         {
             return;
         }
