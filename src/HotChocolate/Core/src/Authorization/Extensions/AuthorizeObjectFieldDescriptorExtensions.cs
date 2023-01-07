@@ -28,7 +28,7 @@ public static class AuthorizeObjectFieldDescriptorExtensions
         string policy,
         ApplyPolicy apply = ApplyPolicy.BeforeResolver)
     {
-        if (descriptor == null)
+        if (descriptor is null)
         {
             throw new ArgumentNullException(nameof(descriptor));
         }

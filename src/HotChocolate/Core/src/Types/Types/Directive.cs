@@ -84,25 +84,19 @@ public sealed class Directive
             var argumentValue = arguments[i];
             var argumentDefinition = Type.Arguments[argumentValue.Name.Value];
 
-            if (argumentDefinition.DefaultValue is not null &&
-                argumentDefinition.DefaultValue.Equals(argumentValue.Value, Syntax))
+            if ((argumentDefinition.DefaultValue is not null &&
+                    argumentDefinition.DefaultValue.Equals(argumentValue.Value, Syntax)) ||
+                (argumentDefinition.DefaultValue is null &&
+                    argumentValue.Value.Kind is SyntaxKind.NullValue))
             {
                 if (rewrittenArguments is null)
                 {
                     rewrittenArguments ??= new ArgumentNode[_syntaxNode.Arguments.Count];
 
-                    for (var j = 0; j < i - 1; j++)
+                    for (var j = 0; j <= i - 1; j++)
                     {
                         rewrittenArguments[index++] = arguments[j];
                     }
-                }
-            }
-            else if (argumentDefinition.DefaultValue is null &&
-                argumentValue.Value.Kind is SyntaxKind.NullValue)
-            {
-                if (rewrittenArguments is null)
-                {
-                    rewrittenArguments ??= new ArgumentNode[_syntaxNode.Arguments.Count];
                 }
             }
             else if (rewrittenArguments is not null)

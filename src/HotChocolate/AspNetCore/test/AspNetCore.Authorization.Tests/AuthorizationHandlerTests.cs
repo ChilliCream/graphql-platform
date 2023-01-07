@@ -32,10 +32,10 @@ public class AuthorizationHandlerTests
         result.MatchSnapshot(authResult);
     }
 
-    [Authorize]
     [ExtendObjectType(OperationTypeNames.Query)]
     public class QueryExtensions
     {
+        [Authorize]
         public string Bar() => "bar";
     }
 

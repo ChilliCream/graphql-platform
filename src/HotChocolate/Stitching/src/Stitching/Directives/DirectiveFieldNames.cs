@@ -2,25 +2,25 @@ namespace HotChocolate.Stitching;
 
 internal static class DirectiveFieldNames
 {
-    public static string Source_Schema { get; } = "schema";
+    public static string Source_Schema => "schema";
 
-    public static string Source_Name { get; } = "name";
+    public static string Source_Name => "name";
 
-    public static string Delegate_Schema { get; } = "schema";
+    public static string Delegate_Schema => "schema";
 
-    public static string Delegate_Path { get; } = "path";
+    public static string Delegate_Path => "path";
 
-    public static string Computed_DependantOn { get; } = "dependantOn";
+    public static string Computed_DependantOn => "dependantOn";
 
-    public static string RemoveType_TypeName { get; } = "typeName";
+    public static string RemoveType_TypeName => "typeName";
 
-    public static string RenameType_TypeName { get; } = "typeName";
+    public static string RenameType_TypeName => "typeName";
 
-    public static string RenameType_NewTypeName { get; } = "newTypeName";
+    public static string RenameType_NewTypeName => "newTypeName";
 
-    public static string RenameField_TypeName { get; } = "typeName";
+    public static string RenameField_TypeName => "typeName";
 
-    public static string RenameField_FieldName { get; } = "fieldName";
+    public static string RenameField_FieldName => "fieldName";
 
-    public static string RenameField_NewFieldName { get; } = "newFieldName";
+    public static string RenameField_NewFieldName => "newFieldName";
 }

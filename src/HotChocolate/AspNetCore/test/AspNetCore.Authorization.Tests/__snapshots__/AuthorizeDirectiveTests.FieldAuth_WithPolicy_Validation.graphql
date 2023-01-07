@@ -2,8 +2,8 @@ schema {
   query: Query
 }
 
-type Query @authorize(roles: [ "MyRole" ]) {
-  foo: String
+type Query {
+  foo: String @authorize(policy: "MyPolicy", apply: VALIDATION)
 }
 
 enum ApplyPolicy {

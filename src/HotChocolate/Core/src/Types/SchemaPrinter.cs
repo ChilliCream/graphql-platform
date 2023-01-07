@@ -529,8 +529,8 @@ public static class SchemaPrinter
     private static NamedTypeNode PrintNamedType(INamedType namedType)
         => new(null, new NameNode(namedType.Name));
 
-    private static DirectiveNode PrintDirective(Directive directiveType)
-        => directiveType.AsSyntaxNode(true);
+    private static DirectiveNode PrintDirective(Directive directive)
+        => directive.AsSyntaxNode(true);
 
     private static StringValueNode PrintDescription(string description)
         => string.IsNullOrEmpty(description) ? null : new StringValueNode(description);

@@ -1,9 +1,5 @@
-using System;
-using HotChocolate;
 using HotChocolate.AspNetCore.Authorization;
-using HotChocolate.Authorization;
 using HotChocolate.Execution.Configuration;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -24,8 +20,7 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
     public static IRequestExecutorBuilder AddAuthorization(
         this IRequestExecutorBuilder builder)
     {
-        builder.AddAuthorizationCore();
-        builder.Services.TryAddSingleton<IAuthorizationHandler, DefaultAuthorizationHandler>();
+        builder.AddAuthorizationHandler<DefaultAuthorizationHandler>();
         return builder;
     }
 }

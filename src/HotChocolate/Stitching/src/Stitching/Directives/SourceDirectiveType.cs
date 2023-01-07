@@ -3,8 +3,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Stitching;
 
-public class SourceDirectiveType
-    : DirectiveType<SourceDirective>
+public sealed class SourceDirectiveType : DirectiveType<SourceDirective>
 {
     protected override void Configure(
         IDirectiveTypeDescriptor<SourceDirective> descriptor)
