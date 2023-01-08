@@ -18,7 +18,7 @@ In **Banana Cake Pop 1**, we've introduced _Personal Workspaces_ for individuals
 
 ## Javascript Middleware
 
-We launched our first NodeJS middleware on [NPM](https://www.npmjs.com/package/@chillicream/bananacakepop-express-middleware). Check out our [recipes](https://www.npmjs.com/package/@chillicream/bananacakepop-express-middleware#recipes) for [graphql-http](https://www.npmjs.com/package/graphql-http), [graphql-yoga](https://www.npmjs.com/package/graphql-yoga), and [express-graphql](https://www.npmjs.com/package/express-graphql)!
+We launched our first NodeJS middleware on [NPM](https://www.npmjs.com/package/@chillicream/bananacakepop-express-middleware). Check out our [recipes](https://www.npmjs.com/package/@chillicream/bananacakepop-express-middleware#recipes) for [graphql-http](https://github.com/graphql/graphql-http), [graphql-yoga](https://the-guild.dev/graphql/yoga-server), and [express-graphql](https://github.com/graphql/express-graphql)!
 
 ## Enterprise Single Sign-On (SSO)
 
