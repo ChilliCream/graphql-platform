@@ -21,7 +21,7 @@ internal sealed class AuthorizationCache
         [NotNullWhen(true)] out AuthorizeDirective[]? directives)
         => _cache.TryGet(documentId, out directives);
 
-    public void TryAddDirectives(string documentId, AuthorizeDirective[]? directives)
+    public void TryAddDirectives(string documentId, AuthorizeDirective[] directives)
         => _cache.GetOrCreate(documentId, () => directives);
 
     public void Clear()
