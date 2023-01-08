@@ -525,9 +525,9 @@ public class DirectiveTypeTests : TypeTestBase
                     .Name("Query")
                     .Field("bar")
                     .Resolve("asd")
-                    .Directive<DeprecatedDirective>())
+                    .Directive<Deprecated2Directive>())
             .AddDirectiveType(
-                new DirectiveType<DeprecatedDirective>(
+                new DirectiveType<Deprecated2Directive>(
                     x => x.Location(DirectiveLocation.FieldDefinition)))
             .BuildRequestExecutorAsync();
 
@@ -849,7 +849,7 @@ public class DirectiveTypeTests : TypeTestBase
             Task.CompletedTask;
     }
 
-    public class DeprecatedDirective
+    public class Deprecated2Directive
     {
         [Obsolete("reason")] public int? ObsoleteWithReason { get; set; }
 

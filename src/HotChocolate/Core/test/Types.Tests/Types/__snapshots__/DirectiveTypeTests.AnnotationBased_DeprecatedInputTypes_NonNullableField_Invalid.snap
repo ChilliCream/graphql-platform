@@ -1,5 +1,5 @@
 {
-  "message": "Required argument DeprecatedNonNull.obsoleteWithReason cannot be deprecated.",
+  "message": "Required argument deprecatedNonNull.obsoleteWithReason cannot be deprecated.",
   "extensions": {
     "argument": "obsoleteWithReason",
     "rfc": "https://github.com/graphql/graphql-spec/pull/805",
