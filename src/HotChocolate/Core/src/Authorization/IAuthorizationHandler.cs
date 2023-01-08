@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Authorization;
@@ -21,7 +20,7 @@ public interface IAuthorizationHandler
     /// <param name="directive">
     /// The authorization directive.
     /// </param>
-    /// <param name="ct">
+    /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
     /// <returns>
@@ -31,7 +30,7 @@ public interface IAuthorizationHandler
     ValueTask<AuthorizeResult> AuthorizeAsync(
         IMiddlewareContext context,
         AuthorizeDirective directive,
-        CancellationToken ct = default);
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Executes the authorization validation for the specified <paramref name="directives"/>.
@@ -42,7 +41,7 @@ public interface IAuthorizationHandler
     /// <param name="directives">
     /// The authorization directives.
     /// </param>
-    /// <param name="ct">
+    /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
     /// <returns>
@@ -52,5 +51,5 @@ public interface IAuthorizationHandler
     ValueTask<AuthorizeResult> AuthorizeAsync(
         AuthorizationContext context,
         IReadOnlyList<AuthorizeDirective> directives,
-        CancellationToken ct = default);
+        CancellationToken cancellationToken = default);
 }
