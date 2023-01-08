@@ -77,13 +77,19 @@ internal sealed class DefaultTypeDiscoveryHandler : TypeDiscoveryHandler
                 TypeInspector.GetType(
                     typeof(EnumType<>).MakeGenericType(typeInfo.RuntimeType)));
         }
+        else if (IsDirectiveType(typeInfo))
+        {
+            schemaType = typeReference.With(
+                TypeInspector.GetType(
+                    typeof(DirectiveType<>).MakeGenericType(typeInfo.RuntimeType)));
+        }
         else
         {
             schemaTypeRefs = null;
             return false;
         }
 
-        schemaTypeRefs = new ITypeReference[] { schemaType };
+        schemaTypeRefs = new[] { schemaType };
         return true;
     }
 
@@ -125,6 +131,12 @@ internal sealed class DefaultTypeDiscoveryHandler : TypeDiscoveryHandler
         if (IsEnumType(typeReferenceInfo))
         {
             typeKind = TypeKind.Enum;
+            return true;
+        }
+
+        if (IsDirectiveType(typeReferenceInfo))
+        {
+            typeKind = TypeKind.Directive;
             return true;
         }
 
@@ -170,4 +182,7 @@ internal sealed class DefaultTypeDiscoveryHandler : TypeDiscoveryHandler
                 typeInfo.Attribute is null && typeInfo.IsEnum) &&
             typeInfo.IsPublic;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsDirectiveType(TypeDiscoveryInfo typeInfo)
+        => typeInfo.Attribute is { Kind: TypeKind.Directive, IsTypeExtension: false };
 }

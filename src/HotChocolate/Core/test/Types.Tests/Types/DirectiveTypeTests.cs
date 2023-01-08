@@ -645,11 +645,12 @@ public class DirectiveTypeTests : TypeTestBase
         static async Task call()
             => await new ServiceCollection()
                 .AddGraphQL()
-                .AddQueryType(x => x
-                    .Name("Query")
-                    .Field("bar")
-                    .Resolve("asd")
-                    .Directive("Qux", new ArgumentNode("bar", "abc")))
+                .AddQueryType(
+                    x => x
+                        .Name("Query")
+                        .Field("bar")
+                        .Resolve("asd")
+                        .Directive("Qux", new ArgumentNode("bar", "abc")))
                 .AddDocumentFromString(
                     @"directive @Qux(bar: String! @deprecated(reason: ""reason""))
                         on FIELD_DEFINITION")
@@ -760,6 +761,46 @@ public class DirectiveTypeTests : TypeTestBase
         errors[0].Message.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task AnnotationBased_Directive()
+    {
+        // arrange
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("bar")
+                    .Resolve("asd")
+                    .Directive("anno"))
+            .AddType<AnnotationDirective>()
+            .BuildSchemaAsync();
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task AnnotationBased_Directive_InferName()
+    {
+        // arrange
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("bar")
+                    .Resolve("asd")
+                    .Directive("foo"))
+            .AddType<FooDirective>()
+            .BuildSchemaAsync();
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
     public class DirectiveWithSyntaxTypeArg : DirectiveType
     {
         protected override void Configure(IDirectiveTypeDescriptor descriptor)
@@ -839,5 +880,27 @@ public class DirectiveTypeTests : TypeTestBase
         [DefaultValue("abc")] public string Argument1 { get; set; }
 
         public string Argument2 { get; set; }
+    }
+
+    [DirectiveType("anno", DirectiveLocation.FieldDefinition)]
+    public sealed class AnnotationDirective
+    {
+        public AnnotationDirective(string foo)
+        {
+            Foo = foo;
+        }
+
+        public string Foo { get; }
+    }
+
+    [DirectiveType(DirectiveLocation.FieldDefinition)]
+    public sealed class FooDirective
+    {
+        public FooDirective(string foo)
+        {
+            Foo = foo;
+        }
+
+        public string Foo { get; }
     }
 }

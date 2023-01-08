@@ -12,7 +12,7 @@ public class DirectiveType<TDirective> : DirectiveType where TDirective : class
 {
     private Action<IDirectiveTypeDescriptor<TDirective>>? _configure;
 
-    protected DirectiveType()
+    public DirectiveType()
     {
         _configure = Configure;
     }

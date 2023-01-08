@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.InteropServices;
 using HotChocolate.Configuration.Validation;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
