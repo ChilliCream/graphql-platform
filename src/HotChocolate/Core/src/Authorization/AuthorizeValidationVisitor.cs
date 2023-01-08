@@ -27,13 +27,6 @@ internal sealed class AuthorizeValidationVisitor : TypeDocumentValidatorVisitor
         return base.Enter(node, context);
     }
 
-    protected override ISyntaxVisitorAction Leave(
-        DocumentNode node,
-        IDocumentValidatorContext context)
-    {
-        return base.Leave(node, context);
-    }
-
     protected override ISyntaxVisitorAction Enter(
         OperationDefinitionNode node,
         IDocumentValidatorContext context)

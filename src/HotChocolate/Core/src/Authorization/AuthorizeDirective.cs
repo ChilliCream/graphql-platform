@@ -2,13 +2,37 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Authorization;
 
+/// <summary>
+/// The authorize directive.
+/// </summary>
 public sealed class AuthorizeDirective
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="AuthorizeDirective"/>.
+    /// </summary>
+    /// <param name="roles">
+    /// The authorization roles.
+    /// </param>
+    /// <param name="apply">
+    /// Specifies when the authorization directive shall be applied.
+    /// </param>
     public AuthorizeDirective(
         IReadOnlyList<string> roles,
         ApplyPolicy apply = ApplyPolicy.BeforeResolver)
         : this(null, roles, apply) { }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="AuthorizeDirective"/>.
+    /// </summary>
+    /// <param name="policy">
+    /// The authorization policy.
+    /// </param>
+    /// <param name="roles">
+    /// The authorization roles.
+    /// </param>
+    /// <param name="apply">
+    /// Specifies when the authorization directive shall be applied.
+    /// </param>
     public AuthorizeDirective(
         string? policy = null,
         IReadOnlyList<string>? roles = null,

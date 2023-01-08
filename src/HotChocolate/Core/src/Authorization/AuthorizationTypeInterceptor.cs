@@ -60,24 +60,39 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         DefinitionBase definition)
     {
-        // we collect object types so that we can check if one of them has authorization rules.
         switch (completionContext.Type)
         {
+            // at this point we collect object types so we can check if they need to be authorized.
             case ObjectType when definition is ObjectTypeDefinition objectTypeDef:
                 _objectTypes.Add(new ObjectTypeInfo(completionContext, objectTypeDef));
                 break;
 
+            // also we collect union types so we can see if a union exposes
+            // an authorized object type.
             case UnionType when definition is UnionTypeDefinition unionTypeDef:
                 _unionTypes.Add(new UnionTypeInfo(completionContext, unionTypeDef));
                 break;
         }
+
+        // note, we do not need to collect interfaces as the object type has a
+        // list implements that links to the interfaces that expose an object type.
     }
 
     public override void OnBeforeCompleteTypes()
     {
+        // at this stage in the type initialization we will create some state that we
+        // will use to transform the schema authorization.
         var state = _state = CreateState();
+
+        // before we can apply schema transformations we will inspect the object types
+        // to identify the ones that are protected with authorization directives.
         InspectObjectTypesForAuthDirective(state);
+
+        // next we will inspect the union types that expose one or more protected object types.
         FindUnionTypesThatContainAuthTypes(state);
+
+        // last we will find fields that expose protected types and apply authorization
+        // middleware.
         FindFieldsAndApplyAuthMiddleware(state);
     }
 
@@ -85,10 +100,12 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         DefinitionBase definition)
     {
+        // last in the initialization we need to intercept the query type and ensure that
+        // authorization configuration is applied to the special introspection and node fields.
         if ((completionContext.IsQueryType ?? false) &&
             definition is ObjectTypeDefinition typeDef)
         {
-            var state = _state ?? throw new InvalidOperationException("The state must be initialized!");
+            var state = _state ?? throw ThrowHelper.StateNotInitialized();
             HandleSpecialQueryFields(new ObjectTypeInfo(completionContext, typeDef), state);
         }
     }
@@ -175,9 +192,11 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                 CheckForValidationAuth(type);
             }
 
+            var typeName = type.TypeDef.Name;
+
             foreach (var fieldDef in type.TypeDef.Fields)
             {
-                ApplyAuthMiddleware(fieldDef, schemaServices, state);
+                ApplyAuthMiddleware(typeName, fieldDef, schemaServices, state);
             }
         }
     }
@@ -251,6 +270,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     }
 
     private void ApplyAuthMiddleware(
+        string typeName,
         ObjectFieldDefinition fieldDef,
         IServiceProvider schemaServices,
         State state)
@@ -290,8 +310,8 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
             }
             else
             {
-                // TODO : Errors
-                throw new InvalidOperationException("should not happen!");
+                throw ThrowHelper.UnauthorizedType(
+                    new FieldCoordinate(typeName, fieldDef.Name));
             }
         }
     }
@@ -454,7 +474,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
             return registration;
         }
 
-        throw new InvalidOperationException("This should not happen at this point!");
+        throw ThrowHelper.UnableToResolveTypeReg();
     }
 
     private static bool IsAuthorizedType<T>(T definition)
@@ -504,95 +524,5 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         }
 
         return new State(options ?? new());
-    }
-
-    private sealed class State
-    {
-        public State(AuthorizationOptions options)
-        {
-            Options = options;
-        }
-
-        /// <summary>
-        /// Provides access to the authorization options.
-        /// </summary>
-        public AuthorizationOptions Options { get; }
-
-        /// <summary>
-        ///  Gets the types to which authorization middleware need to be applied.
-        /// </summary>
-        public HashSet<ITypeReference> NeedsAuth { get; } = new();
-
-        /// <summary>
-        /// Gets the types to which are annotated with the @authorize directive.
-        /// </summary>
-        public HashSet<ITypeReference> AuthTypes { get; } = new();
-
-        /// <summary>
-        /// Gets a lookup table from abstract types to concrete types that need authorization.
-        /// </summary>
-        public Dictionary<ITypeReference, List<ITypeReference>> AbstractToConcrete { get; } = new();
-
-        /// <summary>
-        /// Gets a helper queue for processing types.
-        /// </summary>
-        public List<ITypeReference> Queue { get; } = new();
-
-        /// <summary>
-        /// Gets a helper set for tracking process completion.
-        /// </summary>
-        public HashSet<ITypeReference> Completed { get; } = new();
-    }
-
-    private sealed class ObjectTypeInfo : TypeInfo<ObjectTypeDefinition>
-    {
-        public ObjectTypeInfo(ITypeCompletionContext context, ObjectTypeDefinition typeDef)
-            : base(context, typeDef)
-        {
-            TypeRef = TypeReg.TypeReference;
-        }
-
-        public ITypeReference TypeRef { get; }
-    }
-
-    private sealed class UnionTypeInfo : TypeInfo<UnionTypeDefinition>
-    {
-        public UnionTypeInfo(ITypeCompletionContext context, UnionTypeDefinition typeDef)
-            : base(context, typeDef) { }
-    }
-
-    private abstract class TypeInfo<TDef> : IEquatable<TypeInfo<TDef>> where TDef : DefinitionBase
-    {
-        protected TypeInfo(ITypeCompletionContext context, TDef typeDef)
-        {
-            TypeDef = typeDef;
-            TypeReg = (RegisteredType)context;
-        }
-
-        public TDef TypeDef { get; }
-
-        public RegisteredType TypeReg { get; }
-
-        public bool Equals(TypeInfo<TDef>? other)
-        {
-            if (other is null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            return TypeDef.Equals(other.TypeDef);
-        }
-
-        public override bool Equals(object? obj)
-            => ReferenceEquals(this, obj) ||
-                (obj is ObjectTypeInfo other && Equals(other));
-
-        public override int GetHashCode()
-            => TypeDef.GetHashCode();
     }
 }

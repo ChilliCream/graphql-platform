@@ -68,5 +68,23 @@ namespace HotChocolate.Authorization.Properties {
                 return ResourceManager.GetString("AuthorizeMiddleware_PoliciesMissing", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_StateNotInitialized {
+            get {
+                return ResourceManager.GetString("ThrowHelper_StateNotInitialized", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_UnauthorizedType {
+            get {
+                return ResourceManager.GetString("ThrowHelper_UnauthorizedType", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_UnableToResolveTypeReg {
+            get {
+                return ResourceManager.GetString("ThrowHelper_UnableToResolveTypeReg", resourceCulture);
+            }
+        }
     }
 }

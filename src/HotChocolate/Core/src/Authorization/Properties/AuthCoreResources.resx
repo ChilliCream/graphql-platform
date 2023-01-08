@@ -30,4 +30,13 @@
   <data name="AuthorizeMiddleware_PoliciesMissing" xml:space="preserve">
     <value>Found missing authorization policies!</value>
   </data>
+  <data name="ThrowHelper_StateNotInitialized" xml:space="preserve">
+    <value>The state must be initialized for query authorization to be applied.</value>
+  </data>
+  <data name="ThrowHelper_UnauthorizedType" xml:space="preserve">
+    <value>{0}: Invalid schema state for authorization.</value>
+  </data>
+  <data name="ThrowHelper_UnableToResolveTypeReg" xml:space="preserve">
+    <value>Unable to resolve a type registration.</value>
+  </data>
 </root>

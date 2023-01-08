@@ -5,14 +5,13 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.Authorization;
 
-public sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>, ISchemaDirective
+internal sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>, ISchemaDirective
 {
     public AuthorizeDirectiveType()
     {

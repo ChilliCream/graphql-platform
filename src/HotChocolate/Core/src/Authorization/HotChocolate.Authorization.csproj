@@ -29,6 +29,18 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>AuthCoreResources.resx</DependentUpon>
     </Compile>
+    <Compile Update="AuthorizationTypeInterceptor.ObjectTypeInfo.cs">
+      <DependentUpon>AuthorizationTypeInterceptor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="AuthorizationTypeInterceptor.State.cs">
+      <DependentUpon>AuthorizationTypeInterceptor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="AuthorizationTypeInterceptor.TypeInfo.cs">
+      <DependentUpon>AuthorizationTypeInterceptor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="AuthorizationTypeInterceptor.UnionTypeInfo.cs">
+      <DependentUpon>AuthorizationTypeInterceptor.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

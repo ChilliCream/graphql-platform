@@ -6,16 +6,16 @@ using HotChocolate.Resolvers;
 namespace HotChocolate.Authorization;
 
 /// <summary>
-/// Represents the authorization process.
-/// Implement this to handle the authorization of resolver data.
+/// The authorization handler abstracts the authorization logic that is applied to schema objects.
 /// </summary>
 public interface IAuthorizationHandler
 {
     /// <summary>
-    /// Executes the authorization validation for the specified <paramref name="directive"/>.
+    /// Executes the authorization logic during the GraphQL request execution
+    /// for the specified <paramref name="directive"/>.
     /// </summary>
     /// <param name="context">
-    /// The current middleware context.
+    /// The middleware context.
     /// </param>
     /// <param name="directive">
     /// The authorization directive.
@@ -33,10 +33,13 @@ public interface IAuthorizationHandler
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes the authorization validation for the specified <paramref name="directives"/>.
+    /// Executes the authorization logic during the GraphQL request validation.
+    /// The validation will collect all authorization policies for a provided GraphQL
+    /// request document and validate them in one batch call before the request execution
+    /// has begun.
     /// </summary>
     /// <param name="context">
-    ///
+    /// The authorization context.
     /// </param>
     /// <param name="directives">
     /// The authorization directives.
@@ -46,7 +49,7 @@ public interface IAuthorizationHandler
     /// </param>
     /// <returns>
     /// Returns a value indicating if the current session is authorized to
-    /// execute the GraphQL document.
+    /// execute the GraphQL request document.
     /// </returns>
     ValueTask<AuthorizeResult> AuthorizeAsync(
         AuthorizationContext context,

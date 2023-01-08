@@ -3,10 +3,9 @@ using HotChocolate.Authorization;
 
 namespace HotChocolate;
 
-public static class AuthorizeSchemaBuilderExtensions
+internal static class AuthorizeSchemaBuilderExtensions
 {
-    public static ISchemaBuilder AddAuthorizeDirectiveType(
-        this ISchemaBuilder builder)
+    public static ISchemaBuilder AddAuthorizeDirectiveType(this ISchemaBuilder builder)
     {
         if (builder is null)
         {
