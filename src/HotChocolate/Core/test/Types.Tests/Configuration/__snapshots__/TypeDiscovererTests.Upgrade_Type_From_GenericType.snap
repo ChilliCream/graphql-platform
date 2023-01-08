@@ -93,7 +93,9 @@
       "runtimeType": "HotChocolate.Types.DeferDirective",
       "references": [
         "None: HotChocolate.Types.DeferDirectiveType",
-        "None: DeferDirectiveType"
+        "None: DeferDirectiveType",
+        "None: DirectiveType<DeferDirective>",
+        "Directive: DeferDirective"
       ]
     },
     {
@@ -101,7 +103,9 @@
       "runtimeType": "HotChocolate.Types.StreamDirective",
       "references": [
         "None: HotChocolate.Types.StreamDirectiveType",
-        "None: StreamDirectiveType"
+        "None: StreamDirectiveType",
+        "None: DirectiveType<StreamDirective>",
+        "Directive: StreamDirective"
       ]
     },
     {
@@ -109,7 +113,9 @@
       "runtimeType": "HotChocolate.Types.DeprecatedDirective",
       "references": [
         "None: HotChocolate.Types.DeprecatedDirectiveType",
-        "None: DeprecatedDirectiveType"
+        "None: DeprecatedDirectiveType",
+        "None: DirectiveType<DeprecatedDirective>",
+        "Directive: DeprecatedDirective"
       ]
     },
     {

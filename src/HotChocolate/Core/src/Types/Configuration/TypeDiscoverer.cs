@@ -74,7 +74,8 @@ internal sealed class TypeDiscoverer
             new SchemaTypeReferenceHandler(),
             new SyntaxTypeReferenceHandler(context.TypeInspector),
             new FactoryTypeReferenceHandler(context),
-            new DependantFactoryTypeReferenceHandler(context)
+            new DependantFactoryTypeReferenceHandler(context),
+            new ExtendedTypeDirectiveReferenceHandler(context.TypeInspector)
         };
 
         _interceptor = interceptor;
@@ -160,9 +161,9 @@ DISCOVER:
     {
         var inferred = false;
 
-        foreach (var typeRef in _typeRegistrar.Unresolved)
+        foreach (var unresolvedTypeRef in _typeRegistrar.Unresolved)
         {
-            if (typeRef is ExtendedTypeReference unresolvedTypeRef &&
+            if (unresolvedTypeRef is ExtendedTypeReference or ExtendedTypeDirectiveReference &&
                 _context.TryInferSchemaType(unresolvedTypeRef, out var schemaTypeRefs))
             {
                 inferred = true;
@@ -170,7 +171,11 @@ DISCOVER:
                 foreach (var schemaTypeRef in schemaTypeRefs)
                 {
                     _unregistered.Add(schemaTypeRef);
-                    _typeRegistry.TryRegister(unresolvedTypeRef, schemaTypeRef);
+
+                    if (unresolvedTypeRef is ExtendedTypeReference typeRef)
+                    {
+                        _typeRegistry.TryRegister(typeRef, schemaTypeRef);
+                    }
                 }
 
                 _resolved.Add(unresolvedTypeRef);

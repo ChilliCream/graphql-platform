@@ -19,7 +19,7 @@ internal sealed class DefaultTypeDiscoveryHandler : TypeDiscoveryHandler
     private ITypeInspector TypeInspector { get; }
 
     public override bool TryInferType(
-        ExtendedTypeReference typeReference,
+        ITypeReference typeReference,
         TypeDiscoveryInfo typeInfo,
         [NotNullWhen(true)] out ITypeReference[]? schemaTypeRefs)
     {
@@ -43,45 +43,59 @@ internal sealed class DefaultTypeDiscoveryHandler : TypeDiscoveryHandler
         }
         else if (IsObjectTypeExtension(typeInfo))
         {
-            schemaType = typeReference.With(
-                TypeInspector.GetType(
-                    typeof(ObjectTypeExtension<>).MakeGenericType(typeInfo.RuntimeType)));
+            schemaType =
+                TypeInspector.CreateTypeRef(
+                    typeof(ObjectTypeExtension<>),
+                    typeInfo,
+                    typeReference);
         }
         else if (IsUnionType(typeInfo))
         {
-            schemaType = typeReference.With(
-                TypeInspector.GetType(
-                    typeof(UnionType<>).MakeGenericType(typeInfo.RuntimeType)));
+            schemaType =
+                TypeInspector.CreateTypeRef(
+                    typeof(UnionType<>),
+                    typeInfo,
+                    typeReference);
         }
         else if (IsInterfaceType(typeInfo))
         {
-            schemaType = typeReference.With(
-                TypeInspector.GetType(
-                    typeof(InterfaceType<>).MakeGenericType(typeInfo.RuntimeType)));
+            schemaType =
+                TypeInspector.CreateTypeRef(
+                    typeof(InterfaceType<>),
+                    typeInfo,
+                    typeReference);
         }
         else if (IsObjectType(typeInfo))
         {
-            schemaType = typeReference.With(
-                TypeInspector.GetType(
-                    typeof(ObjectType<>).MakeGenericType(typeInfo.RuntimeType)));
+            schemaType =
+                TypeInspector.CreateTypeRef(
+                    typeof(ObjectType<>),
+                    typeInfo,
+                    typeReference);
         }
         else if (IsInputObjectType(typeInfo))
         {
-            schemaType = typeReference.With(
-                TypeInspector.GetType(
-                    typeof(InputObjectType<>).MakeGenericType(typeInfo.RuntimeType)));
+            schemaType =
+                TypeInspector.CreateTypeRef(
+                    typeof(InputObjectType<>),
+                    typeInfo,
+                    typeReference);
         }
         else if (IsEnumType(typeInfo))
         {
-            schemaType = typeReference.With(
-                TypeInspector.GetType(
-                    typeof(EnumType<>).MakeGenericType(typeInfo.RuntimeType)));
+            schemaType =
+                TypeInspector.CreateTypeRef(
+                    typeof(EnumType<>),
+                    typeInfo,
+                    typeReference);
         }
         else if (IsDirectiveType(typeInfo))
         {
-            schemaType = typeReference.With(
-                TypeInspector.GetType(
-                    typeof(DirectiveType<>).MakeGenericType(typeInfo.RuntimeType)));
+            schemaType =
+                TypeInspector.CreateTypeRef(
+                    typeof(DirectiveType<>),
+                    typeInfo,
+                    typeReference);
         }
         else
         {
@@ -94,47 +108,47 @@ internal sealed class DefaultTypeDiscoveryHandler : TypeDiscoveryHandler
     }
 
     public override bool TryInferKind(
-        ExtendedTypeReference typeReference,
-        TypeDiscoveryInfo typeReferenceInfo,
+        ITypeReference typeReference,
+        TypeDiscoveryInfo typeInfo,
         out TypeKind typeKind)
     {
-        if (IsObjectTypeExtension(typeReferenceInfo))
+        if (IsObjectTypeExtension(typeInfo))
         {
             typeKind = TypeKind.Object;
             return true;
         }
 
-        if (IsUnionType(typeReferenceInfo))
+        if (IsUnionType(typeInfo))
         {
             typeKind = TypeKind.Union;
             return true;
         }
 
-        if (IsInterfaceType(typeReferenceInfo))
+        if (IsInterfaceType(typeInfo))
         {
             typeKind = TypeKind.Interface;
             return true;
         }
 
-        if (IsObjectType(typeReferenceInfo))
+        if (IsObjectType(typeInfo))
         {
             typeKind = TypeKind.Object;
             return true;
         }
 
-        if (IsInputObjectType(typeReferenceInfo))
+        if (IsInputObjectType(typeInfo))
         {
             typeKind = TypeKind.InputObject;
             return true;
         }
 
-        if (IsEnumType(typeReferenceInfo))
+        if (IsEnumType(typeInfo))
         {
             typeKind = TypeKind.Enum;
             return true;
         }
 
-        if (IsDirectiveType(typeReferenceInfo))
+        if (IsDirectiveType(typeInfo))
         {
             typeKind = TypeKind.Directive;
             return true;
@@ -155,7 +169,8 @@ internal sealed class DefaultTypeDiscoveryHandler : TypeDiscoveryHandler
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsObjectType(TypeDiscoveryInfo typeInfo)
-        => (typeInfo.Attribute is { Kind: TypeKind.Object, IsTypeExtension: false } ||
+        => !typeInfo.IsDirectiveRef &&
+            (typeInfo.Attribute is { Kind: TypeKind.Object, IsTypeExtension: false } ||
                 typeInfo.Attribute is null && typeInfo.IsComplex) &&
             typeInfo is { Context: TypeContext.Output or TypeContext.None };
 

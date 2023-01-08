@@ -19,7 +19,8 @@ namespace HotChocolate.Types;
 /// </summary>
 public partial class DirectiveType
     : TypeSystemObjectBase<DirectiveTypeDefinition>
-    , IHasRuntimeType
+        , IHasRuntimeType
+        , IHasTypeIdentity
 {
     private Action<IDirectiveTypeDescriptor>? _configure;
     private Func<object?[], object> _createInstance = default!;
@@ -152,4 +153,8 @@ public partial class DirectiveType
 
         return (T)_inputParser.ParseLiteral(value, argument, typeof(T))!;
     }
+
+    private Type? TypeIdentity { get; set; }
+
+    Type? IHasTypeIdentity.TypeIdentity => TypeIdentity;
 }

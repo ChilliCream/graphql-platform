@@ -33,6 +33,7 @@ internal sealed class ExtendedTypeReferenceHandler : ITypeRegistrarHandler
             }
 
             var namedType = typeInfo.NamedType;
+
             if (IsTypeSystemObject(namedType))
             {
                 var extendedType = _typeInspector.GetType(namedType);
@@ -88,4 +89,29 @@ internal sealed class ExtendedTypeReferenceHandler : ITypeRegistrarHandler
 
     private static bool IsTypeSystemObject(Type type) =>
         typeof(TypeSystemObjectBase).IsAssignableFrom(type);
+}
+
+internal sealed class ExtendedTypeDirectiveReferenceHandler : ITypeRegistrarHandler
+{
+    private readonly ITypeInspector _typeInspector;
+
+    public ExtendedTypeDirectiveReferenceHandler(ITypeInspector typeInspector)
+    {
+        _typeInspector = typeInspector;
+    }
+
+
+    public TypeReferenceKind Kind => TypeReferenceKind.DirectiveExtendedType;
+
+    public void Handle(ITypeRegistrar typeRegistrar, ITypeReference typeReference)
+    {
+        var typeRef = (ExtendedTypeDirectiveReference)typeReference;
+
+        if (_typeInspector.TryCreateTypeInfo(typeRef.Type, out var typeInfo) &&
+            !ExtendedType.Tools.IsSchemaType(typeInfo.NamedType) &&
+            !typeRegistrar.IsResolved(typeRef))
+        {
+            typeRegistrar.MarkUnresolved(typeRef);
+        }
+    }
 }

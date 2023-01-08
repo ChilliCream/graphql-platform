@@ -49,7 +49,7 @@ public sealed class ExtendedTypeDirectiveReference
             return true;
         }
 
-        if (other is ExtendedTypeReference c)
+        if (other is ExtendedTypeDirectiveReference c)
         {
             return Equals(c);
         }
@@ -69,7 +69,7 @@ public sealed class ExtendedTypeDirectiveReference
             return true;
         }
 
-        if (obj is ExtendedTypeReference c)
+        if (obj is ExtendedTypeDirectiveReference c)
         {
             return Equals(c);
         }

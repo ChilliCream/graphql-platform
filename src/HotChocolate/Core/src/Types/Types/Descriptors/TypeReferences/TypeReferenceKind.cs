@@ -34,12 +34,12 @@ public enum TypeReferenceKind
     DependantFactory = 4,
 
     /// <summary>
-    /// The directive type reference represented by the name of a directive.
-    /// </summary>
-    DirectiveName = 5,
-
-    /// <summary>
     /// The directive type reference is represented by a .NET type
     /// </summary>
-    DirectiveExtendedType = 6,
+    DirectiveExtendedType = 5,
+
+    /// <summary>
+    /// The directive type reference represented by the name of a directive.
+    /// </summary>
+    DirectiveName = 6,
 }

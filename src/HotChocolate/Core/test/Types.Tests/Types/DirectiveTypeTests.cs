@@ -801,6 +801,25 @@ public class DirectiveTypeTests : TypeTestBase
         schema.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task AnnotationBased_Directive_InferDirectiveType()
+    {
+        // arrange
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("bar")
+                    .Resolve("asd")
+                    .Directive(new FooDirective("abc")))
+            .BuildSchemaAsync();
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
     public class DirectiveWithSyntaxTypeArg : DirectiveType
     {
         protected override void Configure(IDirectiveTypeDescriptor descriptor)

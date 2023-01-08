@@ -56,6 +56,12 @@ public partial class DirectiveType
         RuntimeType = definition.RuntimeType == GetType()
             ? typeof(object)
             : definition.RuntimeType;
+
+        if (RuntimeType != typeof(object))
+        {
+            TypeIdentity = typeof(DirectiveType<>).MakeGenericType(RuntimeType);
+        }
+
         IsRepeatable = definition.IsRepeatable;
 
         TypeDependencyHelper.CollectDependencies(definition, context.Dependencies);

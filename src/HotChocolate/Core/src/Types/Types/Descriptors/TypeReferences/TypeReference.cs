@@ -68,7 +68,7 @@ public abstract class TypeReference : ITypeReference
     }
 
     public override int GetHashCode()
-        => HashCode.Combine(Scope);
+        => HashCode.Combine(Kind, Scope);
 
     public static DependantFactoryTypeReference Create(
         string name,
