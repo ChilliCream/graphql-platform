@@ -17,7 +17,7 @@ namespace HotChocolate.AspNetCore.Authorization;
 /// <summary>
 /// The default authorization implementation that uses Microsoft.AspNetCore.Authorization.
 /// </summary>
-public sealed class DefaultAuthorizationHandler : IAuthorizationHandler
+internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
 {
     /// <summary>
     /// Authorize current directive using Microsoft.AspNetCore.Authorization.

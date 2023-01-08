@@ -9,7 +9,8 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static class HotChocolateAuthorizeRequestExecutorBuilder
 {
     /// <summary>
-    /// Adds the authorization support to the schema.
+    /// Adds the default authorization support to the schema that
+    /// uses Microsoft.AspNetCore.Authorization.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
