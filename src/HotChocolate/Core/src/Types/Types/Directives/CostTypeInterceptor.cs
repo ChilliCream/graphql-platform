@@ -123,18 +123,13 @@ internal class CostTypeInterceptor : TypeInterceptor
 
     private static bool IsCostDirective(DirectiveDefinition directive)
     {
-        if (directive.Type is SyntaxTypeReference { Name: "cost" })
+        if (directive.Type is NameDirectiveReference { Name: "cost" })
         {
             return true;
         }
 
-        if (directive.Type is ExtendedTypeReference { Type.Type: { } runtimeType } &&
+        if (directive.Type is ExtendedTypeDirectiveReference { Type.Type: { } runtimeType } &&
             runtimeType == typeof(CostDirective))
-        {
-            return true;
-        }
-
-        if (directive.Type is SchemaTypeReference { Type: CostDirectiveType })
         {
             return true;
         }

@@ -352,7 +352,7 @@ public class ClrTypeReferenceTests
         var result = typeReference.ToString();
 
         // assert
-        Assert.Equal("Input: String", result);
+        Assert.Equal("String (Input)", result);
     }
 
     [Fact]

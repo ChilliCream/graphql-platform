@@ -236,7 +236,7 @@ public class SchemaTypeReferenceTests
         var result = typeReference.ToString();
 
         // assert
-        Assert.Equal("None: HotChocolate.Types.StringType", result);
+        Assert.Equal("HotChocolate.Types.StringType", result);
     }
 
     [Fact]
