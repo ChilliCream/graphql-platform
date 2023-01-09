@@ -19,8 +19,8 @@ public class ValidationConfiguration : IValidationConfiguration
     public IEnumerable<IDocumentValidatorRule> GetRules(string schemaName)
         => GetOptions(schemaName).Rules;
 
-    public IEnumerable<IValidationResultAggregator> GetPostRules(string schemaName)
-        => GetOptions(schemaName).PostRules;
+    public IEnumerable<IValidationResultAggregator> GetResultAggregators(string schemaName)
+        => GetOptions(schemaName).ResultAggregators;
 
     public ValidationOptions GetOptions(string schemaName)
         => _optionsCache.GetOrAdd(schemaName, CreateOptions);

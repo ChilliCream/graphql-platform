@@ -21,7 +21,7 @@ public class ValidationOptions
     /// <summary>
     /// Gets the document rules that run async logic after the initial validators have run..
     /// </summary>
-    public IList<IValidationResultAggregator> PostRules { get; } =
+    public IList<IValidationResultAggregator> ResultAggregators { get; } =
         new List<IValidationResultAggregator>();
 
     /// <summary>

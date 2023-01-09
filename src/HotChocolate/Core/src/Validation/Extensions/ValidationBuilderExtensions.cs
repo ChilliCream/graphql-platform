@@ -159,9 +159,9 @@ public static partial class HotChocolateValidationBuilderExtensions
             m.Modifiers.Add(o =>
             {
                 var instance = factory(s, o);
-                if (o.PostRules.All(t => t.GetType() != instance.GetType()))
+                if (o.ResultAggregators.All(t => t.GetType() != instance.GetType()))
                 {
-                    o.PostRules.Add(instance);
+                    o.ResultAggregators.Add(instance);
                 }
             }));
     }

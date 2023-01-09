@@ -122,7 +122,7 @@ public sealed class DocumentValidator : IDocumentValidator
             else
             {
                 handleCleanup = false;
-                return RunPostRules(context, document, cancellationToken);
+                return RunResultAggregators(context, document, cancellationToken);
             }
         }
         catch (MaxValidationErrorsException)
@@ -139,7 +139,7 @@ public sealed class DocumentValidator : IDocumentValidator
         }
     }
 
-    private async ValueTask<DocumentValidatorResult> RunPostRules(
+    private async ValueTask<DocumentValidatorResult> RunResultAggregators(
         DocumentValidatorContext context,
         DocumentNode document,
         CancellationToken ct)
