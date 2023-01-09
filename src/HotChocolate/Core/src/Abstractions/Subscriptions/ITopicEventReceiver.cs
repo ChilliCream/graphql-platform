@@ -17,12 +17,6 @@ public interface ITopicEventReceiver
     /// <param name="topicName">
     /// The topic name to which the event message belongs to.
     /// </param>
-    /// <param name="bufferCapacity">
-    ///
-    /// </param>
-    /// <param name="bufferFullMode">
-    ///
-    /// </param>
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
@@ -41,10 +35,10 @@ public interface ITopicEventReceiver
     /// The topic name to which the event message belongs to.
     /// </param>
     /// <param name="bufferCapacity">
-    ///
+    /// The capacity per topic for buffered messages.
     /// </param>
     /// <param name="bufferFullMode">
-    ///
+    /// The action that shall be taken if the topic buffer is full.
     /// </param>
     /// <param name="cancellationToken">
     /// The cancellation token.
