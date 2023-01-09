@@ -1065,4 +1065,7 @@ Type: `{0}`</value>
   <data name="ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong" xml:space="preserve">
     <value>The directive arguments have invalid values: '{0}' at {1}.</value>
   </data>
+  <data name="TypeDiscoveryInfo_TypeRefKindNotSupported" xml:space="preserve">
+    <value>TypeReference kind not supported.</value>
+  </data>
 </root>

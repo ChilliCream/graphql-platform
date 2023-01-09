@@ -1910,5 +1910,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong", resourceCulture);
             }
         }
+        
+        internal static string TypeDiscoveryInfo_TypeRefKindNotSupported {
+            get {
+                return ResourceManager.GetString("TypeDiscoveryInfo_TypeRefKindNotSupported", resourceCulture);
+            }
+        }
     }
 }

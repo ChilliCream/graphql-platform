@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate.Internal;
 
@@ -39,9 +40,9 @@ public readonly ref struct TypeDiscoveryInfo
                 break;
 
             default:
-                throw new NotSupportedException("TypeReference kind not supported.");
+                throw new NotSupportedException(
+                    TypeDiscoveryInfo_TypeRefKindNotSupported);
         }
-
 
         RuntimeType = extendedType.Type;
 
