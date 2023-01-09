@@ -9,7 +9,7 @@ public sealed class SchemaTypeReference
     : TypeReference
     , IEquatable<SchemaTypeReference>
 {
-    public SchemaTypeReference(
+    internal SchemaTypeReference(
         ITypeSystemMember type,
         TypeContext? context = null,
         string? scope = null)

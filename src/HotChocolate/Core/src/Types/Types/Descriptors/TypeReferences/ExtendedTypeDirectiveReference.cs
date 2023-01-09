@@ -8,7 +8,7 @@ public sealed class ExtendedTypeDirectiveReference
     : TypeReference
     , IEquatable<ExtendedTypeDirectiveReference>
 {
-    public ExtendedTypeDirectiveReference(
+    internal ExtendedTypeDirectiveReference(
         IExtendedType type)
         : base(TypeReferenceKind.DirectiveExtendedType, TypeContext.None, null)
     {

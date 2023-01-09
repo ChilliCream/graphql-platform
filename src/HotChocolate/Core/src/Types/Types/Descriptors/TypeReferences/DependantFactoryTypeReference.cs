@@ -9,7 +9,7 @@ public sealed class DependantFactoryTypeReference
     : TypeReference
     , IEquatable<DependantFactoryTypeReference>
 {
-    public DependantFactoryTypeReference(
+    internal DependantFactoryTypeReference(
         string name,
         ITypeReference dependency,
         Func<IDescriptorContext, TypeSystemObjectBase> factory,

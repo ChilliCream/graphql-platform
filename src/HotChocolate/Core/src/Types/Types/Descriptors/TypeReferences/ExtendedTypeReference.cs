@@ -9,7 +9,7 @@ public sealed class ExtendedTypeReference
     : TypeReference
     , IEquatable<ExtendedTypeReference>
 {
-    public ExtendedTypeReference(
+    internal ExtendedTypeReference(
         IExtendedType type,
         TypeContext context,
         string? scope = null)
