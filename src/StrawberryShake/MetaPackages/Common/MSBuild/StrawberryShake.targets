@@ -29,7 +29,7 @@
       <GenCommand>dotnet &quot;$(GenTool)&quot; generate &quot;$(MSBuildProjectDirectory)&quot;</GenCommand>
       <GenCommand>$(GenCommand) -o $(GraphQLCodeGenerationRoot)</GenCommand>
       <GenCommand Condition="'$(RootNamespace)' != ''">$(GenCommand) -n $(RootNamespace)</GenCommand>
-      <GenCommand Condition="'$(GraphQLPersistedQueryOutput)' != ''">$(GenCommand) -q $(GraphQLQueryGenerationRoot)</GenCommand>
+      <GenCommand Condition="'$(GraphQLPersistedQueryOutput)' != ''">$(GenCommand) -q $(GraphQLPersistedQueryOutput)</GenCommand>
       <GenCommand Condition="'$(GraphQLRequestHash)' != ''">$(GenCommand) -a $(GraphQLRequestHash)</GenCommand>
       <GenCommand Condition="'$(GraphQLStrictSchemaValidation)' != 'enable'">$(GenCommand) -s</GenCommand>
       <GenCommand Condition="'$(GraphQLClientStore)' != 'enable'">$(GenCommand) -t</GenCommand>
