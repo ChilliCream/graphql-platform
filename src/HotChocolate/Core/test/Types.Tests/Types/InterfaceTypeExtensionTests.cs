@@ -430,7 +430,7 @@ public class InterfaceTypeExtensionTests
 
     public class DummyQuery
     {
-        public string Foo { get; set; }
+        public string Foo { get; set; } = default!;
     }
 
     public class FooType : InterfaceType<IFoo>

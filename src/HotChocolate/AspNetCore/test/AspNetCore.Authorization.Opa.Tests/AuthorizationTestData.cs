@@ -6,27 +6,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.AspNetCore.Authorization;
 
-public class HasAgeDefinedResponse
-{
-    public bool Allow { get; set; }
-
-    public Claims Claims { get; set; }
-}
-
-public class Claims
-{
-    public string Birthdate { get; set; }
-
-    public long Iat { get; set; }
-
-    public string Name { get; set; }
-
-    public string Sub { get; set; }
-}
-
 public class AuthorizationTestData : IEnumerable<object[]>
 {
-    private readonly string SchemaCode = $@"
+    private const string _sdl = $@"
         type Query {{
             default: String @authorize
             age: String @authorize(policy: ""{Policies.HasDefinedAge}"")
@@ -47,7 +29,7 @@ public class AuthorizationTestData : IEnumerable<object[]>
 
     private Action<IRequestExecutorBuilder> CreateSchema() =>
         sb => sb
-            .AddDocumentFromString(SchemaCode)
+            .AddDocumentFromString(_sdl)
             .AddOpaAuthorization(
                 (_, o) =>
                 {
@@ -64,7 +46,7 @@ public class AuthorizationTestData : IEnumerable<object[]>
 
     private Action<IRequestExecutorBuilder> CreateSchemaWithBuilder() =>
         sb => sb
-            .AddDocumentFromString(SchemaCode)
+            .AddDocumentFromString(_sdl)
             .AddOpaAuthorization(
                 (_, o) =>
                 {
