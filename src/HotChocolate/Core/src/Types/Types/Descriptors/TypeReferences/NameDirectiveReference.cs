@@ -74,7 +74,7 @@ public sealed class NameDirectiveReference
             return true;
         }
 
-        if (obj is SyntaxTypeReference c)
+        if (obj is NameDirectiveReference c)
         {
             return Equals(c);
         }
