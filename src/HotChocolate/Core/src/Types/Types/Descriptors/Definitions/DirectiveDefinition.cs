@@ -43,7 +43,13 @@ public sealed class DirectiveDefinition
         Type = extendedTypeDirectiveType ?? throw new ArgumentNullException(nameof(extendedTypeDirectiveType));
     }
 
+    /// <summary>
+    /// The directive type.
+    /// </summary>
     public ITypeReference Type { get; }
 
+    /// <summary>
+    /// The directive value.
+    /// </summary>
     public object Value { get; }
 }
