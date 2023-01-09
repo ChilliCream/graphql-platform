@@ -18,6 +18,11 @@ public interface IDocumentValidatorContext : ISyntaxVisitorContext
     ISchema Schema { get; }
 
     /// <summary>
+    /// Gets the unique document identifier.
+    /// </summary>
+    string DocumentId { get; }
+
+    /// <summary>
     /// Gets the current operation type.
     /// </summary>
     OperationType? OperationType { get; set; }

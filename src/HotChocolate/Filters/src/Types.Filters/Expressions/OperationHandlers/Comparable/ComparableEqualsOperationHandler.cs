@@ -11,7 +11,7 @@ public sealed class ComparableEqualsOperationHandler
     protected override bool TryCreateExpression(
         FilterOperation operation,
         Expression property,
-        Func<object> parseValue,
+        Func<object?> parseValue,
         [NotNullWhen(true)] out Expression? expression)
     {
         switch (operation.Kind)

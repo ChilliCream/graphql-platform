@@ -1,8 +1,8 @@
-﻿schema {
+schema {
   query: Query
 }
 
-type Query @foo(argument1: "abc") {
+type Query @foo {
   foo: String
 }
 

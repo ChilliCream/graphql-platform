@@ -119,7 +119,7 @@ public static class SortObjectFieldDescriptorExtensions
                         definition,
                         ApplyConfigurationOn.BeforeCompletion,
                         argumentTypeReference,
-                        TypeDependencyKind.Completed));
+                        TypeDependencyFulfilled.Completed));
             });
 
         return descriptor;

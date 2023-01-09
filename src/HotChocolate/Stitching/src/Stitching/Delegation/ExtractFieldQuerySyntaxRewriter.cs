@@ -323,8 +323,8 @@ public partial class ExtractFieldQuerySyntaxRewriter
     }
 
     private static bool IsDelegationField(IDirectiveCollection directives)
-        => directives.Contains(DirectiveNames.Delegate) ||
-            directives.Contains(DirectiveNames.Computed);
+        => directives.ContainsDirective(DirectiveNames.Delegate) ||
+            directives.ContainsDirective(DirectiveNames.Computed);
 
     private static void AddDependencies(
         Types.IHasName typeContext,
@@ -374,7 +374,7 @@ public partial class ExtractFieldQuerySyntaxRewriter
             var variableDefinition =
                 context.Operation!.VariableDefinitions
                     .First(t => t.Variable.Name.Value.EqualsOrdinal(node.Name.Value));
-            context.Variables[node.Name.Value] = variableDefinition!;
+            context.Variables[node.Name.Value] = variableDefinition;
         }
 
         return base.RewriteVariable(node, context);

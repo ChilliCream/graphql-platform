@@ -64,13 +64,22 @@ internal sealed class ResponseEnumerator : IAsyncEnumerator<Response<JsonDocumen
             }
             else
             {
-                Current = await stream.TryParseResponse(_abort).ConfigureAwait(false);
+                try
+                {
+                    response.EnsureSuccessStatusCode();
+                    Current = await stream.TryParseResponse(_abort).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    Current = new Response<JsonDocument>(null, ex);
+                }
                 _completed = true;
                 return true;
             }
         }
 
         var multipartSection = await _reader.ReadNextSectionAsync(_abort).ConfigureAwait(false);
+
         if (multipartSection is null)
         {
             Current = default!;

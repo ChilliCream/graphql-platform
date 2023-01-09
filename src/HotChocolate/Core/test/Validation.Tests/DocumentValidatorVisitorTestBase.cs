@@ -11,7 +11,7 @@ namespace HotChocolate.Validation;
 
 public abstract class DocumentValidatorVisitorTestBase
 {
-    public DocumentValidatorVisitorTestBase(Action<IValidationBuilder> configure)
+    protected DocumentValidatorVisitorTestBase(Action<IValidationBuilder> configure)
     {
         var serviceCollection = new ServiceCollection();
 

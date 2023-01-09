@@ -13,7 +13,7 @@ internal sealed class DefaultComplexityAnalyzerCache : IComplexityAnalyzerCache
         _cache = new Cache<ComplexityAnalyzerDelegate>(capacity);
     }
 
-    public int Capacity => _cache.Size;
+    public int Capacity => _cache.Capacity;
 
     public int Count => _cache.Usage;
 

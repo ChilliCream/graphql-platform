@@ -139,6 +139,41 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
+    /// Adds a query async validation rule to the schema that is run after the
+    /// actual validation rules and can be used to aggregate results.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="factory">
+    /// The factory that creates the validator instance.
+    /// </param>
+    /// <typeparam name="T">
+    /// The type of the validator.
+    /// </typeparam>
+    /// <returns>
+    /// Returns an <see cref="IRequestExecutorBuilder"/> that can be used to chain
+    /// configuration.
+    /// </returns>
+    public static IRequestExecutorBuilder AddValidationResultAggregator<T>(
+        this IRequestExecutorBuilder builder,
+        Func<IServiceProvider, ValidationOptions, T> factory)
+        where T : class, IValidationResultAggregator
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (factory is null)
+        {
+            throw new ArgumentNullException(nameof(factory));
+        }
+
+        return ConfigureValidation(builder, b => b.TryAddValidationResultAggregator(factory));
+    }
+
+    /// <summary>
     /// Adds a validation rule that restricts the depth of a GraphQL request.
     /// </summary>
     /// <param name="builder">

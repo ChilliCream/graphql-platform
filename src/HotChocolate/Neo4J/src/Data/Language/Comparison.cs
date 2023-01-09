@@ -47,7 +47,7 @@ public class Comparison : Condition
         {
             OperatorType.Prefix => new Comparison(null, op, expression),
             OperatorType.Postfix => new Comparison(expression, op, null),
-            _ => throw new System.ArgumentException("Invalid operator type"),
+            _ => throw new ArgumentException("Invalid operator type"),
         };
 
     private static Expression NestedIfCondition(Expression expression) =>

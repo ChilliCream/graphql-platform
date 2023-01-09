@@ -383,8 +383,6 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         public SubscribeResolverDelegate? SubscribeResolver => _nodeField.SubscribeResolver;
 
-        public IReadOnlyList<IDirective> ExecutableDirectives => _nodeField.ExecutableDirectives;
-
         public MemberInfo? Member => _nodeField.Member;
 
         public MemberInfo? ResolverMember => _nodeField.ResolverMember;

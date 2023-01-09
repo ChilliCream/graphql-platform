@@ -75,6 +75,6 @@ public class Neo4JFixture : Neo4JFixtureBase
 
     private class StubObject<T>
     {
-        public T Root { get; set; }
+        public T Root { get; set; } = default!;
     }
 }

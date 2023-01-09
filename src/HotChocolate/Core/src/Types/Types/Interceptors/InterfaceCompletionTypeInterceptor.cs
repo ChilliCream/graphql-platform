@@ -66,10 +66,10 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
                     var interfaceTypeInfo = _allInterfaceRuntimeTypes[interfaceRuntimeType];
                     var interfaceTypeDependency = new TypeDependency(
                         interfaceTypeInfo.Context.TypeReference,
-                        TypeDependencyKind.Completed);
+                        TypeDependencyFulfilled.Completed);
 
                     typeInfo.Context.Dependencies.Add(interfaceTypeDependency);
-                    typeInfo.Definition.Interfaces.Add(interfaceTypeDependency.TypeReference);
+                    typeInfo.Definition.Interfaces.Add(interfaceTypeDependency.Type);
                 }
             }
         }

@@ -10,10 +10,13 @@ namespace HotChocolate.Types.Descriptors;
 
 public class DefaultNamingConventions
     : Convention
-    , INamingConventions
+        , INamingConventions
 {
     private const string _inputPostfix = "Input";
     private const string _inputTypePostfix = "InputType";
+    private const string _directivePostfix = "Directive";
+    private const string _directiveTypePostfix = "DirectiveType";
+
     private readonly IDocumentationProvider _documentation;
 
     public DefaultNamingConventions()
@@ -75,6 +78,22 @@ public class DefaultNamingConventions
             {
                 return name + _inputPostfix;
             }
+        }
+
+        if (kind is TypeKind.Directive)
+        {
+            if (name.Length > _directivePostfix.Length &&
+                name.EndsWith(_directivePostfix, StringComparison.Ordinal))
+            {
+                name = name.Substring(0, name.Length - _directivePostfix.Length);
+            }
+            else if (name.Length > _directiveTypePostfix.Length &&
+                name.EndsWith(_directiveTypePostfix, StringComparison.Ordinal))
+            {
+                name = name.Substring(0, name.Length - _directiveTypePostfix.Length);
+            }
+
+            name = AttributeExtensions.NormalizeFieldName(name);
         }
 
         return name;
@@ -197,7 +216,8 @@ public class DefaultNamingConventions
         {
             var c = name[i];
 
-            if (i > 0 && char.IsUpper(c) &&
+            if (i > 0 &&
+                char.IsUpper(c) &&
                 (!char.IsUpper(name[i - 1]) ||
                     (i < lengthMinusOne && char.IsLower(name[i + 1]))))
             {
@@ -235,6 +255,7 @@ public class DefaultNamingConventions
             buffer[p++] = char.ToUpper(name[0]);
 
             var lastWasUnderline = false;
+
             for (var i = 1; i < name.Length; i++)
             {
                 if (!lastWasUnderline &&
@@ -271,6 +292,7 @@ public class DefaultNamingConventions
         }
 
         var enumType = value.GetType();
+
         if (enumType.IsEnum)
         {
             var enumMember = enumType

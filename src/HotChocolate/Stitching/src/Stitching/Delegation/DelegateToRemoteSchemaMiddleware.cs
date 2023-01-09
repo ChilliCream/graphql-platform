@@ -33,7 +33,7 @@ public sealed class DelegateToRemoteSchemaMiddleware
         var delegateDirective = context.Selection
             .Field
             .Directives[DirectiveNames.Delegate]
-            .FirstOrDefault()?.ToObject<DelegateDirective>();
+            .FirstOrDefault()?.AsValue<DelegateDirective>();
 
         if (delegateDirective != null)
         {

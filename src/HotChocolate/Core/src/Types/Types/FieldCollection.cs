@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 
 #nullable enable
 
@@ -57,6 +58,13 @@ public sealed class FieldCollection<T> : IFieldCollection<T> where T : class, IF
     }
 
     internal ReadOnlySpan<T> AsSpan() => _fields;
+
+    internal ref T GetReference()
+#if NET6_0_OR_GREATER
+        => ref MemoryMarshal.GetArrayDataReference(_fields);
+#else
+        => ref MemoryMarshal.GetReference(_fields.AsSpan());
+#endif
 
     public IEnumerator<T> GetEnumerator()
         => _fields.Length == 0

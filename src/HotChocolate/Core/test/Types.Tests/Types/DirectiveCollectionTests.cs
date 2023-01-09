@@ -1,11 +1,9 @@
 using System;
 using HotChocolate.Language;
-using Xunit;
 
 namespace HotChocolate.Types;
 
-public class DirectiveCollectionTests
-    : TypeTestBase
+public class DirectiveCollectionTests : TypeTestBase
 {
     [Fact]
     public void DirectiveOrderIsSignificant()
@@ -28,7 +26,7 @@ public class DirectiveCollectionTests
             .Location(DirectiveLocation.FieldDefinition));
 
         // act
-        var schema = CreateSchema(b =>
+        CreateSchema(b =>
         {
             b.AddType(someType);
             b.AddDirectiveType(foo);
@@ -37,8 +35,8 @@ public class DirectiveCollectionTests
 
         // assert
         Assert.Collection(someType.Fields["abc"].Directives,
-            t => Assert.Equal("foo", t.Name),
-            t => Assert.Equal("bar", t.Name));
+            t => Assert.Equal("foo", t.Type.Name),
+            t => Assert.Equal("bar", t.Type.Name));
     }
 
     [Fact]
@@ -64,11 +62,12 @@ public class DirectiveCollectionTests
         });
 
         // assert
-        Assert.Collection(Assert.Throws<SchemaException>(action).Errors,
-            t => Assert.Equal(
-                "The specified directive `@foo` " +
-                "is unique and cannot be added twice.",
-                t.Message));
+        Assert.Collection(
+            Assert.Throws<SchemaException>(action).Errors,
+                t => Assert.Equal(
+                    "The specified directive `@foo` " +
+                    "is unique and cannot be added twice.",
+                    t.Message));
     }
 
     [Fact]
@@ -97,8 +96,8 @@ public class DirectiveCollectionTests
 
         // assert
         Assert.Collection(someType.Fields["abc"].Directives,
-            t => Assert.Equal("foo", t.Name),
-            t => Assert.Equal("foo", t.Name));
+            t => Assert.Equal("foo", t.Type.Name),
+            t => Assert.Equal("foo", t.Type.Name));
     }
 
     [Fact]

@@ -78,10 +78,10 @@ public class Neo4JListFilterTests : IClassFixture<Neo4JFixture>
 
     public class Foo
     {
-        public string BarString { get; set; }
+        public string BarString { get; set; } = default!;
 
         [Neo4JRelationship("RELATED_FOO")]
-        public List<FooNested> FooNested { get; set; }
+        public List<FooNested> FooNested { get; set; } = default!;
     }
 
     public class FooNested
@@ -89,7 +89,7 @@ public class Neo4JListFilterTests : IClassFixture<Neo4JFixture>
         public string? Bar { get; set; }
 
         [Neo4JRelationship("RELATED_BAR")]
-        public List<BarNested> BarNested { get; set; }
+        public List<BarNested> BarNested { get; set; } = default!;
     }
 
     public class BarNested

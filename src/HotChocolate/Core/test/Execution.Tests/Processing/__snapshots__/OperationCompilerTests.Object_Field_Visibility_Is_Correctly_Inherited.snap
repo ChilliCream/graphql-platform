@@ -18,7 +18,7 @@
 
 query foo($v: Boolean) @includeCondition(flag: 2) {
   ... on Query {
-    hero(episode: EMPIRE) @conditional @__execute(id: 0, kind: DEFAULT, type: COMPOSITE) {
+    hero(episode: EMPIRE) @conditional @__execute(id: 0, kind: PURE, type: COMPOSITE) {
       ... on Human {
         name @conditional @__execute(id: 1, kind: PURE, type: LEAF)
         id @__execute(id: 2, kind: PURE, type: LEAF)

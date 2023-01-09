@@ -85,4 +85,9 @@ public static class WellKnownMiddleware
     ///The key identifies the mutation result middleware.
     /// </summary>
     public const string MutationResult = "HotChocolate.Types.Mutations.Result";
+
+    /// <summary>
+    ///The key identifies the authorization middleware.
+    /// </summary>
+    public const string Authorization = "HotChocolate.Authorization";
 }

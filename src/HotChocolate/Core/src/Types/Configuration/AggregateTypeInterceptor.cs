@@ -22,9 +22,15 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         _typeInterceptors = Array.Empty<TypeInterceptor>();
     }
 
-    public void SetInterceptors(IReadOnlyCollection<object> interceptors)
+    public void SetInterceptors(IReadOnlyCollection<TypeInterceptor> typeInterceptors)
     {
-        _typeInterceptors = interceptors.OfType<TypeInterceptor>().ToArray();
+        _typeInterceptors = new TypeInterceptor[typeInterceptors.Count];
+        var i = 0;
+
+        foreach (var typeInterceptor in typeInterceptors.OrderBy(t => t.Position))
+        {
+            _typeInterceptors[i++] = typeInterceptor;
+        }
     }
 
     public override void OnBeforeCreateSchema(

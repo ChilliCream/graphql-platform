@@ -51,11 +51,6 @@ public interface IObjectField : IOutputField
     SubscribeResolverDelegate? SubscribeResolver { get; }
 
     /// <summary>
-    /// Gets all executable directives that are associated with this field.
-    /// </summary>
-    IReadOnlyList<IDirective> ExecutableDirectives { get; }
-
-    /// <summary>
     /// Gets the associated member of the runtime type for this field.
     /// This property can be <c>null</c> if this field is not associated to
     /// a concrete member on the runtime type.

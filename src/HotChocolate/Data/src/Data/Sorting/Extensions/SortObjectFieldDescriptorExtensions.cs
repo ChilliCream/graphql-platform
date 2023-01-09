@@ -186,7 +186,7 @@ public static class SortObjectFieldDescriptorExtensions
                         argumentDefinition,
                         ApplyConfigurationOn.BeforeNaming,
                         argumentTypeReference,
-                        TypeDependencyKind.Named));
+                        TypeDependencyFulfilled.Named));
 
                     definition.Arguments.Add(argumentDefinition);
 
@@ -202,7 +202,7 @@ public static class SortObjectFieldDescriptorExtensions
                             definition,
                             ApplyConfigurationOn.BeforeCompletion,
                             argumentTypeReference,
-                            TypeDependencyKind.Completed));
+                            TypeDependencyFulfilled.Completed));
 
                     argumentDefinition.Configurations.Add(
                         new CompleteConfiguration<ArgumentDefinition>(

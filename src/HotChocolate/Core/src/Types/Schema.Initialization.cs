@@ -19,13 +19,10 @@ public partial class Schema
 
     public Schema(Action<ISchemaTypeDescriptor> configure)
     {
-        _configure = configure
-            ?? throw new ArgumentNullException(nameof(configure));
+        _configure = configure ?? throw new ArgumentNullException(nameof(configure));
     }
 
-    protected virtual void Configure(ISchemaTypeDescriptor descriptor)
-    {
-    }
+    protected virtual void Configure(ISchemaTypeDescriptor descriptor) { }
 
     protected sealed override SchemaTypeDefinition CreateDefinition(
         ITypeDiscoveryContext context)
@@ -49,14 +46,17 @@ public partial class Schema
         {
             foreach (var directive in definition.Directives)
             {
-                context.Dependencies.Add(new(
-                    directive.TypeReference,
-                    TypeDependencyKind.Completed));
+                context.Dependencies.Add(
+                    new(
+                        directive.Type,
+                        TypeDependencyFulfilled.Completed));
             }
         }
 
-        context.RegisterDependencyRange(
-            definition.GetDirectives().Select(t => t.Reference));
+        foreach (var typeReference in definition.GetDirectives().Select(t => t.Type))
+        {
+            context.Dependencies.Add(new TypeDependency(typeReference));
+        }
     }
 
     protected override void OnCompleteType(
@@ -65,8 +65,10 @@ public partial class Schema
     {
         base.OnCompleteType(context, definition);
 
-        Directives =
-            DirectiveCollection.CreateAndComplete(context, this, definition.GetDirectives());
+        Directives = DirectiveCollection.CreateAndComplete(
+            context,
+            this,
+            definition.GetDirectives());
         Services = context.Services;
     }
 
@@ -82,6 +84,12 @@ public partial class Schema
         {
             throw new InvalidOperationException(
                 "This schema is already sealed and cannot be mutated.");
+        }
+
+        if (schemaTypesDefinition.Types is null || schemaTypesDefinition.DirectiveTypes is null)
+        {
+            throw new InvalidOperationException(
+                "The schema type collections are not initialized.");
         }
 
         DirectiveTypes = schemaTypesDefinition.DirectiveTypes;

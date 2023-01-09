@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using HotChocolate.Internal;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
 
 #nullable  enable
 
@@ -72,39 +69,22 @@ internal sealed class TypeLookup
                 _refs[typeRef] = r;
                 namedTypeRef = r;
                 return true;
-        }
 
-        namedTypeRef = null;
-        return false;
-    }
+            case NameDirectiveReference dirRef:
+                if (_typeRegistry.TryGetTypeRef(dirRef.Name, out namedTypeRef))
+                {
+                    _refs[typeRef] = namedTypeRef;
+                    return true;
+                }
+                break;
 
-    public bool TryNormalizeReference(
-        IDirectiveReference directiveRef,
-        [NotNullWhen(true)] out ITypeReference? namedTypeRef)
-    {
-        if (directiveRef is null)
-        {
-            throw new ArgumentNullException(nameof(directiveRef));
-        }
-
-        if (directiveRef is ClrTypeDirectiveReference cr)
-        {
-            var directiveTypeRef = _typeInspector.GetTypeRef(cr.ClrType);
-            if (!_typeRegistry.TryGetTypeRef(directiveTypeRef, out namedTypeRef))
-            {
-                namedTypeRef = directiveTypeRef;
-            }
-            return true;
-        }
-
-        if (directiveRef is NameDirectiveReference nr)
-        {
-            namedTypeRef = _typeRegistry.Types
-                .FirstOrDefault(
-                    t => t.Type is DirectiveType &&
-                        t.Type.Name.EqualsOrdinal(nr.Name))?
-                .References[0];
-            return namedTypeRef is not null;
+            case ExtendedTypeDirectiveReference dirRef:
+                if (TryNormalizeExtendedTypeReference(TypeReference.Create(dirRef.Type), out namedTypeRef))
+                {
+                    _refs[typeRef] = namedTypeRef;
+                    return true;
+                }
+                break;
         }
 
         namedTypeRef = null;

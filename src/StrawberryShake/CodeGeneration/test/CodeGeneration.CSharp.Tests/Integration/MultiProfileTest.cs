@@ -17,7 +17,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         public void Execute_MultiProfile_Test()
         {
             // arrange
-            using IWebHost host = TestServerHelper.CreateServer(
+            using var host = TestServerHelper.CreateServer(
                 _ => { },
                 out var port);
             var serviceCollection = new ServiceCollection();
@@ -33,7 +33,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                 profile: MultiProfileClientProfileKind.Default);
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
-            MultiProfileClient client = services.GetRequiredService<MultiProfileClient>();
+            var client = services.GetRequiredService<MultiProfileClient>();
 
             // assert
             Assert.NotNull(client);
