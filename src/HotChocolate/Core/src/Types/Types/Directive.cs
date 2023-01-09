@@ -66,8 +66,22 @@ public sealed class Directive
         return null;
     }
 
+    /// <summary>
+    /// Gets the runtime representation of the directive.
+    /// </summary>
+    /// <typeparam name="T">
+    /// The runtime type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the runtime representation of the directive.
+    /// </returns>
     public T AsValue<T>() => (T)_runtimeValue;
 
+    /// <summary>
+    /// Gets the syntax node representation of the directive.
+    /// </summary>
+    /// <param name="removeDefaults"></param>
+    /// <returns></returns>
     public DirectiveNode AsSyntaxNode(bool removeDefaults = false)
     {
         if (!removeDefaults || _syntaxNode.Arguments.Count == 0)

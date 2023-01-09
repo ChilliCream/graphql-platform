@@ -14,6 +14,9 @@ using HotChocolate.Utilities;
 #nullable enable
 namespace HotChocolate.Types;
 
+/// <summary>
+/// Represents a collection of directives of a <see cref="ITypeSystemMember"/>.
+/// </summary>
 public sealed class DirectiveCollection : IDirectiveCollection
 {
     private readonly Directive[] _directives;
@@ -23,8 +26,10 @@ public sealed class DirectiveCollection : IDirectiveCollection
         _directives = directives ?? throw new ArgumentNullException(nameof(directives));
     }
 
+    /// <inheritdoc />
     public int Count => _directives.Length;
 
+    /// <inheritdoc />
     public IEnumerable<Directive> this[string directiveName]
     {
         get
@@ -49,8 +54,10 @@ public sealed class DirectiveCollection : IDirectiveCollection
         }
     }
 
+    /// <inheritdoc />
     public Directive this[int index] => _directives[index];
 
+    /// <inheritdoc />
     public Directive? FirstOrDefault(string directiveName)
     {
         directiveName.EnsureGraphQLName();
@@ -75,6 +82,7 @@ public sealed class DirectiveCollection : IDirectiveCollection
         return null;
     }
 
+    /// <inheritdoc />
     public bool ContainsDirective(string directiveName)
         => FirstOrDefault(directiveName) is not null;
 
@@ -208,6 +216,7 @@ public sealed class DirectiveCollection : IDirectiveCollection
         => ref MemoryMarshal.GetReference(_directives.AsSpan());
 #endif
 
+    /// <inheritdoc />
     public IEnumerator<Directive> GetEnumerator()
         => ((IEnumerable<Directive>)_directives).GetEnumerator();
 
