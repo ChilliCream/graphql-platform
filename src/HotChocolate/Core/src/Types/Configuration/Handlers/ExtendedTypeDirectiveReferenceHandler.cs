@@ -9,10 +9,7 @@ internal sealed class ExtendedTypeDirectiveReferenceHandler : ITypeRegistrarHand
     private readonly ITypeInspector _typeInspector;
 
     public ExtendedTypeDirectiveReferenceHandler(ITypeInspector typeInspector)
-    {
-        _typeInspector = typeInspector;
-    }
-
+        => _typeInspector = typeInspector;
 
     public TypeReferenceKind Kind => TypeReferenceKind.DirectiveExtendedType;
 
