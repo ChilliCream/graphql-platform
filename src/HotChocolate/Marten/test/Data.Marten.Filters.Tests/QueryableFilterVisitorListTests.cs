@@ -102,46 +102,6 @@ public class QueryableFilterVisitorListTests : IClassFixture<SchemaCache>
     }
 
     [Fact]
-    public async Task Create_ArrayAllObjectStringEqual_Expression_CustomAllow()
-    {
-        // arrange
-        var tester = _cache.CreateSchema<Foo, FooCustomAllowsFilterInput>(_fooEntities);
-
-        // act
-        var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
-                    "{ root(where: { fooNested: { all: {bar: { eq: \"a\"}}}}){ fooNested {bar}}}")
-                .Create());
-
-        var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
-                    "{ root(where: { fooNested: { all: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
-                .Create());
-
-        var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
-                    "{ root(where: { fooNested: { all: {bar: { eq: null}}}}){ fooNested {bar}}}")
-                .Create());
-
-        // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1,
-                        "a"),
-                    res2,
-                    "d"),
-                res3,
-                "null")
-            .MatchAsync();
-    }
-
-    [Fact]
     public async Task Create_ArraySomeObjectStringEqualWithNull_Expression()
     {
         // arrange
@@ -284,21 +244,6 @@ public class QueryableFilterVisitorListTests : IClassFixture<SchemaCache>
         protected override void Configure(IFilterInputTypeDescriptor<Foo> descriptor)
         {
             descriptor.Field(t => t.FooNested);
-        }
-    }
-
-    public class FooCustomAllowsFilterInput : FilterInputType<Foo>
-    {
-        protected override void Configure(IFilterInputTypeDescriptor<Foo> descriptor)
-        {
-            descriptor.Field(
-                f => f.FooNested,
-                o =>
-                {
-                    o.AllowAll(f => f.Field(y => y.Bar).AllowEquals());
-                    o.AllowSome(f => f.Field(y => y.Bar).AllowEquals());
-                    o.AllowNone(f => f.Field(y => y.Bar).AllowEquals());
-                });
         }
     }
 

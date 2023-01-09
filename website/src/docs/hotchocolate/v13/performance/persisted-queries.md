@@ -1,5 +1,6 @@
 ---
 title: "Persisted queries"
+description: "In this section, you will learn how to use persisted queries in GraphQL with Hot Chocolate."
 ---
 
 Persisted queries allow us to pre-register all required queries of our clients. This can be done by extracting the queries of our client applications at build time and placing them in the server's query storage.
@@ -8,9 +9,7 @@ Extracting queries is supported by client libraries like [Relay](https://relay.d
 
 > Note: While this feature is called persisted _queries_ it works for all other GraphQL operations as well.
 
-<iframe width="560" height="315"
-src="https://www.youtube.com/embed/ZZ5PF3_P_r4"frameborder="0"
-allowfullscreen></iframe>
+<Video videoId="ZZ5PF3_P_r4" />
 
 # How it works
 

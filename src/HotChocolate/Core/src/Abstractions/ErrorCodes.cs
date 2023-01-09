@@ -300,11 +300,6 @@ public static class ErrorCodes
         /// Type does not contain a valid node field. Only `items` and `nodes` are supported
         /// </summary>
         public const string NodeFieldWasNotFound = "HC0028";
-
-        /// <summary>
-        /// Inline filtering type does not defined any fields.
-        /// </summary>
-        public const string InlineFilterTypeNoFields = "HC0062";
     }
 
     /// <summary>

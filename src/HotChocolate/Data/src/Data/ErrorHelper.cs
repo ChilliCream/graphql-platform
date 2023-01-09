@@ -113,20 +113,4 @@ internal static class ErrorHelper
                 pageType.Name)
             .SetCode(ErrorCodes.Data.NodeFieldWasNotFound)
             .Build();
-
-    public static ISchemaError Filtering_InlineFilterTypeHadNoFields(
-        FilterInputTypeDefinition typeDefinition,
-        ITypeSystemObject type,
-        FilterFieldDefinition fieldDefinition,
-        INamedType parentType) =>
-        SchemaErrorBuilder
-            .New()
-            .SetMessage(
-                DataResources.Filtering_InlineFilterTypeHadNoFields,
-                typeDefinition.Name,
-                fieldDefinition.Name,
-                parentType.Name)
-            .SetCode(ErrorCodes.Data.InlineFilterTypeNoFields)
-            .SetTypeSystemObject(type)
-            .Build();
 }

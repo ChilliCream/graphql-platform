@@ -40,6 +40,4 @@ public interface IFilterFieldDescriptor
     IFilterFieldDescriptor Directive(
         string name,
         params ArgumentNode[] arguments);
-
-    IFilterFieldDescriptor AllowOperation(int operation);
 }

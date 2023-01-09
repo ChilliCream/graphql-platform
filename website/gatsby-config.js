@@ -1,11 +1,14 @@
 /** @type import('gatsby').GatsbyConfig */
+
+const SITE_URL = `https://chillicream.com`;
+
 module.exports = {
   siteMetadata: {
     title: `ChilliCream GraphQL Platform`,
-    description: `We're building the ultimate GraphQL platform`,
+    description: `We help companies and developers to build next level APIs with GraphQL by providing them the right tooling.`,
     author: `Chilli_Cream`,
     company: "ChilliCream",
-    siteUrl: `https://chillicream.com`,
+    siteUrl: SITE_URL,
     repositoryUrl: `https://github.com/ChilliCream/hotchocolate`,
     tools: {
       bcp: `https://eat.bananacakepop.com`,
@@ -148,6 +151,17 @@ module.exports = {
       },
     },
     {
+      resolve: "gatsby-plugin-google-tagmanager",
+      options: {
+        id: "G-RSKJWN1W8V",
+        includeInDevelopment: false,
+        defaultDataLayer: {
+          platform: "gatsby",
+        },
+        enableWebVitalsTracking: true,
+      },
+    },
+    {
       resolve: `gatsby-plugin-google-analytics`,
       options: {
         trackingId: "UA-72800164-1",
@@ -160,6 +174,24 @@ module.exports = {
         resolvePagePath({ path }) {
           return `${path}/`.replace("//", "/");
         },
+      },
+    },
+    {
+      resolve: `gatsby-plugin-robots-txt`,
+      options: {
+        host: SITE_URL,
+        sitemap: `${SITE_URL}/sitemap-index.xml`,
+        policy: [
+          {
+            userAgent: `*`,
+            allow: `/`,
+            disallow: [`/docs/hotchocolate/v10/`, `/docs/hotchocolate/v11/`],
+          },
+          {
+            userAgent: `Algolia Crawler`,
+            allow: `/`,
+          },
+        ],
       },
     },
     {

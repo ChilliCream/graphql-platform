@@ -2,8 +2,6 @@
 title: "Get started with Strawberry Shake and Blazor"
 ---
 
-> We are still working on the documentation for Strawberry Shake so help us by finding typos, missing things or write some additional docs with us.
-
 In this tutorial we will walk you through the basics of adding a Strawberry Shake GraphQL client to a Blazor for WebAssembly project. For this example we will create a Blazor for WebAssembly application and fetch some simple data from our demo backend.
 
 Strawberry Shake is not limited to Blazor and can be used with any .NET standard compliant library.
@@ -14,9 +12,7 @@ In this tutorial, we will teach you:
 - How to generate source code from .graphql files, that contain operations.
 - How to use the generated client in a classical or reactive way.
 
-<iframe width="560" height="315"
-src="https://www.youtube.com/embed/-oq7YEciouM"frameborder="0"
-allowfullscreen></iframe>
+<Video videoId="-oq7YEciouM" />
 
 # Step 1: Add the Strawberry Shake CLI tools
 

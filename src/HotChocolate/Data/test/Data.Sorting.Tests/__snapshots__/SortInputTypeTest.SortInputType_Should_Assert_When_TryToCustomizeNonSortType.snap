@@ -1,1 +1,0 @@
-There was an issue creating the type of the field somedata in type BookSortInput. The type definiton of String was not found. Make sure you only customize fields of type SortInputType!

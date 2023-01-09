@@ -1,3 +1,0 @@
-The type (CustomName) of the field title in type BookFilterInput does not defined any fields.
-You most likely customized a type but did not allow any operations or fields on it.
-Make sure to call e.g. `.Field(x => x.Example).AllowEq())` on the field, to whitelist the allowed operations or `.Field(x => x.Bar, descriptor => descriptor.Field(x => x.SubField))` to allow a field form the sub type.

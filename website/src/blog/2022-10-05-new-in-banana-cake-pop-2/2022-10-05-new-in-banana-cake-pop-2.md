@@ -2,14 +2,14 @@
 path: "/blog/2022/10/05/new-in-banana-cake-pop-2"
 date: "2022-10-05"
 title: "New in Banana Cake Pop 2"
+description: "Drag & drop support for documents, GraphQL defer/stream support, GraphQL operation extraction, and many further improvements."
 tags: ["bananacakepop", "graphql", "ide", "cloud", "release"]
 featuredImage: "new-in-banana-cake-pop-2.png"
+featuredVideoId: X3cfnm0UHVQ
 author: Rafael Staib
 authorUrl: https://github.com/rstaib
 authorImageUrl: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4
 ---
-
-[![YouTube Video](../shared/new-in-bcp-youtube.png)](https://youtu.be/X3cfnm0UHVQ)
 
 ## Getting started
 

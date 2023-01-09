@@ -68,18 +68,6 @@ public interface ISortInputTypeDescriptor<T> : ISortInputTypeDescriptor
     ISortFieldDescriptor Field<TField>(Expression<Func<T, TField>> propertyOrMember);
 
     /// <summary>
-    /// Defines a <see cref="SortField" /> that binds to the specified property and also
-    /// configures the type of the field
-    /// </summary>
-    /// <param name="propertyOrMember">
-    /// The property to which a filter field shall be bound.
-    /// </param>
-    /// <param name="configure">The configuration of the type of the field</param>
-    ISortFieldDescriptor Field<TField>(
-        Expression<Func<T, TField?>> propertyOrMember,
-        Action<ISortInputTypeDescriptor<TField>> configure);
-
-    /// <summary>
     /// Ignore the specified property.
     /// </summary>
     /// <param name="name">

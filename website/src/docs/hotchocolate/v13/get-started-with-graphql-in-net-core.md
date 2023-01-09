@@ -1,15 +1,12 @@
 ---
-title: "Get started with Hot Chocolate"
+title: "Get started with GraphQL in .NET Core"
+description: "In this tutorial, we will walk you through the basics of creating a GraphQL .NET server with Hot Chocolate."
 ---
 
 import { ApiChoiceTabs } from "../../../components/mdx/api-choice-tabs"
 import { InputChoiceTabs } from "../../../components/mdx/input-choice-tabs"
 
-In this tutorial, we will walk you through the basics of creating a GraphQL server with Hot Chocolate.
-
-<iframe width="560" height="315"
-src="https://www.youtube.com/embed/qrh97hToWpM"frameborder="0"
-allowfullscreen></iframe>
+<Video videoId="qrh97hToWpM" />
 
 # Setup
 
@@ -255,4 +252,4 @@ If you want to get an overview of Hot Chocolate's features, we recommend reading
 
 For a guided tutorial that explains how you can setup your GraphQL server beyond this basic example, checkout [our workshop](https://github.com/ChilliCream/graphql-workshop). Here we will dive deeper into several topics around Hot Chocolate and GraphQL in general.
 
-You can also jump straight into our documentation and learn more about<br/>[Defining a GraphQL schema](/docs/hotchocolate/v12/defining-a-schema).
+You can also jump straight into our documentation and learn more about<br/>[Defining a GraphQL schema](/docs/hotchocolate/v13/defining-a-schema).

@@ -60,12 +60,12 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
 
   createDocPages(createPage, result.data.docs, products);
 
-  createRedirect({
-    fromPath: "/docs/",
-    toPath: "/docs/hotchocolate/",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
+  // Docs
+  createPermanentRedirectWithAndWithoutEndSlash(
+    "/docs",
+    "/docs/hotchocolate",
+    createRedirect
+  );
 
   const hotchocolate = products.find((p) => p.path === "hotchocolate");
 
@@ -73,63 +73,73 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
     createHotChocolateRedirects(hotchocolate, createRedirect);
   }
 
-  createRedirect({
-    fromPath: "/docs/marshmallowpie/",
-    toPath: "/docs/hotchocolate/",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
+  // Hot Chocolate
+  createPermanentRedirectWithAndWithoutEndSlash(
+    "/docs/hotchocolate/get-started",
+    "/docs/hotchocolate/get-started-with-graphql-in-net-core",
+    createRedirect
+  );
+  createPermanentRedirectWithAndWithoutEndSlash(
+    "/docs/hotchocolate/v12/get-started",
+    "/docs/hotchocolate/v12/get-started-with-graphql-in-net-core",
+    createRedirect
+  );
+  createPermanentRedirectWithAndWithoutEndSlash(
+    "/docs/hotchocolate/v13/get-started",
+    "/docs/hotchocolate/v13/get-started-with-graphql-in-net-core",
+    createRedirect
+  );
 
-  createRedirect({
-    fromPath: "/blog/2019/03/18/entity-framework",
-    toPath: "/blog/2020/03/18/entity-framework",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
+  // Marshmallow Pie
+  createPermanentRedirectWithAndWithoutEndSlash(
+    "/docs/marshmallowpie",
+    "/docs/hotchocolate",
+    createRedirect
+  );
+
+  // Blog
+  createPermanentRedirectWithAndWithoutEndSlash(
+    "/blog/2019/03/18/entity-framework",
+    "/blog/2020/03/18/entity-framework",
+    createRedirect
+  );
 
   // Banana Cake Pop
-  createRedirect({
-    fromPath: "/banana-cake-pop",
-    toPath: "/products/bananacakepop",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
-  createRedirect({
-    fromPath: "/banana-cake-pop/",
-    toPath: "/products/bananacakepop",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
+  createPermanentRedirectWithAndWithoutEndSlash(
+    "/banana-cake-pop",
+    "/products/bananacakepop",
+    createRedirect
+  );
 
   // Products
-  createRedirect({
-    fromPath: "/products",
-    toPath: "/",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
-  createRedirect({
-    fromPath: "/products/",
-    toPath: "/",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
+  createPermanentRedirectWithAndWithoutEndSlash(
+    "/products",
+    "/",
+    createRedirect
+  );
 
-  // company
-  createRedirect({
-    fromPath: "/company",
-    toPath: "/",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
-  createRedirect({
-    fromPath: "/company/",
-    toPath: "/",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
+  // Company
+  createPermanentRedirectWithAndWithoutEndSlash(
+    "/company",
+    "/",
+    createRedirect
+  );
 
-  // images
+  // Services
+  createPermanentRedirectWithAndWithoutEndSlash(
+    "/services",
+    "/services/support",
+    createRedirect
+  );
+
+  // Support
+  createPermanentRedirectWithAndWithoutEndSlash(
+    "/support",
+    "/services/support",
+    createRedirect
+  );
+
+  // Images
   createRedirect({
     fromPath: "/img/projects/greendonut-banner.svg",
     toPath: "/resources/greendonut-banner.svg",
@@ -528,4 +538,39 @@ function getGitLog(filepath) {
   };
 
   return git().log(logOptions);
+}
+
+function createPermanentRedirectWithAndWithoutEndSlash(
+  fromPath,
+  toPath,
+  createRedirect
+) {
+  createRedirect({
+    fromPath: ensurePathEndsWithoutSlash(fromPath),
+    toPath: ensurePathEndsWithoutSlash(toPath),
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+  createRedirect({
+    fromPath: ensurePathEndsWithSlash(fromPath),
+    toPath: ensurePathEndsWithoutSlash(toPath),
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+}
+
+function ensurePathEndsWithSlash(path) {
+  if (path.length > 1 && path[path.length - 1] === "/") {
+    return path;
+  }
+
+  return path + "/";
+}
+
+function ensurePathEndsWithoutSlash(path) {
+  if (path.length > 1 && path[path.length - 1] === "/") {
+    return path.substring(0, path.length - 1);
+  }
+
+  return path;
 }
