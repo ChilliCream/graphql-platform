@@ -4,18 +4,19 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors;
 
+/// <summary>
+/// Represents a reference to a directive by name.
+/// </summary>
 public sealed class NameDirectiveReference
     : TypeReference
     , IEquatable<NameDirectiveReference>
 {
     internal NameDirectiveReference(string directiveName)
         : base(TypeReferenceKind.DirectiveName, TypeContext.None, null)
-    {
-        Name = directiveName;
-    }
+        => Name = directiveName.EnsureGraphQLName();
 
     /// <summary>
-    /// Gets the name of the named type.
+    /// Gets the name of the directive.
     /// </summary>
     public string Name { get; }
 
@@ -88,5 +89,5 @@ public sealed class NameDirectiveReference
 
     /// <inheritdoc />
     public override string ToString()
-        => $"Directive: @{Name}";
+        => $"@{Name}";
 }

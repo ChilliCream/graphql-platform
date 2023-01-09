@@ -70,6 +70,11 @@ public abstract class TypeReference : ITypeReference
     public override int GetHashCode()
         => HashCode.Combine(Kind, Scope);
 
+    protected string ToString(object name)
+        => Context is TypeContext.None
+            ? name.ToString()!
+            : $"{name} ({Context})";
+
     public static DependantFactoryTypeReference Create(
         string name,
         ITypeReference dependency,

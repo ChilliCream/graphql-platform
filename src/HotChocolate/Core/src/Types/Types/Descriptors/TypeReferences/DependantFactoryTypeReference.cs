@@ -5,6 +5,10 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors;
 
+/// <summary>
+/// A reference to a type that has not yet been create by name.
+/// This reference contains the type name plus a factory to create it.
+/// </summary>
 public sealed class DependantFactoryTypeReference
     : TypeReference
     , IEquatable<DependantFactoryTypeReference>
@@ -116,7 +120,7 @@ public sealed class DependantFactoryTypeReference
 
     /// <inheritdoc />
     public override string ToString()
-        => $"{Context}: {Name}->{Dependency}";
+        => ToString($"{Name}->{Dependency}");
 
     public DependantFactoryTypeReference With(
         Optional<string> name = default,

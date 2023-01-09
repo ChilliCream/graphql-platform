@@ -4,6 +4,9 @@ using HotChocolate.Internal;
 
 namespace HotChocolate.Types.Descriptors;
 
+/// <summary>
+/// Represents a reference to a directive by its runtime type.
+/// </summary>
 public sealed class ExtendedTypeDirectiveReference
     : TypeReference
     , IEquatable<ExtendedTypeDirectiveReference>
@@ -15,8 +18,12 @@ public sealed class ExtendedTypeDirectiveReference
         Type = type ?? throw new ArgumentNullException(nameof(type));
     }
 
+    /// <summary>
+    /// The runtime type.
+    /// </summary>
     public IExtendedType Type { get; }
 
+    /// <inheritdoc />
     public bool Equals(ExtendedTypeDirectiveReference? other)
     {
         if (other is null)
@@ -37,6 +44,7 @@ public sealed class ExtendedTypeDirectiveReference
         return ReferenceEquals(Type, other.Type) || Type.Equals(other.Type);
     }
 
+    /// <inheritdoc />
     public override bool Equals(ITypeReference? other)
     {
         if (other is null)
@@ -57,6 +65,7 @@ public sealed class ExtendedTypeDirectiveReference
         return false;
     }
 
+    /// <inheritdoc />
     public override bool Equals(object? obj)
     {
         if (obj is null)
@@ -77,6 +86,7 @@ public sealed class ExtendedTypeDirectiveReference
         return false;
     }
 
+    /// <inheritdoc />
     public override int GetHashCode()
     {
         unchecked
@@ -85,6 +95,7 @@ public sealed class ExtendedTypeDirectiveReference
         }
     }
 
+    /// <inheritdoc />
     public override string ToString()
-        => $"Directive: {Type}";
+        => $"@{Type}";
 }
