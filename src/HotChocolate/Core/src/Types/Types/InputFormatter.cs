@@ -151,6 +151,16 @@ public class InputFormatter
 
     public DirectiveNode FormatDirective(object runtimeValue, DirectiveType type, Path? path = null)
     {
+        if (runtimeValue is null)
+        {
+            throw new ArgumentNullException(nameof(runtimeValue));
+        }
+
+        if (type is null)
+        {
+            throw new ArgumentNullException(nameof(type));
+        }
+
         path ??= PathFactory.Instance.Append(Path.Root, type.Name);
 
         var fields = new List<ArgumentNode>();
@@ -303,7 +313,7 @@ public class InputFormatter
         throw FormatResultList_InvalidObjectKind(type, resultValue.GetType(), path);
     }
 
-    private IValueNode FormatResultLeaf(object resultValue, ILeafType type, Path path)
+    private static IValueNode FormatResultLeaf(object resultValue, ILeafType type, Path path)
     {
         if (resultValue is IValueNode node)
         {

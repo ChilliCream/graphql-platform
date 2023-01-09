@@ -4,7 +4,6 @@ using System;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -187,7 +186,7 @@ public class InputParser
         int stack,
         bool defaults)
     {
-        if (resultValue.Kind == SyntaxKind.ObjectValue)
+        if (resultValue.Kind is SyntaxKind.ObjectValue)
         {
             var processedCount = 0;
             bool[]? processedBuffer = null;
@@ -333,7 +332,19 @@ public class InputParser
         DirectiveNode node,
         DirectiveType type,
         Path? path = null)
-        => ParseDirective(node, type, path ?? Path.Root, 0, true);
+    {
+        if (node is null)
+        {
+            throw new ArgumentNullException(nameof(node));
+        }
+
+        if (type is null)
+        {
+            throw new ArgumentNullException(nameof(type));
+        }
+
+        return ParseDirective(node, type, path ?? Path.Root, 0, true);
+    }
 
     private object ParseDirective(
         DirectiveNode node,
@@ -727,12 +738,10 @@ public class InputParser
             : value;
     }
 
-    private object? FormatValue(IInputFieldInfo field, object? value)
-    {
-        return field.Formatter is null || value is null
+    private static object? FormatValue(IInputFieldInfo field, object? value)
+        => field.Formatter is null || value is null
             ? value
             : field.Formatter.Format(value);
-    }
 
     private object? ConvertValue(Type requestedType, object? value)
     {
