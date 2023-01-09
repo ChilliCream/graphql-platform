@@ -20,9 +20,3 @@ public enum TypeDependencyFulfilled
     /// </summary>
     Completed
 }
-
-public enum TypeDependencyTarget
-{
-    Type,
-    Directive
-}
