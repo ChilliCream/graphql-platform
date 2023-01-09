@@ -31,33 +31,33 @@ public sealed class DocumentValidator : IDocumentValidator
     /// <param name="rules">
     /// The validation rules.
     /// </param>
-    /// <param name="postRules">
-    ///
+    /// <param name="resultAggregators">
+    /// The result aggregators.
     /// </param>
-    /// <param name="errorOptionsAccessor">
-    ///
+    /// <param name="errorOptions">
+    /// The error options.
     /// </param>
     public DocumentValidator(
         DocumentValidatorContextPool contextPool,
         IEnumerable<IDocumentValidatorRule> rules,
-        IEnumerable<IValidationResultAggregator> postRules,
-        IErrorOptionsAccessor errorOptionsAccessor)
+        IEnumerable<IValidationResultAggregator> resultAggregators,
+        IErrorOptionsAccessor errorOptions)
     {
         if (rules is null)
         {
             throw new ArgumentNullException(nameof(rules));
         }
 
-        if (errorOptionsAccessor is null)
+        if (errorOptions is null)
         {
-            throw new ArgumentNullException(nameof(errorOptionsAccessor));
+            throw new ArgumentNullException(nameof(errorOptions));
         }
 
         _contextPool = contextPool ?? throw new ArgumentNullException(nameof(contextPool));
         _allRules = rules.ToArray();
         _nonCacheableRules = _allRules.Where(t => !t.IsCacheable).ToArray();
-        _aggregators = postRules.ToArray();
-        _maxAllowedErrors = errorOptionsAccessor.MaxAllowedErrors;
+        _aggregators = resultAggregators.ToArray();
+        _maxAllowedErrors = errorOptions.MaxAllowedErrors;
     }
 
     /// <inheritdoc />
