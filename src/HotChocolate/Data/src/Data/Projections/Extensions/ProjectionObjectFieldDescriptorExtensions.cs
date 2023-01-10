@@ -248,6 +248,8 @@ public static class ProjectionObjectFieldDescriptorExtensions
         IReadOnlyDictionary<string, object?> IPureResolverContext.ScopedContextData
             => ScopedContextData;
 
+        public IServiceProvider RequestServices => _context.RequestServices;
+
         public string ResponseName => _context.ResponseName;
 
         public bool HasErrors => _context.HasErrors;

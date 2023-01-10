@@ -68,11 +68,9 @@ public sealed class DirectiveCollection : IDirectiveCollection
 
         while (Unsafe.IsAddressLessThan(ref start, ref end))
         {
-            var directive = Unsafe.Add(ref start, 0);
-
-            if (directive.Type.Name.EqualsOrdinal(directiveName))
+            if (start.Type.Name.EqualsOrdinal(directiveName))
             {
-                return directive;
+                return start;
             }
 
             // move pointer
