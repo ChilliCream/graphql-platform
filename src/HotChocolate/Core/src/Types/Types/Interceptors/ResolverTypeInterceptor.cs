@@ -94,7 +94,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
             }
         }
 
-        return list.Select(t => t.TypeReference);
+        return list.Select(t => t.Type);
     }
 
     public override void OnAfterCompleteName(

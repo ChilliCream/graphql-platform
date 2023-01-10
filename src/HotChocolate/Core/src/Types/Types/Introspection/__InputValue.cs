@@ -13,6 +13,7 @@ using static HotChocolate.Types.Descriptors.TypeReference;
 namespace HotChocolate.Types.Introspection;
 
 [Introspection]
+// ReSharper disable once InconsistentNaming
 internal sealed class __InputValue : ObjectType
 {
     protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
@@ -84,11 +85,12 @@ internal sealed class __InputValue : ObjectType
             => context.Parent<IInputField>()
                 .Directives
                 .Where(t => t.Type.IsPublic)
-                .Select(d => d.ToNode());
+                .Select(d => d.AsSyntaxNode());
     }
 
     public static class Names
     {
+        // ReSharper disable once InconsistentNaming
         public const string __InputValue = "__InputValue";
         public const string Name = "name";
         public const string Description = "description";

@@ -39,7 +39,7 @@ const JumpToTop = styled.button`
   position: fixed;
   right: 24px;
   bottom: 24px;
-  z-index: 29;
+  z-index: 20;
   border-radius: 50%;
   padding: 8px;
   width: 50px;

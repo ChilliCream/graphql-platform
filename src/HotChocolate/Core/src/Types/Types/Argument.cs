@@ -16,6 +16,15 @@ public class Argument : FieldBase<ArgumentDefinition>, IInputField
 {
     private Type _runtimeType = default!;
 
+    /// <summary>
+    /// Initializes a new <see cref="Argument"/>.
+    /// </summary>
+    /// <param name="definition">
+    /// The argument definition.
+    /// </param>
+    /// <param name="index">
+    /// The position of this argument within its field collection.
+    /// </param>
     public Argument(ArgumentDefinition definition, int index)
         : base(definition, index)
     {

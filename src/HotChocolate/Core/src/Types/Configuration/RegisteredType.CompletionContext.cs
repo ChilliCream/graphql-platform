@@ -116,7 +116,7 @@ internal sealed partial class RegisteredType : ITypeCompletionContext
     }
 
     /// <inheritdoc />
-    public bool TryGetDirectiveType(IDirectiveReference directiveRef,
+    public bool TryGetDirectiveType(ITypeReference directiveRef,
         [NotNullWhen(true)] out DirectiveType? directiveType)
     {
         if (_typeReferenceResolver is null)

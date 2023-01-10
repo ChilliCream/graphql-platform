@@ -19,6 +19,12 @@ public class ValidationOptions
         new List<IDocumentValidatorRule>();
 
     /// <summary>
+    /// Gets the document rules that run async logic after the initial validators have run..
+    /// </summary>
+    public IList<IValidationResultAggregator> ResultAggregators { get; } =
+        new List<IValidationResultAggregator>();
+
+    /// <summary>
     /// Gets the maximum allowed depth of a query. The default value is
     /// <see langword="null"/>. The minimum allowed value is <c>1</c>.
     /// </summary>

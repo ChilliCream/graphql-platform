@@ -29,7 +29,7 @@ public static class FilterFieldCollectionExtensions
         }
 
         var fieldDescriptor =
-            fields.FirstOrDefault(t => t.Definition.Property.Equals(propertyInfo));
+            fields.FirstOrDefault(t => t.Definition.Property?.Equals(propertyInfo) ?? false);
 
         if (fieldDescriptor is { })
         {
@@ -37,15 +37,12 @@ public static class FilterFieldCollectionExtensions
             {
                 return descriptorOfT;
             }
-            else
-            {
-                fields.Remove(fieldDescriptor);
-            }
+            fields.Remove(fieldDescriptor);
         }
 
-        var newDescirptor = valueFactory.Invoke();
-        fields.Add(newDescirptor);
-        return newDescirptor;
+        var newDescriptor = valueFactory.Invoke();
+        fields.Add(newDescriptor);
+        return newDescriptor;
     }
 
     [Obsolete("Use HotChocolate.Data.")]

@@ -39,10 +39,15 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
 
     protected ISubscriptionDiagnosticEvents DiagnosticEvents => _diagnosticEvents;
 
+    public ValueTask<ISourceStream<TMessage>> SubscribeAsync<TMessage>(
+        string topicName,
+        CancellationToken cancellationToken = default)
+        => SubscribeAsync<TMessage>(topicName, null, null, cancellationToken);
+
     public async ValueTask<ISourceStream<TMessage>> SubscribeAsync<TMessage>(
         string topicName,
-        int? bufferCapacity = null,
-        TopicBufferFullMode? bufferFullMode = null,
+        int? bufferCapacity,
+        TopicBufferFullMode? bufferFullMode,
         CancellationToken cancellationToken = default)
     {
         if (topicName is null)

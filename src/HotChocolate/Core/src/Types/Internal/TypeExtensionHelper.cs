@@ -106,9 +106,7 @@ public static class TypeExtensionHelper
 
         foreach (var directive in type)
         {
-            if (context.TryGetDirectiveType(
-                directive.Reference,
-                out var directiveType))
+            if (context.TryGetDirectiveType(directive.Type, out var directiveType))
             {
                 directives.Add((directiveType, directive));
             }
@@ -132,7 +130,7 @@ public static class TypeExtensionHelper
         IList<(DirectiveType type, DirectiveDefinition def)> directives,
         DirectiveDefinition directive)
     {
-        if (context.TryGetDirectiveType(directive.Reference, out var directiveType))
+        if (context.TryGetDirectiveType(directive.Type, out var directiveType))
         {
             if (directiveType.IsRepeatable)
             {

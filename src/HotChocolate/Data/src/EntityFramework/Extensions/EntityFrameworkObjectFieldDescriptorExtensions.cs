@@ -27,12 +27,12 @@ public static class EntityFrameworkObjectFieldDescriptorExtensions
             new(next => async context =>
             {
 #if NET6_0_OR_GREATER
-                await using TDbContext dbContext = await context.Services
+                await using var dbContext = await context.RequestServices
                     .GetRequiredService<IDbContextFactory<TDbContext>>()
                     .CreateDbContextAsync()
                     .ConfigureAwait(false);
 #else
-                using TDbContext dbContext = context.Services
+                using TDbContext dbContext = context.RequestServices
                     .GetRequiredService<IDbContextFactory<TDbContext>>()
                     .CreateDbContext();
 #endif
@@ -69,7 +69,7 @@ public static class EntityFrameworkObjectFieldDescriptorExtensions
         FieldMiddlewareDefinition contextMiddleware =
             new(next => async context =>
                 {
-                    var dbContext = await context.Services
+                    var dbContext = await context.RequestServices
                         .GetRequiredService<IDbContextFactory<TDbContext>>()
                         .CreateDbContextAsync()
                         .ConfigureAwait(false);

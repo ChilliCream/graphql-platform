@@ -27,17 +27,19 @@ public static class DirectiveUtils
                 directivesContainer.Directives.Add(
                     new DirectiveDefinition(node));
                 break;
+
             case string directiveName:
                 AddDirective(
                     directivesContainer,
                     directiveName,
                     Array.Empty<ArgumentNode>());
                 break;
+
             default:
                 directivesContainer.Directives.Add(
                     new DirectiveDefinition(
                         directive,
-                        typeInspector.GetTypeRef(directive.GetType())));
+                        TypeReference.CreateDirective(typeInspector.GetType(directive.GetType()))));
                 break;
         }
     }

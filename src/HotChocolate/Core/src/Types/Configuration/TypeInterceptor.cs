@@ -17,6 +17,13 @@ namespace HotChocolate.Configuration;
 /// </summary>
 public abstract class TypeInterceptor
 {
+    private const int _position = 0;
+
+    /// <summary>
+    /// A weight to order interceptors.
+    /// </summary>
+    internal virtual uint Position => _position;
+
     /// <summary>
     /// This hook is invoked before anything else any allows for additional modification
     /// with the schema builder.

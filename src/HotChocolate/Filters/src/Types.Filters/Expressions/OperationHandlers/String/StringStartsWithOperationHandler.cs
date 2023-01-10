@@ -11,7 +11,7 @@ public sealed class StringStartsWithOperationHandler
     protected override bool TryCreateExpression(
         FilterOperation operation,
         Expression property,
-        object parsedValue,
+        object? parsedValue,
         [NotNullWhen(true)] out Expression? expression)
     {
         switch (operation.Kind)

@@ -74,7 +74,8 @@ internal sealed class TypeDiscoverer
             new SchemaTypeReferenceHandler(),
             new SyntaxTypeReferenceHandler(context.TypeInspector),
             new FactoryTypeReferenceHandler(context),
-            new DependantFactoryTypeReferenceHandler(context)
+            new DependantFactoryTypeReferenceHandler(context),
+            new ExtendedTypeDirectiveReferenceHandler(context.TypeInspector)
         };
 
         _interceptor = interceptor;
@@ -144,7 +145,11 @@ DISCOVER:
         {
             foreach (var typeRef in _unregistered)
             {
-                _handlers[(int)typeRef.Kind].Handle(_typeRegistrar, typeRef);
+                var index = (int)typeRef.Kind;
+                if (_handlers.Length > index)
+                {
+                    _handlers[index].Handle(_typeRegistrar, typeRef);
+                }
             }
 
             _unregistered.Clear();
@@ -156,9 +161,9 @@ DISCOVER:
     {
         var inferred = false;
 
-        foreach (var typeRef in _typeRegistrar.Unresolved)
+        foreach (var unresolvedTypeRef in _typeRegistrar.Unresolved)
         {
-            if (typeRef is ExtendedTypeReference unresolvedTypeRef &&
+            if (unresolvedTypeRef is ExtendedTypeReference or ExtendedTypeDirectiveReference &&
                 _context.TryInferSchemaType(unresolvedTypeRef, out var schemaTypeRefs))
             {
                 inferred = true;
@@ -166,7 +171,11 @@ DISCOVER:
                 foreach (var schemaTypeRef in schemaTypeRefs)
                 {
                     _unregistered.Add(schemaTypeRef);
-                    _typeRegistry.TryRegister(unresolvedTypeRef, schemaTypeRef);
+
+                    if (unresolvedTypeRef is ExtendedTypeReference typeRef)
+                    {
+                        _typeRegistry.TryRegister(typeRef, schemaTypeRef);
+                    }
                 }
 
                 _resolved.Add(unresolvedTypeRef);
@@ -201,7 +210,7 @@ DISCOVER:
             foreach (var unresolvedReference in _typeRegistrar.Unresolved)
             {
                 var types = _typeRegistry.Types.Where(
-                    t => t.Dependencies.Select(d => d.TypeReference)
+                    t => t.Dependencies.Select(d => d.Type)
                         .Any(r => r.Equals(unresolvedReference))).ToList();
 
                 var builder =

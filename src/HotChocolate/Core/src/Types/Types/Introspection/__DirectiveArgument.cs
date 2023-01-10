@@ -17,6 +17,7 @@ namespace HotChocolate.Types.Introspection;
 /// This type is NOT specified by the graphql specification presently.
 /// </summary>
 [Introspection]
+// ReSharper disable once InconsistentNaming
 internal sealed class __DirectiveArgument : ObjectType<ArgumentNode>
 {
     protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
@@ -47,6 +48,7 @@ internal sealed class __DirectiveArgument : ObjectType<ArgumentNode>
 
     public static class Names
     {
+        // ReSharper disable once InconsistentNaming
         public const string __DirectiveArgument = "__DirectiveArgument";
         public const string Name = "name";
         public const string Value = "value";

@@ -158,7 +158,7 @@ public static class GenerateCommand
             CSharpGeneratorSettings settings)
         {
             using var activity = Output.WriteActivity($"Generate {clientName}");
-            return CSharpGenerator.Generate(documents, settings);
+            return CSharpGenerator.GenerateAsync(documents, settings).Result;
         }
 
         private async Task WriteCodeFilesAsync(

@@ -1,3 +1,6 @@
+using System.Drawing;
+using System.Linq;
+using Colorful;
 using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
@@ -98,11 +101,30 @@ partial class Build
 
     void RunTests(AbsolutePath solutionFile)
     {
+        var solutionDirectory = solutionFile.Parent!;
+        var testDirectory = solutionDirectory / "test";
+
         DotNetBuild(c => c
             .SetProjectFile(solutionFile)
             .SetConfiguration(Debug));
 
-        var testProjects = ParseSolution(solutionFile).GetProjects("*.Tests");
+        // we only select test projects that are located in the solutions test directory.
+        // this will ensure that on build we do not execute referenced tests from other solutions.
+        var testProjects = ParseSolution(solutionFile)
+            .GetProjects("*.Tests")
+            .Where(t => t.Path.ToString().StartsWith(testDirectory))
+            .ToArray();
+
+
+        Console.WriteLine("╬============================================");
+        Console.WriteLine("║ Prepared Tests:");
+        Console.WriteLine($"║ {RootDirectory.GetRelativePathTo(solutionDirectory)}:");
+
+        foreach (var testProject in testProjects)
+        {
+            Console.WriteLine($"║ - {RootDirectory.GetRelativePathTo( testProject.Path.Parent!)}:");
+        }
+        Console.WriteLine("╬================================");
 
         try
         {

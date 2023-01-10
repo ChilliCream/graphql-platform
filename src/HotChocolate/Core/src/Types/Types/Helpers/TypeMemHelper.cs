@@ -17,6 +17,7 @@ internal static class TypeMemHelper
     private static Dictionary<string, ObjectFieldDefinition>? _objectFieldDefinitionMap;
     private static Dictionary<string, InputFieldDefinition>? _inputFieldDefinitionMap;
     private static Dictionary<string, InputField>? _inputFieldMap;
+    private static Dictionary<string, DirectiveArgument>? _directiveArgumentMap;
     private static HashSet<MemberInfo>? _memberSet;
     private static HashSet<string>? _nameSet;
 
@@ -50,6 +51,16 @@ internal static class TypeMemHelper
         Interlocked.CompareExchange(ref _inputFieldMap, map, null);
     }
 
+    public static Dictionary<string, DirectiveArgument> RentDirectiveArgumentMap()
+        => Interlocked.Exchange(ref _directiveArgumentMap, null) ??
+            new Dictionary<string, DirectiveArgument>(StringComparer.Ordinal);
+
+    public static void Return(Dictionary<string, DirectiveArgument> map)
+    {
+        map.Clear();
+        Interlocked.CompareExchange(ref _directiveArgumentMap, map, null);
+    }
+
     public static HashSet<MemberInfo> RentMemberSet()
         => Interlocked.Exchange(ref _memberSet, null) ??
             new HashSet<MemberInfo>();
@@ -79,6 +90,7 @@ internal static class TypeMemHelper
         Interlocked.Exchange(ref _objectFieldDefinitionMap, null);
         Interlocked.Exchange(ref _inputFieldDefinitionMap, null);
         Interlocked.Exchange(ref _inputFieldMap, null);
+        Interlocked.Exchange(ref _directiveArgumentMap, null);
         Interlocked.Exchange(ref _memberSet, null);
         Interlocked.Exchange(ref _nameSet, null);
     }

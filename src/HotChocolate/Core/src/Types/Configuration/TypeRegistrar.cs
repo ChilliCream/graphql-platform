@@ -142,9 +142,9 @@ internal sealed class TypeRegistrar : ITypeRegistrar
             {
                 foreach (var typeDep in type.Dependencies)
                 {
-                    if (registered.Add(typeDep.TypeReference))
+                    if (registered.Add(typeDep.Type))
                     {
-                        unhandled.Add(typeDep.TypeReference);
+                        unhandled.Add(typeDep.Type);
                     }
                 }
             }
@@ -201,16 +201,22 @@ internal sealed class TypeRegistrar : ITypeRegistrar
                         scope));
             }
 
-            if (typeSystemObject is IHasTypeIdentity hasTypeIdentity &&
-                hasTypeIdentity.TypeIdentity is not null)
+            if (typeSystemObject is IHasTypeIdentity { TypeIdentity: { } typeIdentity })
             {
                 var reference =
                     _context.TypeInspector.GetTypeRef(
-                        hasTypeIdentity.TypeIdentity,
+                        typeIdentity,
                         SchemaTypeReference.InferTypeContext(typeSystemObject),
                         scope);
 
                 registeredType.References.TryAdd(reference);
+            }
+
+            if (registeredType.IsDirectiveType && registeredType.RuntimeType != typeof(object))
+            {
+                var runtimeType = _context.TypeInspector.GetType(registeredType.RuntimeType);
+                var runtimeTypeRef = TypeReference.CreateDirective(runtimeType);
+                registeredType.References.TryAdd(runtimeTypeRef);
             }
 
             if (_interceptor.TryCreateScope(

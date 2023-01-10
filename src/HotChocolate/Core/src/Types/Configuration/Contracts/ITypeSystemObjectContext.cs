@@ -9,9 +9,7 @@ namespace HotChocolate.Configuration;
 /// <summary>
 /// The type system context is available during the type system initialization process.
 /// </summary>
-public interface ITypeSystemObjectContext
-    : IHasScope
-    , IHasContextData
+public interface ITypeSystemObjectContext : IHasScope, IHasContextData
 {
     /// <summary>
     /// The type system object that is being initialized.

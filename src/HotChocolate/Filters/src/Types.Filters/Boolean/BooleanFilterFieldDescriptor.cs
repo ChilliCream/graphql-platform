@@ -84,7 +84,7 @@ public class BooleanFilterFieldDescriptor
         var operation = new FilterOperation(
             typeof(bool),
             operationKind,
-            Definition.Property);
+            Definition.Property!);
 
         return BooleanFilterOperationDescriptor.New(
             Context,

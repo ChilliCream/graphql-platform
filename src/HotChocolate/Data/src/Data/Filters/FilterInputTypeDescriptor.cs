@@ -153,25 +153,6 @@ public class FilterInputTypeDescriptor
     }
 
     /// <inheritdoc />
-    public IFilterFieldDescriptor Field(
-        string name,
-        Action<IFilterInputTypeDescriptor> configure)
-    {
-        var descriptor = Field(name);
-        descriptor.Extend().Definition.CreateFieldTypeDefinition = CreateFieldTypeDefinition;
-        return descriptor;
-
-        FilterInputTypeDefinition CreateFieldTypeDefinition(
-            IDescriptorContext context,
-            string? scope)
-        {
-            var descriptor = Inline(context, typeof(object), scope);
-            configure(descriptor);
-            return descriptor.CreateDefinition();
-        }
-    }
-
-    /// <inheritdoc />
     public IFilterInputTypeDescriptor Ignore(int operationId)
     {
         var fieldDescriptor =
@@ -267,48 +248,6 @@ public class FilterInputTypeDescriptor
     {
         var descriptor = New(context, schemaType, scope);
         descriptor.Definition.RuntimeType = typeof(object);
-        return descriptor;
-    }
-
-    internal static FilterInputTypeDescriptor Inline(
-        IDescriptorContext context,
-        Type entityType,
-        string? scope = null)
-    {
-        var descriptor = New(context, entityType, scope);
-
-        descriptor.BindFieldsExplicitly();
-
-        // This resets the name on the definition. This way we can check if the user has
-        // set a custom name. The context the user specifying descriptor.Name("Foo") is
-        // preserved this way.
-        descriptor.Definition.IsNamed = false;
-
-        // we deactivate And and Or by default.
-        descriptor.Definition.UseAnd = false;
-        descriptor.Definition.UseOr = false;
-
-        return descriptor;
-    }
-
-    internal static FilterInputTypeDescriptor<T> Inline<T>(
-        IDescriptorContext context,
-        Type entityType,
-        string? scope = null)
-    {
-        var descriptor = New<T>(context, entityType, scope);
-
-        descriptor.BindFieldsExplicitly();
-
-        // This resets the name on the definition. This way we can check if the user has
-        // set a custom name. The context the user specifying descriptor.Name("Foo") is
-        // preserved this way.
-        descriptor.Definition.IsNamed = false;
-
-        // we deactivate And and Or by default.
-        descriptor.Definition.UseAnd = false;
-        descriptor.Definition.UseOr = false;
-
         return descriptor;
     }
 

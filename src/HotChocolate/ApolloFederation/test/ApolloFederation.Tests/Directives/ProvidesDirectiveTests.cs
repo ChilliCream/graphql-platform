@@ -3,7 +3,6 @@ using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.ApolloFederation.Directives;
 
@@ -25,11 +24,8 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
         Assert.IsType<ProvidesDirectiveType>(directive);
         Assert.Equal(WellKnownTypeNames.Provides, directive!.Name);
         Assert.Single(directive.Arguments);
-        this.AssertDirectiveHasFieldsArgument(directive);
-        Assert.Collection(
-            directive.Locations,
-            t => Assert.Equal(DirectiveLocation.FieldDefinition, t));
-
+        AssertDirectiveHasFieldsArgument(directive);
+        Assert.Equal(DirectiveLocation.FieldDefinition, directive.Locations);
     }
 
     [Fact]
@@ -67,12 +63,9 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
         Assert.Collection(testType.Fields.Single(field => field.Name == "product").Directives,
             providesDirective =>
             {
-                Assert.Equal(
-                    WellKnownTypeNames.Provides,
-                    providesDirective.Name
-                );
-                Assert.Equal("fields", providesDirective.ToNode().Arguments[0].Name.ToString());
-                Assert.Equal("\"name\"", providesDirective.ToNode().Arguments[0].Value.ToString());
+                Assert.Equal(WellKnownTypeNames.Provides, providesDirective.Type.Name);
+                Assert.Equal("fields", providesDirective.AsSyntaxNode().Arguments[0].Name.ToString());
+                Assert.Equal("\"name\"", providesDirective.AsSyntaxNode().Arguments[0].Value.ToString());
             });
 
         schema.ToString().MatchSnapshot();
@@ -122,13 +115,13 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
             {
                 Assert.Equal(
                     WellKnownTypeNames.Provides,
-                    providesDirective.Name);
+                    providesDirective.Type.Name);
                 Assert.Equal(
                     "fields",
-                    providesDirective.ToNode().Arguments[0].Name.ToString());
+                    providesDirective.AsSyntaxNode().Arguments[0].Name.ToString());
                 Assert.Equal(
                     "\"name\"",
-                    providesDirective.ToNode().Arguments[0].Value.ToString());
+                    providesDirective.AsSyntaxNode().Arguments[0].Value.ToString());
             });
 
         schema.ToString().MatchSnapshot();
@@ -155,13 +148,13 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
             {
                 Assert.Equal(
                     WellKnownTypeNames.Provides,
-                    providesDirective.Name);
+                    providesDirective.Type.Name);
                 Assert.Equal(
                     "fields",
-                    providesDirective.ToNode().Arguments[0].Name.ToString());
+                    providesDirective.AsSyntaxNode().Arguments[0].Name.ToString());
                 Assert.Equal(
                     "\"name\"",
-                    providesDirective.ToNode().Arguments[0].Value.ToString());
+                    providesDirective.AsSyntaxNode().Arguments[0].Value.ToString());
             });
 
         schema.ToString().MatchSnapshot();
