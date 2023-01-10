@@ -27,6 +27,8 @@ internal partial class MiddlewareContext : IMiddlewareContext
         set => _services = value ?? throw new ArgumentNullException(nameof(value));
     }
 
+    public IServiceProvider RequestServices => _operationContext.Services;
+
     public ISchema Schema => _operationContext.Schema;
 
     public IOperation Operation => _operationContext.Operation;
