@@ -1,7 +1,17 @@
-name: Strawberry Shake Feature Request
-description: Suggest an idea for Strawberry Shake
-labels: [🌶️ strawberry shake, 🎉 enhancement]
+name: Feature Request
+description: Suggest an idea for one of our products.
+labels: [🎉 enhancement]
 body:
+  - type: dropdown
+    id: product
+    attributes:
+      label: Product
+      description: Which of our products does this relate to?
+      options:
+        - Hot Chocolate
+        - Strawberry Shake
+        - Banana Cake Pop
+        - Green Donut
   - type: textarea
     id: problem
     attributes:
@@ -16,15 +26,5 @@ body:
       description: A clear and concise description of what you want to happen.
     validations:
       required: true
-  - type: dropdown
-    id: product
-    attributes:
-      label: Product
-      description: Which of our products does this relate to?
-      options:
-        - Hot Chocolate
-        - Strawberry Shake
-        - Banana Cake Pop
-        - Green Donut
     validations:
       required: true

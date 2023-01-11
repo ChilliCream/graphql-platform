@@ -1,6 +1,6 @@
-name: Strawberry Shake Bug Report
-description: Report a Strawberry Shake bug to help us improve
-labels: [🌶️ strawberry shake, 🐛 bug]
+name: Bug Report
+description: Report a bug to help us improve
+labels: [🐛 bug]
 body:
   - type: checkboxes
     attributes:
@@ -9,6 +9,16 @@ body:
       options:
       - label: I have searched the existing issues
         required: true
+  - type: dropdown
+    id: product
+    attributes:
+      label: Product
+      description: Which of our products is affected by this bug?
+      options:
+        - Hot Chocolate
+        - Strawberry Shake
+        - Banana Cake Pop
+        - Green Donut
   - type: textarea
     id: description
     attributes:
