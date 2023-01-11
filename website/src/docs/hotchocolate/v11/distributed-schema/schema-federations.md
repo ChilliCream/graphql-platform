@@ -87,7 +87,7 @@ services
 
 ## Example
 
-You can find a full schema federation example here [Federated Schema with Redis](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/Stitching/federated-with-hot-reload)
+You can find a full schema federation example here [Federated Schema with Redis](https://github.com/ChilliCream/graphql-platform-examples/tree/master/misc/Stitching/federated-with-hot-reload)
 
 # Federation with schema polling
 
@@ -152,7 +152,7 @@ public void ConfigureServices(IServiceCollection services)
 
 ## Example
 
-You can find a full schema federation with polling example here [Federated Schema with polling](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/Stitching/federated-with-pull)
+You can find a full schema federation with polling example here [Federated Schema with polling](https://github.com/ChilliCream/graphql-platform-examples/tree/master/misc/Stitching/federated-with-pull)
 
 # Configuration
 

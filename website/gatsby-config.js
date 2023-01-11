@@ -9,10 +9,10 @@ module.exports = {
     author: `Chilli_Cream`,
     company: "ChilliCream",
     siteUrl: SITE_URL,
-    repositoryUrl: `https://github.com/ChilliCream/hotchocolate`,
+    repositoryUrl: `https://github.com/ChilliCream/graphql-platform`,
     tools: {
       bcp: `https://eat.bananacakepop.com`,
-      github: `https://github.com/ChilliCream/hotchocolate`,
+      github: `https://github.com/ChilliCream/graphql-platform`,
       linkedIn: `https://www.linkedin.com/company/chillicream`,
       shop: `https://store.chillicream.com`,
       slack: `https://slack.chillicream.com/`,

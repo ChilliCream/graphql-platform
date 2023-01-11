@@ -78,6 +78,6 @@ implement the mapping from the HTTP header to the query request property by
 our self which isn't very difficult actually. See how it's solved in the
 Hot Chocolate [ASP.NET Core and Framework stack].
 
-[asp.net core and framework stack]: https://github.com/ChilliCream/hotchocolate/blob/master/src/HotChocolate/AspNetCore/src/AspNetCore.Abstractions/QueryMiddlewareBase.cs#L146-L149
+[asp.net core and framework stack]: https://github.com/ChilliCream/graphql-platform/blob/master/src/HotChocolate/AspNetCore/src/AspNetCore.Abstractions/QueryMiddlewareBase.cs#L146-L149
 [performance tracing specification]: https://github.com/apollographql/apollo-tracing
 [specification]: https://facebook.github.io/graphql

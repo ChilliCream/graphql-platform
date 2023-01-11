@@ -55,7 +55,7 @@ We also refined the default rewrite logic so that errors in most cases will now 
 
 `DateTime` scalars are now correctly handled in the stitching layer, with version 8 we had some issues when `DateTime` scalars were provided through variables.
 
-For more information on what other bugs we fixed head over to our [changelog](https://github.com/ChilliCream/hotchocolate/blob/master/CHANGELOG.md).
+For more information on what other bugs we fixed head over to our [changelog](https://github.com/ChilliCream/graphql-platform/blob/master/CHANGELOG.md).
 
 ## Version 9 Development
 

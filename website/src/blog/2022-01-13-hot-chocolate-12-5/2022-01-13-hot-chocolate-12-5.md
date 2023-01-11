@@ -63,7 +63,7 @@ With all this in place, we can execute requests against our demo server and insp
 
 ![Banana Cake Pop Themes](jaeger.png)
 
-The complete example can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/OpenTelemetry).
+The complete example can be found [here](https://github.com/ChilliCream/graphql-platform-examples/tree/master/misc/OpenTelemetry).
 
 Docs can be found [here](https://chillicream.com/docs/hotchocolate/server/instrumentation/#opentelemetry).
 
@@ -125,7 +125,7 @@ builder.Services
     .ModifyOptions(o => o.EnableOneOf = true);
 ```
 
-The complete example can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/OneOf).
+The complete example can be found [here](https://github.com/ChilliCream/graphql-platform-examples/tree/master/misc/OneOf).
 
 Docs can be found [here](https://chillicream.com/docs/hotchocolate/defining-a-schema/input-object-types/#oneof-input-objects).
 
