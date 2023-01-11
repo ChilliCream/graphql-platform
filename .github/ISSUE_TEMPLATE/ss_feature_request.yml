@@ -1,6 +1,6 @@
-name: Feature request
-description: Suggest an idea for this project
-labels: [🎉 enhancement]
+name: Strawberry Shake Feature Request
+description: Suggest an idea for Strawberry Shake
+labels: [🌶️ strawberry shake, 🎉 enhancement]
 body:
   - type: textarea
     id: problem

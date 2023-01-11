@@ -1,6 +1,6 @@
-name: Bug Report
-description: Report a bug to help us improve
-labels: [🐛 bug]
+name: Strawberry Shake Bug Report
+description: Report a Strawberry Shake bug to help us improve
+labels: [🌶️ strawberry shake, 🐛 bug]
 body:
   - type: checkboxes
     attributes:
