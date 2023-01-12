@@ -54,10 +54,8 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
         await Snapshot
             .Create()
             .AddResult(res1, "a")
-            .AddResult(res2,
-                "ba").AddResult(
-                res3,
-                "null")
+            .AddResult(res2, "ba")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 

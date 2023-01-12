@@ -90,14 +90,15 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
         where TEntity : class
         where TType : FilterInputType<TEntity>
     {
-        field.Use(next => async context =>
-        {
-            using (var session = store.OpenAsyncSession())
+        field.Use(
+            next => async context =>
             {
-                context.LocalContextData = context.LocalContextData.SetItem("session", session);
-                await next(context);
-            }
-        });
+                using (var session = store.OpenSession())
+                {
+                    context.LocalContextData = context.LocalContextData.SetItem("session", session);
+                    await next(context);
+                }
+            });
         field.Use(
             next => async context =>
             {

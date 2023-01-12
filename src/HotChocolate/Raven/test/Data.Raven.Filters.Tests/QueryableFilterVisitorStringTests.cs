@@ -7,12 +7,15 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
 {
     private static readonly Foo[] _fooEntities =
     {
-        new() { Bar = "testatest" }, new() { Bar = "testbtest" }
+        new() { Bar = "testatest" },
+        new() { Bar = "testbtest" }
     };
 
     private static readonly FooNullable[] _fooNullableEntities =
     {
-        new() { Bar = "testatest" }, new() { Bar = "testbtest" }, new() { Bar = null }
+        new() { Bar = "testatest" },
+        new() { Bar = "testbtest" },
+        new() { Bar = null }
     };
 
     private readonly SchemaCache _cache;
@@ -45,11 +48,11 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await Snapshot.Create().AddResult(res1, "testatest").AddResult(
-                res2,
-                "testbtest").AddResult(
-                res3,
-                "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "testatest")
+            .AddResult(res2, "testbtest")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -77,11 +80,11 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await Snapshot.Create().AddResult(res1, "testatest").AddResult(
-                res2,
-                "testbtest").AddResult(
-                res3,
-                "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "testatest")
+            .AddResult(res2, "testbtest")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -108,11 +111,11 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await Snapshot.Create().AddResult(res1, "testatest").AddResult(
-                res2,
-                "testbtest").AddResult(
-                res3,
-                "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "testatest")
+            .AddResult(res2, "testbtest")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -723,7 +726,7 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
     {
         protected override void Configure(IFilterInputTypeDescriptor<Foo> descriptor)
         {
-            descriptor.Field(t => t.Bar).AllowEquals();
+            descriptor.Field(t => t.Bar);
         }
     }
 }

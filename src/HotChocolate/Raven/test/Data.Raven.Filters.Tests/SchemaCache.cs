@@ -3,7 +3,7 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Filters;
 
-public class SchemaCache : FilterVisitorTestBase
+public sealed class SchemaCache : FilterVisitorTestBase
 {
     private readonly ConcurrentDictionary<(Type, Type, object), IRequestExecutor> _cache = new();
 

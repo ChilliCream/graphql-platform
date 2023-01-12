@@ -88,13 +88,10 @@ public class QueryableFilterVisitorListTests : IClassFixture<SchemaCache>
 
         // assert
         await Snapshot
-            .Create().AddResult(
-                res1,
-                "a").AddResult(
-                res2,
-                "d").AddResult(
-                res3,
-                "null")
+            .Create()
+            .AddResult(res1, "a")
+            .AddResult(res2, "d")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -206,13 +203,11 @@ public class QueryableFilterVisitorListTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await Snapshot.Create().AddResult(
-                res1,
-                "a").AddResult(
-                res2,
-                "d").AddResult(
-                res3,
-                "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "a")
+            .AddResult(res2, "d")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -237,11 +232,9 @@ public class QueryableFilterVisitorListTests : IClassFixture<SchemaCache>
 
         // assert
         await Snapshot
-            .Create().AddResult(
-                res1,
-                "false").AddResult(
-                res2,
-                    "true")
+            .Create()
+            .AddResult(res1, "false")
+            .AddResult(res2, "true")
             .MatchAsync();
     }
 
@@ -276,14 +269,7 @@ public class QueryableFilterVisitorListTests : IClassFixture<SchemaCache>
     {
         protected override void Configure(IFilterInputTypeDescriptor<Foo> descriptor)
         {
-            descriptor.Field(
-                f => f.FooNested,
-                o =>
-                {
-                    o.AllowAll(f => f.Field(y => y.Bar).AllowEquals());
-                    o.AllowSome(f => f.Field(y => y.Bar).AllowEquals());
-                    o.AllowNone(f => f.Field(y => y.Bar).AllowEquals());
-                });
+            descriptor.Field(f => f.FooNested);
         }
     }
 
