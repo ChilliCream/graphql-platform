@@ -25,7 +25,7 @@ public class DataLoaderExtensionsTests
     public void SetKeyNull()
     {
         // arrange
-        FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
+        var fetch = TestHelpers.CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
         var loader = new DataLoader<string, string>(fetch, batchScheduler);
         var value = "Bar";
@@ -34,14 +34,14 @@ public class DataLoaderExtensionsTests
         void Verify() => loader.Set(null!, value);
 
         // assert
-        Assert.Throws<ArgumentNullException>("key", (Action)Verify);
+        Assert.Throws<ArgumentNullException>("key", Verify);
     }
 
     [Fact(DisplayName = "Set: Should not throw any exception")]
     public void SetNoException()
     {
         // arrange
-        FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
+        var fetch = TestHelpers.CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
         var loader = new DataLoader<string, string>(fetch, batchScheduler);
         var key = "Foo";
@@ -57,7 +57,7 @@ public class DataLoaderExtensionsTests
     public async Task SetNewCacheEntry()
     {
         // arrange
-        FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
+        var fetch = TestHelpers.CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
         var loader = new DataLoader<string, string>(fetch, batchScheduler);
         var key = "Foo";
@@ -76,7 +76,7 @@ public class DataLoaderExtensionsTests
     public async Task SetTwice()
     {
         // arrange
-        FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
+        var fetch = TestHelpers.CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
         var loader = new DataLoader<string, string>(fetch, batchScheduler);
         var key = "Foo";
@@ -111,7 +111,7 @@ public class DataLoaderExtensionsTests
     public void IDataLoaderSetKeyNull()
     {
         // arrange
-        FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
+        var fetch = TestHelpers.CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
         IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
         object value = "Bar";
@@ -127,7 +127,7 @@ public class DataLoaderExtensionsTests
     public void IDataLoaderSetNoException()
     {
         // arrange
-        FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
+        var fetch = TestHelpers.CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
         IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
         object key = "Foo";

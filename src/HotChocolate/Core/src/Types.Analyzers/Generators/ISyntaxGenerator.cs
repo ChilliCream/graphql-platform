@@ -9,6 +9,12 @@ namespace HotChocolate.Types.Analyzers.Generators;
 public interface ISyntaxGenerator
 {
     /// <summary>
+    /// Allows to create initial code like attributes.
+    /// </summary>
+    /// <param name="context"></param>
+    void Initialize(IncrementalGeneratorPostInitializationContext context);
+
+    /// <summary>
     /// Specifies if the given <paramref name="syntaxInfo"/> will be consumed by this generator.
     /// </summary>
     bool Consume(ISyntaxInfo syntaxInfo);

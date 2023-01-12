@@ -1,0 +1,4556 @@
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey IReadOnlyList
+IsKey System.Collections.Generic.IReadOnlyList
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey IReadOnlyList
+IsKey System.Collections.Generic.IReadOnlyList
+IsKey
+IsKey
+dict: IReadOnlyDictionary
+key_eq: False
+key: String
+value: Int32
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+dict: IReadOnlyDictionary
+key_eq: True
+key: String
+value: Int32
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+dict: IReadOnlyDictionary
+key_eq: True
+key: String
+value: Int32
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+IsKey
+IsKey
+IsKey
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+[BatchDataLoader(Scoped = true)]
+
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> Foo(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> G(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+FOUND
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+FOUND
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+args
+a: 3
+static: True
+FOUND
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosByBars(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> i,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<D<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<Dictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<Dictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<Dictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<Dictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+    
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<Dictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<Dictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        Converter<>
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<Dictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        Converter<nu>
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<Dictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        r
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<Dictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        reurn 
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<Dictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        reurn null;
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<Dictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        r null;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<Dictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return null;
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<Dictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return null;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<Dictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return null;
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<IDictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return null;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<Dictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return null;
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<I<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return null;
+    }
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyList<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return null;
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static Task<IReadOnlyDictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return null;
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return null;
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return 
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return new 
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return new Dict
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return 
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToList()
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToList
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.T
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary()
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(())
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary()
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t =>)
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => )
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, )
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t )
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => )
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t)
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, int>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, s>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+[BatchDataLoader(Scoped = true)]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return ids.ToDictionary(t => t, t => t);
+    }
+EnumDeclaration
+AttributeList
+InterfaceDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+ClassDeclaration
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList
+ClassDeclaration
+AttributeList
+ClassDeclaration
+AttributeList
+AttributeList

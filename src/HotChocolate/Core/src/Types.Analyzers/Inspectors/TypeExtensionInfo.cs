@@ -1,3 +1,6 @@
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
 namespace HotChocolate.Types.Analyzers.Inspectors;
 
 public sealed class TypeExtensionInfo : ISyntaxInfo, IEquatable<TypeExtensionInfo>
@@ -11,7 +14,7 @@ public sealed class TypeExtensionInfo : ISyntaxInfo, IEquatable<TypeExtensionInf
 
     public string Name { get; }
 
-    public bool IsStatic { get;  }
+    public bool IsStatic { get; }
 
     public OperationType Type { get; }
 
@@ -42,4 +45,20 @@ public sealed class TypeExtensionInfo : ISyntaxInfo, IEquatable<TypeExtensionInf
 
     public static bool operator !=(TypeExtensionInfo? left, TypeExtensionInfo? right)
         => !Equals(left, right);
+}
+
+public sealed class BatchDataLoaderInfo : ISyntaxInfo
+{
+    public BatchDataLoaderInfo(AttributeSyntax attributeSyntax, IMethodSymbol attributeSymbol, IMethodSymbol methodSymbol)
+    {
+        AttributeSyntax = attributeSyntax;
+        AttributeSymbol = attributeSymbol;
+        MethodSymbol = methodSymbol;
+    }
+
+    public AttributeSyntax AttributeSyntax { get; }
+
+    public IMethodSymbol AttributeSymbol { get; }
+
+    public IMethodSymbol MethodSymbol { get; }
 }

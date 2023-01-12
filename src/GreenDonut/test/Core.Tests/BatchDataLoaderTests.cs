@@ -32,8 +32,8 @@ public class BatchDataLoaderTests
             new DataLoaderOptions());
 
         // act
-        Task<string> result1 = dataLoader.LoadAsync("1abc");
-        Task<string> result2 = dataLoader.LoadAsync("0abc");
+        var result1 = dataLoader.LoadAsync("1abc");
+        var result2 = dataLoader.LoadAsync("0abc");
 
         // assert
         Assert.Equal("Value:1abc", await result1);
@@ -49,8 +49,8 @@ public class BatchDataLoaderTests
             new DataLoaderOptions());
 
         // act
-        Task<string> result1 = dataLoader.LoadAsync("1abc");
-        Task<string> result2 = dataLoader.LoadAsync("1abc");
+        var result1 = dataLoader.LoadAsync("1abc");
+        var result2 = dataLoader.LoadAsync("1abc");
 
         // assert
         Assert.Same(result1, result2);
