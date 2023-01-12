@@ -1,23 +1,5 @@
 ﻿{
-  "errors": [
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 1,
-          "column": 3
-        }
-      ],
-      "path": [
-        "sayHello"
-      ],
-      "extensions": {
-        "message": "The specified key \u0060HotChocolate.Resolvers.ResolverServiceTests\u002BSayHelloService\u0060 does not exist on \u0060context.ScopedContextData\u0060.",
-        "stackTrace": "   at HotChocolate.Resolvers.Expressions.ExpressionHelper.GetScopedStateWithDefault[TContextData](IPureResolverContext context, IReadOnlyDictionary\u00602 contextData, String key, Boolean hasDefaultValue, TContextData defaultValue) in C:\\src\\hotchocolate\\src\\HotChocolate\\Core\\src\\Types\\Resolvers\\Expressions\\ExpressionHelper.cs:line 102\r\n   at HotChocolate.Resolvers.Expressions.ExpressionHelper.GetScopedState[TContextData](IPureResolverContext context, IReadOnlyDictionary\u00602 contextData, String key, Boolean defaultIfNotExists) in C:\\src\\hotchocolate\\src\\HotChocolate\\Core\\src\\Types\\Resolvers\\Expressions\\ExpressionHelper.cs:line 74\r\n   at lambda_method11350(Closure, IResolverContext)\r\n   at HotChocolate.Types.Helpers.FieldMiddlewareCompiler.\u003C\u003Ec__DisplayClass9_0.\u003C\u003CCreateResolverMiddleware\u003Eb__0\u003Ed.MoveNext() in C:\\src\\hotchocolate\\src\\HotChocolate\\Core\\src\\Types\\Types\\Helpers\\FieldMiddlewareCompiler.cs:line 130\r\n--- End of stack trace from previous location ---\r\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.ExecuteResolverPipelineAsync(CancellationToken cancellationToken) in C:\\src\\hotchocolate\\src\\HotChocolate\\Core\\src\\Execution\\Processing\\Tasks\\ResolverTask.Execute.cs:line 134\r\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.TryExecuteAsync(CancellationToken cancellationToken) in C:\\src\\hotchocolate\\src\\HotChocolate\\Core\\src\\Execution\\Processing\\Tasks\\ResolverTask.Execute.cs:line 90"
-      }
-    }
-  ],
   "data": {
-    "sayHello": null
+    "sayHello": "Hello"
   }
 }
