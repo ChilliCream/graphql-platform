@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -20,7 +21,7 @@ public class ObjectFieldDescriptor
     , IObjectFieldDescriptor
 {
     private bool _argumentsInitialized;
-    private readonly ParameterInfo[] _parameterInfos = Array.Empty<ParameterInfo>();
+    private ParameterInfo[] _parameterInfos = Array.Empty<ParameterInfo>();
 
     protected ObjectFieldDescriptor(
         IDescriptorContext context,
@@ -50,7 +51,9 @@ public class ObjectFieldDescriptor
             MemberKind.ObjectField);
         Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
         Definition.SourceType = sourceType;
-        Definition.ResolverType = resolverType == sourceType ? null : resolverType;
+        Definition.ResolverType = resolverType == sourceType
+            ? null
+            : resolverType;
         Definition.IsParallelExecutable =
             context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
 
@@ -337,6 +340,21 @@ public class ObjectFieldDescriptor
             Definition.ResolverMember = propertyOrMethod;
             Definition.Resolver = null;
             Definition.ResultType = propertyOrMethod.GetReturnType();
+
+            if (propertyOrMethod is MethodInfo m)
+            {
+                _parameterInfos = m.GetParameters();
+
+                var parameters = new Dictionary<NameString, ParameterInfo>();
+
+                foreach (ParameterInfo parameterInfo in _parameterInfos)
+                {
+                    parameters.Add(new NameString(parameterInfo.Name!), parameterInfo);
+                }
+
+                Parameters = parameters;
+            }
+
             return this;
         }
 

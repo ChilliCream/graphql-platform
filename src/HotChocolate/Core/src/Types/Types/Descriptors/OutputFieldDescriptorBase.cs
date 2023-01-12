@@ -33,9 +33,12 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
     {
         base.OnCreateDefinition(definition);
 
-        foreach (ArgumentDescriptor argument in Arguments)
+        if (_arguments is not null)
         {
-            Definition.Arguments.Add(argument.CreateDefinition());
+            foreach (ArgumentDescriptor argument in Arguments)
+            {
+                Definition.Arguments.Add(argument.CreateDefinition());
+            }
         }
     }
 

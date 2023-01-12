@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 using Snapshooter.Xunit;
@@ -82,6 +83,32 @@ public class ResolverServiceTests
                 .BuildRequestExecutorAsync();
 
         await executor.ExecuteAsync("{ sayHello }").MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task AddResolverService_2()
+    {
+        Snapshot.FullName();
+
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton<SayHelloService>()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildRequestExecutorAsync();
+
+        await executor.ExecuteAsync("{ sayHello }").MatchSnapshotAsync();
+    }
+
+    public class QueryType : ObjectType
+    {
+        protected override void Configure(IObjectTypeDescriptor descriptor)
+        {
+            descriptor
+                .Field("sayHello")
+                .ResolveWith<QueryResolverService>(r => r.SayHello(default!));
+        }
     }
 
     public class SayHelloService
