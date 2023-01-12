@@ -2,16 +2,17 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using Raven;
-using Raven.Linq;
 using Microsoft.Extensions.DependencyInjection;
+using Raven.Client.Documents;
+using Raven.Client.Documents.Linq;
+using Raven.Client.Documents.Session;
 using Squadron;
 
 namespace HotChocolate.Data.Sorting;
 
 public class SortVisitorTestBase : IAsyncLifetime
 {
-    protected PostgreSqlResource Resource { get; } = new();
+    protected RavenDBResource Resource { get; } = new();
 
     public Task InitializeAsync() => Resource.InitializeAsync();
 
@@ -22,7 +23,7 @@ public class SortVisitorTestBase : IAsyncLifetime
         params TResult[] results)
         where TResult : class
     {
-        using var session = store.LightweightSession();
+        using var session = store.OpenSession();
 
         foreach (var item in results)
         {
@@ -105,7 +106,7 @@ public class SortVisitorTestBase : IAsyncLifetime
     {
         field.Use(next => async context =>
         {
-            await using (var session = store.LightweightSession())
+            using (var session = store.OpenSession())
             {
                 context.LocalContextData = context.LocalContextData.SetItem("session", session);
                 await next(context);

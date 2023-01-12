@@ -6,15 +6,10 @@ namespace HotChocolate.Data.Raven.Filtering;
 public class RavenQueryableFilterProvider : QueryableFilterProvider
 {
     public RavenQueryableFilterProvider(
-        Action<IFilterProviderDescriptor<QueryableFilterContext>> configure) : base(configure)
-    {
+        Action<IFilterProviderDescriptor<QueryableFilterContext>> configure)
+        : base(configure) { }
 
-    }
-
-    public RavenQueryableFilterProvider()
-    {
-
-    }
+    public RavenQueryableFilterProvider() { }
 
     protected override void Configure(IFilterProviderDescriptor<QueryableFilterContext> descriptor)
     {

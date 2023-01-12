@@ -7,8 +7,5 @@ public static class RavenFilteringRequestExecutorBuilderExtensions
 {
     public static IRequestExecutorBuilder AddRavenFiltering(
         this IRequestExecutorBuilder requestExecutorBuilder)
-    {
-        return requestExecutorBuilder
-            .ConfigureSchema(x => x.AddRavenFiltering());
-    }
+        => requestExecutorBuilder.ConfigureSchema(x => x.AddRavenFiltering());
 }
