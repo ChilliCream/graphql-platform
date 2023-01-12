@@ -53,13 +53,10 @@ public class QueryableFilterVisitorEnumTests : IClassFixture<SchemaCache>
 
         // assert
         await Snapshot
-            .Create().AddResult(
-                res1,
-                "BAR").AddResult(
-                res2,
-                "FOO").AddResult(
-                res3,
-                "null")
+            .Create()
+            .AddResult(res1, "BAR")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -87,13 +84,10 @@ public class QueryableFilterVisitorEnumTests : IClassFixture<SchemaCache>
 
         // assert
         await Snapshot
-            .Create().AddResult(
-                res1,
-                "BAR").AddResult(
-                res2,
-                "FOO").AddResult(
-                res3,
-                "null")
+            .Create()
+            .AddResult(res1, "BAR")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -121,13 +115,10 @@ public class QueryableFilterVisitorEnumTests : IClassFixture<SchemaCache>
 
         // assert
         await Snapshot
-            .Create().AddResult(
-                res1,
-                "BarAndFoo").AddResult(
-                res2,
-                "FOO").AddResult(
-                res3,
-                "nullAndFoo")
+            .Create()
+            .AddResult(res1, "BarAndFoo")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "nullAndFoo")
             .MatchAsync();
     }
 
@@ -155,13 +146,10 @@ public class QueryableFilterVisitorEnumTests : IClassFixture<SchemaCache>
 
         // assert
         await Snapshot
-            .Create().AddResult(
-                res1,
-                "BarAndFoo").AddResult(
-                res2,
-                "FOO").AddResult(
-                res3,
-                "nullAndFoo")
+            .Create()
+            .AddResult(res1, "BarAndFoo")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "nullAndFoo")
             .MatchAsync();
     }
 
@@ -190,13 +178,10 @@ public class QueryableFilterVisitorEnumTests : IClassFixture<SchemaCache>
 
         // assert
         await Snapshot
-            .Create().AddResult(
-                res1,
-                "BAR").AddResult(
-                res2,
-                "FOO").AddResult(
-                res3,
-                "null")
+            .Create()
+            .AddResult(res1, "BAR")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -224,13 +209,10 @@ public class QueryableFilterVisitorEnumTests : IClassFixture<SchemaCache>
 
         // assert
         await Snapshot
-            .Create().AddResult(
-                res1,
-                "BAR").AddResult(
-                res2,
-                "FOO").AddResult(
-                res3,
-                "null")
+            .Create()
+            .AddResult(res1, "BAR")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -258,13 +240,10 @@ public class QueryableFilterVisitorEnumTests : IClassFixture<SchemaCache>
 
         // assert
         await Snapshot
-            .Create().AddResult(
-                res1,
-                "BarAndFoo").AddResult(
-                res2,
-                "FOO").AddResult(
-                res3,
-                "nullAndFoo")
+            .Create()
+            .AddResult(res1, "BarAndFoo")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "nullAndFoo")
             .MatchAsync();
     }
 
@@ -292,13 +271,10 @@ public class QueryableFilterVisitorEnumTests : IClassFixture<SchemaCache>
 
         // assert
         await Snapshot
-            .Create().AddResult(
-                res1,
-                "BarAndFoo").AddResult(
-                res2,
-                "FOO").AddResult(
-                res3,
-                "nullAndFoo")
+            .Create()
+            .AddResult(res1, "BarAndFoo")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "nullAndFoo")
             .MatchAsync();
     }
 

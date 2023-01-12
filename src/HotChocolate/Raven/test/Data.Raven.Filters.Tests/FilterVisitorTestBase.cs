@@ -48,8 +48,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
                         documentStore,
                         c.Name("Query")
                             .Field("rootExecutable")
-                            .Resolve(
-                                ctx => resolver(ctx).AsExecutable()),
+                            .Resolve(ctx => resolver(ctx).AsExecutable()),
                         withPaging);
                 });
 

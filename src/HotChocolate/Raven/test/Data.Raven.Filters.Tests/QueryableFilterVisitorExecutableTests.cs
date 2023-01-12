@@ -44,7 +44,10 @@ public class QueryableFilterVisitorExecutableTests
                 .Create());
 
         // assert
-        await Snapshot.Create().AddResult(res1, "true").AddResult(res2, "false")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "true")
+            .AddResult(res2, "false")
             .MatchAsync();
     }
 
@@ -67,7 +70,9 @@ public class QueryableFilterVisitorExecutableTests
 
         // assert
         await Snapshot
-            .Create().AddResult(res1, "true").AddResult(res2, "false")
+            .Create()
+            .AddResult(res1, "true")
+            .AddResult(res2, "false")
             .MatchAsync();
     }
 
@@ -95,7 +100,10 @@ public class QueryableFilterVisitorExecutableTests
 
         // assert
         await Snapshot
-            .Create().AddResult(res1, "true").AddResult(res2, "false").AddResult(res3, "null")
+            .Create()
+            .AddResult(res1, "true")
+            .AddResult(res2, "false")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -123,7 +131,10 @@ public class QueryableFilterVisitorExecutableTests
 
         // assert
         await Snapshot
-            .Create().AddResult(res1, "true").AddResult(res2, "false").AddResult(res3, "null")
+            .Create()
+            .AddResult(res1, "true")
+            .AddResult(res2, "false")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
