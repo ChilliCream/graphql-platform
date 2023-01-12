@@ -5,9 +5,18 @@ import { useDispatch } from "react-redux";
 import semverCoerce from "semver/functions/coerce";
 import semverCompare from "semver/functions/compare";
 import styled, { css } from "styled-components";
-import { DocPageFragment, DocsJson, Maybe } from "../../../graphql-types";
-import ListAltIconSvg from "../../images/list-alt.svg";
-import NewspaperIconSvg from "../../images/newspaper.svg";
+
+import { Article } from "@/components/articles/article";
+import { ArticleComments } from "@/components/articles/article-comments";
+import { ArticleContentFooter } from "@/components/articles/article-content-footer";
+import {
+  ArticleContent,
+  ArticleHeader,
+  ArticleTitle,
+} from "@/components/articles/article-elements";
+import { ArticleSections } from "@/components/articles/article-sections";
+import { TabGroupProvider } from "@/components/mdx/tabs";
+import { DocPageFragment, DocsJson, Maybe } from "@/graphql-types";
 import {
   DocPageDesktopGridColumns,
   IsDesktop,
@@ -15,19 +24,14 @@ import {
   IsSmallDesktop,
   IsTablet,
   THEME_COLORS,
-} from "../../shared-style";
-import { useObservable } from "../../state";
-import { toggleAside, toggleTOC } from "../../state/common";
-import { Article } from "../articles/article";
-import { ArticleComments } from "../articles/article-comments";
-import { ArticleContentFooter } from "../articles/article-content-footer";
-import {
-  ArticleContent,
-  ArticleHeader,
-  ArticleTitle,
-} from "../articles/article-elements";
-import { ArticleSections } from "../articles/article-sections";
-import { TabGroupProvider } from "../mdx/tabs";
+} from "@/shared-style";
+import { useObservable } from "@/state";
+import { toggleAside, toggleTOC } from "@/state/common";
+
+// Icons
+import ListAltIconSvg from "@/images/list-alt.svg";
+import NewspaperIconSvg from "@/images/newspaper.svg";
+
 import {
   ArticleWrapper,
   ArticleWrapperElement,
@@ -53,6 +57,7 @@ export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
   const { fields, frontmatter, body } = data.file!.childMdx!;
   const slug = fields!.slug!;
   const title = frontmatter!.title!;
+  const description = frontmatter!.description;
 
   const product = useProductInformation(slug, data.productsConfig?.products);
 
@@ -69,13 +74,8 @@ export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
   }, []);
 
   useEffect(() => {
-    const classes = responsiveMenuRef.current?.className ?? "";
-
     const subscription = hasScrolled$.subscribe((hasScrolled) => {
-      if (responsiveMenuRef.current) {
-        responsiveMenuRef.current.className =
-          classes + (hasScrolled ? " scrolled" : "");
-      }
+      responsiveMenuRef.current?.classList.toggle("scrolled", hasScrolled);
     });
 
     return () => {
@@ -120,6 +120,7 @@ export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
                 <ArticleTitle>{title}</ArticleTitle>
               </ArticleHeader>
               <ArticleContent>
+                {description && <p>{description}</p>}
                 <MDXRenderer>{body}</MDXRenderer>
                 <ArticleContentFooter
                   lastUpdated={fields!.lastUpdated!}
@@ -155,6 +156,7 @@ export const DocPageGraphQLFragment = graphql`
         }
         frontmatter {
           title
+          description
         }
         body
         ...ArticleSections

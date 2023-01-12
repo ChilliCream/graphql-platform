@@ -134,25 +134,6 @@ public class SortInputTypeDescriptor
     }
 
     /// <inheritdoc />
-    public ISortFieldDescriptor Field(
-        string name,
-        Action<ISortInputTypeDescriptor> configure)
-    {
-        var descriptor = Field(name);
-        descriptor.Extend().Definition.CreateFieldTypeDefinition = CreateFieldTypeDefinition;
-        return descriptor;
-
-        SortInputTypeDefinition CreateFieldTypeDefinition(
-            IDescriptorContext context,
-            string? scope)
-        {
-            var fieldDescriptor = Inline(context, typeof(object), scope);
-            configure(fieldDescriptor);
-            return fieldDescriptor.CreateDefinition();
-        }
-    }
-
-    /// <inheritdoc />
     public ISortInputTypeDescriptor Ignore(string name)
     {
         var fieldDescriptor =
@@ -235,38 +216,4 @@ public class SortInputTypeDescriptor
         SortInputTypeDescriptor descriptor,
         string? scope = null)
         => From<T>(descriptor.Context, descriptor.Definition, scope);
-
-    internal static SortInputTypeDescriptor Inline(
-        IDescriptorContext context,
-        Type entityType,
-        string? scope = null)
-    {
-        var descriptor = New(context, entityType, scope);
-
-        descriptor.BindFieldsExplicitly();
-
-        // This resets the name on the definition. This way we can check if the user has
-        // set a custom name. The context the user specifying descriptor.Name("Foo") is
-        // preserved this way.
-        descriptor.Definition.IsNamed = false;
-
-        return descriptor;
-    }
-
-    internal static SortInputTypeDescriptor<TField> Inline<TField>(
-        IDescriptorContext context,
-        Type entityType,
-        string? scope = null)
-    {
-        var descriptor = New<TField>(context, entityType, scope);
-
-        descriptor.BindFieldsExplicitly();
-
-        // This resets the name on the definition. This way we can check if the user has
-        // set a custom name. The context the user specifying descriptor.Name("Foo") is
-        // preserved this way.
-        descriptor.Definition.IsNamed = false;
-
-        return descriptor;
-    }
 }

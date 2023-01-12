@@ -10,18 +10,17 @@ import React, {
 } from "react";
 import styled, { css } from "styled-components";
 import { parse } from "yaml";
-import { BananaCakePop } from "../../components/images/banana-cake-pop";
-import { Layout } from "../../components/layout";
-import { Link } from "../../components/misc/link";
-import { Intro } from "../../components/misc/page-elements";
-import { SEO } from "../../components/misc/seo";
-import { Spinner } from "../../components/misc/spinner";
+
+import { BananaCakePop } from "@/components/images/banana-cake-pop";
+import { Layout } from "@/components/layout";
+import { Link } from "@/components/misc/link";
+import { Intro } from "@/components/misc/page-elements";
+import { SEO } from "@/components/misc/seo";
+import { Spinner } from "@/components/misc/spinner";
 import {
   CompaniesSection,
   MostRecentBcpBlogPostsSection,
-} from "../../components/widgets";
-import ArrowDownIconSvg from "../../images/arrow-down.svg";
-import CircleDownIconSvg from "../../images/circle-down.svg";
+} from "@/components/widgets";
 import {
   FONT_FAMILY_HEADING,
   IsDesktop,
@@ -30,7 +29,11 @@ import {
   IsSmallTablet,
   IsTablet,
   THEME_COLORS,
-} from "../../shared-style";
+} from "@/shared-style";
+
+// Icons
+import ArrowDownIconSvg from "@/images/arrow-down.svg";
+import CircleDownIconSvg from "@/images/circle-down.svg";
 
 const DOWNLOAD_STABLE_BASE_URL =
   "https://download.chillicream.com/bananacakepop/";
@@ -53,7 +56,9 @@ const BananaCakePopPage: FC = () => {
           <ProductDetails>
             <ProductDetailsHeader>
               <ProductName>Banana Cake Pop</ProductName>
-              <ProductDescription>\\ GraphQL IDE for Devs</ProductDescription>
+              <ProductDescription>
+                /* GraphQL IDE for Devs */
+              </ProductDescription>
             </ProductDetailsHeader>
             <ProductDownload appInfos={appInfos} />
             <ProductDetailsFooter></ProductDetailsFooter>
@@ -383,9 +388,9 @@ const ProductDetailsHeader = styled.div`
 
 export const ProductName = styled.h1`
   flex: 0 0 auto;
-  margin-bottom: 0;
   font-weight: normal;
   font-size: 2.222em;
+  text-align: center;
   color: ${THEME_COLORS.textContrast};
 
   ${IsMobile(css`
@@ -395,13 +400,13 @@ export const ProductName = styled.h1`
 
 export const ProductDescription = styled.h2`
   flex: 0 0 auto;
-  margin-bottom: 0;
   font-weight: normal;
-  font-size: 1.625em;
+  font-size: 1.25em;
+  text-align: center;
   color: ${THEME_COLORS.quaternary};
 
   ${IsMobile(css`
-    font-size: 1.125em;
+    font-size: 1em;
   `)}
 `;
 

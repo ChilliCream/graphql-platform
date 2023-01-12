@@ -1,8 +1,9 @@
 import { graphql } from "gatsby";
 import React, { FC } from "react";
 import styled from "styled-components";
-import { THEME_COLORS } from "../../shared-style";
-import { Link } from "../misc/link";
+
+import { Link } from "@/components/misc/link";
+import { THEME_COLORS } from "@/shared-style";
 
 export interface BlogArticleTagsProps {
   readonly tags: string[];

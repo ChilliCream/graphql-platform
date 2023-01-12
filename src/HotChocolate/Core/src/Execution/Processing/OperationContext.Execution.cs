@@ -66,5 +66,4 @@ internal sealed partial class OperationContext
 
         return resolverTask;
     }
-
 }

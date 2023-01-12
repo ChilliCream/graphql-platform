@@ -2,15 +2,16 @@ import { graphql, useStaticQuery } from "gatsby";
 import { GatsbyImage } from "gatsby-plugin-image";
 import React, { FC } from "react";
 import styled from "styled-components";
-import { GetMostRecentBcpBlogPostsDataQuery } from "../../../graphql-types";
-import { THEME_COLORS } from "../../shared-style";
-import { Link } from "../misc/link";
+
+import { Link } from "@/components/misc/link";
 import {
   ContentContainer,
   Section,
   SectionRow,
   SectionTitle,
-} from "../misc/marketing-elements";
+} from "@/components/misc/marketing-elements";
+import { GetMostRecentBcpBlogPostsDataQuery } from "@/graphql-types";
+import { THEME_COLORS } from "@/shared-style";
 
 export const MostRecentBcpBlogPostsSection: FC = () => {
   const data = useStaticQuery<GetMostRecentBcpBlogPostsDataQuery>(graphql`
@@ -53,7 +54,7 @@ export const MostRecentBcpBlogPostsSection: FC = () => {
     <Section>
       <SectionRow>
         <ContentContainer noImage>
-          <SectionTitle centerAlways>From our Blog</SectionTitle>
+          <SectionTitle centerAlways>From Our Blog</SectionTitle>
           <Articles>
             {data.allMdx.edges.map(({ node }) => {
               const featuredImage =

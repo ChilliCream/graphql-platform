@@ -1,7 +1,5 @@
 using System;
 using System.IO;
-using System.Text.Encodings.Web;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Utilities;
@@ -21,21 +19,12 @@ public sealed partial class MultiPartResultFormatter : IExecutionResultFormatter
     /// <summary>
     /// Creates a new instance of <see cref="MultiPartResultFormatter" />.
     /// </summary>
-    /// <param name="indented">
-    /// Defines whether the underlying <see cref="Utf8JsonWriter"/>
-    /// should pretty print the JSON which includes:
-    /// indenting nested JSON tokens, adding new lines, and adding
-    /// white space between property names and values.
-    /// By default, the JSON is written without any extra white space.
+    /// <param name="options">
+    /// The JSON result formatter options
     /// </param>
-    /// <param name="encoder">
-    /// Gets or sets the encoder to use when escaping strings, or null to use the default encoder.
-    /// </param>
-    public MultiPartResultFormatter(
-        bool indented = false,
-        JavaScriptEncoder? encoder = null)
+    public MultiPartResultFormatter(JsonResultFormatterOptions options = default)
     {
-        _payloadFormatter = new JsonResultFormatter(indented, encoder);
+        _payloadFormatter = new JsonResultFormatter(options);
     }
 
     /// <summary>
@@ -47,8 +36,7 @@ public sealed partial class MultiPartResultFormatter : IExecutionResultFormatter
     /// <exception cref="ArgumentNullException">
     /// <paramref name="queryResultFormatter"/> is <c>null</c>.
     /// </exception>
-    public MultiPartResultFormatter(
-        IQueryResultFormatter queryResultFormatter)
+    public MultiPartResultFormatter(IQueryResultFormatter queryResultFormatter)
     {
         _payloadFormatter = queryResultFormatter ??
             throw new ArgumentNullException(nameof(queryResultFormatter));

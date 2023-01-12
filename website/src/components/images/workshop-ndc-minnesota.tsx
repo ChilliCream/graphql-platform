@@ -1,7 +1,8 @@
 import { graphql, useStaticQuery } from "gatsby";
 import { GatsbyImage } from "gatsby-plugin-image";
 import React, { FC } from "react";
-import { GetWorkshopNdcMinnesotaImageQuery } from "../../../graphql-types";
+
+import { GetWorkshopNdcMinnesotaImageQuery } from "@/graphql-types";
 
 export const WorkshopNdcMinnesota: FC = () => {
   const data = useStaticQuery<GetWorkshopNdcMinnesotaImageQuery>(graphql`

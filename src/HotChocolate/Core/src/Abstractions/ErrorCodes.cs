@@ -210,9 +210,9 @@ public static class ErrorCodes
         public const string MiddlewareOrderInvalid = "HC0050";
 
         /// <summary>
-        /// Type system members are not supported as runtime types
+        /// Type system members are not supported as runtime types.
         /// </summary>
-        public const string NoSchemaTypesAllowedAsRuntimeType = "HC0051";
+        public const string NoSchemaTypesAllowedAsRuntimeType = "HC0073";
 
         /// <summary>
         /// An object type implementing the node interface does not provide a node resolver.
@@ -301,11 +301,6 @@ public static class ErrorCodes
         /// Type does not contain a valid node field. Only `items` and `nodes` are supported
         /// </summary>
         public const string NodeFieldWasNotFound = "HC0028";
-
-        /// <summary>
-        /// Inline filtering type does not defined any fields.
-        /// </summary>
-        public const string InlineFilterTypeNoFields = "HC0062";
     }
 
     /// <summary>

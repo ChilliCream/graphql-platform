@@ -1,17 +1,23 @@
 using System.Net;
+using System.Net.Http.Json;
 using CookieCrumble;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore.Instrumentation;
+using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Serialization;
 using Newtonsoft.Json;
+using static HotChocolate.Execution.Serialization.JsonNullIgnoreCondition;
 
 namespace HotChocolate.AspNetCore;
 
 public class HttpPostMiddlewareTests : ServerTestBase
 {
+    private static readonly Uri _url = new("http://localhost:5000/graphql");
+
     public HttpPostMiddlewareTests(TestServerFactory serverFactory)
         : base(serverFactory)
     {
@@ -1141,6 +1147,122 @@ public class HttpPostMiddlewareTests : ServerTestBase
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Strip_Null_Values_Variant_1()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s.AddHttpResponseFormatter(
+                _ => new DefaultHttpResponseFormatter(new() { NullIgnoreCondition = Fields })));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        {
+            Content = JsonContent.Create(
+                new ClientQueryRequest
+                {
+                    Query = "{ __schema { description } }"
+                })
+        };
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        // expected response content-type: application/json
+        // expected status code: 200
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                @"Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+                {""data"":{""__schema"":{}}}");
+    }
+
+    [Fact]
+    public async Task Strip_Null_Values_Variant_2()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s.AddHttpResponseFormatter(
+                new JsonResultFormatterOptions { NullIgnoreCondition = Fields }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        {
+            Content = JsonContent.Create(
+                new ClientQueryRequest
+                {
+                    Query = "{ __schema { description } }"
+                })
+        };
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        // expected response content-type: application/json
+        // expected status code: 200
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                @"Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+                {""data"":{""__schema"":{}}}");
+    }
+
+    [Fact]
+    public async Task Strip_Null_Elements()
+    {
+        // arrange
+        var url = new Uri("http://localhost:5000/test");
+
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer("test")
+                .AddQueryType<NullListQuery>()
+                .Services
+                .AddHttpResponseFormatter(new JsonResultFormatterOptions
+                {
+                    NullIgnoreCondition = Lists
+                }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, url)
+        {
+            Content = JsonContent.Create(
+                new ClientQueryRequest
+                {
+                    Query = "{ nullValues }"
+                })
+        };
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        // expected response content-type: application/json
+        // expected status code: 200
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                @"Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+                {""data"":{""nullValues"":[""abc""]}}");
+    }
+
     public class ErrorRequestInterceptor : DefaultHttpRequestInterceptor
     {
         public override ValueTask OnCreateAsync(
@@ -1162,5 +1284,10 @@ public class HttpPostMiddlewareTests : ServerTestBase
             Triggered = true;
             return EmptyScope;
         }
+    }
+
+    public class NullListQuery
+    {
+        public List<string?> NullValues => new() { null, "abc", null };
     }
 }
