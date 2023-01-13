@@ -346,25 +346,6 @@ public static class DataLoaderResolverContextExtensions
         return FetchOnceAsync(context, fetch, key);
     }
 
-    [GetDataLoaderWithKey]
-    public static T DataLoader<T>(this IResolverContext context, string key)
-        where T : IDataLoader
-    {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (key is null)
-        {
-            throw new ArgumentNullException(nameof(key));
-        }
-
-        var services = context.RequestServices;
-        var reg = services.GetRequiredService<IDataLoaderRegistry>();
-        return reg.GetOrRegister(key, () => CreateDataLoader<T>(services));
-    }
-
     [GetDataLoader]
     public static T DataLoader<T>(this IResolverContext context)
         where T : IDataLoader
@@ -409,7 +390,5 @@ public static class DataLoaderResolverContextExtensions
         return registeredDataLoader;
     }
 }
-
-internal sealed class GetDataLoaderWithKeyAttribute : Attribute { }
 
 internal sealed class GetDataLoaderAttribute : Attribute { }

@@ -11,7 +11,7 @@ public class CancellationTokenSourceExtensionsTests
     {
         // arrange
         CancellationTokenSource source = null;
-        CancellationToken token = new CancellationTokenSource().Token;
+        var token = new CancellationTokenSource().Token;
 
         // act
         Action verify = () => source.CreateLinkedCancellationToken(token);
@@ -25,10 +25,10 @@ public class CancellationTokenSourceExtensionsTests
     {
         // arrange
         var source = new CancellationTokenSource();
-        CancellationToken token = CancellationToken.None;
+        var token = CancellationToken.None;
 
         // act
-        CancellationToken combinedToken = source
+        var combinedToken = source
             .CreateLinkedCancellationToken(token);
 
         // assert
@@ -40,10 +40,10 @@ public class CancellationTokenSourceExtensionsTests
     {
         // arrange
         var source = new CancellationTokenSource();
-        CancellationToken token = new CancellationTokenSource().Token;
+        var token = new CancellationTokenSource().Token;
 
         // act
-        CancellationToken combinedToken = source
+        var combinedToken = source
             .CreateLinkedCancellationToken(token);
 
         // assert

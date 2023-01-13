@@ -45,12 +45,6 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string DataLoader_KeyMustNotBeNullOrEmpty {
-            get {
-                return ResourceManager.GetString("DataLoader_KeyMustNotBeNullOrEmpty", resourceCulture);
-            }
-        }
-        
         internal static string DirectiveArgument_NameMustNotBeNullOrempty {
             get {
                 return ResourceManager.GetString("DirectiveArgument_NameMustNotBeNullOrempty", resourceCulture);

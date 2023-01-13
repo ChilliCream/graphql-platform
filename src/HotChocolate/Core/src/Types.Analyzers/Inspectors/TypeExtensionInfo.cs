@@ -11,7 +11,7 @@ public sealed class TypeExtensionInfo : ISyntaxInfo, IEquatable<TypeExtensionInf
 
     public string Name { get; }
 
-    public bool IsStatic { get;  }
+    public bool IsStatic { get; }
 
     public OperationType Type { get; }
 

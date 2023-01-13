@@ -32,8 +32,8 @@ public class GroupDataLoaderTests
             new DataLoaderOptions());
 
         // act
-        Task<string[]> result1 = dataLoader.LoadAsync("1abc");
-        Task<string[]> result2 = dataLoader.LoadAsync("0abc");
+        var result1 = dataLoader.LoadAsync("1abc");
+        var result2 = dataLoader.LoadAsync("0abc");
 
         // assert
         Assert.Collection(await result1, t => Assert.Equal("Value:1abc", t));
