@@ -75,7 +75,7 @@ public static class DataLoaderResolverContextExtensions
             throw new ArgumentNullException(nameof(fetch));
         }
 
-        var services = context.Services;
+        var services = context.RequestServices;
         var reg = services.GetRequiredService<IDataLoaderRegistry>();
         FetchBatchDataLoader<TKey, TValue> Loader()
             => new(
@@ -181,7 +181,7 @@ public static class DataLoaderResolverContextExtensions
             throw new ArgumentNullException(nameof(fetch));
         }
 
-        var services = context.Services;
+        var services = context.RequestServices;
         var reg = services.GetRequiredService<IDataLoaderRegistry>();
         FetchGroupedDataLoader<TKey, TValue> Loader()
             => new(
@@ -272,7 +272,7 @@ public static class DataLoaderResolverContextExtensions
             throw new ArgumentNullException(nameof(fetch));
         }
 
-        var services = context.Services;
+        var services = context.RequestServices;
         var reg = services.GetRequiredService<IDataLoaderRegistry>();
         FetchCacheDataLoader<TKey, TValue> Loader()
             => new(
@@ -355,7 +355,7 @@ public static class DataLoaderResolverContextExtensions
             throw new ArgumentNullException(nameof(context));
         }
 
-        var services = context.Services;
+        var services = context.RequestServices;
         var reg = services.GetRequiredService<IDataLoaderRegistry>();
         return reg.GetOrRegister(() => CreateDataLoader<T>(services));
     }

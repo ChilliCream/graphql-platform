@@ -203,7 +203,7 @@ public class PersonFilterType
 
 As with all our types we will have an approach to infer possible filters and apply them to your API. You can declare that you want to define all filters explicitly or decide to override/limit specific filters. I myself are really keen on this one since it will safe you so much code. You will be able to pipeline filters with sorting and paging which makes this super powerful.
 
-> Follow our work on filters [here](https://github.com/ChilliCream/hotchocolate/pull/711).
+> Follow our work on filters [here](https://github.com/ChilliCream/graphql-platform/pull/711).
 
 #### Subscriptions
 
@@ -213,7 +213,7 @@ The implementation was rushed and is not as we would have liked to implement it.
 
 This will create a very nice and clean API that will perform better with less memory usage. We pushed back subscription stitching in order to first get the backend sorted out and use a lot of the new code to build the subscription client we need for the stitching layer.
 
-> Follow our work on subscriptions [here](https://github.com/ChilliCream/hotchocolate/pull/807).
+> Follow our work on subscriptions [here](https://github.com/ChilliCream/graphql-platform/pull/807).
 
 #### Execution Plans
 

@@ -168,7 +168,7 @@ public class EnumTypeSchemaFirstTests
             .MatchSnapshotAsync();
     }
 
-    // https://github.com/ChilliCream/hotchocolate/issues/833
+    // https://github.com/ChilliCream/graphql-platform/issues/833
     [InlineData("GOOD_EVENING")]
     [InlineData("GOODEVENING")]
     [Theory]

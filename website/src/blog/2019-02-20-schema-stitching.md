@@ -932,7 +932,7 @@ IExecutionResult result = remoteQueryClient.ExecuteAsync("{ foo { bar } }")
 
 ## Example
 
-We have a simple stitching example [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/Stitching).
+We have a simple stitching example [here](https://github.com/ChilliCream/graphql-platform-examples/tree/master/Stitching).
 
 ## Version 9
 

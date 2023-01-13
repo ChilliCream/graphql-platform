@@ -15,7 +15,7 @@ We started investigating into opening up the API for users who want to provide t
 
 This was a huge setback for us, but we still went back to the drawing board and made a complete redesign of it. We looked at many different implementations of similar features, and combined with the experience we made; we settled on a similar approach to Hasura or Postgraphile.
 
-The main issue with the filters released with version 10 is the strict binding of field and operation. The discussion and a detailed description of the problem we faced can be followed in this [Issue on GitHub](https://github.com/ChilliCream/hotchocolate/issues/2044)
+The main issue with the filters released with version 10 is the strict binding of field and operation. The discussion and a detailed description of the problem we faced can be followed in this [Issue on GitHub](https://github.com/ChilliCream/graphql-platform/issues/2044)
 
 Here is a quick summary:
 

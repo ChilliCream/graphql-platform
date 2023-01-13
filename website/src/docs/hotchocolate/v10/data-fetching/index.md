@@ -176,7 +176,7 @@ public Task<Person> GetPerson(string id, IResolverContext context, [Service]IPer
 }
 ```
 
-_An example with the **Batch Dataloader** can be found [here](https://github.com/ChilliCream/hotchocolate-examples/blob/master/misc/DataLoader/MessageType.cs)._
+_An example with the **Batch Dataloader** can be found [here](https://github.com/ChilliCream/graphql-platform-examples/blob/master/misc/DataLoader/MessageType.cs)._
 
 ## Group DataLoader
 
@@ -191,7 +191,7 @@ public Task<IEnumerable<Person>> GetPersonByCountry(string country, IResolverCon
 }
 ```
 
-_An example with the **Batch Dataloader** can be found [here](https://github.com/ChilliCream/hotchocolate-examples/blob/master/misc/DataLoader/QueryType.cs)._
+_An example with the **Batch Dataloader** can be found [here](https://github.com/ChilliCream/graphql-platform-examples/blob/master/misc/DataLoader/QueryType.cs)._
 
 ## Cache DataLoader
 
@@ -204,7 +204,7 @@ public Task<Person> GetPerson(string id, IResolverContext context, [Service]IPer
 }
 ```
 
-_An example with the **Batch Dataloader** can be found [here](https://github.com/ChilliCream/hotchocolate-examples/blob/master/misc/DataLoader/MessageType.cs)._
+_An example with the **Batch Dataloader** can be found [here](https://github.com/ChilliCream/graphql-platform-examples/blob/master/misc/DataLoader/MessageType.cs)._
 
 ## Fetch Once
 
