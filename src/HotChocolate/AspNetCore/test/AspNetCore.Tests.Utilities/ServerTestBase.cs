@@ -48,6 +48,12 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
                                 c => c.GetRequiredService<PersistedQueryCache>())
                             .AddSingleton<IWriteStoredQueries>(
                                 c => c.GetRequiredService<PersistedQueryCache>()))
+                    .ModifyOptions(
+                        o =>
+                        {
+                            o.EnableDefer = true;
+                            o.EnableStream = true;
+                        })
                     .AddGraphQLServer("StarWars")
                     .AddStarWarsTypes()
                     .AddGraphQLServer("evict")

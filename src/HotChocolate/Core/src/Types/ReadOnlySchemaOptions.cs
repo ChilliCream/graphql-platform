@@ -49,6 +49,8 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
         EnableOneOf = options.EnableOneOf;
         EnsureAllNodesCanBeResolved = options.EnsureAllNodesCanBeResolved;
         EnableFlagEnums = options.EnableFlagEnums;
+        EnableDefer = options.EnableDefer;
+        EnableStream = options.EnableStream;
     }
 
     /// <inheritdoc />
@@ -112,4 +114,10 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
 
     /// <inheritdoc />
     public bool EnableFlagEnums { get; }
+
+    /// <inheritdoc />
+    public bool EnableDefer { get; }
+
+    /// <inheritdoc />
+    public bool EnableStream { get; }
 }

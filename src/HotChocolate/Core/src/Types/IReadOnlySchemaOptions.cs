@@ -75,4 +75,10 @@ public interface IReadOnlySchemaOptions
 
     /// <inheritdoc cref="SchemaOptions.EnableFlagEnums"/>
     bool EnableFlagEnums { get; }
+
+    /// <inheritdoc cref="SchemaOptions.EnableDefer"/>
+    bool EnableDefer { get; }
+
+    /// <inheritdoc cref="SchemaOptions.EnableStream"/>
+    bool EnableStream { get; }
 }

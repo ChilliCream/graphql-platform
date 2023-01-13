@@ -157,6 +157,18 @@ public class SchemaOptions : IReadOnlySchemaOptions
     public bool EnableFlagEnums { get; set; }
 
     /// <summary>
+    /// Enables the @defer directive.
+    /// Defer and stream both are at the moment preview features.
+    /// </summary>
+    public bool EnableDefer { get; set; }
+
+    /// <summary>
+    /// Enables the @stream directive.
+    /// Defer and stream both are at the moment preview features.
+    /// </summary>
+    public bool EnableStream { get; set; }
+
+    /// <summary>
     /// Creates a mutable options object from a read-only options object.
     /// </summary>
     /// <param name="options">The read-only options object.</param>
@@ -183,7 +195,11 @@ public class SchemaOptions : IReadOnlySchemaOptions
             SortFieldsByName = options.SortFieldsByName,
             DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck,
             EnableOneOf = options.EnableOneOf,
-            EnsureAllNodesCanBeResolved = options.EnsureAllNodesCanBeResolved
+            EnsureAllNodesCanBeResolved = options.EnsureAllNodesCanBeResolved,
+            EnableFlagEnums = options.EnableFlagEnums,
+            EnableDefer = options.EnableDefer,
+            EnableStream = options.EnableStream,
+            DefaultFieldBindingFlags = options.DefaultFieldBindingFlags
         };
     }
 }
