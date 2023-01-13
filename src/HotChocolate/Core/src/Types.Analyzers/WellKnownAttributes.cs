@@ -11,7 +11,7 @@ public static class WellKnownAttributes
     public const string QueryTypeAttribute = "HotChocolate.Types.QueryTypeAttribute";
     public const string MutationTypeAttribute = "HotChocolate.Types.MutationTypeAttribute";
     public const string SubscriptionTypeAttribute = "HotChocolate.Types.SubscriptionTypeAttribute";
-    public const string BatchDataLoaderAttribute = "HotChocolate.Fetching.BatchDataLoaderAttribute";
+    public const string DataLoaderAttribute = "HotChocolate.Fetching.DataLoaderAttribute";
 
     public static HashSet<string> TypeAttributes { get; } =
         new()

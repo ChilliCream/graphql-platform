@@ -1,39 +1,27 @@
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
 namespace HotChocolate.Types.Analyzers.Inspectors;
 
-public sealed class DataLoaderInfo : ISyntaxInfo, IEquatable<DataLoaderInfo>
+public sealed class DataLoaderInfo : ISyntaxInfo
 {
-    public DataLoaderInfo(string name)
+    public DataLoaderInfo(
+        AttributeSyntax attributeSyntax,
+        IMethodSymbol attributeSymbol,
+        IMethodSymbol methodSymbol,
+        MethodDeclarationSyntax methodSyntax)
     {
-        Name = name;
+        AttributeSyntax = attributeSyntax;
+        AttributeSymbol = attributeSymbol;
+        MethodSymbol = methodSymbol;
+        MethodSyntax = methodSyntax;
     }
 
-    public string Name { get; }
+    public AttributeSyntax AttributeSyntax { get; }
 
-    public bool Equals(DataLoaderInfo? other)
-    {
-        if (ReferenceEquals(null, other))
-        {
-            return false;
-        }
+    public IMethodSymbol AttributeSymbol { get; }
 
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
+    public IMethodSymbol MethodSymbol { get; }
 
-        return Name == other.Name;
-    }
-
-    public override bool Equals(object? obj)
-        => ReferenceEquals(this, obj) ||
-            obj is DataLoaderInfo other && Equals(other);
-
-    public override int GetHashCode()
-        => Name.GetHashCode();
-
-    public static bool operator ==(DataLoaderInfo? left, DataLoaderInfo? right)
-        => Equals(left, right);
-
-    public static bool operator !=(DataLoaderInfo? left, DataLoaderInfo? right)
-        => !Equals(left, right);
+    public MethodDeclarationSyntax MethodSyntax { get; }
 }

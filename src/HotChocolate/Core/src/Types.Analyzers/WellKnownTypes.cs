@@ -19,6 +19,7 @@ public static class WellKnownTypes
     public const string CancellationToken = "System.Threading.CancellationToken";
     public const string ReadOnlyList = "System.Collections.Generic.IReadOnlyList";
     public const string ReadOnlyDictionary = "System.Collections.Generic.IReadOnlyDictionary";
+    public const string Lookup = "System.Linq.ILookup";
     public const string Task = "System.Threading.Tasks.Task";
 
     public static HashSet<string> TypeClass { get; } =

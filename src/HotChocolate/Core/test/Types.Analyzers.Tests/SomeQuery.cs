@@ -19,7 +19,7 @@ public class SomeQuery
 
     public Book GetBook() => new() { Title = "SomeTitle" };
 
-    public Task<string> WithDataLoader(FoosById foosById)
+    public Task<string> WithDataLoader(FoosByIdDataLoader foosById)
     {
         return foosById.LoadAsync("a");
     }
@@ -39,13 +39,31 @@ public static class SomeSubscription
 
 public static class DataLoaderGen
 {
-    [BatchDataLoader(Scoped = true)]
+    [DataLoader(Scoped = true)]
     public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
         IReadOnlyList<string> ids,
         SomeService someService,
         CancellationToken cancellationToken)
     {
         return ids.ToDictionary(t => t, t => t);
+    }
+
+    [DataLoader(Scoped = true)]
+    public static async Task<string> GetFoosById2(
+        string id,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return "abc";
+    }
+
+    [DataLoader(Scoped = true)]
+    public static async Task<ILookup<string, string>> GetFoosById3(
+        IReadOnlyList<string> ids,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default;
     }
 }
 

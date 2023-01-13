@@ -347,6 +347,7 @@ public static class SyntaxExtensions
         return methodSyntax.AddAttributeLists(AttributeList(SingletonSeparatedList(attribute)));
     }
 
+#pragma warning disable CS0618
     public static ParameterSyntax AddScopedServiceAttribute(
         this ParameterSyntax methodSyntax)
     {
@@ -355,4 +356,5 @@ public static class SyntaxExtensions
 
         return methodSyntax.AddAttributeLists(AttributeList(SingletonSeparatedList(attribute)));
     }
+#pragma warning restore CS0618
 }

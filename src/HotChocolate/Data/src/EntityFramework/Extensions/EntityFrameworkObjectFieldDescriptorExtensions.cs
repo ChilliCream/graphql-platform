@@ -27,12 +27,12 @@ public static class EntityFrameworkObjectFieldDescriptorExtensions
             new(next => async context =>
             {
 #if NET6_0_OR_GREATER
-                await using TDbContext dbContext = await context.Services
+                await using var dbContext = await context.Services
                     .GetRequiredService<IDbContextFactory<TDbContext>>()
                     .CreateDbContextAsync()
                     .ConfigureAwait(false);
 #else
-                using TDbContext dbContext = context.Services
+                using var dbContext = context.Services
                     .GetRequiredService<IDbContextFactory<TDbContext>>()
                     .CreateDbContext();
 #endif

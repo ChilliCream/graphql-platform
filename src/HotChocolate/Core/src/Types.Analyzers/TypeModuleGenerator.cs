@@ -14,7 +14,7 @@ public class TypeModuleGenerator : IIncrementalGenerator
         new TypeAttributeInspector(),
         new ClassBaseClassInspector(),
         new ModuleInspector(),
-        new BatchDataLoaderInspector()
+        new DataLoaderInspector()
     };
 
     private static readonly ISyntaxGenerator[] _generators =

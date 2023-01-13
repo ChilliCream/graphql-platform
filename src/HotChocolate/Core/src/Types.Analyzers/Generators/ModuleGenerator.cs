@@ -15,7 +15,7 @@ public class ModuleGenerator : ISyntaxGenerator
     }
 
     public bool Consume(ISyntaxInfo syntaxInfo)
-        => syntaxInfo is TypeInfo or TypeExtensionInfo or DataLoaderInfo or ModuleInfo;
+        => syntaxInfo is TypeInfo or TypeExtensionInfo or RegisterDataLoaderInfo or ModuleInfo;
 
     public void Generate(
         SourceProductionContext context,
@@ -119,7 +119,7 @@ public class ModuleGenerator : ISyntaxGenerator
                     }
                     break;
 
-                case DataLoaderInfo dataLoader:
+                case RegisterDataLoaderInfo dataLoader:
                     if ((module.Options & ModuleOptions.RegisterDataLoader) ==
                         ModuleOptions.RegisterDataLoader)
                     {

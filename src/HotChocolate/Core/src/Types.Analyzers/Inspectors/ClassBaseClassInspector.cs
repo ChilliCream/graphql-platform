@@ -60,7 +60,7 @@ public class ClassBaseClassInspector : ISyntaxInspector
 
                     if (displayString.Equals(WellKnownTypes.DataLoader, StringComparison.Ordinal))
                     {
-                        syntaxInfo =  new DataLoaderInfo(typeDisplayString);
+                        syntaxInfo =  new RegisterDataLoaderInfo(typeDisplayString);
                         return true;
                     }
 
