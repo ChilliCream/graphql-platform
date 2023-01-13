@@ -11,7 +11,7 @@ internal static class TypeDiscoveryDescriptorContextExtensions
 {
     public static bool TryInferSchemaType(
         this IDescriptorContext context,
-        ExtendedTypeReference unresolvedTypeRef,
+        ITypeReference unresolvedTypeRef,
         [NotNullWhen(true)] out ITypeReference[]? schemaTypeRefs)
     {
         var info = new TypeDiscoveryInfo(unresolvedTypeRef);

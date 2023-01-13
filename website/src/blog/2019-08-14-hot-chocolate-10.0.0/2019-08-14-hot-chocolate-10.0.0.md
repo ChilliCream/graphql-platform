@@ -122,10 +122,10 @@ Also, we are working on sorting which should be included in the first preview of
 
 If you want to give input or follow our work, you can head over to these four issues that will be coming with version 11.
 
-- [Object Filters #921](https://github.com/ChilliCream/hotchocolate/issues/921)
-- [IEnumerable Filters #922](https://github.com/ChilliCream/hotchocolate/issues/922)
-- [Sorting #923](https://github.com/ChilliCream/hotchocolate/issues/923)
-- [Aggregations #924](https://github.com/ChilliCream/hotchocolate/issues/924)
+- [Object Filters #921](https://github.com/ChilliCream/graphql-platform/issues/921)
+- [IEnumerable Filters #922](https://github.com/ChilliCream/graphql-platform/issues/922)
+- [Sorting #923](https://github.com/ChilliCream/graphql-platform/issues/923)
+- [Aggregations #924](https://github.com/ChilliCream/graphql-platform/issues/924)
 
 > If you want to check out more about filters head over to our [documentation](https://hotchocolate.io/docs/filters).
 

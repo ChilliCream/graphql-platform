@@ -17,7 +17,6 @@ public class DirectiveTypeDefinition
 {
     private Type _clrType = typeof(object);
     private List<DirectiveMiddleware>? _middlewareComponents;
-    private HashSet<DirectiveLocation>? _locations;
     private BindableList<DirectiveArgumentDefinition>? _arguments;
 
     /// <summary>
@@ -72,15 +71,29 @@ public class DirectiveTypeDefinition
     /// <summary>
     /// Defines the location on which a directive can be annotated.
     /// </summary>
-    public ISet<DirectiveLocation> Locations => _locations ??= new HashSet<DirectiveLocation>();
+    public DirectiveLocation Locations { get; set; }
 
     /// <summary>
     /// Gets the directive arguments.
     /// </summary>
-    public IBindableList<DirectiveArgumentDefinition> Arguments =>
-        _arguments ??= new BindableList<DirectiveArgumentDefinition>();
+    public IBindableList<DirectiveArgumentDefinition> Arguments
+        => _arguments ??= new BindableList<DirectiveArgumentDefinition>();
 
+    /// <summary>
+    /// Specifies if this directive definition has an arguments.
+    /// </summary>
     public bool HasArguments => _arguments is { Count: > 0 };
+
+
+    /// <summary>
+    /// Gets or sets the input object runtime value factory delegate.
+    /// </summary>
+    public Func<object?[], object>? CreateInstance { get; set; }
+
+    /// <summary>
+    /// Gets or sets the delegate to extract the field values from the runtime value.
+    /// </summary>
+    public Action<object, object?[]>? GetFieldData { get; set; }
 
     public override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
     {
@@ -107,19 +120,6 @@ public class DirectiveTypeDefinition
         }
 
         return _middlewareComponents;
-    }
-
-    /// <summary>
-    /// Defines the location on which a directive can be annotated.
-    /// </summary>
-    internal IReadOnlyCollection<DirectiveLocation> GetLocations()
-    {
-        if (_locations is null)
-        {
-            return Array.Empty<DirectiveLocation>();
-        }
-
-        return _locations;
     }
 
     /// <summary>

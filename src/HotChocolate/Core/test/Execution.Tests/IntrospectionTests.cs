@@ -1,13 +1,9 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using ChilliCream.Testing;
 using HotChocolate.Configuration;
-using HotChocolate.Tests;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
-using Xunit;
-using Snapshot = Snapshooter.Xunit.Snapshot;
+using CookieCrumble;
 
 namespace HotChocolate.Execution;
 
@@ -24,7 +20,6 @@ public class IntrospectionTests
         var result = await executor.ExecuteAsync(query);
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -39,7 +34,6 @@ public class IntrospectionTests
         var result = await executor.ExecuteAsync(query);
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -63,7 +57,6 @@ public class IntrospectionTests
         var result = await executor.ExecuteAsync(query);
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -78,7 +71,6 @@ public class IntrospectionTests
         var result = await executor.ExecuteAsync(query);
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -95,7 +87,6 @@ public class IntrospectionTests
         var result = await executor.ExecuteAsync(query);
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -110,7 +101,6 @@ public class IntrospectionTests
         var result = await executor.ExecuteAsync(query);
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -125,7 +115,6 @@ public class IntrospectionTests
         var result = await executor.ExecuteAsync(query);
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
         result.ToJson().MatchSnapshot();
     }
 
@@ -152,7 +141,6 @@ public class IntrospectionTests
         var result = await executor.ExecuteAsync("{ __typename a }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -183,7 +171,6 @@ public class IntrospectionTests
         var result = await executor.ExecuteAsync(query);
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -202,7 +189,6 @@ public class IntrospectionTests
         var result = await executor.ExecuteAsync("{ __typename @upper a }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -221,159 +207,150 @@ public class IntrospectionTests
         var result = await executor.ExecuteAsync(query);
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
         result.MatchSnapshot();
     }
 
     [Fact]
     public async Task DirectiveIntrospection_AllDirectives_Public()
     {
-        Snapshot.FullName();
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(
+                    @"type Query {
+                        foo: String
+                            @foo
+                            @bar(baz: ""ABC"")
+                            @bar(baz: null)
+                            @bar(quox: { a: ""ABC"" })
+                            @bar(quox: { a: ""DEF"" })
+                            @bar
+                    }
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddDocumentFromString(
-                @"type Query {
-                    foo: String
-                        @foo
-                        @bar(baz: ""ABC"")
-                        @bar(baz: null)
-                        @bar(quox: { a: ""ABC"" })
-                        @bar(quox: { })
-                        @bar
-                }
+                    input SomeInput {
+                        a: String!
+                    }
 
-                input SomeInput {
-                    a: String!
-                }
+                    directive @foo on FIELD_DEFINITION
 
-                directive @foo on FIELD_DEFINITION
-
-                directive @bar(baz: String quox: SomeInput) repeatable on FIELD_DEFINITION")
-            .UseField(next => next)
-            .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
-            .ExecuteRequestAsync(
-                @"{
-                    __schema {
-                        types {
-                            fields {
-                                appliedDirectives {
-                                    name
-                                    args {
+                    directive @bar(baz: String quox: SomeInput) repeatable on FIELD_DEFINITION")
+                .UseField(next => next)
+                .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
+                .ExecuteRequestAsync(
+                    @"{
+                        __schema {
+                            types {
+                                fields {
+                                    appliedDirectives {
                                         name
-                                        value
+                                        args {
+                                            name
+                                            value
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                }")
-            .MatchSnapshotAsync();
+                    }");
+
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task DirectiveIntrospection_AllDirectives_Internal()
     {
-        Snapshot.FullName();
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(
+                    @"type Query {
+                        foo: String
+                            @foo
+                            @bar(baz: ""ABC"")
+                            @bar(baz: null)
+                            @bar(quox: { a: ""ABC"" })
+                            @bar(quox: { a: ""DEF"" })
+                            @bar
+                    }
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddDocumentFromString(
-                @"
-                        type Query {
-                            foo: String
-                                @foo
-                                @bar(baz: ""ABC"")
-                                @bar(baz: null)
-                                @bar(quox: { a: ""ABC"" })
-                                @bar(quox: { })
-                                @bar
-                        }
+                    input SomeInput {
+                        a: String!
+                    }
 
-                        input SomeInput {
-                            a: String!
-                        }
+                    directive @foo on FIELD_DEFINITION
 
-                        directive @foo on FIELD_DEFINITION
-
-                        directive @bar(baz: String quox: SomeInput) repeatable on FIELD_DEFINITION
-                    ")
-            .UseField(next => next)
-            .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
-            .ModifyOptions(o => o.DefaultDirectiveVisibility = DirectiveVisibility.Internal)
-            .ExecuteRequestAsync(
-                @"
-                        {
-                            __schema {
-                                types {
-                                    fields {
-                                        appliedDirectives {
+                    directive @bar(baz: String quox: SomeInput) repeatable on FIELD_DEFINITION")
+                .UseField(next => next)
+                .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
+                .ModifyOptions(o => o.DefaultDirectiveVisibility = DirectiveVisibility.Internal)
+                .ExecuteRequestAsync(
+                    @"{
+                        __schema {
+                            types {
+                                fields {
+                                    appliedDirectives {
+                                        name
+                                        args {
                                             name
-                                            args {
-                                                name
-                                                value
-                                            }
+                                            value
                                         }
                                     }
                                 }
                             }
                         }
-                    ")
-            .MatchSnapshotAsync();
+                    }");
+
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task DirectiveIntrospection_SomeDirectives_Internal()
     {
-        Snapshot.FullName();
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(
+                    @"type Query {
+                        foo: String
+                            @foo
+                            @bar(baz: ""ABC"")
+                            @bar(baz: null)
+                            @bar(quox: { a: ""ABC"" })
+                            @bar(quox: { a: ""DEF"" })
+                            @bar
+                    }
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddDocumentFromString(
-                @"
-                        type Query {
-                            foo: String
-                                @foo
-                                @bar(baz: ""ABC"")
-                                @bar(baz: null)
-                                @bar(quox: { a: ""ABC"" })
-                                @bar(quox: { })
-                                @bar
-                        }
+                    input SomeInput {
+                        a: String!
+                    }
 
-                        input SomeInput {
-                            a: String!
-                        }
-
-                        directive @bar(baz: String quox: SomeInput) repeatable on FIELD_DEFINITION
-                    ")
-            .UseField(next => next)
-            .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
-            .AddDirectiveType(new DirectiveType(d =>
-            {
-                d.Name("foo");
-                d.Location(DirectiveLocation.FieldDefinition);
-                d.Internal();
-            }))
-            .ExecuteRequestAsync(
-                @"
-                        {
-                            __schema {
-                                types {
-                                    fields {
-                                        appliedDirectives {
+                    directive @bar(baz: String quox: SomeInput) repeatable on FIELD_DEFINITION")
+                .UseField(next => next)
+                .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
+                .AddDirectiveType(new DirectiveType(d =>
+                {
+                    d.Name("foo");
+                    d.Location(DirectiveLocation.FieldDefinition);
+                    d.Internal();
+                }))
+                .ExecuteRequestAsync(
+                    @"{
+                        __schema {
+                            types {
+                                fields {
+                                    appliedDirectives {
+                                        name
+                                        args {
                                             name
-                                            args {
-                                                name
-                                                value
-                                            }
+                                            value
                                         }
                                     }
                                 }
                             }
                         }
-                    ")
-            .MatchSnapshotAsync();
+                    }");
+
+            result.MatchSnapshot();
     }
 
     private static ISchema CreateSchema()
@@ -480,7 +457,7 @@ public class IntrospectionTests
         {
             descriptor.Name("upper");
             descriptor.Location(DirectiveLocation.Field);
-            descriptor.Use(next => async context =>
+            descriptor.Use((next, _) => async context =>
             {
                 await next.Invoke(context);
 

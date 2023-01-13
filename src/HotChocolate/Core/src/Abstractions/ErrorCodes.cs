@@ -199,7 +199,6 @@ public static class ErrorCodes
         public const string NoFieldType = "TS_NO_FIELD_TYPE";
         public const string ArgumentValueTypeWrong = "TS_ARG_VALUE_TYPE_WRONG";
         public const string InvalidArgument = "TS_INVALID_ARG";
-        public const string NonNullArgument = "TS_ARG_NON_NULL";
         public const string InterfaceNotImplemented = "SCHEMA_INTERFACE_NO_IMPL";
         public const string DuplicateTypeName = "HC0065";
         public const string DuplicateMutationErrorTypeName = "HC0066";

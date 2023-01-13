@@ -232,7 +232,7 @@ internal sealed class StitchingSchemaInterceptor : TypeInterceptor
             if (dict.TryGetValue(WellKnownFieldNames.TypeName, out var value) &&
                 TryDeserializeTypeName(value, out var typeName))
             {
-                if (objectType.Directives.Contains(DirectiveNames.Source) &&
+                if (objectType.Directives.ContainsDirective(DirectiveNames.Source) &&
                     context.ScopedContextData.TryGetValue(
                         WellKnownContextData.SchemaName,
                         out var o) &&

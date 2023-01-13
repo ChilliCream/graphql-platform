@@ -21,7 +21,7 @@ public class ObjectFieldDescriptor
     , IObjectFieldDescriptor
 {
     private bool _argumentsInitialized;
-    private readonly ParameterInfo[] _parameterInfos = Array.Empty<ParameterInfo>();
+    private ParameterInfo[] _parameterInfos = Array.Empty<ParameterInfo>();
 
     /// <summary>
     ///  Creates a new instance of <see cref="ObjectFieldDescriptor"/>
@@ -52,7 +52,9 @@ public class ObjectFieldDescriptor
         Definition.Description = naming.GetMemberDescription(member, MemberKind.ObjectField);
         Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
         Definition.SourceType = sourceType;
-        Definition.ResolverType = resolverType == sourceType ? null : resolverType;
+        Definition.ResolverType = resolverType == sourceType
+            ? null
+            : resolverType;
         Definition.IsParallelExecutable = context.Options.DefaultResolverStrategy is Parallel;
 
         if (naming.IsDeprecated(member, out var reason))
@@ -352,6 +354,13 @@ public class ObjectFieldDescriptor
             Definition.ResolverMember = propertyOrMethod;
             Definition.Resolver = null;
             Definition.ResultType = propertyOrMethod.GetReturnType();
+
+            if (propertyOrMethod is MethodInfo m)
+            {
+                _parameterInfos = m.GetParameters();
+                Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
+            }
+
             return this;
         }
 

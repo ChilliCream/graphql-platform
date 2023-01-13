@@ -61,6 +61,7 @@ public class TimeoutMiddlewareTests
         }
     }
 
+#pragma warning disable CS0618
     public class Subscriptions
     {
         [SubscribeAndResolve]
@@ -79,4 +80,5 @@ public class TimeoutMiddlewareTests
             }
         }
     }
+#pragma warning restore CS0618
 }

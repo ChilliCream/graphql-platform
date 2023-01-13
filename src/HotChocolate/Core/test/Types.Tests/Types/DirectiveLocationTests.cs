@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -10,8 +11,17 @@ public class DirectiveLocationTests
     [Fact]
     public void FlagsCorrect()
     {
+        var skip = new HashSet<int>
+        {
+            (int)DirectiveLocation.Executable,
+            (int)DirectiveLocation.TypeSystem,
+            (int)DirectiveLocation.Operation,
+            (int)DirectiveLocation.Fragment
+        };
+
         Enum.GetValues(typeof(DirectiveLocation))
             .Cast<DirectiveLocation>()
+            .Where(t => skip.Add((int)t))
             .Aggregate(0, (acc, loc) =>
             {
                 var v = acc == 0 ? 1 : acc * 2;

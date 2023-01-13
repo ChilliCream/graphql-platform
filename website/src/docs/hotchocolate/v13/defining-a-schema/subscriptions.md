@@ -4,9 +4,7 @@ title: "Subscriptions"
 
 The subscription type in GraphQL is used to add real-time capabilities to our applications. Clients can subscribe to events and receive the event data in real-time, as soon as the server publishes it.
 
-<iframe width="560" height="315"
-src="https://www.youtube.com/embed/wHC9gOk__y0"frameborder="0"
-allowfullscreen></iframe>
+<Video videoId="wHC9gOk__y0" />
 
 ```sdl
 type Subscription {

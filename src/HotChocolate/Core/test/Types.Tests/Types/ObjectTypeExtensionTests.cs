@@ -303,7 +303,7 @@ public class ObjectTypeExtensionTests
             .BuildSchemaAsync();
 
         var type = schema.GetType<ObjectType>("Foo");
-        Assert.True(type.Directives.Contains("dummy"));
+        Assert.True(type.Directives.ContainsDirective("dummy"));
     }
 
     [Fact]
@@ -320,8 +320,7 @@ public class ObjectTypeExtensionTests
             .BuildSchemaAsync();
 
         var type = schema.GetType<ObjectType>("Foo");
-        Assert.True(type.Fields["name"]
-            .Directives.Contains("dummy"));
+        Assert.True(type.Fields["name"].Directives.ContainsDirective("dummy"));
     }
 
     [Fact]
@@ -338,8 +337,7 @@ public class ObjectTypeExtensionTests
             .BuildSchemaAsync();
 
         var type = schema.GetType<ObjectType>("Foo");
-        Assert.True(type.Fields["name"].Arguments["a"]
-            .Directives.Contains("dummy"));
+        Assert.True(type.Fields["name"].Arguments["a"].Directives.ContainsDirective("dummy"));
     }
 
     [Fact]
@@ -358,7 +356,7 @@ public class ObjectTypeExtensionTests
         var type = schema.GetType<ObjectType>("Foo");
         var value = type.Fields["name"].Arguments["a"]
             .Directives["dummy_arg"]
-            .First().GetArgument<string>("a");
+            .First().GetArgumentValue<string>("a");
         Assert.Equal("b", value);
     }
 
@@ -439,7 +437,7 @@ public class ObjectTypeExtensionTests
             .BuildSchemaAsync();
 
         var type = schema.GetType<ObjectType>("Foo");
-        Assert.True(type.Fields["name"].Arguments["a"].Directives.Contains("dummy"));
+        Assert.True(type.Fields["name"].Arguments["a"].Directives.ContainsDirective("dummy"));
     }
 
     [Fact]
@@ -751,8 +749,7 @@ public class ObjectTypeExtensionTests
         }
     }
 
-    public class GenericFooTypeExtension
-        : ObjectTypeExtension<FooExtension>
+    public class GenericFooTypeExtension : ObjectTypeExtension<FooExtension>
     {
         protected override void Configure(
             IObjectTypeDescriptor<FooExtension> descriptor)
@@ -763,7 +760,7 @@ public class ObjectTypeExtensionTests
 
     public class Foo
     {
-        public string? Description { get; } = "hello";
+        public string? Description => "hello";
 
         public string? GetName(string? a) => default!;
     }
@@ -781,8 +778,7 @@ public class ObjectTypeExtensionTests
         }
     }
 
-    public class DummyDirective
-        : DirectiveType
+    public class DummyDirective : DirectiveType
     {
         protected override void Configure(
             IDirectiveTypeDescriptor descriptor)
@@ -794,8 +790,7 @@ public class ObjectTypeExtensionTests
         }
     }
 
-    public class DummyWithArgDirective
-        : DirectiveType
+    public class DummyWithArgDirective : DirectiveType
     {
         protected override void Configure(
             IDirectiveTypeDescriptor descriptor)
@@ -808,8 +803,7 @@ public class ObjectTypeExtensionTests
         }
     }
 
-    public class RepeatableDummyDirective
-        : DirectiveType
+    public class RepeatableDummyDirective : DirectiveType
     {
         protected override void Configure(
             IDirectiveTypeDescriptor descriptor)

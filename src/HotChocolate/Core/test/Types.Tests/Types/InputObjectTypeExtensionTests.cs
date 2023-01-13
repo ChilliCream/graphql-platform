@@ -1,4 +1,3 @@
-using Xunit;
 using HotChocolate.Language;
 using System.Linq;
 
@@ -78,7 +77,7 @@ public class InputObjectTypeExtensionTests
 
         // assert
         var type = schema.GetType<InputObjectType>("FooInput");
-        Assert.True(type.Directives.Contains("dummy"));
+        Assert.True(type.Directives.ContainsDirective("dummy"));
     }
 
     [Fact]
@@ -99,7 +98,7 @@ public class InputObjectTypeExtensionTests
         // assert
         var type = schema.GetType<InputObjectType>("FooInput");
         Assert.True(type.Fields["name"]
-            .Directives.Contains("dummy"));
+            .Directives.ContainsDirective("dummy"));
     }
 
     [Fact]
@@ -120,7 +119,7 @@ public class InputObjectTypeExtensionTests
         // assert
         var type = schema.GetType<InputObjectType>("FooInput");
         var value = type.Directives["dummy_arg"]
-            .First().GetArgument<string>("a");
+            .First().GetArgumentValue<string>("a");
         Assert.Equal("b", value);
     }
 
@@ -144,7 +143,7 @@ public class InputObjectTypeExtensionTests
         // assert
         var type = schema.GetType<InputObjectType>("FooInput");
         var value = type.Fields["description"].Directives["dummy_arg"]
-            .First().GetArgument<string>("a");
+            .First().GetArgumentValue<string>("a");
         Assert.Equal("b", value);
     }
 

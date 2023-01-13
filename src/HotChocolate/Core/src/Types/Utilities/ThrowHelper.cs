@@ -9,6 +9,7 @@ using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Properties.TypeResources;
+using IHasName = HotChocolate.Types.IHasName;
 
 namespace HotChocolate.Utilities;
 
@@ -197,7 +198,7 @@ internal static class ThrowHelper
                 .Build());
 
     public static SerializationException RequiredInputFieldIsMissing(
-        InputField field,
+        IInputField field,
         Path fieldPath)
         => new SerializationException(
             ErrorBuilder.New()
@@ -210,10 +211,11 @@ internal static class ThrowHelper
             field.Type,
             fieldPath);
 
-    public static SerializationException InvalidInputFieldNames(
-        InputObjectType type,
+    public static SerializationException InvalidInputFieldNames<T>(
+        T type,
         IReadOnlyList<string> invalidFieldNames,
         Path path)
+        where T : ITypeSystemMember, IHasName
     {
         if (invalidFieldNames.Count == 1)
         {
@@ -282,9 +284,9 @@ internal static class ThrowHelper
     }
 
     public static SerializationException NonNullInputViolation(
-        IType type,
+        ITypeSystemMember type,
         Path? path,
-        InputField? field = null)
+        IInputField? field = null)
     {
         var builder = ErrorBuilder.New()
             .SetMessage(ThrowHelper_NonNullInputViolation)

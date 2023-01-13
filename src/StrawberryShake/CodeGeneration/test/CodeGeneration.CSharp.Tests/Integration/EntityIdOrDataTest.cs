@@ -19,7 +19,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
         public async Task Execute_EntityIdOrData_Test()
         {
             // arrange
-            CancellationToken ct = new CancellationTokenSource(20_000).Token;
+            var ct = new CancellationTokenSource(20_000).Token;
             var serviceCollection = new ServiceCollection();
             serviceCollection
                 .AddGraphQLServer()
@@ -31,7 +31,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
                 .AddType<Quox2>();
             serviceCollection.AddEntityIdOrDataClient().ConfigureInMemoryClient();
             IServiceProvider services = serviceCollection.BuildServiceProvider();
-            EntityIdOrDataClient client = services.GetRequiredService<EntityIdOrDataClient>();
+            var client = services.GetRequiredService<EntityIdOrDataClient>();
 
             // act
             IOperationResult<IGetFooResult> result = await client.GetFoo.ExecuteAsync(ct);

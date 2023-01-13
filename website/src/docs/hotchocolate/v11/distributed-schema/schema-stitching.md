@@ -58,4 +58,4 @@ For further configuration with extension files, have a look at [Schema Configura
 
 # Example
 
-You can find a full schema stitching example here [Centralized Schema Stitching](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/Stitching/centralized)
+You can find a full schema stitching example here [Centralized Schema Stitching](https://github.com/ChilliCream/graphql-platform-examples/tree/master/misc/Stitching/centralized)

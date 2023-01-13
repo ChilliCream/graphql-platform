@@ -48,7 +48,7 @@ directive @defer("If this argument label has a value other than null, it will be
 directive @delegate("The path to the field on the remote schema." path: String "The name of the schema to which this field shall be delegated to." schema: String!) on FIELD_DEFINITION
 
 "Annotates the original name of a type."
-directive @source("The original name of the annotated type." name: String! "The name of the schema to which this type belongs to." schema: String!) repeatable on ENUM | OBJECT | INTERFACE | UNION | INPUT_OBJECT | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM_VALUE
+directive @source("The original name of the annotated type." name: String! "The name of the schema to which this type belongs to." schema: String!) repeatable on OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
 
 "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
 directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR

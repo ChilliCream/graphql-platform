@@ -151,7 +151,7 @@ internal sealed class DirectiveTypeFactory
                 location.Value,
                 out var parsedLocation))
             {
-                parent.Locations.Add(MapDirectiveLocation(parsedLocation));
+                parent.Locations |= MapDirectiveLocation(parsedLocation);
             }
         }
     }

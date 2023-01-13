@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Validation;
@@ -25,7 +26,7 @@ internal static class OperationDocumentHelper
     /// </param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public static OperationDocuments CreateOperationDocuments(
+    public static async ValueTask<OperationDocuments> CreateOperationDocumentsAsync(
         IEnumerable<DocumentNode> documents,
         ISchema? schema = null)
     {
@@ -47,7 +48,12 @@ internal static class OperationDocumentHelper
                     .GetRequiredService<IDocumentValidatorFactory>()
                     .CreateValidator();
 
-            var result = validator.Validate(schema, mergedDocument);
+            var result = await validator.ValidateAsync(
+                schema,
+                mergedDocument,
+                "dummy",
+                new Dictionary<string, object?>(),
+                false);
 
             if (result.HasErrors)
             {

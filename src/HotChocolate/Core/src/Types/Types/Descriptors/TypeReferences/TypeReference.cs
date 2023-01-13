@@ -68,7 +68,12 @@ public abstract class TypeReference : ITypeReference
     }
 
     public override int GetHashCode()
-        => HashCode.Combine(Scope);
+        => HashCode.Combine(Kind, Scope);
+
+    protected string ToString(object name)
+        => Context is TypeContext.None
+            ? name.ToString()!
+            : $"{name} ({Context})";
 
     public static DependantFactoryTypeReference Create(
         string name,
@@ -88,6 +93,14 @@ public abstract class TypeReference : ITypeReference
         }
         return new SchemaTypeReference(type, scope: scope);
     }
+
+    public static NameDirectiveReference CreateDirective(
+        string directiveName) =>
+        new(directiveName);
+
+    public static ExtendedTypeDirectiveReference CreateDirective(
+        IExtendedType type) =>
+        new(type);
 
     public static SyntaxTypeReference Create(
         ITypeNode type,

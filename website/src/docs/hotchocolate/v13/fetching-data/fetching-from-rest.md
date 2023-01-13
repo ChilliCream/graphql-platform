@@ -1,14 +1,11 @@
 ---
 title: "Fetching from REST"
+description: In this section, we will cover how you can easily integrate a REST API into your GraphQL API.
 ---
-
-In this section, we will cover how you can easily integrate a REST API into your GraphQL API.
 
 If you want to have an outlook into the upcoming native REST integration with Hot Chocolate 13 you can head over to YouTube and have a look.
 
-<iframe width="560" height="315"
-src="https://www.youtube.com/embed/l2QsFlKYqhk"frameborder="0"
-allowfullscreen></iframe>
+<Video videoId="l2QsFlKYqhk" />
 
 GraphQL has a strongly-typed type system and therefore also has to know the dotnet runtime types of the data it returns in advance.
 

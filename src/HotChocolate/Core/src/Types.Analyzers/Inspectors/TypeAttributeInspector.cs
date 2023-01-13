@@ -7,7 +7,7 @@ using static HotChocolate.Types.Analyzers.WellKnownAttributes;
 
 namespace HotChocolate.Types.Analyzers.Inspectors;
 
-public class TypeAttributeInspector : ISyntaxInspector
+public sealed class TypeAttributeInspector : ISyntaxInspector
 {
     public bool TryHandle(
         GeneratorSyntaxContext context,

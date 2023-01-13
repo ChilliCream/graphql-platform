@@ -342,7 +342,7 @@ public class SyntaxTypeReferenceTests
         var result = typeReference.ToString();
 
         // assert
-        Assert.Equal("Input: Foo", result);
+        Assert.Equal("Foo (Input)", result);
     }
 
     [Fact]

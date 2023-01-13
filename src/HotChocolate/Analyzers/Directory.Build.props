@@ -7,7 +7,7 @@
      <Copyright>Copyright &#169; 2021 ChilliCream (Michael &amp; Rafael Staib)</Copyright>
      <PackageLicenseFile>LICENSE</PackageLicenseFile>
      <PackageProjectUrl>https://chillicream.com</PackageProjectUrl>
-     <PackageReleaseNotes>Release notes: https://github.com/ChilliCream/hotchocolate/releases/$(PackageVersion)</PackageReleaseNotes>
+     <PackageReleaseNotes>Release notes: https://github.com/ChilliCream/graphql-platform/releases/$(PackageVersion)</PackageReleaseNotes>
      <PackageTags>GraphQL ChilliCream</PackageTags>
      <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
      <PackageIcon>hotchocolate-signet.png</PackageIcon>

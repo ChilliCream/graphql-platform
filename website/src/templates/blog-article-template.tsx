@@ -14,7 +14,9 @@ const BlogArticleTemplate: FC<BlogArticleTemplateProps> = ({ data }) => {
   return (
     <Layout>
       <SEO
-        description={data.mdx!.excerpt || undefined}
+        description={
+          data.mdx!.frontmatter!.description || data.mdx!.excerpt || undefined
+        }
         imageUrl={
           data.mdx!.frontmatter!.featuredImage?.childImageSharp!
             .gatsbyImageData!.images.fallback.src

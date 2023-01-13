@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 
@@ -62,7 +61,7 @@ public class OutputFieldDefinitionBase
             foreach (var argument in _arguments)
             {
                 var targetArgument =
-                    target._arguments.FirstOrDefault(t => t.Name.EqualsOrdinal(argument.Name));
+                    target._arguments.Find(t => t.Name.EqualsOrdinal(argument.Name));
 
                 if (targetArgument is null)
                 {
@@ -74,7 +73,6 @@ public class OutputFieldDefinitionBase
                 {
                     argument.MergeInto(targetArgument);
                 }
-
             }
         }
 

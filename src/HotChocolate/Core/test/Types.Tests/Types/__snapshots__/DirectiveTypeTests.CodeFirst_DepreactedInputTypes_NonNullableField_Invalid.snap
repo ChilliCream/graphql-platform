@@ -1,8 +1,0 @@
-﻿{
-  "message": "The argument `bar` of directive `Qux` mustn't be null.",
-  "code": "TS_ARG_NON_NULL",
-  "type": "Query",
-  "extensions": {
-    "Source": "bar"
-  }
-}

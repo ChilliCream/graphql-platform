@@ -35,13 +35,11 @@ import {
 import ArrowDownIconSvg from "@/images/arrow-down.svg";
 import CircleDownIconSvg from "@/images/circle-down.svg";
 
-const DOWNLOAD_STABLE_BASE_URL =
-  "https://download.chillicream.com/bananacakepop/";
-
-const DOWNLOAD_INSIDER_BASE_URL =
-  "https://download.chillicream.com/bananacakepopinsider/";
+const DOWNLOAD_BASE_URL = "https://cdn.bananacakepop.com/app/";
 
 const WEB_STABLE_URL = "https://eat.bananacakepop.com";
+
+const WEB_INSIDER_URL = "https://insider.bananacakepop.com";
 
 const TITLE = "Banana Cake Pop / GraphQL IDE";
 
@@ -95,7 +93,7 @@ const ProductDownload: FC<DownloadHeroProps> = ({ appInfos }) => {
     case "linux":
       return (
         <DownloadButton
-          url={DOWNLOAD_STABLE_BASE_URL + active.appImage.filename}
+          url={DOWNLOAD_BASE_URL + active.appImage.filename}
           text={"Download " + active.appImage.text}
           filename={active.appImage.filename}
           stable={stable}
@@ -106,7 +104,7 @@ const ProductDownload: FC<DownloadHeroProps> = ({ appInfos }) => {
     case "mac":
       return (
         <DownloadButton
-          url={DOWNLOAD_STABLE_BASE_URL + active.universal.filename}
+          url={DOWNLOAD_BASE_URL + active.universal.filename}
           text={"Download " + active.universal.text}
           filename={active.universal.filename}
           stable={stable}
@@ -117,7 +115,7 @@ const ProductDownload: FC<DownloadHeroProps> = ({ appInfos }) => {
     case "windows":
       return (
         <DownloadButton
-          url={DOWNLOAD_STABLE_BASE_URL + active.executable.filename}
+          url={DOWNLOAD_BASE_URL + active.executable.filename}
           text={"Download " + active.executable.text}
           filename={active.executable.filename}
           stable={stable}
@@ -206,16 +204,10 @@ const DownloadButton: FC<DownloadButtonProps> = ({
               </td>
               <td className="type">Universal</td>
               <td className="stable">
-                <DownloadAppLink
-                  filename={stable.macOS.universal.filename}
-                  baseUrl={DOWNLOAD_STABLE_BASE_URL}
-                />
+                <DownloadAppLink filename={stable.macOS.universal.filename} />
               </td>
               <td className="insider">
-                <DownloadAppLink
-                  filename={insider.macOS.universal.filename}
-                  baseUrl={DOWNLOAD_INSIDER_BASE_URL}
-                />
+                <DownloadAppLink filename={insider.macOS.universal.filename} />
               </td>
             </tr>
             <tr>
@@ -224,16 +216,10 @@ const DownloadButton: FC<DownloadButtonProps> = ({
               </td>
               <td className="type">Silicon</td>
               <td className="stable">
-                <DownloadAppLink
-                  filename={stable.macOS.silicon.filename}
-                  baseUrl={DOWNLOAD_STABLE_BASE_URL}
-                />
+                <DownloadAppLink filename={stable.macOS.silicon.filename} />
               </td>
               <td className="insider">
-                <DownloadAppLink
-                  filename={insider.macOS.silicon.filename}
-                  baseUrl={DOWNLOAD_INSIDER_BASE_URL}
-                />
+                <DownloadAppLink filename={insider.macOS.silicon.filename} />
               </td>
             </tr>
             <tr>
@@ -242,16 +228,10 @@ const DownloadButton: FC<DownloadButtonProps> = ({
               </td>
               <td className="type">Intel</td>
               <td className="stable">
-                <DownloadAppLink
-                  filename={stable.macOS.intel.filename}
-                  baseUrl={DOWNLOAD_STABLE_BASE_URL}
-                />
+                <DownloadAppLink filename={stable.macOS.intel.filename} />
               </td>
               <td className="insider">
-                <DownloadAppLink
-                  filename={insider.macOS.intel.filename}
-                  baseUrl={DOWNLOAD_INSIDER_BASE_URL}
-                />
+                <DownloadAppLink filename={insider.macOS.intel.filename} />
               </td>
             </tr>
           </tbody>
@@ -265,13 +245,11 @@ const DownloadButton: FC<DownloadButtonProps> = ({
               <td className="stable">
                 <DownloadAppLink
                   filename={stable.windows.executable.filename}
-                  baseUrl={DOWNLOAD_STABLE_BASE_URL}
                 />
               </td>
               <td className="insider">
                 <DownloadAppLink
                   filename={insider.windows.executable.filename}
-                  baseUrl={DOWNLOAD_INSIDER_BASE_URL}
                 />
               </td>
             </tr>
@@ -284,16 +262,10 @@ const DownloadButton: FC<DownloadButtonProps> = ({
               </td>
               <td className="type">AppImage</td>
               <td className="stable">
-                <DownloadAppLink
-                  filename={stable.linux.appImage.filename}
-                  baseUrl={DOWNLOAD_STABLE_BASE_URL}
-                />
+                <DownloadAppLink filename={stable.linux.appImage.filename} />
               </td>
               <td className="insider">
-                <DownloadAppLink
-                  filename={insider.linux.appImage.filename}
-                  baseUrl={DOWNLOAD_INSIDER_BASE_URL}
-                />
+                <DownloadAppLink filename={insider.linux.appImage.filename} />
               </td>
             </tr>
           </tbody>
@@ -302,6 +274,8 @@ const DownloadButton: FC<DownloadButtonProps> = ({
             <tr>
               <td colSpan={4}>
                 <Link to={WEB_STABLE_URL}>Open Web Version</Link>
+                {" | "}
+                <Link to={WEB_INSIDER_URL}>Open Insider Version</Link>
               </td>
             </tr>
           </tfoot>
@@ -313,10 +287,9 @@ const DownloadButton: FC<DownloadButtonProps> = ({
 
 const DownloadAppLink: FC<{
   readonly filename: string;
-  readonly baseUrl: string;
-}> = ({ filename, baseUrl }) => {
+}> = ({ filename }) => {
   return (
-    <DownloadEditionLink to={baseUrl + filename} download={filename}>
+    <DownloadEditionLink to={DOWNLOAD_BASE_URL + filename} download={filename}>
       <DownloadSvg />
     </DownloadEditionLink>
   );
@@ -684,9 +657,9 @@ type Variant = "latest" | "insider";
 
 async function fetchAppInfo(variant: Variant, os: OS): Promise<LatestAppInfo> {
   const filename = getFilename(variant, os);
-  const baseUrl =
-    variant === "latest" ? DOWNLOAD_STABLE_BASE_URL : DOWNLOAD_INSIDER_BASE_URL;
-  const response = await fetch(baseUrl + filename);
+  const response = await fetch(
+    DOWNLOAD_BASE_URL + filename + "?no-cache=" + new Date().getTime()
+  );
   const text = await response.text();
   const content = parse(text) as LatestAppInfo;
 

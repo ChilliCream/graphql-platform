@@ -2,6 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Validation.Options;
 
@@ -15,6 +19,7 @@ public sealed class DocumentValidator : IDocumentValidator
     private readonly DocumentValidatorContextPool _contextPool;
     private readonly IDocumentValidatorRule[] _allRules;
     private readonly IDocumentValidatorRule[] _nonCacheableRules;
+    private readonly IValidationResultAggregator[] _aggregators;
     private readonly int _maxAllowedErrors;
 
     /// <summary>
@@ -26,44 +31,46 @@ public sealed class DocumentValidator : IDocumentValidator
     /// <param name="rules">
     /// The validation rules.
     /// </param>
-    /// <param name="errorOptionsAccessor"></param>
-    /// <exception cref="ArgumentNullException"></exception>
+    /// <param name="resultAggregators">
+    /// The result aggregators.
+    /// </param>
+    /// <param name="errorOptions">
+    /// The error options.
+    /// </param>
     public DocumentValidator(
         DocumentValidatorContextPool contextPool,
         IEnumerable<IDocumentValidatorRule> rules,
-        IErrorOptionsAccessor errorOptionsAccessor)
+        IEnumerable<IValidationResultAggregator> resultAggregators,
+        IErrorOptionsAccessor errorOptions)
     {
         if (rules is null)
         {
             throw new ArgumentNullException(nameof(rules));
         }
 
-        if (errorOptionsAccessor is null)
+        if (errorOptions is null)
         {
-            throw new ArgumentNullException(nameof(errorOptionsAccessor));
+            throw new ArgumentNullException(nameof(errorOptions));
         }
 
         _contextPool = contextPool ?? throw new ArgumentNullException(nameof(contextPool));
         _allRules = rules.ToArray();
         _nonCacheableRules = _allRules.Where(t => !t.IsCacheable).ToArray();
-        _maxAllowedErrors = errorOptionsAccessor.MaxAllowedErrors;
+        _aggregators = resultAggregators.ToArray();
+        _maxAllowedErrors = errorOptions.MaxAllowedErrors;
     }
 
     /// <inheritdoc />
-    public bool HasDynamicRules => _nonCacheableRules.Length > 0;
+    public bool HasDynamicRules => _nonCacheableRules.Length > 0 || _aggregators.Length > 0;
 
     /// <inheritdoc />
-    public DocumentValidatorResult Validate(
-        ISchema schema,
-        DocumentNode document) =>
-        Validate(schema, document, new Dictionary<string, object?>());
-
-    /// <inheritdoc />
-    public DocumentValidatorResult Validate(
+    public ValueTask<DocumentValidatorResult> ValidateAsync(
         ISchema schema,
         DocumentNode document,
+        string documentId,
         IDictionary<string, object?> contextData,
-        bool onlyNonCacheable = false)
+        bool onlyNonCacheable,
+        CancellationToken cancellationToken = default)
     {
         if (schema is null)
         {
@@ -75,21 +82,76 @@ public sealed class DocumentValidator : IDocumentValidator
             throw new ArgumentNullException(nameof(document));
         }
 
-        if (onlyNonCacheable && _nonCacheableRules.Length == 0)
+        if (documentId is null)
         {
-            return DocumentValidatorResult.Ok;
+            throw new ArgumentNullException(nameof(documentId));
+        }
+
+        if (onlyNonCacheable && _nonCacheableRules.Length == 0 && _aggregators.Length == 0)
+        {
+            return new(DocumentValidatorResult.Ok);
         }
 
         var context = _contextPool.Get();
         var rules = onlyNonCacheable ? _nonCacheableRules : _allRules;
+        var handleCleanup = true;
 
         try
         {
-            PrepareContext(schema, document, context, contextData);
+            PrepareContext(schema, document, documentId, context, contextData);
 
-            foreach (var rule in rules)
+            var length = rules.Length;
+#if NET6_0_OR_GREATER
+            ref var start = ref MemoryMarshal.GetArrayDataReference(rules);
+#else
+            ref var start = ref MemoryMarshal.GetReference(rules.AsSpan());
+#endif
+
+            for (var i = 0; i < length; i++)
             {
-                rule.Validate(context, document);
+                Unsafe.Add(ref start, i).Validate(context, document);
+            }
+
+            if (_aggregators.Length == 0)
+            {
+                return new(
+                    context.Errors.Count > 0
+                        ? new DocumentValidatorResult(context.Errors)
+                        : DocumentValidatorResult.Ok);
+            }
+            else
+            {
+                handleCleanup = false;
+                return RunResultAggregators(context, document, cancellationToken);
+            }
+        }
+        catch (MaxValidationErrorsException)
+        {
+            Debug.Assert(context.Errors.Count > 0, "There must be at least 1 validation error.");
+            return new(new DocumentValidatorResult(context.Errors));
+        }
+        finally
+        {
+            if (handleCleanup)
+            {
+                _contextPool.Return(context);
+            }
+        }
+    }
+
+    private async ValueTask<DocumentValidatorResult> RunResultAggregators(
+        DocumentValidatorContext context,
+        DocumentNode document,
+        CancellationToken ct)
+    {
+        var aggregators = _aggregators;
+        var length = aggregators.Length;
+
+        try
+        {
+            for (var i = 0; i < length; i++)
+            {
+                await aggregators[i].AggregateAsync(context, document, ct).ConfigureAwait(false);
             }
 
             return context.Errors.Count > 0
@@ -110,14 +172,17 @@ public sealed class DocumentValidator : IDocumentValidator
     private void PrepareContext(
         ISchema schema,
         DocumentNode document,
+        string documentId,
         DocumentValidatorContext context,
         IDictionary<string, object?> contextData)
     {
         context.Schema = schema;
+        context.DocumentId = documentId;
 
         for (var i = 0; i < document.Definitions.Count; i++)
         {
             var definitionNode = document.Definitions[i];
+
             if (definitionNode.Kind is SyntaxKind.FragmentDefinition)
             {
                 var fragmentDefinition = (FragmentDefinitionNode)definitionNode;

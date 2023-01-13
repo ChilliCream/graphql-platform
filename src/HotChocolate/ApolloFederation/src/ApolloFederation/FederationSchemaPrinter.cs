@@ -127,7 +127,7 @@ public static partial class FederationSchemaPrinter
     }
 
     private static IReadOnlyList<DirectiveNode> SerializeDirectives(
-        IReadOnlyCollection<IDirective> directives,
+        IReadOnlyCollection<Directive> directives,
         Context context)
     {
         if (directives.Count == 0)
@@ -139,9 +139,9 @@ public static partial class FederationSchemaPrinter
 
         foreach (var directive in directives)
         {
-            if (context.DirectiveNames.Contains(directive.Name))
+            if (context.DirectiveNames.Contains(directive.Type.Name))
             {
-                (directiveNodes ??= new()).Add(directive.ToNode(true));
+                (directiveNodes ??= new()).Add(directive.AsSyntaxNode(true));
             }
         }
 
@@ -177,6 +177,7 @@ public static partial class FederationSchemaPrinter
 
     private sealed class Context
     {
+        // ReSharper disable once CollectionNeverQueried.Local
         public HashSet<string> TypeNames { get; } = new();
         public HashSet<string> DirectiveNames { get; } = new(_builtInDirectives);
     }

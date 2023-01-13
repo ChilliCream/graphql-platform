@@ -25,7 +25,7 @@ public class EvictSchemaTests : ServerTestBase
         // assert
         var time2 = await server.GetAsync(
             new ClientQueryRequest { Query = "{ time }" });
-        Assert.False(((long)time1.Data["time"]).Equals((long)time2.Data["time"]));
+        Assert.False(((long)time1.Data!["time"]!).Equals((long)time2.Data!["time"]!));
     }
 
     [Fact]
@@ -47,6 +47,6 @@ public class EvictSchemaTests : ServerTestBase
         var time2 = await server.GetAsync(
             new ClientQueryRequest { Query = "{ time }" },
             "/evict");
-        Assert.False(((long)time1.Data["time"]).Equals((long)time2.Data["time"]));
+        Assert.False(((long)time1.Data!["time"]!).Equals((long)time2.Data!["time"]!));
     }
 }

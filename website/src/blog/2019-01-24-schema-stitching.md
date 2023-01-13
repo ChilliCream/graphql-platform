@@ -329,7 +329,7 @@ This translates basically to:
 
 We have uploaded the above example to the following GitHub repo so you can see a working example of the schema stitching.
 
-[Stitching Example](https://github.com/ChilliCream/hotchocolate-examples)
+[Stitching Example](https://github.com/ChilliCream/graphql-platform-examples)
 
 If you are using the example start the two remote schemas by switching to their respective directory and call `dotnet run`.
 

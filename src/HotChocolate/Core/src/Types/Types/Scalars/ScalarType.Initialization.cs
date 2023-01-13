@@ -1,6 +1,5 @@
 using System;
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
@@ -15,7 +14,6 @@ namespace HotChocolate.Types;
 /// </summary>
 public abstract partial class ScalarType
 {
-    private readonly ExtensionData _contextData = new();
     private ITypeConverter _converter = default!;
 
     /// <summary>

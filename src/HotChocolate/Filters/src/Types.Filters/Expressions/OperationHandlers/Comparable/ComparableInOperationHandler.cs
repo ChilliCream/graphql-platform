@@ -50,7 +50,7 @@ public sealed class ComparableInOperationHandler
         expression = null;
         return false;
 
-        object ParseValue()
+        object? ParseValue()
         {
             var parsedValue = context.InputParser.ParseLiteral(value, type);
             var elementType = type.ElementType().ToRuntimeType();
