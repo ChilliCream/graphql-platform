@@ -86,6 +86,12 @@ public static class SchemaHelper
         AddDefaultScalarInfos(builder, leafTypes);
 
         return builder
+            .ModifyOptions(
+                o =>
+                {
+                    o.EnableDefer = true;
+                    o.EnableStream = true;
+                })
             .SetSchema(d => d.Extend().OnBeforeCreate(
                 c => c.ContextData.Add(_typeInfosKey, typeInfos)))
             .TryAddTypeInterceptor(

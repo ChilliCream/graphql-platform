@@ -119,7 +119,13 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
                 .AddTypeExtension<QueryExtension>()
                 .AddTypeExtension<SubscriptionsExtensions>()
                 .AddExportDirectiveType()
-                .AddStarWarsRepositories(),
+                .AddStarWarsRepositories()
+                .ModifyOptions(
+                    o =>
+                    {
+                        o.EnableDefer = true;
+                        o.EnableStream = true;
+                    }),
             app => app
                 .UseWebSockets()
                 .UseRouting()
