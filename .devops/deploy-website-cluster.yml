@@ -43,5 +43,3 @@ steps:
       command: "buildAndPush"
       Dockerfile: ".docker/website/dockerfile"
       buildContext: "."
-
-  
