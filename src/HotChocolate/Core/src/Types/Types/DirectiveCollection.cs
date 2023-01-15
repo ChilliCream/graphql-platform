@@ -74,7 +74,9 @@ public sealed class DirectiveCollection : IDirectiveCollection
             }
 
             // move pointer
+#pragma warning disable CS8619
             start = ref Unsafe.Add(ref start, 1);
+#pragma warning restore CS8619
         }
 
         return null;
