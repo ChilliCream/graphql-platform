@@ -15,7 +15,8 @@ public class ModuleGenerator : ISyntaxGenerator
     }
 
     public bool Consume(ISyntaxInfo syntaxInfo)
-        => syntaxInfo is TypeInfo or TypeExtensionInfo or RegisterDataLoaderInfo or ModuleInfo;
+        => syntaxInfo is TypeInfo or TypeExtensionInfo or
+            RegisterDataLoaderInfo or ModuleInfo or DataLoaderInfo;
 
     public void Generate(
         SourceProductionContext context,
@@ -31,6 +32,7 @@ public class ModuleGenerator : ISyntaxGenerator
                 ModuleOptions.Default);
 
         var batch = new List<ISyntaxInfo>(syntaxInfos.Where(static t => t is not ModuleInfo));
+
         if (batch.Count == 0)
         {
             return;

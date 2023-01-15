@@ -4,8 +4,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
+using HotChocolate;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.DependencyInjection;
+
+[assembly: DataLoaderDefaults(
+    ServiceScope = DataLoaderServiceScope.DataLoaderScope,
+    AccessModifier = DataLoaderAccessModifier.Public)]
 
 namespace HotChocolate.Types;
 
@@ -19,7 +24,7 @@ public class SomeQuery
 
     public Book GetBook() => new() { Title = "SomeTitle" };
 
-    public Task<string> WithDataLoader(FoosByIdDataLoader foosById)
+    public Task<string> WithDataLoader(IFoosByIdDataLoader foosById)
     {
         return foosById.LoadAsync("a");
     }
@@ -39,7 +44,7 @@ public static class SomeSubscription
 
 public static class DataLoaderGen
 {
-    [DataLoader(Scoped = true)]
+    [DataLoader]
     public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
         IReadOnlyList<string> ids,
         SomeService someService,
@@ -48,7 +53,7 @@ public static class DataLoaderGen
         return ids.ToDictionary(t => t, t => t);
     }
 
-    [DataLoader(Scoped = true)]
+    [DataLoader]
     public static async Task<string> GetFoosById2(
         string id,
         SomeService someService,
@@ -57,7 +62,7 @@ public static class DataLoaderGen
         return "abc";
     }
 
-    [DataLoader(Scoped = true)]
+    [DataLoader(ServiceScope = DataLoaderServiceScope.OriginalScope)]
     public static async Task<ILookup<string, string>> GetFoosById3(
         IReadOnlyList<string> ids,
         SomeService someService,

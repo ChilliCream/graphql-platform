@@ -50,5 +50,11 @@ namespace HotChocolate.Types.Analyzers.Properties {
                 return ResourceManager.GetString("DataLoader_KeyParameterMissing", resourceCulture);
             }
         }
+        
+        internal static string DataLoader_InvalidAccessModifier {
+            get {
+                return ResourceManager.GetString("DataLoader_InvalidAccessModifier", resourceCulture);
+            }
+        }
     }
 }
