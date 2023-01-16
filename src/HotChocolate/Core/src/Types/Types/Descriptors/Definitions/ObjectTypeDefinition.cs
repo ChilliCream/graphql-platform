@@ -286,7 +286,6 @@ public class ObjectTypeDefinition
                 newField.SourceType = target.RuntimeType;
 
                 SetResolverMember(newField, targetField);
-
                 target.Fields.Add(newField);
             }
             else

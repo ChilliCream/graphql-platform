@@ -238,12 +238,22 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
 
         if (member is MethodInfo method)
         {
-            var parameters = method.GetParameters();
-            var owner = CreateResolverOwner(_context, sourceType, resolverType);
-            var parameterExpr = CreateParameters(_context, parameters, _empty);
-            Expression subscribeResolver = Call(owner, method, parameterExpr);
-            subscribeResolver = EnsureSubscribeResult(subscribeResolver, method.ReturnType);
-            return Lambda<SubscribeResolverDelegate>(subscribeResolver, _context).Compile();
+            if (method.IsStatic)
+            {
+                var parameterExpr = CreateParameters(_context, method.GetParameters(), _empty);
+                Expression subscribeResolver = Call(method, parameterExpr);
+                subscribeResolver = EnsureSubscribeResult(subscribeResolver, method.ReturnType);
+                return Lambda<SubscribeResolverDelegate>(subscribeResolver, _context).Compile();
+            }
+            else
+            {
+                var parameters = method.GetParameters();
+                var owner = CreateResolverOwner(_context, sourceType, resolverType);
+                var parameterExpr = CreateParameters(_context, parameters, _empty);
+                Expression subscribeResolver = Call(owner, method, parameterExpr);
+                subscribeResolver = EnsureSubscribeResult(subscribeResolver, method.ReturnType);
+                return Lambda<SubscribeResolverDelegate>(subscribeResolver, _context).Compile();
+            }
         }
 
         throw new ArgumentException(
