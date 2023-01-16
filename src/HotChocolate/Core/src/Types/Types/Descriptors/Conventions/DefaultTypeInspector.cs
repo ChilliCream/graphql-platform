@@ -33,12 +33,10 @@ public class DefaultTypeInspector : Convention, ITypeInspector
     private readonly TypeCache _typeCache = new();
     private readonly Dictionary<MemberInfo, ExtendedMethodInfo> _methods = new();
     private readonly ConcurrentDictionary<(Type, bool, bool), MemberInfo[]> _memberCache = new();
-    private readonly Type? _dataLoaderAttribute;
 
     public DefaultTypeInspector(bool ignoreRequiredAttribute = false)
     {
         IgnoreRequiredAttribute = ignoreRequiredAttribute;
-        _dataLoaderAttribute = Type.GetType("HotChocolate.DataLoaderAttribute");
     }
 
     /// <summary>
@@ -692,6 +690,11 @@ public class DefaultTypeInspector : Convention, ITypeInspector
             return false;
         }
 
+        if (member.IsDefined(typeof(DataLoaderAttribute)))
+        {
+            return false;
+        }
+
         if (!includeIgnored && IsMemberIgnored(member))
         {
             return false;
@@ -721,14 +724,9 @@ public class DefaultTypeInspector : Convention, ITypeInspector
             {
                 if (!CanHandleParameter(parameter))
                 {
+
                     return false;
                 }
-            }
-
-            if (_dataLoaderAttribute is not null &&
-                method.IsDefined(_dataLoaderAttribute))
-            {
-                return false;
             }
 
             return true;

@@ -32,6 +32,7 @@ public class DataLoaderDefaultsInspector : ISyntaxInspector
                     syntaxInfo = new DataLoaderDefaultsInfo(
                         attribList.Arguments.IsScoped(context),
                         attribList.Arguments.IsPublic(context),
+                        attribList.Arguments.IsInterfacePublic(context),
                         attribList.Arguments.RegisterService(context));
                     return true;
                 }

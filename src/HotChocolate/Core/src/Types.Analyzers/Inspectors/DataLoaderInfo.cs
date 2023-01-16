@@ -25,6 +25,7 @@ public sealed class DataLoaderInfo : ISyntaxInfo, IEquatable<DataLoaderInfo>
         InterfaceFullName = $"{Namespace}.{InterfaceName}";
         IsScoped = attribute.IsScoped();
         IsPublic = attribute.IsPublic();
+        IsInterfacePublic = attribute.IsInterfacePublic();
         MethodName = methodSymbol.Name;
 
         var type = methodSymbol.ContainingType;
@@ -48,6 +49,8 @@ public sealed class DataLoaderInfo : ISyntaxInfo, IEquatable<DataLoaderInfo>
     public bool? IsScoped { get; }
 
     public bool? IsPublic { get; }
+
+    public bool? IsInterfacePublic { get; }
 
     public AttributeSyntax AttributeSyntax { get; }
 

@@ -1,12 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using GreenDonut;
 using HotChocolate;
-using HotChocolate.Fetching;
-using Microsoft.Extensions.DependencyInjection;
 
 [assembly: DataLoaderDefaults(
     ServiceScope = DataLoaderServiceScope.DataLoaderScope,
@@ -15,18 +11,27 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.Types;
 
 [QueryType]
-public class SomeQuery
+public static class SomeQuery
 {
-    public IEntity? GetPerson() => new Person();
+    public static IEntity? GetPerson() => new Person();
 
     [GraphQLType("CustomEnum")]
-    public ValueTask<object?> GetEnum() => default;
+    public static ValueTask<object?> GetEnum() => default;
 
-    public Book GetBook() => new() { Title = "SomeTitle" };
+    public static Book GetBook() => new() { Title = "SomeTitle" };
 
-    public Task<string> WithDataLoader(IFoosByIdDataLoader foosById)
+    public static Task<string> WithDataLoader(IFoosByIdDataLoader foosById)
     {
         return foosById.LoadAsync("a");
+    }
+
+    [DataLoader]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById56(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
     }
 
     // should be ignored on the schema

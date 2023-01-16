@@ -12,6 +12,7 @@ namespace HotChocolate.Analyzers.Diagnostics
         public const string ErrorCategory = "HotChocolateSourceGenerator";
 
 #pragma warning disable RS2008
+#pragma warning disable RS1032
         private static readonly DiagnosticDescriptor _missingDependency =
             new DiagnosticDescriptor(
                 id: ErrorCodes.DependencyMissing,
@@ -20,6 +21,7 @@ namespace HotChocolate.Analyzers.Diagnostics
                 category: ErrorCategory,
                 DiagnosticSeverity.Error,
                 isEnabledByDefault: true);
+#pragma warning restore RS1032
 #pragma warning restore RS2008
 
         public static void ReportDiagnostic(
