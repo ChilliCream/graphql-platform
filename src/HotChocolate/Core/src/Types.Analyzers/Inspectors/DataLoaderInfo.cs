@@ -15,7 +15,39 @@ public sealed class DataLoaderInfo : ISyntaxInfo, IEquatable<DataLoaderInfo>
         AttributeSymbol = attributeSymbol;
         MethodSymbol = methodSymbol;
         MethodSyntax = methodSyntax;
+
+        var attribute = methodSymbol.GetDataLoaderAttribute();
+
+        Name = GetDataLoaderName(methodSymbol.Name, attribute);
+        InterfaceName = $"I{Name}";
+        Namespace = methodSymbol.ContainingNamespace.ToDisplayString();
+        FullName = $"{Namespace}.{Name}";
+        InterfaceFullName = $"{Namespace}.{InterfaceName}";
+        IsScoped = attribute.IsScoped();
+        IsPublic = attribute.IsPublic();
+        MethodName = methodSymbol.Name;
+
+        var type = methodSymbol.ContainingType;
+        ContainingType = $"{type.ContainingNamespace}.{type.Name}";
     }
+
+    public string Name { get; }
+
+    public string FullName { get; }
+
+    public string Namespace { get; }
+
+    public string InterfaceName { get; }
+
+    public string InterfaceFullName { get; }
+
+    public string ContainingType { get; }
+
+    public string MethodName { get; }
+
+    public bool? IsScoped { get; }
+
+    public bool? IsPublic { get; }
 
     public AttributeSyntax AttributeSyntax { get; }
 
@@ -55,5 +87,30 @@ public sealed class DataLoaderInfo : ISyntaxInfo, IEquatable<DataLoaderInfo>
             hashCode = (hashCode * 397) ^ MethodSyntax.GetHashCode();
             return hashCode;
         }
+    }
+
+    private static string GetDataLoaderName(string name, AttributeData attribute)
+    {
+        if (attribute.TryGetName(out var s))
+        {
+            return s;
+        }
+
+        if (name.StartsWith("Get"))
+        {
+            name = name.Substring(3);
+        }
+
+        if (name.EndsWith("Async"))
+        {
+            name = name.Substring(0, name.Length - 5);
+        }
+
+        if (name.EndsWith("DataLoader"))
+        {
+            return name;
+        }
+
+        return name + "DataLoader";
     }
 }

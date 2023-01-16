@@ -106,7 +106,7 @@ public class TypeModuleGenerator : IIncrementalGenerator
         foreach (var syntaxGenerator in _generators)
         {
             // gather infos for current generator
-            for (var i = 0; i < all.Length; i++)
+            for (var i = all.Length - 1; i >= 0; i--)
             {
                 var syntaxInfo = all[i];
 

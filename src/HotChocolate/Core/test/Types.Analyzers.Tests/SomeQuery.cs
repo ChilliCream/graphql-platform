@@ -28,6 +28,16 @@ public class SomeQuery
     {
         return foosById.LoadAsync("a");
     }
+
+    // should be ignored on the schema
+    [DataLoader]
+    public static async Task<string> GetFoosById55(
+        string id,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return "abc";
+    }
 }
 
 [MutationType]
@@ -45,7 +55,7 @@ public static class SomeSubscription
 public static class DataLoaderGen
 {
     [DataLoader]
-    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+    internal static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
         IReadOnlyList<string> ids,
         SomeService someService,
         CancellationToken cancellationToken)
@@ -68,7 +78,7 @@ public static class DataLoaderGen
         SomeService someService,
         CancellationToken cancellationToken)
     {
-        return default;
+        return default!;
     }
 }
 
