@@ -728,6 +728,32 @@ public class ObjectTypeExtensionTests
         SnapshotExtensions.MatchSnapshot(result);
     }
 
+    [Fact]
+    public async Task Query_Extension_With_Static_Members_And_Generic_Schema()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<FooQuery>()
+                .AddTypeExtension(typeof(StaticFooQueryExtensions))
+                .BuildSchemaAsync();
+
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
+    [Fact]
+    public async Task Query_Extension_With_Static_Members_And_Generic()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<FooQuery>()
+                .AddTypeExtension(typeof(StaticFooQueryExtensions))
+                .ExecuteRequestAsync("{ hello }");
+
+        SnapshotExtensions.MatchSnapshot(result);
+    }
+
     public class FooType : ObjectType<Foo>
     {
         protected override void Configure(IObjectTypeDescriptor<Foo> descriptor)
@@ -1099,4 +1125,17 @@ public class ObjectTypeExtensionTests
         public static string Hello()
             => "abc";
     }
+
+    public class FooQuery
+    {
+        public string Abc { get; } = "def";
+    }
+
+    [ExtendObjectType<FooQuery>]
+    public static class StaticFooQueryExtensions
+    {
+        public static string Hello([Parent] FooQuery query)
+            => query.Abc;
+    }
+
 }
