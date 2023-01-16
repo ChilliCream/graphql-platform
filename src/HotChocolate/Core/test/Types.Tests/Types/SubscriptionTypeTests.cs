@@ -1139,7 +1139,7 @@ public class SubscriptionTypeTests : TypeTestBase
     public class MySubscriptionExtension
     {
         public async ValueTask<ISourceStream<string>> SubscribeToOnExplicit(
-            [Service] ITopicEventReceiver eventReceiver) =>
+            ITopicEventReceiver eventReceiver) =>
             await eventReceiver.SubscribeAsync<string>("explicit");
 
         [Subscribe(With = nameof(SubscribeToOnExplicit))]
