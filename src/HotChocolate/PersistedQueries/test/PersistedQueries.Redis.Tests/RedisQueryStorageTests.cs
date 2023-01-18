@@ -34,7 +34,7 @@ public class RedisQueryStorageTests
                 await storage.WriteQueryAsync(queryId, query);
 
                 // assert
-                var buffer = (byte[])await _database.StringGetAsync(queryId);
+                var buffer = ((byte[])await _database.StringGetAsync(queryId!))!;
                 Utf8GraphQLParser.Parse(buffer).Print().MatchSnapshot(snapshotName);
             },
             () => _database.KeyDeleteAsync(queryId));
