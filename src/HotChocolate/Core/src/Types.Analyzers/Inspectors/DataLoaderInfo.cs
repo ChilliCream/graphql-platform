@@ -1,3 +1,4 @@
+using HotChocolate.Types.Analyzers.Helpers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -29,7 +30,7 @@ public sealed class DataLoaderInfo : ISyntaxInfo, IEquatable<DataLoaderInfo>
         MethodName = methodSymbol.Name;
 
         var type = methodSymbol.ContainingType;
-        ContainingType = $"{type.ContainingNamespace}.{type.Name}";
+        ContainingType = type.ToDisplayString();
     }
 
     public string Name { get; }

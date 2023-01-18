@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace HotChocolate.Types.Analyzers.Inspectors;
+namespace HotChocolate.Types.Analyzers.Helpers;
 
 public static class DataLoaderAttributeHelper
 {
