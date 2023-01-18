@@ -99,6 +99,7 @@ public static class FieldDescriptorUtilities
         IDescriptorContext context,
         ICollection<ArgumentDefinition> arguments,
         MemberInfo? member,
+        ParameterInfo[] parameters,
         IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders)
     {
         if (arguments is null)
@@ -106,7 +107,7 @@ public static class FieldDescriptorUtilities
             throw new ArgumentNullException(nameof(arguments));
         }
 
-        if (member is MethodInfo method)
+        if (member is MethodInfo)
         {
             var processedNames = TypeMemHelper.RentNameSet();
 
@@ -122,7 +123,7 @@ public static class FieldDescriptorUtilities
 
                 foreach (var parameter in
                     context.ResolverCompiler.GetArgumentParameters(
-                        method.GetParameters(),
+                        parameters,
                         parameterExpressionBuilders))
                 {
                     var argumentDefinition =

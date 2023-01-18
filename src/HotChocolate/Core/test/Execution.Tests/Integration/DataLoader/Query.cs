@@ -9,7 +9,7 @@ public class Query
     public Task<string> GetWithDataLoader(
         string key,
         FieldNode fieldSelection,
-        [DataLoader] TestDataLoader testDataLoader,
+        TestDataLoader testDataLoader,
         CancellationToken cancellationToken)
     {
         return testDataLoader.LoadAsync(key, cancellationToken);
@@ -20,7 +20,7 @@ public class Query
     public async Task<string> GetWithDataLoader2(
         string key,
         FieldNode fieldSelection,
-        [DataLoader("fooBar")] TestDataLoader testDataLoader,
+        TestDataLoader testDataLoader,
         CancellationToken cancellationToken)
     {
         return await testDataLoader.LoadAsync(key, cancellationToken);
@@ -37,7 +37,7 @@ public class Query
 
     public async Task<string> GetWithStackedDataLoader(
         string key,
-        [DataLoader("fooBar")] TestDataLoader testDataLoader,
+        TestDataLoader testDataLoader,
         CancellationToken cancellationToken)
     {
         var s = await testDataLoader.LoadAsync(key + "a", cancellationToken);
@@ -59,7 +59,7 @@ public class Bar
     public Task<string> GetWithDataLoader(
         string key,
         FieldNode fieldSelection,
-        [DataLoader] TestDataLoader testDataLoader,
+        TestDataLoader testDataLoader,
         CancellationToken cancellationToken)
     {
         return testDataLoader.LoadAsync(key, cancellationToken);

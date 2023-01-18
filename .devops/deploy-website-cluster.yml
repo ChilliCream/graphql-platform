@@ -21,11 +21,6 @@ steps:
     inputs:
       dockerVersion: "17.09.0-ce"
 
-  - task: KubectlInstaller@0
-    displayName: "Install Kubectl"
-    inputs:
-      kubectlVersion: "latest"
-
   - task: NodeTool@0
     displayName: "Install Node.js"
     inputs:
@@ -48,53 +43,3 @@ steps:
       command: "buildAndPush"
       Dockerfile: ".docker/website/dockerfile"
       buildContext: "."
-
-  - task: Kubernetes@1
-    displayName: "Deploy WebSite Service"
-    inputs:
-      connectionType: "Kubernetes Service Connection"
-      kubernetesServiceEndpoint: "$(aks-cluster)"
-      namespace: "$(portal-namespace)"
-      command: "apply"
-      useConfigurationFile: true
-      configurationType: "inline"
-      inline: |
-        apiVersion: apps/v1
-        kind: Deployment
-        metadata:
-          name: ccc-website-$(Build.SourceBranchName)
-        spec:
-          replicas: 2
-          selector:
-            matchLabels:
-              app: ccc-website-$(Build.SourceBranchName)
-          template:
-            metadata:
-              labels:
-                app: ccc-website-$(Build.SourceBranchName)
-            spec:
-              containers:
-                - image: $(container-registry-domain)/ccc-website-$(Build.SourceBranchName):$(Build.BuildId)
-                  resources:
-                    limits:
-                      memory: "128Mi"
-                      cpu: "500m"
-                    requests:
-                      memory: "32Mi"
-                      cpu: "1m"
-                  name: ccc-website-$(Build.SourceBranchName)
-                  ports:
-                    - containerPort: 80
-        ---
-        apiVersion: v1
-        kind: Service
-        metadata:
-          name: ccc-website-$(Build.SourceBranchName)
-        spec:
-          type: ClusterIP
-          ports:
-          - port: 80
-          selector:
-            app: ccc-website-$(Build.SourceBranchName)
-      secretType: "dockerRegistry"
-      containerRegistryType: "Azure Container Registry"

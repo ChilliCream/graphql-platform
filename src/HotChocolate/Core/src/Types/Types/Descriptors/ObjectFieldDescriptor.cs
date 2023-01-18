@@ -10,6 +10,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
+using static System.Reflection.BindingFlags;
 using static HotChocolate.Execution.ExecutionStrategy;
 
 #nullable enable
@@ -21,7 +22,7 @@ public class ObjectFieldDescriptor
     , IObjectFieldDescriptor
 {
     private bool _argumentsInitialized;
-    private readonly ParameterInfo[] _parameterInfos = Array.Empty<ParameterInfo>();
+    private ParameterInfo[] _parameterInfos = Array.Empty<ParameterInfo>();
 
     /// <summary>
     ///  Creates a new instance of <see cref="ObjectFieldDescriptor"/>
@@ -52,7 +53,9 @@ public class ObjectFieldDescriptor
         Definition.Description = naming.GetMemberDescription(member, MemberKind.ObjectField);
         Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
         Definition.SourceType = sourceType;
-        Definition.ResolverType = resolverType == sourceType ? null : resolverType;
+        Definition.ResolverType = resolverType == sourceType
+            ? null
+            : resolverType;
         Definition.IsParallelExecutable = context.Options.DefaultResolverStrategy is Parallel;
 
         if (naming.IsDeprecated(member, out var reason))
@@ -155,17 +158,58 @@ public class ObjectFieldDescriptor
 
     private void CompleteArguments(ObjectFieldDefinition definition)
     {
-        if (!_argumentsInitialized && Parameters.Count > 0)
+        if (!_argumentsInitialized)
         {
-            Context.ResolverCompiler.ApplyConfiguration(
-                _parameterInfos,
-                this);
+            if (definition.SubscribeWith is not null)
+            {
+                var ownerType = definition.ResolverType ?? definition.SourceType;
 
-            FieldDescriptorUtilities.DiscoverArguments(
-                Context,
-                definition.Arguments,
-                definition.Member,
-                definition.GetParameterExpressionBuilders());
+                if (ownerType is not null)
+                {
+                    var subscribeMember = ownerType.GetMember(
+                        definition.SubscribeWith,
+                        Public | NonPublic | Instance | Static)[0];
+
+                    if (subscribeMember is MethodInfo subscribeMethod)
+                    {
+                        var subscribeParameters = subscribeMethod.GetParameters();
+                        var parameterLength = _parameterInfos.Length + subscribeParameters.Length;
+                        var parameters = new ParameterInfo[parameterLength];
+
+                        _parameterInfos.CopyTo(parameters, 0);
+                        subscribeParameters.CopyTo(parameters, _parameterInfos.Length);
+                        _parameterInfos = parameters;
+
+                        var parameterLookup = Parameters.ToDictionary(
+                            t => t.Key,
+                            t => t.Value,
+                            StringComparer.Ordinal);
+                        Parameters = parameterLookup;
+
+                        foreach (var parameter in subscribeParameters)
+                        {
+                            if (!parameterLookup.ContainsKey(parameter.Name!))
+                            {
+                                parameterLookup.Add(parameter.Name!, parameter);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (Parameters.Count > 0)
+            {
+                Context.ResolverCompiler.ApplyConfiguration(
+                    _parameterInfos,
+                    this);
+
+                FieldDescriptorUtilities.DiscoverArguments(
+                    Context,
+                    definition.Arguments,
+                    definition.Member,
+                    _parameterInfos,
+                    definition.GetParameterExpressionBuilders());
+            }
 
             _argumentsInitialized = true;
         }
@@ -352,6 +396,13 @@ public class ObjectFieldDescriptor
             Definition.ResolverMember = propertyOrMethod;
             Definition.Resolver = null;
             Definition.ResultType = propertyOrMethod.GetReturnType();
+
+            if (propertyOrMethod is MethodInfo m)
+            {
+                _parameterInfos = m.GetParameters();
+                Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
+            }
+
             return this;
         }
 

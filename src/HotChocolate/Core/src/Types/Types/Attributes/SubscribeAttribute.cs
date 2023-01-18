@@ -62,19 +62,23 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
         }
         else
         {
-
-            descriptor.Extend().OnBeforeCreate(d =>
-            {
-                var subscribeResolver = member.DeclaringType?.GetMethod(With!, Public | Instance);
-
-                if (subscribeResolver is null)
+            descriptor.Extend().OnBeforeCreate(
+                d =>
                 {
-                    throw SubscribeAttribute_SubscribeResolverNotFound(member, With);
-                }
+                    var subscribeResolver = member.DeclaringType?.GetMethod(
+                        With!,
+                        Public | NonPublic | Instance | Static);
 
-                d.SubscribeResolver = context.ResolverCompiler.CompileSubscribe(
-                    subscribeResolver, d.SourceType!, d.ResolverType);
-            });
+                    if (subscribeResolver is null)
+                    {
+                        throw SubscribeAttribute_SubscribeResolverNotFound(member, With);
+                    }
+
+                    d.SubscribeResolver = context.ResolverCompiler.CompileSubscribe(
+                        subscribeResolver,
+                        d.SourceType!,
+                        d.ResolverType);
+                });
         }
     }
 
@@ -88,7 +92,9 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
         return method.Name;
     }
 
-    private static void SubscribeFactory<TMessage>(ObjectFieldDefinition fieldDef, string topicString)
+    private static void SubscribeFactory<TMessage>(
+        ObjectFieldDefinition fieldDef,
+        string topicString)
     {
         var arg = false;
 
@@ -125,10 +131,10 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
             var ct = ctx.RequestAborted;
             var receiver = ctx.Service<ITopicEventReceiver>();
             return await receiver.SubscribeAsync<TMessage>(
-                topicString,
-                null,
-                null,
-                ct)
+                    topicString,
+                    null,
+                    null,
+                    ct)
                 .ConfigureAwait(false);
         };
     }
@@ -154,10 +160,10 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
             // last we subscribe with the topic string.
             var receiver = ctx.Service<ITopicEventReceiver>();
             return await receiver.SubscribeAsync<TMessage>(
-                topicString,
-                null,
-                null,
-                ct)
+                    topicString,
+                    null,
+                    null,
+                    ct)
                 .ConfigureAwait(false);
         };
     }

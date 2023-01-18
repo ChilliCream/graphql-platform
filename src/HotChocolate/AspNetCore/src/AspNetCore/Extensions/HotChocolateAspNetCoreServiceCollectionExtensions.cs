@@ -1,7 +1,9 @@
+using HotChocolate.AspNetCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using static HotChocolate.AspNetCore.ServerDefaults;
 
@@ -57,6 +59,14 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
                 _ => new AggregateServerDiagnosticEventListener(listeners)
             };
         });
+
+        if (services.All(t => t.ImplementationType !=
+            typeof(HttpContextParameterExpressionBuilder)))
+        {
+            services.AddSingleton<IParameterExpressionBuilder,
+                HttpContextParameterExpressionBuilder>();
+        }
+
         return services;
     }
 
