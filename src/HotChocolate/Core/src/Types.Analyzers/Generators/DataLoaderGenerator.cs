@@ -373,7 +373,6 @@ public class DataLoaderGenerator : ISyntaxGenerator
                 sourceText.Append($"            var p{item.Key} = ");
                 sourceText.Append("scope.ServiceProvider.GetRequiredService<");
                 sourceText.Append(item.Value);
-                TestLog.Log("scoped: " + item.Value);
                 sourceText.AppendLine(">();");
             }
         }
@@ -383,7 +382,6 @@ public class DataLoaderGenerator : ISyntaxGenerator
             {
                 sourceText.Append($"            var p{item.Key} = _services.GetRequiredService<");
                 sourceText.Append(item.Value);
-                TestLog.Log("non scoped: " + item.Value);
                 sourceText.AppendLine(">();");
             }
         }

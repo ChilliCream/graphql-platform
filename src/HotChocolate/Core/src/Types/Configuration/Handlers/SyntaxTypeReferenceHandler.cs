@@ -20,7 +20,7 @@ internal sealed class SyntaxTypeReferenceHandler : ITypeRegistrarHandler
 
     public TypeReferenceKind Kind => TypeReferenceKind.Syntax;
 
-    public void Handle(ITypeRegistrar typeRegistrar, ITypeReference typeReference)
+    public void Handle(ITypeRegistrar typeRegistrar, TypeReference typeReference)
     {
         var typeRef = (SyntaxTypeReference)typeReference;
 

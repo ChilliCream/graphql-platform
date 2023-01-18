@@ -24,7 +24,7 @@ public class TypeDiscovererTests
             context,
             typeRegistry,
             typeLookup,
-            new HashSet<ITypeReference>
+            new HashSet<TypeReference>
             {
                 _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
             },
@@ -68,7 +68,7 @@ public class TypeDiscovererTests
             context,
             typeRegistry,
             typeLookup,
-            new HashSet<ITypeReference>
+            new HashSet<TypeReference>
             {
                 _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
             },
@@ -112,7 +112,7 @@ public class TypeDiscovererTests
             context,
             typeRegistry,
             typeLookup,
-            new HashSet<ITypeReference>
+            new HashSet<TypeReference>
             {
                 _typeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
             },
@@ -156,7 +156,7 @@ public class TypeDiscovererTests
             context,
             typeRegistry,
             typeLookup,
-            new HashSet<ITypeReference>
+            new HashSet<TypeReference>
             {
                 _typeInspector.GetTypeRef(typeof(ObjectType<Foo>), TypeContext.Output),
                 _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
@@ -200,7 +200,7 @@ public class TypeDiscovererTests
             context,
             typeRegistry,
             typeLookup,
-            new HashSet<ITypeReference>
+            new HashSet<TypeReference>
             {
                 _typeInspector.GetTypeRef(typeof(QueryWithInferError), TypeContext.Output),
             },
@@ -234,7 +234,7 @@ public class TypeDiscovererTests
             context,
             typeRegistry,
             typeLookup,
-            new HashSet<ITypeReference>
+            new HashSet<TypeReference>
             {
                 _typeInspector.GetTypeRef(typeof(QueryWithInferError), TypeContext.Output),
                 _typeInspector.GetTypeRef(typeof(QueryWithInferError2), TypeContext.Output),

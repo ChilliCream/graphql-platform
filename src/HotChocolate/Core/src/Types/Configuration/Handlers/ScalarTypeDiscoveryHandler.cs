@@ -18,14 +18,14 @@ internal sealed class ScalarTypeDiscoveryHandler : TypeDiscoveryHandler
     private ITypeInspector TypeInspector { get; }
 
     public override bool TryInferType(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         TypeDiscoveryInfo typeInfo,
-        [NotNullWhen(true)] out ITypeReference[]? schemaTypeRefs)
+        [NotNullWhen(true)] out TypeReference[]? schemaTypeRefs)
     {
         if (Scalars.TryGetScalar(typeInfo.RuntimeType, out var scalarType))
         {
             var schemaTypeRef = TypeInspector.GetTypeRef(scalarType);
-            schemaTypeRefs = new ITypeReference[] { schemaTypeRef };
+            schemaTypeRefs = new TypeReference[] { schemaTypeRef };
             return true;
         }
 
@@ -34,7 +34,7 @@ internal sealed class ScalarTypeDiscoveryHandler : TypeDiscoveryHandler
     }
 
     public override bool TryInferKind(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         TypeDiscoveryInfo typeInfo,
         out TypeKind typeKind)
     {

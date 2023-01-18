@@ -29,9 +29,9 @@ public abstract class TypeDiscoveryHandler
     /// otherwise, <c>false</c>.
     /// </returns>
     public abstract bool TryInferType(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         TypeDiscoveryInfo typeInfo,
-        [NotNullWhen(true)] out ITypeReference[]? schemaTypeRefs);
+        [NotNullWhen(true)] out TypeReference[]? schemaTypeRefs);
 
     /// <summary>
     /// Tries to infer the <see cref="TypeKind"/> from a runtime reference.
@@ -51,7 +51,7 @@ public abstract class TypeDiscoveryHandler
     /// otherwise, <c>false</c>.
     /// </returns>
     public virtual bool TryInferKind(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         TypeDiscoveryInfo typeInfo,
         out TypeKind typeKind)
     {

@@ -28,7 +28,7 @@ public class FilterConvention
     private INamingConventions _namingConventions = default!;
     private IReadOnlyDictionary<int, FilterOperation> _operations = default!;
     private IDictionary<Type, Type> _bindings = default!;
-    private IDictionary<ITypeReference, List<ConfigureFilterInputType>> _configs = default!;
+    private IDictionary<TypeReference, List<ConfigureFilterInputType>> _configs = default!;
 
     private string _argumentName = default!;
     private IFilterProvider _provider = default!;
@@ -249,7 +249,7 @@ public class FilterConvention
 
     /// <inheritdoc cref="IFilterConvention"/>
     public void ApplyConfigurations(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         IFilterInputTypeDescriptor descriptor)
     {
         if (_configs.TryGetValue(

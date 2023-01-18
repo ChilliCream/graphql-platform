@@ -22,7 +22,7 @@ public class InputFieldDefinition : ArgumentDefinition
     public InputFieldDefinition(
         string name,
         string? description = null,
-        ITypeReference? type = null,
+        TypeReference? type = null,
         IValueNode? defaultValue = null,
         object? runtimeDefaultValue = null)
         : base(name, description, type, defaultValue, runtimeDefaultValue)

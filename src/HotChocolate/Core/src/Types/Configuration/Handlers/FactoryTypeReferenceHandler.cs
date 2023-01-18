@@ -16,7 +16,7 @@ internal sealed class FactoryTypeReferenceHandler : ITypeRegistrarHandler
 
     public TypeReferenceKind Kind => TypeReferenceKind.Factory;
 
-    public void Handle(ITypeRegistrar typeRegistrar, ITypeReference typeReference)
+    public void Handle(ITypeRegistrar typeRegistrar, TypeReference typeReference)
     {
         var typeRef = (SyntaxTypeReference)typeReference;
 

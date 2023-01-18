@@ -16,6 +16,6 @@ internal sealed partial class AuthorizationTypeInterceptor
             TypeRef = TypeReg.TypeReference;
         }
 
-        public ITypeReference TypeRef { get; }
+        public TypeReference TypeRef { get; }
     }
 }

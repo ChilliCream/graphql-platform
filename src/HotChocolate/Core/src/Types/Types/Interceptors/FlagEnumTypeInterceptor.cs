@@ -175,7 +175,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
         return result;
     }
 
-    private static bool IsFlagsEnum(ITypeReference? reference, [NotNullWhen(true)] out Type? type)
+    private static bool IsFlagsEnum(TypeReference? reference, [NotNullWhen(true)] out Type? type)
     {
         if (reference is not ExtendedTypeReference extReference)
         {
@@ -207,7 +207,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
         return $"is{char.ToUpper(valueName[0])}{valueName.Substring(1)}";
     }
 
-    private static ITypeReference? CreateTypeReference(ITypeReference? reference, string typeName)
+    private static TypeReference? CreateTypeReference(TypeReference? reference, string typeName)
     {
         if (reference is not ExtendedTypeReference extReference)
         {

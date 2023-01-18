@@ -83,7 +83,7 @@ public static class SortObjectFieldDescriptorExtensions
             {
                 var argumentType = GetArgumentType(definition, sortType, c.TypeInspector);
 
-                ITypeReference argumentTypeReference = sortTypeInstance is null
+                TypeReference argumentTypeReference = sortTypeInstance is null
                     ? c.TypeInspector.GetTypeRef(
                         argumentType,
                         TypeContext.Input)
@@ -167,7 +167,7 @@ public static class SortObjectFieldDescriptorExtensions
     private static void CompileMiddleware(
         ITypeCompletionContext context,
         ObjectFieldDefinition definition,
-        ITypeReference argumentTypeReference,
+        TypeReference argumentTypeReference,
         FieldMiddlewareDefinition placeholder)
     {
         var convention =

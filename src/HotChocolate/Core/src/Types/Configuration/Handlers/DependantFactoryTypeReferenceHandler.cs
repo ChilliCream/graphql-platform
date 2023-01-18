@@ -16,7 +16,7 @@ internal sealed class DependantFactoryTypeReferenceHandler : ITypeRegistrarHandl
 
     public TypeReferenceKind Kind => TypeReferenceKind.DependantFactory;
 
-    public void Handle(ITypeRegistrar typeRegistrar, ITypeReference typeReference)
+    public void Handle(ITypeRegistrar typeRegistrar, TypeReference typeReference)
     {
         var typeRef = (DependantFactoryTypeReference)typeReference;
 

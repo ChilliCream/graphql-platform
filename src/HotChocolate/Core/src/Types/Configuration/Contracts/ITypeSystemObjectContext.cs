@@ -20,7 +20,7 @@ public interface ITypeSystemObjectContext : IHasScope, IHasContextData
     /// A type reference that points to <see cref="Type"/>.
     /// </summary>
     /// <value></value>
-    ITypeReference TypeReference { get; }
+    TypeReference TypeReference { get; }
 
     /// <summary>
     /// Defines if <see cref="Type" /> is a type like the object type or interface type.
@@ -85,5 +85,5 @@ public interface ITypeSystemObjectContext : IHasScope, IHasContextData
     /// </param>
     /// <param name="kind"></param>
     /// <returns></returns>
-    bool TryPredictTypeKind(ITypeReference typeRef, out TypeKind kind);
+    bool TryPredictTypeKind(TypeReference typeRef, out TypeKind kind);
 }

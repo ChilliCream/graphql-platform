@@ -37,7 +37,7 @@ internal sealed class TypeReferenceResolver
             .OfType<T>()
             .Distinct();
 
-    public ITypeReference GetNamedTypeReference(ITypeReference typeRef)
+    public TypeReference GetNamedTypeReference(TypeReference typeRef)
     {
         if (typeRef is null)
         {
@@ -52,7 +52,7 @@ internal sealed class TypeReferenceResolver
         throw new NotSupportedException();
     }
 
-    public bool TryGetType(ITypeReference typeRef, [NotNullWhen(true)] out IType? type)
+    public bool TryGetType(TypeReference typeRef, [NotNullWhen(true)] out IType? type)
     {
         if (typeRef is null)
         {
@@ -108,7 +108,7 @@ internal sealed class TypeReferenceResolver
     }
 
     public bool TryGetDirectiveType(
-        ITypeReference typeRef,
+        TypeReference typeRef,
         [NotNullWhen(true)] out DirectiveType? directiveType)
     {
         if (typeRef is null)
@@ -150,7 +150,7 @@ internal sealed class TypeReferenceResolver
         return namedType;
     }
 
-    private TypeId CreateId(ITypeReference typeRef, ITypeReference namedTypeRef)
+    private TypeId CreateId(TypeReference typeRef, TypeReference namedTypeRef)
     {
         switch (typeRef)
         {
@@ -221,13 +221,13 @@ internal sealed class TypeReferenceResolver
 
     private readonly struct TypeId : IEquatable<TypeId>
     {
-        public TypeId(ITypeReference typeRef, int flags)
+        public TypeId(TypeReference typeRef, int flags)
         {
             TypeRef = typeRef;
             Flags = flags;
         }
 
-        public ITypeReference TypeRef { get; }
+        public TypeReference TypeRef { get; }
 
         public int Flags { get; }
 

@@ -7,11 +7,11 @@ namespace HotChocolate.Configuration;
 
 internal static class TypeRefHelper
 {
-    public static ITypeReference CreateTypeRef(
+    public static TypeReference CreateTypeRef(
         this ITypeInspector typeInspector,
         Type schemaType,
         TypeDiscoveryInfo typeInfo,
-        ITypeReference originalTypeRef)
+        TypeReference originalTypeRef)
         => typeInspector.GetTypeRef(
             schemaType.MakeGenericType(typeInfo.RuntimeType),
             originalTypeRef.Context,

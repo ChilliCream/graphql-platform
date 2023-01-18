@@ -25,5 +25,5 @@ internal interface ITypeRegistrarHandler
     /// <param name="typeReference">
     /// The type reference.
     /// </param>
-    void Handle(ITypeRegistrar typeRegistrar, ITypeReference typeReference);
+    void Handle(ITypeRegistrar typeRegistrar, TypeReference typeReference);
 }

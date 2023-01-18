@@ -12,7 +12,7 @@ public class BooleanFilterOperationDescriptorBase
     protected BooleanFilterOperationDescriptorBase(
         IDescriptorContext context,
         string name,
-        ITypeReference type,
+        TypeReference type,
         FilterOperation operation)
         : base(context)
     {

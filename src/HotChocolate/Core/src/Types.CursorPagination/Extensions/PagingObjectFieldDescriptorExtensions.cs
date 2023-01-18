@@ -145,7 +145,7 @@ public static class PagingObjectFieldDescriptorExtensions
                             : null;
                 }
 
-                ITypeReference? typeRef = nodeType is not null
+                TypeReference? typeRef = nodeType is not null
                     ? c.TypeInspector.GetTypeRef(nodeType)
                     : null;
 
@@ -200,7 +200,7 @@ public static class PagingObjectFieldDescriptorExtensions
                             : null;
                 }
 
-                ITypeReference? typeRef = nodeType is not null
+                TypeReference? typeRef = nodeType is not null
                     ? c.TypeInspector.GetTypeRef(nodeType)
                     : null;
 
@@ -298,7 +298,7 @@ public static class PagingObjectFieldDescriptorExtensions
         this IList<ArgumentDefinition> arguments,
         string name,
         string description,
-        ITypeReference type)
+        TypeReference type)
     {
         var argument = arguments.FirstOrDefault(t => t.Name.EqualsOrdinal(name));
 
@@ -312,11 +312,11 @@ public static class PagingObjectFieldDescriptorExtensions
         argument.Type = type;
     }
 
-    private static ITypeReference CreateConnectionTypeRef(
+    private static TypeReference CreateConnectionTypeRef(
         IDescriptorContext context,
         MemberInfo? resolverMember,
         string? connectionName,
-        ITypeReference? nodeType,
+        TypeReference? nodeType,
         PagingOptions options)
     {
         var typeInspector = context.TypeInspector;
@@ -390,9 +390,9 @@ public static class PagingObjectFieldDescriptorExtensions
         return new QueryableCursorPagingProvider();
     }
 
-    private static ITypeReference CreateConnectionType(
+    private static TypeReference CreateConnectionType(
         string? connectionName,
-        ITypeReference nodeType,
+        TypeReference nodeType,
         bool withTotalCount)
     {
         return connectionName is null
