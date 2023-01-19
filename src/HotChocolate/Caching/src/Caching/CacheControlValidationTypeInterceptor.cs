@@ -14,30 +14,41 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
             return;
         }
 
-        if (validationContext.Type is ObjectType objectType)
+        switch (validationContext.Type)
         {
-            var isQueryType = validationContext is ITypeCompletionContext completionContext &&
-                completionContext.IsQueryType == true;
-
-            ValidateCacheControlOnType(validationContext, objectType);
-
-            foreach (var field in objectType.Fields)
+            case ObjectType objectType:
             {
-                ValidateCacheControlOnField(validationContext, field, objectType, isQueryType);
-            }
-        }
-        else if (validationContext.Type is InterfaceType interfaceType)
-        {
-            ValidateCacheControlOnType(validationContext, interfaceType);
+                var isQueryType = validationContext is ITypeCompletionContext { IsQueryType: true };
 
-            foreach (var field in interfaceType.Fields)
-            {
-                ValidateCacheControlOnField(validationContext, field, interfaceType, false);
+                ValidateCacheControlOnType(validationContext, objectType);
+
+                var span = objectType.Fields.AsSpan();
+
+                for (var i = 0; i < span.Length; i++)
+                {
+                    var field = span[i];
+                    ValidateCacheControlOnField(validationContext, field, objectType, isQueryType);
+                }
+                break;
             }
-        }
-        else if (validationContext.Type is UnionType unionType)
-        {
-            ValidateCacheControlOnType(validationContext, unionType);
+
+            case InterfaceType interfaceType:
+            {
+                ValidateCacheControlOnType(validationContext, interfaceType);
+
+                var span = interfaceType.Fields.AsSpan();
+
+                for (var i = 0; i < span.Length; i++)
+                {
+                    var field = span[i];
+                    ValidateCacheControlOnField(validationContext, field, interfaceType, false);
+                }
+                break;
+            }
+
+            case UnionType unionType:
+                ValidateCacheControlOnType(validationContext, unionType);
+                break;
         }
     }
 
