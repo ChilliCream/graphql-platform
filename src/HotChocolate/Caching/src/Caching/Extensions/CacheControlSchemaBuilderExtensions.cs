@@ -30,10 +30,8 @@ public static class CacheControlSchemaBuilderExtensions
     /// </param>
     public static ISchemaBuilder AddCacheControl(
         this ISchemaBuilder builder)
-    {
-        return builder
+        => builder
             .AddCacheControlScopeType()
             .AddCacheControlDirectiveType()
             .TryAddTypeInterceptor<CacheControlValidationTypeInterceptor>();
-    }
 }

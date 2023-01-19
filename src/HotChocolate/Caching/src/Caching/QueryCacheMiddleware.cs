@@ -2,10 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
-using HotChocolate.Types;
-using HotChocolate.Types.Introspection;
 using static HotChocolate.Caching.WellKnownContextData;
 
 namespace HotChocolate.Caching;
@@ -42,17 +39,25 @@ internal sealed class QueryCacheMiddleware
             return;
         }
 
-        var constraints = ComputeCacheControlConstraints(context.Operation);
+        if (!(context.Operation?.ContextData.TryGetValue(
+            WellKnownContextData.CacheControlConstraints,
+            out var value) ?? false) ||
+            value is not CacheControlConstraints constraints)
+        {
+            return;
+        }
 
-        if (constraints is null || !constraints.MaxAge.HasValue)
+        if (constraints.MaxAge is null)
         {
             // No field in the query specified a maxAge value,
             // so we do not attempt to cache it.
             return;
         }
 
-        foreach (var cache in _caches)
+        for (var i = 0; i < _caches.Length; i++)
         {
+            var cache = _caches[i];
+
             if (!cache.ShouldWriteQueryResultToCache(context))
             {
                 continue;
@@ -71,7 +76,7 @@ internal sealed class QueryCacheMiddleware
             return false;
         }
 
-        if (context.Operation?.Definition.Operation != OperationType.Query)
+        if (context.Operation?.Definition.Operation is not OperationType.Query)
         {
             // Request is not a query, so we do not cache it.
             return false;
@@ -84,124 +89,5 @@ internal sealed class QueryCacheMiddleware
         }
 
         return true;
-    }
-
-    private static CacheControlConstraints? ComputeCacheControlConstraints(
-        IOperation? operation)
-    {
-        if (operation is null)
-        {
-            return null;
-        }
-
-        var constraints = new CacheControlConstraints();
-
-        var rootSelections = operation.RootSelectionSet.Selections;
-
-        try
-        {
-            foreach (var rootSelection in rootSelections)
-            {
-                ProcessSelection(rootSelection, constraints, operation);
-            }
-        }
-        catch (EncounteredIntrospectionFieldException)
-        {
-            // The operation specified introspection fields and should
-            // therefore not be cached.
-            return null;
-        }
-
-        return constraints;
-    }
-
-    private static void ProcessSelection(
-        ISelection selection,
-        CacheControlConstraints constraints,
-        IOperation operation)
-    {
-        var field = selection.Field;
-
-        if (field.IsIntrospectionField && field.Name != IntrospectionFields.TypeName)
-        {
-            // If we encounter an introspection field, we immediately stop
-            // trying to compute the cache constraints.
-            throw ThrowHelper.EncounteredIntrospectionField();
-        }
-
-        var maxAgeSet = false;
-        var scopeSet = false;
-
-        ExtractCacheControlDetailsFromDirectives(field.Directives);
-
-        if (!maxAgeSet || !scopeSet)
-        {
-            // Either maxAge or scope have not been specified by the @cacheControl
-            // directive on the field, so we try to infer these details
-            // from the type of the field.
-
-            if (field.Type is Types.IHasDirectives type)
-            {
-                // The type of the field is complex and can therefore be
-                // annotated with a @cacheControl directive.
-
-                ExtractCacheControlDetailsFromDirectives(type.Directives);
-            }
-        }
-
-        try
-        {
-            // todo: this seems to be the only usage of this API - is there a better approach?
-            var possibleTypes = operation.GetPossibleTypes(selection);
-
-            foreach (var type in possibleTypes)
-            {
-                var typeSet = operation.GetSelectionSet(selection, type).Selections;
-
-                foreach (var typeSelection in typeSet)
-                {
-                    ProcessSelection(typeSelection, constraints, operation);
-                }
-            }
-        }
-        catch
-        {
-
-        }
-
-        void ExtractCacheControlDetailsFromDirectives(
-            IDirectiveCollection directives)
-        {
-            var directive = directives
-                .FirstOrDefault(CacheControlDirectiveType.DirectiveName)?
-                .AsValue<CacheControlDirective>();
-
-            if (directive is not null)
-            {
-                if (!maxAgeSet && directive.MaxAge.HasValue &&
-                    (!constraints.MaxAge.HasValue || directive.MaxAge < constraints.MaxAge.Value))
-                {
-                    // The maxAge of the @cacheControl directive is lower
-                    // than the previously lowest maxAge value.
-                    constraints.MaxAge = directive.MaxAge.Value;
-                    maxAgeSet = true;
-                }
-                else if (directive.InheritMaxAge == true)
-                {
-                    // If inheritMaxAge is set, we keep the
-                    // computed maxAge value as is.
-                    maxAgeSet = true;
-                }
-
-                if (directive.Scope.HasValue &&
-                    directive.Scope < constraints.Scope)
-                {
-                    // The scope of the @cacheControl directive is more
-                    // restrivive than the computed scope.
-                    constraints.Scope = directive.Scope.Value;
-                    scopeSet = true;
-                }
-            }
-        }
     }
 }

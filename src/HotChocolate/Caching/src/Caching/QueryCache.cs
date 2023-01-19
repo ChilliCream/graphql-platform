@@ -22,11 +22,10 @@ public abstract class QueryCache
     /// and the <paramref name="options"/>.
     /// </summary>
     /// <param name="context">The context of the request.</param>
-    /// <param name="constraints">
-    /// The constraints to which the result shall be cached.
-    /// </param>
+    /// <param name="constraints">The constraints to which the result shall be cached./// </param>
     /// <param name="options">The cache options.</param>
-    /// <returns></returns>
-    public abstract ValueTask WriteQueryResultToCacheAsync(IRequestContext context,
-        ICacheConstraints constraints, ICacheControlOptions options);
+    public abstract ValueTask WriteQueryResultToCacheAsync(
+        IRequestContext context,
+        ICacheConstraints constraints,
+        ICacheControlOptions options);
 }

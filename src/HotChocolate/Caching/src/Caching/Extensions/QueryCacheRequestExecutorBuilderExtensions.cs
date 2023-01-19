@@ -14,8 +14,8 @@ public static class QueryCacheRequestExecutorBuilderExtensions
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
     public static IRequestExecutorBuilder UseQueryCache(
-        this IRequestExecutorBuilder builder) =>
-        builder.UseRequest<QueryCacheMiddleware>();
+        this IRequestExecutorBuilder builder)
+        => builder.UseRequest<QueryCacheMiddleware>();
 
     /// <summary>
     /// Uses the default request pipeline including the
@@ -36,10 +36,10 @@ public static class QueryCacheRequestExecutorBuilderExtensions
             .UseInstrumentation()
             .UseExceptions()
             .UseTimeout()
+            .UseQueryCache()
             .UseDocumentCache()
             .UseDocumentParser()
             .UseDocumentValidation()
-            .UseQueryCache()
             .UseOperationCache()
             .UseOperationComplexityAnalyzer()
             .UseOperationResolver()
@@ -48,7 +48,7 @@ public static class QueryCacheRequestExecutorBuilderExtensions
     }
 
     /// <summary>
-    /// Add CacheControl types and 
+    /// Add CacheControl types and
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
@@ -61,18 +61,21 @@ public static class QueryCacheRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        builder.ConfigureSchemaServices(services =>
-        {
-            services.AddOptions();
-            services.AddSingleton<ICacheControlOptionsAccessor,
-                CacheControlOptionsAccessor>();
-        });
+        builder.AddOperationCompilerOptimizer<CacheControlConstraintsOptimizer>();
 
-        return builder.ConfigureSchema(b =>
-        {
-            b.AddCacheControl();
-            b.TryAddTypeInterceptor<CacheControlTypeInterceptor>();
-        });
+        builder.ConfigureSchemaServices(
+            services =>
+            {
+                services.AddOptions();
+                services.AddSingleton<ICacheControlOptionsAccessor, CacheControlOptionsAccessor>();
+            });
+
+        return builder.ConfigureSchema(
+            b =>
+            {
+                b.AddCacheControl();
+                b.TryAddTypeInterceptor<CacheControlTypeInterceptor>();
+            });
     }
 
     /// <summary>
@@ -98,10 +101,11 @@ public static class QueryCacheRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(modifyOptions));
         }
 
-        builder.ConfigureSchemaServices(services =>
-        {
-            services.Configure(modifyOptions);
-        });
+        builder.ConfigureSchemaServices(
+            services =>
+            {
+                services.Configure(modifyOptions);
+            });
 
         return builder;
     }
@@ -115,10 +119,11 @@ public static class QueryCacheRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        builder.ConfigureSchemaServices(services =>
-        {
-            services.AddSingleton<QueryCache, TCache>();
-        });
+        builder.ConfigureSchemaServices(
+            services =>
+            {
+                services.AddSingleton<QueryCache, TCache>();
+            });
 
         return builder.AddCacheControl();
     }
@@ -133,10 +138,11 @@ public static class QueryCacheRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        builder.ConfigureSchemaServices(services =>
-        {
-            services.AddSingleton<QueryCache>(cacheFactory);
-        });
+        builder.ConfigureSchemaServices(
+            services =>
+            {
+                services.AddSingleton<QueryCache>(cacheFactory);
+            });
 
         return builder.AddCacheControl();
     }
