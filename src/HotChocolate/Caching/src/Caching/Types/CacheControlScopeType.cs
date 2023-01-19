@@ -3,14 +3,13 @@ using static HotChocolate.Caching.Properties.CacheControlResources;
 
 namespace HotChocolate.Caching;
 
-public sealed class CacheControlScopeType
-    : EnumType<CacheControlScope>
+public sealed class CacheControlScopeType : EnumType<CacheControlScope>
 {
     protected override void Configure(
         IEnumTypeDescriptor<CacheControlScope> descriptor)
     {
         descriptor
-            .Name("CacheControlScope")
+            .Name(Names.CacheControlScope)
             .Description(CacheControlScopeType_Description);
 
         descriptor
@@ -20,5 +19,10 @@ public sealed class CacheControlScopeType
         descriptor
             .Value(CacheControlScope.Private)
             .Description(CacheControlScopeType_Private);
+    }
+
+    public static class Names
+    {
+        public const string CacheControlScope = nameof(CacheControlScope);
     }
 }

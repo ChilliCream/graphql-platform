@@ -88,6 +88,11 @@ public readonly ref struct OperationOptimizerContext
     public IDictionary<string, object?> ContextData => _contextData;
 
     /// <summary>
+    /// Defines if the operation has incremental parts.
+    /// </summary>
+    public bool HasIncrementalParts => _hasIncrementalParts;
+
+    /// <summary>
     /// Sets the resolvers on the specified <paramref name="selection"/>.
     /// </summary>
     /// <param name="selection">

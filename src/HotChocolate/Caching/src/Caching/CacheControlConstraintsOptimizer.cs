@@ -1,8 +1,10 @@
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
+using IHasDirectives = HotChocolate.Types.IHasDirectives;
 
 namespace HotChocolate.Caching;
 
@@ -11,9 +13,15 @@ namespace HotChocolate.Caching;
 /// </summary>
 internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
 {
+    private const string _cacheControlValueTemplate = "{0}, max-age={1}";
+    private const string _cacheControlPrivateScope = "private";
+    private const string _cacheControlPublicScope = "public";
+
     public void OptimizeOperation(OperationOptimizerContext context)
     {
-        if (ContainsIntrospectionFields(context))
+        if (context.Definition.Operation is not OperationType.Query ||
+            context.HasIncrementalParts ||
+            ContainsIntrospectionFields(context))
         {
             // if this is an introspection query we will not cache it.
             return;
@@ -23,11 +31,27 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
 
         if (constraints.MaxAge is not null)
         {
+            var cacheType = constraints.Scope switch
+            {
+                CacheControlScope.Private => _cacheControlPrivateScope,
+                CacheControlScope.Public => _cacheControlPublicScope,
+                _ => throw ThrowHelper.UnexpectedCacheControlScopeValue(constraints.Scope)
+            };
+
+            var headerValue = string.Format(
+                _cacheControlValueTemplate,
+                cacheType,
+                constraints.MaxAge);
+
             context.ContextData.Add(
                 WellKnownContextData.CacheControlConstraints,
                 new ImmutableCacheConstraints(
                     constraints.MaxAge.Value,
                     constraints.Scope));
+
+            context.ContextData.Add(
+                WellKnownContextData.CacheControlHeaderValue,
+                headerValue);
         }
     }
 
@@ -142,4 +166,12 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
 
         return false;
     }
+
+    private sealed class CacheControlConstraints
+    {
+        public CacheControlScope Scope { get; set; } = CacheControlScope.Public;
+
+        internal int? MaxAge { get; set; }
+    }
+
 }

@@ -1,3 +1,5 @@
+using HotChocolate.Execution;
+
 namespace HotChocolate.Caching;
 
 /// <summary>
@@ -13,7 +15,7 @@ public interface ICacheConstraints
     int MaxAge { get; }
 
     /// <summary>
-    /// The scope of the queryresult that shall be cached.
+    /// The scope of the <see cref="IQueryResult"/> that shall be cached.
     /// </summary>
     CacheControlScope Scope { get; }
 }

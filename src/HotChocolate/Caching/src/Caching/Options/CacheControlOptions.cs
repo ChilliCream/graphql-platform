@@ -1,7 +1,7 @@
 namespace HotChocolate.Caching;
 
 /// <inheritdoc />
-public class CacheControlOptions : ICacheControlOptions
+public sealed class CacheControlOptions : ICacheControlOptions
 {
     /// <inheritdoc />
     public bool Enable { get; set; } = true;
