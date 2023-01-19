@@ -16,6 +16,7 @@ public readonly ref struct OperationOptimizerContext
     private readonly ObjectType _rootType;
     private readonly Dictionary<string, object?> _contextData;
     private readonly bool _hasIncrementalParts;
+    private readonly CreateFieldPipeline _createFieldPipeline;
 
     /// <summary>
     /// Initializes a new instance of <see cref="OperationOptimizerContext"/>
@@ -29,7 +30,8 @@ public readonly ref struct OperationOptimizerContext
         SelectionVariants[] variants,
         IncludeCondition[] includeConditions,
         Dictionary<string, object?> contextData,
-        bool hasIncrementalParts)
+        bool hasIncrementalParts,
+        CreateFieldPipeline createFieldPipeline)
     {
         Id = id;
         Document = document;
@@ -40,6 +42,7 @@ public readonly ref struct OperationOptimizerContext
         _includeConditions = includeConditions;
         _contextData = contextData;
         _hasIncrementalParts = hasIncrementalParts;
+        _createFieldPipeline = createFieldPipeline;
     }
 
     /// <summary>
@@ -111,7 +114,7 @@ public readonly ref struct OperationOptimizerContext
     /// Returns a <see cref="FieldDelegate" /> representing the field resolver pipeline.
     /// </returns>
     public FieldDelegate CompileResolverPipeline(IObjectField field, FieldNode selection)
-        => OperationCompiler.CreateFieldMiddleware(Schema, field, selection);
+        => _createFieldPipeline(Schema, field, selection);
 
     /// <summary>
     /// Creates a temporary operation object for the optimizer.

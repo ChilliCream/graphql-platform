@@ -2,12 +2,10 @@ using System.Diagnostics;
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Subscriptions.Diagnostics;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
-using static System.Text.Json.JsonSerializer;
 
 namespace HotChocolate.Subscriptions;
 

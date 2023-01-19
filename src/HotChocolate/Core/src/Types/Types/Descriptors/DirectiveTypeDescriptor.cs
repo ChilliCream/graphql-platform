@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Security.Cryptography;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -124,14 +125,7 @@ public class DirectiveTypeDescriptor
 
     public IDirectiveTypeDescriptor Location(DirectiveLocation value)
     {
-        var values = Enum.GetValues(typeof(DirectiveLocation));
-        foreach (DirectiveLocation item in values)
-        {
-            if (value.HasFlag(item))
-            {
-                Definition.Locations.Add(item);
-            }
-        }
+        Definition.Locations |= value;
         return this;
     }
 

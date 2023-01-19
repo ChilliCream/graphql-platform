@@ -26,12 +26,13 @@ public class ObjectTypeTests : TypeTestBase
     {
         // act
         var schema = SchemaBuilder.New()
-            .AddObjectType(d => d
-                .Name(dep => dep.Name + "Foo")
-                .DependsOn<StringType>()
-                .Field("bar")
-                .Type<StringType>()
-                .Resolve("foo"))
+            .AddObjectType(
+                d => d
+                    .Name(dep => dep.Name + "Foo")
+                    .DependsOn<StringType>()
+                    .Field("bar")
+                    .Type<StringType>()
+                    .Resolve("foo"))
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
@@ -45,12 +46,13 @@ public class ObjectTypeTests : TypeTestBase
     {
         // act
         var schema = SchemaBuilder.New()
-            .AddObjectType(d => d
-                .Name(dep => dep.Name + "Foo")
-                .DependsOn(typeof(StringType))
-                .Field("bar")
-                .Type<StringType>()
-                .Resolve("foo"))
+            .AddObjectType(
+                d => d
+                    .Name(dep => dep.Name + "Foo")
+                    .DependsOn(typeof(StringType))
+                    .Field("bar")
+                    .Type<StringType>()
+                    .Resolve("foo"))
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
@@ -64,9 +66,10 @@ public class ObjectTypeTests : TypeTestBase
     {
         // act
         var schema = SchemaBuilder.New()
-            .AddObjectType(d => d
-                .Name(dep => dep.Name + "Foo")
-                .DependsOn<StringType>())
+            .AddObjectType(
+                d => d
+                    .Name(dep => dep.Name + "Foo")
+                    .DependsOn<StringType>())
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
@@ -80,9 +83,10 @@ public class ObjectTypeTests : TypeTestBase
     {
         // act
         var schema = SchemaBuilder.New()
-            .AddObjectType(d => d
-                .Name(dep => dep.Name + "Foo")
-                .DependsOn(typeof(StringType)))
+            .AddObjectType(
+                d => d
+                    .Name(dep => dep.Name + "Foo")
+                    .DependsOn(typeof(StringType)))
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
@@ -96,9 +100,11 @@ public class ObjectTypeTests : TypeTestBase
     {
         // arrange
         // act
-        var fooType = CreateType(new ObjectType<Foo>(d => d
-            .Field(f => f.Description)
-            .Name("a")));
+        var fooType = CreateType(
+            new ObjectType<Foo>(
+                d => d
+                    .Field(f => f.Description)
+                    .Name("a")));
 
         // assert
         Assert.NotNull(fooType.Fields["a"].Resolver);
@@ -130,19 +136,22 @@ public class ObjectTypeTests : TypeTestBase
         resolverContext.SetupAllProperties();
 
         // act
-        var fooType = CreateType(new ObjectType(c => c
-                .Name("Foo")
-                .Field("bar")
-                .Resolve(() => "baz")),
-            b => b.Use(next => async context =>
-            {
-                await next(context);
-
-                if (context.Result is string s)
+        var fooType = CreateType(
+            new ObjectType(
+                c => c
+                    .Name("Foo")
+                    .Field("bar")
+                    .Resolve(() => "baz")),
+            b => b.Use(
+                next => async context =>
                 {
-                    context.Result = s.ToUpperInvariant();
-                }
-            }));
+                    await next(context);
+
+                    if (context.Result is string s)
+                    {
+                        context.Result = s.ToUpperInvariant();
+                    }
+                }));
 
         // assert
         await fooType.Fields["bar"].Middleware(resolverContext.Object);
@@ -158,11 +167,13 @@ public class ObjectTypeTests : TypeTestBase
         resolverContext.SetupAllProperties();
 
         // act
-        var fooType = CreateType(new ObjectType(c => c
-            .Name("Foo")
-            .Field("bar")
-            .DeprecationReason("fooBar")
-            .Resolve(() => "baz")));
+        var fooType = CreateType(
+            new ObjectType(
+                c => c
+                    .Name("Foo")
+                    .Field("bar")
+                    .DeprecationReason("fooBar")
+                    .Resolve(() => "baz")));
 
         // assert
         Assert.Equal("fooBar", fooType.Fields["bar"].DeprecationReason);
@@ -177,11 +188,13 @@ public class ObjectTypeTests : TypeTestBase
         resolverContext.SetupAllProperties();
 
         // act
-        var fooType = CreateType(new ObjectType(c => c
-            .Name("Foo")
-            .Field("bar")
-            .Deprecated("fooBar")
-            .Resolve(() => "baz")));
+        var fooType = CreateType(
+            new ObjectType(
+                c => c
+                    .Name("Foo")
+                    .Field("bar")
+                    .Deprecated("fooBar")
+                    .Resolve(() => "baz")));
 
         // assert
         Assert.Equal("fooBar", fooType.Fields["bar"].DeprecationReason);
@@ -196,11 +209,13 @@ public class ObjectTypeTests : TypeTestBase
         resolverContext.SetupAllProperties();
 
         // act
-        var schema = CreateSchema(new ObjectType(c => c
-            .Name("Foo")
-            .Field("bar")
-            .Deprecated("fooBar")
-            .Resolve(() => "baz")));
+        var schema = CreateSchema(
+            new ObjectType(
+                c => c
+                    .Name("Foo")
+                    .Field("bar")
+                    .Deprecated("fooBar")
+                    .Resolve(() => "baz")));
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -214,11 +229,13 @@ public class ObjectTypeTests : TypeTestBase
         resolverContext.SetupAllProperties();
 
         // act
-        var fooType = CreateType(new ObjectType(c => c
-            .Name("Foo")
-            .Field("bar")
-            .Deprecated()
-            .Resolve(() => "baz")));
+        var fooType = CreateType(
+            new ObjectType(
+                c => c
+                    .Name("Foo")
+                    .Field("bar")
+                    .Deprecated()
+                    .Resolve(() => "baz")));
 
         // assert
         Assert.Equal(
@@ -235,11 +252,13 @@ public class ObjectTypeTests : TypeTestBase
         resolverContext.SetupAllProperties();
 
         // act
-        var schema = CreateSchema(new ObjectType(c => c
-            .Name("Foo")
-            .Field("bar")
-            .Deprecated()
-            .Resolve(() => "baz")));
+        var schema = CreateSchema(
+            new ObjectType(
+                c => c
+                    .Name("Foo")
+                    .Field("bar")
+                    .Deprecated()
+                    .Resolve(() => "baz")));
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -319,8 +338,10 @@ public class ObjectTypeTests : TypeTestBase
     {
         // arrange
         // act
-        var fooType = CreateType(new ObjectType<Foo>(d => d
-            .Field<FooResolver>(t => t.GetBar(default))));
+        var fooType = CreateType(
+            new ObjectType<Foo>(
+                d => d
+                    .Field<FooResolver>(t => t.GetBar(default))));
 
         // assert
         Assert.Equal("foo", fooType.Fields["bar"].Arguments.First().Name);
@@ -505,12 +526,13 @@ public class ObjectTypeTests : TypeTestBase
         var schema = SchemaBuilder.New()
             .AddDocumentFromString(source)
             .Use(_ => _)
-            .ModifyOptions(o =>
-            {
-                o.QueryTypeName = "A";
-                o.MutationTypeName = "B";
-                o.SubscriptionTypeName = "C";
-            })
+            .ModifyOptions(
+                o =>
+                {
+                    o.QueryTypeName = "A";
+                    o.MutationTypeName = "B";
+                    o.SubscriptionTypeName = "C";
+                })
             .Create();
 
         Assert.Equal("A", schema.QueryType.Name);
@@ -684,14 +706,16 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectType_FieldDefaultValue_SerializesCorrectly()
     {
         // arrange
-        var objectType = new ObjectType(t => t
-            .Name("Bar")
-            .Field("_123")
-            .Type<StringType>()
-            .Resolve(() => "")
-            .Argument("_456",
-                a => a.Type<InputObjectType<Foo>>()
-                    .DefaultValue(new Foo())));
+        var objectType = new ObjectType(
+            t => t
+                .Name("Bar")
+                .Field("_123")
+                .Type<StringType>()
+                .Resolve(() => "")
+                .Argument(
+                    "_456",
+                    a => a.Type<InputObjectType<Foo>>()
+                        .DefaultValue(new Foo())));
 
         // act
         var schema = SchemaBuilder.New()
@@ -706,9 +730,10 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectType_ResolverOverrides_FieldMember()
     {
         // arrange
-        var objectType = new ObjectType<Foo>(t => t
-            .Field(f => f.Description)
-            .Resolve("World"));
+        var objectType = new ObjectType<Foo>(
+            t => t
+                .Field(f => f.Description)
+                .Resolve("World"));
 
         // act
         var executor =
@@ -725,11 +750,12 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectType_FuncString_Resolver()
     {
         // arrange
-        var objectType = new ObjectType(t => t
-            .Name("Bar")
-            .Field("_123")
-            .Type<StringType>()
-            .Resolve(() => "fooBar"));
+        var objectType = new ObjectType(
+            t => t
+                .Name("Bar")
+                .Field("_123")
+                .Type<StringType>()
+                .Resolve(() => "fooBar"));
 
         // act
         var executor =
@@ -746,10 +772,11 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectType_FuncString_ResolverInferType()
     {
         // arrange
-        var objectType = new ObjectType(t => t
-            .Name("Bar")
-            .Field("_123")
-            .Resolve(() => "fooBar"));
+        var objectType = new ObjectType(
+            t => t
+                .Name("Bar")
+                .Field("_123")
+                .Resolve(() => "fooBar"));
 
         // act
         var executor =
@@ -766,11 +793,12 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectType_ConstantString_Resolver()
     {
         // arrange
-        var objectType = new ObjectType(t => t
-            .Name("Bar")
-            .Field("_123")
-            .Type<StringType>()
-            .Resolve("fooBar"));
+        var objectType = new ObjectType(
+            t => t
+                .Name("Bar")
+                .Field("_123")
+                .Type<StringType>()
+                .Resolve("fooBar"));
 
         // act
         var executor =
@@ -787,10 +815,11 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectType_ConstantString_ResolverInferType()
     {
         // arrange
-        var objectType = new ObjectType(t => t
-            .Name("Bar")
-            .Field("_123")
-            .Resolve("fooBar"));
+        var objectType = new ObjectType(
+            t => t
+                .Name("Bar")
+                .Field("_123")
+                .Resolve("fooBar"));
 
         // act
         var executor =
@@ -807,11 +836,12 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectType_FuncCtxString_Resolver()
     {
         // arrange
-        var objectType = new ObjectType(t => t
-            .Name("Bar")
-            .Field("_123")
-            .Type<StringType>()
-            .Resolve(ctx => ctx.Selection.Field.Name));
+        var objectType = new ObjectType(
+            t => t
+                .Name("Bar")
+                .Field("_123")
+                .Type<StringType>()
+                .Resolve(ctx => ctx.Selection.Field.Name));
 
         // act
         var executor =
@@ -828,10 +858,11 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectType_FuncCtxString_ResolverInferType()
     {
         // arrange
-        var objectType = new ObjectType(t => t
-            .Name("Bar")
-            .Field("_123")
-            .Resolve(ctx => ctx.Selection.Field.Name));
+        var objectType = new ObjectType(
+            t => t
+                .Name("Bar")
+                .Field("_123")
+                .Resolve(ctx => ctx.Selection.Field.Name));
 
         // act
         var executor =
@@ -848,11 +879,12 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectType_FuncCtxCtString_Resolver()
     {
         // arrange
-        var objectType = new ObjectType(t => t
-            .Name("Bar")
-            .Field("_123")
-            .Type<StringType>()
-            .Resolve((ctx, _) => ctx.Selection.Field.Name));
+        var objectType = new ObjectType(
+            t => t
+                .Name("Bar")
+                .Field("_123")
+                .Type<StringType>()
+                .Resolve((ctx, _) => ctx.Selection.Field.Name));
 
         // act
         var executor =
@@ -869,10 +901,11 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectType_FuncCtxCtString_ResolverInferType()
     {
         // arrange
-        var objectType = new ObjectType(t => t
-            .Name("Bar")
-            .Field("_123")
-            .Resolve((ctx, _) => ctx.Selection.Field.Name));
+        var objectType = new ObjectType(
+            t => t
+                .Name("Bar")
+                .Field("_123")
+                .Resolve((ctx, _) => ctx.Selection.Field.Name));
 
         // act
         var executor =
@@ -889,11 +922,12 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectType_FuncObject_Resolver()
     {
         // arrange
-        var objectType = new ObjectType(t => t
-            .Name("Bar")
-            .Field("_123")
-            .Type<StringType>()
-            .Resolve(() => (object)"fooBar"));
+        var objectType = new ObjectType(
+            t => t
+                .Name("Bar")
+                .Field("_123")
+                .Type<StringType>()
+                .Resolve(() => (object)"fooBar"));
 
         // act
         var executor =
@@ -910,11 +944,12 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectType_ConstantObject_Resolver()
     {
         // arrange
-        var objectType = new ObjectType(t => t
-            .Name("Bar")
-            .Field("_123")
-            .Type<StringType>()
-            .Resolve((object)"fooBar"));
+        var objectType = new ObjectType(
+            t => t
+                .Name("Bar")
+                .Field("_123")
+                .Type<StringType>()
+                .Resolve((object)"fooBar"));
 
         // act
         var executor =
@@ -931,11 +966,12 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectType_FuncCtxObject_Resolver()
     {
         // arrange
-        var objectType = new ObjectType(t => t
-            .Name("Bar")
-            .Field("_123")
-            .Type<StringType>()
-            .Resolve(ctx => (object)ctx.Selection.Field.Name));
+        var objectType = new ObjectType(
+            t => t
+                .Name("Bar")
+                .Field("_123")
+                .Type<StringType>()
+                .Resolve(ctx => (object)ctx.Selection.Field.Name));
 
         // act
         var executor =
@@ -952,11 +988,12 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectType_FuncCtxCtObject_Resolver()
     {
         // arrange
-        var objectType = new ObjectType(t => t
-            .Name("Bar")
-            .Field("_123")
-            .Type<StringType>()
-            .Resolve((ctx, _) => (object)ctx.Selection.Field.Name));
+        var objectType = new ObjectType(
+            t => t
+                .Name("Bar")
+                .Field("_123")
+                .Type<StringType>()
+                .Resolve((ctx, _) => (object)ctx.Selection.Field.Name));
 
         // act
         var executor =
@@ -973,10 +1010,11 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectTypeOfFoo_FuncString_Resolver()
     {
         // arrange
-        var objectType = new ObjectType<Foo>(t => t
-            .Field(f => f.Description)
-            .Type<StringType>()
-            .Resolve(() => "fooBar"));
+        var objectType = new ObjectType<Foo>(
+            t => t
+                .Field(f => f.Description)
+                .Type<StringType>()
+                .Resolve(() => "fooBar"));
 
         // act
         var executor =
@@ -993,10 +1031,11 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectTypeOfFoo_ConstantString_Resolver()
     {
         // arrange
-        var objectType = new ObjectType<Foo>(t => t
-            .Field(f => f.Description)
-            .Type<StringType>()
-            .Resolve("fooBar"));
+        var objectType = new ObjectType<Foo>(
+            t => t
+                .Field(f => f.Description)
+                .Type<StringType>()
+                .Resolve("fooBar"));
 
         // act
         var executor =
@@ -1013,10 +1052,11 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectTypeOfFoo_FuncCtxString_Resolver()
     {
         // arrange
-        var objectType = new ObjectType<Foo>(t => t
-            .Field(f => f.Description)
-            .Type<StringType>()
-            .Resolve(ctx => ctx.Selection.Field.Name));
+        var objectType = new ObjectType<Foo>(
+            t => t
+                .Field(f => f.Description)
+                .Type<StringType>()
+                .Resolve(ctx => ctx.Selection.Field.Name));
 
         // act
         var executor =
@@ -1033,10 +1073,11 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectTypeOfFoo_FuncCtxCtString_Resolver()
     {
         // arrange
-        var objectType = new ObjectType<Foo>(t => t
-            .Field(f => f.Description)
-            .Type<StringType>()
-            .Resolve((ctx, _) => ctx.Selection.Field.Name));
+        var objectType = new ObjectType<Foo>(
+            t => t
+                .Field(f => f.Description)
+                .Type<StringType>()
+                .Resolve((ctx, _) => ctx.Selection.Field.Name));
 
         // act
         var executor =
@@ -1053,10 +1094,11 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectTypeOfFoo_FuncObject_Resolver()
     {
         // arrange
-        var objectType = new ObjectType<Foo>(t => t
-            .Field(f => f.Description)
-            .Type<StringType>()
-            .Resolve(() => (object)"fooBar"));
+        var objectType = new ObjectType<Foo>(
+            t => t
+                .Field(f => f.Description)
+                .Type<StringType>()
+                .Resolve(() => (object)"fooBar"));
 
         // act
         var executor =
@@ -1073,10 +1115,11 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectTypeOfFoo_ConstantObject_Resolver()
     {
         // arrange
-        var objectType = new ObjectType<Foo>(t => t
-            .Field(f => f.Description)
-            .Type<StringType>()
-            .Resolve((object)"fooBar"));
+        var objectType = new ObjectType<Foo>(
+            t => t
+                .Field(f => f.Description)
+                .Type<StringType>()
+                .Resolve((object)"fooBar"));
 
         // act
         var executor =
@@ -1093,10 +1136,11 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectTypeOfFoo_FuncCtxObject_Resolver()
     {
         // arrange
-        var objectType = new ObjectType<Foo>(t => t
-            .Field(f => f.Description)
-            .Type<StringType>()
-            .Resolve(ctx => (object)ctx.Selection.Field.Name));
+        var objectType = new ObjectType<Foo>(
+            t => t
+                .Field(f => f.Description)
+                .Type<StringType>()
+                .Resolve(ctx => (object)ctx.Selection.Field.Name));
 
         // act
         var executor =
@@ -1113,10 +1157,11 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectTypeOfFoo_FuncCtxCtObject_Resolver()
     {
         // arrange
-        var objectType = new ObjectType<Foo>(t => t
-            .Field(f => f.Description)
-            .Type<StringType>()
-            .Resolve((ctx, _) => (object)ctx.Selection.Field.Name));
+        var objectType = new ObjectType<Foo>(
+            t => t
+                .Field(f => f.Description)
+                .Type<StringType>()
+                .Resolve((ctx, _) => (object)ctx.Selection.Field.Name));
 
         // act
         var executor =
@@ -1133,10 +1178,11 @@ public class ObjectTypeTests : TypeTestBase
     public async Task ObjectType_SourceTypeObject_BindsResolverCorrectly()
     {
         // arrange
-        var objectType = new ObjectType(t => t.Name("Bar")
-            .Field<FooResolver>(f => f.GetDescription(default))
-            .Name("desc")
-            .Type<StringType>());
+        var objectType = new ObjectType(
+            t => t.Name("Bar")
+                .Field<FooResolver>(f => f.GetDescription(default))
+                .Name("desc")
+                .Type<StringType>());
 
         var schema = SchemaBuilder.New()
             .AddQueryType(objectType)
@@ -1160,7 +1206,8 @@ public class ObjectTypeTests : TypeTestBase
     {
         // arrange
         // act
-        var fooType = CreateType(new ObjectType<Foo>(),
+        var fooType = CreateType(
+            new ObjectType<Foo>(),
             b => b.AddType(new InterfaceType<IFoo>()));
 
         // assert
@@ -1173,11 +1220,13 @@ public class ObjectTypeTests : TypeTestBase
     {
         // arrange
         // act
-        var fooType = CreateType(new ObjectType<Foo>(d =>
-        {
-            d.Ignore(t => t.Description);
-            d.Field("foo").Type<StringType>().Resolve("abc");
-        }));
+        var fooType = CreateType(
+            new ObjectType<Foo>(
+                d =>
+                {
+                    d.Ignore(t => t.Description);
+                    d.Field("foo").Type<StringType>().Resolve("abc");
+                }));
 
         // assert
         Assert.Collection(
@@ -1190,12 +1239,14 @@ public class ObjectTypeTests : TypeTestBase
     {
         // arrange
         // act
-        var fooType = CreateType(new ObjectType<Foo>(d =>
-        {
-            d.Ignore(t => t.Description);
-            d.Field("foo").Type<StringType>().Resolve("abc");
-            d.Field(t => t.Description).Ignore(false);
-        }));
+        var fooType = CreateType(
+            new ObjectType<Foo>(
+                d =>
+                {
+                    d.Ignore(t => t.Description);
+                    d.Field("foo").Type<StringType>().Resolve("abc");
+                    d.Field(t => t.Description).Ignore(false);
+                }));
 
         // assert
         Assert.Collection(
@@ -1235,9 +1286,11 @@ public class ObjectTypeTests : TypeTestBase
         // act
         void Action() =>
             SchemaBuilder.New()
-                .AddType(new ObjectType(t => t.Name("Foo")
-                    .Field("bar")
-                    .Type<NonNullType<InputObjectType<Foo>>>()))
+                .AddType(
+                    new ObjectType(
+                        t => t.Name("Foo")
+                            .Field("bar")
+                            .Type<NonNullType<InputObjectType<Foo>>>()))
                 .Create();
 
         // assert
@@ -1253,9 +1306,11 @@ public class ObjectTypeTests : TypeTestBase
         // act
         void Action() =>
             SchemaBuilder.New()
-                .AddType(new ObjectType(t => t.Name("Foo")
-                    .Field("bar")
-                    .Type(new NonNullType(new InputObjectType<Foo>()))))
+                .AddType(
+                    new ObjectType(
+                        t => t.Name("Foo")
+                            .Field("bar")
+                            .Type(new NonNullType(new InputObjectType<Foo>()))))
                 .Create();
 
         // assert
@@ -1298,9 +1353,10 @@ public class ObjectTypeTests : TypeTestBase
         // arrange
         // act
         var schema = SchemaBuilder.New()
-            .AddQueryType<QueryWithIntArg>(t => t
-                .Field(f => f.GetBar(1))
-                .Argument("foo", a => a.DefaultValue(default)))
+            .AddQueryType<QueryWithIntArg>(
+                t => t
+                    .Field(f => f.GetBar(1))
+                    .Argument("foo", a => a.DefaultValue(default)))
             .Create();
 
         // assert
@@ -1314,8 +1370,9 @@ public class ObjectTypeTests : TypeTestBase
         // act
         void Action() =>
             SchemaBuilder.New()
-                .AddQueryType<QueryWithIntArg>(t => t.Field(f => f.GetBar(1))
-                    .Argument("bar", a => a.DefaultValue(default)))
+                .AddQueryType<QueryWithIntArg>(
+                    t => t.Field(f => f.GetBar(1))
+                        .Argument("bar", a => a.DefaultValue(default)))
                 .Create();
 
         // assert
@@ -1390,11 +1447,12 @@ public class ObjectTypeTests : TypeTestBase
         // arrange
         // act
         var schema = SchemaBuilder.New()
-            .AddQueryType(c => c
-                .Name("Query")
-                .Field("foo")
-                .Type<StringType>()
-                .Resolve("bar"))
+            .AddQueryType(
+                c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("bar"))
             .AddType(new ObjectType<FooObsolete>())
             .Create();
 
@@ -1408,11 +1466,12 @@ public class ObjectTypeTests : TypeTestBase
         // arrange
         // act
         var schema = SchemaBuilder.New()
-            .AddQueryType(c => c
-                .Name("Query")
-                .Field("foo")
-                .Type<StringType>()
-                .Resolve("bar"))
+            .AddQueryType(
+                c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("bar"))
             .AddType(new ObjectType<FooDeprecated>())
             .Create();
 
@@ -1448,11 +1507,7 @@ public class ObjectTypeTests : TypeTestBase
                 .SetQuery("{ bar baz }")
                 .SetGlobalState(
                     InitialValue,
-                    new FooStruct
-                    {
-                        Qux = "Qux_Value",
-                        Baz = "Baz_Value"
-                    })
+                    new FooStruct { Qux = "Qux_Value", Baz = "Baz_Value" })
                 .Create());
 
         // assert
@@ -1542,12 +1597,13 @@ public class ObjectTypeTests : TypeTestBase
         // arrange
         // act
         var schema = SchemaBuilder.New()
-            .AddQueryType(t => t
-                .Name("Query")
-                .Field("test")
-                .Resolve(
-                    _ => new ValueTask<object>("abc"),
-                    typeof(string)))
+            .AddQueryType(
+                t => t
+                    .Name("Query")
+                    .Field("test")
+                    .Resolve(
+                        _ => new ValueTask<object>("abc"),
+                        typeof(string)))
             .Create();
 
         // assert
@@ -1560,12 +1616,13 @@ public class ObjectTypeTests : TypeTestBase
         // arrange
         // act
         var schema = SchemaBuilder.New()
-            .AddQueryType(t => t
-                .Name("Query")
-                .Field("test")
-                .Resolve(
-                    _ => new ValueTask<object>("abc"),
-                    typeof(NativeType<List<int>>)))
+            .AddQueryType(
+                t => t
+                    .Name("Query")
+                    .Field("test")
+                    .Resolve(
+                        _ => new ValueTask<object>("abc"),
+                        typeof(NativeType<List<int>>)))
             .Create();
 
         // assert
@@ -1578,12 +1635,13 @@ public class ObjectTypeTests : TypeTestBase
         // arrange
         // act
         var schema = SchemaBuilder.New()
-            .AddQueryType(t => t
-                .Name("Query")
-                .Field("test")
-                .Resolve(
-                    _ => new ValueTask<object>("abc"),
-                    typeof(ListType<IntType>)))
+            .AddQueryType(
+                t => t
+                    .Name("Query")
+                    .Field("test")
+                    .Resolve(
+                        _ => new ValueTask<object>("abc"),
+                        typeof(ListType<IntType>)))
             .Create();
 
         // assert
@@ -1596,13 +1654,14 @@ public class ObjectTypeTests : TypeTestBase
         // arrange
         // act
         var schema = SchemaBuilder.New()
-            .AddQueryType(t => t
-                .Name("Query")
-                .Field("test")
-                .Type<StringType>()
-                .Resolve(
-                    _ => new ValueTask<object>("abc"),
-                    typeof(ListType<IntType>)))
+            .AddQueryType(
+                t => t
+                    .Name("Query")
+                    .Field("test")
+                    .Type<StringType>()
+                    .Resolve(
+                        _ => new ValueTask<object>("abc"),
+                        typeof(ListType<IntType>)))
             .Create();
 
         // assert
@@ -1615,11 +1674,12 @@ public class ObjectTypeTests : TypeTestBase
         // arrange
         // act
         var schema = SchemaBuilder.New()
-            .AddQueryType(t => t
-                .Name("Query")
-                .Field("test")
-                .Type<StringType>()
-                .Resolve(_ => new ValueTask<object>("abc"), typeof(int)))
+            .AddQueryType(
+                t => t
+                    .Name("Query")
+                    .Field("test")
+                    .Type<StringType>()
+                    .Resolve(_ => new ValueTask<object>("abc"), typeof(int)))
             .Create();
 
         // assert
@@ -1632,11 +1692,12 @@ public class ObjectTypeTests : TypeTestBase
         // arrange
         // act
         var schema = SchemaBuilder.New()
-            .AddQueryType(t => t
-                .Name("Query")
-                .Field("test")
-                .Type<StringType>()
-                .Resolve(_ => new ValueTask<object>("abc"), null))
+            .AddQueryType(
+                t => t
+                    .Name("Query")
+                    .Field("test")
+                    .Type<StringType>()
+                    .Resolve(_ => new ValueTask<object>("abc"), null))
             .Create();
 
         // assert
@@ -1792,11 +1853,12 @@ public class ObjectTypeTests : TypeTestBase
     public void Specify_Field_Type_With_SDL_Syntax()
     {
         SchemaBuilder.New()
-            .AddQueryType(d =>
-            {
-                d.Name("Query");
-                d.Field("Foo").Type("String").Resolve(_ => null);
-            })
+            .AddQueryType(
+                d =>
+                {
+                    d.Name("Query");
+                    d.Field("Foo").Type("String").Resolve(_ => null);
+                })
             .Create()
             .Print()
             .MatchSnapshot();
@@ -1806,14 +1868,15 @@ public class ObjectTypeTests : TypeTestBase
     public void Specify_Argument_Type_With_SDL_Syntax()
     {
         SchemaBuilder.New()
-            .AddQueryType(d =>
-            {
-                d.Name("Query");
-                d.Field("Foo")
-                    .Argument("a", t => t.Type("Int"))
-                    .Type("String")
-                    .Resolve(_ => null);
-            })
+            .AddQueryType(
+                d =>
+                {
+                    d.Name("Query");
+                    d.Field("Foo")
+                        .Argument("a", t => t.Type("Int"))
+                        .Type("String")
+                        .Resolve(_ => null);
+                })
             .Create()
             .Print()
             .MatchSnapshot();
@@ -1838,14 +1901,16 @@ public class ObjectTypeTests : TypeTestBase
 
         await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o => o.DefaultIsOfTypeCheck = (objectType, context, value) =>
-            {
-                globalCheck = true;
-                return true;
-            })
+            .ModifyOptions(
+                o => o.DefaultIsOfTypeCheck = (objectType, context, value) =>
+                {
+                    globalCheck = true;
+                    return true;
+                })
             .AddQueryType(t => t.Field("abc").Type("Foo").Resolve(new object()))
             .AddInterfaceType(t => t.Name("Foo").Field("abc").Type("String"))
-            .AddObjectType(t => t.Name("Bar").Implements("Foo").Field("abc").Type("String").Resolve("abc"))
+            .AddObjectType(
+                t => t.Name("Bar").Implements("Foo").Field("abc").Type("String").Resolve("abc"))
             .ExecuteRequestAsync("{ abc { abc } }")
             .MatchSnapshotAsync();
 
@@ -1894,10 +1959,11 @@ public class ObjectTypeTests : TypeTestBase
         // act
         var executor = await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x => x
-                .Field("foo")
-                .Argument("bar", x => x.Type<IntType>().Deprecated("Is deprecated"))
-                .Resolve(""))
+            .AddQueryType(
+                x => x
+                    .Field("foo")
+                    .Argument("bar", x => x.Type<IntType>().Deprecated("Is deprecated"))
+                    .Resolve(""))
             .BuildRequestExecutorAsync();
 
         // assert
@@ -1913,12 +1979,13 @@ public class ObjectTypeTests : TypeTestBase
         // act
         Func<Task> call = async () => await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x => x
-                .Field("foo")
-                .Argument(
-                    "bar",
-                    x => x.Type<NonNullType<IntType>>().Deprecated("Is deprecated"))
-                .Resolve(""))
+            .AddQueryType(
+                x => x
+                    .Field("foo")
+                    .Argument(
+                        "bar",
+                        x => x.Type<NonNullType<IntType>>().Deprecated("Is deprecated"))
+                    .Resolve(""))
             .BuildRequestExecutorAsync();
 
         // assert
@@ -1935,7 +2002,8 @@ public class ObjectTypeTests : TypeTestBase
         // act
         var executor = await new ServiceCollection()
             .AddGraphQL()
-            .AddDocumentFromString(@"
+            .AddDocumentFromString(
+                @"
                     type Query {
                         foo(bar: String @deprecated(reason:""reason"")): Int!
                     }
@@ -1956,7 +2024,8 @@ public class ObjectTypeTests : TypeTestBase
         // act
         Func<Task> call = async () => await new ServiceCollection()
             .AddGraphQL()
-            .AddDocumentFromString(@"
+            .AddDocumentFromString(
+                @"
                     type Query {
                         foo(bar: String! @deprecated(reason:""reason"")): Int!
                     }
@@ -2017,20 +2086,20 @@ public class ObjectTypeTests : TypeTestBase
     }
 
     [Fact]
-        public async Task Static_Field_Inference_3_Execute()
-        {
-            // arrange
-            // act
-            var result =
-                await new ServiceCollection()
-                    .AddGraphQL()
-                    .AddQueryType<WithStaticField>()
-                    .ModifyOptions(o => o.DefaultBindingBehavior = BindingBehavior.Explicit)
-                    .ExecuteRequestAsync("{ hello }");
+    public async Task Static_Field_Inference_3_Execute()
+    {
+        // arrange
+        // act
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<WithStaticField>()
+                .ModifyOptions(o => o.DefaultBindingBehavior = BindingBehavior.Explicit)
+                .ExecuteRequestAsync("{ hello }");
 
-            // assert
-            SnapshotExtensions.MatchSnapshot(result);
-        }
+        // assert
+        SnapshotExtensions.MatchSnapshot(result);
+    }
 
     [Fact]
     public async Task Static_Field_Inference_4()
@@ -2041,11 +2110,12 @@ public class ObjectTypeTests : TypeTestBase
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<WithStaticField>()
-                .ModifyOptions(o =>
-                {
-                    o.DefaultBindingBehavior = BindingBehavior.Explicit;
-                    o.DefaultFieldBindingFlags = Instance | Static;
-                })
+                .ModifyOptions(
+                    o =>
+                    {
+                        o.DefaultBindingBehavior = BindingBehavior.Explicit;
+                        o.DefaultFieldBindingFlags = Instance | Static;
+                    })
                 .BuildSchemaAsync();
 
         // assert
@@ -2061,11 +2131,12 @@ public class ObjectTypeTests : TypeTestBase
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<WithStaticField>()
-                .ModifyOptions(o =>
-                {
-                    o.DefaultBindingBehavior = BindingBehavior.Explicit;
-                    o.DefaultFieldBindingFlags = Instance | Static;
-                })
+                .ModifyOptions(
+                    o =>
+                    {
+                        o.DefaultBindingBehavior = BindingBehavior.Explicit;
+                        o.DefaultFieldBindingFlags = Instance | Static;
+                    })
                 .ExecuteRequestAsync("{ hello staticHello }");
 
         // assert
@@ -2127,8 +2198,7 @@ public class ObjectTypeTests : TypeTestBase
 #nullable enable
     public class Bar
     {
-        [GraphQLNonNullType]
-        public string Baz { get; set; } = default!;
+        [GraphQLNonNullType] public string Baz { get; set; } = default!;
     }
 #nullable disable
 
@@ -2213,9 +2283,7 @@ public class ObjectTypeTests : TypeTestBase
     }
 
     public class MyList
-        : MyListBase
-    {
-    }
+        : MyListBase { }
 
     public class MyListBase
         : IQueryable<Bar>
@@ -2305,9 +2373,11 @@ public class ObjectTypeTests : TypeTestBase
             descriptor.Field("baz").ResolveWith<ResolveWithQueryResolver>(t => t.FooAsync());
 
             descriptor.Field("qux").ResolveWith<ResolveWithQueryResolver, string>(t => t.Bar);
-            descriptor.Field("quux").ResolveWith<ResolveWithQueryResolver, string>(t => t.FooAsync());
+            descriptor.Field("quux")
+                .ResolveWith<ResolveWithQueryResolver, string>(t => t.FooAsync());
 
-            descriptor.Field("quuz").ResolveWith<ResolveWithQueryResolver, bool>(t => t.BarAsync(default));
+            descriptor.Field("quuz")
+                .ResolveWith<ResolveWithQueryResolver, bool>(t => t.BarAsync(default));
         }
     }
 
@@ -2397,9 +2467,9 @@ public class ObjectTypeTests : TypeTestBase
 
     public class Book
     {
-        public int Id { get; }
+        public int Id => default;
 
-        public string Title { get; set; }
+        public string Title { get; set; } = default!;
 
         public static bool IsComic => true;
     }

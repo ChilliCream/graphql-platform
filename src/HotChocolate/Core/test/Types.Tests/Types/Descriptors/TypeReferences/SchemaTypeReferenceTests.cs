@@ -106,35 +106,35 @@ public class SchemaTypeReferenceTests
     }
 
     [Fact]
-    public async Task ITypeReference_Equals_To_Null()
+    public async Task TypeReference_Equals_To_Null()
     {
         // arrange
         var type = await CreateTypeAsync<StringType>();
         var x = TypeReference.Create(type);
 
         // act
-        var result = x.Equals((ITypeReference)null);
+        var result = x.Equals((TypeReference)null);
 
         // assert
         Assert.False(result);
     }
 
     [Fact]
-    public async Task ITypeReference_Equals_To_Same()
+    public async Task TypeReference_Equals_To_Same()
     {
         // arrange
         var type = await CreateTypeAsync<StringType>();
         var x = TypeReference.Create(type);
 
         // act
-        var xx = x.Equals((ITypeReference)x);
+        var xx = x.Equals((TypeReference)x);
 
         // assert
         Assert.True(xx);
     }
 
     [Fact]
-    public async Task ITypeReference_Equals_To_SyntaxTypeRef()
+    public async Task TypeReference_Equals_To_SyntaxTypeRef()
     {
         // arrange
         var type = await CreateTypeAsync<StringType>();
@@ -148,7 +148,7 @@ public class SchemaTypeReferenceTests
     }
 
     [Fact]
-    public async Task ITypeReference_Equals_Scope_Different()
+    public async Task TypeReference_Equals_Scope_Different()
     {
         // arrange
         var type = await CreateTypeAsync<StringType>();
@@ -157,8 +157,8 @@ public class SchemaTypeReferenceTests
         var z = TypeReference.Create(type, scope: "abc");
 
         // act
-        var xy = x.Equals((ITypeReference)y);
-        var xz = x.Equals((ITypeReference)y);
+        var xy = x.Equals((TypeReference)y);
+        var xz = x.Equals((TypeReference)y);
 
         // assert
         Assert.False(xy);
@@ -236,7 +236,7 @@ public class SchemaTypeReferenceTests
         var result = typeReference.ToString();
 
         // assert
-        Assert.Equal("None: HotChocolate.Types.StringType", result);
+        Assert.Equal("HotChocolate.Types.StringType", result);
     }
 
     [Fact]

@@ -168,7 +168,7 @@ public void EndOperationExecute(
 
 Resolver events are raised for every single resolver that is invoked. This is the perfect event to subscribe to if you want to add performance analysis or other resolver tracing solutions.
 
-> Have a look at our [ApolloTracingDiagnosticObserver](https://github.com/ChilliCream/hotchocolate/blob/master/src/Core/Core/Execution/Instrumentation/ApolloTracingDiagnosticObserver.cs) to get an idea of how to implement a performance analysis solution.
+> Have a look at our [ApolloTracingDiagnosticObserver](https://github.com/ChilliCream/graphql-platform/blob/master/src/Core/Core/Execution/Instrumentation/ApolloTracingDiagnosticObserver.cs) to get an idea of how to implement a performance analysis solution.
 
 ## Resolver Start
 
@@ -334,7 +334,7 @@ QueryExecutionBuilder
 
 We have created a little example project that demonstrates how you can delegate Hot Chocolate events to the ASP.NET core logger API.
 
-[ASP.NET ILogger Example](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/Instrumentation)
+[ASP.NET ILogger Example](https://github.com/ChilliCream/graphql-platform-examples/tree/master/misc/Instrumentation)
 
 We also have an implementation that we use in production that builds upon Microsoft\`s ETW. This is a more complex example since there is a lot of `unsafe` code.
 

@@ -13,7 +13,7 @@ internal sealed class DefaultPreparedOperationCache : IPreparedOperationCache
         _cache = new Cache<IOperation>(capacity);
     }
 
-    public int Capacity => _cache.Size;
+    public int Capacity => _cache.Capacity;
 
     public int Count => _cache.Usage;
 

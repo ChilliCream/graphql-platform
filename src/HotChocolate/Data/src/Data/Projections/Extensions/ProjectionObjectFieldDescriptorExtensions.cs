@@ -248,6 +248,8 @@ public static class ProjectionObjectFieldDescriptorExtensions
         IReadOnlyDictionary<string, object?> IPureResolverContext.ScopedContextData
             => ScopedContextData;
 
+        public IServiceProvider RequestServices => _context.RequestServices;
+
         public string ResponseName => _context.ResponseName;
 
         public bool HasErrors => _context.HasErrors;
@@ -382,8 +384,6 @@ public static class ProjectionObjectFieldDescriptorExtensions
         public PureFieldDelegate? PureResolver => _nodeField.PureResolver;
 
         public SubscribeResolverDelegate? SubscribeResolver => _nodeField.SubscribeResolver;
-
-        public IReadOnlyList<IDirective> ExecutableDirectives => _nodeField.ExecutableDirectives;
 
         public MemberInfo? Member => _nodeField.Member;
 

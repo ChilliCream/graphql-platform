@@ -18,12 +18,8 @@ export const PageTop: FC<PageTopProps> = ({ onTopScroll }) => {
   });
 
   useEffect(() => {
-    const classes = ref.current?.className ?? "";
-
     const subscription = showButton$.subscribe((showButton) => {
-      if (ref.current) {
-        ref.current.className = classes + (showButton ? " show" : "");
-      }
+      ref.current?.classList.toggle("show", showButton);
     });
 
     return () => {
@@ -43,8 +39,7 @@ const JumpToTop = styled.button`
   position: fixed;
   right: 24px;
   bottom: 24px;
-  z-index: 29;
-  display: none;
+  z-index: 20;
   border-radius: 50%;
   padding: 8px;
   width: 50px;

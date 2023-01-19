@@ -1,0 +1,2 @@
+The directive arguments have invalid values: 'Int cannot parse the given literal of type `BooleanValueNode`.' at /e.
+@a(d: 1, e: true)

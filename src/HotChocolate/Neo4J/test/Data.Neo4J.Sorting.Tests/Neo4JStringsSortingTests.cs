@@ -58,7 +58,7 @@ public class Neo4JStringsSortingTests : IClassFixture<Neo4JFixture>
 
     public class FooString
     {
-        public string Bar { get; set; }
+        public string Bar { get; set; } = default!;
     }
 
     public class FooStringSortType : SortInputType<FooString>

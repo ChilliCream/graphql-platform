@@ -143,16 +143,16 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
         return new Result
         {
             Content = content,
-            ContentType = response.Content.Headers.ContentType,
+            ContentType = response.Content.Headers.ContentType!,
             StatusCode = response.StatusCode,
         };
     }
 
     private sealed class Result
     {
-        public string Content { get; set; }
+        public string Content { get; set; } = default!;
 
-        public MediaTypeHeaderValue ContentType { get; set; }
+        public MediaTypeHeaderValue ContentType { get; set; } = default!;
 
         public HttpStatusCode StatusCode { get; set; }
     }

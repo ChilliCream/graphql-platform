@@ -1,0 +1,2 @@
+The directive arguments have invalid values: 'Int cannot parse the given literal of type `IntValueNode`.' at /d.
+@a(d: 9223372036854775807)

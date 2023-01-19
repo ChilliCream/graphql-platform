@@ -12,6 +12,7 @@ using static HotChocolate.Types.Descriptors.TypeReference;
 namespace HotChocolate.Types.Introspection;
 
 [Introspection]
+// ReSharper disable once InconsistentNaming
 internal sealed class __Type : ObjectType
 {
     protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
@@ -164,7 +165,7 @@ internal sealed class __Type : ObjectType
 
         public static object? OneOf(IPureResolverContext context)
             => context.Parent<IType>() is IInputObjectType iot
-                ? iot.Directives.Contains(WellKnownDirectives.OneOf)
+                ? iot.Directives.ContainsDirective(WellKnownDirectives.OneOf)
                 : null;
 
         public static object? SpecifiedBy(IPureResolverContext context)
@@ -174,12 +175,13 @@ internal sealed class __Type : ObjectType
 
         public static object AppliedDirectives(IPureResolverContext context) =>
             context.Parent<IType>() is IHasDirectives hasDirectives
-                ? hasDirectives.Directives.Where(t => t.Type.IsPublic).Select(d => d.ToNode())
+                ? hasDirectives.Directives.Where(t => t.Type.IsPublic).Select(d => d.AsSyntaxNode())
                 : Enumerable.Empty<DirectiveNode>();
     }
 
     public static class Names
     {
+        // ReSharper disable once InconsistentNaming
         public const string __Type = "__Type";
         public const string Kind = "kind";
         public const string Name = "name";

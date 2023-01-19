@@ -92,7 +92,7 @@ public class QueryType
 The last specification is called [Relay Input Object Mutations Specification](https://facebook.github.io/relay/graphql/mutations.htm) and it describes how mutations should be specified. This is more a design guideline then something we could help you with APIs with.
 
 Nevertheless, with version 9.1 we will try aide this with some convenience:
-[Automatic Relay InputType](https://github.com/ChilliCream/hotchocolate/issues/773).
+[Automatic Relay InputType](https://github.com/ChilliCream/graphql-platform/issues/773).
 
 # Additional Information
 

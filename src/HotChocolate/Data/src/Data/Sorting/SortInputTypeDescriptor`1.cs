@@ -128,24 +128,6 @@ public class SortInputTypeDescriptor<T>
         }
     }
 
-    public ISortFieldDescriptor Field<TField>(
-        Expression<Func<T, TField?>> propertyOrMember,
-        Action<ISortInputTypeDescriptor<TField>> configure)
-    {
-        var descriptor = Field(propertyOrMember);
-        descriptor.Extend().Definition.CreateFieldTypeDefinition = CreateFieldTypeDefinition;
-        return descriptor;
-
-        SortInputTypeDefinition CreateFieldTypeDefinition(
-            IDescriptorContext context,
-            string? scope)
-        {
-            var fieldDescriptor = Inline<TField>(context, typeof(TField), scope);
-            configure(fieldDescriptor);
-            return fieldDescriptor.CreateDefinition();
-        }
-    }
-
     /// <inheritdoc />
     public new ISortInputTypeDescriptor<T> Ignore(string name)
     {

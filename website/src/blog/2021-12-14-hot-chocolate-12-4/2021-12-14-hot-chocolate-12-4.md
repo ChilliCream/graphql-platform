@@ -537,7 +537,7 @@ Work on 12.5 already is underway, and there are four notable things we are worki
 - Banana Cake Pop Themes
 
 You can have a look at the milestone here:
-<https://github.com/ChilliCream/hotchocolate/milestone/72>
+<https://github.com/ChilliCream/graphql-platform/milestone/72>
 
 We will also be working on the new stitching engine over Christmas and hope to have the first previews ready at the end of January.
 
@@ -547,4 +547,4 @@ We hope you all enjoy this new version of Hot Chocolate and have some great holi
 
 Join us on <https://slack.chillicream.com> and chime into the discussion around GraphQL on .NET!
 
-> If you like our project help us by [starring it on GitHub](https://github.com/ChilliCream/hotchocolate/stargazers). A GitHub star is the easiest contribution you can give to an OSS project. Star the open source projects you use or love!
+> If you like our project help us by [starring it on GitHub](https://github.com/ChilliCream/graphql-platform/stargazers). A GitHub star is the easiest contribution you can give to an OSS project. Star the open source projects you use or love!

@@ -34,26 +34,4 @@ public class UnionType<T>
 
         return descriptor.CreateDefinition();
     }
-
-    protected override void OnCompleteTypeSet(
-        ITypeCompletionContext context,
-        UnionTypeDefinition definition,
-        ISet<ObjectType> typeSet)
-    {
-        base.OnCompleteTypeSet(context, definition, typeSet);
-
-        var markerType = definition.RuntimeType;
-
-        if (markerType != typeof(object))
-        {
-            foreach (var type in context.GetTypes<ObjectType>())
-            {
-                if (type.RuntimeType != typeof(object)
-                    && markerType.IsAssignableFrom(type.RuntimeType))
-                {
-                    typeSet.Add(type);
-                }
-            }
-        }
-    }
 }

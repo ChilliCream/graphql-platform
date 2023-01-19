@@ -1,14 +1,11 @@
 ---
 title: "Fetching from REST"
+description: In this section, we will cover how you can easily integrate a REST API into your GraphQL API.
 ---
-
-In this section, we will cover how you can easily integrate a REST API into your GraphQL API.
 
 If you want to have an outlook into the upcoming native REST integration with Hot Chocolate 13 you can head over to YouTube and have a look.
 
-<iframe width="560" height="315"
-src="https://www.youtube.com/embed/l2QsFlKYqhk"frameborder="0"
-allowfullscreen></iframe>
+<Video videoId="l2QsFlKYqhk" />
 
 GraphQL has a strongly-typed type system and therefore also has to know the dotnet runtime types of the data it returns in advance.
 
@@ -22,7 +19,7 @@ If you do not have an OpenAPI specification for your REST endpoint yet, you can 
 There are two major OpenAPI implementations in dotnet: [NSwag](http://nswag.org) and [Swashbuckle](https://github.com/domaindrivendev/Swashbuckle.AspNetCore).
 Head over to the [official ASP.NET Core](https://docs.microsoft.com/aspnet/core/tutorials/web-api-help-pages-using-swagger) documentation to see how it is done.
 
-In this example, we will use [the official example of Swashbuckle](https://github.com/dotnet/AspNetCore.Docs/tree/main/aspnetcore/tutorials/web-api-help-pages-using-swagger/samples/3.0/TodoApi.Swashbuckle).
+In this example, we will use [the official example of Swashbuckle](https://github.com/dotnet/AspNetCore.Docs/blob/main/aspnetcore/tutorials/getting-started-with-swashbuckle.md).
 When you start this project, you can navigate to the [Swagger UI](http://localhost:5000/swagger).
 
 This REST API covers a simple Todo app.

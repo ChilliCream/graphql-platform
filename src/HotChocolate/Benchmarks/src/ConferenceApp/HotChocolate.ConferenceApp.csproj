@@ -25,7 +25,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />  
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
   </ItemGroup>
 
   <ItemGroup>

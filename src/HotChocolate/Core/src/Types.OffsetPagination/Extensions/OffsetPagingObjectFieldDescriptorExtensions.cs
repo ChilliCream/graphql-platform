@@ -116,7 +116,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                             : null;
                 }
 
-                ITypeReference? typeRef = itemType is not null
+                TypeReference? typeRef = itemType is not null
                     ? c.TypeInspector.GetTypeRef(itemType)
                     : null;
 
@@ -205,7 +205,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                             : null;
                 }
 
-                ITypeReference? typeRef = itemType is not null
+                TypeReference? typeRef = itemType is not null
                     ? c.TypeInspector.GetTypeRef(itemType)
                     : null;
 
@@ -255,11 +255,11 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
             .Argument(OffsetPagingArgumentNames.Take, a => a.Type<IntType>());
     }
 
-    private static ITypeReference CreateTypeRef(
+    private static TypeReference CreateTypeRef(
         IDescriptorContext context,
         MemberInfo? resolverMember,
         string? collectionSegmentName,
-        ITypeReference? itemsType,
+        TypeReference? itemsType,
         PagingOptions options)
     {
         var typeInspector = context.TypeInspector;

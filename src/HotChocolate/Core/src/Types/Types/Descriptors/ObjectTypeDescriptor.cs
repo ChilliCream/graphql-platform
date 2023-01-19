@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Descriptors;
 
 public class ObjectTypeDescriptor
     : DescriptorBase<ObjectTypeDefinition>
-    , IObjectTypeDescriptor
+        , IObjectTypeDescriptor
 {
     private readonly List<ObjectFieldDescriptor> _fields = new();
 
@@ -130,7 +130,10 @@ public class ObjectTypeDescriptor
         IDictionary<string, ObjectFieldDefinition> fields,
         ISet<MemberInfo> handledMembers)
     {
-        HashSet<string>? subscribeResolver = null;
+        var skip = false;
+        HashSet<string>? subscribeRes = null;
+        Dictionary<MemberInfo, string>? subscribeResLook = null;
+
 
         if (Definition.Fields.IsImplicitBinding() &&
             Definition.FieldBindingType is not null)
@@ -148,13 +151,19 @@ public class ObjectTypeDescriptor
 
                 if (handledMembers.Add(member) &&
                     !fields.ContainsKey(name) &&
-                    IncludeField(ref subscribeResolver, members, member))
+                    IncludeField(ref skip, ref subscribeRes, ref subscribeResLook, members, member))
                 {
                     var descriptor = ObjectFieldDescriptor.New(
                         Context,
                         member,
                         Definition.RuntimeType,
                         type);
+
+                    if (subscribeResLook is not null &&
+                        subscribeResLook.TryGetValue(member, out var with))
+                    {
+                        descriptor.Definition.SubscribeWith = with;
+                    }
 
                     if (isExtension && inspector.IsMemberIgnored(member))
                     {
@@ -173,35 +182,38 @@ public class ObjectTypeDescriptor
         }
 
         static bool IncludeField(
+            ref bool skip,
             ref HashSet<string>? subscribeResolver,
+            ref Dictionary<MemberInfo, string>? subscribeResolverLookup,
             ReadOnlySpan<MemberInfo> allMembers,
             MemberInfo current)
         {
+            // if there is now with declared we can include all members.
+            if (skip)
+            {
+                return true;
+            }
+
             if (subscribeResolver is null)
             {
-                subscribeResolver = new HashSet<string>();
-
                 foreach (var member in allMembers)
                 {
-                    HandlePossibleSubscribeMember(subscribeResolver, member);
+                    if (member.IsDefined(typeof(SubscribeAttribute)) &&
+                        member.GetCustomAttribute<SubscribeAttribute>() is { With: not null } a)
+                    {
+                        subscribeResolver ??= new HashSet<string>();
+                        subscribeResolverLookup ??= new Dictionary<MemberInfo, string>();
+                        subscribeResolver.Add(a.With);
+                        subscribeResolverLookup.Add(member, a.With);
+                    }
                 }
+
+                skip = subscribeResolver is null;
             }
 
-            return !subscribeResolver.Contains(current.Name);
+            return !subscribeResolver?.Contains(current.Name) ?? true;
         }
 
-        static void HandlePossibleSubscribeMember(
-            HashSet<string> subscribeResolver,
-            MemberInfo member)
-        {
-            if (member.IsDefined(typeof(SubscribeAttribute)))
-            {
-                if (member.GetCustomAttribute<SubscribeAttribute>() is { With: not null } attr)
-                {
-                    subscribeResolver.Add(attr.With);
-                }
-            }
-        }
     }
 
     protected virtual void OnCompleteFields(

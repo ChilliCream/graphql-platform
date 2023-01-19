@@ -30,10 +30,10 @@ public class SortConvention
     private IReadOnlyDictionary<int, SortOperation> _operations = default!;
     private IDictionary<Type, Type> _bindings = default!;
 
-    private IDictionary<ITypeReference, List<ConfigureSortInputType>> _inputTypeConfigs =
+    private IDictionary<TypeReference, List<ConfigureSortInputType>> _inputTypeConfigs =
         default!;
 
-    private IDictionary<ITypeReference, List<ConfigureSortEnumType>> _enumTypeConfigs =
+    private IDictionary<TypeReference, List<ConfigureSortEnumType>> _enumTypeConfigs =
         default!;
 
     private string _argumentName = default!;
@@ -134,17 +134,6 @@ public class SortConvention
     public virtual string GetTypeName(Type runtimeType) =>
         _namingConventions.GetTypeName(runtimeType, TypeKind.Object) + _typePostFix;
 
-    public string GetTypeName(ISortInputType parentType, SortFieldDefinition fieldDefinition)
-    {
-        var parentName = parentType.Name;
-        if (parentName.EndsWith(_typePostFix, StringComparison.Ordinal))
-        {
-            parentName = parentName.Remove(parentName.Length - _typePostFix.Length);
-        }
-
-        return parentName + NameHelpers.UppercaseFirstLetter(fieldDefinition.Name) + _typePostFix;
-    }
-
     /// <inheritdoc />
     public virtual string? GetTypeDescription(Type runtimeType) =>
         _namingConventions.GetTypeDescription(runtimeType, TypeKind.InputObject);
@@ -202,7 +191,7 @@ public class SortConvention
 
     /// <inheritdoc cref="ISortConvention"/>
     public void ApplyConfigurations(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         ISortInputTypeDescriptor descriptor)
     {
         if (_inputTypeConfigs.TryGetValue(
@@ -222,7 +211,7 @@ public class SortConvention
     }
 
     public void ApplyConfigurations(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         ISortEnumTypeDescriptor descriptor)
     {
         if (_enumTypeConfigs.TryGetValue(

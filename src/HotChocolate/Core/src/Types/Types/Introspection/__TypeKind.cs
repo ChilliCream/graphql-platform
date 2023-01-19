@@ -8,6 +8,7 @@ using static HotChocolate.Properties.TypeResources;
 namespace HotChocolate.Types.Introspection;
 
 [Introspection]
+// ReSharper disable once InconsistentNaming
 internal sealed class __TypeKind : EnumType
 {
     protected override EnumTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
@@ -15,19 +16,20 @@ internal sealed class __TypeKind : EnumType
         {
             Values =
             {
-                    new(Names.Scalar, TypeKind_Scalar, TypeKind.Scalar),
-                    new(Names.Object, TypeKind_Object, TypeKind.Object),
-                    new(Names.Interface, TypeKind_Interface, TypeKind.Interface),
-                    new(Names.Union, TypeKind_Union, TypeKind.Union),
-                    new(Names.Enum, TypeKind_Enum, TypeKind.Enum),
-                    new(Names.InputObject, TypeKind_InputObject, TypeKind.InputObject),
-                    new(Names.List, TypeKind_List, TypeKind.List),
-                    new(Names.NonNull, TypeKind_NonNull, TypeKind.NonNull),
+                new(Names.Scalar, TypeKind_Scalar, TypeKind.Scalar),
+                new(Names.Object, TypeKind_Object, TypeKind.Object),
+                new(Names.Interface, TypeKind_Interface, TypeKind.Interface),
+                new(Names.Union, TypeKind_Union, TypeKind.Union),
+                new(Names.Enum, TypeKind_Enum, TypeKind.Enum),
+                new(Names.InputObject, TypeKind_InputObject, TypeKind.InputObject),
+                new(Names.List, TypeKind_List, TypeKind.List),
+                new(Names.NonNull, TypeKind_NonNull, TypeKind.NonNull),
             }
         };
 
     public static class Names
     {
+        // ReSharper disable once InconsistentNaming
         public const string __TypeKind = "__TypeKind";
         public const string Scalar = "SCALAR";
         public const string Object = "OBJECT";

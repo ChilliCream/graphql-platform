@@ -14,6 +14,9 @@
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Execution" />
     <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
+    <InternalsVisibleTo Include="HotChocolate.Authorization" />
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore" />
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore.Authorization" />
     <InternalsVisibleTo Include="HotChocolate.Validation" />
     <InternalsVisibleTo Include="HotChocolate.Types.CursorPagination" />
     <InternalsVisibleTo Include="HotChocolate.Types.OffsetPagination" />
@@ -79,6 +82,21 @@
     </Compile>
     <Compile Update="Types\Scalars\ScalarType.Initialization.cs">
       <DependentUpon>ScalarType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Schema.Initialization.cs">
+      <DependentUpon>Schema.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\InputObjectType.Initialization.cs">
+      <DependentUpon>InputObjectType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\DirectiveType.Initialization.cs">
+      <DependentUpon>DirectiveType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Configuration\RegisteredType.CompletionContext.cs">
+      <DependentUpon>RegisteredType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Configuration\RegisteredType.DiscoveryContext.cs">
+      <DependentUpon>RegisteredType.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 

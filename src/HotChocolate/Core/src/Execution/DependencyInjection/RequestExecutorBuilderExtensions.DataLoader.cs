@@ -3,7 +3,6 @@ using GreenDonut;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class RequestExecutorBuilderExtensions
@@ -21,7 +20,8 @@ public static partial class RequestExecutorBuilderExtensions
         where TService : class, IDataLoader
         where TImplementation : class, TService
     {
-        builder.Services.TryAddScoped<TService, TImplementation>();
+        builder.Services.TryAddScoped<TImplementation>();
+        builder.Services.TryAddScoped<TService>(sp => sp.GetRequiredService<TImplementation>());
         return builder;
     }
 

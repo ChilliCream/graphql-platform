@@ -9,7 +9,7 @@ using static HotChocolate.Internal.FieldInitHelper;
 
 namespace HotChocolate.Types;
 
-public class InputField : FieldBase<InputFieldDefinition>, IInputField
+public class InputField : FieldBase<InputFieldDefinition>, IInputField, IHasProperty
 {
     private Type _runtimeType = default!;
 
@@ -69,7 +69,7 @@ public class InputField : FieldBase<InputFieldDefinition>, IInputField
     /// If this field is bound to a property on a concrete model,
     /// then this property exposes this property.
     /// </summary>
-    protected internal PropertyInfo? Property { get; }
+    public PropertyInfo? Property { get; }
 
     protected override void OnCompleteField(
         ITypeCompletionContext context,

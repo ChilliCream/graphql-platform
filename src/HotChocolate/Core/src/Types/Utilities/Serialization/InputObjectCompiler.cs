@@ -15,6 +15,7 @@ internal static class InputObjectCompiler
 {
     private static readonly ParameterExpression _obj =
         Expression.Parameter(typeof(object), "obj");
+
     private static readonly ParameterExpression _fieldValues =
         Expression.Parameter(typeof(object?[]), "fieldValues");
 
@@ -23,29 +24,81 @@ internal static class InputObjectCompiler
         ConstructorInfo? constructor = null)
     {
         var fields = TypeMemHelper.RentInputFieldMap();
-        BuildFieldMap(inputType, fields);
 
-        constructor ??= GetCompatibleConstructor(inputType.RuntimeType, inputType, fields);
-
-        var instance = constructor is null
-            ? Expression.New(inputType.RuntimeType)
-            : CreateInstance(fields, constructor, _fieldValues);
-
-        if (fields.Count == 0)
+        try
         {
-            Expression casted = Expression.Convert(instance, typeof(object));
-            return Expression.Lambda<Func<object?[], object>>(casted, _fieldValues).Compile();
+            BuildFieldMap(inputType, fields);
+
+            constructor ??= GetCompatibleConstructor(
+                inputType.RuntimeType,
+                inputType.Fields,
+                fields);
+
+            var instance = constructor is null
+                ? Expression.New(inputType.RuntimeType)
+                : CreateInstance(fields, constructor, _fieldValues);
+
+            if (fields.Count == 0)
+            {
+                Expression casted = Expression.Convert(instance, typeof(object));
+                return Expression.Lambda<Func<object?[], object>>(casted, _fieldValues).Compile();
+            }
+
+            var variable = Expression.Variable(inputType.RuntimeType, "obj");
+
+            var expressions = new List<Expression>();
+            expressions.Add(Expression.Assign(variable, instance));
+            CompileSetProperties(variable, fields.Values, _fieldValues, expressions);
+            expressions.Add(Expression.Convert(variable, typeof(object)));
+            Expression body = Expression.Block(new[] { variable }, expressions);
+
+            return Expression.Lambda<Func<object?[], object>>(body, _fieldValues).Compile();
         }
+        finally
+        {
+            TypeMemHelper.Return(fields);
+        }
+    }
 
-        var variable = Expression.Variable(inputType.RuntimeType, "obj");
+    public static Func<object?[], object> CompileFactory(
+        DirectiveType directiveType,
+        ConstructorInfo? constructor = null)
+    {
+        var arguments = TypeMemHelper.RentDirectiveArgumentMap();
 
-        var expressions = new List<Expression>();
-        expressions.Add(Expression.Assign(variable, instance));
-        CompileSetProperties(variable, fields.Values, _fieldValues, expressions);
-        expressions.Add(Expression.Convert(variable, typeof(object)));
-        Expression body = Expression.Block(new[] { variable }, expressions);
+        try
+        {
+            BuildFieldMap(directiveType, arguments);
 
-        return Expression.Lambda<Func<object?[], object>>(body, _fieldValues).Compile();
+            constructor ??= GetCompatibleConstructor(
+                directiveType.RuntimeType,
+                directiveType.Arguments,
+                arguments);
+
+            var instance = constructor is null
+                ? Expression.New(directiveType.RuntimeType)
+                : CreateInstance(arguments, constructor, _fieldValues);
+
+            if (arguments.Count == 0)
+            {
+                Expression casted = Expression.Convert(instance, typeof(object));
+                return Expression.Lambda<Func<object?[], object>>(casted, _fieldValues).Compile();
+            }
+
+            var variable = Expression.Variable(directiveType.RuntimeType, "obj");
+
+            var expressions = new List<Expression>();
+            expressions.Add(Expression.Assign(variable, instance));
+            CompileSetProperties(variable, arguments.Values, _fieldValues, expressions);
+            expressions.Add(Expression.Convert(variable, typeof(object)));
+            Expression body = Expression.Block(new[] { variable }, expressions);
+
+            return Expression.Lambda<Func<object?[], object>>(body, _fieldValues).Compile();
+        }
+        finally
+        {
+            TypeMemHelper.Return(arguments);
+        }
     }
 
     public static Action<object, object?[]> CompileGetFieldValues(InputObjectType inputType)
@@ -71,20 +124,45 @@ internal static class InputObjectCompiler
         return Expression.Lambda<Action<object, object?[]>>(body, _obj, _fieldValues).Compile();
     }
 
-    private static Expression CreateInstance(
-        Dictionary<string, InputField> fields,
+    public static Action<object, object?[]> CompileGetFieldValues(DirectiveType inputType)
+    {
+        Expression instance = _obj;
+
+        if (inputType.RuntimeType != typeof(object))
+        {
+            instance = Expression.Convert(instance, inputType.RuntimeType);
+        }
+
+        var expressions = new List<Expression>();
+
+        foreach (var field in inputType.Arguments.AsSpan())
+        {
+            var getter = field.Property!.GetGetMethod(true)!;
+            Expression fieldValue = Expression.Call(instance, getter);
+            expressions.Add(SetFieldValue(field, _fieldValues, fieldValue));
+        }
+
+        Expression body = Expression.Block(expressions);
+
+        return Expression.Lambda<Action<object, object?[]>>(body, _obj, _fieldValues).Compile();
+    }
+
+    private static Expression CreateInstance<T>(
+        Dictionary<string, T> fields,
         ConstructorInfo constructor,
         Expression fieldValues)
+        where T : class, IInputField, IHasProperty
     {
         return Expression.New(
             constructor,
             CompileAssignParameters(fields, constructor, fieldValues));
     }
 
-    private static Expression[] CompileAssignParameters(
-        Dictionary<string, InputField> fields,
+    private static Expression[] CompileAssignParameters<T>(
+        Dictionary<string, T> fields,
         ConstructorInfo constructor,
         Expression fieldValues)
+        where T : class, IInputField, IHasProperty
     {
         var parameters = constructor.GetParameters();
 
@@ -104,7 +182,7 @@ internal static class InputObjectCompiler
                 fields.Remove(field.Property!.Name);
                 var value = GetFieldValue(field, fieldValues);
 
-                if (field.IsOptional)
+                if (field is InputField { IsOptional: true })
                 {
                     value = CreateOptional(value, field.RuntimeType);
                 }
@@ -120,18 +198,19 @@ internal static class InputObjectCompiler
         return expressions;
     }
 
-    private static void CompileSetProperties(
+    private static void CompileSetProperties<T>(
         Expression instance,
-        IEnumerable<InputField> fields,
+        IEnumerable<T> fields,
         Expression fieldValues,
         List<Expression> currentBlock)
+        where T : class, IInputField, IHasProperty
     {
         foreach (var field in fields)
         {
             var setter = field.Property!.GetSetMethod(true)!;
             var value = GetFieldValue(field, fieldValues);
 
-            if (field.IsOptional)
+            if (field is InputField { IsOptional: true })
             {
                 value = CreateOptional(value, field.RuntimeType);
             }
@@ -142,11 +221,12 @@ internal static class InputObjectCompiler
         }
     }
 
-    private static Expression GetFieldValue(InputField field, Expression fieldValues)
+    private static Expression GetFieldValue<T>(T field, Expression fieldValues)
+        where T : class, IInputField, IHasProperty
         => Expression.ArrayIndex(fieldValues, Expression.Constant(field.Index));
 
     private static Expression SetFieldValue(
-        InputField field,
+        IInputField field,
         Expression fieldValues,
         Expression fieldValue)
     {
@@ -156,9 +236,21 @@ internal static class InputObjectCompiler
         return Expression.Assign(element, casted);
     }
 
-    private static void BuildFieldMap(InputObjectType type, Dictionary<string, InputField> fields)
+    private static void BuildFieldMap(
+        InputObjectType type,
+        Dictionary<string, InputField> fields)
     {
         foreach (var field in type.Fields.AsSpan())
+        {
+            fields.Add(field.Property!.Name, field);
+        }
+    }
+
+    private static void BuildFieldMap(
+        DirectiveType type,
+        Dictionary<string, DirectiveArgument> fields)
+    {
+        foreach (var field in type.Arguments.AsSpan())
         {
             fields.Add(field.Property!.Name, field);
         }
@@ -172,6 +264,6 @@ internal static class InputObjectCompiler
                 .GetMethod("From", BindingFlags.Public | BindingFlags.Static)!;
         Debug.Assert(from is not null, "From helper on Optional<T> is missing.");
         fieldValue = Expression.Convert(fieldValue, typeof(IOptional));
-        return Expression.Call(from!, fieldValue);
+        return Expression.Call(from, fieldValue);
     }
 }

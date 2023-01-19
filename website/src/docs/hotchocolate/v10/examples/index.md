@@ -25,7 +25,7 @@ public class Query
 }
 ```
 
-[Star Wars - Pure Code-First](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/PureCodeFirst)
+[Star Wars - Pure Code-First](https://github.com/ChilliCream/graphql-platform-examples/tree/master/misc/PureCodeFirst)
 
 We have also created a dotnet CLI template for the pure Code-First Star Wars example. You can follow the example and get an impression how you could implement such a schema with our API.
 
@@ -63,7 +63,7 @@ Try a query like the following to get started:
 }
 ```
 
-The template source code is located [here](https://github.com/ChilliCream/hotchocolate/tree/master/examples).
+The template source code is located [here](https://github.com/ChilliCream/graphql-platform/tree/master/examples).
 
 # Code-First
 
@@ -94,7 +94,7 @@ public class Query
 }
 ```
 
-[Star Wars - Code-First](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/CodeFirst)
+[Star Wars - Code-First](https://github.com/ChilliCream/graphql-platform-examples/tree/master/misc/CodeFirst)
 
 # Schema-First
 

@@ -38,7 +38,7 @@ internal static class AttributeExtensions
         var name = property.IsDefined(
             typeof(GraphQLNameAttribute), false)
             ? property.GetCustomAttribute<GraphQLNameAttribute>()!.Name
-            : NormalizeName(property.Name);
+            : NormalizeFieldName(property.Name);
 
         return NameUtils.MakeValidGraphQLName(name)!;
     }
@@ -68,7 +68,7 @@ internal static class AttributeExtensions
         var name = parameter.IsDefined(
             typeof(GraphQLNameAttribute), false)
             ? parameter.GetCustomAttribute<GraphQLNameAttribute>()!.Name
-            : NormalizeName(parameter.Name!);
+            : NormalizeFieldName(parameter.Name!);
 
         return NameUtils.MakeValidGraphQLName(name)!;
     }
@@ -111,7 +111,7 @@ internal static class AttributeExtensions
             name = name.Substring(0, name.Length - _async.Length);
         }
 
-        return NormalizeName(name);
+        return NormalizeFieldName(name);
     }
 
     private static bool IsAsyncMethod(Type returnType)
@@ -195,7 +195,7 @@ internal static class AttributeExtensions
         return type.Name;
     }
 
-    private static string NormalizeName(string name)
+    public static string NormalizeFieldName(string name)
         => name.Length > 1
             ? name.Substring(0, 1).ToLowerInvariant() + name.Substring(1)
             : name.ToLowerInvariant();

@@ -1,19 +1,9 @@
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
-using HotChocolate.Resolvers;
-using Xunit;
+using HotChocolate.Authorization;
 
 namespace HotChocolate.AspNetCore.Authorization;
 
 public class PolicyHandlerMatchingTests
 {
-    private class DummyHandler : IPolicyResultHandler
-    {
-        public Task<AuthorizeResult> HandleAsync(string policyPath, HttpResponseMessage response,
-            IMiddlewareContext context) => Task.FromResult(AuthorizeResult.Allowed);
-    }
-
     [Fact]
     public void ThrowsWhenNoMatchingHandlerFound()
     {
@@ -21,25 +11,25 @@ public class PolicyHandlerMatchingTests
         var options = new OpaOptions();
 
         // act
-        IPolicyResultHandler FindHandler() => options.GetResultHandlerFor("graphql/policy");
+        ParseResult FindHandler() => options.GetPolicyResultParser("graphql/policy");
 
         // assert
-        Assert.Throws<InvalidOperationException>((Func<IPolicyResultHandler>)FindHandler);
+        Assert.Throws<InvalidOperationException>(FindHandler);
     }
-    
+
     [Fact]
     public void MatchesExact()
     {
         // arrange
         var options = new OpaOptions();
-        var handler = new DummyHandler();
-        options.PolicyResultHandlers.Add("my/policy", handler);
-        
+        var parser = new ParseResult(_ => AuthorizeResult.Allowed);
+        options.PolicyResultHandlers.Add("my/policy", parser);
+
         // act
-        var foundHandler = options.GetResultHandlerFor("my/policy");
-        
+        var foundHandler = options.GetPolicyResultParser("my/policy");
+
         // assert
-        Assert.Equal(handler, foundHandler);
+        Assert.Equal(parser, foundHandler);
     }
 
     [Fact]
@@ -47,14 +37,14 @@ public class PolicyHandlerMatchingTests
     {
         // arrange
         var options = new OpaOptions();
-        var handler = new DummyHandler();
-        options.PolicyResultHandlers.Add("graphql\\/.*", handler);
-        
+        var parser = new ParseResult(_ => AuthorizeResult.Allowed);
+        options.PolicyResultHandlers.Add("graphql\\/.*", parser);
+
         // act
-        var foundHandler = options.GetResultHandlerFor("graphql/policy");
-        
+        var foundHandler = options.GetPolicyResultParser("graphql/policy");
+
         // assert
-        Assert.Equal(handler, foundHandler);
+        Assert.Equal(parser, foundHandler);
     }
 
     [Fact]
@@ -62,14 +52,14 @@ public class PolicyHandlerMatchingTests
     {
         // arrange
         var options = new OpaOptions();
-        var regexHandler = new DummyHandler();
+        var regexHandler = new ParseResult(_ => AuthorizeResult.Allowed);
         options.PolicyResultHandlers.Add("graphql\\/.*", regexHandler);
-        var exactHandler = new DummyHandler();
+        var exactHandler = new ParseResult(_ => AuthorizeResult.Allowed);
         options.PolicyResultHandlers.Add("graphql/policy", exactHandler);
-        
+
         // act
-        var foundHandler = options.GetResultHandlerFor("graphql/policy");
-        
+        var foundHandler = options.GetPolicyResultParser("graphql/policy");
+
         // assert
         Assert.Equal(exactHandler, foundHandler);
     }
@@ -80,15 +70,15 @@ public class PolicyHandlerMatchingTests
     {
         // arrange
         var options = new OpaOptions();
-        var regexHandler = new DummyHandler();
+        var regexHandler = new ParseResult(_ => AuthorizeResult.Allowed);
         options.PolicyResultHandlers.Add("graphql\\/.*", regexHandler);
-        var exactHandler = new DummyHandler();
+        var exactHandler = new ParseResult(_ => AuthorizeResult.Allowed);
         options.PolicyResultHandlers.Add("graphql\\/p.*", exactHandler);
-        
+
         // act
-        IPolicyResultHandler FindHandler() => options.GetResultHandlerFor("graphql/policy");
+        ParseResult FindHandler() => options.GetPolicyResultParser("graphql/policy");
 
         // assert
-        Assert.Throws<InvalidOperationException>((Func<IPolicyResultHandler>)FindHandler);
+        Assert.Throws<InvalidOperationException>(FindHandler);
     }
 }

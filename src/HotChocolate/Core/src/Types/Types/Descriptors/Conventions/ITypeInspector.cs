@@ -64,7 +64,7 @@ public interface ITypeInspector : IConvention
     /// <returns>
     /// Returns a type reference describing the type of the field.
     /// </returns>
-    ITypeReference GetReturnTypeRef(
+    TypeReference GetReturnTypeRef(
         MemberInfo member,
         TypeContext context = TypeContext.None,
         string? scope = null,
@@ -99,7 +99,7 @@ public interface ITypeInspector : IConvention
     /// <returns>
     /// Returns a type reference describing the type of the argument.
     /// </returns>
-    ITypeReference GetArgumentTypeRef(
+    TypeReference GetArgumentTypeRef(
         ParameterInfo parameter,
         string? scope = null,
         bool ignoreAttributes = false);

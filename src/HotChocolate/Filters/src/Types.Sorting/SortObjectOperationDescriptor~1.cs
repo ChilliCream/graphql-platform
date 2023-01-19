@@ -13,7 +13,7 @@ public class SortObjectOperationDescriptor<TObject>
     protected SortObjectOperationDescriptor(
         IDescriptorContext context,
         string name,
-        ITypeReference type,
+        TypeReference type,
         SortOperation operation)
         : base(context, name, type, operation)
     {
@@ -77,7 +77,7 @@ public class SortObjectOperationDescriptor<TObject>
     public new static SortObjectOperationDescriptor<TObject> New(
         IDescriptorContext context,
         string name,
-        ITypeReference type,
+        TypeReference type,
         SortOperation operation)
         => new(context, name, type, operation);
 

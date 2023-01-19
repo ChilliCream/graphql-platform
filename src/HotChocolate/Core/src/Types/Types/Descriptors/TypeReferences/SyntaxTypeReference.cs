@@ -5,11 +5,14 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Descriptors;
 
+/// <summary>
+/// Represents a reference to a type with a syntax type reference.
+/// </summary>
 public sealed class SyntaxTypeReference
     : TypeReference
     , IEquatable<SyntaxTypeReference>
 {
-    public SyntaxTypeReference(
+    internal SyntaxTypeReference(
         ITypeNode type,
         TypeContext context,
         string? scope = null,
@@ -61,7 +64,7 @@ public sealed class SyntaxTypeReference
     }
 
     /// <inheritdoc />
-    public override bool Equals(ITypeReference? other)
+    public override bool Equals(TypeReference? other)
     {
         if (other is null)
         {
@@ -108,9 +111,7 @@ public sealed class SyntaxTypeReference
 
     /// <inheritdoc />
     public override string ToString()
-    {
-        return $"{Context}: {Type}";
-    }
+        => ToString(Type);
 
     public SyntaxTypeReference WithType(ITypeNode type)
     {
@@ -138,7 +139,7 @@ public sealed class SyntaxTypeReference
         Optional<string?> scope = default,
         Optional<Func<IDescriptorContext, TypeSystemObjectBase>?> factory = default)
     {
-        if (type.HasValue && type.Value is null)
+        if (type is { HasValue: true, Value: null })
         {
             throw new ArgumentNullException(nameof(type));
         }

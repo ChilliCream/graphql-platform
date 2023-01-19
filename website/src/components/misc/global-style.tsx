@@ -19,31 +19,17 @@ export const GlobalStyle = createGlobalStyle`
     height: 100vh;
     overflow: hidden;
     font-family: ${FONT_FAMILY};
-    -ms-text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
   }
 
   body {
     margin: 0;
-    height: 100vh;
     overflow: hidden;
     font-size: 18px;
     line-height: 30px;
     color: ${THEME_COLORS.text};
-    scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-
-    > div:first-child {
-      display: block;
-      height: 100vh;
-
-      > div {
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-      }
-    }
   }
 
   * {

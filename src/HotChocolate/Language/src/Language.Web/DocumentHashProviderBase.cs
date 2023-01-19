@@ -88,10 +88,10 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
 
         if (value > '9')
         {
-            value += ('A' - ('9' + 1));
+            value += 'A' - ('9' + 1);
         }
 
-        if (value > 64 && value < 91)
+        if (value is > 64 and < 91)
         {
             value |= 0x20;
         }

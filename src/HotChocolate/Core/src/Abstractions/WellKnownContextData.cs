@@ -1,5 +1,3 @@
-using System.Data;
-
 namespace HotChocolate;
 
 /// <summary>
@@ -235,4 +233,14 @@ public static class WellKnownContextData
     /// The key to get the Cache-Control header value from the context data.
     /// </summary>
     public const string CacheControlHeaderValue = "HotChocolate.Caching.CacheControlHeaderValue";
+
+    /// <summary>
+    /// The key to retrieve the authorization options from the context.
+    /// </summary>
+    public const string AuthorizationOptions =  "HotChocolate.Authorization.Options";
+
+    /// <summary>
+    /// The key to check if this schema contains request policies.
+    /// </summary>
+    public const string AuthorizationRequestPolicy =  "HotChocolate.Authorization.RequestPolicy";
 }

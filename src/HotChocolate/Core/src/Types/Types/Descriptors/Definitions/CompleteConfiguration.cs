@@ -14,9 +14,9 @@ public sealed class CompleteConfiguration<TDefinition>
         Action<ITypeCompletionContext, TDefinition> configure,
         TDefinition owner,
         ApplyConfigurationOn on,
-        ITypeReference? typeReference = null,
-        TypeDependencyKind kind = TypeDependencyKind.Default)
-        : base((c, d) => configure(c, (TDefinition)d), owner, on, typeReference, kind)
+        TypeReference? typeReference = null,
+        TypeDependencyFulfilled fulfilled = TypeDependencyFulfilled.Default)
+        : base((c, d) => configure(c, (TDefinition)d), owner, on, typeReference, fulfilled)
     {
     }
 
@@ -39,8 +39,8 @@ public class CompleteConfiguration : ITypeSystemMemberConfiguration
         Action<ITypeCompletionContext, IDefinition> configure,
         IDefinition owner,
         ApplyConfigurationOn on,
-        ITypeReference? typeReference = null,
-        TypeDependencyKind kind = TypeDependencyKind.Default)
+        TypeReference? typeReference = null,
+        TypeDependencyFulfilled fulfilled = TypeDependencyFulfilled.Default)
     {
         if (on is ApplyConfigurationOn.Create)
         {
@@ -53,7 +53,7 @@ public class CompleteConfiguration : ITypeSystemMemberConfiguration
 
         if (typeReference is not null)
         {
-            _dependencies = new List<TypeDependency>(1) { new(typeReference, kind) };
+            _dependencies = new List<TypeDependency>(1) { new(typeReference, fulfilled) };
         }
     }
 

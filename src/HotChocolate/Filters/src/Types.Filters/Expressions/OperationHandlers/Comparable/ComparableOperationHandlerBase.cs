@@ -36,7 +36,7 @@ public abstract class ComparableOperationHandlerBase
         expression = null;
         return false;
 
-        object ParseValue()
+        object? ParseValue()
         {
             var parsedValue = context.InputParser.ParseLiteral(value, type);
 
@@ -55,6 +55,6 @@ public abstract class ComparableOperationHandlerBase
     protected abstract bool TryCreateExpression(
         FilterOperation operation,
         Expression property,
-        Func<object> parseValue,
+        Func<object?> parseValue,
         [NotNullWhen(true)] out Expression? expression);
 }

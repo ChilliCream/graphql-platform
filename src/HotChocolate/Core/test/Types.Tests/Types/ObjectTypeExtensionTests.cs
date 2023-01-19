@@ -303,7 +303,7 @@ public class ObjectTypeExtensionTests
             .BuildSchemaAsync();
 
         var type = schema.GetType<ObjectType>("Foo");
-        Assert.True(type.Directives.Contains("dummy"));
+        Assert.True(type.Directives.ContainsDirective("dummy"));
     }
 
     [Fact]
@@ -320,8 +320,7 @@ public class ObjectTypeExtensionTests
             .BuildSchemaAsync();
 
         var type = schema.GetType<ObjectType>("Foo");
-        Assert.True(type.Fields["name"]
-            .Directives.Contains("dummy"));
+        Assert.True(type.Fields["name"].Directives.ContainsDirective("dummy"));
     }
 
     [Fact]
@@ -338,8 +337,7 @@ public class ObjectTypeExtensionTests
             .BuildSchemaAsync();
 
         var type = schema.GetType<ObjectType>("Foo");
-        Assert.True(type.Fields["name"].Arguments["a"]
-            .Directives.Contains("dummy"));
+        Assert.True(type.Fields["name"].Arguments["a"].Directives.ContainsDirective("dummy"));
     }
 
     [Fact]
@@ -358,7 +356,7 @@ public class ObjectTypeExtensionTests
         var type = schema.GetType<ObjectType>("Foo");
         var value = type.Fields["name"].Arguments["a"]
             .Directives["dummy_arg"]
-            .First().GetArgument<string>("a");
+            .First().GetArgumentValue<string>("a");
         Assert.Equal("b", value);
     }
 
@@ -439,7 +437,7 @@ public class ObjectTypeExtensionTests
             .BuildSchemaAsync();
 
         var type = schema.GetType<ObjectType>("Foo");
-        Assert.True(type.Fields["name"].Arguments["a"].Directives.Contains("dummy"));
+        Assert.True(type.Fields["name"].Arguments["a"].Directives.ContainsDirective("dummy"));
     }
 
     [Fact]
@@ -730,6 +728,32 @@ public class ObjectTypeExtensionTests
         SnapshotExtensions.MatchSnapshot(result);
     }
 
+    [Fact]
+    public async Task Query_Extension_With_Static_Members_And_Generic_Schema()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<FooQuery>()
+                .AddTypeExtension(typeof(StaticFooQueryExtensions))
+                .BuildSchemaAsync();
+
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
+    [Fact]
+    public async Task Query_Extension_With_Static_Members_And_Generic()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<FooQuery>()
+                .AddTypeExtension(typeof(StaticFooQueryExtensions))
+                .ExecuteRequestAsync("{ hello }");
+
+        SnapshotExtensions.MatchSnapshot(result);
+    }
+
     public class FooType : ObjectType<Foo>
     {
         protected override void Configure(IObjectTypeDescriptor<Foo> descriptor)
@@ -751,8 +775,7 @@ public class ObjectTypeExtensionTests
         }
     }
 
-    public class GenericFooTypeExtension
-        : ObjectTypeExtension<FooExtension>
+    public class GenericFooTypeExtension : ObjectTypeExtension<FooExtension>
     {
         protected override void Configure(
             IObjectTypeDescriptor<FooExtension> descriptor)
@@ -763,7 +786,7 @@ public class ObjectTypeExtensionTests
 
     public class Foo
     {
-        public string? Description { get; } = "hello";
+        public string? Description => "hello";
 
         public string? GetName(string? a) => default!;
     }
@@ -781,8 +804,7 @@ public class ObjectTypeExtensionTests
         }
     }
 
-    public class DummyDirective
-        : DirectiveType
+    public class DummyDirective : DirectiveType
     {
         protected override void Configure(
             IDirectiveTypeDescriptor descriptor)
@@ -794,8 +816,7 @@ public class ObjectTypeExtensionTests
         }
     }
 
-    public class DummyWithArgDirective
-        : DirectiveType
+    public class DummyWithArgDirective : DirectiveType
     {
         protected override void Configure(
             IDirectiveTypeDescriptor descriptor)
@@ -808,8 +829,7 @@ public class ObjectTypeExtensionTests
         }
     }
 
-    public class RepeatableDummyDirective
-        : DirectiveType
+    public class RepeatableDummyDirective : DirectiveType
     {
         protected override void Configure(
             IDirectiveTypeDescriptor descriptor)
@@ -1105,4 +1125,17 @@ public class ObjectTypeExtensionTests
         public static string Hello()
             => "abc";
     }
+
+    public class FooQuery
+    {
+        public string Abc { get; } = "def";
+    }
+
+    [ExtendObjectType<FooQuery>]
+    public static class StaticFooQueryExtensions
+    {
+        public static string Hello([Parent] FooQuery query)
+            => query.Abc;
+    }
+
 }

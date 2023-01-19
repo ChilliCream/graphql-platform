@@ -38,7 +38,7 @@ internal sealed partial class RegisteredType : ITypeCompletionContext
     /// <inheritdoc />
     public IsOfTypeFallback? IsOfType { get; private set; }
 
-    public ITypeReference TypeReference => References[0];
+    public TypeReference TypeReference => References[0];
 
     public void PrepareForCompletion(
         TypeReferenceResolver typeReferenceResolver,
@@ -52,7 +52,7 @@ internal sealed partial class RegisteredType : ITypeCompletionContext
 
     /// <inheritdoc />
     public bool TryGetType<T>(
-        ITypeReference typeRef,
+        TypeReference typeRef,
         [NotNullWhen(true)] out T? type)
         where T : IType
     {
@@ -73,7 +73,7 @@ internal sealed partial class RegisteredType : ITypeCompletionContext
     }
 
     /// <inheritdoc />
-    public T GetType<T>(ITypeReference typeRef) where T : IType
+    public T GetType<T>(TypeReference typeRef) where T : IType
     {
         if (typeRef is null)
         {
@@ -89,7 +89,7 @@ internal sealed partial class RegisteredType : ITypeCompletionContext
     }
 
     /// <inheritdoc />
-    public ITypeReference GetNamedTypeReference(ITypeReference typeRef)
+    public TypeReference GetNamedTypeReference(TypeReference typeRef)
     {
         if (_typeReferenceResolver is null)
         {
@@ -116,7 +116,7 @@ internal sealed partial class RegisteredType : ITypeCompletionContext
     }
 
     /// <inheritdoc />
-    public bool TryGetDirectiveType(IDirectiveReference directiveRef,
+    public bool TryGetDirectiveType(TypeReference directiveRef,
         [NotNullWhen(true)] out DirectiveType? directiveType)
     {
         if (_typeReferenceResolver is null)

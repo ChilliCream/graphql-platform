@@ -16,7 +16,7 @@ internal class CollectionSegmentType
 {
     internal CollectionSegmentType(
         string? collectionSegmentName,
-        ITypeReference nodeType,
+        TypeReference nodeType,
         bool withTotalCount)
     {
         if (nodeType is null)
@@ -43,7 +43,7 @@ internal class CollectionSegmentType
                     Definition,
                     ApplyConfigurationOn.BeforeNaming,
                     nodeType,
-                    TypeDependencyKind.Named));
+                    TypeDependencyFulfilled.Named));
         }
 
         Definition.Configurations.Add(
@@ -59,7 +59,7 @@ internal class CollectionSegmentType
                 Definition,
                 ApplyConfigurationOn.BeforeNaming,
                 nodeType,
-                TypeDependencyKind.Named));
+                TypeDependencyFulfilled.Named));
 
         Definition.Dependencies.Add(new(nodeType));
     }

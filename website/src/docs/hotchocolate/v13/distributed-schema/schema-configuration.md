@@ -67,7 +67,7 @@ In schema stitching type renames can be defined on the gateway:
 services
     .AddGraphQLServer()
     .AddRemoteSchema(Products)
-    .AddRemoteSchema(Inventiory)
+    .AddRemoteSchema(Inventory)
     .RenameType("Category","ProductCategory", Products);
 ```
 
@@ -136,7 +136,7 @@ In schema stitching field renames can be defined on the gateway:
 services
     .AddGraphQLServer()
     .AddRemoteSchema(Products)
-    .AddRemoteSchema(Inventiory)
+    .AddRemoteSchema(Inventory)
     .RenameField("Query", "categories", "productCategories", schemaName: Products)
 ```
 
@@ -182,7 +182,7 @@ If you want to remove a specific type from the schema you can also use `IgnoreTy
 services
     .AddGraphQLServer()
     .AddRemoteSchema(Products)
-    .AddRemoteSchema(Inventiory)
+    .AddRemoteSchema(Inventory)
     .IgnoreType("Category", schemaName: Products);
 ```
 
@@ -215,7 +215,7 @@ This can be useful when you want to merge root fields of domain services, but ig
 services
     .AddGraphQLServer()
     .AddRemoteSchema(Products)
-    .AddRemoteSchema(Inventiory)
+    .AddRemoteSchema(Inventory)
     .IgnoreField("Query", "categories", Products)
     .IgnoreField("Query", "categories", Inventory);
 ```

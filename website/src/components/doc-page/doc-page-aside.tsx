@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { BoxShadow, IsSmallDesktop } from "@/shared-style";
 import { State } from "@/state";
 import { toggleAside } from "@/state/common";
-import { BodyStyle, DocPageStickySideBarStyle } from "./doc-page-elements";
+import { DocPageStickySideBarStyle } from "./doc-page-elements";
 import { DocPagePaneHeader } from "./doc-page-pane-header";
 
 export const DocPageAside: FC<PropsWithChildren<unknown>> = ({ children }) => {
@@ -25,7 +25,6 @@ export const DocPageAside: FC<PropsWithChildren<unknown>> = ({ children }) => {
 
   return (
     <Aside height={height} show={showAside}>
-      <BodyStyle disableScrolling={showAside} />
       <DocPagePaneHeader
         title="About this article"
         showWhenScreenWidthIsSmallerThan={1280}
@@ -50,11 +49,12 @@ export const Aside = styled.aside<{ height: string; show: boolean }>`
 
   ${({ height, show }) =>
     IsSmallDesktop(`
-      transform: ${show ? `none` : `translateX(100%)`};
+      transform: ${show ? "none" : "translateX(100%)"};
       height: ${height};
       position: fixed;
       top: 60px;
       right: 0;
+
       ${BoxShadow}
     `)}
 `;
