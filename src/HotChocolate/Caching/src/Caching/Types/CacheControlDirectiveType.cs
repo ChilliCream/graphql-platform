@@ -5,38 +5,42 @@ namespace HotChocolate.Caching;
 
 public sealed class CacheControlDirectiveType : DirectiveType<CacheControlDirective>
 {
-    public const string DirectiveName = "cacheControl";
-    public const string MaxAgeArgName = "maxAge";
-    public const string ScopeArgName = "scope";
-    public const string InheritMaxAgeArgName = "inheritMaxAge";
-
     protected override void Configure(
         IDirectiveTypeDescriptor<CacheControlDirective> descriptor)
     {
         descriptor
-            .Name(DirectiveName)
+            .Name(Names.DirectiveName)
             .Description(CacheControlDirectiveType_Description)
-            .Location(DirectiveLocation.Object
-                | DirectiveLocation.FieldDefinition
-                | DirectiveLocation.Interface
-                | DirectiveLocation.Union);
+            .Location(
+                DirectiveLocation.Object |
+                DirectiveLocation.FieldDefinition |
+                DirectiveLocation.Interface |
+                DirectiveLocation.Union);
 
         descriptor
             .Argument(a => a.MaxAge)
-            .Name(MaxAgeArgName)
+            .Name(Names.MaxAgeArgName)
             .Description(CacheControlDirectiveType_MaxAge)
             .Type<IntType>();
 
         descriptor
             .Argument(a => a.Scope)
-            .Name(ScopeArgName)
+            .Name(Names.ScopeArgName)
             .Description(CacheControlDirectiveType_Scope)
             .Type<CacheControlScopeType>();
 
         descriptor
             .Argument(a => a.InheritMaxAge)
-            .Name(InheritMaxAgeArgName)
+            .Name(Names.InheritMaxAgeArgName)
             .Description(CacheControlDirectiveType_InheritMaxAge)
             .Type<BooleanType>();
+    }
+
+    public static class Names
+    {
+        public const string DirectiveName = "cacheControl";
+        public const string MaxAgeArgName = "maxAge";
+        public const string ScopeArgName = "scope";
+        public const string InheritMaxAgeArgName = "inheritMaxAge";
     }
 }

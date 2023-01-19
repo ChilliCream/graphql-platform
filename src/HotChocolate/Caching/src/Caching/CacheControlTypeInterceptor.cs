@@ -4,6 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Caching;
 
@@ -77,9 +78,9 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
         field.Directives.Add(
             new DirectiveDefinition(
                 new DirectiveNode(
-                    CacheControlDirectiveType.DirectiveName,
+                    CacheControlDirectiveType.Names.DirectiveName,
                     new ArgumentNode(
-                        CacheControlDirectiveType.MaxAgeArgName,
+                        CacheControlDirectiveType.Names.MaxAgeArgName,
                         _cacheControlOptions.DefaultMaxAge))));
     }
 
@@ -91,7 +92,7 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
     private static bool IsCacheControlDirective(DirectiveDefinition directive)
     {
         if (directive.Type is NameDirectiveReference directiveReference &&
-            directiveReference.Name == CacheControlDirectiveType.DirectiveName)
+            directiveReference.Name.EqualsOrdinal(CacheControlDirectiveType.Names.DirectiveName))
         {
             return true;
         }

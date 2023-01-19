@@ -2,8 +2,6 @@ namespace HotChocolate.Caching;
 
 public sealed class CacheControlDirective
 {
-    public CacheControlDirective() { }
-
     public CacheControlDirective(
         int? maxAge = null,
         CacheControlScope? scope = null,
@@ -14,9 +12,9 @@ public sealed class CacheControlDirective
         InheritMaxAge = inheritMaxAge;
     }
 
-    public int? MaxAge { get; set; }
+    public int? MaxAge { get; }
 
-    public CacheControlScope? Scope { get; set; }
+    public CacheControlScope? Scope { get; }
 
-    public bool? InheritMaxAge { get; set; }
+    public bool? InheritMaxAge { get; }
 }

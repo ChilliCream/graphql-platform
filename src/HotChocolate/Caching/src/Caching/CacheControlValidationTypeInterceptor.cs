@@ -57,7 +57,7 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
         IHasDirectives type)
     {
         var directive = type.Directives
-            .FirstOrDefault(CacheControlDirectiveType.DirectiveName)?
+            .FirstOrDefault(CacheControlDirectiveType.Names.DirectiveName)?
             .AsValue<CacheControlDirective>();
 
         if (directive is null)
@@ -80,7 +80,7 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
         bool isQueryTypeField)
     {
         var directive = field.Directives
-            .FirstOrDefault(CacheControlDirectiveType.DirectiveName)?
+            .FirstOrDefault(CacheControlDirectiveType.Names.DirectiveName)?
             .AsValue<CacheControlDirective>();
 
         if (directive is null)

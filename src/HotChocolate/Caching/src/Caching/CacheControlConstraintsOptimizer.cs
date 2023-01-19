@@ -115,7 +115,7 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
             IDirectiveCollection directives)
         {
             var directive = directives
-                .FirstOrDefault(CacheControlDirectiveType.DirectiveName)?
+                .FirstOrDefault(CacheControlDirectiveType.Names.DirectiveName)?
                 .AsValue<CacheControlDirective>();
 
             if (directive is not null)
