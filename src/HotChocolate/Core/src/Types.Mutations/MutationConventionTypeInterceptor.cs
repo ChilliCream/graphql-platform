@@ -21,7 +21,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
     private IDescriptorContext _context = default!;
     private List<MutationContextData> _mutations = default!;
     private ITypeCompletionContext _completionContext = default!;
-    private ITypeReference? _errorInterfaceTypeRef;
+    private TypeReference? _errorInterfaceTypeRef;
     private ObjectTypeDefinition? _mutationTypeDef;
     private FieldMiddlewareDefinition? _errorNullMiddleware;
 
@@ -452,10 +452,10 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         return UnionType.CreateUnsafe(unionDef);
     }
 
-    private static ITypeReference CreateErrorTypeRef(ITypeDiscoveryContext context)
+    private static TypeReference CreateErrorTypeRef(ITypeDiscoveryContext context)
         => CreateErrorTypeRef(context.DescriptorContext);
 
-    private static ITypeReference CreateErrorTypeRef(IDescriptorContext context)
+    private static TypeReference CreateErrorTypeRef(IDescriptorContext context)
     {
         var errorInterfaceType =
             context.ContextData.TryGetValue(ErrorType, out var value) &&
@@ -473,7 +473,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
     private static void TryAddErrorInterface(
         ObjectTypeDefinition objectTypeDef,
-        ITypeReference errorInterfaceTypeRef)
+        TypeReference errorInterfaceTypeRef)
     {
         if (objectTypeDef.ContextData.IsError())
         {
@@ -660,7 +660,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         }
     }
 
-    private ITypeReference EnsureNullable(ITypeReference typeRef)
+    private TypeReference EnsureNullable(TypeReference typeRef)
     {
         var type = _completionContext.GetType<IType>(typeRef);
 
@@ -672,7 +672,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         return Create(CreateTypeNode(nt.Type));
     }
 
-    private ITypeReference EnsureNonNull(ITypeReference typeRef)
+    private TypeReference EnsureNonNull(TypeReference typeRef)
     {
         var type = _completionContext.GetType<IType>(typeRef);
 
@@ -747,7 +747,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
     private readonly struct FieldDef
     {
-        public FieldDef(string name, ITypeReference type)
+        public FieldDef(string name, TypeReference type)
         {
             Name = name;
             Type = type;
@@ -755,6 +755,6 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
         public string Name { get; }
 
-        public ITypeReference Type { get; }
+        public TypeReference Type { get; }
     }
 }

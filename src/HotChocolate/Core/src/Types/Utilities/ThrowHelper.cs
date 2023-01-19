@@ -100,7 +100,7 @@ internal static class ThrowHelper
 
     public static SchemaException TypeCompletionContext_UnableToResolveType(
         ITypeSystemObject type,
-        ITypeReference typeRef) =>
+        TypeReference typeRef) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(

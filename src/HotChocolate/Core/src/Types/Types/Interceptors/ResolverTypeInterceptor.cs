@@ -71,7 +71,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
         }
     }
 
-    public override IEnumerable<ITypeReference> RegisterMoreTypes(
+    public override IEnumerable<TypeReference> RegisterMoreTypes(
         IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
     {
         var context = new CompletionContext(_typeDefs);
@@ -408,7 +408,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
     private IReadOnlyCollection<ITypeDefinition>? TrySetRuntimeTypeFromMember(
         CompletionContext context,
-        ITypeReference? typeRef,
+        TypeReference? typeRef,
         MemberInfo member)
     {
         if (typeRef is not null && _typeReferenceResolver.TryGetType(typeRef, out var type))

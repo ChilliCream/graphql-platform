@@ -100,7 +100,7 @@ public static class FilterObjectFieldDescriptorExtensions
                         .MakeGenericType(typeInfo.NamedType);
                 }
 
-                ITypeReference argumentTypeReference = filterTypeInstance is null
+                TypeReference argumentTypeReference = filterTypeInstance is null
                     ? c.TypeInspector.GetTypeRef(
                         argumentType,
                         TypeContext.Input)
@@ -146,7 +146,7 @@ public static class FilterObjectFieldDescriptorExtensions
     private static void CompileMiddleware(
         ITypeCompletionContext context,
         ObjectFieldDefinition definition,
-        ITypeReference argumentTypeReference,
+        TypeReference argumentTypeReference,
         FieldMiddlewareDefinition placeholder)
     {
         var convention =

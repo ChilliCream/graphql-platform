@@ -9,7 +9,7 @@ internal sealed class SchemaTypeReferenceHandler : ITypeRegistrarHandler
 {
     public TypeReferenceKind Kind => TypeReferenceKind.SchemaType;
 
-    public void Handle(ITypeRegistrar typeRegistrar, ITypeReference typeReference)
+    public void Handle(ITypeRegistrar typeRegistrar, TypeReference typeReference)
     {
         var typeRef = (SchemaTypeReference)typeReference;
 

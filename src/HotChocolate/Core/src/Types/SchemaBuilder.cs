@@ -20,7 +20,7 @@ namespace HotChocolate;
 /// </summary>
 public partial class SchemaBuilder : ISchemaBuilder
 {
-    private delegate ITypeReference CreateRef(ITypeInspector typeInspector);
+    private delegate TypeReference CreateRef(ITypeInspector typeInspector);
 
     private readonly Dictionary<string, object?> _contextData = new();
     private readonly List<FieldMiddleware> _globalComponents = new();

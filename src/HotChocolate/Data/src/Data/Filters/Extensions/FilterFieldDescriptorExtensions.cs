@@ -18,7 +18,7 @@ public static class FilterFieldDescriptorExtensions
             .OnBeforeCreate(
                 (c, def) => def.Type = RewriteTypeToNullableType(def, c.TypeInspector));
 
-    private static ITypeReference RewriteTypeToNullableType(
+    private static TypeReference RewriteTypeToNullableType(
         FilterFieldDefinition definition,
         ITypeInspector typeInspector)
     {

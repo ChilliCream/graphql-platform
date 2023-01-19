@@ -18,7 +18,7 @@ public readonly ref struct TypeDiscoveryInfo
     /// <summary>
     /// Initializes a new instance of <see cref="TypeDiscoveryInfo"/>.
     /// </summary>
-    public TypeDiscoveryInfo(ITypeReference typeReference)
+    public TypeDiscoveryInfo(TypeReference typeReference)
     {
         if (typeReference is null)
         {

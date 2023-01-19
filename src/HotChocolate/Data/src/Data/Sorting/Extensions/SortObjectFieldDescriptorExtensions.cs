@@ -142,7 +142,7 @@ public static class SortObjectFieldDescriptorExtensions
                 (c, definition) =>
                 {
                     var convention = c.GetSortConvention(scope);
-                    ITypeReference argumentTypeReference;
+                    TypeReference argumentTypeReference;
                     if (sortTypeInstance is not null)
                     {
                         argumentTypeReference =

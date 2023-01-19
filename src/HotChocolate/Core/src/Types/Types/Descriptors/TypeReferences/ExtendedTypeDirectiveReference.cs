@@ -45,7 +45,7 @@ public sealed class ExtendedTypeDirectiveReference
     }
 
     /// <inheritdoc />
-    public override bool Equals(ITypeReference? other)
+    public override bool Equals(TypeReference? other)
     {
         if (other is null)
         {
