@@ -37,8 +37,18 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
             return;
         }
 
-        foreach (var field in objectDef.Fields)
+        var length = objectDef.Fields.Count;
+
+#if NET6_0_OR_GREATER
+        var fields = ((BindableList<ObjectFieldDefinition>)objectDef.Fields).AsSpan();
+#else
+        var fields = (BindableList<ObjectFieldDefinition>)objectDef.Fields;
+#endif
+
+        for (var i = 0; i < length; i++)
         {
+            var field = fields[i];
+
             if (field.IsIntrospectionField)
             {
                 // Introspection fields do not need to be declared as cachable.
