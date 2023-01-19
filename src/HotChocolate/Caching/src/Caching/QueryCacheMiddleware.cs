@@ -58,8 +58,7 @@ internal sealed class QueryCacheMiddleware
                 continue;
             }
 
-            await cache.WriteQueryResultToCacheAsync(context,
-                constraints, _options);
+            await cache.WriteQueryResultToCacheAsync(context, constraints, _options);
         }
     }
 
@@ -69,21 +68,18 @@ internal sealed class QueryCacheMiddleware
         {
             // Result is potentially deferred or batched,
             // we can not cache the entire query.
-
             return false;
         }
 
         if (context.Operation?.Definition.Operation != OperationType.Query)
         {
             // Request is not a query, so we do not cache it.
-
             return false;
         }
 
         if (queryResult.Errors is { Count: > 0 })
         {
             // Result has unexpected errors, we do not want to cache it.
-
             return false;
         }
 
@@ -119,8 +115,10 @@ internal sealed class QueryCacheMiddleware
         return constraints;
     }
 
-    private static void ProcessSelection(ISelection selection,
-        CacheControlConstraints constraints, IOperation operation)
+    private static void ProcessSelection(
+        ISelection selection,
+        CacheControlConstraints constraints,
+        IOperation operation)
     {
         var field = selection.Field;
 
@@ -158,8 +156,7 @@ internal sealed class QueryCacheMiddleware
 
             foreach (var type in possibleTypes)
             {
-                var typeSet = operation.GetSelectionSet(selection, type)
-                    .Selections;
+                var typeSet = operation.GetSelectionSet(selection, type).Selections;
 
                 foreach (var typeSelection in typeSet)
                 {
@@ -176,14 +173,13 @@ internal sealed class QueryCacheMiddleware
             IDirectiveCollection directives)
         {
             var directive = directives
-                    .FirstOrDefault(d => d.Name == "cacheControl")?
-                    .ToObject<CacheControlDirective>();
+                .FirstOrDefault(CacheControlDirectiveType.DirectiveName)?
+                .AsValue<CacheControlDirective>();
 
             if (directive is not null)
             {
                 if (!maxAgeSet && directive.MaxAge.HasValue &&
-                 (!constraints.MaxAge.HasValue ||
-                     directive.MaxAge < constraints.MaxAge.Value))
+                    (!constraints.MaxAge.HasValue || directive.MaxAge < constraints.MaxAge.Value))
                 {
                     // The maxAge of the @cacheControl directive is lower
                     // than the previously lowest maxAge value.

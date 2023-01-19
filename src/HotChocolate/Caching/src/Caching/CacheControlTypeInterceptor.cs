@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -17,7 +16,8 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
         _cacheControlOptions = accessor.CacheControl;
     }
 
-    public override void OnBeforeCompleteType(ITypeCompletionContext completionContext,
+    public override void OnBeforeCompleteType(
+        ITypeCompletionContext completionContext,
         DefinitionBase definition)
     {
         if (!_cacheControlOptions.Enable || !_cacheControlOptions.ApplyDefaults)
@@ -68,7 +68,8 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
             new DirectiveDefinition(
                 new DirectiveNode(
                     CacheControlDirectiveType.DirectiveName,
-                    new ArgumentNode(CacheControlDirectiveType.MaxAgeArgName,
+                    new ArgumentNode(
+                        CacheControlDirectiveType.MaxAgeArgName,
                         _cacheControlOptions.DefaultMaxAge))));
     }
 
@@ -79,13 +80,13 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
 
     private static bool IsCacheControlDirective(DirectiveDefinition directive)
     {
-        if (directive.Reference is NameDirectiveReference directiveReference &&
+        if (directive.Type is NameDirectiveReference directiveReference &&
             directiveReference.Name == CacheControlDirectiveType.DirectiveName)
         {
             return true;
         }
 
-        if (directive.Reference is ClrTypeDirectiveReference { ClrType: { } type } &&
+        if (directive.Type is ExtendedTypeDirectiveReference { Type.Type: { } type } &&
             type == typeof(CacheControlDirective))
         {
             return true;

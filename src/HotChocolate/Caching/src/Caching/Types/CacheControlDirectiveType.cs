@@ -3,8 +3,7 @@ using static HotChocolate.Caching.Properties.CacheControlResources;
 
 namespace HotChocolate.Caching;
 
-public sealed class CacheControlDirectiveType
-    : DirectiveType<CacheControlDirective>
+public sealed class CacheControlDirectiveType : DirectiveType<CacheControlDirective>
 {
     public const string DirectiveName = "cacheControl";
     public const string MaxAgeArgName = "maxAge";

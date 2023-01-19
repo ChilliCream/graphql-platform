@@ -1,4 +1,3 @@
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -24,8 +23,7 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
 
             foreach (var field in objectType.Fields)
             {
-                ValidateCacheControlOnField(validationContext, field, objectType,
-                    isQueryType);
+                ValidateCacheControlOnField(validationContext, field, objectType, isQueryType);
             }
         }
         else if (validationContext.Type is InterfaceType interfaceType)
@@ -34,8 +32,7 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
 
             foreach (var field in interfaceType.Fields)
             {
-                ValidateCacheControlOnField(validationContext, field, interfaceType,
-                    false);
+                ValidateCacheControlOnField(validationContext, field, interfaceType, false);
             }
         }
         else if (validationContext.Type is UnionType unionType)
@@ -49,8 +46,8 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
         IHasDirectives type)
     {
         var directive = type.Directives
-            .FirstOrDefault(d => d.Name == CacheControlDirectiveType.DirectiveName)
-            ?.ToObject<CacheControlDirective>();
+            .FirstOrDefault(CacheControlDirectiveType.DirectiveName)?
+            .AsValue<CacheControlDirective>();
 
         if (directive is null)
         {
@@ -72,21 +69,18 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
         bool isQueryTypeField)
     {
         var directive = field.Directives
-                    .FirstOrDefault(d => d.Name == CacheControlDirectiveType.DirectiveName)
-                    ?.ToObject<CacheControlDirective>();
+            .FirstOrDefault(CacheControlDirectiveType.DirectiveName)?
+            .AsValue<CacheControlDirective>();
 
         if (directive is null)
         {
             return;
         }
 
-        if (field is InterfaceField interfaceField)
+        if (field is InterfaceField)
         {
-            var error = ErrorHelper
-                    .CacheControlOnInterfaceField(obj, field);
-
+            var error = ErrorHelper.CacheControlOnInterfaceField(obj, field);
             validationContext.ReportError(error);
-
             return;
         }
 
@@ -94,9 +88,7 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
 
         if (isQueryTypeField && inheritMaxAge)
         {
-            var error =
-                ErrorHelper.CacheControlInheritMaxAgeOnQueryTypeField(obj, field);
-
+            var error = ErrorHelper.CacheControlInheritMaxAgeOnQueryTypeField(obj, field);
             validationContext.ReportError(error);
         }
 
@@ -104,17 +96,13 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
         {
             if (directive.MaxAge.Value < 0)
             {
-                var error = ErrorHelper
-                    .CacheControlNegativeMaxAge(obj, field);
-
+                var error = ErrorHelper.CacheControlNegativeMaxAge(obj, field);
                 validationContext.ReportError(error);
             }
 
             if (inheritMaxAge)
             {
-                var error = ErrorHelper
-                    .CacheControlBothMaxAgeAndInheritMaxAge(obj, field);
-
+                var error = ErrorHelper.CacheControlBothMaxAgeAndInheritMaxAge(obj, field);
                 validationContext.ReportError(error);
             }
         }
