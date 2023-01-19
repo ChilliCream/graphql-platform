@@ -41,14 +41,10 @@ public sealed class BindableList<T> : IBindableList<T>
     }
 
     public bool Contains(T item)
-    {
-        return _list is not null && _list.Contains(item);
-    }
+        => _list is not null && _list.Contains(item);
 
     public void CopyTo(T[] array, int arrayIndex)
-    {
-        _list?.CopyTo(array, arrayIndex);
-    }
+        => _list?.CopyTo(array, arrayIndex);
 
     public bool Remove(T item)
     {
@@ -84,9 +80,7 @@ public sealed class BindableList<T> : IBindableList<T>
     }
 
     public void RemoveAt(int index)
-    {
-        _list?.RemoveAt(index);
-    }
+        => _list?.RemoveAt(index);
 
     public T this[int index]
     {
@@ -127,7 +121,5 @@ public sealed class BindableList<T> : IBindableList<T>
     }
 
     IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
-    }
+        => GetEnumerator();
 }
