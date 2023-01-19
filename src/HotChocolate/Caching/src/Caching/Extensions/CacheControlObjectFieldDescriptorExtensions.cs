@@ -1,7 +1,7 @@
 using System;
-using HotChocolate.Types;
+using HotChocolate.Caching;
 
-namespace HotChocolate.Caching;
+namespace HotChocolate.Types;
 
 public static class CacheControlObjectFieldDescriptorExtensions
 {

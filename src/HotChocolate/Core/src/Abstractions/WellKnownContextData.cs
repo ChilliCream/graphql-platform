@@ -212,7 +212,7 @@ public static class WellKnownContextData
     /// The key to get check if a field is the nodes field.
     /// </summary>
     public const string IsNodesField = "HotChocolate.Relay.Node.IsNodeField";
-    
+
     /// <summary>
     /// The key to override the max allowed execution depth.
     /// </summary>
@@ -233,6 +233,16 @@ public static class WellKnownContextData
     /// The key to get the Cache-Control header value from the context data.
     /// </summary>
     public const string CacheControlHeaderValue = "HotChocolate.Caching.CacheControlHeaderValue";
+
+    /// <summary>
+    /// The key to to ski caching a query result.
+    /// </summary>
+    public const string SkipQueryCaching = "HotChocolate.Caching.SkipQueryCaching";
+
+    /// <summary>
+    /// The key to retrieve the cache constraints from the operation.
+    /// </summary>
+    public const string CacheControlConstraints = "HotChocolate.Caching.CacheControlConstraints";
 
     /// <summary>
     /// The key to retrieve the authorization options from the context.

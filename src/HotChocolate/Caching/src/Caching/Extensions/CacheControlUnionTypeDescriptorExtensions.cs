@@ -1,7 +1,8 @@
 using System;
+using HotChocolate.Caching;
 using HotChocolate.Types;
 
-namespace HotChocolate.Caching;
+namespace HotChocolate.Types;
 
 public static class CacheControlUnionTypeDescriptorExtensions
 {

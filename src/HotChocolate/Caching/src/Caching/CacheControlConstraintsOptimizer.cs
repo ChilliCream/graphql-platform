@@ -20,7 +20,15 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
         }
 
         var constraints = ComputeCacheControlConstraints(context.CreateOperation());
-        context.ContextData.Add(WellKnownContextData.CacheControlConstraints, constraints);
+
+        if (constraints.MaxAge is not null)
+        {
+            context.ContextData.Add(
+                WellKnownContextData.CacheControlConstraints,
+                new ImmutableCacheConstraints(
+                    constraints.MaxAge.Value,
+                    constraints.Scope));
+        }
     }
 
     private static CacheControlConstraints ComputeCacheControlConstraints(
@@ -62,17 +70,20 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
             }
         }
 
-        var possibleTypes = operation.GetPossibleTypes(selection);
-
-        foreach (var type in possibleTypes)
+        if (selection.SelectionSet is not null)
         {
-            var selectionSet = (SelectionSet)operation.GetSelectionSet(selection, type);
-            var length = selectionSet.Selections.Count;
-            ref var start = ref selectionSet.GetSelectionsReference();
+            var possibleTypes = operation.GetPossibleTypes(selection);
 
-            for (var i = 0; i < length; i++)
+            foreach (var type in possibleTypes)
             {
-                ProcessSelection(Unsafe.Add(ref start, i), constraints, operation);
+                var selectionSet = (SelectionSet)operation.GetSelectionSet(selection, type);
+                var length = selectionSet.Selections.Count;
+                ref var start = ref selectionSet.GetSelectionsReference();
+
+                for (var i = 0; i < length; i++)
+                {
+                    ProcessSelection(Unsafe.Add(ref start, i), constraints, operation);
+                }
             }
         }
 

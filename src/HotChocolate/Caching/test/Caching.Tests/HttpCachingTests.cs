@@ -23,7 +23,7 @@ public class HttpCachingTests : ServerTestBase
         {
             services.AddGraphQLServer()
                 .UseQueryCachePipeline()
-                .AddHttpQueryCache()
+                .AddCacheControl()
                 .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
                 .AddQueryType(d =>
                     d.Name("Query")
@@ -45,7 +45,7 @@ public class HttpCachingTests : ServerTestBase
         {
             services.AddGraphQLServer()
                 .UseQueryCachePipeline()
-                .AddHttpQueryCache()
+                .AddCacheControl()
                 .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
                 .AddQueryType(d =>
                     d.Name("Query")
@@ -55,7 +55,7 @@ public class HttpCachingTests : ServerTestBase
         });
 
         var client = server.CreateClient();
-        GraphQLResult result = await client.PostQueryAsync("{ field }");
+        var result = await client.PostQueryAsync("{ field }");
 
         result.MatchSnapshot();
     }
@@ -67,7 +67,7 @@ public class HttpCachingTests : ServerTestBase
         {
             services.AddGraphQLServer()
                 .UseQueryCachePipeline()
-                .AddHttpQueryCache()
+                .AddCacheControl()
                 .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
                 .AddQueryType(d =>
                     d.Name("Query")
@@ -77,7 +77,7 @@ public class HttpCachingTests : ServerTestBase
         });
 
         var client = server.CreateClient();
-        GraphQLResult result = await client.PostQueryAsync("{ field }");
+        var result = await client.PostQueryAsync("{ field }");
 
         result.MatchSnapshot();
     }
@@ -89,7 +89,7 @@ public class HttpCachingTests : ServerTestBase
         {
             services.AddGraphQLServer()
                 .UseQueryCachePipeline()
-                .AddHttpQueryCache()
+                .AddCacheControl()
                 .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
                 .AddQueryType(d =>
                     d.Name("Query")
@@ -99,7 +99,7 @@ public class HttpCachingTests : ServerTestBase
         });
 
         var client = server.CreateClient();
-        GraphQLResult result = await client.PostQueryAsync("{ field }");
+        var result = await client.PostQueryAsync("{ field }");
 
         result.MatchSnapshot();
     }

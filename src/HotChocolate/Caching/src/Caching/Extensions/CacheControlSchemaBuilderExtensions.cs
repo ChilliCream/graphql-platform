@@ -1,4 +1,6 @@
-namespace HotChocolate.Caching;
+using HotChocolate.Caching;
+
+namespace HotChocolate.Types;
 
 public static class CacheControlSchemaBuilderExtensions
 {

@@ -2,6 +2,7 @@ using System;
 using HotChocolate;
 using HotChocolate.Caching;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Types;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -108,42 +109,5 @@ public static class QueryCacheRequestExecutorBuilderExtensions
             });
 
         return builder;
-    }
-
-    internal static IRequestExecutorBuilder AddQueryCache<TCache>(
-        this IRequestExecutorBuilder builder)
-        where TCache : QueryCache
-    {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        builder.ConfigureSchemaServices(
-            services =>
-            {
-                services.AddSingleton<QueryCache, TCache>();
-            });
-
-        return builder.AddCacheControl();
-    }
-
-    internal static IRequestExecutorBuilder AddQueryCache<TCache>(
-        this IRequestExecutorBuilder builder,
-        Func<IServiceProvider, TCache> cacheFactory)
-        where TCache : QueryCache
-    {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        builder.ConfigureSchemaServices(
-            services =>
-            {
-                services.AddSingleton<QueryCache>(cacheFactory);
-            });
-
-        return builder.AddCacheControl();
     }
 }

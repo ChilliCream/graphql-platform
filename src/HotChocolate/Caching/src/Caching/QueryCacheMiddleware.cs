@@ -1,25 +1,25 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using static HotChocolate.Caching.WellKnownContextData;
+using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Caching;
 
 internal sealed class QueryCacheMiddleware
 {
+    private const string _cacheControlValueTemplate = "{0}, max-age={1}";
+    private const string _cacheControlPrivateScope = "private";
+    private const string _cacheControlPublicScope = "public";
+
+
     private readonly RequestDelegate _next;
-    private readonly QueryCache[] _caches;
     private readonly ICacheControlOptions _options;
 
     public QueryCacheMiddleware(
         RequestDelegate next,
-        [SchemaService] IEnumerable<QueryCache> caches,
         [SchemaService] ICacheControlOptionsAccessor optionsAccessor)
     {
         _next = next;
-        _caches = caches.ToArray();
         _options = optionsAccessor.CacheControl;
     }
 
@@ -42,29 +42,28 @@ internal sealed class QueryCacheMiddleware
         if (!(context.Operation?.ContextData.TryGetValue(
             WellKnownContextData.CacheControlConstraints,
             out var value) ?? false) ||
-            value is not CacheControlConstraints constraints)
+            value is not ICacheConstraints constraints)
         {
             return;
         }
 
-        if (constraints.MaxAge is null)
+        var cacheType = constraints.Scope switch
         {
-            // No field in the query specified a maxAge value,
-            // so we do not attempt to cache it.
-            return;
+            CacheControlScope.Private => _cacheControlPrivateScope,
+            CacheControlScope.Public => _cacheControlPublicScope,
+            _ => throw ThrowHelper.UnexpectedCacheControlScopeValue(constraints.Scope)
+        };
+
+        var headerValue = string.Format(_cacheControlValueTemplate, cacheType, constraints.MaxAge);
+        var queryResult = context.Result?.ExpectQueryResult();
+
+        if (queryResult is not null)
+        {
+            context.Result = QueryResultBuilder.FromResult(queryResult)
+                .SetContextData(CacheControlHeaderValue, headerValue)
+                .Create();
         }
 
-        for (var i = 0; i < _caches.Length; i++)
-        {
-            var cache = _caches[i];
-
-            if (!cache.ShouldWriteQueryResultToCache(context))
-            {
-                continue;
-            }
-
-            await cache.WriteQueryResultToCacheAsync(context, constraints, _options);
-        }
     }
 
     private static bool CanOperationResultBeCached(IRequestContext context)

@@ -1,6 +1,4 @@
-using HotChocolate.Execution;
-
-namespace HotChocolate.Caching;
+namespace HotChocolate.Execution;
 
 public static class QueryCacheQueryRequestBuilderExtensions
 {

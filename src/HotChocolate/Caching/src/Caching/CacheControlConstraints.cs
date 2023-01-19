@@ -1,12 +1,8 @@
 namespace HotChocolate.Caching;
 
-internal class CacheControlConstraints : ICacheConstraints
+internal sealed class CacheControlConstraints
 {
-    /// <inheritdoc />
-    int ICacheConstraints.MaxAge => MaxAge ?? 0;
-
-    /// <inheritdoc />
-    public CacheControlScope Scope { get; internal set; } = CacheControlScope.Public;
+    public CacheControlScope Scope { get; set; } = CacheControlScope.Public;
 
     internal int? MaxAge { get; set; }
 }

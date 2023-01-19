@@ -10,6 +10,8 @@ using Microsoft.Net.Http.Headers;
 #endif
 using static HotChocolate.AspNetCore.AcceptMediaTypeKind;
 using static HotChocolate.Execution.ExecutionResultKind;
+using static HotChocolate.WellKnownContextData;
+using HttpStatusCode = System.Net.HttpStatusCode;
 
 namespace HotChocolate.AspNetCore.Serialization;
 
@@ -134,9 +136,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             response.StatusCode = statusCode;
 
             if (result.ContextData is not null &&
-                result.ContextData.TryGetValue(WellKnownContextData.CacheControlHeaderValue,
-                    out var untypedCacheControlHeaderValue) &&
-                untypedCacheControlHeaderValue is string cacheControlHeaderValue)
+                result.ContextData.TryGetValue(CacheControlHeaderValue, out var value) &&
+                value is string cacheControlHeaderValue)
             {
 #if NET6_0_OR_GREATER
                 response.Headers.CacheControl = cacheControlHeaderValue;
@@ -221,12 +222,12 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
                 // next we check if the validation of the request failed.
                 // if that is the case we will we will return a BadRequest status code (400).
-                if (contextData.ContainsKey(WellKnownContextData.ValidationErrors))
+                if (contextData.ContainsKey(ValidationErrors))
                 {
                     return HttpStatusCode.BadRequest;
                 }
 
-                if (result.ContextData.ContainsKey(WellKnownContextData.OperationNotAllowed))
+                if (result.ContextData.ContainsKey(OperationNotAllowed))
                 {
                     return HttpStatusCode.MethodNotAllowed;
                 }
