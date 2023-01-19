@@ -1,5 +1,4 @@
 using System.Linq;
-using Xunit;
 
 namespace HotChocolate.Types.Directives;
 
@@ -22,8 +21,8 @@ public class CostDirectiveTypeTests : TypeTestBase
             .Create();
 
         var query = schema.GetType<ObjectType>("Query");
-        var directive = query.Fields["field"].Directives.Single(t => t.Name == "cost");
-        var obj = directive.ToObject<CostDirective>();
+        var directive = query.Fields["field"].Directives.Single(t => t.Type.Name == "cost");
+        var obj = directive.AsValue<CostDirective>();
         Assert.Equal(5, obj.Complexity);
     }
 
@@ -44,8 +43,8 @@ public class CostDirectiveTypeTests : TypeTestBase
             .Create();
 
         var query = schema.GetType<ObjectType>("Query");
-        var directive = query.Fields["field"].Directives.Single(t => t.Name == "cost");
-        var obj = directive.ToObject<CostDirective>();
+        var directive = query.Fields["field"].Directives.Single(t => t.Type.Name == "cost");
+        var obj = directive.AsValue<CostDirective>();
         Assert.Equal(5, obj.Complexity);
         Assert.Collection(obj.Multipliers, t => Assert.Equal("a", t));
     }
@@ -68,8 +67,8 @@ public class CostDirectiveTypeTests : TypeTestBase
 
         var query = schema.GetType<ObjectType>("Query");
         var directive = query.Fields["field"].Directives
-            .Single(t => t.Name == "cost");
-        var obj = directive.ToObject<CostDirective>();
+            .Single(t => t.Type.Name == "cost");
+        var obj = directive.AsValue<CostDirective>();
         Assert.Equal(5, obj.Complexity);
         Assert.Collection(obj.Multipliers,
             t => Assert.Equal("a", t),
@@ -99,8 +98,8 @@ public class CostDirectiveTypeTests : TypeTestBase
 
         var queryInterface = schema.GetType<InterfaceType>("IQuery");
         var directive = queryInterface.Fields["field"].Directives
-            .Single(t => t.Name == "cost");
-        var obj = directive.ToObject<CostDirective>();
+            .Single(t => t.Type.Name == "cost");
+        var obj = directive.AsValue<CostDirective>();
         Assert.Equal(5, obj.Complexity);
     }
 
@@ -127,8 +126,8 @@ public class CostDirectiveTypeTests : TypeTestBase
 
         var queryInterface = schema.GetType<InterfaceType>("IQuery");
         var directive = queryInterface.Fields["field"].Directives
-            .Single(t => t.Name == "cost");
-        var obj = directive.ToObject<CostDirective>();
+            .Single(t => t.Type.Name == "cost");
+        var obj = directive.AsValue<CostDirective>();
         Assert.Equal(5, obj.Complexity);
         Assert.Collection(obj.Multipliers, t => Assert.Equal("a", t));
     }
@@ -156,8 +155,8 @@ public class CostDirectiveTypeTests : TypeTestBase
 
         var queryInterface = schema.GetType<InterfaceType>("IQuery");
         var directive = queryInterface.Fields["field"].Directives
-            .Single(t => t.Name == "cost");
-        var obj = directive.ToObject<CostDirective>();
+            .Single(t => t.Type.Name == "cost");
+        var obj = directive.AsValue<CostDirective>();
         Assert.Equal(5, obj.Complexity);
         Assert.Collection(obj.Multipliers,
             t => Assert.Equal("a", t),
@@ -181,8 +180,8 @@ public class CostDirectiveTypeTests : TypeTestBase
 
         var query = schema.GetType<ObjectType>("Query");
         var directive = query.Fields["field"].Directives
-            .Single(t => t.Name == "cost");
-        var obj = directive.ToObject<CostDirective>();
+            .Single(t => t.Type.Name == "cost");
+        var obj = directive.AsValue<CostDirective>();
         Assert.Equal(5, obj.Complexity);
         Assert.Collection(obj.Multipliers,
             t => Assert.Equal("a", t));
@@ -212,8 +211,8 @@ public class CostDirectiveTypeTests : TypeTestBase
 
         var queryInterface = schema.GetType<InterfaceType>("IQuery");
         var directive =
-            queryInterface.Fields["field"].Directives.Single(t => t.Name == "cost");
-        var obj = directive.ToObject<CostDirective>();
+            queryInterface.Fields["field"].Directives.Single(t => t.Type.Name == "cost");
+        var obj = directive.AsValue<CostDirective>();
         Assert.Equal(5, obj.Complexity);
         Assert.Collection(obj.Multipliers, t => Assert.Equal("a", t));
     }
@@ -250,7 +249,7 @@ public class CostDirectiveTypeTests : TypeTestBase
                 Assert.Equal("defaultMultiplier", t.Name);
                 Assert.IsType<IntType>(t.Type);
             });
-        Assert.Collection(directive.Locations,
+        Assert.Collection(directive.Locations.AsEnumerable(),
             t => Assert.Equal(DirectiveLocation.FieldDefinition, t));
     }
 }

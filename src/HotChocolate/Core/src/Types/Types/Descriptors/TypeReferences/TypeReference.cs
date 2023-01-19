@@ -12,7 +12,7 @@ namespace HotChocolate.Types.Descriptors;
 /// A type reference is used to refer to a type in the type system.
 /// This allows us to loosely couple types during schema creation.
 /// </summary>
-public abstract class TypeReference : ITypeReference
+public abstract class TypeReference : IEquatable<TypeReference>
 {
     protected TypeReference(
         TypeReferenceKind kind,
@@ -33,7 +33,7 @@ public abstract class TypeReference : ITypeReference
     /// <inheritdoc />
     public string? Scope { get; }
 
-    protected bool IsEqual(ITypeReference other)
+    protected bool IsEqual(TypeReference other)
     {
         if (Context != other.Context
             && Context != TypeContext.None
@@ -50,7 +50,7 @@ public abstract class TypeReference : ITypeReference
         return true;
     }
 
-    public abstract bool Equals(ITypeReference? other);
+    public abstract bool Equals(TypeReference? other);
 
     public override bool Equals(object? obj)
     {
@@ -64,15 +64,20 @@ public abstract class TypeReference : ITypeReference
             return true;
         }
 
-        return Equals(obj as ITypeReference);
+        return Equals(obj as TypeReference);
     }
 
     public override int GetHashCode()
-        => HashCode.Combine(Scope);
+        => HashCode.Combine(Kind, Scope);
+
+    protected string ToString(object name)
+        => Context is TypeContext.None
+            ? name.ToString()!
+            : $"{name} ({Context})";
 
     public static DependantFactoryTypeReference Create(
         string name,
-        ITypeReference dependency,
+        TypeReference dependency,
         Func<IDescriptorContext, TypeSystemObjectBase> factory,
         TypeContext context = TypeContext.None,
         string? scope = null)
@@ -88,6 +93,14 @@ public abstract class TypeReference : ITypeReference
         }
         return new SchemaTypeReference(type, scope: scope);
     }
+
+    public static NameDirectiveReference CreateDirective(
+        string directiveName) =>
+        new(directiveName);
+
+    public static ExtendedTypeDirectiveReference CreateDirective(
+        IExtendedType type) =>
+        new(type);
 
     public static SyntaxTypeReference Create(
         ITypeNode type,

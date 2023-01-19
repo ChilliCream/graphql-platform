@@ -10,8 +10,7 @@ authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 
 **This post is outdated. If you are looking to do tests for Hot Chocolate 12 or newer watch our YouTube episode on testing.**
 
-<iframe src="https://www.youtube.com/embed/Nf7nX2H_iiM"frameborder="0"
-allowfullscreen></iframe>
+<Video videoId="Nf7nX2H_iiM" />
 
 Today I was asked in our slack channel how one could write an integration test against Hot Chocolate without setting up an ASP.NET Core _TestServer_.
 Though the ASP.NET Core _TestServer_ API is quite nice, it is much more cumbersome to test a schema this way.
@@ -310,4 +309,4 @@ services.AddGraphQL(Schema.Create(c =>
 I hope this little post will help when you start writing tests for your schema. If you run into any issues or if you have further questions/suggestions head over to our slack channel and we will be happy to help you.
 
 [hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/hotchocolate
+[hot chocolate source code]: https://github.com/ChilliCream/graphql-platform

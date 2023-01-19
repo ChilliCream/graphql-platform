@@ -1,8 +1,14 @@
 namespace HotChocolate.Stitching;
 
-public class SourceDirective
+public sealed class SourceDirective
 {
-    public string Name { get; set; }
+    public SourceDirective(string name, string schema)
+    {
+        Name = name;
+        Schema = schema;
+    }
 
-    public string Schema { get; set; }
+    public string Name { get; }
+
+    public string Schema { get; }
 }

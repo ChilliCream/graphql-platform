@@ -13,7 +13,7 @@
   <ItemGroup>
     <PackageReference Include="DiffPlex" Version="1.7.1" />
     <PackageReference Include="Xunit" Version="2.4.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
   </ItemGroup>
 
   <ItemGroup>

@@ -32,12 +32,12 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
         }
     }
 
-    private void EnsureOneOfFieldsAreValid(
+    private static void EnsureOneOfFieldsAreValid(
         InputObjectType type,
         ICollection<ISchemaError> errors,
         ref List<string>? temp)
     {
-        if (type.Directives.Contains(WellKnownDirectives.OneOf))
+        if (type.Directives.ContainsDirective(WellKnownDirectives.OneOf))
         {
             temp ??= new List<string>();
 

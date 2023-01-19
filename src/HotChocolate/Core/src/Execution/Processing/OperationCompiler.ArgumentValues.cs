@@ -1,9 +1,7 @@
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
 using static System.StringComparer;
 
 namespace HotChocolate.Execution.Processing;
@@ -139,29 +137,47 @@ public sealed partial class OperationCompiler
         return true;
     }
 
-    internal static FieldDelegate CreateFieldMiddleware(
+    internal static FieldDelegate CreateFieldPipeline(
         ISchema schema,
         IObjectField field,
-        FieldNode selection)
+        FieldNode selection,
+        HashSet<string> processed,
+        List<FieldMiddleware> pipelineComponents)
     {
         var pipeline = field.Middleware;
 
-        if (field.ExecutableDirectives.Count == 0 && selection.Directives.Count == 0)
+        if (selection.Directives.Count == 0)
         {
             return pipeline;
         }
 
-        var directives = CollectDirectives(schema, field, selection);
+        // if we have selection directives we will inspect them and try to build a
+        // pipeline from them if they have middleware components.
+        BuildDirectivePipeline(schema, selection, processed, pipelineComponents);
 
-        if (directives.Count > 0)
+        // if we found middleware components on the selection directives we will build a new
+        // pipeline.
+        if (pipelineComponents.Count > 0)
         {
-            pipeline = Compile(pipeline, directives);
+            var next = pipeline;
+
+            for (var i = pipelineComponents.Count - 1; i >= 0; i--)
+            {
+                next = pipelineComponents[i](next);
+            }
+
+            pipeline = next;
         }
+
+        // at last we clear the rented lists
+        processed.Clear();
+        pipelineComponents.Clear();
 
         return pipeline;
     }
 
     private static PureFieldDelegate? TryCreatePureField(
+        ISchema schema,
         IObjectField field,
         FieldNode selection)
     {
@@ -170,118 +186,43 @@ public sealed partial class OperationCompiler
             return field.PureResolver;
         }
 
-        return null;
-    }
-
-    private static IReadOnlyList<IDirective> CollectDirectives(
-        ISchema schema,
-        IObjectField field,
-        FieldNode selection)
-    {
-        var processed = new HashSet<string>();
-        var directives = new List<IDirective>();
-
-        CollectTypeSystemDirectives(
-            processed,
-            directives,
-            field);
-
-        CollectQueryDirectives(
-            schema,
-            processed,
-            directives,
-            field,
-            selection);
-
-        return directives.AsReadOnly();
-    }
-
-    private static void CollectQueryDirectives(
-        ISchema schema,
-        HashSet<string> processed,
-        List<IDirective> directives,
-        IObjectField field,
-        FieldNode selection)
-    {
-        foreach (var directive in GetFieldSelectionDirectives(schema, field, selection))
+        for (var i = 0; i < selection.Directives.Count; i++)
         {
-            if (!directive.Type.IsRepeatable && !processed.Add(directive.Name))
+            if (schema.TryGetDirectiveType(selection.Directives[i].Name.Value, out var type) &&
+                type.Middleware is not null)
             {
-                directives.Remove(directives.First(t => t.Type == directive.Type));
+                return null;
             }
-            directives.Add(directive);
         }
+
+        return field.PureResolver;
     }
 
-    private static IEnumerable<IDirective> GetFieldSelectionDirectives(
+    private static void BuildDirectivePipeline(
         ISchema schema,
-        IObjectField field,
-        FieldNode selection)
+        FieldNode selection,
+        HashSet<string> processed,
+        List<FieldMiddleware> pipelineComponents)
     {
         for (var i = 0; i < selection.Directives.Count; i++)
         {
-            var directive = selection.Directives[i];
-            if (schema.TryGetDirectiveType(directive.Name.Value,
-                out var directiveType)
-                && directiveType.HasMiddleware)
+            var directiveNode = selection.Directives[i];
+            if (schema.TryGetDirectiveType(directiveNode.Name.Value, out var directiveType)
+                && directiveType.Middleware is not null
+                && (directiveType.IsRepeatable || processed.Add(directiveType.Name)))
             {
-                yield return Directive.FromDescription(
+                var directive = new Directive(
                     directiveType,
-                    new DirectiveDefinition(directive),
-                    field);
+                    directiveNode,
+                    directiveType.Parse(directiveNode));
+                var directiveMiddleware = directiveType.Middleware;
+                pipelineComponents.Add(next => directiveMiddleware(next, directive));
             }
         }
     }
-
-    private static void CollectTypeSystemDirectives(
-        HashSet<string> processed,
-        List<IDirective> directives,
-        IObjectField field)
-    {
-        for (var i = 0; i < field.ExecutableDirectives.Count; i++)
-        {
-            var directive = field.ExecutableDirectives[i];
-            if (!directive.Type.IsRepeatable && !processed.Add(directive.Name))
-            {
-                directives.Remove(directives.First(t => t.Type == directive.Type));
-            }
-            directives.Add(directive);
-        }
-    }
-
-    private static FieldDelegate Compile(
-        FieldDelegate fieldPipeline,
-        IReadOnlyList<IDirective> directives)
-    {
-        var next = fieldPipeline;
-
-        for (var i = directives.Count - 1; i >= 0; i--)
-        {
-            if (directives[i] is { Type: { HasMiddleware: true } } directive)
-            {
-                next = BuildComponent(directive, next);
-            }
-        }
-
-        return next;
-    }
-
-    private static FieldDelegate BuildComponent(IDirective directive, FieldDelegate first)
-    {
-        var next = first;
-        IReadOnlyList<DirectiveMiddleware> components = directive.MiddlewareComponents;
-
-        for (var i = components.Count - 1; i >= 0; i--)
-        {
-            var component = components[i].Invoke(next);
-            next = context => HasNoErrors(context.Result)
-                ? component.Invoke(new DirectiveContext(context, directive))
-                : default;
-        }
-
-        return next;
-    }
-
-    private static bool HasNoErrors(object? result)
-        => result is not IError or not IEnumerable<IError>;
 }
+
+internal delegate FieldDelegate CreateFieldPipeline(
+    ISchema schema,
+    IObjectField field,
+    FieldNode selection);

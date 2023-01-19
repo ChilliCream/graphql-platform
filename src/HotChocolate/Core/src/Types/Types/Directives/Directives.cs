@@ -20,32 +20,32 @@ public static class Directives
             WellKnownDirectives.OneOf
         };
 
-    internal static IReadOnlyList<ITypeReference> CreateReferences(
+    internal static IReadOnlyList<TypeReference> CreateReferences(
         IDescriptorContext descriptorContext)
     {
         var typeInspector = descriptorContext.TypeInspector;
+        var directiveTypes = new List<TypeReference>();
 
         if (descriptorContext.Options.EnableOneOf)
         {
-            return new ITypeReference[]
-            {
-                typeInspector.GetTypeRef(typeof(SkipDirectiveType)),
-                typeInspector.GetTypeRef(typeof(IncludeDirectiveType)),
-                typeInspector.GetTypeRef(typeof(DeferDirectiveType)),
-                typeInspector.GetTypeRef(typeof(StreamDirectiveType)),
-                typeInspector.GetTypeRef(typeof(DeprecatedDirectiveType)),
-                typeInspector.GetTypeRef(typeof(OneOfDirectiveType))
-            };
+            directiveTypes.Add(typeInspector.GetTypeRef(typeof(OneOfDirectiveType)));
         }
 
-        return new ITypeReference[]
+        if (descriptorContext.Options.EnableDefer)
         {
-            typeInspector.GetTypeRef(typeof(SkipDirectiveType)),
-            typeInspector.GetTypeRef(typeof(IncludeDirectiveType)),
-            typeInspector.GetTypeRef(typeof(DeferDirectiveType)),
-            typeInspector.GetTypeRef(typeof(StreamDirectiveType)),
-            typeInspector.GetTypeRef(typeof(DeprecatedDirectiveType))
-        };
+            directiveTypes.Add(typeInspector.GetTypeRef(typeof(DeferDirectiveType)));
+        }
+
+        if (descriptorContext.Options.EnableStream)
+        {
+            directiveTypes.Add(typeInspector.GetTypeRef(typeof(StreamDirectiveType)));
+        }
+
+        directiveTypes.Add(typeInspector.GetTypeRef(typeof(SkipDirectiveType)));
+        directiveTypes.Add(typeInspector.GetTypeRef(typeof(IncludeDirectiveType)));
+        directiveTypes.Add(typeInspector.GetTypeRef(typeof(DeprecatedDirectiveType)));
+
+        return directiveTypes;
     }
 
 

@@ -220,7 +220,7 @@ With this release we have also implemented the following query validation rules:
 - [Variables Are Input Types](http://facebook.github.io/graphql/June2018/#sec-Variables-Are-Input-Types)
 - [Field Selection Merging](http://facebook.github.io/graphql/June2018/#sec-Field-Selection-Merging)
 
-You can follow our progress on which rule is implemented [here](https://github.com/ChilliCream/hotchocolate/projects/3).
+You can follow our progress on which rule is implemented [here](https://github.com/ChilliCream/graphql-platform/projects/3).
 
 We plan for full compliance with the June 2018 spec version with version 0.6.0.
 

@@ -163,7 +163,7 @@ public class Node
 
     public SortItem? Ascending => RequiredSymbolicName?.Ascending();
 
-    public AliasedExpression? As(string alias) =>
+    public AliasedExpression As(string alias) =>
         RequiredSymbolicName.As(alias);
 
     public override void Visit(CypherVisitor cypherVisitor)

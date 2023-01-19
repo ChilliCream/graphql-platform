@@ -111,7 +111,7 @@ public interface ISortConvention : IConvention
     /// The descriptor to which the configurations shall be applied to.
     /// </param>
     void ApplyConfigurations(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         ISortInputTypeDescriptor descriptor);
 
     /// <summary>
@@ -124,7 +124,7 @@ public interface ISortConvention : IConvention
     /// The descriptor to which the configurations shall be applied to.
     /// </param>
     void ApplyConfigurations(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         ISortEnumTypeDescriptor descriptor);
 
     bool TryGetFieldHandler(

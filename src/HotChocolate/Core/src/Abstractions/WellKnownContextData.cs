@@ -1,5 +1,3 @@
-using System.Data;
-
 namespace HotChocolate;
 
 /// <summary>
@@ -206,7 +204,6 @@ public static class WellKnownContextData
     /// </summary>
     public const string IdValue = "HotChocolate.Relay.Node.Id.Value";
 
-    /// <summary>
     /// The key to get check if a field is the node field.
     /// </summary>
     public const string IsNodeField = "HotChocolate.Relay.Node.IsNodeField";
@@ -231,4 +228,29 @@ public static class WellKnownContextData
     /// the query field.
     /// </summary>
     public const string MutationQueryField =  "HotChocolate.Relay.Mutations.QueryField";
+
+    /// <summary>
+    /// The key to get the Cache-Control header value from the context data.
+    /// </summary>
+    public const string CacheControlHeaderValue = "HotChocolate.Caching.CacheControlHeaderValue";
+
+    /// <summary>
+    /// The key to to ski caching a query result.
+    /// </summary>
+    public const string SkipQueryCaching = "HotChocolate.Caching.SkipQueryCaching";
+
+    /// <summary>
+    /// The key to retrieve the cache constraints from the operation.
+    /// </summary>
+    public const string CacheControlConstraints = "HotChocolate.Caching.CacheControlConstraints";
+
+    /// <summary>
+    /// The key to retrieve the authorization options from the context.
+    /// </summary>
+    public const string AuthorizationOptions =  "HotChocolate.Authorization.Options";
+
+    /// <summary>
+    /// The key to check if this schema contains request policies.
+    /// </summary>
+    public const string AuthorizationRequestPolicy =  "HotChocolate.Authorization.RequestPolicy";
 }

@@ -70,7 +70,7 @@ public class DataLoaderOptionsTests
         };
 
         // act
-        DataLoaderOptions copy = options.Copy();
+        var copy = options.Copy();
 
         // assert
         Assert.NotNull(copy.Cache);

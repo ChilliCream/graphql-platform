@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-
 namespace HotChocolate.Types;
 
 public class BookType : ObjectType<Book>

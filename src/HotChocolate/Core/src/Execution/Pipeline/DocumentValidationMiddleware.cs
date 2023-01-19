@@ -29,7 +29,7 @@ internal sealed class DocumentValidationMiddleware
 
     public async ValueTask InvokeAsync(IRequestContext context)
     {
-        if (context.Document is null)
+        if (context.Document is null || context.DocumentId is null)
         {
             context.Result = StateInvalidForDocumentValidation();
         }
@@ -39,11 +39,16 @@ internal sealed class DocumentValidationMiddleware
             {
                 using (_diagnosticEvents.ValidateDocument(context))
                 {
-                    context.ValidationResult = _documentValidator.Validate(
-                        context.Schema,
-                        context.Document,
-                        context.ContextData,
-                        context.ValidationResult is not null);
+                    context.ValidationResult =
+                        await _documentValidator
+                            .ValidateAsync(
+                                context.Schema,
+                                context.Document,
+                                context.DocumentId,
+                                context.ContextData,
+                                context.ValidationResult is not null,
+                                context.RequestAborted)
+                            .ConfigureAwait(false);
 
                     if (!context.IsValidDocument)
                     {
@@ -52,9 +57,24 @@ internal sealed class DocumentValidationMiddleware
                         // GraphQL request.
                         var validationResult = context.ValidationResult;
 
+                        // create result context data that indicate that validation has failed.
+                        var resultContextData = new Dictionary<string, object?>
+                        {
+                            { ValidationErrors, true }
+                        };
+
+                        // if one of the validation rules proposed a status code we will add
+                        // it as a proposed status code to the result context data.
+                        // depending on the transport this code might not be relevant or
+                        // is even overruled.
+                        if (context.ContextData.TryGetValue(HttpStatusCode, out var value))
+                        {
+                            resultContextData.Add(HttpStatusCode, value);
+                        }
+
                         context.Result = QueryResultBuilder.CreateError(
                             validationResult.Errors,
-                            new Dictionary<string, object?> { { ValidationErrors, true } });
+                            resultContextData);
 
                         _diagnosticEvents.ValidationErrors(context, validationResult.Errors);
                         return;

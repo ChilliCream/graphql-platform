@@ -42,6 +42,6 @@ public abstract class StringOperationHandlerBase
     protected abstract bool TryCreateExpression(
         FilterOperation operation,
         Expression property,
-        object parsedValue,
+        object? parsedValue,
         [NotNullWhen(true)] out Expression? expression);
 }

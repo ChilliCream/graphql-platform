@@ -7,7 +7,6 @@ using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
-using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ErrorHelper;
 
 #nullable enable
@@ -17,12 +16,11 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Represents a field of an <see cref="ObjectType"/>.
 /// </summary>
-public class ObjectField
+public sealed class ObjectField
     : OutputFieldBase<ObjectFieldDefinition>
     , IObjectField
 {
     private static readonly FieldDelegate _empty = _ => throw new InvalidOperationException();
-    private IDirective[] _executableDirectives = Array.Empty<IDirective>();
 
     internal ObjectField(ObjectFieldDefinition definition, int index)
         : base(definition, index)
@@ -95,11 +93,6 @@ public class ObjectField
     public SubscribeResolverDelegate? SubscribeResolver { get; }
 
     /// <summary>
-    /// Gets all executable directives that are associated with this field.
-    /// </summary>
-    public IReadOnlyList<IDirective> ExecutableDirectives => _executableDirectives;
-
-    /// <summary>
     /// Gets the associated member of the runtime type for this field.
     /// This property can be <c>null</c> if this field is not associated to
     /// a concrete member on the runtime type.
@@ -133,42 +126,7 @@ public class ObjectField
     {
         base.OnCompleteField(context, declaringMember, definition);
 
-        CompleteExecutableDirectives(context);
         CompleteResolver(context, definition);
-    }
-
-    private void CompleteExecutableDirectives(
-        ITypeCompletionContext context)
-    {
-        var processed = new HashSet<string>();
-
-        if (context.Type is ObjectType ot)
-        {
-            AddExecutableDirectives(processed, ot.Directives);
-            AddExecutableDirectives(processed, Directives);
-        }
-    }
-
-    private void AddExecutableDirectives(
-        ISet<string> processed,
-        IEnumerable<IDirective> directives)
-    {
-        List<IDirective>? executableDirectives = null;
-        foreach (var directive in directives.Where(t => t.Type.HasMiddleware))
-        {
-            executableDirectives ??= new List<IDirective>(_executableDirectives);
-            if (!processed.Add(directive.Name) && !directive.Type.IsRepeatable)
-            {
-                var remove = executableDirectives.First(t => t.Name.EqualsOrdinal(directive.Name));
-                executableDirectives.Remove(remove);
-            }
-            executableDirectives.Add(directive);
-        }
-
-        if (executableDirectives is not null)
-        {
-            _executableDirectives = executableDirectives.ToArray();
-        }
     }
 
     private void CompleteResolver(
@@ -178,6 +136,28 @@ public class ObjectField
         var isIntrospectionField = IsIntrospectionField || DeclaringType.IsIntrospectionType();
         var fieldMiddlewareDefinitions = definition.GetMiddlewareDefinitions();
         var options = context.DescriptorContext.Options;
+
+        if (Directives.Count > 0)
+        {
+            List<FieldMiddlewareDefinition>? middlewareDefinitions = null;
+
+            for (var i = Directives.Count - 1; i >= 0; i--)
+            {
+                var directive = Directives[i];
+
+                if (directive.Type.Middleware is { } m)
+                {
+                    (middlewareDefinitions ??= fieldMiddlewareDefinitions.ToList()).Insert(
+                        0,
+                        new FieldMiddlewareDefinition(next => m(next, directive)));
+                }
+            }
+
+            if (middlewareDefinitions is not null)
+            {
+                fieldMiddlewareDefinitions = middlewareDefinitions;
+            }
+        }
 
         var skipMiddleware =
             options.FieldMiddleware is not FieldMiddlewareApplication.AllFields &&
@@ -201,36 +181,32 @@ public class ObjectField
             IsParallelExecutable = true;
         }
 
-        Middleware = FieldMiddlewareCompiler.Compile(
+        var middleware = FieldMiddlewareCompiler.Compile(
             context.GlobalComponents,
             fieldMiddlewareDefinitions,
             definition.GetResultConverters(),
             Resolver,
-            skipMiddleware)!;
+            skipMiddleware);
 
-        if (Middleware is null)
+        if (middleware is null)
         {
-            if (_executableDirectives.Length > 0)
-            {
-                Middleware = _ => default;
-            }
-            else
-            {
-                context.ReportError(
+            context.ReportError(
                     ObjectField_HasNoResolver(
                         context.Type.Name,
                         Name,
                         context.Type,
                         SyntaxNode));
-            }
+        }
+        else
+        {
+            Middleware = middleware;
         }
 
         bool IsPureContext()
         {
             return skipMiddleware ||
                (context.GlobalComponents.Count == 0 &&
-               fieldMiddlewareDefinitions.Count == 0 &&
-               _executableDirectives.Length == 0);
+               fieldMiddlewareDefinitions.Count == 0);
         }
     }
 

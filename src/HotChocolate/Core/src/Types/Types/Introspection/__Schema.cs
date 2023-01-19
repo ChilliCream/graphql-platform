@@ -11,6 +11,7 @@ using static HotChocolate.Types.Descriptors.TypeReference;
 namespace HotChocolate.Types.Introspection;
 
 [Introspection]
+// ReSharper disable once InconsistentNaming
 internal sealed class __Schema : ObjectType
 {
     protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
@@ -81,11 +82,12 @@ internal sealed class __Schema : ObjectType
         public static object AppliedDirectives(IPureResolverContext context)
             => context.Parent<ISchema>().Directives
                 .Where(t => t.Type.IsPublic)
-                .Select(d => d.ToNode());
+                .Select(d => d.AsSyntaxNode());
     }
 
     public static class Names
     {
+        // ReSharper disable once InconsistentNaming
         public const string __Schema = "__Schema";
         public const string Description = "description";
         public const string Types = "types";

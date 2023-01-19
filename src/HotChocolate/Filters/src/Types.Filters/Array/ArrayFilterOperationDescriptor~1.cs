@@ -15,7 +15,7 @@ public class ArrayFilterOperationDescriptor<TArray>
         IDescriptorContext context,
         ArrayFilterFieldDescriptor<TArray> descriptor,
         string name,
-        ITypeReference type,
+        TypeReference type,
         FilterOperation operation)
         : base(context, descriptor, name, type, operation)
     {
@@ -90,7 +90,7 @@ public class ArrayFilterOperationDescriptor<TArray>
         IDescriptorContext context,
         ArrayFilterFieldDescriptor<TArray> descriptor,
         string name,
-        ITypeReference type,
+        TypeReference type,
         FilterOperation operation) =>
         new(context, descriptor, name, type, operation);
 }

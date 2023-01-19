@@ -104,7 +104,7 @@ public class FilterConventionDescriptor : IFilterConventionDescriptor
             });
 
     protected IFilterConventionDescriptor Configure(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         ConfigureFilterInputType configure)
     {
         if (!Definition.Configurations.TryGetValue(

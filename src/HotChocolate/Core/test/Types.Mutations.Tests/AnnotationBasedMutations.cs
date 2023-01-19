@@ -142,7 +142,7 @@ public class AnnotationBasedMutations
                             d.Name("foo");
                             d.Location(DirectiveLocation.Field);
                             d.Use(
-                                next => async context =>
+                                (next, _) => async context =>
                                 {
                                     // this is just a dummy middleware
                                     await next(context);

@@ -77,11 +77,8 @@ internal static class MiddlewareCompiler<TMiddleware>
             handlers.AddRange(createParameters(context, middleware));
         }
 
-        var arguments =
-            CreateParameters(method.GetParameters(), handlers);
-
-        var middlewareCall =
-            CreateInvokeMethodCall(middleware, method, arguments);
+        var arguments = CreateParameters(method.GetParameters(), handlers);
+        var middlewareCall = CreateInvokeMethodCall(middleware, method, arguments);
 
         return Expression.Lambda<ClassQueryDelegate<TMiddleware, TContext>>(
             middlewareCall, context, middleware)

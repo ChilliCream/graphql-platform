@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "The GraphQL document has an execution depth of 2 which exceeds the max allowed execution depth of 1.",
     "Code": null,
@@ -6,7 +6,7 @@
     "Locations": [
       {
         "Line": 2,
-        "Column": 21
+        "Column": 17
       }
     ],
     "Extensions": {
@@ -17,10 +17,10 @@
     "SyntaxNode": {
       "Kind": "OperationDefinition",
       "Location": {
-        "Start": 21,
-        "End": 260,
+        "Start": 17,
+        "End": 224,
         "Line": 2,
-        "Column": 21
+        "Column": 17
       },
       "Name": null,
       "Operation": "Query",
@@ -29,10 +29,10 @@
       "SelectionSet": {
         "Kind": "SelectionSet",
         "Location": {
-          "Start": 27,
-          "End": 260,
+          "Start": 23,
+          "End": 224,
           "Line": 2,
-          "Column": 27
+          "Column": 23
         },
         "Selections": [
           {
@@ -43,35 +43,35 @@
             "SelectionSet": {
               "Kind": "SelectionSet",
               "Location": {
-                "Start": 86,
-                "End": 243,
+                "Start": 74,
+                "End": 211,
                 "Line": 4,
-                "Column": 25
+                "Column": 21
               },
               "Selections": [
                 {
                   "Kind": "InlineFragment",
                   "Location": {
-                    "Start": 116,
-                    "End": 221,
+                    "Start": 100,
+                    "End": 193,
                     "Line": 5,
-                    "Column": 29
+                    "Column": 25
                   },
                   "TypeCondition": {
                     "Kind": "NamedType",
                     "Location": {
-                      "Start": 123,
-                      "End": 128,
+                      "Start": 107,
+                      "End": 112,
                       "Line": 5,
-                      "Column": 36
+                      "Column": 32
                     },
                     "Name": {
                       "Kind": "Name",
                       "Location": {
-                        "Start": 123,
-                        "End": 128,
+                        "Start": 107,
+                        "End": 112,
                         "Line": 5,
-                        "Column": 36
+                        "Column": 32
                       },
                       "Value": "Cat"
                     }
@@ -80,10 +80,10 @@
                   "SelectionSet": {
                     "Kind": "SelectionSet",
                     "Location": {
-                      "Start": 127,
-                      "End": 221,
+                      "Start": 111,
+                      "End": 193,
                       "Line": 5,
-                      "Column": 40
+                      "Column": 36
                     },
                     "Selections": [
                       {
@@ -93,18 +93,18 @@
                         "Required": null,
                         "SelectionSet": null,
                         "Location": {
-                          "Start": 161,
-                          "End": 195,
+                          "Start": 141,
+                          "End": 171,
                           "Line": 6,
-                          "Column": 33
+                          "Column": 29
                         },
                         "Name": {
                           "Kind": "Name",
                           "Location": {
-                            "Start": 161,
-                            "End": 195,
+                            "Start": 141,
+                            "End": 171,
                             "Line": 6,
-                            "Column": 33
+                            "Column": 29
                           },
                           "Value": "name"
                         },
@@ -116,18 +116,18 @@
               ]
             },
             "Location": {
-              "Start": 53,
-              "End": 243,
+              "Start": 45,
+              "End": 211,
               "Line": 3,
-              "Column": 25
+              "Column": 21
             },
             "Name": {
               "Kind": "Name",
               "Location": {
-                "Start": 53,
-                "End": 87,
+                "Start": 45,
+                "End": 75,
                 "Line": 3,
-                "Column": 25
+                "Column": 21
               },
               "Value": "catOrDog"
             },

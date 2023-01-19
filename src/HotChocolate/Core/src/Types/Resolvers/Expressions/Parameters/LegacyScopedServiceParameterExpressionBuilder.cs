@@ -4,7 +4,7 @@ using HotChocolate.Internal;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
-internal class LegacyScopedServiceParameterExpressionBuilder : IParameterExpressionBuilder
+internal sealed class LegacyScopedServiceParameterExpressionBuilder : IParameterExpressionBuilder
 {
     public ArgumentKind Kind => ArgumentKind.Service;
 
@@ -12,8 +12,10 @@ internal class LegacyScopedServiceParameterExpressionBuilder : IParameterExpress
 
     public bool IsDefaultHandler => false;
 
+#pragma warning disable CS0618
     public bool CanHandle(ParameterInfo parameter)
         => parameter.IsDefined(typeof(ScopedServiceAttribute));
+#pragma warning restore CS0618
 
     public Expression Build(ParameterInfo parameter, Expression context)
         => ServiceExpressionHelper.Build(parameter, context, ServiceKind.Pooled);

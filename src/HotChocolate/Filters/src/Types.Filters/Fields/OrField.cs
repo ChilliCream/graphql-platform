@@ -7,9 +7,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types.Filters;
 
 [Obsolete("Use HotChocolate.Data.")]
-public sealed class OrField
-    : InputField
-        , IOrField
+public sealed class OrField : InputField, IOrField
 {
     private const string _name = "OR";
 

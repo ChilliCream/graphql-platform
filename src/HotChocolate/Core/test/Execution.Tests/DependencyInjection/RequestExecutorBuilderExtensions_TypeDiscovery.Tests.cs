@@ -31,9 +31,9 @@ public class RequestExecutorBuilderExtensionsTypeDiscoveryTests
     public sealed class MockHandler : TypeDiscoveryHandler
     {
         public override bool TryInferType(
-            ExtendedTypeReference typeReference,
+            TypeReference typeReference,
             TypeDiscoveryInfo typeReferenceInfo,
-            out ITypeReference[] schemaTypeRefs)
+            out TypeReference[] schemaTypeRefs)
         {
             schemaTypeRefs = null;
             return true;

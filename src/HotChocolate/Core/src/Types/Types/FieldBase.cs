@@ -92,6 +92,7 @@ public abstract class FieldBase<TDefinition>
         Coordinate = declaringMember is IField field
             ? new FieldCoordinate(context.Type.Name, field.Name, definition.Name)
             : new FieldCoordinate(context.Type.Name, definition.Name);
+
         Directives = DirectiveCollection.CreateAndComplete(
             context, this, definition.GetDirectives());
         Flags = definition.Flags;

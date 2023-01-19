@@ -5,28 +5,28 @@ namespace HotChocolate.Types.Descriptors;
 
 public static class TypeInspectorExtensions
 {
-    public static ITypeReference GetInputReturnTypeRef(
+    public static TypeReference GetInputReturnTypeRef(
         this ITypeInspector typeInspector,
         MemberInfo member)
     {
         return typeInspector.GetReturnTypeRef(member, TypeContext.Input);
     }
 
-    public static ITypeReference GetInputTypeRef(
+    public static TypeReference GetInputTypeRef(
         this ITypeInspector typeInspector,
         Type type)
     {
         return typeInspector.GetReturnTypeRef(type, TypeContext.Input);
     }
 
-    public static ITypeReference GetOutputReturnTypeRef(
+    public static TypeReference GetOutputReturnTypeRef(
         this ITypeInspector typeInspector,
         MemberInfo member)
     {
         return typeInspector.GetReturnTypeRef(member, TypeContext.Output);
     }
 
-    public static ITypeReference GetOutputTypeRef(
+    public static TypeReference GetOutputTypeRef(
         this ITypeInspector typeInspector,
         Type type)
     {

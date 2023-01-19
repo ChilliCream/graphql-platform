@@ -190,9 +190,7 @@ The DateTime scalar is based RFC3339.
 scalar DateTime @specifiedBy(url: "https://www.graphql-scalars.com/date-time/")
 ```
 
-<iframe width="560" height="315"
-src="https://www.youtube.com/embed/gO3bNKBmXZM"frameborder="0"
-allowfullscreen></iframe>
+<Video videoId="gO3bNKBmXZM" />
 
 # .NET Scalars
 
@@ -644,4 +642,4 @@ public class CreditCardNumberType : ScalarType
 }
 ```
 
-The implementation of [Hot Chocolate's own scalars](https://github.com/ChilliCream/hotchocolate/tree/main/src/HotChocolate/Core/src/Types.Scalars) can be used as a reference for writing custom scalars.
+The implementation of [Hot Chocolate's own scalars](https://github.com/ChilliCream/graphql-platform/tree/main/src/HotChocolate/Core/src/Types.Scalars) can be used as a reference for writing custom scalars.

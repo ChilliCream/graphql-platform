@@ -1,0 +1,9 @@
+schema {
+  query: Query
+}
+
+type Query {
+  bar: String @Qux
+}
+
+directive @Qux(bar: Int @deprecated(reason: "a")) on FIELD_DEFINITION

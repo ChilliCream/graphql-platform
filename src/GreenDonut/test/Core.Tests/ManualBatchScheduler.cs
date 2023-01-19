@@ -6,14 +6,14 @@ namespace GreenDonut;
 
 public class ManualBatchScheduler : IBatchScheduler
 {
-    private readonly object _sync = new object();
+    private readonly object _sync = new();
     private readonly ConcurrentQueue<Func<ValueTask>> _queue = new();
 
     public void Dispatch()
     {
         lock(_sync)
         {
-            while (_queue.TryDequeue(out Func<ValueTask> dispatch))
+            while (_queue.TryDequeue(out var dispatch))
             {
                 dispatch();
             }

@@ -21,7 +21,7 @@ namespace HotChocolate.Utilities
 
             // assert
             Assert.Equal("10", value);
-            Assert.Equal(10, cache.Size);
+            Assert.Equal(10, cache.Capacity);
             Assert.Equal(10, cache.Usage);
 
             Assert.Collection(
@@ -55,7 +55,7 @@ namespace HotChocolate.Utilities
 
             // assert
             Assert.Equal("10", value);
-            Assert.Equal(10, cache.Size);
+            Assert.Equal(10, cache.Capacity);
             Assert.Equal(10, cache.Usage);
 
             Assert.Collection(

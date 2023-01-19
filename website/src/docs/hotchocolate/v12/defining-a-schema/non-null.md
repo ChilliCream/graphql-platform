@@ -24,9 +24,7 @@ type User {
 The exclamation mark (`!`) denotes that the field can never be `null`.
 This is also enforced by the execution engine. If we were to return a `null` value in the `name` resolver, the execution engine would throw an error. This prevents unexpected `null` values from causing issues in the consuming applications.
 
-<iframe width="560" height="315"
-src="https://www.youtube.com/embed/Zx0nvTUfjn4"frameborder="0" 
-allowfullscreen></iframe>
+<Video videoId="Zx0nvTUfjn4" />
 
 # Implicit nullability
 

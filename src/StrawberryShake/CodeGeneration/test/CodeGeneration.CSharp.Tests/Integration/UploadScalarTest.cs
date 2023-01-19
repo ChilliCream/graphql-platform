@@ -16,8 +16,8 @@ public class UploadScalarTest : ServerTestBase
     public async Task Execute_UploadScalar_Argument()
     {
         // arrange
-        CancellationToken ct = new CancellationTokenSource(20_000).Token;
-        using IWebHost host = TestServerHelper.CreateServer(Configure, out var port);
+        var ct = new CancellationTokenSource(20_000).Token;
+        using var host = TestServerHelper.CreateServer(Configure, out var port);
         var client = CreateClient(host, port);
         using var data = CreateStream("a");
 
@@ -40,8 +40,8 @@ public class UploadScalarTest : ServerTestBase
     public async Task Execute_UploadScalarList_Argument()
     {
         // arrange
-        CancellationToken ct = new CancellationTokenSource(20_000).Token;
-        using IWebHost host = TestServerHelper.CreateServer(Configure, out var port);
+        var ct = new CancellationTokenSource(20_000).Token;
+        using var host = TestServerHelper.CreateServer(Configure, out var port);
         var client = CreateClient(host, port);
         using var dataA = CreateStream("a");
         using var dataB = CreateStream("b");
@@ -65,8 +65,8 @@ public class UploadScalarTest : ServerTestBase
     public async Task Execute_UploadScalarNested_Argument()
     {
         // arrange
-        CancellationToken ct = new CancellationTokenSource(20_000).Token;
-        using IWebHost host = TestServerHelper.CreateServer(Configure, out var port);
+        var ct = new CancellationTokenSource(20_000).Token;
+        using var host = TestServerHelper.CreateServer(Configure, out var port);
         var client = CreateClient(host, port);
         using var dataA = CreateStream("a");
         using var dataB = CreateStream("b");
@@ -90,8 +90,8 @@ public class UploadScalarTest : ServerTestBase
     public async Task Execute_Input_Argument()
     {
         // arrange
-        CancellationToken ct = new CancellationTokenSource(20_000).Token;
-        using IWebHost host = TestServerHelper.CreateServer(Configure, out var port);
+        var ct = new CancellationTokenSource(20_000).Token;
+        using var host = TestServerHelper.CreateServer(Configure, out var port);
         var client = CreateClient(host, port);
         using var data = CreateStream("a");
 
@@ -120,8 +120,8 @@ public class UploadScalarTest : ServerTestBase
     public async Task Execute_InputList_Argument()
     {
         // arrange
-        CancellationToken ct = new CancellationTokenSource(20_000).Token;
-        using IWebHost host = TestServerHelper.CreateServer(Configure, out var port);
+        var ct = new CancellationTokenSource(20_000).Token;
+        using var host = TestServerHelper.CreateServer(Configure, out var port);
         var client = CreateClient(host, port);
         using var dataA = CreateStream("a");
         using var dataB = CreateStream("b");
@@ -160,8 +160,8 @@ public class UploadScalarTest : ServerTestBase
     public async Task Execute_InputNested_Argument()
     {
         // arrange
-        CancellationToken ct = new CancellationTokenSource(20_000).Token;
-        using IWebHost host = TestServerHelper.CreateServer(Configure, out var port);
+        var ct = new CancellationTokenSource(20_000).Token;
+        using var host = TestServerHelper.CreateServer(Configure, out var port);
         var client = CreateClient(host, port);
         using var dataA = CreateStream("a");
         using var dataB = CreateStream("b");
@@ -218,8 +218,8 @@ public class UploadScalarTest : ServerTestBase
     public async Task Execute_ListWorksWithNull()
     {
         // arrange
-        CancellationToken ct = new CancellationTokenSource(20_000).Token;
-        using IWebHost host = TestServerHelper.CreateServer(Configure, out var port);
+        var ct = new CancellationTokenSource(20_000).Token;
+        using var host = TestServerHelper.CreateServer(Configure, out var port);
         var client = CreateClient(host, port);
         using var dataA = CreateStream("a");
         using var dataB = CreateStream("b");

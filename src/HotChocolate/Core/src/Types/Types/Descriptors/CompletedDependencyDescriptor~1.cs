@@ -14,8 +14,8 @@ internal class CompletedDependencyDescriptor
     {
     }
 
-    protected override TypeDependencyKind DependencyKind =>
-        TypeDependencyKind.Completed;
+    protected override TypeDependencyFulfilled DependencyFulfilled =>
+        TypeDependencyFulfilled.Completed;
 
     public ICompletedDependencyDescriptor DependsOn<TType>()
         where TType : ITypeSystemMember =>

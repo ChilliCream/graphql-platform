@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using ChilliCream.Testing;
-using Xunit;
 using static HotChocolate.Validation.TestHelper;
 
 namespace HotChocolate.Validation;
@@ -83,12 +82,11 @@ public class IntrospectionRuleTests
         ExpectValid(
             CreateSchema(),
             b => b.AddIntrospectionAllowedRule(),
-            @"
-                {
-                    __schema {
-                        name
-                    }
-                }",
+            @"{
+                __schema {
+                    name
+                }
+            }",
             new KeyValuePair<string, object>[]
             {
                 new(WellKnownContextData.IntrospectionAllowed, null)

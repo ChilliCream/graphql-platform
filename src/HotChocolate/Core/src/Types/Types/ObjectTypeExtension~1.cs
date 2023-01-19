@@ -7,6 +7,16 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types;
 
+/// <summary>
+/// <para>
+/// Object type extensions are used to represent a type which has been extended
+/// from some original type.
+/// </para>
+/// <para>
+/// For example, this might be used to represent local data, or by a GraphQL service
+/// which is itself an extension of another GraphQL service.
+/// </para>
+/// </summary>
 public class ObjectTypeExtension<T> : ObjectTypeExtension
 {
     private Action<IObjectTypeDescriptor<T>>? _configure;

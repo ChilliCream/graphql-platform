@@ -229,6 +229,18 @@ stages:
             inputs:
               artifactName: test-results
               pathtoPublish: "output/test-results"
+      - job: TestHotChocolateCaching
+        displayName: src/HotChocolate/Caching
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            inputs:
+              script: "./build.cmd TestHotChocolateCaching --skip --test-partition $(System.JobPositionInPhase)"
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
       - job: TestStrawberryShakeClient
         displayName: src/StrawberryShake/Client
         steps:

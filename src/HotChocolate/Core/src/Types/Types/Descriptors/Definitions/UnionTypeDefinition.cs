@@ -38,5 +38,5 @@ public class UnionTypeDefinition : TypeDefinitionBase<UnionTypeDefinitionNode>
     /// <summary>
     /// The types that make up the union type set.
     /// </summary>
-    public IList<ITypeReference> Types { get; } = new List<ITypeReference>();
+    public IList<TypeReference> Types { get; } = new List<TypeReference>();
 }

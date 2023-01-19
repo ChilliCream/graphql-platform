@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate.Internal;
 
@@ -17,23 +18,42 @@ public readonly ref struct TypeDiscoveryInfo
     /// <summary>
     /// Initializes a new instance of <see cref="TypeDiscoveryInfo"/>.
     /// </summary>
-    public TypeDiscoveryInfo(ExtendedTypeReference typeReference)
+    public TypeDiscoveryInfo(TypeReference typeReference)
     {
         if (typeReference is null)
         {
             throw new ArgumentNullException(nameof(typeReference));
         }
 
-        RuntimeType = typeReference.Type.Type;
+        IExtendedType extendedType;
+
+        switch (typeReference)
+        {
+            case ExtendedTypeReference extendedTypeRef:
+                extendedType = extendedTypeRef.Type;
+                IsDirectiveRef = false;
+                break;
+
+            case ExtendedTypeDirectiveReference extendedDirectiveRef:
+                extendedType = extendedDirectiveRef.Type;
+                IsDirectiveRef = true;
+                break;
+
+            default:
+                throw new NotSupportedException(
+                    TypeDiscoveryInfo_TypeRefKindNotSupported);
+        }
+
+        RuntimeType = extendedType.Type;
 
         var attributes = RuntimeType.Attributes;
         IsPublic = IsPublicInternal(RuntimeType);
-        IsComplex = IsComplexTypeInternal(typeReference, IsPublic);
+        IsComplex = IsComplexTypeInternal(extendedType, IsPublic);
         IsInterface = (attributes & TypeAttributes.Interface) == TypeAttributes.Interface;
         IsAbstract = (attributes & TypeAttributes.Abstract) == TypeAttributes.Abstract;
         IsStatic = IsAbstract && (attributes & TypeAttributes.Sealed) == TypeAttributes.Sealed;
         IsEnum = RuntimeType.IsEnum;
-        Attribute = GetTypeAttributeInternal(typeReference, RuntimeType);
+        Attribute = GetTypeAttributeInternal(RuntimeType);
         Context = typeReference.Context;
     }
 
@@ -78,13 +98,17 @@ public readonly ref struct TypeDiscoveryInfo
     public bool IsPublic { get; }
 
     /// <summary>
+    /// Specifies if the reference is a directive reference.
+    /// </summary>
+    public bool IsDirectiveRef { get; }
+
+    /// <summary>
     /// Specifies the <see cref="TypeContext"/> of the type reference.
     /// </summary>
     public TypeContext Context { get; }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static ITypeAttribute? GetTypeAttributeInternal(
-        ExtendedTypeReference unresolvedType,
         Type runtimeType)
     {
         foreach (var attr in runtimeType.GetCustomAttributes(typeof(DescriptorAttribute), false))
@@ -108,17 +132,17 @@ public readonly ref struct TypeDiscoveryInfo
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsComplexTypeInternal(
-        ExtendedTypeReference unresolvedType,
+        IExtendedType unresolvedType,
         bool isPublic)
     {
         var isComplexType =
             isPublic &&
-            unresolvedType.Type.Type.IsClass &&
-            unresolvedType.Type.Type != typeof(string);
+            unresolvedType.Type.IsClass &&
+            unresolvedType.Type != typeof(string);
 
-        if (!isComplexType && unresolvedType.Type.IsGeneric)
+        if (!isComplexType && unresolvedType.IsGeneric)
         {
-            var typeDefinition = unresolvedType.Type.Definition;
+            var typeDefinition = unresolvedType.Definition;
             return typeDefinition == typeof(KeyValuePair<,>);
         }
 

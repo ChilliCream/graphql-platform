@@ -2145,52 +2145,6 @@
       ],
       "Directives": [
         {
-          "Name": "skip",
-          "Description": "Directs the executor to skip this field or fragment when the `if` argument is true.",
-          "Args": [
-            {
-              "Name": "if",
-              "Description": "Skipped when true.",
-              "Type": {
-                "Kind": "NonNull",
-                "Name": null,
-                "OfType": {
-                  "Kind": "Scalar",
-                  "Name": "Boolean",
-                  "OfType": null
-                }
-              },
-              "DefaultValue": null
-            }
-          ],
-          "OnOperation": false,
-          "OnFragment": true,
-          "OnField": true
-        },
-        {
-          "Name": "include",
-          "Description": "Directs the executor to include this field or fragment only when the `if` argument is true.",
-          "Args": [
-            {
-              "Name": "if",
-              "Description": "Included when true.",
-              "Type": {
-                "Kind": "NonNull",
-                "Name": null,
-                "OfType": {
-                  "Kind": "Scalar",
-                  "Name": "Boolean",
-                  "OfType": null
-                }
-              },
-              "DefaultValue": null
-            }
-          ],
-          "OnOperation": false,
-          "OnFragment": true,
-          "OnField": true
-        },
-        {
           "Name": "defer",
           "Description": "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`.",
           "Args": [
@@ -2260,6 +2214,52 @@
           ],
           "OnOperation": false,
           "OnFragment": false,
+          "OnField": true
+        },
+        {
+          "Name": "skip",
+          "Description": "Directs the executor to skip this field or fragment when the `if` argument is true.",
+          "Args": [
+            {
+              "Name": "if",
+              "Description": "Skipped when true.",
+              "Type": {
+                "Kind": "NonNull",
+                "Name": null,
+                "OfType": {
+                  "Kind": "Scalar",
+                  "Name": "Boolean",
+                  "OfType": null
+                }
+              },
+              "DefaultValue": null
+            }
+          ],
+          "OnOperation": false,
+          "OnFragment": true,
+          "OnField": true
+        },
+        {
+          "Name": "include",
+          "Description": "Directs the executor to include this field or fragment only when the `if` argument is true.",
+          "Args": [
+            {
+              "Name": "if",
+              "Description": "Included when true.",
+              "Type": {
+                "Kind": "NonNull",
+                "Name": null,
+                "OfType": {
+                  "Kind": "Scalar",
+                  "Name": "Boolean",
+                  "OfType": null
+                }
+              },
+              "DefaultValue": null
+            }
+          ],
+          "OnOperation": false,
+          "OnFragment": true,
           "OnField": true
         },
         {
@@ -6049,84 +6049,6 @@
       "Directives": [
         {
           "__typename": "__Directive",
-          "Name": "skip",
-          "Description": "Directs the executor to skip this field or fragment when the `if` argument is true.",
-          "Args": [
-            {
-              "__typename": "__InputValue",
-              "Name": "if",
-              "Description": "Skipped when true.",
-              "Type": {
-                "__typename": "__Type",
-                "Name": null,
-                "Kind": "NonNull",
-                "Description": null,
-                "Fields": null,
-                "InputFields": null,
-                "Interfaces": null,
-                "EnumValues": null,
-                "PossibleTypes": null,
-                "OfType": {
-                  "__typename": "__Type",
-                  "Name": "Boolean",
-                  "Kind": "Scalar",
-                  "Description": null,
-                  "Fields": null,
-                  "InputFields": null,
-                  "Interfaces": null,
-                  "EnumValues": null,
-                  "PossibleTypes": null,
-                  "OfType": null
-                }
-              },
-              "DefaultValue": null
-            }
-          ],
-          "OnOperation": false,
-          "OnFragment": true,
-          "OnField": true
-        },
-        {
-          "__typename": "__Directive",
-          "Name": "include",
-          "Description": "Directs the executor to include this field or fragment only when the `if` argument is true.",
-          "Args": [
-            {
-              "__typename": "__InputValue",
-              "Name": "if",
-              "Description": "Included when true.",
-              "Type": {
-                "__typename": "__Type",
-                "Name": null,
-                "Kind": "NonNull",
-                "Description": null,
-                "Fields": null,
-                "InputFields": null,
-                "Interfaces": null,
-                "EnumValues": null,
-                "PossibleTypes": null,
-                "OfType": {
-                  "__typename": "__Type",
-                  "Name": "Boolean",
-                  "Kind": "Scalar",
-                  "Description": null,
-                  "Fields": null,
-                  "InputFields": null,
-                  "Interfaces": null,
-                  "EnumValues": null,
-                  "PossibleTypes": null,
-                  "OfType": null
-                }
-              },
-              "DefaultValue": null
-            }
-          ],
-          "OnOperation": false,
-          "OnFragment": true,
-          "OnField": true
-        },
-        {
-          "__typename": "__Directive",
           "Name": "defer",
           "Description": "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`.",
           "Args": [
@@ -6244,6 +6166,84 @@
           ],
           "OnOperation": false,
           "OnFragment": false,
+          "OnField": true
+        },
+        {
+          "__typename": "__Directive",
+          "Name": "skip",
+          "Description": "Directs the executor to skip this field or fragment when the `if` argument is true.",
+          "Args": [
+            {
+              "__typename": "__InputValue",
+              "Name": "if",
+              "Description": "Skipped when true.",
+              "Type": {
+                "__typename": "__Type",
+                "Name": null,
+                "Kind": "NonNull",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": "Boolean",
+                  "Kind": "Scalar",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": null
+                }
+              },
+              "DefaultValue": null
+            }
+          ],
+          "OnOperation": false,
+          "OnFragment": true,
+          "OnField": true
+        },
+        {
+          "__typename": "__Directive",
+          "Name": "include",
+          "Description": "Directs the executor to include this field or fragment only when the `if` argument is true.",
+          "Args": [
+            {
+              "__typename": "__InputValue",
+              "Name": "if",
+              "Description": "Included when true.",
+              "Type": {
+                "__typename": "__Type",
+                "Name": null,
+                "Kind": "NonNull",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": "Boolean",
+                  "Kind": "Scalar",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": null
+                }
+              },
+              "DefaultValue": null
+            }
+          ],
+          "OnOperation": false,
+          "OnFragment": true,
           "OnField": true
         },
         {

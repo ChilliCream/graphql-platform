@@ -1,6 +1,4 @@
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
@@ -14,11 +12,11 @@ namespace StrawberryShake.CodeGeneration.Mappers;
 public static class TestDataHelper
 {
     public static ClientModel CreateClientModelAsync(
-        string queryResource, 
+        string queryResource,
         string schemaResource)
     {
         var schema = SchemaHelper.Load(
-            new GraphQLFile[] 
+            new GraphQLFile[]
             {
                 new(Utf8GraphQLParser.Parse(Open(schemaResource))),
                 new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")"))
@@ -30,7 +28,8 @@ public static class TestDataHelper
             .New()
             .SetSchema(schema)
             .AddDocument(document)
-            .Analyze();
+            .AnalyzeAsync()
+            .Result;
     }
 
     public static async Task<ClientModel> CreateClientModelAsync(string query)
@@ -43,7 +42,7 @@ public static class TestDataHelper
                 .BuildSchemaAsync();
 
         schema = SchemaHelper.Load(
-            new GraphQLFile[] 
+            new GraphQLFile[]
             {
                 new(schema.ToDocument()),
                 new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")"))
@@ -55,6 +54,7 @@ public static class TestDataHelper
             .New()
             .SetSchema(schema)
             .AddDocument(document)
-            .Analyze();
+            .AnalyzeAsync()
+            .Result;
     }
 }

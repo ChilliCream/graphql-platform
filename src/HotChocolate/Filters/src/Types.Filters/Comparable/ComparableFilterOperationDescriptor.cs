@@ -15,7 +15,7 @@ public class ComparableFilterOperationDescriptor
         IDescriptorContext context,
         ComparableFilterFieldDescriptor descriptor,
         string name,
-        ITypeReference type,
+        TypeReference type,
         FilterOperation operation)
         : base(context)
     {
@@ -92,7 +92,7 @@ public class ComparableFilterOperationDescriptor
         IDescriptorContext context,
         ComparableFilterFieldDescriptor descriptor,
         string name,
-        ITypeReference type,
+        TypeReference type,
         FilterOperation operation) =>
         new ComparableFilterOperationDescriptor(context, descriptor, name, type, operation);
 }

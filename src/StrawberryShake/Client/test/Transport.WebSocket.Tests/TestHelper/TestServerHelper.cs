@@ -34,7 +34,13 @@ public static class TestServerHelper
                             .AddStarWarsTypes()
                             .AddExportDirectiveType()
                             .AddStarWarsRepositories()
-                            .AddInMemorySubscriptions();
+                            .AddInMemorySubscriptions()
+                            .ModifyOptions(
+                                o =>
+                                {
+                                    o.EnableDefer = true;
+                                    o.EnableStream = true;
+                                });
                     })
                     .Configure(app =>
                         app.Use(async (ct, next) =>

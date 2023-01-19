@@ -28,7 +28,7 @@ public class DictionaryResultMiddleware
                     context.Path);
         }
         else if (context.Result is null &&
-            !context.Selection.Field.Directives.Contains(DirectiveNames.Computed) &&
+            !context.Selection.Field.Directives.ContainsDirective(DirectiveNames.Computed) &&
             context.Parent<object>() is IReadOnlyDictionary<string, object> dict)
         {
             var responseName = context.Selection.SyntaxNode.Alias == null

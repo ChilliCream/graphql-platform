@@ -73,6 +73,10 @@ public static class SchemaHelper
                             scalar.Name.Value,
                             scalar.Description?.Value));
                     }
+                    else if (scalar.Name.Value == ScalarNames.Any)
+                    {
+                        builder.AddType(new AnyType());
+                    }
                 }
 
                 builder.AddDocument(document);
@@ -82,6 +86,12 @@ public static class SchemaHelper
         AddDefaultScalarInfos(builder, leafTypes);
 
         return builder
+            .ModifyOptions(
+                o =>
+                {
+                    o.EnableDefer = true;
+                    o.EnableStream = true;
+                })
             .SetSchema(d => d.Extend().OnBeforeCreate(
                 c => c.ContextData.Add(_typeInfosKey, typeInfos)))
             .TryAddTypeInterceptor(

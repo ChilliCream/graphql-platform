@@ -17,7 +17,7 @@ public abstract class TypeDiscoveryHandler
     /// <param name="typeReference">
     /// The runtime type reference.
     /// </param>
-    /// <param name="typeReferenceInfo">
+    /// <param name="typeInfo">
     /// The runtime type reference info provides addition metadata
     /// around the <paramref name="typeReference"/>.
     /// </param>
@@ -29,9 +29,9 @@ public abstract class TypeDiscoveryHandler
     /// otherwise, <c>false</c>.
     /// </returns>
     public abstract bool TryInferType(
-        ExtendedTypeReference typeReference,
-        TypeDiscoveryInfo typeReferenceInfo,
-        [NotNullWhen(true)] out ITypeReference[]? schemaTypeRefs);
+        TypeReference typeReference,
+        TypeDiscoveryInfo typeInfo,
+        [NotNullWhen(true)] out TypeReference[]? schemaTypeRefs);
 
     /// <summary>
     /// Tries to infer the <see cref="TypeKind"/> from a runtime reference.
@@ -39,7 +39,7 @@ public abstract class TypeDiscoveryHandler
     /// <param name="typeReference">
     /// The runtime type reference.
     /// </param>
-    /// <param name="typeReferenceInfo">
+    /// <param name="typeInfo">
     /// The runtime type reference info provides addition metadata
     /// around the <paramref name="typeReference"/>.
     /// </param>
@@ -51,8 +51,8 @@ public abstract class TypeDiscoveryHandler
     /// otherwise, <c>false</c>.
     /// </returns>
     public virtual bool TryInferKind(
-        ExtendedTypeReference typeReference,
-        TypeDiscoveryInfo typeReferenceInfo,
+        TypeReference typeReference,
+        TypeDiscoveryInfo typeInfo,
         out TypeKind typeKind)
     {
         typeKind = default;

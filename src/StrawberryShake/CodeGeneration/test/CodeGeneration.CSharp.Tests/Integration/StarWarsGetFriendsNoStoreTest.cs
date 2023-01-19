@@ -21,8 +21,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNo
         public async Task Execute_StarWarsGetFriendsNoStore_Test()
         {
             // arrange
-            CancellationToken ct = new CancellationTokenSource(20_000).Token;
-            using IWebHost host = TestServerHelper.CreateServer(
+            var ct = new CancellationTokenSource(20_000).Token;
+            using var host = TestServerHelper.CreateServer(
                 _ => { },
                 out var port);
             var serviceCollection = new ServiceCollection();
@@ -35,7 +35,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNo
                     c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
-            IStarWarsGetFriendsNoStoreClient client =
+            var client =
                 services.GetRequiredService<IStarWarsGetFriendsNoStoreClient>();
 
             // act
