@@ -11,7 +11,7 @@ internal static class HasDirectiveExtensions
         [NotNullWhen(true)] out SourceDirective? sourceDirective)
     {
         sourceDirective = hasDirectives.Directives[DirectiveNames.Source]
-            .Select(t => t.ToObject<SourceDirective>())
+            .Select(t => t.AsValue<SourceDirective>())
             .FirstOrDefault(t => schemaName.Equals(t.Schema));
         return sourceDirective != null;
     }

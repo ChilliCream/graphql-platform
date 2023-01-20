@@ -10,9 +10,7 @@ As part of a specification Relay proposes some schema design principles for Grap
 
 [Learn more about the Relay GraphQL Server Specification](https://relay.dev/docs/guides/graphql-server-specification)
 
-<iframe width="560" height="315"
-src="https://www.youtube.com/embed/qWguoAMzn9E"frameborder="0"
-allowfullscreen></iframe>
+<Video videoId="qWguoAMzn9E" />
 
 # Global identifiers
 
@@ -543,4 +541,4 @@ services
 
 This would add a field of type `Query` with the name of `rootQuery` to each top-level mutation field type, whose name ends in `Result`.
 
-> Warning: This feature currently doesn't work on a stitching gateway, however this will be addressed in a future release focused on stitching. It's tracked as [#3158](https://github.com/ChilliCream/hotchocolate/issues/3158).
+> Warning: This feature currently doesn't work on a stitching gateway, however this will be addressed in a future release focused on stitching. It's tracked as [#3158](https://github.com/ChilliCream/graphql-platform/issues/3158).

@@ -1,3 +1,3 @@
 ﻿For more details look at the `Errors` property.
 
-1. Unable to resolve type reference `None: Bar`. (HotChocolate.Types.ObjectType)
+1. Unable to resolve type reference `Bar`. (HotChocolate.Types.ObjectType)

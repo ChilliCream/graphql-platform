@@ -14,7 +14,7 @@ namespace HotChocolate.Types;
 ///
 /// directive @defer(label: String, if: Boolean) on FRAGMENT_SPREAD | INLINE_FRAGMENT
 /// </summary>
-public class DeferDirectiveType : DirectiveType<DeferDirective>
+public sealed class DeferDirectiveType : DirectiveType<DeferDirective>
 {
     protected override void Configure(
         IDirectiveTypeDescriptor<DeferDirective> descriptor)

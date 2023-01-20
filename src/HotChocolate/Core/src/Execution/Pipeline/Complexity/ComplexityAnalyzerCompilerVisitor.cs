@@ -116,7 +116,7 @@ internal sealed class ComplexityAnalyzerCompilerVisitor : TypeDocumentValidatorV
         var costDirective =
             field.Directives["cost"]
                 .FirstOrDefault()?
-                .ToObject<CostDirective>();
+                .AsValue<CostDirective>();
 
         return Call(
             Helper.CalculateMethod,

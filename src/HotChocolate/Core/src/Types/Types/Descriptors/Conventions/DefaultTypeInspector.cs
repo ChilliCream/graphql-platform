@@ -98,7 +98,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
     }
 
     /// <inheritdoc />
-    public virtual ITypeReference GetReturnTypeRef(
+    public virtual TypeReference GetReturnTypeRef(
         MemberInfo member,
         TypeContext context = TypeContext.None,
         string? scope = null,
@@ -109,7 +109,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
             throw new ArgumentNullException(nameof(member));
         }
 
-        ITypeReference typeRef = TypeReference.Create(GetReturnType(member), context, scope);
+        TypeReference typeRef = TypeReference.Create(GetReturnType(member), context, scope);
 
         if (!ignoreAttributes &&
             TryGetAttribute(member, out GraphQLTypeAttribute? attribute) &&
@@ -139,7 +139,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
     }
 
     /// <inheritdoc />
-    public ITypeReference GetArgumentTypeRef(
+    public TypeReference GetArgumentTypeRef(
         ParameterInfo parameter,
         string? scope = null,
         bool ignoreAttributes = false)
@@ -149,7 +149,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
             throw new ArgumentNullException(nameof(parameter));
         }
 
-        ITypeReference typeRef = TypeReference.Create(
+        TypeReference typeRef = TypeReference.Create(
             GetArgumentType(
                 parameter,
                 ignoreAttributes),
@@ -690,6 +690,11 @@ public class DefaultTypeInspector : Convention, ITypeInspector
             return false;
         }
 
+        if (member.IsDefined(typeof(DataLoaderAttribute)))
+        {
+            return false;
+        }
+
         if (!includeIgnored && IsMemberIgnored(member))
         {
             return false;
@@ -719,6 +724,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
             {
                 if (!CanHandleParameter(parameter))
                 {
+
                     return false;
                 }
             }
@@ -859,7 +865,9 @@ public class DefaultTypeInspector : Convention, ITypeInspector
             element.IsDefined(typeof(ParentAttribute), true) ||
             element.IsDefined(typeof(ServiceAttribute), true) ||
             element.IsDefined(typeof(GlobalStateAttribute), true) ||
+#pragma warning disable CS0618
             element.IsDefined(typeof(ScopedServiceAttribute), true) ||
+#pragma warning restore CS0618
             element.IsDefined(typeof(ScopedStateAttribute), true) ||
             element.IsDefined(typeof(LocalStateAttribute), true) ||
             element.IsDefined(typeof(DescriptorAttribute), true);

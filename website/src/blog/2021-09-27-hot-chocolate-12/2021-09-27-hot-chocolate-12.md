@@ -323,7 +323,7 @@ public async ValueTask<IReadOnlyCollection<ITypeSystemMember>> CreateTypesAsync(
 }
 ```
 
-A complete example of a dynamic schema with hot-reload can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/TypeModules), and I will also follow up this post with a detailed blog post on dynamic schemas that goes more into the details.
+A complete example of a dynamic schema with hot-reload can be found [here](https://github.com/ChilliCream/graphql-platform-examples/tree/master/misc/TypeModules), and I will also follow up this post with a detailed blog post on dynamic schemas that goes more into the details.
 
 ## Type Interceptors
 
@@ -545,7 +545,7 @@ type Person {
 
 But for the time being, schema-first got a big update with this release, and we will continue to make it better with every new release.
 
-The schema-first demo can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/SchemaFirst).
+The schema-first demo can be found [here](https://github.com/ChilliCream/graphql-platform-examples/tree/master/misc/SchemaFirst).
 
 # DataLoader
 
@@ -813,7 +813,7 @@ Beginning this week, we will start working on the new version, which we hope to 
 
 But there are also other topics Hot Chocolate 13 will tackle like support for AzureFunctions, more transport protocols like graphql-ws and Azure Web PubSub and many more things.
 
-If you want to have a look at the high-level roadmap, you can check it out [here](https://github.com/ChilliCream/hotchocolate/projects/28).
+If you want to have a look at the high-level roadmap, you can check it out [here](https://github.com/ChilliCream/graphql-platform/projects/28).
 
 There are also dot releases planned for Hot Chocolate 12, with 12.1 already scheduled for the end of October.
 

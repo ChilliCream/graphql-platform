@@ -28,7 +28,7 @@ public class FilterConvention
     private INamingConventions _namingConventions = default!;
     private IReadOnlyDictionary<int, FilterOperation> _operations = default!;
     private IDictionary<Type, Type> _bindings = default!;
-    private IDictionary<ITypeReference, List<ConfigureFilterInputType>> _configs = default!;
+    private IDictionary<TypeReference, List<ConfigureFilterInputType>> _configs = default!;
 
     private string _argumentName = default!;
     private IFilterProvider _provider = default!;
@@ -195,35 +195,6 @@ public class FilterConvention
     }
 
     /// <inheritdoc />
-    public string GetTypeName(
-        IFilterInputType parentType,
-        FilterFieldDefinition fieldDefinition)
-    {
-        const string operationInputPostFix = $"Operation{_inputPostFix}";
-        const string operationInputTypePostFix = $"Operation{_inputTypePostFix}";
-
-        var parentName = parentType.Name;
-        if (parentName.EndsWith(_inputPostFix, StringComparison.Ordinal))
-        {
-            parentName = parentName.Remove(parentName.Length - _inputPostFix.Length);
-        }
-        else if (parentName.EndsWith(operationInputPostFix, StringComparison.Ordinal))
-        {
-            parentName = parentName.Remove(parentName.Length - operationInputPostFix.Length);
-        }
-        else if (parentName.EndsWith(_inputTypePostFix, StringComparison.Ordinal))
-        {
-            parentName = parentName.Remove(parentName.Length - _inputTypePostFix.Length);
-        }
-        else if (parentName.EndsWith(operationInputTypePostFix, StringComparison.Ordinal))
-        {
-            parentName = parentName.Remove(parentName.Length - operationInputTypePostFix.Length);
-        }
-
-        return parentName + NameHelpers.UppercaseFirstLetter(fieldDefinition.Name) + _inputPostFix;
-    }
-
-    /// <inheritdoc />
     public virtual string? GetTypeDescription(Type runtimeType) =>
         _namingConventions.GetTypeDescription(runtimeType, TypeKind.InputObject);
 
@@ -278,7 +249,7 @@ public class FilterConvention
 
     /// <inheritdoc cref="IFilterConvention"/>
     public void ApplyConfigurations(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         IFilterInputTypeDescriptor descriptor)
     {
         if (_configs.TryGetValue(

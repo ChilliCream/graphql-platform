@@ -1,6 +1,5 @@
 using HotChocolate.Types;
 using HotChocolate.Tests;
-using Xunit;
 
 namespace HotChocolate.Execution;
 
@@ -13,8 +12,7 @@ public class SchemaDirectiveTests
         var schema = CreateSchema();
 
         // act
-        var result =
-            schema.MakeExecutable().Execute("{ person { phone } }");
+        var result = schema.MakeExecutable().Execute("{ person { phone } }");
 
         // assert
         result.MatchSnapshot();
@@ -27,8 +25,7 @@ public class SchemaDirectiveTests
         var schema = CreateSchema();
 
         // act
-        var result =
-            schema.MakeExecutable().Execute("{ person { name } }");
+        var result = schema.MakeExecutable().Execute("{ person { name } }");
 
         // assert
         result.MatchSnapshot();
@@ -41,9 +38,7 @@ public class SchemaDirectiveTests
         var schema = CreateSchema();
 
         // act
-        var result =
-            schema.MakeExecutable().Execute(
-                "{ person { name @c(append:\"Baz\") } }");
+        var result = schema.MakeExecutable().Execute("{ person { name @c(append:\"Baz\") } }");
 
         // assert
         result.MatchSnapshot();
@@ -61,9 +56,7 @@ public class SchemaDirectiveTests
             .Create();
 
         // act
-        var result =
-            schema.MakeExecutable().Execute(
-                "{ a @lower @upper b: a @upper @lower }");
+        var result = schema.MakeExecutable().Execute("{ a @lower @upper b: a @upper @lower }");
 
         // assert
         result.MatchSnapshot();
@@ -72,7 +65,6 @@ public class SchemaDirectiveTests
     public static ISchema CreateSchema()
         => SchemaBuilder.New()
             .AddDirectiveType<ResolveDirective>()
-            .AddDirectiveType<ADirectiveType>()
             .AddDirectiveType<BDirectiveType>()
             .AddDirectiveType<CDirectiveType>()
             .AddDirectiveType<UpperCaseDirectiveType>()
@@ -95,66 +87,44 @@ public class SchemaDirectiveTests
 
     public class PersonType : ObjectType<Person>
     {
-        protected override void Configure(
-            IObjectTypeDescriptor<Person> descriptor)
+        protected override void Configure(IObjectTypeDescriptor<Person> descriptor)
         {
             descriptor.Directive(new Resolve());
-            descriptor.Directive(new ADirective { Append = "Foo" });
-            descriptor.Field(t => t.Name)
-                .Directive(new BDirective { Append = "Bar" });
+            descriptor.Field(t => t.Name).Directive(new BDirective { Append = "Bar" });
         }
     }
 
-    public class ADirectiveType : DirectiveType<ADirective>
-    {
-        protected override void Configure(IDirectiveTypeDescriptor<ADirective> descriptor)
-        {
-            descriptor.Name("a");
-            descriptor.Location(DirectiveLocation.Object);
-            descriptor.Location(DirectiveLocation.Interface);
-            descriptor.Location(DirectiveLocation.FieldDefinition);
-            descriptor.Use(next => context =>
-            {
-                var s = context.Directive.ToObject<ADirective>().Append;
-                context.Result = context.Result + s;
-                return next.Invoke(context);
-            });
-        }
-    }
-
-
-    public class BDirectiveType
-        : DirectiveType<BDirective>
+    public class BDirectiveType : DirectiveType<BDirective>
     {
         protected override void Configure(
             IDirectiveTypeDescriptor<BDirective> descriptor)
         {
             descriptor.Name("b");
-            descriptor.Location(DirectiveLocation.Object);
             descriptor.Location(DirectiveLocation.Interface);
             descriptor.Location(DirectiveLocation.FieldDefinition);
-            descriptor.Use(next => context =>
+            descriptor.Use((next, directive) => async context =>
             {
-                var s = context.Directive.ToObject<BDirective>().Append;
-                context.Result = context.Result + s;
-                return next.Invoke(context);
+                await next.Invoke(context);
+
+                var s = directive.AsValue<BDirective>().Append;
+                context.Result += s;
             });
         }
     }
 
-    public class CDirectiveType
-        : DirectiveType<CDirective>
+    public class CDirectiveType : DirectiveType<CDirective>
     {
         protected override void Configure(
             IDirectiveTypeDescriptor<CDirective> descriptor)
         {
             descriptor.Name("c");
             descriptor.Location(DirectiveLocation.Field);
-            descriptor.Use(_ => context =>
+            descriptor.Use((next, directive) => async context =>
             {
-                var s = context.Directive.ToObject<CDirective>().Append;
+                await next.Invoke(context);
+
+                var s = directive.AsValue<CDirective>().Append;
                 context.Result += s;
-                return default;
             });
         }
     }
@@ -166,11 +136,11 @@ public class SchemaDirectiveTests
         {
             descriptor.Name("upper");
             descriptor.Location(DirectiveLocation.Field | DirectiveLocation.FieldDefinition);
-            descriptor.Use(next => async context =>
+            descriptor.Use((next, directive) => async context =>
             {
                 await next(context);
 
-                if (context.Directive.Name != "upper")
+                if (directive.Type.Name != "upper")
                 {
                     throw new QueryException("Not the upper directive.");
                 }
@@ -185,17 +155,16 @@ public class SchemaDirectiveTests
 
     public class LowerCaseDirectiveType : DirectiveType
     {
-        protected override void Configure(
-            IDirectiveTypeDescriptor descriptor)
+        protected override void Configure(IDirectiveTypeDescriptor descriptor)
         {
             descriptor.Name("lower");
             descriptor.Location(DirectiveLocation.Field
                 | DirectiveLocation.FieldDefinition);
-            descriptor.Use(next => async context =>
+            descriptor.Use((next, directive) => async context =>
             {
                 await next(context);
 
-                if (context.Directive.Name != "lower")
+                if (directive.Type.Name != "lower")
                 {
                     throw new QueryException("Not the lower directive.");
                 }
@@ -226,15 +195,15 @@ public class SchemaDirectiveTests
         protected override void Configure(IDirectiveTypeDescriptor<Resolve> descriptor)
         {
             descriptor.Name("resolve");
-            descriptor.Use(next => async context =>
-            {
-                context.Result = await context.ResolveAsync<object>()
-                    .ConfigureAwait(false);
 
+            descriptor.Use((next, _) => async context =>
+            {
+                context.Result = await context.ResolveAsync<object>().ConfigureAwait(false);
                 await next.Invoke(context).ConfigureAwait(false);
             });
 
-            descriptor.Location(DirectiveLocation.Schema)
+            descriptor
+                .Location(DirectiveLocation.Schema)
                 .Location(DirectiveLocation.Object)
                 .Location(DirectiveLocation.Interface)
                 .Location(DirectiveLocation.FieldDefinition)

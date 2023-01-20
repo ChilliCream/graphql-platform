@@ -32,9 +32,8 @@ internal static class ExternalSetterExpressionHelper
 
         foreach (var field in type.Fields)
         {
-            if (field.Directives.Contains(WellKnownTypeNames.External) &&
-                field.Member is PropertyInfo property &&
-                property.SetMethod is not null)
+            if (field.Directives.ContainsDirective(WellKnownTypeNames.External) &&
+                field.Member is PropertyInfo { SetMethod: { } } property)
             {
                 var expression = CreateTrySetValue(type.RuntimeType, property, field.Name);
                 (block ??= new()).Add(expression);

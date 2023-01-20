@@ -39,8 +39,7 @@ public class AuthorizationTests : ServerTestBase
             });
 
         // act
-        var result =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ default }" });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ default }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);

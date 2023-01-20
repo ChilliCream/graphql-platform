@@ -7,10 +7,8 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types;
 
-[AttributeUsage(
-    AttributeTargets.Property | AttributeTargets.Method,
-    Inherited = true,
-    AllowMultiple = false)]
+[Obsolete("Use the SubscribeAttribute.")]
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Method)]
 public sealed class SubscribeAndResolveAttribute
     : ObjectFieldDescriptorAttribute
 {

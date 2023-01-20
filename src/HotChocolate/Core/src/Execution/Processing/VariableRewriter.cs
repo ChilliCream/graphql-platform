@@ -69,7 +69,7 @@ public static class VariableRewriter
 
         if (node.Fields.Count == 1)
         {
-            var oneOf = type.Directives.Contains(WellKnownDirectives.OneOf);
+            var oneOf = type.Directives.ContainsDirective(WellKnownDirectives.OneOf);
             var value = node.Fields[0];
 
             if (type.Fields.TryGetField(value.Name.Value, out var field) &&

@@ -106,9 +106,7 @@ public static class TypeExtensionHelper
 
         foreach (var directive in type)
         {
-            if (context.TryGetDirectiveType(
-                directive.Reference,
-                out var directiveType))
+            if (context.TryGetDirectiveType(directive.Type, out var directiveType))
             {
                 directives.Add((directiveType, directive));
             }
@@ -132,7 +130,7 @@ public static class TypeExtensionHelper
         IList<(DirectiveType type, DirectiveDefinition def)> directives,
         DirectiveDefinition directive)
     {
-        if (context.TryGetDirectiveType(directive.Reference, out var directiveType))
+        if (context.TryGetDirectiveType(directive.Type, out var directiveType))
         {
             if (directiveType.IsRepeatable)
             {
@@ -184,10 +182,10 @@ public static class TypeExtensionHelper
     }
 
     public static void MergeTypes(
-        ICollection<ITypeReference> extensionTypes,
-        ICollection<ITypeReference> typeTypes)
+        ICollection<TypeReference> extensionTypes,
+        ICollection<TypeReference> typeTypes)
     {
-        var set = new HashSet<ITypeReference>(typeTypes);
+        var set = new HashSet<TypeReference>(typeTypes);
 
         foreach (var reference in extensionTypes)
         {

@@ -19,7 +19,7 @@ internal sealed class DeferredWorkStateOwner : IDisposable
 
     public void Dispose()
     {
-        if (_disposed == 0 && Interlocked.CompareExchange(ref _disposed, 0, 1) == 0)
+        if (_disposed == 0 && Interlocked.CompareExchange(ref _disposed, 1, 0) == 0)
         {
             _statePool.Return(State);
         }

@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers.Expressions.Parameters;
+using HotChocolate.Subscriptions;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using static System.Linq.Expressions.Expression;
@@ -48,7 +49,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
             : new List<IParameterExpressionBuilder>();
 
         // explicit internal expression builders will be added first.
-        var parameterExpressionBuilders = new List<IParameterExpressionBuilder>
+        var expressionBuilders = new List<IParameterExpressionBuilder>
         {
             new ParentParameterExpressionBuilder(),
             new ServiceParameterExpressionBuilder(),
@@ -69,25 +70,27 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
             {
                 if (!builder.IsDefaultHandler)
                 {
-                    parameterExpressionBuilders.Add(builder);
+                    expressionBuilders.Add(builder);
                 }
             }
         }
 
         // then we add the internal implicit expression builder.
-        parameterExpressionBuilders.Add(new DocumentParameterExpressionBuilder());
-        parameterExpressionBuilders.Add(new CancellationTokenParameterExpressionBuilder());
-        parameterExpressionBuilders.Add(new ResolverContextParameterExpressionBuilder());
-        parameterExpressionBuilders.Add(new PureResolverContextParameterExpressionBuilder());
-        parameterExpressionBuilders.Add(new SchemaParameterExpressionBuilder());
-        parameterExpressionBuilders.Add(new SelectionParameterExpressionBuilder());
-        parameterExpressionBuilders.Add(new FieldSyntaxParameterExpressionBuilder());
-        parameterExpressionBuilders.Add(new ObjectTypeParameterExpressionBuilder());
-        parameterExpressionBuilders.Add(new OperationDefinitionParameterExpressionBuilder());
-        parameterExpressionBuilders.Add(new OperationParameterExpressionBuilder());
-        parameterExpressionBuilders.Add(new FieldParameterExpressionBuilder());
-        parameterExpressionBuilders.Add(new ClaimsPrincipalParameterExpressionBuilder());
-        parameterExpressionBuilders.Add(new PathParameterExpressionBuilder());
+        expressionBuilders.Add(new DocumentParameterExpressionBuilder());
+        expressionBuilders.Add(new CancellationTokenParameterExpressionBuilder());
+        expressionBuilders.Add(new ResolverContextParameterExpressionBuilder());
+        expressionBuilders.Add(new PureResolverContextParameterExpressionBuilder());
+        expressionBuilders.Add(new SchemaParameterExpressionBuilder());
+        expressionBuilders.Add(new SelectionParameterExpressionBuilder());
+        expressionBuilders.Add(new FieldSyntaxParameterExpressionBuilder());
+        expressionBuilders.Add(new ObjectTypeParameterExpressionBuilder());
+        expressionBuilders.Add(new OperationDefinitionParameterExpressionBuilder());
+        expressionBuilders.Add(new OperationParameterExpressionBuilder());
+        expressionBuilders.Add(new FieldParameterExpressionBuilder());
+        expressionBuilders.Add(new ClaimsPrincipalParameterExpressionBuilder());
+        expressionBuilders.Add(new PathParameterExpressionBuilder());
+        expressionBuilders.Add(new CustomServiceParameterExpressionBuilder<ITopicEventReceiver>());
+        expressionBuilders.Add(new CustomServiceParameterExpressionBuilder<ITopicEventSender>());
 
         if (customParameterExpressionBuilders is not null)
         {
@@ -111,7 +114,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
 
         }
 
-        _parameterExpressionBuilders = parameterExpressionBuilders;
+        _parameterExpressionBuilders = expressionBuilders;
 
         var parameterFieldConfigurations = new List<IParameterFieldConfiguration>();
 
@@ -238,12 +241,22 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
 
         if (member is MethodInfo method)
         {
-            var parameters = method.GetParameters();
-            var owner = CreateResolverOwner(_context, sourceType, resolverType);
-            var parameterExpr = CreateParameters(_context, parameters, _empty);
-            Expression subscribeResolver = Call(owner, method, parameterExpr);
-            subscribeResolver = EnsureSubscribeResult(subscribeResolver, method.ReturnType);
-            return Lambda<SubscribeResolverDelegate>(subscribeResolver, _context).Compile();
+            if (method.IsStatic)
+            {
+                var parameterExpr = CreateParameters(_context, method.GetParameters(), _empty);
+                Expression subscribeResolver = Call(method, parameterExpr);
+                subscribeResolver = EnsureSubscribeResult(subscribeResolver, method.ReturnType);
+                return Lambda<SubscribeResolverDelegate>(subscribeResolver, _context).Compile();
+            }
+            else
+            {
+                var parameters = method.GetParameters();
+                var owner = CreateResolverOwner(_context, sourceType, resolverType);
+                var parameterExpr = CreateParameters(_context, parameters, _empty);
+                Expression subscribeResolver = Call(owner, method, parameterExpr);
+                subscribeResolver = EnsureSubscribeResult(subscribeResolver, method.ReturnType);
+                return Lambda<SubscribeResolverDelegate>(subscribeResolver, _context).Compile();
+            }
         }
 
         throw new ArgumentException(

@@ -147,35 +147,35 @@ public class ClrTypeReferenceTests
     }
 
     [Fact]
-    public void ITypeReference_Equals_To_Null()
+    public void TypeReference_Equals_To_Null()
     {
         // arrange
         var x = TypeReference.Create(
             _typeInspector.GetType(typeof(string)));
 
         // act
-        var result = x.Equals((ITypeReference)null);
+        var result = x.Equals((TypeReference)null);
 
         // assert
         Assert.False(result);
     }
 
     [Fact]
-    public void ITypeReference_Equals_To_Same()
+    public void TypeReference_Equals_To_Same()
     {
         // arrange
         var x = TypeReference.Create(
             _typeInspector.GetType(typeof(string)));
 
         // act
-        var xx = x.Equals((ITypeReference)x);
+        var xx = x.Equals((TypeReference)x);
 
         // assert
         Assert.True(xx);
     }
 
     [Fact]
-    public void ITypeReference_Equals_To_SyntaxTypeRef()
+    public void TypeReference_Equals_To_SyntaxTypeRef()
     {
         // arrange
         var x = TypeReference.Create(_typeInspector.GetType(typeof(string)));
@@ -188,7 +188,7 @@ public class ClrTypeReferenceTests
     }
 
     [Fact]
-    public void ITypeReference_Equals_Context_None_Does_Not_Matter()
+    public void TypeReference_Equals_Context_None_Does_Not_Matter()
     {
         // arrange
         var x = TypeReference.Create(
@@ -204,9 +204,9 @@ public class ClrTypeReferenceTests
             TypeContext.Input);
 
         // act
-        var xy = x.Equals((ITypeReference)y);
-        var xz = x.Equals((ITypeReference)z);
-        var yz = y.Equals((ITypeReference)z);
+        var xy = x.Equals((TypeReference)y);
+        var xz = x.Equals((TypeReference)z);
+        var yz = y.Equals((TypeReference)z);
 
         // assert
         Assert.True(xy);
@@ -215,7 +215,7 @@ public class ClrTypeReferenceTests
     }
 
     [Fact]
-    public void ITypeReference_Equals_Scope_Different()
+    public void TypeReference_Equals_Scope_Different()
     {
         // arrange
         var x = TypeReference.Create(
@@ -233,9 +233,9 @@ public class ClrTypeReferenceTests
             TypeContext.Input);
 
         // act
-        var xy = x.Equals((ITypeReference)y);
-        var xz = x.Equals((ITypeReference)z);
-        var yz = y.Equals((ITypeReference)z);
+        var xy = x.Equals((TypeReference)y);
+        var xz = x.Equals((TypeReference)z);
+        var yz = y.Equals((TypeReference)z);
 
         // assert
         Assert.True(xy);
@@ -352,7 +352,7 @@ public class ClrTypeReferenceTests
         var result = typeReference.ToString();
 
         // assert
-        Assert.Equal("Input: String", result);
+        Assert.Equal("String (Input)", result);
     }
 
     [Fact]

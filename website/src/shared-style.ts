@@ -1,9 +1,12 @@
 import { css, keyframes, SimpleInterpolation } from "styled-components";
 
+/** Fix a problem with the interpolation parsing that invalidates the first rule passed. */
+const fixForInterpolation = (style: SimpleInterpolation) => ";" + style;
+
 export function IsMobile(innerStyle: SimpleInterpolation) {
   return css`
     @media only screen and (max-width: 450px) {
-      ${innerStyle}
+      ${fixForInterpolation(innerStyle)}
     }
   `;
 }
@@ -11,7 +14,7 @@ export function IsMobile(innerStyle: SimpleInterpolation) {
 export function IsPhablet(innerStyle: SimpleInterpolation) {
   return css`
     @media only screen and (max-width: 860px) {
-      ${innerStyle}
+      ${fixForInterpolation(innerStyle)}
     }
   `;
 }
@@ -19,7 +22,7 @@ export function IsPhablet(innerStyle: SimpleInterpolation) {
 export function IsSmallTablet(innerStyle: SimpleInterpolation) {
   return css`
     @media only screen and (max-width: 992px) {
-      ${innerStyle}
+      ${fixForInterpolation(innerStyle)}
     }
   `;
 }
@@ -27,7 +30,7 @@ export function IsSmallTablet(innerStyle: SimpleInterpolation) {
 export function IsTablet(innerStyle: SimpleInterpolation) {
   return css`
     @media only screen and (max-width: 1110px) {
-      ${innerStyle}
+      ${fixForInterpolation(innerStyle)}
     }
   `;
 }
@@ -35,7 +38,7 @@ export function IsTablet(innerStyle: SimpleInterpolation) {
 export function IsSmallDesktop(innerStyle: SimpleInterpolation) {
   return css`
     @media only screen and (max-width: 1280px) {
-      ${innerStyle}
+      ${fixForInterpolation(innerStyle)}
     }
   `;
 }
@@ -43,7 +46,7 @@ export function IsSmallDesktop(innerStyle: SimpleInterpolation) {
 export function IsDesktop(innerStyle: SimpleInterpolation) {
   return css`
     @media only screen and (min-width: 1281px) {
-      ${innerStyle}
+      ${fixForInterpolation(innerStyle)}
     }
   `;
 }

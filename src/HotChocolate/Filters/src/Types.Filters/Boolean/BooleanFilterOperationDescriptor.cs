@@ -15,7 +15,7 @@ public class BooleanFilterOperationDescriptor
         IDescriptorContext context,
         BooleanFilterFieldDescriptor descriptor,
         string name,
-        ITypeReference type,
+        TypeReference type,
         FilterOperation operation)
         : base(context, name, type, operation)
     {
@@ -90,7 +90,7 @@ public class BooleanFilterOperationDescriptor
         IDescriptorContext context,
         BooleanFilterFieldDescriptor descriptor,
         string name,
-        ITypeReference type,
+        TypeReference type,
         FilterOperation operation)
         => new(context, descriptor, name, type, operation);
 }

@@ -9,9 +9,7 @@ namespace HotChocolate.Configuration;
 /// <summary>
 /// The type system context is available during the type system initialization process.
 /// </summary>
-public interface ITypeSystemObjectContext
-    : IHasScope
-    , IHasContextData
+public interface ITypeSystemObjectContext : IHasScope, IHasContextData
 {
     /// <summary>
     /// The type system object that is being initialized.
@@ -22,7 +20,7 @@ public interface ITypeSystemObjectContext
     /// A type reference that points to <see cref="Type"/>.
     /// </summary>
     /// <value></value>
-    ITypeReference TypeReference { get; }
+    TypeReference TypeReference { get; }
 
     /// <summary>
     /// Defines if <see cref="Type" /> is a type like the object type or interface type.
@@ -87,5 +85,5 @@ public interface ITypeSystemObjectContext
     /// </param>
     /// <param name="kind"></param>
     /// <returns></returns>
-    bool TryPredictTypeKind(ITypeReference typeRef, out TypeKind kind);
+    bool TryPredictTypeKind(TypeReference typeRef, out TypeKind kind);
 }

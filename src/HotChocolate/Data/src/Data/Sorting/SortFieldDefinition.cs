@@ -21,12 +21,6 @@ public class SortFieldDefinition
 
     internal ISortMetadata? Metadata { get; set; }
 
-    public Func<IDescriptorContext, string?, SortInputTypeDefinition>? CreateFieldTypeDefinition
-    {
-        get;
-        set;
-    }
-
     internal void CopyTo(SortFieldDefinition target)
     {
         base.CopyTo(target);
@@ -36,7 +30,6 @@ public class SortFieldDefinition
         target.Expression = Expression;
         target.Metadata = Metadata;
         target.Scope = Scope;
-        target.CreateFieldTypeDefinition = CreateFieldTypeDefinition;
     }
 
     internal void MergeInto(SortFieldDefinition target)
@@ -47,25 +40,25 @@ public class SortFieldDefinition
         {
             target.Member = Member;
         }
+
         if (Handler is not null)
         {
             target.Handler = Handler;
         }
+
         if (Scope is not null)
         {
             target.Scope = Scope;
         }
+
         if (Expression is not null)
         {
             target.Expression = Expression;
         }
+
         if (Metadata is not null)
         {
             target.Metadata = Metadata;
-        }
-        if (CreateFieldTypeDefinition is not null)
-        {
-            target.CreateFieldTypeDefinition = CreateFieldTypeDefinition;
         }
     }
 }

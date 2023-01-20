@@ -1,4 +1,5 @@
 using CookieCrumble;
+using HotChocolate.Authorization;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -31,10 +32,10 @@ public class AuthorizationHandlerTests
         result.MatchSnapshot(authResult);
     }
 
-    [Authorize]
     [ExtendObjectType(OperationTypeNames.Query)]
     public class QueryExtensions
     {
+        [Authorize]
         public string Bar() => "bar";
     }
 
@@ -42,7 +43,16 @@ public class AuthorizationHandlerTests
     {
         public ValueTask<AuthorizeResult> AuthorizeAsync(
             IMiddlewareContext context,
-            AuthorizeDirective directive)
+            AuthorizeDirective directive,
+            CancellationToken cancellationToken = default)
+        {
+            return new((AuthorizeResult)context.ContextData["auth"]!);
+        }
+
+        public ValueTask<AuthorizeResult> AuthorizeAsync(
+            AuthorizationContext context,
+            IReadOnlyList<AuthorizeDirective> directives,
+            CancellationToken cancellationToken = default)
         {
             return new((AuthorizeResult)context.ContextData["auth"]!);
         }

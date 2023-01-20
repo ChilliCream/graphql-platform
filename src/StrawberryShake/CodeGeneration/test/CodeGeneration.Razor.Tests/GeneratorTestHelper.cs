@@ -24,9 +24,14 @@ public static class GeneratorTestHelper
 {
     public static IReadOnlyList<IError> AssertError(params string[] fileNames)
     {
-        CSharpGeneratorResult result = Generate(
+        var result = GenerateAsync(
             fileNames,
-            new CSharpGeneratorSettings { Namespace = "Foo.Bar", ClientName = "FooClient" });
+            new CSharpGeneratorSettings
+            {
+                Namespace = "Foo.Bar",
+                ClientName = "FooClient"
+            })
+            .Result;
 
         Assert.True(
             result.Errors.Count > 0,
@@ -57,7 +62,7 @@ public static class GeneratorTestHelper
         bool skipWarnings,
         params string[] sourceTexts)
     {
-        ClientModel clientModel =
+        var clientModel =
             CreateClientModel(sourceTexts, settings.StrictValidation, settings.NoStore);
 
         var documents = new StringBuilder();
@@ -80,7 +85,7 @@ public static class GeneratorTestHelper
             settings.Profiles.Add(TransportProfile.Default);
         }
 
-        CSharpGeneratorResult result = Generate(
+        var result = Generate(
             clientModel,
             new CSharpGeneratorSettings
             {
@@ -201,11 +206,11 @@ public static class GeneratorTestHelper
         bool noStore = false,
         [CallerMemberName] string? testName = null)
     {
-        SnapshotFullName snapshotFullName = Snapshot.FullName();
-        string testFile = System.IO.Path.Combine(
+        var snapshotFullName = Snapshot.FullName();
+        var testFile = System.IO.Path.Combine(
             snapshotFullName.FolderPath,
             testName + "Test.cs");
-        string ns = "StrawberryShake.CodeGeneration.CSharp.Integration." + testName;
+        var ns = "StrawberryShake.CodeGeneration.CSharp.Integration." + testName;
 
         if (!File.Exists(testFile))
         {
@@ -249,12 +254,12 @@ public static class GeneratorTestHelper
 
         analyzer.SetSchema(SchemaHelper.Load(typeSystemDocs, strictValidation, noStore));
 
-        foreach (DocumentNode executable in executableDocs.Select(file => file.Document))
+        foreach (var executable in executableDocs.Select(file => file.Document))
         {
             analyzer.AddDocument(executable);
         }
 
-        return analyzer.Analyze();
+        return analyzer.AnalyzeAsync().Result;
     }
 
     public class AssertSettings

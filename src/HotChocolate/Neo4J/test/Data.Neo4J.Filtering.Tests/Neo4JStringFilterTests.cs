@@ -733,7 +733,7 @@ public class Neo4JStringFilterTests : IClassFixture<Neo4JFixture>
 
     public class FooString
     {
-        public string Bar { get; set; }
+        public string Bar { get; set; } = default!;
     }
 
     public class FooStringFilterType : FilterInputType<FooString>

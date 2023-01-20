@@ -9,30 +9,25 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 public sealed class TypeDependency
 {
     public TypeDependency(
-        ITypeReference typeReference,
-        TypeDependencyKind kind = TypeDependencyKind.Default)
+        TypeReference type,
+        TypeDependencyFulfilled fulfilled = TypeDependencyFulfilled.Default)
     {
-        TypeReference = typeReference ??
-            throw new ArgumentNullException(nameof(typeReference));
-        Kind = kind;
+        Type = type ?? throw new ArgumentNullException(nameof(type));
+        Fulfilled = fulfilled;
     }
 
-    public TypeDependencyKind Kind { get; }
+    public TypeDependencyFulfilled Fulfilled { get; }
 
-    public ITypeReference TypeReference { get; }
+    public TypeReference Type { get; }
 
     public TypeDependency With(
-        ITypeReference? typeReference = null,
-        TypeDependencyKind? kind = null)
-    {
-        return new(
-            typeReference ?? TypeReference,
-            kind ?? Kind);
-    }
+        TypeReference? typeReference = null,
+        TypeDependencyFulfilled? kind = null)
+        => new(typeReference ?? Type, kind ?? Fulfilled);
 
     public static TypeDependency FromSchemaType(
         IExtendedType type,
-        TypeDependencyKind kind = TypeDependencyKind.Default)
+        TypeDependencyFulfilled fulfilled = TypeDependencyFulfilled.Default)
     {
         if (type is null)
         {
@@ -46,8 +41,6 @@ public sealed class TypeDependency
                 nameof(type));
         }
 
-        return new TypeDependency(
-            Descriptors.TypeReference.Create(type),
-            kind);
+        return new TypeDependency(TypeReference.Create(type), fulfilled);
     }
 }

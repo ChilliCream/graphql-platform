@@ -10,7 +10,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import styled, { createGlobalStyle } from "styled-components";
+import styled from "styled-components";
 
 import { IconContainer } from "@/components/misc/icon-container";
 import { Link } from "@/components/misc/link";
@@ -133,13 +133,8 @@ export const Header: FC = () => {
   }, [setSearchOpen]);
 
   useEffect(() => {
-    const classes = containerRef.current?.className ?? "";
-
     const subscription = showShadow$.subscribe((showShadow) => {
-      if (containerRef.current) {
-        containerRef.current.className =
-          classes + (showShadow ? " shadow" : "");
-      }
+      containerRef.current?.classList.toggle("shadow", showShadow);
     });
 
     return () => {
@@ -149,7 +144,6 @@ export const Header: FC = () => {
 
   return (
     <Container ref={containerRef}>
-      <BodyStyle disableScrolling={topNavOpen} />
       <ContainerWrapper>
         <LogoLink to="/">
           <LogoIcon {...LogoIconSvg} />
@@ -208,17 +202,6 @@ const Container = styled.header`
   }
 `;
 
-const BodyStyle = createGlobalStyle<{ disableScrolling: boolean }>`
-  body {
-    overflow-y: ${({ disableScrolling }) =>
-      disableScrolling ? "hidden" : "initial"};
-
-    @media only screen and (min-width: 992px) {
-      overflow-y: initial;
-    }
-  }
-`;
-
 const ContainerWrapper = styled.div`
   position: relative;
   display: flex;
@@ -240,7 +223,7 @@ const LogoLink = styled(Link)`
   flex: 0 0 auto;
   flex-direction: row;
   align-items: center;
-  padding: 0 20px;
+  padding-left: 20px;
   height: 60px;
 `;
 
@@ -971,7 +954,6 @@ const Group = styled.div`
   flex: 1 1 auto;
   flex-direction: row;
   justify-content: flex-end;
-  padding: 0 20px;
   height: 60px;
 
   @media only screen and (min-width: 284px) {
@@ -980,6 +962,7 @@ const Group = styled.div`
 
   @media only screen and (min-width: 992px) {
     flex: 0 0 auto;
+    padding-right: 20px;
   }
 `;
 

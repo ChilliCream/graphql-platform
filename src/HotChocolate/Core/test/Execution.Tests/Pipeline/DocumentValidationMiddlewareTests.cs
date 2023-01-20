@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Validation;
 using Moq;
-using Xunit;
 
 namespace HotChocolate.Execution.Pipeline;
 
@@ -17,12 +17,14 @@ public class DocumentValidationMiddlewareTests
         // arrange
         var validator = new Mock<IDocumentValidator>();
         validator.SetupGet(t => t.HasDynamicRules).Returns(false);
-        validator.Setup(t => t.Validate(
+        validator.Setup(t => t.ValidateAsync(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
+                It.IsAny<string>(),
                 It.IsAny<IDictionary<string, object>>(),
-                It.Is<bool>(b => true)))
-            .Returns(DocumentValidatorResult.Ok);
+                It.Is<bool>(b => true),
+                It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<DocumentValidatorResult>(DocumentValidatorResult.Ok));
 
         var middleware = new DocumentValidationMiddleware(
             _ => default,
@@ -57,12 +59,14 @@ public class DocumentValidationMiddlewareTests
         // arrange
         var validator = new Mock<IDocumentValidator>();
         validator.SetupGet(t => t.HasDynamicRules).Returns(true);
-        validator.Setup(t => t.Validate(
+        validator.Setup(t => t.ValidateAsync(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
+                It.IsAny<string>(),
                 It.IsAny<IDictionary<string, object>>(),
-                It.Is<bool>(b => true)))
-            .Returns(DocumentValidatorResult.Ok);
+                It.Is<bool>(b => true),
+                It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<DocumentValidatorResult>(DocumentValidatorResult.Ok));
 
         var middleware = new DocumentValidationMiddleware(
             _ => default,
@@ -80,7 +84,9 @@ public class DocumentValidationMiddlewareTests
         var requestContext = new Mock<IRequestContext>();
         requestContext.SetupGet(t => t.Request).Returns(request);
         requestContext.SetupGet(t => t.Schema).Returns(default(ISchema));
+        requestContext.SetupGet(t => t.ContextData).Returns(new Dictionary<string, object>());
         requestContext.SetupProperty(t => t.Document, document);
+        requestContext.SetupProperty(t => t.DocumentId, "abc");
         requestContext.SetupProperty(t => t.ValidationResult, validationResult);
 
         // act
@@ -96,12 +102,14 @@ public class DocumentValidationMiddlewareTests
     {
         // arrange
         var validator = new Mock<IDocumentValidator>();
-        validator.Setup(t => t.Validate(
+        validator.Setup(t => t.ValidateAsync(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
+                It.IsAny<string>(),
                 It.IsAny<IDictionary<string, object>>(),
-                It.IsAny<bool>()))
-            .Returns(DocumentValidatorResult.Ok);
+                It.Is<bool>(b => true),
+                It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<DocumentValidatorResult>(DocumentValidatorResult.Ok));
 
         var middleware = new DocumentValidationMiddleware(
             _ => default,
@@ -120,6 +128,7 @@ public class DocumentValidationMiddlewareTests
         requestContext.SetupGet(t => t.Schema).Returns(default(ISchema));
         requestContext.SetupGet(t => t.ContextData).Returns(new Dictionary<string, object>());
         requestContext.SetupProperty(t => t.Document, document);
+        requestContext.SetupProperty(t => t.DocumentId, "abc");
         requestContext.SetupProperty(t => t.ValidationResult);
 
         // act
@@ -137,12 +146,14 @@ public class DocumentValidationMiddlewareTests
             new[] { ErrorBuilder.New().SetMessage("Foo").Build() });
 
         var validator = new Mock<IDocumentValidator>();
-        validator.Setup(t => t.Validate(
+        validator.Setup(t => t.ValidateAsync(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
+                It.IsAny<string>(),
                 It.IsAny<IDictionary<string, object>>(),
-                It.IsAny<bool>()))
-            .Returns(validationResult);
+                It.Is<bool>(b => true),
+                It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<DocumentValidatorResult>(validationResult));
 
         var middleware = new DocumentValidationMiddleware(
             _ => throw new Exception("Should not be called."),
@@ -161,6 +172,7 @@ public class DocumentValidationMiddlewareTests
         requestContext.SetupGet(t => t.Schema).Returns(default(ISchema));
         requestContext.SetupGet(t => t.ContextData).Returns(new Dictionary<string, object>());
         requestContext.SetupProperty(t => t.Document, document);
+        requestContext.SetupProperty(t => t.DocumentId, "abc");
         requestContext.SetupProperty(t => t.ValidationResult);
         requestContext.SetupProperty(t => t.Result);
 
@@ -177,12 +189,14 @@ public class DocumentValidationMiddlewareTests
     {
         // arrange
         var validator = new Mock<IDocumentValidator>();
-        validator.Setup(t => t.Validate(
+        validator.Setup(t => t.ValidateAsync(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
+                It.IsAny<string>(),
                 It.IsAny<IDictionary<string, object>>(),
-                It.IsAny<bool>()))
-            .Returns(DocumentValidatorResult.Ok);
+                It.Is<bool>(b => true),
+                It.IsAny<CancellationToken>()))
+            .Returns(new ValueTask<DocumentValidatorResult>(DocumentValidatorResult.Ok));
 
         var middleware = new DocumentValidationMiddleware(
             _ => throw new Exception("Should not be called."),

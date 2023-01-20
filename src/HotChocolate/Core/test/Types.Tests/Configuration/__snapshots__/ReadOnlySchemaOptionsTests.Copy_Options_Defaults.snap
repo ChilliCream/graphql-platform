@@ -18,5 +18,8 @@
   "StrictRuntimeTypeValidation": false,
   "DefaultIsOfTypeCheck": null,
   "EnableOneOf": false,
-  "EnsureAllNodesCanBeResolved": false
+  "EnsureAllNodesCanBeResolved": false,
+  "EnableFlagEnums": false,
+  "EnableDefer": false,
+  "EnableStream": false
 }

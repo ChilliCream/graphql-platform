@@ -6,7 +6,7 @@ using HotChocolate.Types;
 namespace HotChocolate;
 
 /// <summary>
-/// The schema type definition is a mutuable object that is used during type initialization
+/// The schema type definition is a mutable object that is used during type initialization
 /// to configure the <see cref="Schema"/> properties.
 /// </summary>
 internal sealed class SchemaTypesDefinition

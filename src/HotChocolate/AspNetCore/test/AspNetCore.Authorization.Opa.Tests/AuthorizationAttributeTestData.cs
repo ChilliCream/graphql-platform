@@ -1,6 +1,5 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
+using HotChocolate.Authorization;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -34,20 +33,25 @@ public class AuthorizationAttributeTestData : IEnumerable<object[]>
     private Action<IRequestExecutorBuilder> CreateSchema() =>
         builder => builder
             .AddQueryType<Query>()
-            .AddAuthorization()
-            .AddOpaAuthorizationHandler((c, o) =>
-            {
-                o.TimeoutMs = 60000;
-            }).AddOpaResultHandler<HasAgeDefinedResponse>(Policies.HasDefinedAge,
-                x => x switch
+            .AddOpaAuthorization(
+                (_, o) =>
                 {
-                    { Result.Allow: true } => x.Allowed(),
-                    _ => x.NotAllowed(),
+                    o.Timeout = TimeSpan.FromMilliseconds(60000);
+                })
+            .AddOpaResultHandler(
+                Policies.HasDefinedAge,
+                response => response.GetResult<HasAgeDefinedResponse>() switch
+                {
+                    { Allow: true } => AuthorizeResult.Allowed,
+                    _ => AuthorizeResult.NotAllowed,
                 });
 
     public IEnumerator<object[]> GetEnumerator()
     {
-        yield return new object[] { CreateSchema() };
+        yield return new object[]
+        {
+            CreateSchema()
+        };
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

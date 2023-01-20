@@ -59,6 +59,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.AspNetCore.Aut
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.AspNetCore.Authorization.Opa.Tests", "test\AspNetCore.Authorization.Opa.Tests\HotChocolate.AspNetCore.Authorization.Opa.Tests.csproj", "{4C914422-2CAF-4B14-B6D2-EC9D5929FB79}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Authorization", "src\Authorization\HotChocolate.Authorization.csproj", "{640A24D0-6617-49E6-9CBE-2721C42DECEB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -333,6 +335,18 @@ Global
 		{4C914422-2CAF-4B14-B6D2-EC9D5929FB79}.Release|x64.Build.0 = Release|Any CPU
 		{4C914422-2CAF-4B14-B6D2-EC9D5929FB79}.Release|x86.ActiveCfg = Release|Any CPU
 		{4C914422-2CAF-4B14-B6D2-EC9D5929FB79}.Release|x86.Build.0 = Release|Any CPU
+		{640A24D0-6617-49E6-9CBE-2721C42DECEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{640A24D0-6617-49E6-9CBE-2721C42DECEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{640A24D0-6617-49E6-9CBE-2721C42DECEB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{640A24D0-6617-49E6-9CBE-2721C42DECEB}.Debug|x64.Build.0 = Debug|Any CPU
+		{640A24D0-6617-49E6-9CBE-2721C42DECEB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{640A24D0-6617-49E6-9CBE-2721C42DECEB}.Debug|x86.Build.0 = Debug|Any CPU
+		{640A24D0-6617-49E6-9CBE-2721C42DECEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{640A24D0-6617-49E6-9CBE-2721C42DECEB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{640A24D0-6617-49E6-9CBE-2721C42DECEB}.Release|x64.ActiveCfg = Release|Any CPU
+		{640A24D0-6617-49E6-9CBE-2721C42DECEB}.Release|x64.Build.0 = Release|Any CPU
+		{640A24D0-6617-49E6-9CBE-2721C42DECEB}.Release|x86.ActiveCfg = Release|Any CPU
+		{640A24D0-6617-49E6-9CBE-2721C42DECEB}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -360,6 +374,7 @@ Global
 		{8DC0428A-C7C6-4496-95AB-2612FA95BE9E} = {936FF2E5-6576-4257-A7A3-F2093D44E6CD}
 		{C9FA286C-81FB-4563-86FC-0880ED34A3FA} = {2E2070DF-95C2-48F2-A8DF-7FE3734817ED}
 		{4C914422-2CAF-4B14-B6D2-EC9D5929FB79} = {936FF2E5-6576-4257-A7A3-F2093D44E6CD}
+		{640A24D0-6617-49E6-9CBE-2721C42DECEB} = {2E2070DF-95C2-48F2-A8DF-7FE3734817ED}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EAA92712-961A-4595-82AD-C031830477CC}

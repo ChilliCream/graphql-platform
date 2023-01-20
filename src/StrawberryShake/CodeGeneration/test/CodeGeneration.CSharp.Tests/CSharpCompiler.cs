@@ -60,7 +60,7 @@ internal static class CSharpCompiler
 
         var assemblyName = $"_{Guid.NewGuid():N}.dll";
 
-        CSharpCompilation compilation = CSharpCompilation
+        var compilation = CSharpCompilation
             .Create(assemblyName, syntaxTree, Array.Empty<MetadataReference>(), _options)
             // If we load the references not twice, some assemblies are missing.
             .WithReferences(ResolveReferences());

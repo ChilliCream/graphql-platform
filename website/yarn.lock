@@ -8139,7 +8139,8 @@ __metadata:
     gatsby: ^3.6.2
     gatsby-plugin-disqus: ^1.2.2
     gatsby-plugin-feed: ^3.6.0
-    gatsby-plugin-google-analytics: ^3.6.0
+    gatsby-plugin-google-analytics: ^5.3.0
+    gatsby-plugin-google-tagmanager: ^5.3.1
     gatsby-plugin-graphql-codegen: ^3.0.0
     gatsby-plugin-image: ^1.6.0
     gatsby-plugin-manifest: ^3.6.0
@@ -8155,6 +8156,7 @@ __metadata:
     gatsby-plugin-tsconfig-paths: ^1.0.5
     gatsby-plugin-web-font-loader: ^1.0.4
     gatsby-remark-autolink-headers: ^4.3.0
+    gatsby-remark-external-links: ^0.0.4
     gatsby-remark-images: ^5.3.0
     gatsby-remark-mermaid: ^2.1.0
     gatsby-remark-reading-time: ^1.1.0
@@ -12738,18 +12740,32 @@ __metadata:
   languageName: node
   linkType: hard
 
-"gatsby-plugin-google-analytics@npm:^3.6.0":
-  version: 3.14.0
-  resolution: "gatsby-plugin-google-analytics@npm:3.14.0"
+"gatsby-plugin-google-analytics@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "gatsby-plugin-google-analytics@npm:5.3.0"
   dependencies:
     "@babel/runtime": ^7.15.4
-    minimatch: 3.0.4
+    minimatch: ^3.1.2
     web-vitals: ^1.1.2
   peerDependencies:
-    gatsby: ^3.0.0-next.0
-    react: ^16.9.0 || ^17.0.0
-    react-dom: ^16.9.0 || ^17.0.0
-  checksum: 5ed3c1ff69f1711af1e601f924bd6a210a4a8c222cacf9ad3e42038cce5207f0f8d53ba5e75059dd951e636372a777749d968e26976684131734d39ae1d26762
+    gatsby: ^5.0.0-next
+    react: ^18.0.0 || ^0.0.0
+    react-dom: ^18.0.0 || ^0.0.0
+  checksum: 037192c53525a89383e7680c5d9ad5b4359bf020add460ba863dcba5227a7a090d812cac6c7f0076e1aac38aa06f784e86baa7654a7afbc239612482a7482ff9
+  languageName: node
+  linkType: hard
+
+"gatsby-plugin-google-tagmanager@npm:^5.3.1":
+  version: 5.3.1
+  resolution: "gatsby-plugin-google-tagmanager@npm:5.3.1"
+  dependencies:
+    "@babel/runtime": ^7.15.4
+    web-vitals: ^1.1.2
+  peerDependencies:
+    gatsby: ^5.0.0-next
+    react: ^18.0.0 || ^0.0.0
+    react-dom: ^18.0.0 || ^0.0.0
+  checksum: 86e1f9aac02729c54e643f22fc14f4f06ea5c26ca4ca3e3b6b0775a3e085843633a68b336a5f5110a0db2923bb54e65b09a04b0817a27963adf07b4086baff8d
   languageName: node
   linkType: hard
 
@@ -13161,6 +13177,18 @@ __metadata:
     react: ^16.9.0 || ^17.0.0
     react-dom: ^16.9.0 || ^17.0.0
   checksum: cd4b16991b585b5a104cc9ddf929dd3f7be196212df06d7d3083c00ab471cedc16e6d5880b2158f541ca50fe2098ed64f4c8356adb02648d0ee429058746100c
+  languageName: node
+  linkType: hard
+
+"gatsby-remark-external-links@npm:^0.0.4":
+  version: 0.0.4
+  resolution: "gatsby-remark-external-links@npm:0.0.4"
+  dependencies:
+    babel-runtime: ^6.26.0
+    is-relative-url: ^2.0.0
+    unist-util-find: ^1.0.1
+    unist-util-visit: ^1.1.3
+  checksum: 2117ce7fa66f7c67f05765761f70a3bcca6c294843cd8503b78b62650964c8ac917dcc75aa267d18d6920cb99cf0c7b13c740be2eca93d90e0ad35f015c55eae
   languageName: node
   linkType: hard
 
@@ -14966,6 +14994,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"is-absolute-url@npm:^2.0.0":
+  version: 2.1.0
+  resolution: "is-absolute-url@npm:2.1.0"
+  checksum: 781e8cf8a2af54b1b7a92f269244d96c66224030d91120e734ebeebbce044c167767e1389789d8aaf82f9e429cb20ae93d6d0acfe6c4b53d2bd6ebb47a236d76
+  languageName: node
+  linkType: hard
+
 "is-absolute-url@npm:^3.0.0, is-absolute-url@npm:^3.0.3":
   version: 3.0.3
   resolution: "is-absolute-url@npm:3.0.3"
@@ -15510,6 +15545,15 @@ __metadata:
   version: 1.0.0
   resolution: "is-regexp@npm:1.0.0"
   checksum: be692828e24cba479ec33644326fa98959ec68ba77965e0291088c1a741feaea4919d79f8031708f85fd25e39de002b4520622b55460660b9c369e6f7187faef
+  languageName: node
+  linkType: hard
+
+"is-relative-url@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "is-relative-url@npm:2.0.0"
+  dependencies:
+    is-absolute-url: ^2.0.0
+  checksum: 5acb66d6374a0c89fb68a770c94eeee3061b7d2e94d1fdff4d780b3054caf681ad33ed9d554eebeaedd897d90b781684c84ed85c7581d5d50767e857af3a199e
   languageName: node
   linkType: hard
 
@@ -16554,6 +16598,13 @@ __metadata:
   version: 4.0.1
   resolution: "lodash.isstring@npm:4.0.1"
   checksum: eaac87ae9636848af08021083d796e2eea3d02e80082ab8a9955309569cb3a463ce97fd281d7dc119e402b2e7d8c54a23914b15d2fc7fff56461511dc8937ba0
+  languageName: node
+  linkType: hard
+
+"lodash.iteratee@npm:^4.5.0":
+  version: 4.7.0
+  resolution: "lodash.iteratee@npm:4.7.0"
+  checksum: 900e8f9c2f37361aa50f880139e92a00a5c1a000a45c78f00f64f83591090ccd9644800d6869fc563ef47907d9914ec19e871433d7be8e272b7b0516b44910d7
   languageName: node
   linkType: hard
 
@@ -24525,6 +24576,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"unist-util-find@npm:^1.0.1":
+  version: 1.0.2
+  resolution: "unist-util-find@npm:1.0.2"
+  dependencies:
+    lodash.iteratee: ^4.5.0
+    unist-util-visit: ^1.1.0
+  checksum: d13b92e65a94f8f8280ddddb030456e080d64179c6594e028f0a22c8c86b98744fc2336dfa322c817d7f356b42e46eab13321f7824e4529a5b51e538566587a5
+  languageName: node
+  linkType: hard
+
 "unist-util-generated@npm:^1.0.0":
   version: 1.1.6
   resolution: "unist-util-generated@npm:1.1.6"
@@ -24725,7 +24786,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"unist-util-visit@npm:^1.1.0, unist-util-visit@npm:^1.4.0, unist-util-visit@npm:^1.4.1":
+"unist-util-visit@npm:^1.1.0, unist-util-visit@npm:^1.1.3, unist-util-visit@npm:^1.4.0, unist-util-visit@npm:^1.4.1":
   version: 1.4.1
   resolution: "unist-util-visit@npm:1.4.1"
   dependencies:

@@ -135,7 +135,7 @@ public class SortConventionDescriptor : ISortConventionDescriptor
     }
 
     protected ISortConventionDescriptor Configure(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         ConfigureSortInputType configure)
     {
         if (!Definition.Configurations.TryGetValue(

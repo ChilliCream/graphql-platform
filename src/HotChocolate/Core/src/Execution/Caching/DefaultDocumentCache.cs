@@ -14,7 +14,7 @@ internal sealed class DefaultDocumentCache : IDocumentCache
         _cache = new Cache<DocumentNode>(capacity);
     }
 
-    public int Capacity => _cache.Size;
+    public int Capacity => _cache.Capacity;
 
     public int Count => _cache.Usage;
 

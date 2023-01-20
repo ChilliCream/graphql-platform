@@ -67,6 +67,7 @@ partial class Build
             TestHotChocolateSpatial,
             TestHotChocolateStitching,
             TestHotChocolateUtilities,
+            TestHotChocolateCaching,
             TestStrawberryShakeClient,
             TestStrawberryShakeCodeGeneration,
             TestStrawberryShakeTooling);

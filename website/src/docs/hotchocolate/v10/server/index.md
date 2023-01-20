@@ -2,7 +2,7 @@
 title: ASP.NET
 ---
 
-Hot Chocolate supports ASP.NET Core and ASP.NET Framework out of the box. This means you can get started very quickly with both variants. There are example projects for both in our [repository](https://github.com/ChilliCream/hotchocolate/tree/master/examples) on GitHub.
+Hot Chocolate supports ASP.NET Core and ASP.NET Framework out of the box. This means you can get started very quickly with both variants. There are example projects for both in our [repository](https://github.com/ChilliCream/graphql-platform/tree/master/examples) on GitHub.
 
 # HTTP Usage
 

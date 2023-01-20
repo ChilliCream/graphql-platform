@@ -8,14 +8,14 @@ using static HotChocolate.Fetching.Properties.FetchingResources;
 
 namespace HotChocolate.Fetching;
 
-public class DefaultDataLoaderRegistry : IDataLoaderRegistry
+public sealed class DefaultDataLoaderRegistry : IDataLoaderRegistry
 {
     private readonly ConcurrentDictionary<string, IDataLoader> _dataLoaders = new();
     private bool _disposed;
 
     public T GetOrRegister<T>(string key, Func<T> createDataLoader) where T : IDataLoader
     {
-        if (_dataLoaders.GetOrAdd(key, s => createDataLoader()) is T dataLoader)
+        if (_dataLoaders.GetOrAdd(key, _ => createDataLoader()) is T dataLoader)
         {
             return dataLoader;
         }
@@ -27,8 +27,8 @@ public class DefaultDataLoaderRegistry : IDataLoaderRegistry
                 typeof(T).FullName));
     }
 
-    public T GetOrRegister<T>(Func<T> createDataLoader) where T : IDataLoader =>
-        GetOrRegister(typeof(T).FullName ?? typeof(T).Name, createDataLoader);
+    public T GetOrRegister<T>(Func<T> createDataLoader) where T : IDataLoader
+        => GetOrRegister(typeof(T).FullName ?? typeof(T).Name, createDataLoader);
 
     public void Dispose()
     {

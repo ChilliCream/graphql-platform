@@ -5,8 +5,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Utilities;
 
-public class FieldDependencyResolver
-    : QuerySyntaxWalker<FieldDependencyResolver.Context>
+public class FieldDependencyResolver : QuerySyntaxWalker<FieldDependencyResolver.Context>
 {
     private readonly ISchema _schema;
 
@@ -81,7 +80,7 @@ public class FieldDependencyResolver
 
         foreach (var fragment in document.Definitions.OfType<FragmentDefinitionNode>())
         {
-            if (!string.IsNullOrEmpty(fragment.Name?.Value))
+            if (!string.IsNullOrEmpty(fragment.Name.Value))
             {
                 fragments[fragment.Name.Value] = fragment;
             }
@@ -110,7 +109,7 @@ public class FieldDependencyResolver
         if (directive is not null)
         {
             CollectFieldNames(
-                directive.ToObject<DelegateDirective>(),
+                directive.AsValue<DelegateDirective>(),
                 type,
                 context.Dependencies);
         }
@@ -123,7 +122,7 @@ public class FieldDependencyResolver
     {
         var directive = field.Directives[DirectiveNames.Computed].FirstOrDefault();
 
-        var dependantOn = directive?.ToObject<ComputedDirective>().DependantOn;
+        var dependantOn = directive?.AsValue<ComputedDirective>().DependantOn;
 
         if (dependantOn is not null)
         {
@@ -145,17 +144,20 @@ public class FieldDependencyResolver
         Types.IHasName type,
         ISet<FieldDependency> dependencies)
     {
-        var path = SelectionPathParser.Parse(directive.Path);
-
-        foreach (var component in path)
+        if (directive.Path is not null)
         {
-            foreach (var fieldName in component.Arguments
-                .Select(t => t.Value)
-                .OfType<ScopedVariableNode>()
-                .Where(t => ScopeNames.Fields.Equals(t.Scope.Value))
-                .Select(t => t.Name.Value))
+            var path = SelectionPathParser.Parse(directive.Path);
+
+            foreach (var component in path)
             {
-                dependencies.Add(new FieldDependency(type.Name, fieldName));
+                foreach (var fieldName in component.Arguments
+                    .Select(t => t.Value)
+                    .OfType<ScopedVariableNode>()
+                    .Where(t => ScopeNames.Fields.Equals(t.Scope.Value))
+                    .Select(t => t.Name.Value))
+                {
+                    dependencies.Add(new FieldDependency(type.Name, fieldName));
+                }
             }
         }
     }

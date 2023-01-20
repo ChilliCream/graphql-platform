@@ -4,7 +4,7 @@
     <PackageId>StrawberryShake</PackageId>
     <AssemblyName>StrawberryShake</AssemblyName>
     <RootNamespace>StrawberryShake</RootNamespace>
-    <Description>Abstractions and foundational APIs for StrawberryShake GraphQL clients.</Description><Description>Contains the Hot Chocolate GraphQL query execution engine and query validation.</Description>
+    <Description>Abstractions and foundational APIs for StrawberryShake GraphQL clients.</Description>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <NoWarn>$(NoWarn);NU5128</NoWarn>
     <IncludeSymbols>false</IncludeSymbols>

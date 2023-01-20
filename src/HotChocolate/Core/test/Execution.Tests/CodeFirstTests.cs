@@ -348,7 +348,7 @@ public class CodeFirstTests
             .MatchSnapshotAsync();
     }
 
-    // https://github.com/ChilliCream/hotchocolate/issues/2617
+    // https://github.com/ChilliCream/graphql-platform/issues/2617
     [Fact]
     public async Task EnsureThatFieldsWithDifferentCasingAreNotMerged()
     {
@@ -359,7 +359,7 @@ public class CodeFirstTests
             .MatchSnapshotAsync();
     }
 
-    // https://github.com/ChilliCream/hotchocolate/issues/2305
+    // https://github.com/ChilliCream/graphql-platform/issues/2305
     [Fact]
     public async Task EnsureThatArgumentDefaultIsUsedWhenVariableValueIsOmitted()
     {

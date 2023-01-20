@@ -136,7 +136,7 @@ public class TaskCacheTests
         cache.TryRemove(key);
 
         // assert
-        Task<string> retrieved = cache.GetOrAddTask(key, () => Task.FromResult("Baz"));
+        var retrieved = cache.GetOrAddTask(key, () => Task.FromResult("Baz"));
         Assert.NotSame(value, retrieved);
     }
 
@@ -168,7 +168,7 @@ public class TaskCacheTests
         var added = cache.TryAdd(key, expected);
 
         // assert
-        Task<string> resolved = cache.GetOrAddTask(key, () => Task.FromResult("Baz"));
+        var resolved = cache.GetOrAddTask(key, () => Task.FromResult("Baz"));
 
         Assert.True(added);
         Assert.Same(expected, resolved);
@@ -187,7 +187,7 @@ public class TaskCacheTests
         var added = cache.TryAdd(key, () => expected);
 
         // assert
-        Task<string> resolved = cache.GetOrAddTask(key, () => Task.FromResult("Baz"));
+        var resolved = cache.GetOrAddTask(key, () => Task.FromResult("Baz"));
 
         Assert.True(added);
         Assert.Same(expected, resolved);
@@ -208,7 +208,7 @@ public class TaskCacheTests
         var addedSecond = cache.TryAdd(key, another);
 
         // assert
-        Task<string> resolved = cache.GetOrAddTask(key, () => Task.FromResult("Quox"));
+        var resolved = cache.GetOrAddTask(key, () => Task.FromResult("Quox"));
 
         Assert.True(addedFirst);
         Assert.False(addedSecond);
@@ -224,7 +224,7 @@ public class TaskCacheTests
         var key = new TaskCacheKey("a", "Foo");
 
         // act
-        Task<string> resolved = cache.GetOrAddTask(key, () => Task.FromResult("Quox"));
+        var resolved = cache.GetOrAddTask(key, () => Task.FromResult("Quox"));
 
         // assert
         Assert.Equal("Quox", resolved.Result);
@@ -239,7 +239,7 @@ public class TaskCacheTests
         var key = new TaskCacheKey("a", 1);
 
         // act
-        Task<string> resolved = cache.GetOrAddTask(key, () => Task.FromResult("Quox"));
+        var resolved = cache.GetOrAddTask(key, () => Task.FromResult("Quox"));
 
         // assert
         Assert.Equal("Quox", resolved.Result);

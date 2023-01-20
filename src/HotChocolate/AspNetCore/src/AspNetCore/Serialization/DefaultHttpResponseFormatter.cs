@@ -5,8 +5,13 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.Execution.Serialization;
 using Microsoft.AspNetCore.Http;
+#if !NET6_0_OR_GREATER
+using Microsoft.Net.Http.Headers;
+#endif
 using static HotChocolate.AspNetCore.AcceptMediaTypeKind;
 using static HotChocolate.Execution.ExecutionResultKind;
+using static HotChocolate.WellKnownContextData;
+using HttpStatusCode = System.Net.HttpStatusCode;
 
 namespace HotChocolate.AspNetCore.Serialization;
 
@@ -37,10 +42,21 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     public DefaultHttpResponseFormatter(
         bool indented = false,
         JavaScriptEncoder? encoder = null)
+        : this(new JsonResultFormatterOptions { Indented = indented, Encoder = encoder })
     {
-        _jsonFormatter = new JsonResultFormatter(indented, encoder);
+    }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="DefaultHttpResponseFormatter" />.
+    /// </summary>
+    /// <param name="options">
+    /// The JSON result formatter options
+    /// </param>
+    public DefaultHttpResponseFormatter(JsonResultFormatterOptions options)
+    {
+        _jsonFormatter = new JsonResultFormatter(options);
         _multiPartFormatter = new MultiPartResultFormatter(_jsonFormatter);
-        _eventStreamResultFormatter = new EventStreamResultFormatter(indented, encoder);
+        _eventStreamResultFormatter = new EventStreamResultFormatter(options);
     }
 
     public GraphQLRequestFlags CreateRequestFlags(
@@ -119,6 +135,17 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             response.ContentType = format.ContentType;
             response.StatusCode = statusCode;
 
+            if (result.ContextData is not null &&
+                result.ContextData.TryGetValue(CacheControlHeaderValue, out var value) &&
+                value is string cacheControlHeaderValue)
+            {
+#if NET6_0_OR_GREATER
+                response.Headers.CacheControl = cacheControlHeaderValue;
+#else
+                response.Headers.Add(HeaderNames.CacheControl, cacheControlHeaderValue);
+#endif
+            }
+
             await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
         }
         else if (result.Kind is DeferredResult or BatchResult or SubscriptionResult)
@@ -195,12 +222,12 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
                 // next we check if the validation of the request failed.
                 // if that is the case we will we will return a BadRequest status code (400).
-                if (contextData.ContainsKey(WellKnownContextData.ValidationErrors))
+                if (contextData.ContainsKey(ValidationErrors))
                 {
                     return HttpStatusCode.BadRequest;
                 }
 
-                if (result.ContextData.ContainsKey(WellKnownContextData.OperationNotAllowed))
+                if (result.ContextData.ContainsKey(OperationNotAllowed))
                 {
                     return HttpStatusCode.MethodNotAllowed;
                 }

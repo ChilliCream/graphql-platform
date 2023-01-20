@@ -4,13 +4,13 @@ One of the easiest ways to contribute is to participate in discussions on GitHub
 
 ## General feedback and discussions?
 
-Start a discussion on the [repository issue tracker](https://github.com/ChilliCream/hotchocolate/issues) or [join us on slack](http://slack.chillicream.com/).
+Start a discussion on the [repository issue tracker](https://github.com/ChilliCream/graphql-platform/issues) or [join us on slack](http://slack.chillicream.com/).
 
 ## Bugs and feature requests?
 
 Before reporting a new issue, try to find an existing issue if one already exists. If it already exists, upvote (👍) it. Also consider adding a comment with your unique scenarios and requirements related to that issue.
 
-If you can't find one, you can file a new issue by choosing the appropriate template [here](https://github.com/ChilliCream/hotchocolate/issues/new/choose).
+If you can't find one, you can file a new issue by choosing the appropriate template [here](https://github.com/ChilliCream/graphql-platform/issues/new/choose).
 
 ## How to submit a pull request
 
@@ -20,8 +20,8 @@ We are always happy to see pull requests from community members both for bug fix
 
 We have marked issues which are good candidates for first-time contributors, in case you are not already set on working on a specific issue.
 
-- ["Good first issue" issues](https://github.com/ChilliCream/hotchocolate/labels/%F0%9F%99%8B%20good%20first%20issue) - we think these are a great for newcomers.
-- ["Help wanted" issues](https://github.com/ChilliCream/hotchocolate/labels/%F0%9F%99%8B%20help%20wanted) - these issues are up for grabs.
+- ["Good first issue" issues](https://github.com/ChilliCream/graphql-platform/labels/%F0%9F%99%8B%20good%20first%20issue) - we think these are a great for newcomers.
+- ["Help wanted" issues](https://github.com/ChilliCream/graphql-platform/labels/%F0%9F%99%8B%20help%20wanted) - these issues are up for grabs.
 
 ### Before writing code
 

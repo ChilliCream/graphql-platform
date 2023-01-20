@@ -14,19 +14,6 @@ namespace HotChocolate.Data.Sorting;
 public sealed class SortTypeInterceptor : TypeInterceptor
 {
     private readonly Dictionary<string, ISortConvention> _conventions = new();
-    private readonly List<Func<ITypeReference>> _typesToRegister = new();
-    private TypeRegistry _typeRegistry = default!;
-    private readonly Dictionary<ITypeSystemMember, SortInputTypeDefinition> _definitions = new();
-
-    internal override void InitializeContext(
-        IDescriptorContext context,
-        TypeInitializer typeInitializer,
-        TypeRegistry typeRegistry,
-        TypeLookup typeLookup,
-        TypeReferenceResolver typeReferenceResolver)
-    {
-        _typeRegistry = typeRegistry;
-    }
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
@@ -80,8 +67,6 @@ public sealed class SortTypeInterceptor : TypeInterceptor
         var convention =
             GetConvention(discoveryContext.DescriptorContext, definition.Scope);
 
-        _definitions[discoveryContext.Type] = definition;
-
         var descriptor = SortInputTypeDescriptor.New(
             discoveryContext.DescriptorContext,
             definition.EntityType!,
@@ -95,18 +80,6 @@ public sealed class SortTypeInterceptor : TypeInterceptor
         var extensionDefinition = descriptor.CreateDefinition();
 
         discoveryContext.RegisterDependencies(extensionDefinition);
-
-        foreach (var field in definition.Fields)
-        {
-            if (field is SortFieldDefinition sortField)
-            {
-                RegisterDynamicTypeConfiguration(
-                    discoveryContext,
-                    typeReference,
-                    definition,
-                    sortField);
-            }
-        }
     }
 
     private void OnBeforeRegisteringDependencies(
@@ -129,65 +102,6 @@ public sealed class SortTypeInterceptor : TypeInterceptor
         var extensionDefinition = descriptor.CreateDefinition();
 
         discoveryContext.RegisterDependencies(extensionDefinition);
-    }
-
-    private void RegisterDynamicTypeConfiguration(
-        ITypeDiscoveryContext discoveryContext,
-        ITypeReference typeReference,
-        SortInputTypeDefinition parentTypeDefinition,
-        SortFieldDefinition sortField)
-    {
-        if (sortField.CreateFieldTypeDefinition is null)
-        {
-            return;
-        }
-
-        ITypeReference? originalType;
-        _typesToRegister.Add(() =>
-        {
-            originalType = sortField.Type;
-            sortField.Type = TypeReference.Create(
-                $"SortSubTypeConfiguration_{Guid.NewGuid():N}",
-                typeReference,
-                Factory,
-                TypeContext.Input);
-
-            return sortField.Type;
-
-            TypeSystemObjectBase Factory(IDescriptorContext _)
-            {
-                SortInputTypeDefinition? explicitDefinition = null;
-
-                if (sortField.CreateFieldTypeDefinition is { } factory)
-                {
-                    explicitDefinition =
-                        factory(discoveryContext.DescriptorContext, discoveryContext.Scope);
-                }
-
-                if (originalType is null ||
-                    !_typeRegistry.TryGetType(originalType, out var registeredType))
-                {
-                    throw Sorting_FieldHadNoType(sortField.Name, parentTypeDefinition.Name);
-                }
-
-                if (!_definitions.TryGetValue(
-                        registeredType.Type,
-                        out var definition))
-                {
-                    throw Sorting_DefinitionForTypeNotFound(
-                        sortField.Name,
-                        parentTypeDefinition.Name,
-                        registeredType.Type.Name);
-                }
-
-                return new SortInputType(
-                    definition,
-                    explicitDefinition,
-                    typeReference,
-                    originalType!,
-                    sortField);
-            }
-        });
     }
 
     private void OnBeforeCompleteName(
@@ -258,12 +172,7 @@ public sealed class SortTypeInterceptor : TypeInterceptor
         {
             if (field is SortFieldDefinition sortFieldDefinition)
             {
-                if (sortFieldDefinition.Type is null)
-                {
-                    throw Sorting_FieldHadNoType(field.Name, definition.Name);
-                }
-
-                if (completionContext.TryPredictTypeKind(sortFieldDefinition.Type, out var kind) &&
+                if (completionContext.TryPredictTypeKind(sortFieldDefinition.Type!, out var kind) &&
                     kind != TypeKind.Enum)
                 {
                     field.Type = field.Type!.With(scope: completionContext.Scope);
@@ -331,21 +240,5 @@ public sealed class SortTypeInterceptor : TypeInterceptor
         }
 
         return convention;
-    }
-
-    public override IEnumerable<ITypeReference> RegisterMoreTypes(
-        IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
-    {
-        if (_typesToRegister.Count == 0)
-        {
-            return Array.Empty<ITypeReference>();
-        }
-
-        var typesToRegister = _typesToRegister
-            .Select(x => x())
-            .ToArray();
-
-        _typesToRegister.Clear();
-        return typesToRegister;
     }
 }

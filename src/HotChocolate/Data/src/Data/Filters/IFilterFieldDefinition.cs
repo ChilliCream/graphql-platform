@@ -17,8 +17,4 @@ public interface IFilterFieldDefinition
     IFilterFieldHandler? Handler { get; }
 
     Expression? Expression { get; }
-
-    List<int> AllowedOperations { get; }
-
-    bool HasAllowedOperations { get; }
 }

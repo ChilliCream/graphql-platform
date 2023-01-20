@@ -84,6 +84,4 @@ As our data graph and number of developers/clients grows, we need to ensure that
 
 Starting with Hot Chocolate 12.7 we introduced a new source generator that automatically registers types and DataLoader with your GraphQL configuration builder. Watch on YouTube how you can simplify your Hot Chocolate configuration code.
 
-<iframe width="560" height="315"
-src="https://www.youtube.com/embed/QPelWd9L9ck"frameborder="0"
-allowfullscreen></iframe>
+<Video videoId="QPelWd9L9ck" />

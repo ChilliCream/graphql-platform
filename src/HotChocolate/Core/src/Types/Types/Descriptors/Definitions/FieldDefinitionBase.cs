@@ -50,7 +50,7 @@ public abstract class FieldDefinitionBase
     /// <summary>
     /// Gets the field type.
     /// </summary>
-    public ITypeReference? Type { get; set; }
+    public TypeReference? Type { get; set; }
 
     /// <summary>
     /// Defines if this field is ignored and will

@@ -12,7 +12,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 using static HotChocolate.Tests.TestHelper;
 
 #nullable enable
@@ -199,61 +198,6 @@ public class DataLoaderTests
                     .SetQuery(
                         @"{
                             c: withDataLoader(key: ""c"")
-                        }")
-                    .Create())
-        };
-
-        // assert
-        results.MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task ClassDataLoaderWithKey()
-    {
-        // arrange
-        var executor = await CreateExecutorAsync(c => c
-            .AddQueryType<Query>()
-            .AddDataLoader<ITestDataLoader, TestDataLoader>()
-            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-            .UseRequest(next => async context =>
-            {
-                await next(context);
-
-                var dataLoader =
-                    context.Services
-                        .GetRequiredService<IDataLoaderRegistry>()
-                        .GetOrRegister<TestDataLoader>("fooBar", () => throw new Exception());
-
-                context.Result = QueryResultBuilder
-                    .FromResult(((IQueryResult)context.Result!))
-                    .AddExtension("loads", dataLoader.Loads)
-                    .Create();
-            })
-            .UseDefaultPipeline());
-
-        // act
-        var results = new List<IExecutionResult>
-        {
-            await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
-                            a: withDataLoader2(key: ""a"")
-                            b: withDataLoader2(key: ""b"")
-                        }")
-                    .Create()),
-            await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
-                            a: withDataLoader2(key: ""a"")
-                        }")
-                    .Create()),
-            await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
-                            c: withDataLoader2(key: ""c"")
                         }")
                     .Create())
         };

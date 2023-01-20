@@ -19,19 +19,19 @@ public partial class Schema
     : TypeSystemObjectBase<SchemaTypeDefinition>
     , ISchema
 {
-    private SchemaTypes _types;
-    private Dictionary<string, DirectiveType> _directiveTypes;
+    private SchemaTypes _types = default!;
+    private Dictionary<string, DirectiveType> _directiveTypes = default!;
 
     /// <summary>
     /// Gets the schema directives.
     /// </summary>
     /// <value></value>
-    public IDirectiveCollection Directives { get; private set; }
+    public IDirectiveCollection Directives { get; private set; } = default!;
 
     /// <summary>
     /// Gets the global schema services.
     /// </summary>
-    public IServiceProvider Services { get; private set; }
+    public IServiceProvider Services { get; private set; } = default!;
 
     /// <summary>
     /// The type that query operations will be rooted at.
@@ -58,7 +58,7 @@ public partial class Schema
     /// <summary>
     /// Gets all the directives that are supported by this schema.
     /// </summary>
-    public IReadOnlyCollection<DirectiveType> DirectiveTypes { get; private set; }
+    public IReadOnlyCollection<DirectiveType> DirectiveTypes { get; private set; } = default!;
 
     /// <summary>
     /// Gets the default schema name.

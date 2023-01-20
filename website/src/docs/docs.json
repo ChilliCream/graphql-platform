@@ -45,7 +45,7 @@
   {
     "path": "hotchocolate",
     "title": "Hot Chocolate",
-    "metaDescription": "Hot Chocolate is the most efficient, feature-rich, open-source GraphQL server in the .NET ecosystem, that helps developer to build powerful APIs.",
+    "metaDescription": "Hot Chocolate is the most efficient, feature-rich, open-source GraphQL server in the .NET ecosystem, that helps developers to build powerful APIs.",
     "description": "Build your own thin GraphQL API layer on top of any resource.",
     "latestStableVersion": "v12",
     "versions": [
@@ -58,7 +58,7 @@
             "title": "Introduction"
           },
           {
-            "path": "get-started",
+            "path": "get-started-with-graphql-in-net-core",
             "title": "Get Started"
           },
           {
@@ -392,7 +392,7 @@
             "title": "Introduction"
           },
           {
-            "path": "get-started",
+            "path": "get-started-with-graphql-in-net-core",
             "title": "Get Started"
           },
           {
