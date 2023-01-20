@@ -714,7 +714,8 @@ public sealed partial class OperationCompiler
             _includeConditions[pos] = condition;
         }
 
-        long selectionIncludeCondition = 2 ^ pos;
+        long selectionIncludeCondition = 1;
+        selectionIncludeCondition <<= pos;
 
         if (parentIncludeCondition == 0)
         {
@@ -752,7 +753,8 @@ public sealed partial class OperationCompiler
             _includeConditions[pos] = condition;
         }
 
-        long selectionIncludeCondition = 2 ^ pos;
+        long selectionIncludeCondition = 1;
+        selectionIncludeCondition <<= pos;
 
         if (parentIncludeCondition == 0)
         {

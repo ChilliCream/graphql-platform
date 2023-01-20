@@ -1,10 +1,10 @@
 using System;
 using System.Threading.Tasks;
+using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.GraphQLRequestFlags;
 using static HotChocolate.Execution.ThrowHelper;
 
@@ -13,7 +13,7 @@ namespace HotChocolate.Execution.Pipeline;
 internal sealed class OperationExecutionMiddleware
 {
     private readonly RequestDelegate _next;
-    private readonly ObjectPool<OperationContext> _operationContextPool;
+    private readonly IFactory<OperationContextOwner> _contextFactory;
     private readonly QueryExecutor _queryExecutor;
     private readonly SubscriptionExecutor _subscriptionExecutor;
     private readonly ITransactionScopeHandler _transactionScopeHandler;
@@ -22,15 +22,15 @@ internal sealed class OperationExecutionMiddleware
 
     public OperationExecutionMiddleware(
         RequestDelegate next,
-        ObjectPool<OperationContext> operationContextPool,
+        IFactory<OperationContextOwner> contextFactory,
         QueryExecutor queryExecutor,
         SubscriptionExecutor subscriptionExecutor,
         [SchemaService] ITransactionScopeHandler transactionScopeHandler)
     {
         _next = next ??
             throw new ArgumentNullException(nameof(next));
-        _operationContextPool = operationContextPool ??
-            throw new ArgumentNullException(nameof(operationContextPool));
+        _contextFactory = contextFactory ??
+            throw new ArgumentNullException(nameof(contextFactory));
         _queryExecutor = queryExecutor ??
             throw new ArgumentNullException(nameof(queryExecutor));
         _subscriptionExecutor = subscriptionExecutor ??
@@ -76,7 +76,7 @@ internal sealed class OperationExecutionMiddleware
     {
         if (operation.Definition.Operation == OperationType.Subscription)
         {
-            // since the context is pooled we need to clone the context for
+            // since the request context is pooled we need to clone the context for
             // long running executions.
             var cloned = context.Clone();
 
@@ -91,7 +91,8 @@ internal sealed class OperationExecutionMiddleware
         }
         else
         {
-            var operationContext = _operationContextPool.Get();
+            var operationContextOwner = _contextFactory.Create();
+            var operationContext = operationContextOwner.OperationContext;
 
             try
             {
@@ -102,22 +103,21 @@ internal sealed class OperationExecutionMiddleware
                 if (operationContext.DeferredScheduler.HasResults &&
                     context.Result is IQueryResult result)
                 {
-                    var stream = operationContext.DeferredScheduler.CreateResultStream(result);
-
-                    context.Result = new ResponseStream(
-                        () => stream,
+                    var results = operationContext.DeferredScheduler.CreateResultStream(result);
+                    var responseStream = new ResponseStream(
+                        () => results,
                         ExecutionResultKind.DeferredResult);
-                    context.Result.RegisterForCleanup(result);
+                    responseStream.RegisterForCleanup(result);
+                    responseStream.RegisterForCleanup(operationContextOwner);
+                    context.Result = responseStream;
+                    operationContextOwner = null;
                 }
 
                 await _next(context).ConfigureAwait(false);
             }
             finally
             {
-                if (operationContext is not null)
-                {
-                    _operationContextPool.Return(operationContext);
-                }
+                operationContextOwner?.Dispose();
             }
         }
     }
