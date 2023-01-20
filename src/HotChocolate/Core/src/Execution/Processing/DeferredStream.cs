@@ -76,14 +76,11 @@ internal sealed class DeferredStream : DeferredExecutionTask
         uint patchId)
     {
         var operationContext = operationContextOwner.OperationContext;
-        var aborted = operationContext.RequestAborted;
-        var error = false;
 
         try
         {
             _task ??= new StreamExecutionTask(this);
             _task.Reset(operationContext, resultId);
-
             operationContext.Scheduler.Register(_task);
             await operationContext.Scheduler.ExecuteAsync().ConfigureAwait(false);
 
@@ -91,7 +88,6 @@ internal sealed class DeferredStream : DeferredExecutionTask
             if (_task.ChildTask is null)
             {
                 operationContext.DeferredScheduler.Complete(new(resultId, parentResultId));
-                operationContextOwner.Dispose();
                 return;
             }
 
@@ -99,7 +95,7 @@ internal sealed class DeferredStream : DeferredExecutionTask
 
             var result = operationContext
                 .SetLabel(Label)
-                .SetPath(operationContext.PathFactory.Append(Path, Index))
+                .SetPath(operationContext.PathFactory.Append(Path, Index).Clone())
                 .SetItems(new[] { item })
                 .SetPatchId(patchId)
                 .BuildResult();
@@ -110,19 +106,15 @@ internal sealed class DeferredStream : DeferredExecutionTask
             operationContext.DeferredScheduler.Register(this, patchId);
             operationContext.DeferredScheduler.Complete(new(resultId, parentResultId, result));
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             var builder = operationContext.ErrorHandler.CreateUnexpectedError(ex);
             var result = QueryResultBuilder.CreateError(builder.Build());
             operationContext.DeferredScheduler.Complete(new(resultId, parentResultId, result));
-            error = true;
         }
         finally
         {
-            if (error || aborted.IsCancellationRequested)
-            {
-                operationContextOwner.Dispose();
-            }
+            operationContextOwner.Dispose();
         }
     }
 
