@@ -131,7 +131,7 @@ public static class WellKnownContextData
     /// The key to get the user provided transport operation session id when executing
     /// GraphQL over Websocket.
     /// </summary>
-    public const string OperationSessionId ="HotChocolate.Execution.Transport.OperationSessionId";
+    public const string OperationSessionId = "HotChocolate.Execution.Transport.OperationSessionId";
 
     /// <summary>
     /// The key to get the deferred task ID on the scoped context data.
@@ -204,6 +204,7 @@ public static class WellKnownContextData
     /// </summary>
     public const string IdValue = "HotChocolate.Relay.Node.Id.Value";
 
+    /// <summary>
     /// The key to get check if a field is the node field.
     /// </summary>
     public const string IsNodeField = "HotChocolate.Relay.Node.IsNodeField";
@@ -227,7 +228,7 @@ public static class WellKnownContextData
     /// The key of the marker setting that a field on the mutation type represents
     /// the query field.
     /// </summary>
-    public const string MutationQueryField =  "HotChocolate.Relay.Mutations.QueryField";
+    public const string MutationQueryField = "HotChocolate.Relay.Mutations.QueryField";
 
     /// <summary>
     /// The key to get the Cache-Control header value from the context data.
@@ -247,10 +248,10 @@ public static class WellKnownContextData
     /// <summary>
     /// The key to retrieve the authorization options from the context.
     /// </summary>
-    public const string AuthorizationOptions =  "HotChocolate.Authorization.Options";
+    public const string AuthorizationOptions = "HotChocolate.Authorization.Options";
 
     /// <summary>
     /// The key to check if this schema contains request policies.
     /// </summary>
-    public const string AuthorizationRequestPolicy =  "HotChocolate.Authorization.RequestPolicy";
+    public const string AuthorizationRequestPolicy = "HotChocolate.Authorization.RequestPolicy";
 }
