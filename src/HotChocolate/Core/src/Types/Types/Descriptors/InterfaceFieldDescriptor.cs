@@ -11,6 +11,7 @@ public class InterfaceFieldDescriptor
     : OutputFieldDescriptorBase<InterfaceFieldDefinition>
     , IInterfaceFieldDescriptor
 {
+    private ParameterInfo[] _parameterInfos = Array.Empty<ParameterInfo>();
     private bool _argumentsInitialized;
 
     protected internal InterfaceFieldDescriptor(
@@ -48,7 +49,8 @@ public class InterfaceFieldDescriptor
 
         if (member is MethodInfo m)
         {
-            Parameters = m.GetParameters().ToDictionary(t => t.Name, StringComparer.Ordinal);
+            _parameterInfos = m.GetParameters();
+            Parameters = _parameterInfos.ToDictionary(t => t.Name, StringComparer.Ordinal);
         }
     }
 
@@ -75,6 +77,7 @@ public class InterfaceFieldDescriptor
                 Context,
                 definition.Arguments,
                 definition.Member,
+                _parameterInfos,
                 definition.GetParameterExpressionBuilders());
             _argumentsInitialized = true;
         }

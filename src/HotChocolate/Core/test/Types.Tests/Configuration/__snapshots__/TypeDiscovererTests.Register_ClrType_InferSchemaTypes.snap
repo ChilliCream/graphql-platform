@@ -89,26 +89,6 @@
       ]
     },
     {
-      "type": "HotChocolate.Types.DeferDirectiveType",
-      "runtimeType": "HotChocolate.Types.DeferDirective",
-      "references": [
-        "HotChocolate.Types.DeferDirectiveType",
-        "DeferDirectiveType",
-        "DirectiveType<DeferDirective>",
-        "@DeferDirective"
-      ]
-    },
-    {
-      "type": "HotChocolate.Types.StreamDirectiveType",
-      "runtimeType": "HotChocolate.Types.StreamDirective",
-      "references": [
-        "HotChocolate.Types.StreamDirectiveType",
-        "StreamDirectiveType",
-        "DirectiveType<StreamDirective>",
-        "@StreamDirective"
-      ]
-    },
-    {
       "type": "HotChocolate.Types.DeprecatedDirectiveType",
       "runtimeType": "HotChocolate.Types.DeprecatedDirective",
       "references": [
@@ -132,14 +112,6 @@
       "references": [
         "HotChocolate.Types.BooleanType",
         "BooleanType"
-      ]
-    },
-    {
-      "type": "HotChocolate.Types.IntType",
-      "runtimeType": "System.Int32",
-      "references": [
-        "HotChocolate.Types.IntType",
-        "IntType"
       ]
     },
     {
@@ -168,12 +140,9 @@
     "ISchema (Output)": "HotChocolate.Types.Introspection.__Schema (Output)",
     "IType (Output)": "HotChocolate.Types.Introspection.__Type (Output)",
     "TypeKind!": "HotChocolate.Types.Introspection.__TypeKind",
-    "DeferDirective": "HotChocolate.Types.DeferDirectiveType",
-    "StreamDirective": "HotChocolate.Types.StreamDirectiveType",
     "DeprecatedDirective": "HotChocolate.Types.DeprecatedDirectiveType",
     "String": "HotChocolate.Types.StringType",
     "Boolean!": "HotChocolate.Types.BooleanType",
-    "Int32!": "HotChocolate.Types.IntType",
     "Foo (Output)": "ObjectType<Foo> (Output)",
     "Bar (Output)": "ObjectType<Bar> (Output)"
   }

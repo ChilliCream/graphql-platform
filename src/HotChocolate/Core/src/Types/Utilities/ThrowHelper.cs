@@ -15,8 +15,7 @@ namespace HotChocolate.Utilities;
 
 internal static class ThrowHelper
 {
-    public static ArgumentException String_NullOrEmpty(
-        string parameterName) =>
+    public static ArgumentException String_NullOrEmpty(string parameterName) =>
         new ArgumentException(
             $@"'{parameterName}' cannot be null or empty",
             parameterName);
@@ -38,8 +37,7 @@ internal static class ThrowHelper
                 .SetMessage(ThrowHelper_EventMessage_NotFound)
                 .Build());
 
-    public static SchemaException SubscribeAttribute_MessageTypeUnspecified(
-        MemberInfo member) =>
+    public static SchemaException SubscribeAttribute_MessageTypeUnspecified(MemberInfo member) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
@@ -49,8 +47,7 @@ internal static class ThrowHelper
                 .SetExtension("member", member)
                 .Build());
 
-    public static SchemaException SubscribeAttribute_TopicTypeUnspecified(
-        MemberInfo member) =>
+    public static SchemaException SubscribeAttribute_TopicTypeUnspecified(MemberInfo member) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
@@ -73,8 +70,7 @@ internal static class ThrowHelper
                 .SetExtension("member", member)
                 .Build());
 
-    public static SchemaException Convention_UnableToCreateConvention(
-        Type convention) =>
+    public static SchemaException Convention_UnableToCreateConvention(Type convention) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
@@ -82,8 +78,7 @@ internal static class ThrowHelper
                     convention.FullName ?? convention.Name)
                 .Build());
 
-    public static SchemaException UsePagingAttribute_NodeTypeUnknown(
-        MemberInfo member) =>
+    public static SchemaException UsePagingAttribute_NodeTypeUnknown(MemberInfo member) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(ThrowHelper_UsePagingAttribute_NodeTypeUnknown)
@@ -105,7 +100,7 @@ internal static class ThrowHelper
 
     public static SchemaException TypeCompletionContext_UnableToResolveType(
         ITypeSystemObject type,
-        ITypeReference typeRef) =>
+        TypeReference typeRef) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
@@ -187,8 +182,7 @@ internal static class ThrowHelper
                     scope ?? "default")
                 .Build());
 
-    public static SchemaException DataLoader_InvalidType(
-        Type dataLoaderType) =>
+    public static SchemaException DataLoader_InvalidType(Type dataLoaderType) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
@@ -313,13 +307,13 @@ internal static class ThrowHelper
         Path path)
         => new SerializationException(
             ErrorBuilder.New()
-            .SetMessage(
-                ThrowHelper_ParseInputObject_InvalidSyntaxKind,
-                kind,
-                type.Name)
-            .SetPath(path)
-            .SetExtension(nameof(type), type.Name)
-            .Build(),
+                .SetMessage(
+                    ThrowHelper_ParseInputObject_InvalidSyntaxKind,
+                    kind,
+                    type.Name)
+                .SetPath(path)
+                .SetExtension(nameof(type), type.Name)
+                .Build(),
             type,
             path);
 
@@ -329,17 +323,16 @@ internal static class ThrowHelper
         Path path)
         => new SerializationException(
             ErrorBuilder.New()
-            .SetMessage(
-                ThrowHelper_ParseInputObject_InvalidObjectKind,
-                objectType.FullName ?? objectType.Name,
-                type.Name,
-                type.RuntimeType.FullName ?? type.RuntimeType.Name)
-            .SetPath(path)
-            .SetExtension(nameof(type), type.Name)
-            .Build(),
+                .SetMessage(
+                    ThrowHelper_ParseInputObject_InvalidObjectKind,
+                    objectType.FullName ?? objectType.Name,
+                    type.Name,
+                    type.RuntimeType.FullName ?? type.RuntimeType.Name)
+                .SetPath(path)
+                .SetExtension(nameof(type), type.Name)
+                .Build(),
             type,
             path);
-
 
     public static SerializationException ParseNestedList_InvalidSyntaxKind(
         ListType type,
@@ -347,14 +340,14 @@ internal static class ThrowHelper
         Path path)
         => new SerializationException(
             ErrorBuilder.New()
-            .SetMessage(
-                ThrowHelper_ParseNestedList_InvalidSyntaxKind,
-                kind)
-            .SetPath(path)
-            .SetExtension(
-                "specifiedBy",
-                "https://spec.graphql.org/June2018/#sec-Type-System.List")
-            .Build(),
+                .SetMessage(
+                    ThrowHelper_ParseNestedList_InvalidSyntaxKind,
+                    kind)
+                .SetPath(path)
+                .SetExtension(
+                    "specifiedBy",
+                    "https://spec.graphql.org/June2018/#sec-Type-System.List")
+                .Build(),
             type,
             path);
 
@@ -364,12 +357,12 @@ internal static class ThrowHelper
         Path path)
         => new SerializationException(
             ErrorBuilder.New()
-            .SetMessage(
-                ThrowHelper_ParseList_InvalidObjectKind,
-                listType.FullName ?? listType.Name,
-                type.Print(),
-                type.RuntimeType.FullName ?? type.RuntimeType.Name)
-            .Build(),
+                .SetMessage(
+                    ThrowHelper_ParseList_InvalidObjectKind,
+                    listType.FullName ?? listType.Name,
+                    type.Print(),
+                    type.RuntimeType.FullName ?? type.RuntimeType.Name)
+                .Build(),
             type,
             path);
 
@@ -531,7 +524,7 @@ internal static class ThrowHelper
         string fieldName,
         ITypeSystemObject? type = null)
     {
-        var builder =SchemaErrorBuilder.New();
+        var builder = SchemaErrorBuilder.New();
         builder.SetMessage(ThrowHelper_RelayIdFieldHelpers_NoFieldType, fieldName);
 
         if (type is not null)
@@ -542,13 +535,35 @@ internal static class ThrowHelper
         return new SchemaException(builder.Build());
     }
 
-    public static GraphQLException MissingIfArgument(
-        DirectiveNode directive)
-        => new(
-            ErrorBuilder.New()
-                .SetMessage(
-                    ThrowHelper_MissingDirectiveIfArgument,
-                    directive.Name.Value)
-                .AddLocation(directive)
-                .Build());
+    public static GraphQLException MissingIfArgument(DirectiveNode directive)
+        => new(ErrorBuilder.New()
+            .SetMessage(
+                ThrowHelper_MissingDirectiveIfArgument,
+                directive.Name.Value)
+            .AddLocation(directive)
+            .Build());
+
+    public static InvalidOperationException Flags_Enum_Shape_Unknown(Type type)
+        => new(string.Format(
+            CultureInfo.InvariantCulture,
+            ThrowHelper_Flags_Enum_Shape_Unknown,
+            type.FullName ?? type.Name));
+
+    public static GraphQLException Flags_Parser_NoSelection(InputObjectType type)
+        => new(ErrorBuilder.New()
+            .SetMessage(ThrowHelper_Flags_Parser_NoSelection, type.Name)
+            .Build());
+
+    public static GraphQLException Flags_Parser_UnknownSelection(string value, InputObjectType type)
+        => new(ErrorBuilder.New()
+            .SetMessage(ThrowHelper_Flags_Parser_UnknownSelection, value, type.Name)
+            .Build());
+
+    public static SchemaException Flags_IllegalFlagEnumName(Type type, string? valueName)
+        => new(SchemaErrorBuilder.New()
+            .SetMessage(
+                ThrowHelper_Flags_IllegalFlagEnumName,
+                type.FullName ?? type.Name,
+                valueName ?? "value is null")
+            .Build());
 }

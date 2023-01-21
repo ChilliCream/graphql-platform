@@ -38,7 +38,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     public ObjectFieldDefinition(
         string name,
         string? description = null,
-        ITypeReference? type = null,
+        TypeReference? type = null,
         FieldResolverDelegate? resolver = null,
         PureFieldDelegate? pureResolver = null)
     {
@@ -84,6 +84,11 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     /// The result type of the resolver.
     /// </summary>
     public Type? ResultType { get; set; }
+
+    /// <summary>
+    /// The member name that represents the event stream factory.
+    /// </summary>
+    public string? SubscribeWith { get; set; }
 
     /// <summary>
     /// The delegate that represents the resolver.
@@ -315,6 +320,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
         target.IsIntrospectionField = IsIntrospectionField;
         target.IsParallelExecutable = IsParallelExecutable;
         target.HasStreamResult = HasStreamResult;
+        target.SubscribeWith = SubscribeWith;
     }
 
     internal void MergeInto(ObjectFieldDefinition target)
@@ -395,6 +401,11 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
         if (SubscribeResolver is not null)
         {
             target.SubscribeResolver = SubscribeResolver;
+        }
+
+        if (SubscribeWith is not null)
+        {
+            target.SubscribeWith = SubscribeWith;
         }
     }
 

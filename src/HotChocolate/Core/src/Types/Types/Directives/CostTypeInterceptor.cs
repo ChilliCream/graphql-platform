@@ -140,7 +140,7 @@ internal class CostTypeInterceptor : TypeInterceptor
     /// <summary>
     /// Defines if a resolver is possible fetching data and causing higher impact on the system.
     /// </summary>
-    private static bool IsDataResolver(ObjectFieldDefinition field)
+    internal static bool IsDataResolver(ObjectFieldDefinition field)
     {
         if (field.PureResolver is not null && field.MiddlewareDefinitions.Count == 0)
         {

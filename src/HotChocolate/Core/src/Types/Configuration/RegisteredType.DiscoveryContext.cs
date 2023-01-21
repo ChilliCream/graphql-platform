@@ -39,7 +39,7 @@ internal sealed partial class RegisteredType : ITypeDiscoveryContext
         Errors.Add(error);
     }
 
-    public bool TryPredictTypeKind(ITypeReference typeRef, out TypeKind kind)
+    public bool TryPredictTypeKind(TypeReference typeRef, out TypeKind kind)
     {
         if (_typeLookup.TryNormalizeReference(typeRef, out var namedTypeRef) &&
             _typeRegistry.TryGetType(namedTypeRef, out var registeredType))

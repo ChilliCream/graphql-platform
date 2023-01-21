@@ -46,7 +46,7 @@ public sealed class DirectiveDefinition
     /// <summary>
     /// The directive type.
     /// </summary>
-    public ITypeReference Type { get; }
+    public TypeReference Type { get; }
 
     /// <summary>
     /// The directive value.

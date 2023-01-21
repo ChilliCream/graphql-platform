@@ -10,7 +10,7 @@ public abstract class SortOperationDescriptorBase
     protected SortOperationDescriptorBase(
         IDescriptorContext context,
         string name,
-        ITypeReference type,
+        TypeReference type,
         SortOperation operation)
         : base(context)
     {

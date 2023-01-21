@@ -12,7 +12,7 @@ internal class IgnoredSortingFieldDescriptor
     protected IgnoredSortingFieldDescriptor(
         IDescriptorContext context,
         string name,
-        ITypeReference type,
+        TypeReference type,
         SortOperation operation)
         : base(context, name, type, operation)
     {
@@ -23,7 +23,7 @@ internal class IgnoredSortingFieldDescriptor
     public static IgnoredSortingFieldDescriptor New(
         IDescriptorContext context,
         string name,
-        ITypeReference type,
+        TypeReference type,
         SortOperation operation)
         => new(context, name, type, operation);
 

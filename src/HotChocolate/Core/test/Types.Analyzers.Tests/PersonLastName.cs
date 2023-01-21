@@ -1,5 +1,3 @@
-using HotChocolate.Execution.Configuration;
-
 namespace HotChocolate.Types;
 
 [ExtendObjectType<Person>]

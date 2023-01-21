@@ -1,0 +1,29 @@
+﻿schema {
+  query: InputQuery
+}
+
+type FlagsEnumFlags {
+  isFoo: Boolean!
+  isBar: Boolean!
+  isBaz: Boolean!
+}
+
+type InputQuery {
+  loopback(args: FlagsEnumFlagsInput!): FlagsEnumFlags!
+  input(input: EnumInput!): FlagsEnumFlags!
+}
+
+input EnumInput {
+  single: FlagsEnumFlagsInput!
+  list: [FlagsEnumFlagsInput!]!
+  nestedList: [[FlagsEnumFlagsInput!]!]!
+  nullableSingle: FlagsEnumFlagsInput
+  nullableList: [FlagsEnumFlagsInput]
+  nullableNestedList: [[FlagsEnumFlagsInput]]
+}
+
+input FlagsEnumFlagsInput {
+  isFoo: Boolean
+  isBar: Boolean
+  isBaz: Boolean
+}

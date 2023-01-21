@@ -172,7 +172,7 @@ public abstract class FilterFieldDescriptorBase
         Definition.SetMoreSpecificType(typeNode, TypeContext.Input);
     }
 
-    protected ITypeReference RewriteTypeListType()
+    protected TypeReference RewriteTypeListType()
     {
         var reference = Definition.Type;
 
@@ -209,14 +209,14 @@ public abstract class FilterFieldDescriptorBase
         throw new NotSupportedException();
     }
 
-    protected ITypeReference RewriteTypeToNullableType()
+    protected TypeReference RewriteTypeToNullableType()
     {
         var reference = Definition.Type;
         return RewriteTypeToNullableType(reference!, Context.TypeInspector);
     }
 
-    protected static ITypeReference RewriteTypeToNullableType(
-        ITypeReference reference,
+    protected static TypeReference RewriteTypeToNullableType(
+        TypeReference reference,
         ITypeInspector typeInspector)
     {
         if (reference is ExtendedTypeReference extendedTypeRef)
@@ -254,7 +254,7 @@ public abstract class FilterFieldDescriptorBase
         return _namingConvention.CreateFieldName(Definition, kind);
     }
 
-    protected virtual ITypeReference RewriteType(
+    protected virtual TypeReference RewriteType(
         FilterOperationKind operationKind)
     {
         if (ListOperations.Contains(operationKind))

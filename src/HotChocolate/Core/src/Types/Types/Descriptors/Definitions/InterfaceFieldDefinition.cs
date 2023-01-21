@@ -27,7 +27,7 @@ public class InterfaceFieldDefinition : OutputFieldDefinitionBase
     public InterfaceFieldDefinition(
         string name,
         string? description = null,
-        ITypeReference? type = null)
+        TypeReference? type = null)
     {
         Name = name.EnsureGraphQLName();
         Description = description;

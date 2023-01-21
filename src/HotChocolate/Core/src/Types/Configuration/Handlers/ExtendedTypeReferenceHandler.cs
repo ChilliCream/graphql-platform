@@ -20,7 +20,7 @@ internal sealed class ExtendedTypeReferenceHandler : ITypeRegistrarHandler
 
     public TypeReferenceKind Kind => TypeReferenceKind.ExtendedType;
 
-    public void Handle(ITypeRegistrar typeRegistrar, ITypeReference typeReference)
+    public void Handle(ITypeRegistrar typeRegistrar, TypeReference typeReference)
     {
         var typeRef = (ExtendedTypeReference)typeReference;
 

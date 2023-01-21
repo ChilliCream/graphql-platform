@@ -12,9 +12,9 @@ internal sealed class MutationResultTypeDiscoveryHandler : TypeDiscoveryHandler
     }
 
     public override bool TryInferType(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         TypeDiscoveryInfo typeInfo,
-        [NotNullWhen(true)] out ITypeReference[]? schemaTypeRefs)
+        [NotNullWhen(true)] out TypeReference[]? schemaTypeRefs)
     {
         var runtimeType = typeInfo.RuntimeType;
 
@@ -23,7 +23,7 @@ internal sealed class MutationResultTypeDiscoveryHandler : TypeDiscoveryHandler
             typeReference is ExtendedTypeReference typeRef)
         {
             var type = _typeInspector.GetType(runtimeType.GenericTypeArguments[0]);
-            schemaTypeRefs = new ITypeReference[runtimeType.GenericTypeArguments.Length];
+            schemaTypeRefs = new TypeReference[runtimeType.GenericTypeArguments.Length];
             schemaTypeRefs[0] = typeRef.WithType(type);
 
             for (var i = 1; i < runtimeType.GenericTypeArguments.Length; i++)

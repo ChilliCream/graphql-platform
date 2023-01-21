@@ -82,6 +82,10 @@ partial class Build
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Utilities" / "HotChocolate.Utilities.sln"));
 
+    Target TestHotChocolateCaching => _ => _
+        .Produces(TestResultDirectory / "*.trx")
+        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Caching" / "HotChocolate.Caching.sln"));
+
     Target TestStrawberryShakeClient => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "StrawberryShake" / "Client" / "StrawberryShake.Client.sln"));

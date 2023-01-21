@@ -1,27 +1,47 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using GreenDonut;
-using HotChocolate.Fetching;
-using Microsoft.Extensions.DependencyInjection;
+using HotChocolate;
+
+[assembly: DataLoaderDefaults(
+    ServiceScope = DataLoaderServiceScope.DataLoaderScope,
+    AccessModifier = DataLoaderAccessModifier.Public)]
 
 namespace HotChocolate.Types;
 
 [QueryType]
-public class SomeQuery
+public static class SomeQuery
 {
-    public IEntity? GetPerson() => new Person();
+    public static IEntity? GetPerson() => new Person();
 
     [GraphQLType("CustomEnum")]
-    public ValueTask<object?> GetEnum() => default;
+    public static ValueTask<object?> GetEnum() => default;
 
-    public Book GetBook() => new() { Title = "SomeTitle" };
+    public static Book GetBook() => new() { Title = "SomeTitle" };
 
-    public Task<string> WithDataLoader(FoosByIdDataLoader foosById)
+    public static Task<string> WithDataLoader(IFoosByIdDataLoader foosById, CancellationToken cancellationToken)
     {
-        return foosById.LoadAsync("a");
+        return foosById.LoadAsync("a", cancellationToken);
+    }
+
+    [DataLoader]
+    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById56(
+        IReadOnlyList<string> keys,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
+    }
+
+    // should be ignored on the schema
+    [DataLoader]
+    public static async Task<string> GetFoosById55(
+        string id,
+        SomeService someService,
+        CancellationToken cancellationToken)
+    {
+        return "abc";
     }
 }
 
@@ -39,35 +59,47 @@ public static class SomeSubscription
 
 public static class DataLoaderGen
 {
-    [DataLoader(Scoped = true)]
-    public static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
+    [DataLoader]
+    internal static async Task<IReadOnlyDictionary<string, string>> GetFoosById(
         IReadOnlyList<string> ids,
         SomeService someService,
         CancellationToken cancellationToken)
     {
-        return ids.ToDictionary(t => t, t => t);
+        return await Task.FromResult(ids.ToDictionary(t => t, t => t));
     }
 
-    [DataLoader(Scoped = true)]
+    [DataLoader]
     public static async Task<string> GetFoosById2(
         string id,
         SomeService someService,
         CancellationToken cancellationToken)
     {
-        return "abc";
+        return await Task.FromResult("abc");
     }
 
-    [DataLoader(Scoped = true)]
-    public static async Task<ILookup<string, string>> GetFoosById3(
+    [DataLoader(ServiceScope = DataLoaderServiceScope.OriginalScope)]
+    public static Task<ILookup<string, string>> GetFoosById3(
         IReadOnlyList<string> ids,
         SomeService someService,
         CancellationToken cancellationToken)
     {
-        return default;
+        return default!;
+    }
+
+    [DataLoader]
+    public static Task<string> GetGenericById(
+        IReadOnlyList<string> ids,
+        GenericService<GenericService<string>> someService,
+        CancellationToken cancellationToken)
+    {
+        return default!;
     }
 }
 
 public class SomeService { }
 
+public class GenericService<T>
+{
 
+}
 

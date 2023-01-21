@@ -15,12 +15,14 @@
     <InternalsVisibleTo Include="HotChocolate.Execution" />
     <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
     <InternalsVisibleTo Include="HotChocolate.Authorization" />
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore" />
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Authorization" />
     <InternalsVisibleTo Include="HotChocolate.Validation" />
     <InternalsVisibleTo Include="HotChocolate.Types.CursorPagination" />
     <InternalsVisibleTo Include="HotChocolate.Types.OffsetPagination" />
     <InternalsVisibleTo Include="HotChocolate.ApolloFederation" />
     <InternalsVisibleTo Include="HotChocolate.Data" />
+    <InternalsVisibleTo Include="HotChocolate.Caching" />
     <InternalsVisibleTo Include="StrawberryShake.CodeGeneration" />
 
     <!--Legacy Support-->
@@ -36,6 +38,7 @@
     <InternalsVisibleTo Include="HotChocolate.Data.Filters.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Data.Sorting.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Data.Projections.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Caching.Tests" />
   </ItemGroup>
 
   <ItemGroup>

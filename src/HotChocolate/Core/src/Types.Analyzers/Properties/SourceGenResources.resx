@@ -21,4 +21,7 @@
   <data name="DataLoader_KeyParameterMissing" xml:space="preserve">
     <value>A DataLoader must at least provides a key or keys parameter.</value>
   </data>
+  <data name="DataLoader_InvalidAccessModifier" xml:space="preserve">
+    <value>The DataLoader access modifier must be public or internal.</value>
+  </data>
 </root>

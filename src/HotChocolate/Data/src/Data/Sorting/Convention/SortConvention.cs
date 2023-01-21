@@ -30,10 +30,10 @@ public class SortConvention
     private IReadOnlyDictionary<int, SortOperation> _operations = default!;
     private IDictionary<Type, Type> _bindings = default!;
 
-    private IDictionary<ITypeReference, List<ConfigureSortInputType>> _inputTypeConfigs =
+    private IDictionary<TypeReference, List<ConfigureSortInputType>> _inputTypeConfigs =
         default!;
 
-    private IDictionary<ITypeReference, List<ConfigureSortEnumType>> _enumTypeConfigs =
+    private IDictionary<TypeReference, List<ConfigureSortEnumType>> _enumTypeConfigs =
         default!;
 
     private string _argumentName = default!;
@@ -191,7 +191,7 @@ public class SortConvention
 
     /// <inheritdoc cref="ISortConvention"/>
     public void ApplyConfigurations(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         ISortInputTypeDescriptor descriptor)
     {
         if (_inputTypeConfigs.TryGetValue(
@@ -211,7 +211,7 @@ public class SortConvention
     }
 
     public void ApplyConfigurations(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         ISortEnumTypeDescriptor descriptor)
     {
         if (_enumTypeConfigs.TryGetValue(
