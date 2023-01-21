@@ -48,6 +48,30 @@ public async Task<User> GetUserByIdAsync(string id, UserDataLoader loader)
     => await loader.LoadAsync(id);
 ```
 
+## ITopicEventReceiver / ITopicEventSender
+
+Previously you could use any type (`T`) as the topic for an event stream. In this release we are requiring the topic to be a `string`.
+
+**Before**
+
+```csharp
+ITopicEventReceiver.SubscribeAsync<TTopic, TMessage>(TTopic topic, 
+    CancellationToken cancellationToken);
+
+ITopicEventSender.SendAsync<TTopic, TMessage>(TTopic topic, TMessage message,
+    CancellationToken cancellationToken)
+```
+
+**After**
+
+```csharp
+ITopicEventReceiver.SubscribeAsync<TMessage>(string topicName, 
+    CancellationToken cancellationToken);
+
+ITopicEventSender.SendAsync<TMessage>(string topicName, TMessage message,
+    CancellationToken cancellationToken)
+```
+
 ## @authorize on types
 
 If you previously annotated a type with `@authorize`, either directly in the schema or via `[Authorize]` or `descriptor.Authorize()`, the authorization rule was copied to each field of this type. This meant that the authorization rule would be evaluated for each selected field beneath the annotated type in a request. This is not efficient, so we switched to evaluating the authorization rule **once** on the field that returns the annotated type instead.
@@ -65,7 +89,7 @@ type User @authorize {
 }
 ```
 
-This is how the authorization rule would be evalurated previously and now:
+This is how the authorization rule would be evaluated previously and now:
 
 **Before**
 
@@ -128,7 +152,42 @@ If you've been using `[ScopedService]` without a pooled `DbContext`, you can rec
 
 ## SubscribeAndResolve
 
-...
+**Before**
+
+```csharp
+public class Subscription
+{
+    [SubscribeAndResolve]
+    public ValueTask<ISourceStream<Book>> BookPublished(string author,
+        [Service] ITopicEventReceiver receiver)
+    {
+        var topic = $"{author}_PublishedBook";
+
+        return receiver.SubscribeAsync<string, Book>(topic);
+    }
+}
+```
+
+**After**
+
+```csharp
+public class Subscription
+{
+    public ValueTask<ISourceStream<Book>> SubscribeToPublishedBooks(
+        string author, ITopicEventReceiver receiver)
+    {
+        var topic = $"{author}_PublishedBook";
+
+        return receiver.SubscribeAsync<Book>(topic);
+    }
+
+    [Subscribe(With = nameof(SubscribeToPublishedBooks))]
+    public Book BookPublished(string author, [EventMessage] Book book)
+    {
+        return book;
+    }
+}
+```
 
 ## LocalValue / ScopedValue / GlobalValue
 
