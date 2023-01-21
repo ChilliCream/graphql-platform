@@ -50,7 +50,7 @@ public async Task<User> GetUserByIdAsync(string id, UserDataLoader loader)
 
 ## ITopicEventReceiver / ITopicEventSender
 
-Previously you could use any type (`T`) as the topic for an event stream. In this release we are requiring the topic to be a `string`.
+Previously you could use any type as the topic for an event stream. In this release we are requiring the topic to be a `string`.
 
 **Before**
 
@@ -183,9 +183,7 @@ public class Subscription
 
     [Subscribe(With = nameof(SubscribeToPublishedBooks))]
     public Book BookPublished(string author, [EventMessage] Book book)
-    {
-        return book;
-    }
+        => book;
 }
 ```
 
