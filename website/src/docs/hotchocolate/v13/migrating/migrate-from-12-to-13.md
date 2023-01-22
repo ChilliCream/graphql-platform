@@ -6,13 +6,13 @@ This guide will walk you through the manual migration steps to update your Hot C
 
 # Breaking changes
 
-Things that have been removed or had a change in behavior that may cause your code to not compile or lead to unexpected behavior at runtime, if not addressed.
+Things that have been removed or had a change in behavior that may cause your code not to compile or lead to unexpected behavior at runtime if not addressed.
 
 ## @authorize on types
 
-If you previously annotated a type with `@authorize`, either directly in the schema or via `[Authorize]` or `descriptor.Authorize()`, the authorization rule was copied to each field of this type. This meant that the authorization rule would be evaluated for each selected field beneath the annotated type in a request. This is not efficient, so we switched to evaluating the authorization rule **once** on the field that returns the "authorized" type instead.
+If you previously annotated a type with `@authorize`, either directly in the schema or via `[Authorize]` or `descriptor.Authorize()`, the authorization rule was copied to each field of this type. This meant the authorization rule would be evaluated for each selected field beneath the annotated type in a request. This is inefficient, so we switched to evaluating the authorization rule **once** on the field that returns the "authorized" type instead.
 
-Lets imagine you currently have the following GraphQL schema:
+Let's imagine you currently have the following GraphQL schema:
 
 ```graphql
 type Query {
@@ -32,10 +32,10 @@ This is how the authorization rule would be evaluated previously and now:
 ```graphql
 {
   user {
-    # The authorization rule is evaluated here, since this field is beneath
+    # The authorization rule is evaluated here since this field is beneath
     # the `User` type, which is annotated with @authorize
     field1
-    # The authorization rule is evaluated here, since this field is beneath
+    # The authorization rule is evaluated here since this field is beneath
     # the `User` type, which is annotated with @authorize
     field2
   }
@@ -46,7 +46,7 @@ This is how the authorization rule would be evaluated previously and now:
 
 ```graphql
 {
-  # The authorization rule is now evaluated here, since the `user` field
+  # The authorization rule is now evaluated here since the `user` field
   # returns the `User` type, which is annotated with @authorize
   user {
     field1
@@ -54,6 +54,25 @@ This is how the authorization rule would be evaluated previously and now:
   }
 }
 ```
+
+We observed a common pattern to put a '@authorize' directive on the root types and secure all their fields.
+
+With the new default behavior of authorization, this would now fail since annotating the type will ensure that all fields returning instances of this type will be validated. Since there is no field returning the root types in most cases, these authorization rules will have no effect.
+
+With the Authorization overhaul, we also introduced a way to more efficiently implement such a pattern by moving parts of the authorization into the validation.
+
+```graphql
+type Query @authorize(apply: VALIDATION) {
+  user: User
+}
+
+type User {
+  field1: String
+  field2: Int
+}
+```
+
+The ‘apply‘ argument defines when an authorization rule is applied. In the above case, the validation ensures that the GraphQL request documents authorization rules are fulfilled. We do that by collecting all authorization directives with ‘apply‘ set to ‘Validation‘ and running them before we start the execution.
 
 <!--
 TODO: mention effect on root types
@@ -80,7 +99,7 @@ services.AddGraphQLServer()
     .RegisterDbContext<DbContext>(DbContextKind.Synchronized)
 ```
 
-> Note: Only add this, if your application requires it. You're better off with the new default otherwise.
+> Note: Only add this if your application requires it. You're better off with the new default otherwise.
 
 ## DataLoaderAttribute
 
@@ -107,7 +126,7 @@ Previously you could use any type as the topic for an event stream. In this rele
 **Before**
 
 ```csharp
-ITopicEventReceiver.SubscribeAsync<TTopic, TMessage>(TTopic topic, 
+ITopicEventReceiver.SubscribeAsync<TTopic, TMessage>(TTopic topic,
     CancellationToken cancellationToken);
 
 ITopicEventSender.SendAsync<TTopic, TMessage>(TTopic topic, TMessage message,
@@ -117,7 +136,7 @@ ITopicEventSender.SendAsync<TTopic, TMessage>(TTopic topic, TMessage message,
 **After**
 
 ```csharp
-ITopicEventReceiver.SubscribeAsync<TMessage>(string topicName, 
+ITopicEventReceiver.SubscribeAsync<TMessage>(string topicName,
     CancellationToken cancellationToken);
 
 ITopicEventSender.SendAsync<TMessage>(string topicName, TMessage message,
@@ -130,11 +149,11 @@ Things that will continue to function this release, but we encourage you to move
 
 ## ScopedServiceAttribute
 
-In this release we are deprecating the `[ScopedService]` attribute and encourage you to use `RegisterDbContext<T>(DbContextKind.Pooled)` instead.
+In this release, we are deprecating the `[ScopedService]` attribute and encourage you to use `RegisterDbContext<T>(DbContextKind.Pooled)` instead.
 
 Checkout [this part of our Entity Framework documentation](/docs/hotchocolate/v13/integrations/entity-framework/#registerdbcontext) to learn how to register your `DbContext` with `DbContextKind.Pooled`.
 
-Afterwards you just need to update your resolvers:
+Afterward you just need to update your resolvers:
 
 **Before**
 
