@@ -143,6 +143,27 @@ ITopicEventSender.SendAsync<TMessage>(string topicName, TMessage message,
     CancellationToken cancellationToken)
 ```
 
+## @defer / @stream
+
+`@defer` and `@stream` have now been disabled per default. If you want to continue using them, you have to opt-in now:
+
+```csharp
+services.AddGraphQLServer()
+    // ...
+    .ModifyOptions(o =>
+    {
+        o.EnableDefer = true;
+        o.EnableStream = true;
+    });
+```
+
+<!--
+TODO: Do you need to specify the multipart Accept header now for this to work?
+TODO: The JSON payload structure changed in this release as well
+-->
+
+> Warning: The spec of these features is still evolving, so expect more changes on how the incremental payloads are being delivered.
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
@@ -151,7 +172,7 @@ Things that will continue to function this release, but we encourage you to move
 
 In this release, we are deprecating the `[ScopedService]` attribute and encourage you to use `RegisterDbContext<T>(DbContextKind.Pooled)` instead.
 
-Checkout [this part of our Entity Framework documentation](/docs/hotchocolate/v13/integrations/entity-framework/#registerdbcontext) to learn how to register your `DbContext` with `DbContextKind.Pooled`.
+Checkout [this part of our Entity Framework documentation](/docs/hotchocolate/v13/integrations/entity-framework#registerdbcontext) to learn how to register your `DbContext` with `DbContextKind.Pooled`.
 
 Afterward you just need to update your resolvers:
 
@@ -211,4 +232,31 @@ public class Subscription
 
 ## LocalValue / ScopedValue / GlobalValue
 
-...
+We aligned the naming of state related APIs:
+
+### IResolverContext
+
+- `IResolverContext.GetGlobalValue` --> `IResolverContext.GetGlobalStateOrDefault`
+- `IResolverContext.GetOrAddGlobalValue` --> `IResolverContext.GetOrSetGlobalState`
+- `IResolverContext.SetGlobalValue` --> `IResolverContext.SetGlobalState`
+- `IResolverContext.RemoveGlobalValue` --> _Removed_
+- `IResolverContext.GetScopedValue` --> `IResolverContext.GetScopedStateOrDefault`
+- `IResolverContext.GetOrAddScopedValue` --> `IResolverContext.GetOrSetScopedState`
+- `IResolverContext.SetScopedValue` --> `IResolverContext.SetScopedState`
+- `IResolverContext.RemoveScopedValue` --> `IResolverContext.RemoveScopedState`
+- `IResolverContext.GetLocalValue` --> `IResolverContext.GetLocalStateOrDefault`
+- `IResolverContext.GetOrAddLocalValue` --> `IResolverContext.GetOrSetLocalState`
+- `IResolverContext.SetLocalValue` --> `IResolverContext.SetLocalState`
+- `IResolverContext.RemoveLocalValue` --> `IResolverContext.RemoveLocalState`
+
+### IQueryRequestBuilder
+
+- `IQueryRequestBuilder.SetProperties` --> `IQueryRequestBuilder.InitializeGlobalState`
+- `IQueryRequestBuilder.SetProperty` --> `IQueryRequestBuilder.SetGlobalState`
+- `IQueryRequestBuilder.AddProperty` --> `IQueryRequestBuilder.AddGlobalState`
+- `IQueryRequestBuilder.TryAddProperty` --> `IQueryRequestBuilder.TryAddGlobalState`
+- `IQueryRequestBuilder.TryRemoveProperty` --> `IQueryRequestBuilder.RemoveGlobalState`
+
+<!--
+TODO: Link to new docs once done
+-->
