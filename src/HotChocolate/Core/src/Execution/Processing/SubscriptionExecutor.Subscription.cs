@@ -153,7 +153,7 @@ internal sealed partial class SubscriptionExecutor
 
                 // we store the event payload on the scoped context so that it is accessible
                 // in the resolvers.
-                var scopedContext =
+                var scopedContextData =
                     _scopedContextData.SetItem(WellKnownContextData.EventMessage, payload);
 
                 // next we resolve the subscription instance.
@@ -179,12 +179,20 @@ internal sealed partial class SubscriptionExecutor
                     payload);
 
                 var result = await _queryExecutor
-                    .ExecuteAsync(operationContext, scopedContext)
+                    .ExecuteAsync(operationContext, scopedContextData)
                     .ConfigureAwait(false);
 
                 _diagnosticEvents.SubscriptionEventResult(new(this, payload), result);
 
                 return result;
+            }
+            catch (OperationCanceledException ex)
+            {
+                operationContext = null;
+                _diagnosticEvents.SubscriptionEventError(
+                    new SubscriptionEventContext(this, payload),
+                    ex);
+                throw;
             }
             catch (Exception ex)
             {
@@ -195,7 +203,13 @@ internal sealed partial class SubscriptionExecutor
             }
             finally
             {
-                _operationContextPool.Return(operationContext);
+                // if the operation context is null a cancellation has happened and we will
+                // abandon the operation context in order to not have leakage into the
+                // new operations.
+                if (operationContext is not null)
+                {
+                    _operationContextPool.Return(operationContext);
+                }
             }
         }
 
