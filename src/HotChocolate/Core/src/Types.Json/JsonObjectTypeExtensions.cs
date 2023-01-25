@@ -258,7 +258,12 @@ public static class JsonObjectTypeExtensions
     }
 
     private static JsonElement? GetProperty(this IPureResolverContext context, string propertyName)
-        => context.Parent<JsonElement>().TryGetProperty(propertyName, out var element)
+    {
+        var aliasName = context.Selection.SyntaxNode.Alias?.Value;
+        var property = !string.IsNullOrWhiteSpace(aliasName) ? aliasName : propertyName;
+
+        return context.Parent<JsonElement>().TryGetProperty(property!, out var element)
             ? element
             : null;
+    }
 }
