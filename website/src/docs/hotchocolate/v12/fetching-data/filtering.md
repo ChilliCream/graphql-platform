@@ -119,7 +119,7 @@ public class UserFilterType : FilterInputType<User>
 }
 ```
 
-If you want to limit the operations on a field, you need to declare you own operation type.
+If you want to limit the operations on a field, you need to declare your own operation type.
 Given you want to only allow `eq` and `neq` on a string field, this could look like this
 
 ```csharp {7}
