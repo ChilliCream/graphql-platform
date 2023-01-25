@@ -92,7 +92,7 @@ When registering a `DbContext` you can specify a `DbContextKind` to instruct Hot
 
 ## DbContextKind.Synchronized
 
-This injection mechanism ensures that resolvers injecting the specified `DbContext` are never run in parallel. It is the default for the [`RegisterDbContext<T>`](#registerdbcontext) method and behaves in the same fashion as [ServiceKind.Synchronized](/docs/hotchocolate/v13/server/dependency-injection#servicekindsynchronized) does for regular services.
+This injection mechanism ensures that resolvers injecting the specified `DbContext` are never run in parallel. This allows you to use the same scoped `DbContext` instance throughout a request, without the risk of running into concurrency exceptions as mentioned above. It behaves in the same fashion as [ServiceKind.Synchronized](/docs/hotchocolate/v13/server/dependency-injection#servicekindsynchronized) does for regular services.
 
 ## DbContextKind.Resolver
 

@@ -97,7 +97,10 @@ internal sealed class OperationExecutionMiddleware
             try
             {
                 await ExecuteQueryOrMutationAsync(
-                    context, batchDispatcher, operation, operationContext)
+                        context,
+                        batchDispatcher,
+                        operation,
+                        operationContext)
                     .ConfigureAwait(false);
 
                 if (operationContext.DeferredScheduler.HasResults &&
@@ -114,6 +117,12 @@ internal sealed class OperationExecutionMiddleware
                 }
 
                 await _next(context).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                // if an operation is canceled we will abandon the the rented operation context
+                // to ensure that that abandoned tasks to not leak execution into new operations.
+                operationContextOwner = null;
             }
             finally
             {
