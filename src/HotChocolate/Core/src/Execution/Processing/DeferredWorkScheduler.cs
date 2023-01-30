@@ -95,7 +95,7 @@ internal sealed class DeferredWorkScheduler
         => StateOwner.State.Complete(result);
 
     public IAsyncEnumerable<IQueryResult> CreateResultStream(IQueryResult initialResult)
-        => new DeferResultStream(
+        => new DeferredResultStream(
             initialResult,
             StateOwner,
             _parentContext.Operation,
@@ -109,14 +109,14 @@ internal sealed class DeferredWorkScheduler
         _parentContext = default!;
     }
 
-    private class DeferResultStream : IAsyncEnumerable<IQueryResult>
+    private class DeferredResultStream : IAsyncEnumerable<IQueryResult>
     {
         private readonly IQueryResult _initialResult;
         private readonly DeferredWorkStateOwner _stateOwner;
         private readonly IOperation _operation;
         private readonly IExecutionDiagnosticEvents _diagnosticEvents;
 
-        public DeferResultStream(
+        public DeferredResultStream(
             IQueryResult initialResult,
             DeferredWorkStateOwner stateOwner,
             IOperation operation,
@@ -132,7 +132,9 @@ internal sealed class DeferredWorkScheduler
             CancellationToken cancellationToken = default)
         {
             var span = _diagnosticEvents.ExecuteStream(_operation);
+            var state = _stateOwner.State;
             var hasNext = true;
+            var completed = false;
 
             try
             {
@@ -140,14 +142,16 @@ internal sealed class DeferredWorkScheduler
 
                 while (!cancellationToken.IsCancellationRequested)
                 {
-                    var result = await _stateOwner.State.TryDequeueResultsAsync(cancellationToken);
+                    var result = await state
+                        .TryDequeueResultsAsync(cancellationToken)
+                        .ConfigureAwait(false);
 
                     if (result is not null)
                     {
                         hasNext = result.HasNext ?? false;
                         yield return result;
                     }
-                    else if (_stateOwner.State.IsCompleted)
+                    else if (state.IsCompleted)
                     {
                         if (hasNext)
                         {
@@ -157,11 +161,19 @@ internal sealed class DeferredWorkScheduler
                         yield break;
                     }
                 }
+
+                completed = !cancellationToken.IsCancellationRequested;
             }
             finally
             {
-                _stateOwner.Dispose();
                 span.Dispose();
+            }
+
+            // we only return the state back to its pool if the operation was not cancelled
+            // or otherwise faulted.
+            if (completed)
+            {
+                _stateOwner.Dispose();
             }
         }
     }

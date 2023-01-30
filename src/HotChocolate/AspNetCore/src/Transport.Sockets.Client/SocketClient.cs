@@ -57,8 +57,10 @@ public class SocketClient : ISocket
         T? payload,
         CancellationToken cancellationToken = default)
     {
-        IProtocolHandler? protocolHandler =
-            _protocolHandlers.FirstOrDefault(t => t.Name.EqualsOrdinal(socket.SubProtocol));
+        var protocolHandler =
+            Array.Find(
+                _protocolHandlers,
+                t => t.Name.EqualsOrdinal(socket.SubProtocol));
 
         if (protocolHandler is null)
         {
@@ -84,7 +86,6 @@ public class SocketClient : ISocket
         CancellationToken cancellationToken = default)
         => _protocol.ExecuteAsync(_context, request, cancellationToken);
 
-
 #if NET5_0_OR_GREATER
     async Task<bool> ISocket.ReadMessageAsync(
         IBufferWriter<byte> writer,
@@ -108,7 +109,7 @@ public class SocketClient : ISocket
                 }
 
                 // get memory from writer
-                Memory<byte> memory = writer.GetMemory(BufferSize);
+                var memory = writer.GetMemory(BufferSize);
 
                 // read message segment from socket.
                 socketResult = await _socket.ReceiveAsync(memory, cancellationToken);
@@ -161,16 +162,14 @@ public class SocketClient : ISocket
                 read += socketResult.Count;
             } while (!socketResult.EndOfMessage);
 
+            ArrayPool<byte>.Shared.Return(buffer);
+
             return read > 0;
         }
         catch
         {
             // swallow exception, there's nothing we can reasonably do.
             return false;
-        }
-        finally
-        {
-            ArrayPool<byte>.Shared.Return(buffer);
         }
     }
 #endif
