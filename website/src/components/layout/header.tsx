@@ -12,6 +12,7 @@ import React, {
 } from "react";
 import styled from "styled-components";
 
+import { WorkshopDotNetDaysLasi } from "@/components/images/workshop-dotnetdays-lasi";
 import { IconContainer } from "@/components/misc/icon-container";
 import { Link } from "@/components/misc/link";
 import { SearchModal } from "@/components/misc/search-modal";
@@ -41,9 +42,6 @@ import ExternalLinkSvg from "@/images/external-link.svg";
 import NewspaperIconSvg from "@/images/newspaper.svg";
 import SearchIconSvg from "@/images/search.svg";
 import TimesIconSvg from "@/images/times.svg";
-
-// Images
-import { WorkshopNdcLondon } from "@/components/images/workshop-ndc-london";
 
 // Logos
 import LogoTextSvg from "@/images/logo/chillicream-text.svg";
@@ -489,14 +487,14 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
       </SubNavMain>
       <SubNavAdditionalInfo>
         <SubNavTitle>Upcoming Workshop</SubNavTitle>
-        <TeaserLink to="https://ndclondon.com/workshops/reactive-mobile-apps-with-graphql-and-maui/8a69a3c2659d">
+        <TeaserLink to="https://dotnetdays.ro/workshops/Building-Modern-Apps-with-GraphQL-and-net7">
           <TeaserImage>
-            <WorkshopNdcLondon />
+            <WorkshopDotNetDaysLasi />
           </TeaserImage>
-          <TeaserMetadata>
-            23 - 24 Jan 2023 ・ NDC {"{"} London {"}"}
-          </TeaserMetadata>
-          <TeaserTitle>Reactive Mobile Apps with GraphQL and Maui</TeaserTitle>
+          <TeaserMetadata>20 - 21 Apr 2023 ・ dotnetdays (lasi)</TeaserMetadata>
+          <TeaserTitle>
+            Building Modern Apps with GraphQL in ASP.NET Core 7 and React 18
+          </TeaserTitle>
         </TeaserLink>
       </SubNavAdditionalInfo>
     </>
