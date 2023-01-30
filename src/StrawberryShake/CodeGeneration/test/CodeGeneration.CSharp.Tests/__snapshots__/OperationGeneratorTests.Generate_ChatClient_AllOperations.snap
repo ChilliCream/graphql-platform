@@ -2588,7 +2588,7 @@ namespace Foo.Bar
             {
                 "INCOMING" => Direction.Incoming,
                 "OUTGOING" => Direction.Outgoing,
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"String value '{serializedValue}' can't be converted to enum Direction")};
         }
 
         public global::System.Object Format(global::System.Object? runtimeValue)
@@ -2597,7 +2597,7 @@ namespace Foo.Bar
             {
                 Direction.Incoming => "INCOMING",
                 Direction.Outgoing => "OUTGOING",
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"Enum Direction value '{runtimeValue}' can't be converted to string")};
         }
     }
 

@@ -280,7 +280,7 @@ namespace Foo.Bar
             {
                 "ITEM1" => Amenity.Item1,
                 "ITEM2" => Amenity.Item2,
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"String value '{serializedValue}' can't be converted to enum Amenity")};
         }
 
         public global::System.Object Format(global::System.Object? runtimeValue)
@@ -289,7 +289,7 @@ namespace Foo.Bar
             {
                 Amenity.Item1 => "ITEM1",
                 Amenity.Item2 => "ITEM2",
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"Enum Amenity value '{runtimeValue}' can't be converted to string")};
         }
     }
 
