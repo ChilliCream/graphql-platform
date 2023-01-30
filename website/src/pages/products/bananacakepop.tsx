@@ -13,6 +13,7 @@ import { parse } from "yaml";
 
 import { BananaCakePop } from "@/components/images/banana-cake-pop";
 import { Layout } from "@/components/layout";
+import { Card, CardOffer, CardsContainer } from "@/components/misc/cards";
 import { Link } from "@/components/misc/link";
 import { Intro } from "@/components/misc/page-elements";
 import { SEO } from "@/components/misc/seo";
@@ -32,6 +33,12 @@ import {
 } from "@/shared-style";
 
 // Icons
+import {
+  ContentContainer,
+  Section,
+  SectionRow,
+  SectionTitle,
+} from "@/components/misc/marketing-elements";
 import ArrowDownIconSvg from "@/images/arrow-down.svg";
 import CircleDownIconSvg from "@/images/circle-down.svg";
 
@@ -48,7 +55,10 @@ const BananaCakePopPage: FC = () => {
 
   return (
     <Layout>
-      <SEO title={TITLE} />
+      <SEO
+        title={TITLE}
+        description="Banana Cake Pop is an incredible, beautiful, and feature-rich GraphQL IDE for developers that works with any GraphQL APIs."
+      />
       <Intro>
         <Product>
           <ProductDetails>
@@ -66,6 +76,139 @@ const BananaCakePopPage: FC = () => {
           </ProductImage>
         </Product>
       </Intro>
+      <Section>
+        <SectionRow>
+          <ContentContainer noImage>
+            <SectionTitle centerAlways>Features</SectionTitle>
+            <p>
+              A powerful GraphQL IDE that joins you and your team on your
+              GraphQL journey.
+            </p>
+          </ContentContainer>
+        </SectionRow>
+      </Section>
+      <Section>
+        <CardsContainer dense>
+          <Card>
+            <CardOffer>
+              <header>
+                <h2>Authentication Flows</h2>
+              </header>
+              <p>
+                Choose between various authentication flows like basic, bearer
+                or OAuth 2.
+              </p>
+            </CardOffer>
+          </Card>
+          <Card>
+            <CardOffer>
+              <header>
+                <h2>Organization Workspaces</h2>
+              </header>
+              <p>
+                Organize your GraphQL APIs and collaborate with colleges across
+                your organization with ease.
+              </p>
+            </CardOffer>
+          </Card>
+          <Card>
+            <CardOffer>
+              <header>
+                <h2>Document Synchronization</h2>
+              </header>
+              <p>
+                Keep your documents safe across all your devices and your teams.
+              </p>
+            </CardOffer>
+          </Card>
+          <Card>
+            <CardOffer>
+              <header>
+                <h2>
+                  PWA <SrOnly>(Progressive Web Application)</SrOnly> Support
+                </h2>
+              </header>
+              <p>
+                Use your favorite Browser to install Banana Cake Pop as PWA on
+                your Device without requiring administrative privileges.
+              </p>
+            </CardOffer>
+          </Card>
+          <Card>
+            <CardOffer>
+              <header>
+                <h2>Beautiful Themes</h2>
+              </header>
+              <p>
+                Choose your single preferred theme or let the system
+                automatically switch between dark and light theme.
+              </p>
+            </CardOffer>
+          </Card>
+          <Card>
+            <CardOffer>
+              <header>
+                <h2>GraphQL File Upload</h2>
+              </header>
+              <p>
+                Implements the latest version of the{" "}
+                <Link to="https://github.com/jaydenseric/graphql-multipart-request-spec">
+                  GraphQL multipart request spec
+                </Link>
+                .
+              </p>
+            </CardOffer>
+          </Card>
+          <Card>
+            <CardOffer>
+              <header>
+                <h2>
+                  Subscriptions over SSE <SrOnly>(Server-Sent Events)</SrOnly>
+                </h2>
+              </header>
+              <p>
+                Supports{" "}
+                <Link to="https://github.com/enisdenjo/graphql-sse">
+                  GraphQL subscriptions over Server-Sent Events
+                </Link>
+                .
+              </p>
+            </CardOffer>
+          </Card>
+          <Card>
+            <CardOffer>
+              <header>
+                <h2>Performant GraphQL IDE</h2>
+              </header>
+              <p>
+                Lagging apps can be frustrating. We do not accept that and keep
+                always an eye on performance so that you can get your task done
+                fast.
+              </p>
+            </CardOffer>
+          </Card>
+          <Card>
+            <CardOffer>
+              <header>
+                <h2>
+                  Subscriptions over WS <SrOnly>(WebSockets)</SrOnly>
+                </h2>
+              </header>
+              <p>
+                Supports{" "}
+                <Link to="https://github.com/enisdenjo/graphql-ws">
+                  GraphQL subscriptions over WebSocket
+                </Link>{" "}
+                as well as the{" "}
+                <Link to="https://github.com/apollographql/subscriptions-transport-ws/blob/master/PROTOCOL.md">
+                  Apollo subscription protocol
+                </Link>
+                .
+              </p>
+            </CardOffer>
+          </Card>
+        </CardsContainer>
+      </Section>
       <MostRecentBcpBlogPostsSection />
       <CompaniesSection />
     </Layout>
@@ -371,10 +514,12 @@ export const ProductName = styled.h1`
   `)}
 `;
 
-export const ProductDescription = styled.h2`
+export const ProductDescription = styled.p`
   flex: 0 0 auto;
+  margin: 0 0 10px;
   font-weight: normal;
   font-size: 1.25em;
+  line-height: 1.25em;
   text-align: center;
   color: ${THEME_COLORS.quaternary};
 

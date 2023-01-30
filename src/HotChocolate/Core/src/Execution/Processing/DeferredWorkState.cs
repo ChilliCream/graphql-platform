@@ -206,10 +206,12 @@ internal sealed class DeferredWorkState
 
     public void Reset()
     {
+        _semaphore.Dispose();
         _semaphore = new SemaphoreSlim(0);
         _ready.Clear();
         _completed.Clear();
         _deliverable.Clear();
+        _notPatchable.Clear();
         _taskId = 0;
         _work = 0;
         _patchId = 0;
