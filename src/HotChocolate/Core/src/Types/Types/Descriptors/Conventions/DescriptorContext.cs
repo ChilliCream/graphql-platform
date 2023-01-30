@@ -17,10 +17,11 @@ using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
 namespace HotChocolate.Types.Descriptors;
 
 /// <summary>
+/// <para>
 /// The descriptor context is passed around during the schema creation and
 /// allows access to conventions and context data.
-///
-/// Essentially this is the schema building context.
+/// </para>
+/// <para>Essentially this is the schema building context.</para>
 /// </summary>
 public sealed class DescriptorContext : IDescriptorContext
 {

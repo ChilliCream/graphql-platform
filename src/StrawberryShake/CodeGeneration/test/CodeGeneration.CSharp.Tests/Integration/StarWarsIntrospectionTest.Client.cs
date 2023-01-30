@@ -2854,7 +2854,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 "INPUT_OBJECT" => __TypeKind.InputObject,
                 "LIST" => __TypeKind.List,
                 "NON_NULL" => __TypeKind.NonNull,
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"String value '{serializedValue}' can't be converted to enum __TypeKind")};
         }
 
         public global::System.Object Format(global::System.Object? runtimeValue)
@@ -2869,7 +2869,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 __TypeKind.InputObject => "INPUT_OBJECT",
                 __TypeKind.List => "LIST",
                 __TypeKind.NonNull => "NON_NULL",
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"Enum __TypeKind value '{runtimeValue}' can't be converted to string")};
         }
     }
 
