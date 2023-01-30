@@ -12,6 +12,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Annotate classes which represent extensions to other object types.
 /// </summary>
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
 public sealed class ExtendObjectTypeAttribute
     : ObjectTypeDescriptorAttribute
     , ITypeAttribute

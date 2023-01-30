@@ -69,7 +69,7 @@ export const ImageContainer = styled.div<{ large?: boolean }>`
   }
 `;
 
-export const ContentContainer = styled.div<{ noImage?: boolean }>`
+export const ContentContainer = styled.div<{ readonly noImage?: true }>`
   display: flex;
   flex-direction: column;
   padding: 0 40px;
@@ -83,12 +83,12 @@ export const ContentContainer = styled.div<{ noImage?: boolean }>`
     padding: 0;
 
     > p {
-      text-align: initial;
+      text-align: ${({ noImage }) => (noImage ? "center" : "initial")};
     }
   }
 `;
 
-export const SectionTitle = styled.h2<{ centerAlways?: boolean }>`
+export const SectionTitle = styled.h2<{ readonly centerAlways?: true }>`
   flex: 0 0 auto;
   font-size: 1.75em;
   color: ${THEME_COLORS.text};
