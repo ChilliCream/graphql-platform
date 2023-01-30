@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Descriptors;
 
 public class ObjectTypeDescriptor
     : DescriptorBase<ObjectTypeDefinition>
-        , IObjectTypeDescriptor
+    , IObjectTypeDescriptor
 {
     private readonly List<ObjectFieldDescriptor> _fields = new();
 
