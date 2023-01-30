@@ -197,7 +197,6 @@ public static class ErrorCodes
         public const string UnresolvedTypes = "TS_UNRESOLVED_TYPES";
         public const string NoName = "TS_NO_NAME_DEFINED";
         public const string NoFieldType = "TS_NO_FIELD_TYPE";
-        public const string ArgumentValueTypeWrong = "TS_ARG_VALUE_TYPE_WRONG";
         public const string InvalidArgument = "TS_INVALID_ARG";
         public const string InterfaceNotImplemented = "SCHEMA_INTERFACE_NO_IMPL";
         public const string DuplicateTypeName = "HC0065";

@@ -99,6 +99,9 @@
     <Compile Update="Configuration\RegisteredType.DiscoveryContext.cs">
       <DependentUpon>RegisteredType.cs</DependentUpon>
     </Compile>
+    <Compile Update="Types\StaticObjectTypeExtension.cs">
+      <DependentUpon>ObjectTypeExtension.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

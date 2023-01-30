@@ -6,7 +6,7 @@ using HotChocolate.Types.Descriptors;
 namespace HotChocolate.Internal;
 
 /// <summary>
-/// A type discover handler allows to specify how types are inferred
+/// A type discovery handler allows to specify how types are inferred
 /// from <see cref="ExtendedTypeReference"/>s.
 /// </summary>
 public abstract class TypeDiscoveryHandler

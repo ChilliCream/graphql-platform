@@ -185,7 +185,7 @@ public static class TypeDependencyHelper
         {
             foreach (var directive in definition.Directives)
             {
-                dependencies.Add(new(directive.Type, Completed));
+                dependencies.Add(new TypeDependency(directive.Type, Completed));
             }
         }
     }
@@ -198,7 +198,7 @@ public static class TypeDependencyHelper
         {
             foreach (var directive in definition.Directives)
             {
-                dependencies.Add(new(directive.Type, Completed));
+                dependencies.Add(new TypeDependency(directive.Type, Completed));
             }
         }
     }
