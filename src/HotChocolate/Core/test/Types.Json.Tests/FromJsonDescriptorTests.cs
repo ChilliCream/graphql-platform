@@ -94,6 +94,34 @@ public class FromJsonDescriptorTests
             }
             """);
     }
+    
+    [Fact]
+    public async Task MapField_With_Alias()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryWithAlias>()
+                .AddObjectType(
+                    d =>
+                    {
+                        d.Name("Foo");
+                        d.Field("baz").Type<StringType>().FromJson("bar");
+                    })
+                .AddJsonSupport()
+                .ExecuteRequestAsync("{ foo { alias: baz } }");
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "foo": {
+                  "alias": "abc"
+                }
+              }
+            }
+            """);
+    }
 
     [Fact]
     public void FromJson_1_Descriptor_Is_Null()
@@ -417,6 +445,12 @@ public class FromJsonDescriptorTests
     {
         [GraphQLType("Foo")]
         public JsonElement GetFoo() => JsonDocument.Parse(@"{ ""bar"": null }").RootElement;
+    }
+     
+    public class QueryWithAlias
+    {
+        [GraphQLType("Foo")]
+        public JsonElement GetFoo() => JsonDocument.Parse(@"{ ""alias"": ""abc"" }").RootElement;
     }
 
     public class FooType : ObjectType
