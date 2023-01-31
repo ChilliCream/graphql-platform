@@ -98,7 +98,7 @@ public class ExecutionDiagnosticEventListener : IExecutionDiagnosticEventListene
     }
 
     /// <inheritdoc />
-    public virtual void ResolverError(IOperation operation, ISelection selection, IError error)
+    public virtual void ResolverError(IRequestContext context, ISelection selection, IError error)
     {
     }
 
