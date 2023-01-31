@@ -16,7 +16,8 @@ internal static class InputObjectConstructorResolver
     public static ConstructorInfo? GetCompatibleConstructor<T>(
         Type type,
         FieldCollection<T> fields,
-        IReadOnlyDictionary<string, T> fieldMap)
+        Dictionary<string, T> fieldMap,
+        HashSet<string> required)
         where T : class, IInputField, IHasProperty
     {
         var constructors = type.GetConstructors(NonPublic | Public | Instance);
@@ -36,7 +37,6 @@ internal static class InputObjectConstructorResolver
             }
         }
 
-        var required = TypeMemHelper.RentNameSet();
         CollectReadOnlyProperties(fields, required);
         ConstructorInfo? compatibleCtor = null;
 
@@ -59,8 +59,6 @@ internal static class InputObjectConstructorResolver
                 }
             }
         }
-
-        TypeMemHelper.Return(required);
 
         if (compatibleCtor is not null)
         {
@@ -91,7 +89,7 @@ internal static class InputObjectConstructorResolver
     private static bool IsCompatibleConstructor<T>(
         ConstructorInfo constructor,
         IReadOnlyDictionary<string, T> fields,
-        ISet<string> required)
+        HashSet<string> required)
         where T : class, IInputField, IHasProperty
     {
         var count = required.Count;
@@ -143,7 +141,7 @@ internal static class InputObjectConstructorResolver
     private static string GetAlternativeParameterName(string name)
         => name.Length > 1
 #if NET6_0_OR_GREATER
-            ? string.Concat(name.Substring(0, 1).ToUpperInvariant(), name.AsSpan(1))
+            ? string.Concat(name[..1].ToUpperInvariant(), name.AsSpan(1))
 #else
             ? string.Concat(name.Substring(0, 1).ToUpperInvariant(), name.Substring(1))
 #endif
