@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.AspNetCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.AspNetCore.Instrumentation;
@@ -174,4 +175,25 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
                 .AddSubscriptionServices(),
             schemaBuilder)
             .Services;
+
+    /// <summary>
+    /// Registers the GraphQL Upload Scalar.
+    /// </summary>
+    /// <param name="builder">
+    /// The GraphQL configuration builder.
+    /// </param>
+    /// <returns>
+    /// Returns the GraphQL configuration builder for configuration chaining.
+    /// </returns>
+    public static IRequestExecutorBuilder AddUploadType(
+        this IRequestExecutorBuilder builder)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        builder.AddType<UploadType>();
+        return builder;
+    }
 }
