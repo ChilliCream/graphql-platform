@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HotChocolate.Internal;
-using HotChocolate.Types.Relay;
 
 #nullable enable
 
@@ -27,13 +26,17 @@ public interface ITypeInspector : IConvention
     /// <param name="includeStatic">
     /// Specifies if static members shall be returned.
     /// </param>
+    /// <param name="allowObject">
+    /// Specifies if object is allowed as parameter or return type without a type attribute.
+    /// </param>
     /// <returns>
     /// Returns the relevant members of a object or input object.
     /// </returns>
     ReadOnlySpan<MemberInfo> GetMembers(
         Type type,
         bool includeIgnored = false,
-        bool includeStatic = false);
+        bool includeStatic = false,
+        bool allowObject = false);
 
     /// <summary>
     /// Defines if a member shall be ignored. This method interprets ignore attributes.
