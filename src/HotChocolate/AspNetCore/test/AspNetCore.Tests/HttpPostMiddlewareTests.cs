@@ -1,14 +1,14 @@
 using System.Net;
 using System.Net.Http.Json;
 using CookieCrumble;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Serialization;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using static HotChocolate.Execution.Serialization.JsonNullIgnoreCondition;
 
@@ -194,7 +194,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
     {
         // arrange
         var server = CreateStarWarsServer(
-            configureServices: c => c.AddGraphQLServer().ModifyRequestOptions(o=>
+            configureServices: c => c.AddGraphQLServer().ModifyRequestOptions(o =>
             {
                 o.Complexity.Enable = true;
                 o.Complexity.MaximumAllowed = 1;
@@ -367,6 +367,34 @@ public class HttpPostMiddlewareTests : ServerTestBase
         // assert
         Assert.True(listenerA.Triggered);
         Assert.True(listenerB.Triggered);
+    }
+
+    [Fact]
+    public async Task Apollo_Tracing_Invalid_Field()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddApolloTracing());
+
+        // act
+        var response = await server.PostRawAsync(
+            new ClientQueryRequest
+            {
+                Query =
+                    @"{
+                        hero123(episode: NEW_HOPE)
+                        {
+                            name
+                        }
+                    }"
+
+            },
+            enableApolloTracing: true);
+
+        // assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]

@@ -189,13 +189,15 @@ public static class TestServerExtensions
     public static async Task<ClientRawResult> PostRawAsync(
         this TestServer testServer,
         ClientQueryRequest request,
-        string path = "/graphql")
+        string path = "/graphql",
+        bool enableApolloTracing = false)
     {
         var response =
             await SendPostRequestAsync(
                 testServer,
                 JsonConvert.SerializeObject(request),
-                path);
+                path,
+                enableApolloTracing: enableApolloTracing);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
