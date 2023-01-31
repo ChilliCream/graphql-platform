@@ -43,7 +43,11 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
 
         services.AddGraphQLCore();
         services.TryAddSingleton<IHttpResponseFormatter>(
-            new DefaultHttpResponseFormatter());
+            DefaultHttpResponseFormatter.Create(
+                new HttpResponseFormatterOptions
+                {
+                    HttpTransportVersion = HttpTransportVersion.Latest
+                }));
         services.TryAddSingleton<IHttpRequestParser>(
             sp => new DefaultHttpRequestParser(
                 sp.GetRequiredService<IDocumentCache>(),
@@ -52,8 +56,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
                 sp.GetRequiredService<ParserOptions>()));
         services.TryAddSingleton<IServerDiagnosticEvents>(sp =>
         {
-            var listeners =
-                sp.GetServices<IServerDiagnosticEventListener>().ToArray();
+            var listeners = sp.GetServices<IServerDiagnosticEventListener>().ToArray();
             return listeners.Length switch
             {
                 0 => new NoopServerDiagnosticEventListener(),
