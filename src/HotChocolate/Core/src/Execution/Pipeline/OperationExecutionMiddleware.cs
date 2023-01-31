@@ -80,9 +80,6 @@ internal sealed class OperationExecutionMiddleware
             // long running executions.
             var cloned = context.Clone();
 
-            var accessor = cloned.Services.GetRequiredService<DefaultRequestContextAccessor>();
-            accessor.RequestContext = cloned;
-
             context.Result = await _subscriptionExecutor
                 .ExecuteAsync(cloned, () => GetQueryRootValue(cloned))
                 .ConfigureAwait(false);
