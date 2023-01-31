@@ -1,4 +1,3 @@
-using System.Net;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Encodings.Web;
@@ -22,9 +21,12 @@ namespace HotChocolate.AspNetCore.Serialization;
 /// </summary>
 public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 {
-    private readonly JsonResultFormatter _jsonFormatter;
-    private readonly MultiPartResultFormatter _multiPartFormatter;
-    private readonly EventStreamResultFormatter _eventStreamResultFormatter;
+    private readonly FormatInfo _defaultFormat;
+    private readonly FormatInfo _graphqlResponseFormat;
+    private readonly FormatInfo _multiPartFormat;
+    private readonly FormatInfo _eventStreamFormat;
+    private readonly FormatInfo _legacyFormat;
+
 
     /// <summary>
     /// Creates a new instance of <see cref="DefaultHttpResponseFormatter" />.
@@ -42,9 +44,16 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     public DefaultHttpResponseFormatter(
         bool indented = false,
         JavaScriptEncoder? encoder = null)
-        : this(new JsonResultFormatterOptions { Indented = indented, Encoder = encoder })
-    {
-    }
+        : this(
+            new HttpResponseFormatterOptions
+            {
+                Json = new JsonResultFormatterOptions
+                {
+                    Indented = indented,
+                    Encoder = encoder
+                }
+            })
+    { }
 
     /// <summary>
     /// Creates a new instance of <see cref="DefaultHttpResponseFormatter" />.
@@ -52,11 +61,31 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     /// <param name="options">
     /// The JSON result formatter options
     /// </param>
-    public DefaultHttpResponseFormatter(JsonResultFormatterOptions options)
+    public DefaultHttpResponseFormatter(HttpResponseFormatterOptions options)
     {
-        _jsonFormatter = new JsonResultFormatter(options);
-        _multiPartFormatter = new MultiPartResultFormatter(_jsonFormatter);
-        _eventStreamResultFormatter = new EventStreamResultFormatter(options);
+        var jsonFormatter = new JsonResultFormatter(options.Json);
+        var multiPartFormatter = new MultiPartResultFormatter(jsonFormatter);
+        var eventStreamResultFormatter = new EventStreamResultFormatter(options.Json);
+
+        _graphqlResponseFormat = new FormatInfo(
+            ContentType.GraphQLResponse,
+            ResponseContentType.GraphQLResponse,
+            jsonFormatter);
+        _legacyFormat = new FormatInfo(
+            ContentType.Json,
+            ResponseContentType.Json,
+            jsonFormatter);
+        _multiPartFormat = new FormatInfo(
+            ContentType.MultiPartMixed,
+            ResponseContentType.MultiPartMixed,
+            multiPartFormatter);
+        _eventStreamFormat = new FormatInfo(
+            ContentType.EventStream,
+            ResponseContentType.EventStream,
+            eventStreamResultFormatter);
+        _defaultFormat = options.HttpTransportVersion is HttpTransportVersion.Legacy
+            ? _legacyFormat
+            : _graphqlResponseFormat;
     }
 
     public GraphQLRequestFlags CreateRequestFlags(
@@ -119,7 +148,9 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         HttpStatusCode? proposedStatusCode,
         CancellationToken cancellationToken)
     {
-        if (!TryGetFormatter(result, acceptMediaTypes, out var format))
+        var format = TryGetFormatter(result, acceptMediaTypes);
+
+        if (format is null)
         {
             // we should not hit this point except if a middleware did not validate the
             // GraphQL request flags which would indicate that there is no way to execute
@@ -276,46 +307,33 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         throw ThrowHelper.Formatter_ResponseContentTypeNotSupported(format.ContentType);
     }
 
-    private bool TryGetFormatter(
+    private FormatInfo? TryGetFormatter(
         IExecutionResult result,
-        AcceptMediaType[] acceptMediaTypes,
-        out FormatInfo formatInfo)
+        AcceptMediaType[] acceptMediaTypes)
     {
-        formatInfo = default;
+        var length = acceptMediaTypes.Length;
 
         // if the request does not specify the accept header then we will
         // use the `application/graphql-response+json` response content-type,
         // which is the new response content-type.
-        if (acceptMediaTypes.Length == 0)
+        if (length == 0)
         {
             if (result.Kind is SingleResult)
             {
-                formatInfo = new FormatInfo(
-                    ContentType.GraphQLResponse,
-                    ResponseContentType.GraphQLResponse,
-                    _jsonFormatter);
-                return true;
+                return _defaultFormat;
             }
 
             if (result.Kind is DeferredResult or BatchResult)
             {
-                formatInfo = new FormatInfo(
-                    ContentType.MultiPartMixed,
-                    ResponseContentType.MultiPartMixed,
-                    _multiPartFormatter);
-                return true;
+                return _multiPartFormat;
             }
 
             if (result.Kind is SubscriptionResult)
             {
-                formatInfo = new FormatInfo(
-                    ContentType.EventStream,
-                    ResponseContentType.EventStream,
-                    _eventStreamResultFormatter);
-                return true;
+                return _eventStreamFormat;
             }
 
-            return false;
+            return null;
         }
 
         // if the request specifies at least one accept media-type we will
@@ -328,150 +346,112 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             _ => ResultKind.Stream
         };
 
+        ref var start = ref MemoryMarshal.GetArrayDataReference(acceptMediaTypes);
+
         // if we just have one accept header we will try to determine which formatter to take.
         // we should only be unable to find a match if there was a previous validation skipped.
-        if (acceptMediaTypes.Length == 1)
+        if (length == 1)
         {
-            var mediaType = acceptMediaTypes[0];
+            var mediaType = start;
 
             if (resultKind is ResultKind.Single &&
                 mediaType.Kind is ApplicationGraphQL or AllApplication or All)
             {
-                formatInfo = new FormatInfo(
-                    ContentType.GraphQLResponse,
-                    ResponseContentType.GraphQLResponse,
-                    _jsonFormatter);
-                return true;
+                return _graphqlResponseFormat;
             }
 
             if (resultKind is ResultKind.Single &&
                 mediaType.Kind is ApplicationJson)
             {
-                formatInfo = new FormatInfo(
-                    ContentType.Json,
-                    ResponseContentType.Json,
-                    _jsonFormatter);
-                return true;
+                return _legacyFormat;
             }
 
             if (resultKind is ResultKind.Stream or ResultKind.Single &&
                 mediaType.Kind is MultiPartMixed or AllMultiPart or All)
             {
-                formatInfo = new FormatInfo(
-                    ContentType.MultiPartMixed,
-                    ResponseContentType.MultiPartMixed,
-                    _multiPartFormatter);
-                return true;
+                return _multiPartFormat;
             }
 
             if (mediaType.Kind is EventStream)
             {
-                formatInfo = new FormatInfo(
-                    ContentType.EventStream,
-                    ResponseContentType.EventStream,
-                    _eventStreamResultFormatter);
-                return true;
+                return _eventStreamFormat;
             }
 
-            return false;
+            return null;
         }
 
         // if we have more than one specified accept media-type we will try to find the best for
         // our GraphQL result.
-        ref var searchSpace = ref MemoryMarshal.GetReference(acceptMediaTypes.AsSpan());
-        var success = false;
+        ref var end = ref Unsafe.Add(ref start, length);
+        FormatInfo? possibleFormat = null;
 
-        for (var i = 0; i < acceptMediaTypes.Length; i++)
+        while (Unsafe.IsAddressLessThan(ref start, ref end))
         {
-            var mediaType = Unsafe.Add(ref searchSpace, i);
-
             if (resultKind is ResultKind.Single &&
-                mediaType.Kind is ApplicationGraphQL or AllApplication or All)
+                start.Kind is ApplicationGraphQL or AllApplication or All)
             {
-                formatInfo = new FormatInfo(
-                    ContentType.GraphQLResponse,
-                    ResponseContentType.GraphQLResponse,
-                    _jsonFormatter);
-                return true;
+                return _graphqlResponseFormat;
             }
 
             if (resultKind is ResultKind.Single &&
-                mediaType.Kind is ApplicationJson)
+                start.Kind is ApplicationJson)
             {
                 // application/json is a legacy response content-type.
                 // We will create a formatInfo but keep on validating for
                 // a better suited format.
-                formatInfo = new FormatInfo(
-                    ContentType.Json,
-                    ResponseContentType.Json,
-                    _jsonFormatter);
-                success = true;
+                possibleFormat = _legacyFormat;
             }
 
             if (resultKind is ResultKind.Stream or ResultKind.Single &&
-                mediaType.Kind is MultiPartMixed or AllMultiPart or All)
+                start.Kind is MultiPartMixed or AllMultiPart or All)
             {
                 // if the result is a stream we consider this a perfect match and
                 // will use this format.
                 if (resultKind is ResultKind.Stream)
                 {
-                    formatInfo = new FormatInfo(
-                        ContentType.MultiPartMixed,
-                        ResponseContentType.MultiPartMixed,
-                        _multiPartFormatter);
-                    return true;
+                    possibleFormat = _multiPartFormat;
                 }
 
                 // if the format is a event-stream or not set we will create a
                 // multipart/mixed formatInfo for the current result but also keep
                 // on validating for a better suited format.
-                if (formatInfo.Kind is not ResponseContentType.Json)
+                if (possibleFormat?.Kind is not ResponseContentType.Json)
                 {
-                    formatInfo = new FormatInfo(
-                        ContentType.MultiPartMixed,
-                        ResponseContentType.MultiPartMixed,
-                        _multiPartFormatter);
-                    success = true;
+                    possibleFormat = _multiPartFormat;
                 }
             }
 
-            if (mediaType.Kind is EventStream or All)
+            if (start.Kind is EventStream or All)
             {
                 // if the result is a subscription we consider this a perfect match and
                 // will use this format.
                 if (resultKind is ResultKind.Stream)
                 {
-                    formatInfo = new FormatInfo(
-                        ContentType.EventStream,
-                        ResponseContentType.EventStream,
-                        _eventStreamResultFormatter);
-                    return true;
+                    possibleFormat = _eventStreamFormat;
                 }
 
-                // if the result is stream it means that we did not yet validated a
+                // if the result is stream it means that we did not yet validate a
                 // multipart content-type and thus will create a format for the case that it
                 // is not specified;
                 // or we have a single result but there is no format yet specified
                 // we will create a text/event-stream formatInfo for the current result
                 // but also keep on validating for a better suited format.
-                if (formatInfo.Kind is ResponseContentType.Unknown)
+                if (possibleFormat?.Kind is ResponseContentType.Unknown)
                 {
-                    formatInfo = new FormatInfo(
-                        ContentType.MultiPartMixed,
-                        ResponseContentType.MultiPartMixed,
-                        _multiPartFormatter);
-                    success = true;
+                    possibleFormat = _multiPartFormat;
                 }
             }
+
+            start = ref Unsafe.Add(ref start, 1);
         }
 
-        return success;
+        return possibleFormat;
     }
 
     /// <summary>
     /// Representation of a resolver format, containing the formatter and the content type.
     /// </summary>
-    protected readonly struct FormatInfo
+    protected sealed class FormatInfo
     {
         /// <summary>
         /// Initializes a new instance of <see cref="FormatInfo"/>.
