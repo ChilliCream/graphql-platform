@@ -102,6 +102,7 @@ internal static class TypeMemHelper
         Interlocked.Exchange(ref _inputFieldDefinitionMap, null);
         Interlocked.Exchange(ref _inputFieldMap, null);
         Interlocked.Exchange(ref _directiveArgumentMap, null);
+        Interlocked.Exchange(ref _argumentNameMap, null);
         Interlocked.Exchange(ref _memberSet, null);
         Interlocked.Exchange(ref _nameSet, null);
     }
