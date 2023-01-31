@@ -19,9 +19,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
     private static readonly Uri _url = new("http://localhost:5000/graphql");
 
     public HttpPostMiddlewareTests(TestServerFactory serverFactory)
-        : base(serverFactory)
-    {
-    }
+        : base(serverFactory) { }
 
     [Fact]
     public async Task Simple_IsAlive_Test()
@@ -153,15 +151,16 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.PostAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     {
                         hero {
                             name
                         }
                     }"
-            });
+                });
 
         // assert
         result.MatchSnapshot();
@@ -175,15 +174,16 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.PostAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     {
                         HERO: hero {
                             name
                         }
                     }"
-            });
+                });
 
         // assert
         result.MatchSnapshot();
@@ -194,23 +194,25 @@ public class HttpPostMiddlewareTests : ServerTestBase
     {
         // arrange
         var server = CreateStarWarsServer(
-            configureServices: c => c.AddGraphQLServer().ModifyRequestOptions(o =>
-            {
-                o.Complexity.Enable = true;
-                o.Complexity.MaximumAllowed = 1;
-            }));
+            configureServices: c => c.AddGraphQLServer().ModifyRequestOptions(
+                o =>
+                {
+                    o.Complexity.Enable = true;
+                    o.Complexity.MaximumAllowed = 1;
+                }));
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.PostAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     {
                         HERO: hero {
                             name
                         }
                     }"
-            });
+                });
 
         // assert
         result.MatchSnapshot();
@@ -224,19 +226,17 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.PostAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     query ($episode: Episode!) {
                         hero(episode: $episode) {
                             name
                         }
                     }",
-                Variables = new Dictionary<string, object?>
-                {
-                    { "episode", "NEW_HOPE" }
-                }
-            });
+                    Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
+                });
 
         // assert
         result.MatchSnapshot();
@@ -250,19 +250,17 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.PostAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     query h($id: String!) {
                         human(id: $id) {
                             name
                         }
                     }",
-                Variables = new Dictionary<string, object?>
-                {
-                    { "id", "1000" }
-                }
-            });
+                    Variables = new Dictionary<string, object?> { { "id", "1000" } }
+                });
 
         // assert
         result.MatchSnapshot();
@@ -276,9 +274,10 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.PostRawAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.PostRawAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     {
                         ... @defer {
                             wait(m: 300)
@@ -292,7 +291,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             }
                         }
                     }"
-            });
+                });
 
         // assert
         result.MatchSnapshot();
@@ -307,12 +306,13 @@ public class HttpPostMiddlewareTests : ServerTestBase
         var server = CreateStarWarsServer(
             configureServices: s => s
                 .AddGraphQLServer()
-                    .AddDiagnosticEventListener(_ => listenerA));
+                .AddDiagnosticEventListener(_ => listenerA));
 
         // act
-        await server.PostRawAsync(new ClientQueryRequest
-        {
-            Query = @"
+        await server.PostRawAsync(
+            new ClientQueryRequest
+            {
+                Query = @"
                 {
                     ... @defer {
                         wait(m: 300)
@@ -326,7 +326,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                         }
                     }
                 }"
-        });
+            });
 
         // assert
         Assert.True(listenerA.Triggered);
@@ -342,13 +342,14 @@ public class HttpPostMiddlewareTests : ServerTestBase
         var server = CreateStarWarsServer(
             configureServices: s => s
                 .AddGraphQLServer()
-                    .AddDiagnosticEventListener(_ => listenerA)
-                    .AddDiagnosticEventListener(_ => listenerB));
+                .AddDiagnosticEventListener(_ => listenerA)
+                .AddDiagnosticEventListener(_ => listenerB));
 
         // act
-        await server.PostRawAsync(new ClientQueryRequest
-        {
-            Query = @"
+        await server.PostRawAsync(
+            new ClientQueryRequest
+            {
+                Query = @"
                 {
                     ... @defer {
                         wait(m: 300)
@@ -362,7 +363,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                         }
                     }
                 }"
-        });
+            });
 
         // assert
         Assert.True(listenerA.Triggered);
@@ -389,7 +390,6 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             name
                         }
                     }"
-
             },
             enableApolloTracing: true);
 
@@ -405,9 +405,10 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.PostRawAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.PostRawAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     {
                         ... @defer {
                             wait(m: 300)
@@ -421,7 +422,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             }
                         }
                     }"
-            });
+                });
 
         // assert
         result.Content.MatchSnapshot();
@@ -435,9 +436,10 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.PostRawAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.PostRawAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     query ($if: Boolean!){
                         ... @defer {
                             wait(m: 300)
@@ -451,11 +453,8 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             }
                         }
                     }",
-                Variables = new Dictionary<string, object?>
-                {
-                    ["if"] = true
-                }
-            });
+                    Variables = new Dictionary<string, object?> { ["if"] = true }
+                });
 
         // assert
         result.Content.MatchSnapshot();
@@ -469,9 +468,10 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.PostRawAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.PostRawAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     query ($if: Boolean!){
                         hero(episode: NEW_HOPE)
                         {
@@ -482,11 +482,8 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             }
                         }
                     }",
-                Variables = new Dictionary<string, object?>
-                {
-                    ["if"] = false
-                }
-            });
+                    Variables = new Dictionary<string, object?> { ["if"] = false }
+                });
 
         // assert
         result.Content.MatchSnapshot();
@@ -531,9 +528,10 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.PostAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     mutation CreateReviewForEpisode(
                         $ep: Episode!
                         $review: ReviewInput!) {
@@ -542,18 +540,18 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             commentary
                         }
                     }",
-                Variables = new Dictionary<string, object?>
-                {
-                    { "ep", "EMPIRE" },
+                    Variables = new Dictionary<string, object?>
                     {
-                        "review",
-                        new Dictionary<string, object>
+                        { "ep", "EMPIRE" },
                         {
-                            { "stars", 5 }, { "commentary", "This is a great movie!" },
+                            "review",
+                            new Dictionary<string, object>
+                            {
+                                { "stars", 5 }, { "commentary", "This is a great movie!" },
+                            }
                         }
                     }
-                }
-            });
+                });
 
         // assert
         result.MatchSnapshot();
@@ -567,9 +565,10 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.PostAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     mutation CreateReviewForEpisode(
                         $ep: Episode!
                         $review: ReviewInput!) {
@@ -578,18 +577,17 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             commentary
                         }
                     }",
-                Variables = new Dictionary<string, object?>
-                {
+                    Variables = new Dictionary<string, object?>
                     {
-                        "review",
-                        new Dictionary<string, object?>
                         {
-                            { "stars", 5 },
-                            { "commentary", "This is a great movie!" },
+                            "review",
+                            new Dictionary<string, object?>
+                            {
+                                { "stars", 5 }, { "commentary", "This is a great movie!" },
+                            }
                         }
                     }
-                }
-            });
+                });
 
         // assert
         result.MatchSnapshot();
@@ -603,9 +601,10 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.PostAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     mutation CreateReviewForEpisode(
                         $ep: Episode!
                         $stars: Int!
@@ -618,13 +617,13 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             commentary
                         }
                     }",
-                Variables = new Dictionary<string, object?>
-                {
-                    { "ep", "EMPIRE" },
-                    { "stars", 5 },
-                    { "commentary", "This is a great movie!" }
-                }
-            });
+                    Variables = new Dictionary<string, object?>
+                    {
+                        { "ep", "EMPIRE" },
+                        { "stars", 5 },
+                        { "commentary", "This is a great movie!" }
+                    }
+                });
 
         // assert
         result.MatchSnapshot();
@@ -638,9 +637,10 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.PostAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     mutation CreateReviewForEpisode(
                         $ep: Episode!
                         $stars: Int!
@@ -654,13 +654,13 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             commentary
                         }
                     }",
-                Variables = new Dictionary<string, object?>
-                {
-                    { "ep", "EMPIRE" },
-                    { "stars", 5 },
-                    { "commentary", "This is a great movie!" }
-                }
-            });
+                    Variables = new Dictionary<string, object?>
+                    {
+                        { "ep", "EMPIRE" },
+                        { "stars", 5 },
+                        { "commentary", "This is a great movie!" }
+                    }
+                });
 
         // assert
         result.MatchSnapshot();
@@ -677,9 +677,10 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.PostAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     query a {
                         a: hero {
                             name
@@ -691,8 +692,8 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             name
                         }
                     }",
-                OperationName = operationName
-            });
+                    OperationName = operationName
+                });
 
         // assert
         result.MatchSnapshot(operationName);
@@ -706,19 +707,17 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.PostAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     {
                         hero(episode: $episode) {
                             name
                         }
                     }",
-                Variables = new Dictionary<string, object?>
-                {
-                    { "episode", "NEW_HOPE" }
-                }
-            });
+                    Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
+                });
 
         // assert
         result.MatchSnapshot();
@@ -732,15 +731,16 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.PostAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     {
                         ähero {
                             name
                         }
                     }"
-            });
+                });
 
         // assert
         result.MatchSnapshot();
@@ -761,10 +761,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             query ($d: Float) {
                                  double_arg(d: $d)
                             }",
-                    Variables = new Dictionary<string, object?>
-                    {
-                        { "d", 1.539 }
-                    }
+                    Variables = new Dictionary<string, object?> { { "d", 1.539 } }
                 },
                 "/arguments");
 
@@ -787,10 +784,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             query ($d: Float) {
                                  double_arg(d: $d)
                             }",
-                    Variables = new Dictionary<string, object?>
-                    {
-                        { "d", double.MaxValue }
-                    }
+                    Variables = new Dictionary<string, object?> { { "d", double.MaxValue } }
                 },
                 "/arguments");
 
@@ -806,17 +800,15 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.PostAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                         query ($d: Float) {
                              double_arg(d: $d)
                         }",
-                Variables = new Dictionary<string, object?>
-                {
-                    { "d", double.MinValue }
-                }
-            },
+                    Variables = new Dictionary<string, object?> { { "d", double.MinValue } }
+                },
                 "/arguments");
 
         // assert
@@ -838,10 +830,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             query ($d: Decimal) {
                                  decimal_arg(d: $d)
                             }",
-                    Variables = new Dictionary<string, object?>
-                    {
-                        { "d", decimal.MaxValue }
-                    }
+                    Variables = new Dictionary<string, object?> { { "d", decimal.MaxValue } }
                 },
                 "/arguments");
 
@@ -864,10 +853,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             query ($d: Decimal) {
                                  decimal_arg(d: $d)
                             }",
-                    Variables = new Dictionary<string, object?>
-                    {
-                        { "d", decimal.MinValue }
-                    }
+                    Variables = new Dictionary<string, object?> { { "d", decimal.MinValue } }
                 },
                 "/arguments");
 
@@ -993,27 +979,28 @@ public class HttpPostMiddlewareTests : ServerTestBase
         // act
         var response =
             await server.SendPostRequestAsync(
-                JsonConvert.SerializeObject(new List<ClientQueryRequest>
-                {
-                    new ClientQueryRequest
+                JsonConvert.SerializeObject(
+                    new List<ClientQueryRequest>
                     {
-                        Query = @"
+                        new ClientQueryRequest
+                        {
+                            Query = @"
                             query getHero {
                                 hero(episode: EMPIRE) {
                                     id @export
                                 }
                             }"
-                    },
-                    new ClientQueryRequest
-                    {
-                        Query = @"
+                        },
+                        new ClientQueryRequest
+                        {
+                            Query = @"
                             query getHuman {
                                 human(id: $id) {
                                     name
                                 }
                             }"
-                    }
-                }),
+                        }
+                    }),
                 "/graphql");
 
         if (response.StatusCode == HttpStatusCode.NotFound)
@@ -1161,15 +1148,16 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.PostAsync(new ClientQueryRequest
-            {
-                Query = @"
+            await server.PostAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
                     {
                         hero {
                             name
                         }
                     }"
-            });
+                });
 
         // assert
         result.MatchSnapshot();
@@ -1181,17 +1169,15 @@ public class HttpPostMiddlewareTests : ServerTestBase
         // arrange
         var server = CreateStarWarsServer(
             configureServices: s => s.AddHttpResponseFormatter(
-                _ => new DefaultHttpResponseFormatter(new() { NullIgnoreCondition = Fields })));
+                _ => new DefaultHttpResponseFormatter(
+                    new() { Json = new() { NullIgnoreCondition = Fields } })));
         var client = server.CreateClient();
 
         // act
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest
-                {
-                    Query = "{ __schema { description } }"
-                })
+                new ClientQueryRequest { Query = "{ __schema { description } }" })
         };
 
         using var response = await client.SendAsync(request);
@@ -1217,17 +1203,17 @@ public class HttpPostMiddlewareTests : ServerTestBase
         // arrange
         var server = CreateStarWarsServer(
             configureServices: s => s.AddHttpResponseFormatter(
-                new JsonResultFormatterOptions { NullIgnoreCondition = Fields }));
+                new HttpResponseFormatterOptions
+                {
+                    Json = new JsonResultFormatterOptions { NullIgnoreCondition = Fields }
+                }));
         var client = server.CreateClient();
 
         // act
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest
-                {
-                    Query = "{ __schema { description } }"
-                })
+                new ClientQueryRequest { Query = "{ __schema { description } }" })
         };
 
         using var response = await client.SendAsync(request);
@@ -1258,20 +1244,18 @@ public class HttpPostMiddlewareTests : ServerTestBase
                 .AddGraphQLServer("test")
                 .AddQueryType<NullListQuery>()
                 .Services
-                .AddHttpResponseFormatter(new JsonResultFormatterOptions
-                {
-                    NullIgnoreCondition = Lists
-                }));
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        Json = new JsonResultFormatterOptions { NullIgnoreCondition = Lists }
+                    }));
         var client = server.CreateClient();
 
         // act
         using var request = new HttpRequestMessage(HttpMethod.Post, url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest
-                {
-                    Query = "{ nullValues }"
-                })
+                new ClientQueryRequest { Query = "{ nullValues }" })
         };
 
         using var response = await client.SendAsync(request);
