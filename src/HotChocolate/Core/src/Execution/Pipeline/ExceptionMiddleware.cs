@@ -38,4 +38,3 @@ internal sealed class ExceptionMiddleware
         }
     }
 }
-

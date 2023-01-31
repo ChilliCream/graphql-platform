@@ -371,7 +371,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
     private void CollectSourceMembers(CompletionContext context, Type runtimeType)
     {
-        foreach (var member in _typeInspector.GetMembers(runtimeType))
+        foreach (var member in _typeInspector.GetMembers(runtimeType, allowObject: true))
         {
             var name = _naming.GetMemberName(member, MemberKind.ObjectField);
             context.Members[name] = member;
