@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Serialization;
 using HotChocolate.Utilities;
 
 // ReSharper disable once CheckNamespace
@@ -101,7 +102,15 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         bool indented = false)
     {
         services.RemoveAll<IHttpResponseFormatter>();
-        services.AddSingleton<IHttpResponseFormatter>(new DefaultHttpResponseFormatter(indented));
+        services.AddSingleton<IHttpResponseFormatter>(
+            DefaultHttpResponseFormatter.Create(
+                new HttpResponseFormatterOptions
+                {
+                    Json = new JsonResultFormatterOptions
+                    {
+                        Indented = indented
+                    }
+                }));
         return services;
     }
 
@@ -123,7 +132,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         HttpResponseFormatterOptions options)
     {
         services.RemoveAll<IHttpResponseFormatter>();
-        services.AddSingleton<IHttpResponseFormatter>(new DefaultHttpResponseFormatter(options));
+        services.AddSingleton<IHttpResponseFormatter>(DefaultHttpResponseFormatter.Create(options));
         return services;
     }
 
