@@ -146,7 +146,10 @@ internal sealed class RequestExecutor : IRequestExecutor
             while (Unsafe.IsAddressLessThan(ref start, ref end))
             {
                 start.Enrich(context);
+
+#pragma warning disable CS8619
                 start = ref Unsafe.Add(ref start, 1);
+#pragma warning restore CS8619
             }
         }
     }
