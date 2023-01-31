@@ -20,13 +20,17 @@ public static class SomeQuery
 
     public static Book GetBook() => new() { Title = "SomeTitle" };
 
-    public static Task<string> WithDataLoader(IFoosByIdDataLoader foosById, CancellationToken cancellationToken)
+    public static Task<string> WithDataLoader(
+        IFoosByIdDataLoader foosById,
+        CancellationToken cancellationToken)
     {
         return foosById.LoadAsync("a", cancellationToken);
     }
 
     [DataLoader]
+#pragma warning disable CS1998
     public static async Task<IReadOnlyDictionary<string, string>> GetFoosById56(
+#pragma warning restore CS1998
         IReadOnlyList<string> keys,
         SomeService someService,
         CancellationToken cancellationToken)
@@ -36,7 +40,9 @@ public static class SomeQuery
 
     // should be ignored on the schema
     [DataLoader]
+#pragma warning disable CS1998
     public static async Task<string> GetFoosById55(
+#pragma warning restore CS1998
         string id,
         SomeService someService,
         CancellationToken cancellationToken)
@@ -98,8 +104,4 @@ public static class DataLoaderGen
 
 public class SomeService { }
 
-public class GenericService<T>
-{
-
-}
-
+public class GenericService<T> { }

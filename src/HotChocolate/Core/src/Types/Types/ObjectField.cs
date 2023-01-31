@@ -18,7 +18,7 @@ namespace HotChocolate.Types;
 /// </summary>
 public sealed class ObjectField
     : OutputFieldBase<ObjectFieldDefinition>
-    , IObjectField
+        , IObjectField
 {
     private static readonly FieldDelegate _empty = _ => throw new InvalidOperationException();
 
@@ -191,11 +191,11 @@ public sealed class ObjectField
         if (middleware is null)
         {
             context.ReportError(
-                    ObjectField_HasNoResolver(
-                        context.Type.Name,
-                        Name,
-                        context.Type,
-                        SyntaxNode));
+                ObjectField_HasNoResolver(
+                    context.Type.Name,
+                    Name,
+                    context.Type,
+                    SyntaxNode));
         }
         else
         {
@@ -205,8 +205,8 @@ public sealed class ObjectField
         bool IsPureContext()
         {
             return skipMiddleware ||
-               (context.GlobalComponents.Count == 0 &&
-               fieldMiddlewareDefinitions.Count == 0);
+                (context.GlobalComponents.Count == 0 &&
+                    fieldMiddlewareDefinitions.Count == 0);
         }
     }
 
@@ -230,6 +230,9 @@ public sealed class ObjectField
             }
             else if (definition.ResolverMember is not null)
             {
+                var map = TypeMemHelper.RentArgumentNameMap();
+                BuildArgumentLookup(definition, map);
+
                 resolvers = context.DescriptorContext.ResolverCompiler.CompileResolve(
                     definition.ResolverMember,
                     definition.SourceType ??
@@ -237,20 +240,42 @@ public sealed class ObjectField
                     definition.Member?.DeclaringType ??
                     typeof(object),
                     definition.ResolverType,
+                    map,
                     definition.GetParameterExpressionBuilders());
+
+                TypeMemHelper.Return(map);
             }
             else if (definition.Member is not null)
             {
+                var map = TypeMemHelper.RentArgumentNameMap();
+                BuildArgumentLookup(definition, map);
+
                 resolvers = context.DescriptorContext.ResolverCompiler.CompileResolve(
                     definition.Member,
                     definition.SourceType ??
                     definition.Member.ReflectedType ??
                     definition.Member.DeclaringType,
                     definition.ResolverType,
+                    map,
                     definition.GetParameterExpressionBuilders());
+
+                TypeMemHelper.Return(map);
             }
         }
 
         return resolvers;
+
+        static void BuildArgumentLookup(
+            ObjectFieldDefinition definition,
+            Dictionary<ParameterInfo, string> argumentNames)
+        {
+            foreach (var argument in definition.Arguments)
+            {
+                if (argument.Parameter is not null)
+                {
+                    argumentNames[argument.Parameter] = argument.Name;
+                }
+            }
+        }
     }
 }

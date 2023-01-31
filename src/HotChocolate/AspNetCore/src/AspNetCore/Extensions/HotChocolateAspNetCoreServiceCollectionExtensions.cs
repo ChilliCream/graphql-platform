@@ -1,6 +1,7 @@
 using HotChocolate.AspNetCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.AspNetCore.Instrumentation;
+using HotChocolate.AspNetCore.ParameterExpressionBuilders;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Internal;
@@ -65,6 +66,20 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         {
             services.AddSingleton<IParameterExpressionBuilder,
                 HttpContextParameterExpressionBuilder>();
+        }
+
+        if (services.All(t => t.ImplementationType !=
+            typeof(HttpRequestParameterExpressionBuilder)))
+        {
+            services.AddSingleton<IParameterExpressionBuilder,
+                HttpRequestParameterExpressionBuilder>();
+        }
+
+        if (services.All(t => t.ImplementationType !=
+            typeof(HttpResponseParameterExpressionBuilder)))
+        {
+            services.AddSingleton<IParameterExpressionBuilder,
+                HttpResponseParameterExpressionBuilder>();
         }
 
         return services;

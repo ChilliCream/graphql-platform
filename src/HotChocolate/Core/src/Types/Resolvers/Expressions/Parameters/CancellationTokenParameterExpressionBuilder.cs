@@ -28,6 +28,6 @@ internal sealed class CancellationTokenParameterExpressionBuilder : IParameterEx
     public bool CanHandle(ParameterInfo parameter)
         => typeof(CancellationToken) == parameter.ParameterType;
 
-    public Expression Build(ParameterInfo parameter, Expression context)
-        => Expression.Property(context, _cancellationToken);
+    public Expression Build(ParameterExpressionBuilderContext context)
+        => Expression.Property(context.ResolverContext, _cancellationToken);
 }

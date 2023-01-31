@@ -22,6 +22,8 @@ public sealed class DataLoaderParameterExpressionBuilder : CustomParameterExpres
     public override bool CanHandle(ParameterInfo parameter)
         => typeof(IDataLoader).IsAssignableFrom(parameter.ParameterType);
 
-    public override Expression Build(ParameterInfo parameter, Expression context)
-        => Expression.Call(_dataLoader.MakeGenericMethod(parameter.ParameterType), context);
+    public override Expression Build(ParameterExpressionBuilderContext context)
+        => Expression.Call(
+            _dataLoader.MakeGenericMethod(context.Parameter.ParameterType),
+            context.ResolverContext);
 }

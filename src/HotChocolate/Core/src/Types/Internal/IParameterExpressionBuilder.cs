@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using System.Reflection;
 
 #nullable enable
 
@@ -29,14 +28,12 @@ public interface IParameterExpressionBuilder : IParameterHandler
     /// <summary>
     /// Builds an expression that resolves a resolver parameter.
     /// </summary>
-    /// <param name="parameter">
-    /// The parameter that needs to be resolved.
-    /// </param>
     /// <param name="context">
-    /// An expression that represents the resolver context.
+    /// The parameter expression builder context.
     /// </param>
     /// <returns>
-    /// Returns an expression that resolves the value for this <paramref name="parameter"/>.
+    /// Returns an expression the handles the value injection into the parameter specified by
+    /// <see cref="ParameterExpressionBuilderContext.Parameter"/>.
     /// </returns>
-    Expression Build(ParameterInfo parameter, Expression context);
+    Expression Build(ParameterExpressionBuilderContext context);
 }

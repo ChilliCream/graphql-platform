@@ -29,6 +29,9 @@ internal sealed class ServiceParameterExpressionBuilder
     public void ApplyConfiguration(ParameterInfo parameter, ObjectFieldDescriptor descriptor)
         => ServiceExpressionHelper.ApplyConfiguration(parameter, descriptor, ServiceKind.Default);
 
-    public Expression Build(ParameterInfo parameter, Expression context)
-        => ServiceExpressionHelper.Build(parameter, context, ServiceKind.Default);
+    public Expression Build(ParameterExpressionBuilderContext context)
+        => ServiceExpressionHelper.Build(
+            context.Parameter,
+            context.ResolverContext,
+            ServiceKind.Default);
 }

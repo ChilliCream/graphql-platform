@@ -16,7 +16,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using Moq;
 using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 

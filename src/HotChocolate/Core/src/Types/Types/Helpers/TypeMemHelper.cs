@@ -18,6 +18,7 @@ internal static class TypeMemHelper
     private static Dictionary<string, InputFieldDefinition>? _inputFieldDefinitionMap;
     private static Dictionary<string, InputField>? _inputFieldMap;
     private static Dictionary<string, DirectiveArgument>? _directiveArgumentMap;
+    private static Dictionary<ParameterInfo, string>? _argumentNameMap;
     private static HashSet<MemberInfo>? _memberSet;
     private static HashSet<string>? _nameSet;
 
@@ -79,6 +80,16 @@ internal static class TypeMemHelper
     {
         set.Clear();
         Interlocked.CompareExchange(ref _nameSet, set, null);
+    }
+
+    public static Dictionary<ParameterInfo, string> RentArgumentNameMap()
+        => Interlocked.Exchange(ref _argumentNameMap, null) ??
+            new Dictionary<ParameterInfo, string>();
+
+    public static void Return(Dictionary<ParameterInfo, string> map)
+    {
+        map.Clear();
+        Interlocked.CompareExchange(ref _argumentNameMap, map, null);
     }
 
     // We allow the helper to clear all pooled objects so that after

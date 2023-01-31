@@ -22,14 +22,15 @@ internal sealed class ClaimsPrincipalParameterExpressionBuilder : IParameterExpr
     public bool CanHandle(ParameterInfo parameter)
         => parameter.ParameterType == typeof(ClaimsPrincipal);
 
-    public Expression Build(ParameterInfo parameter, Expression context)
+    public Expression Build(ParameterExpressionBuilderContext context)
     {
+        var parameter = context.Parameter;
         Expression nullableParameter = Constant(IsParameterNullable(parameter), typeof(bool));
 
         Expression<Func<IPureResolverContext, bool, ClaimsPrincipal?>> lambda =
             (ctx, nullable) => GetClaimsPrincipal(ctx, nullable);
 
-        return Invoke(lambda, context, nullableParameter);
+        return Invoke(lambda, context.ResolverContext, nullableParameter);
     }
 
     private static ClaimsPrincipal? GetClaimsPrincipal(
