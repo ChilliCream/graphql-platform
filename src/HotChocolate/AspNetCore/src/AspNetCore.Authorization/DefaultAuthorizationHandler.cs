@@ -156,7 +156,7 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
 
         // We first check if the user fulfills any of the specified roles.
         // If no role was specified the user fulfills them.
-        if (!checkRoles || FulfillsAnyRole(user, roles))
+        if (!checkRoles || FulfillsAnyRole(user, roles!))
         {
             if (!checkPolicy)
             {

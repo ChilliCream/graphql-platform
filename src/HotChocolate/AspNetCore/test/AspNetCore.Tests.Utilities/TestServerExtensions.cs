@@ -29,7 +29,7 @@ public static class TestServerExtensions
         }
 
         var json = await response.Content.ReadAsStringAsync();
-        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json)!;
         result.StatusCode = response.StatusCode;
         result.ContentType = response.Content.Headers.ContentType!.ToString();
         return result;
@@ -68,7 +68,7 @@ public static class TestServerExtensions
 
                     var item =
                         JsonConvert.DeserializeObject<ClientQueryResult>(
-                            Encoding.UTF8.GetString(mem.ToArray()));
+                            Encoding.UTF8.GetString(mem.ToArray()))!;
                     item.ContentType = section.ContentType;
                     item.StatusCode = response.StatusCode;
                     result.Add(item);
@@ -120,7 +120,7 @@ public static class TestServerExtensions
 
                         var item =
                             JsonConvert.DeserializeObject<ClientQueryResult>(
-                                Encoding.UTF8.GetString(mem.ToArray()));
+                                Encoding.UTF8.GetString(mem.ToArray()))!;
                         item.ContentType = section.ContentType;
                         item.StatusCode = response.StatusCode;
                         result.Add(item);
@@ -133,7 +133,7 @@ public static class TestServerExtensions
         }
         catch
         {
-            var result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+            var result = JsonConvert.DeserializeObject<ClientQueryResult>(json)!;
             result.StatusCode = response.StatusCode;
             result.ContentType = response.Content.Headers.ContentType?.ToString();
             return new[] { result };
@@ -157,7 +157,7 @@ public static class TestServerExtensions
         }
 
         var json = await response.Content.ReadAsStringAsync();
-        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json)!;
         result.StatusCode = response.StatusCode;
         result.ContentType = response.Content.Headers.ContentType?.ToString();
         return result;
@@ -180,7 +180,7 @@ public static class TestServerExtensions
         }
 
         var json = await response.Content.ReadAsStringAsync();
-        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json)!;
         result.StatusCode = response.StatusCode;
         result.ContentType = response.Content.Headers.ContentType?.ToString();
         return result;
@@ -224,7 +224,7 @@ public static class TestServerExtensions
         }
 
         var json = await response.Content.ReadAsStringAsync();
-        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json)!;
         result.StatusCode = response.StatusCode;
         result.ContentType = response.Content.Headers.ContentType?.ToString();
         return result;
@@ -248,7 +248,7 @@ public static class TestServerExtensions
         }
 
         var json = await response.Content.ReadAsStringAsync();
-        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json)!;
         result.StatusCode = response.StatusCode;
         result.ContentType = response.Content.Headers.ContentType?.ToString();
         return result;
@@ -275,7 +275,7 @@ public static class TestServerExtensions
         }
 
         var json = await response.Content.ReadAsStringAsync();
-        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json)!;
         result.StatusCode = response.StatusCode;
         result.ContentType = response.Content.Headers.ContentType?.ToString();
         return result;
