@@ -244,6 +244,51 @@ public class HttpPostMiddlewareTests : ServerTestBase
     }
 
     [Fact]
+    public async Task Override_OnWriteResponseHeaders()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s.AddHttpResponseFormatter<CustomFormatter>());
+
+        // act
+        var result =
+            await server.PostHttpAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
+                    query ($episode: Episode!) {
+                        hero(episode: $episode) {
+                            name
+                        }
+                    }",
+                    Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
+                });
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            Headers:
+            abc: def
+            Content-Type: application/graphql-response+json; charset=utf-8
+            -------------------------->
+            Status Code: OK
+            -------------------------->
+            {"data":{"hero":{"name":"R2-D2"}}}
+            """);
+    }
+
+    private class CustomFormatter : DefaultHttpResponseFormatter
+    {
+        protected override void OnWriteResponseHeaders(
+            IQueryResult result,
+            FormatInfo format,
+            IHeaderDictionary headers)
+        {
+            headers.TryAdd("abc", "def");
+        }
+    }
+
+    [Fact]
     public async Task SingleRequest_GetHumanName_With_StringVariable()
     {
         // arrange
