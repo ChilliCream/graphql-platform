@@ -34,6 +34,31 @@ public class IntegrationTests
         // assert
         result.MatchSnapshot();
     }
+
+    [Fact]
+    public async Task Sorting_Should_Work_When_AsyncInMemoryList()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddSorting()
+            .BuildRequestExecutorAsync();
+
+        const string query = @"
+        {
+            foosAsTask(order: { createdUtc: DESC }) {
+                createdUtc
+            }
+        }
+        ";
+
+        // act
+        var result = await executor.ExecuteAsync(query);
+
+        // assert
+        result.MatchSnapshot();
+    }
 }
 
 public class Query
@@ -45,6 +70,14 @@ public class Query
         new Foo { CreatedUtc = new DateTime(2010, 1, 1, 1, 1, 1) },
         new Foo { CreatedUtc = new DateTime(2020, 1, 1, 1, 1, 1) }
     };
+
+    [UseSorting]
+    public Task<IEnumerable<Foo>> FoosAsTask() => Task.FromResult<IEnumerable<Foo>>(new[]
+    {
+        new Foo { CreatedUtc = new DateTime(2000, 1, 1, 1, 1, 1) },
+        new Foo { CreatedUtc = new DateTime(2010, 1, 1, 1, 1, 1) },
+        new Foo { CreatedUtc = new DateTime(2020, 1, 1, 1, 1, 1) }
+    });
 }
 
 public class Foo

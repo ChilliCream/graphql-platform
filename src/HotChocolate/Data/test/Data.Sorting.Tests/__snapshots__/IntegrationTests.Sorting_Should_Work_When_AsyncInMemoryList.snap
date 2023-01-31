@@ -1,0 +1,15 @@
+{
+  "data": {
+    "foosAsTask": [
+      {
+        "createdUtc": "2020-01-01"
+      },
+      {
+        "createdUtc": "2010-01-01"
+      },
+      {
+        "createdUtc": "2000-01-01"
+      }
+    ]
+  }
+}
