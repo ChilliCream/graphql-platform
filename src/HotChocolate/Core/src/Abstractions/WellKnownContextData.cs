@@ -254,4 +254,9 @@ public static class WellKnownContextData
     /// The key to check if this schema contains request policies.
     /// </summary>
     public const string AuthorizationRequestPolicy = "HotChocolate.Authorization.RequestPolicy";
+
+    /// <summary>
+    /// The key to access the user state on the global context.
+    /// </summary>
+    public const string UserState = "HottChocolate.Authorization.UserState";
 }

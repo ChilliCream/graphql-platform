@@ -17,7 +17,7 @@
         "default"
       ],
       "extensions": {
-        "code": "AUTH_NOT_AUTHENTICATED"
+        "code": "AUTH_NOT_AUTHORIZED"
       }
     }
   ],
