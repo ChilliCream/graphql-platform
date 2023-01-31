@@ -56,6 +56,7 @@ internal static class InputObjectConstructorResolver
                 if (IsCompatibleConstructor(constructor, fieldMap, required))
                 {
                     compatibleCtor = constructor;
+                    break;
                 }
             }
         }
@@ -118,6 +119,8 @@ internal static class InputObjectConstructorResolver
         ISet<string> required)
         where T : class, IInputField, IHasProperty
     {
+        required.Clear();
+
         foreach (var item in fields.AsSpan())
         {
             if (!(item.Property?.CanWrite ?? false))
