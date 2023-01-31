@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using CookieCrumble;
+using CookieCrumble.Formatters;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Tests.Utilities;
@@ -405,7 +406,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.PostRawAsync(
+            await server.PostHttpAsync(
                 new ClientQueryRequest
                 {
                     Query = @"
@@ -425,7 +426,19 @@ public class HttpPostMiddlewareTests : ServerTestBase
                 });
 
         // assert
-        result.Content.MatchSnapshot();
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "hero": {
+                  "name": "R2-D2",
+                  "id": "2001"
+                },
+                "wait": true
+              }
+            }
+            """,
+            formatter: SnapshotValueFormatters.GraphQLHttp);
     }
 
     [Fact]
@@ -496,7 +509,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
         var server = CreateStarWarsServer();
 
         // act
-        var result = await server.PostRawAsync(
+        var result = await server.PostHttpAsync(
             new ClientQueryRequest
             {
                 Query = @"
@@ -517,7 +530,31 @@ public class HttpPostMiddlewareTests : ServerTestBase
             });
 
         // assert
-        result.Content.MatchSnapshot();
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "hero": {
+                  "name": "R2-D2",
+                  "friends": {
+                    "nodes": [
+                      {
+                        "name": "Luke Skywalker"
+                      },
+                      {
+                        "name": "Han Solo"
+                      },
+                      {
+                        "name": "Leia Organa"
+                      }
+                    ]
+                  }
+                },
+                "wait": true
+              }
+            }
+            """,
+            formatter: SnapshotValueFormatters.GraphQLHttp);
     }
 
     [Fact]
