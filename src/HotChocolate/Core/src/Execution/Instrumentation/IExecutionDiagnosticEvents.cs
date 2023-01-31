@@ -213,8 +213,9 @@ public interface IExecutionDiagnosticEvents
     /// <summary>
     /// Called for field errors that do NOT occur within the resolver task.
     /// </summary>
-    /// <param name="operation">
-    /// The operation that is being executed.
+    /// <param name="context">
+    /// The request context encapsulates all GraphQL-specific information about an
+    /// individual GraphQL request.
     /// </param>
     /// <param name="selection">
     /// The selection that is affected by the error.
@@ -222,7 +223,11 @@ public interface IExecutionDiagnosticEvents
     /// <param name="error">
     /// The error object.
     /// </param>
-    void ResolverError(IOperation operation, ISelection selection, IError error);
+    /// <remarks>
+    /// Some field level errors are handled after the resolver was completed and this
+    /// are handled in the request scope.
+    /// </remarks>
+    void ResolverError(IRequestContext context, ISelection selection, IError error);
 
     /// <summary>
     /// Called when starting to run an execution engine task.

@@ -56,7 +56,7 @@ internal sealed class NoopExecutionDiagnosticEvents
     {
     }
 
-    public void ResolverError(IOperation operation, ISelection selection, IError error)
+    public void ResolverError(IRequestContext context, ISelection selection, IError error)
     {
     }
 

@@ -193,11 +193,11 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         }
     }
 
-    public void ResolverError(IOperation operation, ISelection selection, IError error)
+    public void ResolverError(IRequestContext context, ISelection selection, IError error)
     {
         for (var i = 0; i < _listeners.Length; i++)
         {
-            _listeners[i].ResolverError(operation, selection, error);
+            _listeners[i].ResolverError(context, selection, error);
         }
     }
 
