@@ -17,7 +17,7 @@ namespace HotChocolate.Types;
 /// </summary>
 public sealed class OneOfAttribute : InputObjectTypeDescriptorAttribute
 {
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IInputObjectTypeDescriptor descriptor,
         Type type)

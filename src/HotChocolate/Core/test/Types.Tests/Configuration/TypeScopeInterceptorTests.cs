@@ -57,7 +57,7 @@ public class TypeScopeInterceptorTests
     {
         public string Scope { get; set; }
 
-        public override void OnConfigure(
+        protected override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
             MemberInfo member)

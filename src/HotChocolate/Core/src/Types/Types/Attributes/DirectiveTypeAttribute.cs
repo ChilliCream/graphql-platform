@@ -34,7 +34,7 @@ public sealed class DirectiveTypeAttribute
 
     bool ITypeAttribute.IsTypeExtension => false;
 
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IDirectiveTypeDescriptor descriptor,
         Type type)

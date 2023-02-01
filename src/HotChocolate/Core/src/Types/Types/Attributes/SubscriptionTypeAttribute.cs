@@ -20,7 +20,7 @@ public sealed class SubscriptionTypeAttribute
 
     bool ITypeAttribute.IsTypeExtension => true;
 
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
         Type type)
