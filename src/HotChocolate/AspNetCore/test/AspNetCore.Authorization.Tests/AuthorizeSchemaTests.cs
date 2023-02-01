@@ -13,6 +13,8 @@ public class AuthorizeSchemaTests
     public async Task AuthorizeOnExtension()
     {
         var result = await new ServiceCollection()
+            .AddLogging()
+            .AddAuthorizationCore()
             .AddGraphQLServer()
             .AddQueryType()
             .AddTypeExtension<QueryExtensions>()

@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -10,14 +12,16 @@ namespace HotChocolate.Caching;
 
 internal sealed class CacheControlTypeInterceptor : TypeInterceptor
 {
+    private readonly List<(RegisteredType Type, ObjectTypeDefinition TypeDef)> _types = new();
     private readonly ICacheControlOptions _cacheControlOptions;
+    private TypeDependency? _cacheControlDependency;
 
     public CacheControlTypeInterceptor(ICacheControlOptionsAccessor accessor)
     {
         _cacheControlOptions = accessor.CacheControl;
     }
 
-    public override void OnBeforeCompleteType(
+    public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
         DefinitionBase definition)
     {
@@ -26,19 +30,42 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
             return;
         }
 
-        if (completionContext.IsIntrospectionType ||
-            completionContext.IsSubscriptionType == true ||
-            completionContext.IsMutationType == true)
+        if (completionContext.Type is ObjectType && definition is ObjectTypeDefinition typeDef)
+        {
+            _types.Add(((RegisteredType)completionContext, typeDef));
+        }
+    }
+
+    public override void OnAfterMergeTypeExtensions()
+    {
+        foreach (var item in _types)
+        {
+            TryApplyDefaults(item.Type, item.TypeDef);
+        }
+    }
+
+    private void TryApplyDefaults(RegisteredType type, ObjectTypeDefinition objectDef)
+    {
+        if (!_cacheControlOptions.Enable || !_cacheControlOptions.ApplyDefaults)
         {
             return;
         }
 
-        if (definition is not ObjectTypeDefinition objectDef)
+        if (type.IsIntrospectionType ||
+            type.IsSubscriptionType == true ||
+            type.IsMutationType == true)
         {
             return;
         }
+
+        _cacheControlDependency ??= new TypeDependency(
+            new ExtendedTypeDirectiveReference(
+                type.TypeInspector.GetType(
+                    typeof(CacheControlDirectiveType))),
+            TypeDependencyFulfilled.Completed);
 
         var length = objectDef.Fields.Count;
+        var appliedDefaults = false;
 
 #if NET6_0_OR_GREATER
         var fields = ((BindableList<ObjectFieldDefinition>)objectDef.Fields).AsSpan();
@@ -63,17 +90,24 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
                 continue;
             }
 
-            if (completionContext.IsQueryType == true ||
+            if (type.IsQueryType == true ||
                 CostTypeInterceptor.IsDataResolver(field))
             {
                 // Each field on the query type or data resolver fields
                 // are treated as fields that need to be explicitly cached.
                 ApplyCacheControlWithDefaultMaxAge(field);
+                appliedDefaults = true;
             }
+        }
+
+        if (appliedDefaults)
+        {
+            type.Dependencies.Add(_cacheControlDependency);
         }
     }
 
-    private void ApplyCacheControlWithDefaultMaxAge(OutputFieldDefinitionBase field)
+    private void ApplyCacheControlWithDefaultMaxAge(
+        OutputFieldDefinitionBase field)
     {
         field.Directives.Add(
             new DirectiveDefinition(
@@ -85,9 +119,7 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
     }
 
     private static bool HasCacheControlDirective(ObjectFieldDefinition field)
-    {
-        return field.Directives.Any(IsCacheControlDirective);
-    }
+        => field.Directives.Any(static d => IsCacheControlDirective(d));
 
     private static bool IsCacheControlDirective(DirectiveDefinition directive)
     {

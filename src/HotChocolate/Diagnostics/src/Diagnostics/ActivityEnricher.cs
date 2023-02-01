@@ -9,6 +9,7 @@ using Microsoft.Extensions.ObjectPool;
 using GreenDonut;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
@@ -579,6 +580,13 @@ public class ActivityEnricher
 
     public virtual void EnrichResolverError(
         IMiddlewareContext context,
+        IError error,
+        Activity activity)
+        => EnrichError(error, activity);
+
+    public virtual void EnrichResolverError(
+        IRequestContext context,
+        ISelection selection,
         IError error,
         Activity activity)
         => EnrichError(error, activity);

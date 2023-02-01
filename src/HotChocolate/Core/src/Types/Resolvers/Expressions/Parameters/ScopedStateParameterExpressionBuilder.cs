@@ -39,8 +39,9 @@ internal class ScopedStateParameterExpressionBuilder : IParameterExpressionBuild
     public virtual bool CanHandle(ParameterInfo parameter)
         => parameter.IsDefined(typeof(ScopedStateAttribute));
 
-    public virtual Expression Build(ParameterInfo parameter, Expression context)
+    public virtual Expression Build(ParameterExpressionBuilderContext context)
     {
+        var parameter = context.Parameter;
         var key = GetKey(parameter);
 
         var keyExpression =
@@ -49,8 +50,8 @@ internal class ScopedStateParameterExpressionBuilder : IParameterExpressionBuild
                 : Expression.Constant(key, typeof(string));
 
         return IsStateSetter(parameter.ParameterType)
-            ? BuildSetter(parameter, keyExpression, context)
-            : BuildGetter(parameter, keyExpression, context);
+            ? BuildSetter(parameter, keyExpression, context.ResolverContext)
+            : BuildGetter(parameter, keyExpression, context.ResolverContext);
     }
 
     protected virtual string? GetKey(ParameterInfo parameter)

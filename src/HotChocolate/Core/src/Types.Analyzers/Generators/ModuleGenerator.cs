@@ -85,7 +85,7 @@ public class ModuleGenerator : ISyntaxGenerator
                         sourceText.Append(Indent)
                             .Append(Indent)
                             .Append(Indent)
-                            .Append("builder.AddType<")
+                            .Append("builder.AddType<global::")
                             .Append(type.Name)
                             .AppendLine(">();");
                     }
@@ -100,7 +100,7 @@ public class ModuleGenerator : ISyntaxGenerator
                             sourceText.Append(Indent)
                                 .Append(Indent)
                                 .Append(Indent)
-                                .Append("builder.AddTypeExtension(typeof(")
+                                .Append("builder.AddTypeExtension(typeof(global::")
                                 .Append(extension.Name)
                                 .AppendLine("));");
                         }
@@ -109,7 +109,7 @@ public class ModuleGenerator : ISyntaxGenerator
                             sourceText.Append(Indent)
                                 .Append(Indent)
                                 .Append(Indent)
-                                .Append("builder.AddTypeExtension<")
+                                .Append("builder.AddTypeExtension<global::")
                                 .Append(extension.Name)
                                 .AppendLine(">();");
                         }
@@ -129,7 +129,7 @@ public class ModuleGenerator : ISyntaxGenerator
                         sourceText.Append(Indent)
                             .Append(Indent)
                             .Append(Indent)
-                            .Append("builder.AddDataLoader<")
+                            .Append("builder.AddDataLoader<global::")
                             .Append(dataLoader.Name)
                             .AppendLine(">();");
                     }
@@ -175,34 +175,33 @@ public class ModuleGenerator : ISyntaxGenerator
         => sourceText.Append(Indent)
             .Append(Indent)
             .Append(Indent)
-            .Append("builder.ConfigureSchema(")
-            .AppendLine()
+            .AppendLine("builder.ConfigureSchema(")
             .Append(Indent)
             .Append(Indent)
             .Append(Indent)
             .Append(Indent)
-            .Append("b => b.TryAddRootType(")
-            .AppendLine()
+            .AppendLine("b => b.TryAddRootType(")
             .Append(Indent)
             .Append(Indent)
             .Append(Indent)
             .Append(Indent)
             .Append(Indent)
-            .Append("() => new global::HotChocolate.Types.ObjectType(")
-            .AppendLine()
+            .AppendLine("() => new global::HotChocolate.Types.ObjectType(")
             .Append(Indent)
             .Append(Indent)
             .Append(Indent)
             .Append(Indent)
             .Append(Indent)
             .Append(Indent)
-            .Append($"d => d.Name(global::HotChocolate.Types.OperationTypeNames.{type})),")
-            .AppendLine()
+            .Append("d => d.Name(global::HotChocolate.Types.OperationTypeNames.")
+            .Append(type)
+            .AppendLine(")),")
             .Append(Indent)
             .Append(Indent)
             .Append(Indent)
             .Append(Indent)
             .Append(Indent)
-            .Append($"HotChocolate.Language.OperationType.{type}));")
-            .AppendLine();
+            .Append("HotChocolate.Language.OperationType.")
+            .Append(type)
+            .AppendLine("));");
 }

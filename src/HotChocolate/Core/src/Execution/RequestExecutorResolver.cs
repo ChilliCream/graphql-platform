@@ -24,8 +24,8 @@ namespace HotChocolate.Execution;
 
 internal sealed class RequestExecutorResolver
     : IRequestExecutorResolver
-        , IInternalRequestExecutorResolver
-        , IDisposable
+    , IInternalRequestExecutorResolver
+    , IDisposable
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly ConcurrentDictionary<string, RegisteredExecutor> _executors = new();
@@ -263,7 +263,6 @@ internal sealed class RequestExecutorResolver
         serviceCollection.AddSingleton<IRequestExecutor>(
             sp => new RequestExecutor(
                 sp.GetRequiredService<ISchema>(),
-                _applicationServices.GetRequiredService<DefaultRequestContextAccessor>(),
                 _applicationServices,
                 sp,
                 sp.GetRequiredService<RequestDelegate>(),

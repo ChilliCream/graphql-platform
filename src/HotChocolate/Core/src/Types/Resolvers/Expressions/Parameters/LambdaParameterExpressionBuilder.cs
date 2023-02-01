@@ -30,8 +30,8 @@ internal abstract class LambdaParameterExpressionBuilder<TContext, TValue>
 
     public abstract bool CanHandle(ParameterInfo parameter);
 
-    public virtual Expression Build(ParameterInfo parameter, Expression context)
-        => CreateInvokeExpression(context);
+    public virtual Expression Build(ParameterExpressionBuilderContext context)
+        => CreateInvokeExpression(context.ResolverContext);
 
     private InvocationExpression CreateInvokeExpression(Expression context)
         => Expression.Invoke(_expression, context);

@@ -154,7 +154,7 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
         }
 
         var collection = (ICollection<T>)Activator.CreateInstance(listType)!;
-        ChangeListType(input, (item, _) => collection.Add((T)elementConverter(item)));
+        ChangeListType(input, (item, _) => collection.Add((T)elementConverter(item)!));
         return collection;
     }
 

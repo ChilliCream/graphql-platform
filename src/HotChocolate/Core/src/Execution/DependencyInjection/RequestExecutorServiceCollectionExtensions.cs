@@ -50,7 +50,6 @@ public static class RequestExecutorServiceCollectionExtensions
             .TryAddDefaultCaches()
             .TryAddDefaultDocumentHashProvider()
             .TryAddDefaultBatchDispatcher()
-            .TryAddRequestContextAccessor()
             .TryAddDefaultDataLoaderRegistry()
             .TryAddIdSerializer()
             .TryAddDataLoaderParameterExpressionBuilder()
