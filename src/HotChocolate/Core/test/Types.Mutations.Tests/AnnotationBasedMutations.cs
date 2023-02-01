@@ -142,7 +142,7 @@ public class AnnotationBasedMutations
                             d.Name("foo");
                             d.Location(DirectiveLocation.Field);
                             d.Use(
-                                next => async context =>
+                                (next, _) => async context =>
                                 {
                                     // this is just a dummy middleware
                                     await next(context);
@@ -396,6 +396,28 @@ public class AnnotationBasedMutations
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddMutationType<MutationWithIds>()
+                .AddMutationConventions(true)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .AddGlobalObjectIdentification()
+                .ExecuteRequestAsync(
+                    @"mutation {
+                        doSomething(input: {
+                            id: ""Rm9vCmdhYWY1ZjAzNjk0OGU0NDRkYWRhNTM2ZTY1MTNkNTJjZA==""
+                        }) {
+                            user { name id }
+                        }
+                    }");
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Allow_Id_Middleware2()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithIds2>()
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
                 .AddGlobalObjectIdentification()
@@ -1020,6 +1042,16 @@ public class AnnotationBasedMutations
             return new User() { Name = "Foo", Id = id, };
         }
     }
+
+    public class MutationWithIds2
+    {
+        public User? DoSomething([ID<Foo>] Guid id)
+        {
+            return new User { Name = "Foo", Id = id, };
+        }
+    }
+
+    public class Foo { }
 
     public class MutationWithInputObject
     {

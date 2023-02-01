@@ -203,11 +203,11 @@ The query and the result should now be printed to your console.
 
 This is just a simple example of how to subscribe to our diagnostic events. Checkout our documentation for a list of all of the events available [here](https://hotchocolate.io/docs/next/instrumentation).
 
-We have added this example project to our example repo [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/Instrumentation).
+We have added this example project to our example repo [here](https://github.com/ChilliCream/graphql-platform-examples/tree/master/Instrumentation).
 
 Also, we have a more complex implementation of a Hot Chocolate ETW event source [here](https://github.com/ChilliCream/thor-client/tree/master/src/Clients/HotChocolate).
 
-Another example is our [Apollo Tracing implementation](https://github.com/ChilliCream/hotchocolate/blob/master/src/Core/Core/Execution/Instrumentation/ApolloTracingDiagnosticObserver.cs) that is also based on our instrumentation API.
+Another example is our [Apollo Tracing implementation](https://github.com/ChilliCream/graphql-platform/blob/master/src/Core/Core/Execution/Instrumentation/ApolloTracingDiagnosticObserver.cs) that is also based on our instrumentation API.
 
 I hope this little field trip into our instrumentation API gives a little outlook of an often-overlooked feature that is coming with version 9. All of what I showed in this blog is available with preview 5 (9.0.0-preview.5) that we released today.
 

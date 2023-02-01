@@ -22,8 +22,8 @@ internal sealed class EventMessageParameterExpressionBuilder
     public override bool CanHandle(ParameterInfo parameter)
         => parameter.IsDefined(typeof(EventMessageAttribute));
 
-    public override Expression Build(ParameterInfo parameter, Expression context)
-        => Expression.Convert(base.Build(parameter, context), parameter.ParameterType);
+    public override Expression Build(ParameterExpressionBuilderContext context)
+        => Expression.Convert(base.Build(context), context.Parameter.ParameterType);
 
     private static object GetEventMessage(IImmutableDictionary<string, object?> contextData)
     {

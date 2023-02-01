@@ -15,7 +15,7 @@ public class StringFilterOperationDescriptor
         IDescriptorContext context,
         StringFilterFieldDescriptor descriptor,
         string name,
-        ITypeReference type,
+        TypeReference type,
         FilterOperation operation)
         : base(context)
     {
@@ -92,7 +92,7 @@ public class StringFilterOperationDescriptor
         IDescriptorContext context,
         StringFilterFieldDescriptor descriptor,
         string name,
-        ITypeReference type,
+        TypeReference type,
         FilterOperation operation)
         => new(context, descriptor, name, type, operation);
 }

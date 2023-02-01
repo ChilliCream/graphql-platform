@@ -26,4 +26,19 @@
     <None Include="$(OutputPath)\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\SourceGenResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>SourceGenResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\SourceGenResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SourceGenResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
 </Project>

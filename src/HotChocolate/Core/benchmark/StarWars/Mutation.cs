@@ -22,7 +22,7 @@ namespace HotChocolate.StarWars
             [Service]ITopicEventSender eventSender)
         {
             repository.AddReview(episode, review);
-            await eventSender.SendAsync(episode, review);
+            await eventSender.SendAsync(episode.ToString(), review);
             return review;
         }
     }

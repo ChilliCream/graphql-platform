@@ -8,6 +8,7 @@ using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
+using static HotChocolate.WellKnownDirectives;
 
 #nullable enable
 
@@ -24,8 +25,8 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
     {
     }
 
-    protected ICollection<ArgumentDescriptor> Arguments =>
-        _arguments ??= new List<ArgumentDescriptor>();
+    protected ICollection<ArgumentDescriptor> Arguments
+        => _arguments ??= new List<ArgumentDescriptor>();
 
     protected IReadOnlyDictionary<string, ParameterInfo> Parameters { get; set; } =
         ImmutableDictionary<string, ParameterInfo>.Empty;
@@ -34,32 +35,27 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
     {
         base.OnCreateDefinition(definition);
 
-        foreach (var argument in Arguments)
+        if (_arguments is not null)
         {
-            Definition.Arguments.Add(argument.CreateDefinition());
+            foreach (var argument in Arguments)
+            {
+                Definition.Arguments.Add(argument.CreateDefinition());
+            }
         }
     }
 
     protected void SyntaxNode(FieldDefinitionNode? syntaxNode)
-    {
-        Definition.SyntaxNode = syntaxNode;
-    }
+        => Definition.SyntaxNode = syntaxNode;
 
     protected void Name(string name)
-    {
-        Definition.Name = name;
-    }
+        => Definition.Name = name;
 
     protected void Description(string? description)
-    {
-        Definition.Description = description;
-    }
+        => Definition.Description = description;
 
     protected void Type<TOutputType>()
         where TOutputType : IOutputType
-    {
-        Type(typeof(TOutputType));
-    }
+        => Type(typeof(TOutputType));
 
     protected void Type(Type type)
     {
@@ -155,27 +151,18 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
     }
 
     public void Deprecated()
-    {
-        Definition.DeprecationReason =
-            WellKnownDirectives.DeprecationDefaultReason;
-    }
+        => Definition.DeprecationReason = DeprecationDefaultReason;
 
     protected void Ignore(bool ignore = true)
-    {
-        Definition.Ignore = ignore;
-    }
+        => Definition.Ignore = ignore;
 
     protected void Directive<T>(T directive)
         where T : class
-    {
-        Definition.AddDirective(directive, Context.TypeInspector);
-    }
+        => Definition.AddDirective(directive, Context.TypeInspector);
 
     protected void Directive<T>()
         where T : class, new()
-    {
-        Definition.AddDirective(new T(), Context.TypeInspector);
-    }
+        => Definition.AddDirective(new T(), Context.TypeInspector);
 
     protected void Directive(string name, params ArgumentNode[] arguments)
         => Definition.AddDirective(name, arguments);

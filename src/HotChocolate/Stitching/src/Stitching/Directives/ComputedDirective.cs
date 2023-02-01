@@ -1,6 +1,11 @@
 namespace HotChocolate.Stitching;
 
-public class ComputedDirective
+public sealed class ComputedDirective
 {
-    public string[]? DependantOn { get; set; }
+    public ComputedDirective(IReadOnlyList<string>? dependantOn)
+    {
+        DependantOn = dependantOn;
+    }
+
+    public IReadOnlyList<string>? DependantOn { get; }
 }

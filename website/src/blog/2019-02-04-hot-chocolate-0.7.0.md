@@ -163,7 +163,7 @@ In this case we add the `TypeConversion` instance to our dependency injection an
 
 We already provided an API for writing _DataLoader_ but due to feedback from the community we rewrote our implementation to make it easier to use. You can now write _DataLoader_ with a single line of code by providing us with a delegate that fetches your data.
 
-An example project that shows the new _DataLoader_ can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/DataLoader).
+An example project that shows the new _DataLoader_ can be found [here](https://github.com/ChilliCream/graphql-platform-examples/tree/master/DataLoader).
 
 Or head over to our documentation [here](https://hotchocolate.io/docs/dataloaders).
 

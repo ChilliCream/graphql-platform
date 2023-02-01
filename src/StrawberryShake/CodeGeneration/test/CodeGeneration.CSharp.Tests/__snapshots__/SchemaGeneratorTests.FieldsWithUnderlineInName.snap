@@ -2855,7 +2855,7 @@ namespace Foo.Bar
                 "MONTH" => TimeUnit.Month,
                 "QUARTER" => TimeUnit.Quarter,
                 "YEAR" => TimeUnit.Year,
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"String value '{serializedValue}' can't be converted to enum TimeUnit")};
         }
 
         public global::System.Object Format(global::System.Object? runtimeValue)
@@ -2871,7 +2871,7 @@ namespace Foo.Bar
                 TimeUnit.Month => "MONTH",
                 TimeUnit.Quarter => "QUARTER",
                 TimeUnit.Year => "YEAR",
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"Enum TimeUnit value '{runtimeValue}' can't be converted to string")};
         }
     }
 
@@ -2898,7 +2898,7 @@ namespace Foo.Bar
                 "SUM" => Aggregation.Sum,
                 "MIN" => Aggregation.Min,
                 "MAX" => Aggregation.Max,
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"String value '{serializedValue}' can't be converted to enum Aggregation")};
         }
 
         public global::System.Object Format(global::System.Object? runtimeValue)
@@ -2909,7 +2909,7 @@ namespace Foo.Bar
                 Aggregation.Sum => "SUM",
                 Aggregation.Min => "MIN",
                 Aggregation.Max => "MAX",
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"Enum Aggregation value '{runtimeValue}' can't be converted to string")};
         }
     }
 
@@ -2934,7 +2934,7 @@ namespace Foo.Bar
                 "NO_VALUE" => DataFlag.NoValue,
                 "VALID" => DataFlag.Valid,
                 "MISSING" => DataFlag.Missing,
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"String value '{serializedValue}' can't be converted to enum DataFlag")};
         }
 
         public global::System.Object Format(global::System.Object? runtimeValue)
@@ -2944,7 +2944,7 @@ namespace Foo.Bar
                 DataFlag.NoValue => "NO_VALUE",
                 DataFlag.Valid => "VALID",
                 DataFlag.Missing => "MISSING",
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"Enum DataFlag value '{runtimeValue}' can't be converted to string")};
         }
     }
 

@@ -10,8 +10,9 @@ import React, {
   useRef,
   useState,
 } from "react";
-import styled, { createGlobalStyle } from "styled-components";
+import styled from "styled-components";
 
+import { WorkshopDotNetDaysLasi } from "@/components/images/workshop-dotnetdays-lasi";
 import { IconContainer } from "@/components/misc/icon-container";
 import { Link } from "@/components/misc/link";
 import { SearchModal } from "@/components/misc/search-modal";
@@ -41,9 +42,6 @@ import ExternalLinkSvg from "@/images/external-link.svg";
 import NewspaperIconSvg from "@/images/newspaper.svg";
 import SearchIconSvg from "@/images/search.svg";
 import TimesIconSvg from "@/images/times.svg";
-
-// Images
-import { WorkshopNdcLondon } from "@/components/images/workshop-ndc-london";
 
 // Logos
 import LogoTextSvg from "@/images/logo/chillicream-text.svg";
@@ -133,13 +131,8 @@ export const Header: FC = () => {
   }, [setSearchOpen]);
 
   useEffect(() => {
-    const classes = containerRef.current?.className ?? "";
-
     const subscription = showShadow$.subscribe((showShadow) => {
-      if (containerRef.current) {
-        containerRef.current.className =
-          classes + (showShadow ? " shadow" : "");
-      }
+      containerRef.current?.classList.toggle("shadow", showShadow);
     });
 
     return () => {
@@ -149,7 +142,6 @@ export const Header: FC = () => {
 
   return (
     <Container ref={containerRef}>
-      <BodyStyle disableScrolling={topNavOpen} />
       <ContainerWrapper>
         <LogoLink to="/">
           <LogoIcon {...LogoIconSvg} />
@@ -208,17 +200,6 @@ const Container = styled.header`
   }
 `;
 
-const BodyStyle = createGlobalStyle<{ disableScrolling: boolean }>`
-  body {
-    overflow-y: ${({ disableScrolling }) =>
-      disableScrolling ? "hidden" : "initial"};
-
-    @media only screen and (min-width: 992px) {
-      overflow-y: initial;
-    }
-  }
-`;
-
 const ContainerWrapper = styled.div`
   position: relative;
   display: flex;
@@ -240,7 +221,7 @@ const LogoLink = styled(Link)`
   flex: 0 0 auto;
   flex-direction: row;
   align-items: center;
-  padding: 0 20px;
+  padding-left: 20px;
   height: 60px;
 `;
 
@@ -506,14 +487,14 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
       </SubNavMain>
       <SubNavAdditionalInfo>
         <SubNavTitle>Upcoming Workshop</SubNavTitle>
-        <TeaserLink to="https://ndclondon.com/workshops/reactive-mobile-apps-with-graphql-and-maui/8a69a3c2659d">
+        <TeaserLink to="https://dotnetdays.ro/workshops/Building-Modern-Apps-with-GraphQL-and-net7">
           <TeaserImage>
-            <WorkshopNdcLondon />
+            <WorkshopDotNetDaysLasi />
           </TeaserImage>
-          <TeaserMetadata>
-            23 - 24 Jan 2023 ・ NDC {"{"} London {"}"}
-          </TeaserMetadata>
-          <TeaserTitle>Reactive Mobile Apps with GraphQL and Maui</TeaserTitle>
+          <TeaserMetadata>20 - 21 Apr 2023 ・ dotnetdays (lasi)</TeaserMetadata>
+          <TeaserTitle>
+            Building Modern Apps with GraphQL in ASP.NET Core 7 and React 18
+          </TeaserTitle>
         </TeaserLink>
       </SubNavAdditionalInfo>
     </>
@@ -971,7 +952,6 @@ const Group = styled.div`
   flex: 1 1 auto;
   flex-direction: row;
   justify-content: flex-end;
-  padding: 0 20px;
   height: 60px;
 
   @media only screen and (min-width: 284px) {
@@ -980,6 +960,7 @@ const Group = styled.div`
 
   @media only screen and (min-width: 992px) {
     flex: 0 0 auto;
+    padding-right: 20px;
   }
 `;
 

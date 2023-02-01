@@ -1,0 +1,9 @@
+schema {
+  query: Query
+}
+
+type Query {
+  bar: String @anno
+}
+
+directive @anno(foo: String) on FIELD_DEFINITION

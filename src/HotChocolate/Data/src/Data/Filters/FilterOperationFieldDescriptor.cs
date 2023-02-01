@@ -62,12 +62,6 @@ public class FilterOperationFieldDescriptor
         return this;
     }
 
-    public IFilterOperationFieldDescriptor AllowOperation(int operation)
-    {
-        Definition.AllowedOperations.Add(operation);
-        return this;
-    }
-
     public new IFilterOperationFieldDescriptor Type<TInputType>()
         where TInputType : IInputType
     {

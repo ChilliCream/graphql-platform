@@ -24,7 +24,7 @@ public class TypeInitializerTests
         var typeInitializer = new TypeInitializer(
             context,
             typeRegistry,
-            new List<ITypeReference>
+            new List<TypeReference>
             {
                 context.TypeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
             },
@@ -72,7 +72,7 @@ public class TypeInitializerTests
         var typeInitializer = new TypeInitializer(
             context,
             typeRegistry,
-            new List<ITypeReference>
+            new List<TypeReference>
             {
                 context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
             },
@@ -128,7 +128,7 @@ public class TypeInitializerTests
         void Action() => new TypeInitializer(
             context,
             typeRegistry,
-            new List<ITypeReference>
+            new List<TypeReference>
             {
                 context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
             },
@@ -269,12 +269,12 @@ public class TypeInitializerTests
 
     private sealed class InjectTypes : TypeInterceptor
     {
-        private readonly List<ITypeReference> _typeReferences;
+        private readonly List<TypeReference> _typeReferences;
 
-        public InjectTypes(IEnumerable<ITypeReference> typeReferences)
+        public InjectTypes(IEnumerable<TypeReference> typeReferences)
             => _typeReferences = typeReferences.ToList();
 
-        public override IEnumerable<ITypeReference> RegisterMoreTypes(
+        public override IEnumerable<TypeReference> RegisterMoreTypes(
             IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
             => _typeReferences;
     }

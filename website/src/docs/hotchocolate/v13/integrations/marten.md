@@ -8,7 +8,7 @@ work out of the box as expected, but filtering and sorting do not. LINQ expressi
 be translated in a format that is digestible for the Marten LINQ provider before they are applied to the `IQueryable<T>` object.
 This integration provides custom configurations to seamlessly integrate Marten with the `HotChocolate.Data` package.
 
-You can find a sample project for the integration in [Hot Chocolate Examples](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/MartenDB).
+You can find a sample project for the integration in [Hot Chocolate Examples](https://github.com/ChilliCream/graphql-platform-examples/tree/master/misc/MartenDB).
 
 # Get Started
 

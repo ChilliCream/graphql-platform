@@ -171,7 +171,7 @@ public class Startup
 </Annotation>
 <Code>
 
-**This is currently not working ([#3776](https://github.com/ChilliCream/hotchocolate/issues/3776))**
+**This is currently not working ([#3776](https://github.com/ChilliCream/graphql-platform/issues/3776))**
 
 ```csharp
 public class BookTypeExtensions : ObjectTypeExtension<Book>
@@ -235,7 +235,7 @@ public class Startup
 </Annotation>
 <Code>
 
-**This is currently not working ([#3776](https://github.com/ChilliCream/hotchocolate/issues/3776))**
+**This is currently not working ([#3776](https://github.com/ChilliCream/graphql-platform/issues/3776))**
 
 ```csharp
 public class BookTypeExtensions : ObjectTypeExtension<Book>

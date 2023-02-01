@@ -36,8 +36,9 @@ internal sealed class GlobalStateParameterExpressionBuilder : IParameterExpressi
     public bool CanHandle(ParameterInfo parameter)
         => parameter.IsDefined(typeof(GlobalStateAttribute));
 
-    public Expression Build(ParameterInfo parameter, Expression context)
+    public Expression Build(ParameterExpressionBuilderContext context)
     {
+        var parameter = context.Parameter;
         var attribute = parameter.GetCustomAttribute<GlobalStateAttribute>()!;
 
         var key =
@@ -45,7 +46,7 @@ internal sealed class GlobalStateParameterExpressionBuilder : IParameterExpressi
                 ? Expression.Constant(parameter.Name, typeof(string))
                 : Expression.Constant(attribute.Key, typeof(string));
 
-        var contextData = Expression.Property(context, _contextData);
+        var contextData = Expression.Property(context.ResolverContext, _contextData);
 
         return IsStateSetter(parameter.ParameterType)
             ? BuildSetter(parameter, key, contextData)

@@ -113,7 +113,8 @@ internal sealed class Operation : IOperation
         {
             if (_includeConditions[i].IsIncluded(variables))
             {
-                long flag = 2 ^ i;
+                long flag = 1;
+                flag <<= i;
                 context |= flag;
             }
         }

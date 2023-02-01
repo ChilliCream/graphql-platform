@@ -10,7 +10,7 @@ using Xunit;
 
 namespace HotChocolate.Regressions;
 
-// Relates to issue https://github.com/ChilliCream/hotchocolate/issues/2114
+// Relates to issue https://github.com/ChilliCream/graphql-platform/issues/2114
 public class NestedOptionalInt_2114
 {
     [Fact]

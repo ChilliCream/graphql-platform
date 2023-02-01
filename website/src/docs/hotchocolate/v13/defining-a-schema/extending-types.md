@@ -8,9 +8,7 @@ Because of these capabilities, they also allow for better organization of our ty
 
 Type extensions are especially useful if we want to modify third-party types, such as types that live in a separate assembly and are therefore not directly modifiable by us.
 
-<iframe width="560" height="315"
-src="https://www.youtube.com/embed/EHTr4Fq6GlA"frameborder="0"
-allowfullscreen></iframe>
+<Video videoId="EHTr4Fq6GlA" />
 
 > Warning: Type extensions do not produce the [extend type syntax that GraphQL offers](http://spec.graphql.org/draft/#sec-Object-Extensions), since it would unnecessarily complicate the resulting schema. Instead, Hot Chocolate's type extensions are directly merged with the original type definition to create a single type at runtime.
 
@@ -237,7 +235,7 @@ public class Startup
 </Annotation>
 <Code>
 
-**This is currently not working ([#3776](https://github.com/ChilliCream/hotchocolate/issues/3776))**
+**This is currently not working ([#3776](https://github.com/ChilliCream/graphql-platform/issues/3776))**
 
 ```csharp
 public class BookTypeExtensions : ObjectTypeExtension<Book>

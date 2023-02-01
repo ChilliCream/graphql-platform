@@ -226,9 +226,7 @@ public record BookInput([property:DefaultValue("")]Optional<string> Title, strin
 
 > Warning: `OneOf` Input Objects is currently a draft feature to the GraphQL spec. <https://github.com/graphql/graphql-spec/pull/825>
 
-<iframe width="560" height="315"
-src="https://www.youtube.com/embed/tztXm15grU0"frameborder="0"
-allowfullscreen></iframe>
+<Video videoId="tztXm15grU0" />
 
 This introduces a form of input polymorphism to GraphQL. For example, the following PetInput input object lets you choose between a number of potential input types:
 

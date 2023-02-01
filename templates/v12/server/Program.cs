@@ -1,5 +1,8 @@
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddGraphQLServer().AddTypes();
+
+builder.Services
+    .AddGraphQLServer()
+    .AddTypes();
 
 var app = builder.Build();
 app.MapGraphQL();

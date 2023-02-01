@@ -79,7 +79,7 @@ public class EnumTypeExtensionTests
         // assert
         var type = schema.GetType<EnumType>("Foo");
         var value = type.Directives["dummy_arg"]
-            .First().GetArgument<string>("a");
+            .First().GetArgumentValue<string>("a");
         Assert.Equal("b", value);
     }
 

@@ -126,7 +126,7 @@ public class OnReviewMessage
 }
 ```
 
-> We have a working example for subscription in our Star Wars [example](https://github.com/ChilliCream/hotchocolate/tree/master/examples/AspNetCore.StarWars).
+> We have a working example for subscription in our Star Wars [example](https://github.com/ChilliCream/graphql-platform/tree/master/examples/AspNetCore.StarWars).
 
 # In-Memory Provider
 

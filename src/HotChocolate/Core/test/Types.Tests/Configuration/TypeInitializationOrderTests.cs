@@ -63,7 +63,7 @@ public class TypeInitializationOrderTests
                             d,
                             ApplyConfigurationOn.BeforeCompletion,
                             reference,
-                            TypeDependencyKind.Completed));
+                            TypeDependencyFulfilled.Completed));
                 });
         }
     }

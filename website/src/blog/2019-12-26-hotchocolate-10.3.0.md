@@ -19,7 +19,7 @@ With version 10.3.0 we are introducing a new code-first variant which we interna
 
 We now really can for the first time build a fully-fledged GraphQL server just with C#.
 
-> If you want to see how the Star Wars example looks like with the new 10.3.0 and _pure code-first_ then head over [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/PureCodeFirst).
+> If you want to see how the Star Wars example looks like with the new 10.3.0 and _pure code-first_ then head over [here](https://github.com/ChilliCream/graphql-platform-examples/tree/master/PureCodeFirst).
 
 Let`s dive into the features and explore what we can do with the newest version of Hot Chocolate.
 
@@ -574,9 +574,9 @@ We have a lot more in our pipeline and are totally obsessed with GraphQL and .NE
 
 I hope you will enjoy 10.3.0 as much as I already do and join the Hot Chocolate fold.
 
-BTW, head over to our _pure code-first_ [Star Wars example](https://github.com/ChilliCream/hotchocolate-examples/tree/master/PureCodeFirst).
+BTW, head over to our _pure code-first_ [Star Wars example](https://github.com/ChilliCream/graphql-platform-examples/tree/master/PureCodeFirst).
 
 If you want to get into contact with us head over to our slack channel and join our community.
 
 [hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/hotchocolate
+[hot chocolate source code]: https://github.com/ChilliCream/graphql-platform

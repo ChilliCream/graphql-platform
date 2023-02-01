@@ -34,9 +34,9 @@ partial class Build
             var projectFiles = ProjectModelTasks.ParseSolution(AllSolutionFile)
                 .AllProjects
                 .Where(t => t.GetProperty<string>("AddPublicApiAnalyzers") != "false")
-                .Where(t => !Path.GetDirectoryName(t.Path)
+                .Where(t => !Path.GetDirectoryName(t.Path)!
                     .EndsWith("tests", StringComparison.OrdinalIgnoreCase))
-                .Where(t => !Path.GetDirectoryName(t.Path)
+                .Where(t => !Path.GetDirectoryName(t.Path)!
                     .EndsWith("test", StringComparison.OrdinalIgnoreCase))
                 .Select(t => Path.GetDirectoryName(t.Path)!)
                 .ToArray();
@@ -61,9 +61,9 @@ partial class Build
             var projectFiles = ProjectModelTasks.ParseSolution(AllSolutionFile)
                 .AllProjects
                 .Where(t => t.GetProperty<string>("AddPublicApiAnalyzers") != "false")
-                .Where(t => !Path.GetDirectoryName(t.Path)
+                .Where(t => !Path.GetDirectoryName(t.Path)!
                     .EndsWith("tests", StringComparison.OrdinalIgnoreCase))
-                .Where(t => !Path.GetDirectoryName(t.Path)
+                .Where(t => !Path.GetDirectoryName(t.Path)!
                     .EndsWith("test", StringComparison.OrdinalIgnoreCase))
                 .Select(t => Path.GetDirectoryName(t.Path)!)
                 .ToArray();
@@ -86,7 +86,7 @@ partial class Build
                 return;
             }
 
-            AbsolutePath shippedPath = SourceDirectory / "**" / _shippedApiFile;
+            var shippedPath = SourceDirectory / "**" / _shippedApiFile;
 
             Git($@" --no-pager diff --minimal -U0 --word-diff ""{from}"" ""{to}"" -- ""{shippedPath}""", RootDirectory);
         });

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Language;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
@@ -28,7 +29,7 @@ public partial class DocumentAnalyzer
         return this;
     }
 
-    public ClientModel Analyze()
+    public async ValueTask<ClientModel> AnalyzeAsync()
     {
         if (_schema is null)
         {
@@ -42,7 +43,7 @@ public partial class DocumentAnalyzer
                 "You must at least provide one document.");
         }
 
-        var operationDocuments = CreateOperationDocuments(_documents, _schema);
+        var operationDocuments = await CreateOperationDocumentsAsync(_documents, _schema);
         List<OperationModel> operations = new();
         Dictionary<string, LeafTypeModel> leafTypes = new(StringComparer.Ordinal);
         Dictionary<string, InputObjectTypeModel> inputObjectType = new(StringComparer.Ordinal);

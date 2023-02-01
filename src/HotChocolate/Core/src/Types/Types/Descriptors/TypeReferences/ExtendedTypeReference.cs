@@ -5,11 +5,14 @@ using HotChocolate.Internal;
 
 namespace HotChocolate.Types.Descriptors;
 
+/// <summary>
+/// Represents a reference to a GraphQL type by its runtime type.
+/// </summary>
 public sealed class ExtendedTypeReference
     : TypeReference
     , IEquatable<ExtendedTypeReference>
 {
-    public ExtendedTypeReference(
+    internal ExtendedTypeReference(
         IExtendedType type,
         TypeContext context,
         string? scope = null)
@@ -18,8 +21,12 @@ public sealed class ExtendedTypeReference
         Type = type ?? throw new ArgumentNullException(nameof(type));
     }
 
+    /// <summary>
+    /// Gets the runtime type.
+    /// </summary>
     public IExtendedType Type { get; }
 
+    /// <inheritdoc />
     public bool Equals(ExtendedTypeReference? other)
     {
         if (other is null)
@@ -40,7 +47,8 @@ public sealed class ExtendedTypeReference
         return ReferenceEquals(Type, other.Type) || Type.Equals(other.Type);
     }
 
-    public override bool Equals(ITypeReference? other)
+    /// <inheritdoc />
+    public override bool Equals(TypeReference? other)
     {
         if (other is null)
         {
@@ -60,6 +68,7 @@ public sealed class ExtendedTypeReference
         return false;
     }
 
+    /// <inheritdoc />
     public override bool Equals(object? obj)
     {
         if (obj is null)
@@ -80,6 +89,7 @@ public sealed class ExtendedTypeReference
         return false;
     }
 
+    /// <inheritdoc />
     public override int GetHashCode()
     {
         unchecked
@@ -88,10 +98,9 @@ public sealed class ExtendedTypeReference
         }
     }
 
+    /// <inheritdoc />
     public override string ToString()
-    {
-        return $"{Context}: {Type}";
-    }
+        => ToString(Type);
 
     public ExtendedTypeReference WithType(IExtendedType type)
     {

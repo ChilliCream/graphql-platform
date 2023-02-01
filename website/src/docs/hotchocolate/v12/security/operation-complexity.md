@@ -25,7 +25,7 @@ type Author {
 }
 ```
 
-In the above example executing the `books` field on the `Query` type might go to the database and fetch the `Book`. This means that the cost of the `books` field is probably higher than the cost of the `title` field. The cost of the title field might be the impact on the memory and to the transport. For `title`, the default cost of `1` os OK. But for `books`, we might want to go with a higher cost of `10` since we are getting a list of books from our database.
+In the above example executing the `books` field on the `Query` type might go to the database and fetch the `Book`. This means that the cost of the `books` field is probably higher than the cost of the `title` field. The cost of the title field might be the impact on the memory and to the transport. For `title`, the default cost of `1` is OK. But for `books`, we might want to go with a higher cost of `10` since we are getting a list of books from our database.
 
 Moreover, we have the field `author` on the book, which might go to the database as well to fetch the `Author` object. Since we are only fetching a single item here, we might want to apply a cost of `5` to this field.
 

@@ -7,7 +7,7 @@ namespace HotChocolate.Stitching;
 
 public sealed class ScopedVariableNode
     : IValueNode<string>
-        , IEquatable<ScopedVariableNode>
+    , IEquatable<ScopedVariableNode>
 {
     public ScopedVariableNode(
         string scope,

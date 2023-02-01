@@ -21,6 +21,12 @@ public class MultiPartResponseStreamSerializerTests
                 .AddStarWarsRepositories()
                 .AddGraphQL()
                 .AddStarWarsTypes()
+                .ModifyOptions(
+                    o =>
+                    {
+                        o.EnableDefer = true;
+                        o.EnableStream = true;
+                    })
                 .ExecuteRequestAsync(
                     @"{
                         hero(episode: NEW_HOPE) {

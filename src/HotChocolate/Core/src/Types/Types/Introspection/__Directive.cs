@@ -1,4 +1,5 @@
 #pragma warning disable IDE1006 // Naming Styles
+using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -12,6 +13,7 @@ using static HotChocolate.Types.Descriptors.TypeReference;
 namespace HotChocolate.Types.Introspection;
 
 [Introspection]
+// ReSharper disable once InconsistentNaming
 internal sealed class __Directive : ObjectType<DirectiveType>
 {
     protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
@@ -81,7 +83,10 @@ internal sealed class __Directive : ObjectType<DirectiveType>
             => context.Parent<DirectiveType>().IsRepeatable;
 
         public static object Locations(IPureResolverContext context)
-            => context.Parent<DirectiveType>().Locations;
+        {
+            var locations = context.Parent<DirectiveType>().Locations;
+            return locations.AsEnumerable();
+        }
 
         public static object Arguments(IPureResolverContext context)
         {
@@ -93,35 +98,26 @@ internal sealed class __Directive : ObjectType<DirectiveType>
 
         public static object OnOperation(IPureResolverContext context)
         {
-            var locations =
-                context.Parent<DirectiveType>().Locations;
-
-            return locations.Contains(DirectiveLocation.Query)
-                || locations.Contains(DirectiveLocation.Mutation)
-                || locations.Contains(DirectiveLocation.Subscription);
+            var locations = context.Parent<DirectiveType>().Locations;
+            return (locations & DirectiveLocation.Operation) != 0;
         }
 
         public static object OnFragment(IPureResolverContext context)
         {
-            var locations =
-                context.Parent<DirectiveType>().Locations;
-
-            return locations.Contains(DirectiveLocation.InlineFragment)
-                || locations.Contains(DirectiveLocation.FragmentSpread)
-                || locations.Contains(DirectiveLocation.FragmentDefinition);
+            var locations = context.Parent<DirectiveType>().Locations;
+            return (locations & DirectiveLocation.Fragment) != 0;
         }
 
         public static object OnField(IPureResolverContext context)
         {
-            var locations =
-                context.Parent<DirectiveType>().Locations;
-
-            return locations.Contains(DirectiveLocation.Field);
+            var locations = context.Parent<DirectiveType>().Locations;
+            return (locations & DirectiveLocation.Field) != 0;
         }
     }
 
     public static class Names
     {
+        // ReSharper disable once InconsistentNaming
         public const string __Directive = "__Directive";
         public const string Name = "name";
         public const string Description = "description";

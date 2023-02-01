@@ -46,7 +46,7 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
         {
             var options = _context.DescriptorContext.GetMutationPayloadOptions();
 
-            ITypeReference queryType = TypeReference.Parse($"{_queryType.Name}!");
+            TypeReference queryType = TypeReference.Parse($"{_queryType.Name}!");
 
             _queryField= new ObjectFieldDefinition(
                 options.QueryFieldName ?? _defaultFieldName,

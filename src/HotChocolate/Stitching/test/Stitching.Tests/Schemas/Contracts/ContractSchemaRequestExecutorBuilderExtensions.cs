@@ -17,6 +17,6 @@ public static class ContractSchemaRequestExecutorBuilderExtensions
             .AddType<LifeInsuranceContractType>()
             .AddType<SomeOtherContractType>()
             .AddDirectiveType<CustomDirectiveType>()
-            .EnableRelaySupport();
+            .AddGlobalObjectIdentification();
     }
 }

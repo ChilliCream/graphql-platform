@@ -6,8 +6,8 @@ namespace HotChocolate.Types.Descriptors;
 
 public static class TypeReferenceExtensions
 {
-    public static ITypeReference With(
-        this ITypeReference typeReference,
+    public static TypeReference With(
+        this TypeReference typeReference,
         Optional<TypeContext> context = default,
         Optional<string?> scope = default) => typeReference switch
     {

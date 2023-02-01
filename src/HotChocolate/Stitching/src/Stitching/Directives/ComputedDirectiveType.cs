@@ -3,11 +3,9 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Stitching;
 
-public class ComputedDirectiveType
-    : DirectiveType<ComputedDirective>
+public sealed class ComputedDirectiveType : DirectiveType<ComputedDirective>
 {
-    protected override void Configure(
-        IDirectiveTypeDescriptor<ComputedDirective> descriptor)
+    protected override void Configure(IDirectiveTypeDescriptor<ComputedDirective> descriptor)
     {
         descriptor.Name(DirectiveNames.Computed);
 

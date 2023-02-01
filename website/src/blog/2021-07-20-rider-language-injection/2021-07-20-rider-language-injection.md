@@ -168,7 +168,7 @@ You can find an example project here [rider-language-injection-example](https://
 
 In case you have questions, [Join our Slack Channel](http://slack.chillicream.com/). We have a very welcoming and helpful community that is waiting for you.
 
-If you like what we are doing at ChilliCream, head over to the [HotChocolate repository and **give us a star**](https://github.com/ChilliCream/hotchocolate).
+If you like what we are doing at ChilliCream, head over to the [HotChocolate repository and **give us a star**](https://github.com/ChilliCream/graphql-platform).
 It helps us to gain visibility and grow our already awesome community!
 
 Thank you!

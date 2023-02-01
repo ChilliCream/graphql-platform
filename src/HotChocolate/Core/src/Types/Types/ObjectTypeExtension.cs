@@ -158,32 +158,3 @@ public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeDefinition>
         }
     }
 }
-
-/// <summary>
-/// This helper class is used to allow static type extensions.
-/// </summary>
-internal sealed class StaticObjectTypeExtension : ObjectTypeExtension
-{
-    private readonly Type _staticRuntimeType;
-
-    public StaticObjectTypeExtension(Type staticRuntimeType)
-        => _staticRuntimeType = staticRuntimeType;
-
-    protected override void Configure(IObjectTypeDescriptor descriptor)
-    {
-        var definition = descriptor.Extend().Definition;
-
-        // we set the static type as runtime type. Since this is not the actual runtime
-        // type and is replaced by the actual runtime type of the GraphQL type
-        // we do not run into any conflicts here.
-        definition.RuntimeType = _staticRuntimeType;
-
-        // next we set the binding flags to only infer static members.
-        definition.FieldBindingFlags = FieldBindingFlags.Static;
-
-        // last we use an internal helper to force infer the GraphQL fields from the
-        // field binding type which is at this moment the runtime type that we have
-        // set above.
-        ((ObjectTypeDescriptor)descriptor).InferFieldsFromFieldBindingType();
-    }
-}

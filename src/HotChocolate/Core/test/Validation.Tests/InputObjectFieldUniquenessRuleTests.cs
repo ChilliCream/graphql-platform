@@ -1,10 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace HotChocolate.Validation;
 
-public class InputObjectFieldUniquenessRuleTests
-    : DocumentValidatorVisitorTestBase
+public class InputObjectFieldUniquenessRuleTests : DocumentValidatorVisitorTestBase
 {
     public InputObjectFieldUniquenessRuleTests()
         : base(builder => builder.AddValueRules())
@@ -14,11 +12,10 @@ public class InputObjectFieldUniquenessRuleTests
     [Fact]
     public void NoFieldAmbiguity()
     {
-        ExpectValid(@"
-                {
-                    findDog(complex: { name: ""A"", owner: ""B"" })
-                }
-            ");
+        ExpectValid(
+            @"{
+                findDog(complex: { name: ""A"", owner: ""B"" })
+            }");
     }
 
     [Fact]
@@ -53,7 +50,7 @@ public class InputObjectFieldUniquenessRuleTests
                 {
                     arguments {
                         complexArgField(
-                            complexArg1: {requiredField: true, f: true }, 
+                            complexArg1: {requiredField: true, f: true },
                             complexArg2: {requiredField: true, f: true })
                     }
                 }

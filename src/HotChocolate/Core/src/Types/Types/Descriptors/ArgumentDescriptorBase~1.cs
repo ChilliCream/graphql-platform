@@ -116,7 +116,7 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentDef
     /// ITypeInspector inspector;
     /// ParameterInfo parameter;
     /// // get  reference
-    /// ITypeReference reference = inspector.GetArgumentType(parameter)
+    /// TypeReference reference = inspector.GetArgumentType(parameter)
     /// descriptor.Type(reference);
     /// </code>
     /// <p>
@@ -129,7 +129,7 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentDef
     /// </code>
     /// </example>
     /// </summary>
-    public void Type(ITypeReference typeReference)
+    public void Type(TypeReference typeReference)
     {
         if (typeReference is null)
         {

@@ -439,5 +439,11 @@ public class ServerInstrumentationTests : ServerTestBase
                 configureServices: services =>
                     services
                         .AddGraphQLServer()
-                        .AddInstrumentation(options));
+                        .AddInstrumentation(options)
+                        .ModifyOptions(
+                            o =>
+                            {
+                                o.EnableDefer = true;
+                                o.EnableStream = true;
+                            }));
 }

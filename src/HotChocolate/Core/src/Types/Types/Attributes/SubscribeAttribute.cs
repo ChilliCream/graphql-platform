@@ -5,6 +5,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Subscriptions;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 using static System.Reflection.BindingFlags;
 using static HotChocolate.Utilities.ThrowHelper;
 
@@ -28,7 +29,7 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
     /// </summary>
     public string? With { get; set; }
 
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member)
@@ -62,19 +63,37 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
         }
         else
         {
-
-            descriptor.Extend().OnBeforeCreate(d =>
-            {
-                var subscribeResolver = member.DeclaringType?.GetMethod(With!, Public | Instance);
-
-                if (subscribeResolver is null)
+            descriptor.Extend().OnBeforeNaming(
+                (c, d) =>
                 {
-                    throw SubscribeAttribute_SubscribeResolverNotFound(member, With);
-                }
+                    var subscribeResolver = member.DeclaringType?.GetMethod(
+                        With!,
+                        Public | NonPublic | Instance | Static);
 
-                d.SubscribeResolver = context.ResolverCompiler.CompileSubscribe(
-                    subscribeResolver, d.SourceType!, d.ResolverType);
-            });
+                    if (subscribeResolver is null)
+                    {
+                        throw SubscribeAttribute_SubscribeResolverNotFound(member, With);
+                    }
+
+                    var map = TypeMemHelper.RentArgumentNameMap();
+
+                    foreach (var argument in d.Arguments)
+                    {
+                        if (argument.Parameter is not null)
+                        {
+                            map[argument.Parameter] = argument.Name;
+                        }
+                    }
+
+                    d.SubscribeResolver = context.ResolverCompiler.CompileSubscribe(
+                        subscribeResolver,
+                        d.SourceType!,
+                        d.ResolverType,
+                        map,
+                        d.GetParameterExpressionBuilders());
+
+                    TypeMemHelper.Return(map);
+                });
         }
     }
 
@@ -88,7 +107,9 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
         return method.Name;
     }
 
-    private static void SubscribeFactory<TMessage>(ObjectFieldDefinition fieldDef, string topicString)
+    private static void SubscribeFactory<TMessage>(
+        ObjectFieldDefinition fieldDef,
+        string topicString)
     {
         var arg = false;
 
@@ -125,10 +146,10 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
             var ct = ctx.RequestAborted;
             var receiver = ctx.Service<ITopicEventReceiver>();
             return await receiver.SubscribeAsync<TMessage>(
-                topicString,
-                null,
-                null,
-                ct)
+                    topicString,
+                    null,
+                    null,
+                    ct)
                 .ConfigureAwait(false);
         };
     }
@@ -154,10 +175,10 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
             // last we subscribe with the topic string.
             var receiver = ctx.Service<ITopicEventReceiver>();
             return await receiver.SubscribeAsync<TMessage>(
-                topicString,
-                null,
-                null,
-                ct)
+                    topicString,
+                    null,
+                    null,
+                    ct)
                 .ConfigureAwait(false);
         };
     }

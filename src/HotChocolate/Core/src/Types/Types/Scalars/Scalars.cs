@@ -96,10 +96,10 @@ public static class Scalars
     };
 
     internal static bool TryGetScalar(
-        Type clrType,
+        Type runtimeType,
         [NotNullWhen(true)] out Type? schemaType) =>
         _lookup.TryGetValue(
-            clrType ?? throw new ArgumentNullException(nameof(clrType)),
+            runtimeType ?? throw new ArgumentNullException(nameof(runtimeType)),
             out schemaType);
 
     internal static bool TryGetScalar(

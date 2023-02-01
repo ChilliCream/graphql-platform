@@ -11,7 +11,7 @@ namespace HotChocolate.Data.Neo4J;
 public class Neo4JDateTimeAttribute
     : ObjectFieldDescriptorAttribute
 {
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member)

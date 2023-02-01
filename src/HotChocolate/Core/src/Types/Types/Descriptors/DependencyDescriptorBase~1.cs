@@ -25,7 +25,7 @@ internal abstract class DependencyDescriptorBase
 
     protected ITypeInspector TypeInspector { get; }
 
-    protected abstract TypeDependencyKind DependencyKind { get; }
+    protected abstract TypeDependencyFulfilled DependencyFulfilled { get; }
 
     protected void DependsOn<TType>(bool mustBeNamedOrCompleted)
         where TType : ITypeSystemMember =>
@@ -49,8 +49,8 @@ internal abstract class DependencyDescriptorBase
         }
 
         var kind = mustBeNamedOrCompleted
-            ? DependencyKind
-            : TypeDependencyKind.Default;
+            ? DependencyFulfilled
+            : TypeDependencyFulfilled.Default;
 
         _configuration.AddDependency(
             TypeDependency.FromSchemaType(schemaType, kind));
@@ -63,8 +63,8 @@ internal abstract class DependencyDescriptorBase
         typeName.EnsureGraphQLName();
 
         var kind = mustBeNamedOrCompleted
-            ? DependencyKind
-            : TypeDependencyKind.Default;
+            ? DependencyFulfilled
+            : TypeDependencyFulfilled.Default;
 
         _configuration.AddDependency(
             new TypeDependency(

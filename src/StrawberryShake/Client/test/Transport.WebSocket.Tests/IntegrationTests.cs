@@ -208,7 +208,7 @@ public class IntegrationTests : ServerTestBase
                 {
                     if (response.Body is not null)
                     {
-                        results.Add(response.Body.RootElement.ToString()!);
+                        results.Add(response.Body.RootElement.ToString());
                     }
                 }
 
@@ -325,7 +325,9 @@ public class IntegrationTests : ServerTestBase
         }
 
 
+#pragma warning disable CS0618
         [SubscribeAndResolve]
+#pragma warning restore CS0618
         public async IAsyncEnumerable<int> CountUp()
         {
             for (var i = 0; i < 100; i++)

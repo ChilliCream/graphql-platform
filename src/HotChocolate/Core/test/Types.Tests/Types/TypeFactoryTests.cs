@@ -298,7 +298,7 @@ public class TypeFactoryTests : TypeTestBase
         Assert.False(type.IsRepeatable);
 
         Assert.Collection(
-            type.Locations,
+            type.Locations.AsEnumerable(),
             t => Assert.Equal(DirectiveLocation.Query, t));
 
         Assert.Collection(
@@ -328,7 +328,7 @@ public class TypeFactoryTests : TypeTestBase
         Assert.Equal("foo", type.Name);
         Assert.True(type.IsRepeatable);
 
-        Assert.Collection(type.Locations,
+        Assert.Collection(type.Locations.AsEnumerable(),
             t => Assert.Equal(DirectiveLocation.Query, t));
 
         Assert.Collection(type.Arguments,

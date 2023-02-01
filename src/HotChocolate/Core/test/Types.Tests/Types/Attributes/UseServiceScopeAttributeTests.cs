@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
+using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types;
 
@@ -13,8 +16,6 @@ public class UseServiceScopeAttributeTests
     public async Task UseServiceScope()
     {
         // arrange
-        Snapshot.FullName();
-
         // assert
         var result = await new ServiceCollection()
             .AddScoped<Service>()
@@ -23,8 +24,7 @@ public class UseServiceScopeAttributeTests
             .ExecuteRequestAsync("{ a: scoped b: scoped }");
 
         // assert
-        Assert.Null(result.ExpectQueryResult().Errors);
-        var queryResult = Assert.IsAssignableFrom<IQueryResult>(result);
+        var queryResult = result.ExpectQueryResult();
         Assert.NotEqual(queryResult.Data!["a"], queryResult.Data!["b"]);
     }
 
@@ -33,11 +33,47 @@ public class UseServiceScopeAttributeTests
         => Assert.Throws<ArgumentNullException>(
             () => default(IObjectFieldDescriptor).UseServiceScope());
 
+    [Fact]
+    public async Task UseServiceScope_With_DataLoader()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(5000);
+
+        // assert
+        var result = await new ServiceCollection()
+            .AddScoped<Service>()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .ExecuteRequestAsync("{ scopeWithDataLoader }", cancellationToken: cts.Token);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "scopeWithDataLoader": "abc"
+              }
+            }
+            """);
+
+        cts.Cancel();
+    }
+
     public class Query
     {
         [UseServiceScope]
         public string GetScoped([Service] Service service)
             => service.Id;
+
+        [UseServiceScope]
+        public Task<string> ScopeWithDataLoader(IResolverContext context, CancellationToken ct)
+        {
+            var dataLoader =
+                context.BatchDataLoader<string, string>(
+                    (keys, _) => Task.FromResult<IReadOnlyDictionary<string, string>>(
+                        keys.ToDictionary(a => a, a => a)));
+            return dataLoader.LoadAsync("abc", ct);
+        }
     }
 
     public class Service

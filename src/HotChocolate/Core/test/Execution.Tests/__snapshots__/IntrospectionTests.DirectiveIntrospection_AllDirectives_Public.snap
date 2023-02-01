@@ -1,4 +1,4 @@
-﻿{
+{
   "data": {
     "__schema": {
       "types": [
@@ -218,7 +218,7 @@
                   "args": [
                     {
                       "name": "quox",
-                      "value": "{  }"
+                      "value": "{ a: \u0022DEF\u0022 }"
                     }
                   ]
                 },
@@ -229,9 +229,6 @@
               ]
             }
           ]
-        },
-        {
-          "fields": null
         },
         {
           "fields": null

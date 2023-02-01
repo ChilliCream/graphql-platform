@@ -167,7 +167,7 @@ public class StringFilterFieldDescriptor
         var operation = new FilterOperation(
             typeof(string),
             operationKind,
-            Definition.Property);
+            Definition.Property!);
 
         return StringFilterOperationDescriptor.New(
             Context,

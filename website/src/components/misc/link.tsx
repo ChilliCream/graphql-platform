@@ -2,24 +2,16 @@ import { GatsbyLinkProps, Link as GatsbyLink } from "gatsby";
 import { OutboundLink } from "gatsby-plugin-google-analytics";
 import React, { FC } from "react";
 
-export const Link: FC<GatsbyLinkProps<unknown> & { prefetch?: false }> = ({
-  activeClassName,
-  partiallyActive,
-  to,
-  ref,
-  prefetch = true,
-  ...rest
-}) => {
+export const Link: FC<
+  Pick<GatsbyLinkProps<unknown>, "download" | "to" | "onClick"> & {
+    prefetch?: false;
+  }
+> = ({ to, prefetch = true, ...rest }) => {
   const internal = /^\/(?!\/)/.test(to);
 
   return internal ? (
     prefetch ? (
-      <GatsbyLink
-        to={to}
-        activeClassName={activeClassName}
-        partiallyActive={partiallyActive}
-        {...rest}
-      />
+      <GatsbyLink to={to} {...rest} />
     ) : (
       <a href={to} {...rest} />
     )

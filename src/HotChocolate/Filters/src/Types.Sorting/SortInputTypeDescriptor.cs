@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -12,7 +11,6 @@ using HotChocolate.Types.Helpers;
 using HotChocolate.Types.Sorting.Extensions;
 using HotChocolate.Types.Sorting.Properties;
 using HotChocolate.Utilities;
-using static HotChocolate.Types.Sorting.IgnoredSortingFieldDescriptor;
 
 namespace HotChocolate.Types.Sorting;
 
@@ -125,7 +123,9 @@ public class SortInputTypeDescriptor<T>
     {
         if (property.ExtractMember() is PropertyInfo p)
         {
-            Fields.GetOrAddDescriptor(p, () => CreateOperation(p, Context));
+            Fields.GetOrAddDescriptor(
+                p,
+                () => IgnoredSortingFieldDescriptor.CreateOperation(p, Context));
             return this;
         }
 
@@ -232,8 +232,6 @@ public class SortInputTypeDescriptor<T>
         return false;
     }
 
-    public static SortInputTypeDescriptor<T> New(
-        IDescriptorContext context,
-        Type entityType) =>
-        new SortInputTypeDescriptor<T>(context, entityType);
+    public static SortInputTypeDescriptor<T> New(IDescriptorContext context, Type entityType)
+        => new(context, entityType);
 }
