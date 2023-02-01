@@ -87,7 +87,7 @@ public sealed class ExtendObjectTypeAttribute
     /// <param name="type">
     /// The type to which this instance is annotated to.
     /// </param>
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
         Type type)
@@ -191,7 +191,7 @@ public sealed class ExtendObjectTypeAttribute<T>
     /// <param name="type">
     /// The type to which this instance is annotated to.
     /// </param>
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
         Type type)

@@ -20,7 +20,7 @@ public sealed class QueryTypeAttribute
 
     bool ITypeAttribute.IsTypeExtension => true;
 
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
         Type type)

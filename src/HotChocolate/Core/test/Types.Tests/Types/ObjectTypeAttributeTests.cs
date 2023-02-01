@@ -143,7 +143,7 @@ public class ObjectTypeAttributeTests
 
         public object DefaultValue { get; }
 
-        public override void OnConfigure(
+        protected override void OnConfigure(
             IDescriptorContext context,
             IArgumentDescriptor descriptor,
             ParameterInfo parameterInfo)
@@ -164,7 +164,7 @@ public class ObjectTypeAttributeTests
     public class PropertyAddContextDataAttribute
         : ObjectFieldDescriptorAttribute
     {
-        public override void OnConfigure(
+        protected override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
             MemberInfo member)
@@ -186,7 +186,7 @@ public class ObjectTypeAttributeTests
     public class ObjectAddFieldAttribute
         : ObjectTypeDescriptorAttribute
     {
-        public override void OnConfigure(
+        protected override void OnConfigure(
             IDescriptorContext context,
             IObjectTypeDescriptor descriptor,
             Type type)

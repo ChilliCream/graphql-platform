@@ -25,7 +25,7 @@ public abstract class InterfaceTypeDescriptorAttribute
         }
     }
 
-    public abstract void OnConfigure(
+    protected abstract void OnConfigure(
         IDescriptorContext context,
         IInterfaceTypeDescriptor descriptor,
         Type type);
