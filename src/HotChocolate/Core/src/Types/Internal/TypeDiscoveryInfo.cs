@@ -135,18 +135,22 @@ public readonly ref struct TypeDiscoveryInfo
         IExtendedType unresolvedType,
         bool isPublic)
     {
-        var isComplexType =
+        var isComplexClass =
             isPublic &&
             unresolvedType.Type.IsClass &&
             unresolvedType.Type != typeof(string);
 
-        if (!isComplexType && unresolvedType.IsGeneric)
+        var isComplexValueType =
+            isPublic &&
+            unresolvedType.Type is { IsValueType: true, IsPrimitive: false };
+
+        if (isComplexValueType && unresolvedType.IsGeneric)
         {
             var typeDefinition = unresolvedType.Definition;
             return typeDefinition == typeof(KeyValuePair<,>);
         }
 
-        return isComplexType;
+        return isComplexClass || isComplexValueType;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
