@@ -41,5 +41,7 @@ public sealed class InterfaceTypeAttribute
         {
             descriptor.Name(Name);
         }
+
+        descriptor.Extend().Definition.Fields.BindingBehavior = BindingBehavior.Implicit;
     }
 }

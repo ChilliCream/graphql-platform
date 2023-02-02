@@ -42,5 +42,7 @@ public sealed class EnumTypeAttribute
         {
             descriptor.Name(Name);
         }
+
+        descriptor.BindValuesImplicitly();
     }
 }

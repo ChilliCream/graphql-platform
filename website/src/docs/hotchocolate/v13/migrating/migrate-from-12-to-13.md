@@ -143,6 +143,57 @@ ITopicEventSender.SendAsync<TMessage>(string topicName, TMessage message,
     CancellationToken cancellationToken)
 ```
 
+## TopicAttribute
+
+Previously you might have annotated the `[Topic]` attribute on a method argument, to designate its runtime value as a dynamic topic.
+Now we no longer allow the attribute on arguments, but only on the method itself.
+
+**Before**
+
+```csharp
+public class Subscription
+{
+    [Subscribe]
+    public Book BookPublished([Topic] string author, [EventMessage] Book book)
+        => book;
+}
+```
+
+**After**
+
+```csharp
+public class Subscription
+{
+    [Subscribe]
+    // What's inbetween the curly braces must match an argument name.
+    [Topic("{author}")]
+    public Book BookPublished(string author, [EventMessage] Book book)
+        => book;
+}
+```
+
+## AddInMemorySubscriptions / AddRedisSubscriptions
+
+We moved the extension methods from the `IServiceCollection` to our `IRequestExecutorBuilder`.
+
+**Before**
+
+```csharp
+builder.Services.AddInMemorySubscriptins();
+// or
+builder.Services.AddRedisSubscriptins();
+```
+
+**After**
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddInMemorySubscriptins()
+    // or
+    .AddRedisSubscriptins();
+```
+
 ## @defer / @stream
 
 `@defer` and `@stream` have now been disabled per default. If you want to continue using them, you have to opt-in now:
