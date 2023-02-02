@@ -528,7 +528,7 @@ public class QueryableProjectionVisitorPagingTests
 
     public class SubDataAttribute : ObjectFieldDescriptorAttribute
     {
-        public override void OnConfigure(
+        protected override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
             MemberInfo member)

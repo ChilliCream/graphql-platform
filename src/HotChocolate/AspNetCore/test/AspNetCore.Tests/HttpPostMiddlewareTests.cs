@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using CookieCrumble;
+using CookieCrumble.Formatters;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Tests.Utilities;
@@ -243,6 +244,51 @@ public class HttpPostMiddlewareTests : ServerTestBase
     }
 
     [Fact]
+    public async Task Override_OnWriteResponseHeaders()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s.AddHttpResponseFormatter<CustomFormatter>());
+
+        // act
+        var result =
+            await server.PostHttpAsync(
+                new ClientQueryRequest
+                {
+                    Query = @"
+                    query ($episode: Episode!) {
+                        hero(episode: $episode) {
+                            name
+                        }
+                    }",
+                    Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
+                });
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            Headers:
+            abc: def
+            Content-Type: application/graphql-response+json; charset=utf-8
+            -------------------------->
+            Status Code: OK
+            -------------------------->
+            {"data":{"hero":{"name":"R2-D2"}}}
+            """);
+    }
+
+    private class CustomFormatter : DefaultHttpResponseFormatter
+    {
+        protected override void OnWriteResponseHeaders(
+            IQueryResult result,
+            FormatInfo format,
+            IHeaderDictionary headers)
+        {
+            headers.TryAdd("abc", "def");
+        }
+    }
+
+    [Fact]
     public async Task SingleRequest_GetHumanName_With_StringVariable()
     {
         // arrange
@@ -405,7 +451,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result =
-            await server.PostRawAsync(
+            await server.PostHttpAsync(
                 new ClientQueryRequest
                 {
                     Query = @"
@@ -425,7 +471,19 @@ public class HttpPostMiddlewareTests : ServerTestBase
                 });
 
         // assert
-        result.Content.MatchSnapshot();
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "hero": {
+                  "name": "R2-D2",
+                  "id": "2001"
+                },
+                "wait": true
+              }
+            }
+            """,
+            formatter: SnapshotValueFormatters.GraphQLHttp);
     }
 
     [Fact]
@@ -496,7 +554,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
         var server = CreateStarWarsServer();
 
         // act
-        var result = await server.PostRawAsync(
+        var result = await server.PostHttpAsync(
             new ClientQueryRequest
             {
                 Query = @"
@@ -517,7 +575,31 @@ public class HttpPostMiddlewareTests : ServerTestBase
             });
 
         // assert
-        result.Content.MatchSnapshot();
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "hero": {
+                  "name": "R2-D2",
+                  "friends": {
+                    "nodes": [
+                      {
+                        "name": "Luke Skywalker"
+                      },
+                      {
+                        "name": "Han Solo"
+                      },
+                      {
+                        "name": "Leia Organa"
+                      }
+                    ]
+                  }
+                },
+                "wait": true
+              }
+            }
+            """,
+            formatter: SnapshotValueFormatters.GraphQLHttp);
     }
 
     [Fact]

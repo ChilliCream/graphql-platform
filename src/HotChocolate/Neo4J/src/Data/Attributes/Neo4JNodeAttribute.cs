@@ -15,7 +15,7 @@ public class Neo4JNodeAttribute : ObjectTypeDescriptorAttribute
 
     public string[] Labels { get; }
 
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
         Type type)

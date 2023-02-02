@@ -47,13 +47,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         : this(
             new HttpResponseFormatterOptions
             {
-                Json = new JsonResultFormatterOptions
-                {
-                    Indented = indented,
-                    Encoder = encoder
-                }
-            })
-    { }
+                Json = new JsonResultFormatterOptions { Indented = indented, Encoder = encoder }
+            }) { }
 
     /// <summary>
     /// Creates a new instance of <see cref="DefaultHttpResponseFormatter" />.
@@ -161,7 +156,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         if (result.Kind is SingleResult)
         {
             var queryResult = (IQueryResult)result;
-            var statusCode = (int)GetStatusCode(queryResult, format, proposedStatusCode);
+            var statusCode = (int)OnDetermineStatusCode(queryResult, format, proposedStatusCode);
 
             response.ContentType = format.ContentType;
             response.StatusCode = statusCode;
@@ -177,16 +172,21 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 #endif
             }
 
+            OnWriteResponseHeaders(queryResult, format, response.Headers);
+
             await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
         }
         else if (result.Kind is DeferredResult or BatchResult or SubscriptionResult)
         {
             var responseStream = (IResponseStream)result;
-            var statusCode = (int)GetStatusCode(responseStream, format, proposedStatusCode);
+            var statusCode = (int)OnDetermineStatusCode(responseStream, format, proposedStatusCode);
 
-            response.Headers.Add(HttpHeaderKeys.CacheControl, HttpHeaderValues.NoCache);
             response.ContentType = format.ContentType;
             response.StatusCode = statusCode;
+
+            response.Headers.Add(HttpHeaderKeys.CacheControl, HttpHeaderValues.NoCache);
+            OnWriteResponseHeaders(responseStream, format, response.Headers);
+
             await response.Body.FlushAsync(cancellationToken);
 
             await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
@@ -199,7 +199,22 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         }
     }
 
-    protected virtual HttpStatusCode GetStatusCode(
+    /// <summary>
+    /// Determines which status code shall be returned for this result.
+    /// </summary>
+    /// <param name="result">
+    /// The <see cref="IQueryResult"/>.
+    /// </param>
+    /// <param name="format">
+    /// Provides information about the transport format that is applied.
+    /// </param>
+    /// <param name="proposedStatusCode">
+    /// The proposed status code of the middleware.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="HttpStatusCode"/> that the formatter must use.
+    /// </returns>
+    protected virtual HttpStatusCode OnDetermineStatusCode(
         IQueryResult result,
         FormatInfo format,
         HttpStatusCode? proposedStatusCode)
@@ -288,7 +303,40 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         throw ThrowHelper.Formatter_ResponseContentTypeNotSupported(format.ContentType);
     }
 
-    protected virtual HttpStatusCode GetStatusCode(
+    /// <summary>
+    /// Override to write response headers to the response message before
+    /// the the formatter starts writing the response body.
+    /// </summary>
+    /// <param name="result">
+    /// The <see cref="IQueryResult"/>.
+    /// </param>
+    /// <param name="format">
+    /// Provides information about the transport format that is applied.
+    /// </param>
+    /// <param name="headers">
+    /// The header dictionary.
+    /// </param>
+    protected virtual void OnWriteResponseHeaders(
+        IQueryResult result,
+        FormatInfo format,
+        IHeaderDictionary headers) { }
+
+    /// <summary>
+    /// Determines which status code shall be returned for this response stream.
+    /// </summary>
+    /// <param name="responseStream">
+    /// The <see cref="IResponseStream"/>.
+    /// </param>
+    /// <param name="format">
+    /// Provides information about the transport format that is applied.
+    /// </param>
+    /// <param name="proposedStatusCode">
+    /// The proposed status code of the middleware.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="HttpStatusCode"/> that the formatter must use.
+    /// </returns>
+    protected virtual HttpStatusCode OnDetermineStatusCode(
         IResponseStream responseStream,
         FormatInfo format,
         HttpStatusCode? proposedStatusCode)
@@ -306,6 +354,24 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         // for an alternative protocols or response content-type.
         throw ThrowHelper.Formatter_ResponseContentTypeNotSupported(format.ContentType);
     }
+
+    /// <summary>
+    /// Override to write response headers to the response message before
+    /// the the formatter starts writing the response body.
+    /// </summary>
+    /// <param name="responseStream">
+    /// The <see cref="IResponseStream"/>.
+    /// </param>
+    /// <param name="format">
+    /// Provides information about the transport format that is applied.
+    /// </param>
+    /// <param name="headers">
+    /// The header dictionary.
+    /// </param>
+    protected virtual void OnWriteResponseHeaders(
+        IResponseStream responseStream,
+        FormatInfo format,
+        IHeaderDictionary headers) { }
 
     private FormatInfo? TryGetFormatter(
         IExecutionResult result,
@@ -448,6 +514,9 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         return possibleFormat;
     }
 
+    internal static DefaultHttpResponseFormatter Create(HttpResponseFormatterOptions options)
+        => new SealedDefaultHttpResponseFormatter(options);
+
     /// <summary>
     /// Representation of a resolver format, containing the formatter and the content type.
     /// </summary>
@@ -488,5 +557,11 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         Single,
         Stream,
         Subscription
+    }
+
+    private sealed class SealedDefaultHttpResponseFormatter : DefaultHttpResponseFormatter
+    {
+        public SealedDefaultHttpResponseFormatter(HttpResponseFormatterOptions options)
+            : base(options) { }
     }
 }

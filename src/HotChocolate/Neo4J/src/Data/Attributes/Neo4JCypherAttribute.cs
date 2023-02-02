@@ -14,7 +14,7 @@ public class Neo4JCypherAttribute
         _statement = statement;
     }
 
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member)

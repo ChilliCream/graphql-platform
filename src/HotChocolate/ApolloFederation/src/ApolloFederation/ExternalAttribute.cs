@@ -18,7 +18,7 @@ namespace HotChocolate.ApolloFederation;
 /// </summary>
 public sealed class ExternalAttribute : ObjectFieldDescriptorAttribute
 {
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member)

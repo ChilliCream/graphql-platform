@@ -666,7 +666,7 @@ public class AnnotationBasedAuthorizationTests
 
     public sealed class FooDirectiveAttribute : ObjectTypeDescriptorAttribute
     {
-        public override void OnConfigure(
+        protected override void OnConfigure(
             IDescriptorContext context,
             IObjectTypeDescriptor descriptor,
             Type type)

@@ -6,6 +6,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Processing;
@@ -644,6 +645,10 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
                 break;
 
 #if NET6_0_OR_GREATER
+            case JsonDocument doc:
+                WriteJsonElement(writer, doc.RootElement);
+                break;
+
             case JsonElement element:
                 WriteJsonElement(writer, element);
                 break;

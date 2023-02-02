@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Configuration;
 
-public class RequestExecutorSetup
+public sealed class RequestExecutorSetup
 {
     private readonly List<SchemaBuilderAction> _schemaBuilderActions = new();
     private readonly List<RequestExecutorOptionsAction> _requestExecutorOptionsActions = new();

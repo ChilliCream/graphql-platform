@@ -212,6 +212,22 @@ public static class TestServerExtensions
         };
     }
 
+    public static async Task<HttpResponseMessage> PostHttpAsync(
+        this TestServer testServer,
+        ClientQueryRequest request,
+        string path = "/graphql",
+        bool enableApolloTracing = false)
+    {
+        var response =
+            await SendPostRequestAsync(
+                testServer,
+                JsonConvert.SerializeObject(request),
+                path,
+                enableApolloTracing: enableApolloTracing);
+
+        return response;
+    }
+
     public static async Task<ClientQueryResult> GetAsync(
         this TestServer testServer,
         ClientQueryRequest request,
