@@ -1,9 +1,11 @@
 using System;
 using System.Linq;
 using GreenDonut;
+using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Execution.Processing;
@@ -18,6 +20,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 internal static class InternalServiceCollectionExtensions
@@ -41,15 +44,13 @@ internal static class InternalServiceCollectionExtensions
 
     internal static IServiceCollection TryAddResultPool(
         this IServiceCollection services,
-        int maximumRetained = 512)
+        int maximumRetained = ResultPoolDefaults.MaximumRetained,
+        int maximumArrayCapacity = ResultPoolDefaults.MaximumAllowedCapacity)
     {
-        services.TryAddSingleton<ObjectPool<ResultObjectBuffer<ResultMap>>>(
-            _ => new ResultMapPool(maximumRetained));
-        services.TryAddSingleton<ObjectPool<ResultObjectBuffer<ResultMapList>>>(
-            _ => new ResultMapListPool(maximumRetained));
-        services.TryAddSingleton<ObjectPool<ResultObjectBuffer<ResultList>>>(
-            _ => new ResultListPool(maximumRetained));
+        services.TryAddSingleton(_ => new ObjectResultPool(maximumRetained, maximumArrayCapacity));
+        services.TryAddSingleton(_ => new ListResultPool(maximumRetained, maximumArrayCapacity));
         services.TryAddSingleton<ResultPool>();
+        services.TryAddTransient<ResultBuilder>();
         return services;
     }
 
@@ -58,10 +59,35 @@ internal static class InternalServiceCollectionExtensions
         int maximumRetained = 128)
     {
         services.TryAddSingleton<ObjectPool<ResolverTask>>(
-            _ => new ExecutionTaskPool<ResolverTask>(
+            _ => new ExecutionTaskPool<ResolverTask, ResolverTaskPoolPolicy>(
                 new ResolverTaskPoolPolicy(),
                 maximumRetained));
+        services.TryAddSingleton<IFactory<ResolverTask>>(
+            sp => new PooledServiceFactory<ResolverTask>(
+                sp.GetRequiredService<ObjectPool<ResolverTask>>()));
+        return services;
+    }
 
+    internal static IServiceCollection TryAddPathSegmentPool(
+        this IServiceCollection services,
+        int maximumRetained = 256)
+    {
+        services.TryAddSingleton<ObjectPool<PathSegmentBuffer<IndexerPathSegment>>>(
+            _ => new IndexerPathSegmentPool(maximumRetained));
+        services.TryAddSingleton<ObjectPool<PathSegmentBuffer<NamePathSegment>>>(
+            _ => new NamePathSegmentPool(maximumRetained));
+        services.TryAddTransient(
+            sp => new PooledPathFactory(
+                sp.GetRequiredService<ObjectPool<PathSegmentBuffer<IndexerPathSegment>>>(),
+                sp.GetRequiredService<ObjectPool<PathSegmentBuffer<NamePathSegment>>>()));
+        return services;
+    }
+
+    internal static IServiceCollection TryAddOperationCompilerPool(
+        this IServiceCollection services)
+    {
+        services.TryAddSingleton<ObjectPool<OperationCompiler>>(
+            sp => new OperationCompilerPool(sp.GetRequiredService<InputParser>()));
         return services;
     }
 
@@ -70,12 +96,45 @@ internal static class InternalServiceCollectionExtensions
     {
         services.TryAddSingleton(sp =>
         {
-            ObjectPoolProvider provider = sp.GetRequiredService<ObjectPoolProvider>();
+            var provider = sp.GetRequiredService<ObjectPoolProvider>();
             var policy = new OperationContextPooledObjectPolicy(
-                sp.GetRequiredService<ObjectPool<ResolverTask>>(),
-                sp.GetRequiredService<ResultPool>());
+                sp.GetRequiredService<IFactory<OperationContext>>());
             return provider.Create(policy);
         });
+
+        services.TryAddTransient<OperationContext>();
+
+        services.TryAddTransient(
+            sp => sp.GetRequiredService<ObjectPool<OperationContext>>().GetOwner());
+
+        services.TryAddSingleton<IFactory<OperationContextOwner>>(
+            sp => new ServiceFactory<OperationContextOwner>(sp));
+
+        services.TryAddSingleton<IFactory<OperationContext>>(
+            sp => new ServiceFactory<OperationContext>(sp));
+
+        return services;
+    }
+
+    internal static IServiceCollection TryAddDeferredWorkStatePool(
+        this IServiceCollection services)
+    {
+        services.TryAddSingleton(sp =>
+        {
+            var provider = sp.GetRequiredService<ObjectPoolProvider>();
+            var policy = new DeferredWorkStatePooledObjectPolicy();
+            return provider.Create(policy);
+        });
+
+        services.TryAddScoped(sp =>
+        {
+            var pool = sp.GetRequiredService<ObjectPool<DeferredWorkState>>();
+            var state = pool.Get();
+            return new DeferredWorkStateOwner(state, pool);
+        });
+
+        services.TryAddScoped<IFactory<DeferredWorkStateOwner>>(
+            sp => new ServiceFactory<DeferredWorkStateOwner>(sp));
 
         return services;
     }
@@ -96,8 +155,7 @@ internal static class InternalServiceCollectionExtensions
         services.TryAddSingleton<IDataLoaderDiagnosticEvents>(
             sp =>
             {
-                IDataLoaderDiagnosticEventListener[] listeners =
-                    sp.GetServices<IDataLoaderDiagnosticEventListener>().ToArray();
+                var listeners = sp.GetServices<IDataLoaderDiagnosticEventListener>().ToArray();
 
                 return listeners.Length switch
                 {
@@ -160,8 +218,6 @@ internal static class InternalServiceCollectionExtensions
             _ => new DefaultPreparedOperationCache());
         services.TryAddSingleton<IComplexityAnalyzerCache>(
             _ => new DefaultComplexityAnalyzerCache());
-        services.TryAddSingleton<IQueryPlanCache>(
-            _ => new DefaultQueryPlanCache());
         return services;
     }
 
@@ -169,7 +225,7 @@ internal static class InternalServiceCollectionExtensions
         this IServiceCollection services)
     {
         services.TryAddSingleton<IDocumentHashProvider>(
-            _ => new MD5DocumentHashProvider());
+            _ => new MD5DocumentHashProvider(HashFormat.Hex));
         return services;
     }
 
@@ -179,15 +235,6 @@ internal static class InternalServiceCollectionExtensions
         services.TryAddScoped<BatchScheduler>();
         services.TryAddScoped<IBatchScheduler>(sp => sp.GetRequiredService<BatchScheduler>());
         services.TryAddScoped<IBatchDispatcher>(sp => sp.GetRequiredService<BatchScheduler>());
-        return services;
-    }
-
-    internal static IServiceCollection TryAddRequestContextAccessor(
-        this IServiceCollection services)
-    {
-        services.TryAddSingleton<DefaultRequestContextAccessor>();
-        services.TryAddSingleton<IRequestContextAccessor>(
-            sp => sp.GetRequiredService<DefaultRequestContextAccessor>());
         return services;
     }
 
@@ -231,21 +278,16 @@ internal static class InternalServiceCollectionExtensions
 
     private sealed class OperationContextPooledObjectPolicy : PooledObjectPolicy<OperationContext>
     {
-        private readonly ObjectPool<ResolverTask> _resolverTaskPool;
-        private readonly ResultPool _resultPool;
+        private readonly IFactory<OperationContext> _contextFactory;
 
-        public OperationContextPooledObjectPolicy(
-            ObjectPool<ResolverTask> resolverTaskPool,
-            ResultPool resultPool)
+        public OperationContextPooledObjectPolicy(IFactory<OperationContext> contextFactory)
         {
-            _resolverTaskPool = resolverTaskPool ??
-                throw new ArgumentNullException(nameof(resolverTaskPool));
-            _resultPool = resultPool ??
-                throw new ArgumentNullException(nameof(resultPool));
+            _contextFactory = contextFactory ??
+                throw new ArgumentNullException(nameof(contextFactory));
         }
 
         public override OperationContext Create()
-            => new(_resolverTaskPool, _resultPool);
+            => _contextFactory.Create();
 
         public override bool Return(OperationContext obj)
         {
@@ -266,6 +308,17 @@ internal static class InternalServiceCollectionExtensions
             // gracefully discarded and can be garbage collected.
             obj.Clean();
             return false;
+        }
+    }
+
+    private sealed class DeferredWorkStatePooledObjectPolicy : PooledObjectPolicy<DeferredWorkState>
+    {
+        public override DeferredWorkState Create() => new();
+
+        public override bool Return(DeferredWorkState obj)
+        {
+            obj.Reset();
+            return true;
         }
     }
 }

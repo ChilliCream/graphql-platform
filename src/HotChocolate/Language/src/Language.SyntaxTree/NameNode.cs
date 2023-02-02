@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Language.Properties;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
@@ -19,7 +20,7 @@ public sealed class NameNode
         if (string.IsNullOrEmpty(value))
         {
             throw new ArgumentException(
-                "The value of a name node cannot be null or empty.",
+                Resources.NameNode_Name_CannnotBeNullOrEmpty,
                 nameof(value));
         }
 
@@ -27,7 +28,7 @@ public sealed class NameNode
         Value = value;
     }
 
-    public SyntaxKind Kind { get; } = SyntaxKind.Name;
+    public SyntaxKind Kind => SyntaxKind.Name;
 
     public Location? Location { get; }
 

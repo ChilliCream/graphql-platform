@@ -167,7 +167,7 @@ internal sealed class SchemaSyntaxVisitor : SyntaxVisitor<SchemaSyntaxVisitorCon
         context.Description = node.Description?.Value;
         context.Directives = node.Directives;
 
-        foreach (OperationTypeDefinitionNode operationType in node.OperationTypes)
+        foreach (var operationType in node.OperationTypes)
         {
             switch (operationType.Operation)
             {

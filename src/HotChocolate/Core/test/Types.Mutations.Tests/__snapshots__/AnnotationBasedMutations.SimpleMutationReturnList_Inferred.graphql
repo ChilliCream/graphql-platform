@@ -1,0 +1,15 @@
+schema {
+  mutation: SimpleMutationReturnList
+}
+
+type DoSomethingPayload {
+  string: [String!]
+}
+
+type SimpleMutationReturnList {
+  doSomething(input: DoSomethingInput!): DoSomethingPayload!
+}
+
+input DoSomethingInput {
+  something: String!
+}

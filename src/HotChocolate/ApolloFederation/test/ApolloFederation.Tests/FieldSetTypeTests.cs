@@ -111,7 +111,7 @@ public class FieldSetTypeTests
     {
         // arrange
         var type = new FieldSetType();
-        SelectionSetNode selectionSet = Syntax.ParseSelectionSet("{ a b c d e(d: $b) }");
+        var selectionSet = Syntax.ParseSelectionSet("{ a b c d e(d: $b) }");
 
         // act
         var serialized = type.Serialize(selectionSet);
@@ -138,7 +138,7 @@ public class FieldSetTypeTests
     {
         // arrange
         var type = new FieldSetType();
-        SelectionSetNode selectionSet = Syntax.ParseSelectionSet("{ a b c d e(d: $b) }");
+        var selectionSet = Syntax.ParseSelectionSet("{ a b c d e(d: $b) }");
 
         // act
         var success = type.TrySerialize(selectionSet, out var serialized);
@@ -167,10 +167,10 @@ public class FieldSetTypeTests
     {
         // arrange
         var type = new FieldSetType();
-        SelectionSetNode selectionSet = Syntax.ParseSelectionSet("{ a b c d e(d: $b) }");
+        var selectionSet = Syntax.ParseSelectionSet("{ a b c d e(d: $b) }");
 
         // act
-        IValueNode valueSyntax = type.ParseValue(selectionSet);
+        var valueSyntax = type.ParseValue(selectionSet);
 
         // assert
         Assert.Equal(
@@ -185,7 +185,7 @@ public class FieldSetTypeTests
         var type = new FieldSetType();
 
         // act
-        IValueNode valueSyntax = type.ParseValue(null);
+        var valueSyntax = type.ParseValue(null);
 
         // assert
         Assert.IsType<NullValueNode>(valueSyntax);

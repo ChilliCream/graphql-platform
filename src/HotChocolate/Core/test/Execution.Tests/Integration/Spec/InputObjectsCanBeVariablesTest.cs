@@ -5,18 +5,18 @@ using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Tests.TestHelper;
 
-namespace HotChocolate.Execution.Integration.Spec
-{
-    public class InputObjectsCanBeVariablesTest
-    {
-        // http://facebook.github.io/graphql/draft/#sec-All-Variable-Usages-are-Allowed
-        [Fact]
-        public async Task EnsureInputObjectsCanBeVariablesTest()
-        {
-            Snapshot.FullName();
+namespace HotChocolate.Execution.Integration.Spec;
 
-            await ExpectValid(
-                @"
+public class InputObjectsCanBeVariablesTest
+{
+    // http://facebook.github.io/graphql/draft/#sec-All-Variable-Usages-are-Allowed
+    [Fact]
+    public async Task EnsureInputObjectsCanBeVariablesTest()
+    {
+        Snapshot.FullName();
+
+        await ExpectValid(
+            @"
                     query ($a: String $b: String) {
                         anything(foo: {
                             a: $a
@@ -27,25 +27,25 @@ namespace HotChocolate.Execution.Integration.Spec
                         }
                     }
                 ",
-                r => r.AddQueryType<Query>(),
-                r => r.SetVariableValue(
-                        "a",
-                        "a"
-                    )
-                    .SetVariableValue(
-                        "b",
-                        "b"
-                    )
-            ).MatchSnapshotAsync();
-        }
+            r => r.AddQueryType<Query>(),
+            r => r.SetVariableValue(
+                    "a",
+                    "a"
+                )
+                .SetVariableValue(
+                    "b",
+                    "b"
+                )
+        ).MatchSnapshotAsync();
+    }
 
-        [Fact]
-        public async Task EnsureInputObjectsCanBeVariablesAndLiteralsTest()
-        {
-            Snapshot.FullName();
+    [Fact]
+    public async Task EnsureInputObjectsCanBeVariablesAndLiteralsTest()
+    {
+        Snapshot.FullName();
 
-            await ExpectValid(
-                @"
+        await ExpectValid(
+            @"
                     query ($a: String) {
                         anything(foo: {
                             a: $a
@@ -56,21 +56,21 @@ namespace HotChocolate.Execution.Integration.Spec
                         }
                     }
                 ",
-                r => r.AddQueryType<Query>(),
-                r => r.SetVariableValue(
-                        "a",
-                        "a"
-                    )
-            ).MatchSnapshotAsync();
-        }
+            r => r.AddQueryType<Query>(),
+            r => r.SetVariableValue(
+                "a",
+                "a"
+            )
+        ).MatchSnapshotAsync();
+    }
 
-        [Fact]
-        public async Task EnsureInputObjectsCanBeLiteralsTest()
-        {
-            Snapshot.FullName();
+    [Fact]
+    public async Task EnsureInputObjectsCanBeLiteralsTest()
+    {
+        Snapshot.FullName();
 
-            await ExpectValid(
-                @"
+        await ExpectValid(
+            @"
                     {
                         anything(foo: {
                             a: ""a""
@@ -81,23 +81,22 @@ namespace HotChocolate.Execution.Integration.Spec
                         }
                     }
                 ",
-                r => r.AddQueryType<Query>(),
-                r => { }
-            ).MatchSnapshotAsync();
-        }
+            r => r.AddQueryType<Query>(),
+            r => { }
+        ).MatchSnapshotAsync();
+    }
 
-        public class Query
+    public class Query
+    {
+        public Foo Anything(Foo foo)
         {
-            public Foo Anything(Foo foo)
-            {
-                return foo;
-            }
+            return foo;
         }
+    }
 
-        public class Foo
-        {
-            public string A { get; set; }
-            public string B { get; set; }
-        }
+    public class Foo
+    {
+        public string A { get; set; }
+        public string B { get; set; }
     }
 }

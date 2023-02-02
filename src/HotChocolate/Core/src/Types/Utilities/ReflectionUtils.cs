@@ -83,7 +83,7 @@ public static class ReflectionUtils
         Expression expression,
         bool allowStatic)
     {
-        MemberInfo member = ExtractMember(typeof(T), expression, allowStatic);
+        var member = ExtractMember(typeof(T), expression, allowStatic);
 
         if (member is null)
         {
@@ -155,7 +155,7 @@ public static class ReflectionUtils
                 type,
                 unwrappedExpr,
                 allowStatic,
-                out MemberInfo member) ||
+                out var member) ||
             TryExtractMemberFromMemberCallExpression(
                 type,
                 unwrappedExpr,
@@ -206,7 +206,7 @@ public static class ReflectionUtils
     private static string CreateGenericTypeName(Type type)
     {
         var name = type.Name.Substring(0, type.Name.Length - 2);
-        IEnumerable<string> arguments = type.GetGenericArguments().Select(GetTypeName);
+        var arguments = type.GetGenericArguments().Select(GetTypeName);
         return CreateTypeName(type, $"{name}<{string.Join(", ", arguments)}>");
     }
 
@@ -276,7 +276,7 @@ public static class ReflectionUtils
         Action<string, PropertyInfo> add,
         Type type)
     {
-        foreach (PropertyInfo property in type.GetProperties(
+        foreach (var property in type.GetProperties(
             BindingFlags.Instance | BindingFlags.Public)
             .Where(p => !IsIgnored(p)
                 && p.CanRead
@@ -303,13 +303,13 @@ public static class ReflectionUtils
             return method;
         }
 
-        Type[] parameters = method.GetParameters()
+        var parameters = method.GetParameters()
             .Select(t => t.ParameterType).ToArray();
-        Type current = type;
+        var current = type;
 
         while (current is not null && current != typeof(object))
         {
-            MethodInfo betterMatching = current.GetMethod(method.Name, parameters);
+            var betterMatching = current.GetMethod(method.Name, parameters);
 
             if (betterMatching != null)
             {
@@ -330,11 +330,11 @@ public static class ReflectionUtils
             return property;
         }
 
-        Type current = type;
+        var current = type;
 
         while (current is not null && current != typeof(object))
         {
-            PropertyInfo betterMatching = current.GetProperty(property.Name);
+            var betterMatching = current.GetProperty(property.Name);
 
             if (betterMatching != null)
             {

@@ -1,0 +1,29 @@
+schema {
+  query: Query
+}
+
+type Query {
+  foo(test: FooFilterInput): String
+}
+
+input FooFilterInput {
+  and: [FooFilterInput!]
+  or: [FooFilterInput!]
+  string: StringOperationFilterInput
+  stringNullable: StringOperationFilterInput
+}
+
+input StringOperationFilterInput {
+  and: [StringOperationFilterInput!]
+  or: [StringOperationFilterInput!]
+  eq: String
+  neq: String
+  contains: String
+  ncontains: String
+  in: [String]
+  nin: [String]
+  startsWith: String
+  nstartsWith: String
+  endsWith: String
+  nendsWith: String
+}

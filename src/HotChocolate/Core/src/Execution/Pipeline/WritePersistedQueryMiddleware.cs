@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Pipeline;
@@ -39,7 +38,7 @@ internal sealed class WritePersistedQueryMiddleware
             context.Document is { } &&
             context.DocumentId is { } documentId &&
             context.Request.Query is { } query &&
-            context.Result is IReadOnlyQueryResult result &&
+            context.Result is IQueryResult result &&
             context.IsValidDocument &&
             context.Request.Extensions is { } &&
             context.Request.Extensions.TryGetValue(_persistedQuery, out var s) &&
@@ -51,16 +50,15 @@ internal sealed class WritePersistedQueryMiddleware
             if (DoHashesMatch(settings, documentId, _hashProvider.Name, out var userHash))
             {
                 // save the query
-                await _persistedQueryStore.WriteQueryAsync(documentId, query)
-                    .ConfigureAwait(false);
+                await _persistedQueryStore.WriteQueryAsync(documentId, query).ConfigureAwait(false);
 
                 // add persistence receipt to the result
                 builder.SetExtension(
                     _persistedQuery,
                     new Dictionary<string, object>
                     {
-                            { _hashProvider.Name, userHash },
-                            { _persisted, true }
+                        { _hashProvider.Name, userHash },
+                        { _persisted, true }
                     });
 
                 context.ContextData[WellKnownContextData.DocumentSaved] = true;
@@ -71,11 +69,11 @@ internal sealed class WritePersistedQueryMiddleware
                     _persistedQuery,
                     new Dictionary<string, object?>
                     {
-                            { _hashProvider.Name, userHash },
-                            { _expectedValue, context.DocumentId },
-                            { _expectedType, _hashProvider.Name },
-                            { _expectedFormat, _hashProvider.Format.ToString() },
-                            { _persisted, false }
+                        { _hashProvider.Name, userHash },
+                        { _expectedValue, context.DocumentId },
+                        { _expectedType, _hashProvider.Name },
+                        { _expectedFormat, _hashProvider.Format.ToString() },
+                        { _persisted, false }
                     });
             }
 

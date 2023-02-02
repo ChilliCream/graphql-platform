@@ -8,47 +8,45 @@ using HotChocolate.Types.Descriptors;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Data.Filters.Spatial.SpatialOperationHandlerHelper;
 
-namespace HotChocolate.Data.Filters.Spatial
+namespace HotChocolate.Data.Filters.Spatial;
+
+public class QueryableSpatialDistanceOperationHandler
+    : QueryableSpatialMethodHandler
 {
-    public class QueryableSpatialDistanceOperationHandler
-        : QueryableSpatialMethodHandler
+    private static readonly MethodInfo _distance =
+        typeof(Geometry).GetMethod(nameof(Geometry.Distance))!;
+
+    public QueryableSpatialDistanceOperationHandler(
+        IFilterConvention convention,
+        ITypeInspector inspector,
+        InputParser inputParser)
+        : base(convention, inspector, inputParser, _distance)
     {
-        private static readonly MethodInfo _distance =
-            typeof(Geometry).GetMethod(nameof(Geometry.Distance))!;
+    }
 
-        public QueryableSpatialDistanceOperationHandler(
-            IFilterConvention convention,
-            ITypeInspector inspector,
-            InputParser inputParser)
-            : base(convention, inspector, inputParser, _distance)
+    protected override int Operation => SpatialFilterOperations.Distance;
+
+    protected override bool TryHandleOperation(
+        QueryableFilterContext context,
+        IFilterOperationField field,
+        ObjectFieldNode node,
+        [NotNullWhen(true)] out Expression? result)
+    {
+        if (TryGetParameter(field, node.Value, GeometryFieldName, out Geometry g))
         {
-        }
-
-        protected override int Operation => SpatialFilterOperations.Distance;
-
-        protected override bool TryHandleOperation(
-            QueryableFilterContext context,
-            IFilterOperationField field,
-            ObjectFieldNode node,
-            [NotNullWhen(true)] out Expression? result)
-        {
-            if (TryGetParameter(field, node.Value, GeometryFieldName, out Geometry g))
+            if (TryGetParameter(field, node.Value, BufferFieldName, out double buffer))
             {
-                if (TryGetParameter(field, node.Value, BufferFieldName, out double buffer))
-                {
-                    result = ExpressionBuilder.Distance(
-                        context.GetInstance(),
-                        ExpressionBuilder.Buffer(g, buffer));
+                result = ExpressionBuilder
+                    .Distance(context.GetInstance(), ExpressionBuilder.Buffer(g, buffer));
 
-                    return true;
-                }
-
-                result = ExpressionBuilder.Distance(context.GetInstance(), g);
                 return true;
             }
 
-            result = null;
-            return false;
+            result = ExpressionBuilder.Distance(context.GetInstance(), g);
+            return true;
         }
+
+        result = null;
+        return false;
     }
 }

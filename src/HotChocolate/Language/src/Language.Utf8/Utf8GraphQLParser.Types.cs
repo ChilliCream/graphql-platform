@@ -17,7 +17,7 @@ public ref partial struct Utf8GraphQLParser
 
         if (_reader.Kind == TokenKind.LeftBracket)
         {
-            TokenInfo start = Start();
+            var start = Start();
 
             MoveNext();
             type = ParseTypeReference();
@@ -36,7 +36,7 @@ public ref partial struct Utf8GraphQLParser
         {
             if (type is INullableTypeNode nt)
             {
-                TokenInfo start = Start();
+                var start = Start();
                 MoveNext();
                 location = CreateLocation(in start);
 
@@ -58,12 +58,11 @@ public ref partial struct Utf8GraphQLParser
     /// <see cref="NamedTypeNode" />:
     /// Name
     /// </summary>
-    /// <param name="context">The parser context.</param>
     private NamedTypeNode ParseNamedType()
     {
-        TokenInfo start = Start();
-        NameNode name = ParseName();
-        Location? location = CreateLocation(in start);
+        var start = Start();
+        var name = ParseName();
+        var location = CreateLocation(in start);
 
         return new NamedTypeNode
         (

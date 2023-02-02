@@ -1,11 +1,12 @@
-import React, { FC, useEffect, useRef } from "react";
+import React, { FC, PropsWithChildren, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import styled from "styled-components";
-import { hasScrolled } from "../../state/common";
-import { PageTop } from "../misc/page-top";
+
+import { PageTop } from "@/components/misc/page-top";
+import { hasScrolled } from "@/state/common";
 import { Footer } from "./footer";
 
-export const Main: FC = ({ children }) => {
+export const Main: FC<PropsWithChildren<unknown>> = ({ children }) => {
   const ref = useRef<HTMLDivElement>(null);
   const dispatch = useDispatch();
 
@@ -28,7 +29,8 @@ export const Main: FC = ({ children }) => {
       );
     };
 
-    ref.current?.addEventListener("scroll", handleScroll);
+    ref.current?.addEventListener("scroll", handleScroll, { passive: true });
+
     return () => {
       ref.current?.removeEventListener("scroll", handleScroll);
     };
@@ -40,12 +42,7 @@ export const Main: FC = ({ children }) => {
     if (hash) {
       const headlineElement = document.getElementById(hash.substring(1));
 
-      if (headlineElement) {
-        window.setTimeout(
-          () => window.scrollTo(0, headlineElement.offsetTop - 80),
-          100
-        );
-      }
+      headlineElement?.scrollIntoView();
     }
   });
 
@@ -70,6 +67,7 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   margin-top: 60px;
+  height: calc(100vh - 60px);
   overflow-y: auto;
 `;
 
@@ -79,4 +77,5 @@ const Content = styled.main`
   align-items: center;
   width: 100%;
   overflow: visible;
+  flex: 1 0 auto;
 `;

@@ -2,7 +2,6 @@ using System;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 #nullable enable
@@ -14,102 +13,72 @@ namespace HotChocolate;
 /// </summary>
 public interface IReadOnlySchemaOptions
 {
-    /// <summary>
-    /// Gets the name of the query type.
-    /// </summary>
+    /// <inheritdoc cref="SchemaOptions.QueryTypeName"/>
     string? QueryTypeName { get; }
 
-    /// <summary>
-    /// Gets or sets the name of the mutation type.
-    /// </summary>
+    /// <inheritdoc cref="SchemaOptions.MutationTypeName"/>
     string? MutationTypeName { get; }
 
-    /// <summary>
-    /// Gets or sets the name of the subscription type.
-    /// </summary>
+    /// <inheritdoc cref="SchemaOptions.SubscriptionTypeName"/>
     string? SubscriptionTypeName { get; }
 
-    /// <summary>
-    /// Defines if the schema allows the query type to be omitted.
-    /// </summary>
+    /// <inheritdoc cref="SchemaOptions.StrictValidation"/>
     bool StrictValidation { get; }
 
-    /// <summary>
-    /// Defines if the CSharp XML documentation shall be integrated.
-    /// </summary>
+    /// <inheritdoc cref="SchemaOptions.UseXmlDocumentation"/>
     bool UseXmlDocumentation { get; }
 
-    /// <summary>
-    /// A delegate which resolves the name of the XML documentation file to be read.
-    /// Only used if <seealso cref="UseXmlDocumentation"/> is true.
-    /// </summary>
+    /// <inheritdoc cref="SchemaOptions.ResolveXmlDocumentationFileName"/>
     Func<Assembly, string>? ResolveXmlDocumentationFileName { get; }
 
-    /// <summary>
-    /// Defines if fields shall be sorted by name.
-    /// Default: <c>false</c>
-    /// </summary>
+    /// <inheritdoc cref="SchemaOptions.SortFieldsByName"/>
     bool SortFieldsByName { get; }
 
-    /// <summary>
-    /// Defines if syntax nodes shall be preserved on the type system objects
-    /// </summary>
+    /// <inheritdoc cref="SchemaOptions.PreserveSyntaxNodes"/>
     bool PreserveSyntaxNodes { get; }
 
-    /// <summary>
-    /// Defines if types shall be removed from the schema that are
-    /// unreachable from the root types.
-    /// </summary>
+    /// <inheritdoc cref="SchemaOptions.RemoveUnreachableTypes"/>
     bool RemoveUnreachableTypes { get; }
 
-    /// <summary>
-    /// Defines the default binding behavior.
-    /// </summary>
+    /// <inheritdoc cref="SchemaOptions.DefaultBindingBehavior"/>
     BindingBehavior DefaultBindingBehavior { get; }
 
-    /// <summary>
-    /// Defines on which fields a middleware pipeline can be applied on.
-    /// </summary>
+    /// <inheritdoc cref="SchemaOptions.DefaultFieldBindingFlags"/>
+    FieldBindingFlags DefaultFieldBindingFlags { get; }
+
+    /// <inheritdoc cref="SchemaOptions.FieldMiddleware"/>
     FieldMiddlewareApplication FieldMiddleware { get; }
 
-    /// <summary>
-    /// Defines if the experimental directive introspection feature shall be enabled.
-    /// </summary>
+    /// <inheritdoc cref="SchemaOptions.EnableDirectiveIntrospection"/>
     bool EnableDirectiveIntrospection { get; }
 
-    /// <summary>
-    /// The default directive visibility when directive introspection is enabled.
-    /// </summary>
+    /// <inheritdoc cref="SchemaOptions.DefaultDirectiveVisibility"/>
     DirectiveVisibility DefaultDirectiveVisibility { get; }
 
-    /// <summary>
-    /// Defines if field inlining is allowed.
-    /// </summary>
-    bool AllowInlining { get; }
-
-    /// <summary>
-    /// Defines that the default resolver execution strategy.
-    /// </summary>
+    /// <inheritdoc cref="SchemaOptions.DefaultResolverStrategy"/>
     ExecutionStrategy DefaultResolverStrategy { get; }
 
-    /// <summary>
-    /// Defines if the order of important middleware components shall be validated.
-    /// </summary>
+    /// <inheritdoc cref="SchemaOptions.ValidatePipelineOrder"/>
     bool ValidatePipelineOrder { get; }
 
-    /// <summary>
-    /// Defines if the runtime types of types shall be validated.
-    /// </summary>
+    /// <inheritdoc cref="SchemaOptions.StrictRuntimeTypeValidation"/>
     bool StrictRuntimeTypeValidation { get; }
 
-    /// <summary>
-    /// Defines a delegate that determines if a runtime
-    /// is an instance of an <see cref="ObjectType{T}"/>.
-    /// </summary>
+    /// <inheritdoc cref="SchemaOptions.DefaultIsOfTypeCheck"/>
     IsOfTypeFallback? DefaultIsOfTypeCheck { get; }
 
-    /// <summary>
-    /// Defines if the OneOf spec RFC is enabled. This feature is experimental.
-    /// </summary>
+    /// <inheritdoc cref="SchemaOptions.EnableOneOf"/>
     bool EnableOneOf { get; }
+
+    /// <inheritdoc cref="SchemaOptions.EnsureAllNodesCanBeResolved"/>
+    bool EnsureAllNodesCanBeResolved { get; }
+
+    /// <inheritdoc cref="SchemaOptions.EnableFlagEnums"/>
+    bool EnableFlagEnums { get; }
+
+    /// <inheritdoc cref="SchemaOptions.EnableDefer"/>
+    bool EnableDefer { get; }
+
+    /// <inheritdoc cref="SchemaOptions.EnableStream"/>
+    bool EnableStream { get; }
 }

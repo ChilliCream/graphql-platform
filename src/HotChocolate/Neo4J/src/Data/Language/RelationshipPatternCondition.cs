@@ -1,24 +1,23 @@
-namespace HotChocolate.Data.Neo4J.Language
+namespace HotChocolate.Data.Neo4J.Language;
+
+/// <summary>
+/// Internal wrapper for marking a path pattern as a condition.
+/// </summary>
+public class RelationshipPatternCondition : Condition
 {
-    /// <summary>
-    /// Internal wrapper for marking a path pattern as a condition.
-    /// </summary>
-    public class RelationshipPatternCondition : Condition
+    public RelationshipPatternCondition(IRelationshipPattern pattern)
     {
-        public RelationshipPatternCondition(IRelationshipPattern pattern)
-        {
-            Pattern = pattern;
-        }
+        Pattern = pattern;
+    }
 
-        public override ClauseKind Kind => ClauseKind.RelationshipPatternCondition;
+    public override ClauseKind Kind => ClauseKind.RelationshipPatternCondition;
 
-        public IRelationshipPattern Pattern { get; }
+    public IRelationshipPattern Pattern { get; }
 
-        public override void Visit(CypherVisitor cypherVisitor)
-        {
-            cypherVisitor.Enter(this);
-            Pattern.Visit(cypherVisitor);
-            cypherVisitor.Leave(this);
-        }
+    public override void Visit(CypherVisitor cypherVisitor)
+    {
+        cypherVisitor.Enter(this);
+        Pattern.Visit(cypherVisitor);
+        cypherVisitor.Leave(this);
     }
 }

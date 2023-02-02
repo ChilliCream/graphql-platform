@@ -7,45 +7,43 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using NetTopologySuite.Geometries;
 
-namespace HotChocolate.Data.Filters.Spatial
+namespace HotChocolate.Data.Filters.Spatial;
+
+public abstract class QueryableSpatialContainsOperationHandlerBase
+    : QueryableSpatialBooleanMethodHandler
 {
-    public abstract class QueryableSpatialContainsOperationHandlerBase
-        : QueryableSpatialBooleanMethodHandler
+    private static readonly MethodInfo _contains =
+        typeof(Geometry).GetMethod(nameof(Geometry.Contains))!;
+
+    public QueryableSpatialContainsOperationHandlerBase(
+        IFilterConvention convention,
+        ITypeInspector inspector,
+        InputParser inputParser)
+        : base(convention, inspector, inputParser, _contains)
     {
-        private static readonly MethodInfo _contains =
-            typeof(Geometry).GetMethod(nameof(Geometry.Contains))!;
+    }
 
-        public QueryableSpatialContainsOperationHandlerBase(
-            IFilterConvention convention,
-            ITypeInspector inspector,
-            InputParser inputParser)
-            : base(convention, inspector, inputParser, _contains)
+    protected override bool TryHandleOperation(
+        QueryableFilterContext context,
+        IFilterOperationField field,
+        ObjectFieldNode node,
+        [NotNullWhen(true)] out Expression? result)
+    {
+        if (TryGetParameter(field, node.Value, GeometryFieldName, out Geometry g))
         {
-        }
-
-        protected override bool TryHandleOperation(
-            QueryableFilterContext context,
-            IFilterOperationField field,
-            ObjectFieldNode node,
-            [NotNullWhen(true)] out Expression? result)
-        {
-            if (TryGetParameter(field, node.Value, GeometryFieldName, out Geometry g))
+            if (TryGetParameter(field, node.Value, BufferFieldName, out double buffer))
             {
-                if (TryGetParameter(field, node.Value, BufferFieldName, out double buffer))
-                {
-                    result = ExpressionBuilder.Contains(
-                        context.GetInstance(),
-                        ExpressionBuilder.Buffer(g, buffer));
+                result = ExpressionBuilder
+                    .Contains(context.GetInstance(), ExpressionBuilder.Buffer(g, buffer));
 
-                    return true;
-                }
-
-                result = ExpressionBuilder.Contains(context.GetInstance(), g);
                 return true;
             }
 
-            result = null;
-            return false;
+            result = ExpressionBuilder.Contains(context.GetInstance(), g);
+            return true;
         }
+
+        result = null;
+        return false;
     }
 }

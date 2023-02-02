@@ -1,0 +1,24 @@
+﻿{
+  "id": "abc",
+  "type": "error",
+  "payload": [
+    {
+      "message": "The field `_stars` does not exist on the type `Review`.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 46
+        }
+      ],
+      "path": [
+        "onReview"
+      ],
+      "extensions": {
+        "type": "Review",
+        "field": "_stars",
+        "responseName": "_stars",
+        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      }
+    }
+  ]
+}

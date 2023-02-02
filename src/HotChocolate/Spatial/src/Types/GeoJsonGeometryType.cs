@@ -1,13 +1,12 @@
-namespace HotChocolate.Types.Spatial
+namespace HotChocolate.Types.Spatial;
+
+public enum GeoJsonGeometryType
 {
-    public enum GeoJsonGeometryType
-    {
-        Point,
-        MultiPoint,
-        LineString,
-        MultiLineString,
-        Polygon,
-        MultiPolygon,
-        GeometryCollection
-    }
+    Point,
+    MultiPoint,
+    LineString,
+    MultiLineString,
+    Polygon,
+    MultiPolygon,
+    GeometryCollection
 }

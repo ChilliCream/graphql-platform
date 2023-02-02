@@ -1,0 +1,14 @@
+﻿{
+  "data": {
+    "nodes": [
+      {
+        "id": "Rm9vCmRhYmM=",
+        "__typename": "Foo"
+      },
+      {
+        "id": "Rm9vCmRhYmM=",
+        "__typename": "Foo"
+      }
+    ]
+  }
+}

@@ -3,7 +3,8 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Utilities;
 
-public class QueryDelegationRewriterBase : IQueryDelegationRewriter
+public class QueryDelegationRewriterBase
+    : IQueryDelegationRewriter
 {
     /// <summary>
     /// This method will be called after the stitching layer
@@ -22,7 +23,7 @@ public class QueryDelegationRewriterBase : IQueryDelegationRewriter
     /// The field selection syntax node.
     /// </param>
     public virtual FieldNode OnRewriteField(
-        NameString targetSchemaName,
+        string targetSchemaName,
         IOutputType outputType,
         IOutputField outputField,
         FieldNode field)
@@ -48,7 +49,7 @@ public class QueryDelegationRewriterBase : IQueryDelegationRewriter
     /// The list of selections that shall be added to the delegation query.
     /// </param>
     public virtual SelectionSetNode OnRewriteSelectionSet(
-        NameString targetSchemaName,
+        string targetSchemaName,
         IOutputType outputType,
         IOutputField outputField,
         SelectionSetNode selectionSet)

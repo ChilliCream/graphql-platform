@@ -8,7 +8,7 @@ public abstract class SortTestBase
 {
     public ISchema CreateSchema(Action<ISchemaBuilder> configure)
     {
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddSorting()
             .AddQueryType(c =>
                 c.Name("Query")

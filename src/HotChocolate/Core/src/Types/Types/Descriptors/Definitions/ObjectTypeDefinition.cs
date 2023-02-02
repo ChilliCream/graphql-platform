@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -16,8 +17,9 @@ public class ObjectTypeDefinition
     , IComplexOutputTypeDefinition
 {
     private List<Type>? _knownClrTypes;
-    private List<ITypeReference>? _interfaces;
+    private List<TypeReference>? _interfaces;
     private List<ObjectFieldBinding>? _fieldIgnores;
+    private FieldBindingFlags _fieldBindingFlags = FieldBindingFlags.Instance;
 
     /// <summary>
     /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
@@ -28,7 +30,7 @@ public class ObjectTypeDefinition
     /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
     /// </summary>
     public ObjectTypeDefinition(
-        NameString name,
+        string name,
         string? description = null,
         Type? runtimeType = null)
         : base(runtimeType ?? typeof(object))
@@ -81,8 +83,8 @@ public class ObjectTypeDefinition
     /// <summary>
     /// Gets the interfaces that this object type implements.
     /// </summary>
-    public IList<ITypeReference> Interfaces =>
-        _interfaces ??= new List<ITypeReference>();
+    public IList<TypeReference> Interfaces =>
+        _interfaces ??= new List<TypeReference>();
 
     /// <summary>
     /// Specifies if this definition has interfaces.
@@ -95,6 +97,31 @@ public class ObjectTypeDefinition
     public IBindableList<ObjectFieldDefinition> Fields { get; } =
         new BindableList<ObjectFieldDefinition>();
 
+    /// <summary>
+    /// Gets the field binding flags, which defines how runtime
+    /// members are inferred as GraphQL fields.
+    /// </summary>
+    public FieldBindingFlags FieldBindingFlags
+    {
+        get
+        {
+            if (Fields.BindingBehavior == BindingBehavior.Explicit)
+            {
+                return FieldBindingFlags.Default;
+            }
+
+            return _fieldBindingFlags;
+        }
+        set
+        {
+            Fields.BindingBehavior =
+                value == FieldBindingFlags.Default
+                    ? BindingBehavior.Explicit
+                    : BindingBehavior.Implicit;
+            _fieldBindingFlags = value;
+        }
+    }
+
     public override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
     {
         List<ITypeSystemMemberConfiguration>? configs = null;
@@ -105,7 +132,7 @@ public class ObjectTypeDefinition
             configs.AddRange(Configurations);
         }
 
-        foreach (ObjectFieldDefinition field in Fields)
+        foreach (var field in Fields)
         {
             if (field.HasConfigurations)
             {
@@ -113,7 +140,7 @@ public class ObjectTypeDefinition
                 configs.AddRange(field.Configurations);
             }
 
-            foreach (ArgumentDefinition argument in field.GetArguments())
+            foreach (var argument in field.GetArguments())
             {
                 if (argument.HasConfigurations)
                 {
@@ -136,11 +163,11 @@ public class ObjectTypeDefinition
         return _knownClrTypes;
     }
 
-    internal IReadOnlyList<ITypeReference> GetInterfaces()
+    internal IReadOnlyList<TypeReference> GetInterfaces()
     {
         if (_interfaces is null)
         {
-            return Array.Empty<ITypeReference>();
+            return Array.Empty<TypeReference>();
         }
 
         return _interfaces;
@@ -167,7 +194,7 @@ public class ObjectTypeDefinition
 
         if (_interfaces is { Count: > 0 })
         {
-            target._interfaces = new List<ITypeReference>(_interfaces);
+            target._interfaces = new List<TypeReference>(_interfaces);
         }
 
         if (_fieldIgnores is { Count: > 0 })
@@ -179,7 +206,7 @@ public class ObjectTypeDefinition
         {
             target.Fields.Clear();
 
-            foreach (ObjectFieldDefinition? field in Fields)
+            foreach (var field in Fields)
             {
                 target.Fields.Add(field);
             }
@@ -202,7 +229,7 @@ public class ObjectTypeDefinition
 
         if (_interfaces is { Count: > 0 })
         {
-            target._interfaces ??= new List<ITypeReference>();
+            target._interfaces ??= new List<TypeReference>();
             target._interfaces.AddRange(_interfaces);
         }
 
@@ -212,15 +239,15 @@ public class ObjectTypeDefinition
             target._fieldIgnores.AddRange(_fieldIgnores);
         }
 
-        foreach (ObjectFieldDefinition? field in Fields)
+        foreach (var field in Fields)
         {
-            ObjectFieldDefinition? targetField = field switch
+            var targetField = field switch
             {
                 { BindToField: { Type: ObjectFieldBindingType.Property } bindTo } =>
-                    target.Fields.FirstOrDefault(t => bindTo.Name.Equals(t.Member?.Name!)),
+                    target.Fields.FirstOrDefault(t => bindTo.Name.EqualsOrdinal(t.Member?.Name!)),
                 { BindToField: { Type: ObjectFieldBindingType.Field } bindTo } =>
-                    target.Fields.FirstOrDefault(t => bindTo.Name.Equals(t.Name)),
-                _ => target.Fields.FirstOrDefault(t => field.Name.Equals(t.Name))
+                    target.Fields.FirstOrDefault(t => bindTo.Name.EqualsOrdinal(t.Name)),
+                _ => target.Fields.FirstOrDefault(t => field.Name.EqualsOrdinal(t.Name))
             };
 
             var replaceField = field.BindToField?.Replace ?? false;
@@ -230,7 +257,7 @@ public class ObjectTypeDefinition
             if (field.Member is MethodInfo p &&
                 p.GetParameters() is { Length: > 0 } parameters)
             {
-                ParameterInfo? parent = parameters.FirstOrDefault(
+                var parent = parameters.FirstOrDefault(
                     t => t.IsDefined(typeof(ParentAttribute), true));
                 if (parent is not null &&
                     !parent.ParameterType.IsAssignableFrom(target.RuntimeType) &&
@@ -259,7 +286,6 @@ public class ObjectTypeDefinition
                 newField.SourceType = target.RuntimeType;
 
                 SetResolverMember(newField, targetField);
-
                 target.Fields.Add(newField);
             }
             else

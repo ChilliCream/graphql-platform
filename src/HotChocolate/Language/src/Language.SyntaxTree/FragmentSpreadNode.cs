@@ -3,9 +3,7 @@ using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
-public sealed class FragmentSpreadNode
-    : NamedSyntaxNode
-    , ISelectionNode
+public sealed class FragmentSpreadNode : NamedSyntaxNode, ISelectionNode
 {
     public FragmentSpreadNode(
         Location? location,
@@ -14,13 +12,15 @@ public sealed class FragmentSpreadNode
         : base(location, name, directives)
     { }
 
-    public override SyntaxKind Kind { get; } = SyntaxKind.FragmentSpread;
+    /// <inheritdoc/>
+    public override SyntaxKind Kind => SyntaxKind.FragmentSpread;
 
+    /// <inheritdoc/>
     public override IEnumerable<ISyntaxNode> GetNodes()
     {
         yield return Name;
 
-        foreach (DirectiveNode directive in Directives)
+        foreach (var directive in Directives)
         {
             yield return directive;
         }
@@ -47,19 +47,10 @@ public sealed class FragmentSpreadNode
     /// </returns>
     public override string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
-    public FragmentSpreadNode WithLocation(Location? location)
-    {
-        return new FragmentSpreadNode(location, Name, Directives);
-    }
+    public FragmentSpreadNode WithLocation(Location? location) => new(location, Name, Directives);
 
-    public FragmentSpreadNode WithName(NameNode name)
-    {
-        return new FragmentSpreadNode(Location, name, Directives);
-    }
+    public FragmentSpreadNode WithName(NameNode name) => new(Location, name, Directives);
 
-    public FragmentSpreadNode WithDirectives(
-        IReadOnlyList<DirectiveNode> directives)
-    {
-        return new FragmentSpreadNode(Location, Name, directives);
-    }
+    public FragmentSpreadNode WithDirectives(IReadOnlyList<DirectiveNode> directives)
+        => new(Location, Name, directives);
 }

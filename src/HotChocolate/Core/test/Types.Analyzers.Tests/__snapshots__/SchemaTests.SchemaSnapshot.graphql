@@ -1,0 +1,40 @@
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+interface Entity {
+  name: String!
+}
+
+type Mutation {
+  doSomething: String!
+}
+
+type Person implements Entity {
+  name: String!
+  lastName: String!
+  address: String!
+}
+
+type Query {
+  staticField: String!
+  person: Entity
+  enum: CustomEnum
+  book: SomeBook!
+  withDataLoader: String!
+}
+
+type SomeBook {
+  title: String
+}
+
+type Subscription {
+  onSomething: String!
+}
+
+enum CustomEnum {
+  ABC
+  DEF
+}

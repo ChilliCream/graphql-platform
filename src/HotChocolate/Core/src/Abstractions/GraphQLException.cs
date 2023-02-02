@@ -1,3 +1,5 @@
+#pragma warning disable RCS1194 
+
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
@@ -30,6 +32,18 @@ public class GraphQLException : Exception
         Errors = new List<IError>(
            errors ?? Array.Empty<IError>())
                .AsReadOnly();
+    }
+
+    public GraphQLException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+        Errors = new[]
+        {
+            ErrorBuilder.New()
+                .SetMessage(message)
+                .SetException(innerException)
+                .Build()
+        };
     }
 
     protected GraphQLException(

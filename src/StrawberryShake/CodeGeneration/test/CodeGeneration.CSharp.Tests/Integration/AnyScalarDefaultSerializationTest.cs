@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate;
-using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,7 +24,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.AnyScalarDefaultSeri
         {
             // arrange
             using var cts = new CancellationTokenSource(20_000);
-            using IWebHost host = TestServerHelper.CreateServer(
+            using var host = TestServerHelper.CreateServer(
                 builder =>
                 {
                     builder.AddTypeExtension<QueryResolvers>();
@@ -39,7 +39,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.AnyScalarDefaultSeri
                 c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
             serviceCollection.AddAnyScalarDefaultSerializationClient();
             IServiceProvider services = serviceCollection.BuildServiceProvider();
-            AnyScalarDefaultSerializationClient client =
+            var client =
                 services.GetRequiredService<AnyScalarDefaultSerializationClient>();
 
             // act

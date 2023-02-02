@@ -1,18 +1,17 @@
 using HotChocolate.Data.Sorting;
 
-namespace HotChocolate.Data.Neo4J.Sorting
-{
-    internal static class Neo4JSortFieldExtensions
-    {
-        public static string GetName(this ISortField field)
-        {
-            string fieldName = field.Name;
-            if (field.Member is { } p)
-            {
-                fieldName = p.Name;
-            }
+namespace HotChocolate.Data.Neo4J.Sorting;
 
-            return fieldName;
+internal static class Neo4JSortFieldExtensions
+{
+    public static string GetName(this ISortField field)
+    {
+        var fieldName = field.Name;
+        if (field.Member is { } p)
+        {
+            fieldName = p.Name;
         }
+
+        return fieldName;
     }
 }

@@ -10,8 +10,8 @@ public class Utf8HelperTests
     public void Unescape_NothingIsEscaped_InputIsOutput()
     {
         // arrange
-        byte[] inputData = Encoding.UTF8.GetBytes("hello_123");
-        byte[] outputBuffer = new byte[inputData.Length];
+        var inputData = Encoding.UTF8.GetBytes("hello_123");
+        var outputBuffer = new byte[inputData.Length];
 
         var input = new ReadOnlySpan<byte>(inputData);
         var output = new Span<byte>(outputBuffer);
@@ -34,8 +34,8 @@ public class Utf8HelperTests
         string escaped, string unescaped)
     {
         // arrange
-        byte[] inputData = Encoding.UTF8.GetBytes("hello_123_" + escaped);
-        byte[] outputBuffer = new byte[inputData.Length];
+        var inputData = Encoding.UTF8.GetBytes("hello_123_" + escaped);
+        var outputBuffer = new byte[inputData.Length];
 
         var input = new ReadOnlySpan<byte>(inputData);
         var output = new Span<byte>(outputBuffer);
@@ -59,8 +59,8 @@ public class Utf8HelperTests
         string escaped, string unescaped)
     {
         // arrange
-        byte[] inputData = Encoding.UTF8.GetBytes("hello_123_" + escaped);
-        byte[] outputBuffer = new byte[inputData.Length];
+        var inputData = Encoding.UTF8.GetBytes("hello_123_" + escaped);
+        var outputBuffer = new byte[inputData.Length];
 
         var input = new ReadOnlySpan<byte>(inputData);
         var output = new Span<byte>(outputBuffer);
@@ -81,8 +81,8 @@ public class Utf8HelperTests
        string escaped)
     {
         // arrange
-        byte[] inputData = Encoding.UTF8.GetBytes("hello_123_" + escaped);
-        byte[] outputBuffer = new byte[inputData.Length];
+        var inputData = Encoding.UTF8.GetBytes("hello_123_" + escaped);
+        var outputBuffer = new byte[inputData.Length];
 
         var input = new ReadOnlySpan<byte>(inputData);
         var output = new Span<byte>(outputBuffer);
@@ -109,8 +109,8 @@ public class Utf8HelperTests
        string escaped, string unescaped)
     {
         // arrange
-        byte[] inputData = Encoding.UTF8.GetBytes("hello_123_" + escaped);
-        byte[] outputBuffer = new byte[inputData.Length];
+        var inputData = Encoding.UTF8.GetBytes("hello_123_" + escaped);
+        var outputBuffer = new byte[inputData.Length];
 
         var input = new ReadOnlySpan<byte>(inputData);
         var output = new Span<byte>(outputBuffer);

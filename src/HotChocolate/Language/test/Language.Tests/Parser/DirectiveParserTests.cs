@@ -16,10 +16,10 @@ public class DirectiveParserTests
         var parser = new Utf8GraphQLParser(Encoding.UTF8.GetBytes(text));
 
         // assert
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
-        DirectiveDefinitionNode directiveDefinition = document.Definitions
+        var directiveDefinition = document.Definitions
             .OfType<DirectiveDefinitionNode>().FirstOrDefault();
         Assert.NotNull(directiveDefinition);
         Assert.False(directiveDefinition.IsRepeatable);
@@ -34,13 +34,35 @@ public class DirectiveParserTests
         var parser = new Utf8GraphQLParser(Encoding.UTF8.GetBytes(text));
 
         // assert
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
-        DirectiveDefinitionNode directiveDefinition = document.Definitions
+        var directiveDefinition = document.Definitions
             .OfType<DirectiveDefinitionNode>().FirstOrDefault();
         Assert.NotNull(directiveDefinition);
         Assert.True(directiveDefinition.IsRepeatable);
+    }
+
+    [Fact]
+    public void ParseDescription()
+    {
+        // arrange
+        var text = @"
+            """"""
+            Description
+            """"""
+            directive @foo(bar:String!) on FIELD_DEFINITION
+            ";
+        var parser = new Utf8GraphQLParser(Encoding.UTF8.GetBytes(text));
+
+        // assert
+        var document = parser.Parse();
+
+        // assert
+        var directiveDefinition = document.Definitions
+            .OfType<DirectiveDefinitionNode>().FirstOrDefault();
+        Assert.NotNull(directiveDefinition);
+        Assert.Equal("Description", directiveDefinition.Description!.Value);
     }
 
     [Fact]
@@ -51,10 +73,10 @@ public class DirectiveParserTests
         var parser = new Utf8GraphQLParser(Encoding.UTF8.GetBytes(text));
 
         // assert
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
-        ObjectTypeDefinitionNode type = document.Definitions
+        var type = document.Definitions
             .OfType<ObjectTypeDefinitionNode>().FirstOrDefault();
         Assert.Collection(type.Fields.Single().Directives,
             t => Assert.Equal("a", t.Name.Value),
@@ -73,7 +95,7 @@ public class DirectiveParserTests
             ";
 
         // act
-        DocumentNode document = Utf8GraphQLParser.Parse(
+        var document = Utf8GraphQLParser.Parse(
             Encoding.UTF8.GetBytes(text));
 
         // assert

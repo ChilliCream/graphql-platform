@@ -4,32 +4,32 @@
       "type": "HotChocolate.Configuration.TypeDiscovererTests.FooType",
       "runtimeType": "HotChocolate.Configuration.TypeDiscovererTests.Foo",
       "references": [
-        "Output: HotChocolate.Configuration.TypeDiscovererTests+FooType",
-        "Output: FooType",
-        "Output: ObjectType<Foo>"
+        "HotChocolate.Configuration.TypeDiscovererTests+FooType (Output)",
+        "FooType (Output)",
+        "ObjectType<Foo> (Output)"
       ]
     },
     {
       "type": "HotChocolate.Configuration.TypeDiscovererTests.BarType",
       "runtimeType": "HotChocolate.Configuration.TypeDiscovererTests.Bar",
       "references": [
-        "Output: HotChocolate.Configuration.TypeDiscovererTests+BarType",
-        "Output: BarType",
-        "Output: ObjectType<Bar>"
+        "HotChocolate.Configuration.TypeDiscovererTests+BarType (Output)",
+        "BarType (Output)",
+        "ObjectType<Bar> (Output)"
       ]
     },
     {
       "type": "HotChocolate.Types.StringType",
       "runtimeType": "System.String",
       "references": [
-        "None: HotChocolate.Types.StringType",
-        "None: StringType"
+        "HotChocolate.Types.StringType",
+        "StringType"
       ]
     }
   ],
   "runtimeTypeRefs": {
-    "Output: Foo": "Output: HotChocolate.Configuration.TypeDiscovererTests+FooType",
-    "Output: Bar": "Output: HotChocolate.Configuration.TypeDiscovererTests+BarType",
-    "Output: String": "None: StringType"
+    "Foo (Output)": "HotChocolate.Configuration.TypeDiscovererTests+FooType (Output)",
+    "Bar (Output)": "HotChocolate.Configuration.TypeDiscovererTests+BarType (Output)",
+    "String (Output)": "StringType"
   }
 }

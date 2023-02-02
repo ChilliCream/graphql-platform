@@ -1,0 +1,22 @@
+schema {
+  query: Query3
+}
+
+type Foo {
+  bar: String!
+  baz: Int!
+  qux: Int
+}
+
+type Query3 {
+  foos(order: [FooSortInput!]): [Foo!]!
+}
+
+input FooSortInput {
+  bar: SortEnumType
+}
+
+enum SortEnumType {
+  ASC
+  DESC
+}

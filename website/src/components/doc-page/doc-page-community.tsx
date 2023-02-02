@@ -1,12 +1,16 @@
 import { graphql } from "gatsby";
 import React, { FC } from "react";
 import styled from "styled-components";
-import { DocPageCommunityFragment } from "../../../graphql-types";
-import GitHubIconSvg from "../../images/github.svg";
-import SlackIconSvg from "../../images/slack.svg";
-import { THEME_COLORS } from "../../shared-style";
-import { IconContainer } from "../misc/icon-container";
-import { Link } from "../misc/link";
+
+import { IconContainer } from "@/components/misc/icon-container";
+import { Link } from "@/components/misc/link";
+import { Brand } from "@/components/sprites";
+import { DocPageCommunityFragment } from "@/graphql-types";
+import { THEME_COLORS } from "@/shared-style";
+
+// Brands
+import GitHubIconSvg from "@/images/brands/github.svg";
+import SlackIconSvg from "@/images/brands/slack.svg";
 
 export interface DocPageCommunityProps {
   readonly data: DocPageCommunityFragment;
@@ -27,7 +31,7 @@ export const DocPageCommunity: FC<DocPageCommunityProps> = ({
         <CommunityItem>
           <CommunityLink to={docPath}>
             <IconContainer>
-              <GitHubIconSvg />
+              <Brand {...GitHubIconSvg} />
             </IconContainer>
             Edit on GitHub
           </CommunityLink>
@@ -35,7 +39,7 @@ export const DocPageCommunity: FC<DocPageCommunityProps> = ({
         <CommunityItem>
           <CommunityLink to={metadata.tools!.slack!}>
             <IconContainer>
-              <SlackIconSvg />
+              <Brand {...SlackIconSvg} />
             </IconContainer>
             Discuss on Slack
           </CommunityLink>

@@ -50,7 +50,7 @@ type Consultant {
 }
 ```
 
-In real life this schema would boast a lot more information about our customer but this will surfice for our little demo.
+In real life this schema would boast a lot more information about our customer but this will suffice for our little demo.
 
 And our second schema dealing with the insurance contracts looks like the following:
 
@@ -216,7 +216,7 @@ The clients must be named clients and have to use the schema name that we used i
 
 Next let's setup our remote schemas. Remote schemas are actually local schemas representing the remote schemas and allowing us to treat the remote schema as if it were a usual schema written with Hot Chocolate.
 
-This also allows us to create middleware components and other things on such a schema althogh the schema does not actually live in our process.
+This also allows us to create middleware components and other things on such a schema although the schema does not actually live in our process.
 
 So let us start with the customer schema, the customer schema does only use scalars defined in the spec. This means we do not have to declare any extra scalars to our stitching layer.
 
@@ -295,7 +295,7 @@ The batching layer will rewrite those queries into one and send just one request
 
 This way we have just one call and your remote endpoint can better optimize the data fetching with _DataLoader_ and so on.
 
-## Comming with 0.8.0
+## Coming with 0.8.0
 
 Furthermore, we will introduce the ability to rename types. This is useful when you either want to make names more clear or if you have naming collisions. So, with the next releases we will introduce '@name' as a way to rename types and fields.
 
@@ -311,7 +311,7 @@ Moreover, we will introduce a cast feature to our delegation path. This will bas
 foo.bar<baz>(a:1).qux(b:1)
 ```
 
-This transalates basically to:
+This translates basically to:
 
 ```graphql
 {
@@ -329,7 +329,7 @@ This transalates basically to:
 
 We have uploaded the above example to the following GitHub repo so you can see a working example of the schema stitching.
 
-[Stitching Example](https://github.com/ChilliCream/hotchocolate-examples)
+[Stitching Example](https://github.com/ChilliCream/graphql-platform-examples)
 
 If you are using the example start the two remote schemas by switching to their respective directory and call `dotnet run`.
 
@@ -337,7 +337,7 @@ After both schemas are running start the stitching layer. The stitching layer ha
 
 The first call on the stitched schema takes a little longer (maybe 300 ~ 500 ms) since we are compiling the resolvers into a in-memory assembly. All further calls are fast (4 ~ 8 ms) in our example. The real life performance depends on how fast your connection to the stitched remote schemas is and how many data you are fetching. With the new batching layer that is coming soon the performance of the schema stitching should further improve.
 
-Open playground on http://localhost:5000/playground in order to fire up some requests agains our stitched schema and checkout the tracing tab for performance insights.
+Open playground on <http://localhost:5000/playground> in order to fire up some requests against our stitched schema and checkout the tracing tab for performance insights.
 
 The following query might be a good starting point since it will expose the ids of our objects.
 
@@ -353,6 +353,3 @@ The following query might be a good starting point since it will expose the ids 
 ```
 
 If you have further questions or need help you join our slack channel.
-
-[hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/hotchocolate

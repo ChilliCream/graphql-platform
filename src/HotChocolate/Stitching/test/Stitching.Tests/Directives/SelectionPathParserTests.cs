@@ -13,7 +13,7 @@ public class SelectionPathParserTests
         var pathString = "foo";
 
         // act
-        IImmutableStack<SelectionPathComponent> path =
+        var path =
             SelectionPathParser.Parse(pathString);
 
         // assert
@@ -32,7 +32,7 @@ public class SelectionPathParserTests
         var pathString = "foo(bar: 1)";
 
         // act
-        IImmutableStack<SelectionPathComponent> path =
+        var path =
             SelectionPathParser.Parse(pathString);
 
         // assert
@@ -56,7 +56,7 @@ public class SelectionPathParserTests
         var pathString = "foo.bar";
 
         // act
-        IImmutableStack<SelectionPathComponent> path =
+        var path =
             SelectionPathParser.Parse(pathString);
 
         // assert
@@ -80,7 +80,7 @@ public class SelectionPathParserTests
         var pathString = "foo(bar: 1).baz(quox: 2)";
 
         // act
-        IImmutableStack<SelectionPathComponent> path =
+        var path =
             SelectionPathParser.Parse(pathString);
 
         // assert
@@ -114,7 +114,7 @@ public class SelectionPathParserTests
         var pathString = "foo(bar: $fields:foo)";
 
         // act
-        IImmutableStack<SelectionPathComponent> path =
+        var path =
             SelectionPathParser.Parse(pathString);
 
         // assert
@@ -127,7 +127,7 @@ public class SelectionPathParserTests
                     {
                         Assert.Equal("bar", argument.Name.Value);
 
-                        ScopedVariableNode variable =
+                        var variable =
                             Assert.IsType<ScopedVariableNode>(argument.Value);
 
                         Assert.Equal("fields", variable.Scope.Value);
@@ -143,7 +143,7 @@ public class SelectionPathParserTests
         var pathString = "foo(bar: $fields:foo).baz(quox: 1)";
 
         // act
-        IImmutableStack<SelectionPathComponent> path =
+        var path =
             SelectionPathParser.Parse(pathString);
 
         // assert
@@ -156,7 +156,7 @@ public class SelectionPathParserTests
                     {
                         Assert.Equal("bar", argument.Name.Value);
 
-                        ScopedVariableNode variable =
+                        var variable =
                             Assert.IsType<ScopedVariableNode>(argument.Value);
 
                         Assert.Equal("fields", variable.Scope.Value);

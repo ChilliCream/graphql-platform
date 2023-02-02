@@ -8,7 +8,7 @@ using HotChocolate.Utilities.Introspection;
 
 namespace HotChocolate.ApolloFederation;
 
-internal static partial class FederationSchemaPrinter
+public static partial class FederationSchemaPrinter
 {
     private static DirectiveDefinitionNode SerializeDirectiveTypeDefinition(
         DirectiveType directiveType,
@@ -19,6 +19,7 @@ internal static partial class FederationSchemaPrinter
             .ToList();
 
         var locations = directiveType.Locations
+            .AsEnumerable()
             .Select(l => new NameNode(l.MapDirectiveLocation().ToString()))
             .ToList();
 

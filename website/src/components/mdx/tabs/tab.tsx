@@ -1,6 +1,7 @@
 import React, { FC } from "react";
 import styled from "styled-components";
-import { THEME_COLORS } from "../../../shared-style";
+
+import { THEME_COLORS } from "@/shared-style";
 import { useTabs } from "./tabs";
 
 export interface TabProps {
@@ -39,7 +40,7 @@ const TabButton = styled.button`
 
   &.active {
     color: ${THEME_COLORS.heading};
-    font-weight: 700;
+    font-weight: 600;
   }
 
   @media only screen and (min-width: 860px) {

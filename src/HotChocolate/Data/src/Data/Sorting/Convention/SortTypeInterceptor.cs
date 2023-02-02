@@ -1,23 +1,23 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Data.ThrowHelper;
 
 namespace HotChocolate.Data.Sorting;
 
-public class SortTypeInterceptor : TypeInterceptor
+public sealed class SortTypeInterceptor : TypeInterceptor
 {
     private readonly Dictionary<string, ISortConvention> _conventions = new();
 
-    public override bool CanHandle(ITypeSystemObjectContext context) => true;
-
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
         switch (definition)
         {
@@ -32,8 +32,7 @@ public class SortTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
         switch (definition)
         {
@@ -48,8 +47,7 @@ public class SortTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
         switch (definition)
         {
@@ -66,22 +64,20 @@ public class SortTypeInterceptor : TypeInterceptor
         ITypeDiscoveryContext discoveryContext,
         SortInputTypeDefinition definition)
     {
-        ISortConvention convention = GetConvention(
-            discoveryContext.DescriptorContext,
-            definition.Scope);
+        var convention =
+            GetConvention(discoveryContext.DescriptorContext, definition.Scope);
 
         var descriptor = SortInputTypeDescriptor.New(
             discoveryContext.DescriptorContext,
             definition.EntityType!,
             definition.Scope);
 
-        SchemaTypeReference typeReference = TypeReference.Create(
-            discoveryContext.Type,
-            definition.Scope);
+        var typeReference =
+            TypeReference.Create( discoveryContext.Type, definition.Scope);
 
         convention.ApplyConfigurations(typeReference, descriptor);
 
-        SortInputTypeDefinition extensionDefinition = descriptor.CreateDefinition();
+        var extensionDefinition = descriptor.CreateDefinition();
 
         discoveryContext.RegisterDependencies(extensionDefinition);
     }
@@ -90,22 +86,20 @@ public class SortTypeInterceptor : TypeInterceptor
         ITypeDiscoveryContext discoveryContext,
         SortEnumTypeDefinition definition)
     {
-        ISortConvention convention = GetConvention(
-            discoveryContext.DescriptorContext,
-            definition.Scope);
+        var convention =
+            GetConvention(discoveryContext.DescriptorContext, definition.Scope);
 
         var descriptor = SortEnumTypeDescriptor.New(
             discoveryContext.DescriptorContext,
             definition.EntityType,
             definition.Scope);
 
-        SchemaTypeReference typeReference = TypeReference.Create(
-            discoveryContext.Type,
-            definition.Scope);
+        var typeReference =
+            TypeReference.Create(discoveryContext.Type, definition.Scope);
 
         convention.ApplyConfigurations(typeReference, descriptor);
 
-        SortEnumTypeDefinition extensionDefinition = descriptor.CreateDefinition();
+        var extensionDefinition = descriptor.CreateDefinition();
 
         discoveryContext.RegisterDependencies(extensionDefinition);
     }
@@ -114,18 +108,16 @@ public class SortTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         SortInputTypeDefinition definition)
     {
-        ISortConvention convention = GetConvention(
-            completionContext.DescriptorContext,
-            definition.Scope);
+        var convention =
+            GetConvention(completionContext.DescriptorContext, definition.Scope);
 
         var descriptor = SortInputTypeDescriptor.New(
             completionContext.DescriptorContext,
             definition.EntityType!,
             definition.Scope);
 
-        SchemaTypeReference typeReference = TypeReference.Create(
-            completionContext.Type,
-            definition.Scope);
+        var typeReference =
+            TypeReference.Create(completionContext.Type, definition.Scope);
 
         convention.ApplyConfigurations(typeReference, descriptor);
 
@@ -134,11 +126,10 @@ public class SortTypeInterceptor : TypeInterceptor
             descriptor.CreateDefinition(),
             definition);
 
-        if (definition is { Name: { HasValue: true } } and IHasScope { Scope: { } })
+        if (!string.IsNullOrEmpty(definition.Name) &&
+            definition is IHasScope { Scope: not null })
         {
-            definition.Name = completionContext.Scope +
-                "_" +
-                definition.Name;
+            definition.Name = completionContext.Scope + "_" + definition.Name;
         }
     }
 
@@ -146,18 +137,16 @@ public class SortTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         SortEnumTypeDefinition definition)
     {
-        ISortConvention convention = GetConvention(
-            completionContext.DescriptorContext,
-            definition.Scope);
+        var convention =
+            GetConvention(completionContext.DescriptorContext, definition.Scope);
 
         var descriptor = SortEnumTypeDescriptor.New(
             completionContext.DescriptorContext,
             definition.EntityType,
             definition.Scope);
 
-        SchemaTypeReference typeReference = TypeReference.Create(
-            completionContext.Type,
-            definition.Scope);
+        var typeReference =
+            TypeReference.Create(completionContext.Type, definition.Scope);
 
         convention.ApplyConfigurations(typeReference, descriptor);
 
@@ -166,11 +155,10 @@ public class SortTypeInterceptor : TypeInterceptor
             descriptor.CreateDefinition(),
             definition);
 
-        if (definition is { Name: { HasValue: true } } and IHasScope { Scope: { } })
+        if (!string.IsNullOrEmpty(definition.Name) &&
+            definition is IHasScope { Scope: not null })
         {
-            definition.Name = completionContext.Scope +
-                "_" +
-                definition.Name;
+            definition.Name = completionContext.Scope + "_" + definition.Name;
         }
     }
 
@@ -178,21 +166,20 @@ public class SortTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         SortInputTypeDefinition definition)
     {
-        ISortConvention convention = GetConvention(
-            completionContext.DescriptorContext,
-            definition.Scope);
+        var convention = GetConvention(completionContext.DescriptorContext, definition.Scope);
 
-        foreach (InputFieldDefinition field in definition.Fields)
+        foreach (var field in definition.Fields)
         {
             if (field is SortFieldDefinition sortFieldDefinition)
             {
-                if (completionContext.TryPredictTypeKind(
-                    sortFieldDefinition.Type!,
-                    out TypeKind kind) &&
+                if (completionContext.TryPredictTypeKind(sortFieldDefinition.Type!, out var kind) &&
                     kind != TypeKind.Enum)
                 {
                     field.Type = field.Type!.With(scope: completionContext.Scope);
                 }
+
+                sortFieldDefinition.Metadata =
+                    convention.CreateMetaData(completionContext, definition, sortFieldDefinition);
 
                 if (sortFieldDefinition.Handler is null)
                 {
@@ -200,13 +187,13 @@ public class SortTypeInterceptor : TypeInterceptor
                         completionContext,
                         definition,
                         sortFieldDefinition,
-                        out ISortFieldHandler? handler))
+                        out var handler))
                     {
                         sortFieldDefinition.Handler = handler;
                     }
                     else
                     {
-                        throw ThrowHelper.SortInterceptor_NoFieldHandlerFoundForField(
+                        throw SortInterceptor_NoFieldHandlerFoundForField(
                             definition,
                             sortFieldDefinition);
                     }
@@ -219,11 +206,10 @@ public class SortTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         SortEnumTypeDefinition definition)
     {
-        ISortConvention convention = GetConvention(
-            completionContext.DescriptorContext,
-            completionContext.Scope);
+        var convention =
+            GetConvention(completionContext.DescriptorContext, completionContext.Scope);
 
-        foreach (EnumValueDefinition? enumValue in definition.Values)
+        foreach (var enumValue in definition.Values)
         {
             if (enumValue is SortEnumValueDefinition sortEnumValueDefinition)
             {
@@ -231,13 +217,13 @@ public class SortTypeInterceptor : TypeInterceptor
                     completionContext,
                     definition,
                     sortEnumValueDefinition,
-                    out ISortOperationHandler? handler))
+                    out var handler))
                 {
                     sortEnumValueDefinition.Handler = handler;
                 }
                 else
                 {
-                    throw ThrowHelper.SortInterceptor_NoOperationHandlerFoundForValue(
+                    throw SortInterceptor_NoOperationHandlerFoundForValue(
                         definition,
                         sortEnumValueDefinition);
                 }
@@ -245,13 +231,9 @@ public class SortTypeInterceptor : TypeInterceptor
         }
     }
 
-    private ISortConvention GetConvention(
-        IDescriptorContext context,
-        string? scope)
+    private ISortConvention GetConvention(IDescriptorContext context, string? scope)
     {
-        if (!_conventions.TryGetValue(
-            scope ?? string.Empty,
-            out ISortConvention? convention))
+        if (!_conventions.TryGetValue(scope ?? string.Empty, out var convention))
         {
             convention = context.GetSortConvention(scope);
             _conventions[scope ?? string.Empty] = convention;

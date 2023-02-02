@@ -22,6 +22,12 @@ public interface IObjectField : IOutputField
     bool IsParallelExecutable { get; }
 
     /// <summary>
+    /// Defines that the resolver pipeline returns an
+    /// <see cref="IAsyncEnumerable{T}"/> as its result.
+    /// </summary>
+    bool HasStreamResult { get; }
+
+    /// <summary>
     /// Gets the field resolver middleware.
     /// </summary>
     FieldDelegate Middleware { get; }
@@ -45,11 +51,6 @@ public interface IObjectField : IOutputField
     SubscribeResolverDelegate? SubscribeResolver { get; }
 
     /// <summary>
-    /// Gets all executable directives that are associated with this field.
-    /// </summary>
-    IReadOnlyList<IDirective> ExecutableDirectives { get; }
-
-    /// <summary>
     /// Gets the associated member of the runtime type for this field.
     /// This property can be <c>null</c> if this field is not associated to
     /// a concrete member on the runtime type.
@@ -62,9 +63,4 @@ public interface IObjectField : IOutputField
     /// this property will return <see cref="Member"/>.
     /// </summary>
     MemberInfo? ResolverMember { get; }
-
-    /// <summary>
-    /// Defines that the result of this field might be a stream.
-    /// </summary>
-    bool MaybeStream { get; }
 }

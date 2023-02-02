@@ -32,22 +32,45 @@ namespace StrawberryShake.Tools
             InitCommandArguments arguments,
             CancellationToken cancellationToken)
         {
-            using IDisposable command = Output.WriteCommand();
+            using var command = Output.WriteCommand();
 
-            AccessToken? accessToken =
+            var accessToken =
                 await arguments.AuthArguments
                     .RequestTokenAsync(Output, cancellationToken)
                     .ConfigureAwait(false);
 
             var context = new InitCommandContext(
-                arguments.Name.Value()?.Trim() ?? Path.GetFileName(Environment.CurrentDirectory),
+                arguments.Name.Value()?.Trim() ??
+                Path.GetFileName(Environment.CurrentDirectory),
                 FileSystem.ResolvePath(arguments.Path.Value()?.Trim()),
-                new Uri(arguments.Uri.Value!),
+                arguments.Uri.Value!,
                 accessToken?.Token,
                 accessToken?.Scheme,
                 CustomHeaderHelper.ParseHeadersArgument(arguments.CustomHeaders.Values));
 
-            if(await ExecuteInternalAsync(context, cancellationToken).ConfigureAwait(false))
+            if (arguments.FromFile.HasValue())
+            {
+                using var activity = Output.WriteActivity("Copy schema");
+
+                var schemaFilePath = FileSystem.CombinePath(
+                    context.Path, context.SchemaFileName);
+                var schemaExtensionFilePath = FileSystem.CombinePath(
+                    context.Path, context.SchemaExtensionFileName);
+
+                File.Copy(context.Uri, schemaFilePath);
+
+                await FileSystem.WriteTextAsync(
+                        schemaExtensionFilePath,
+                        SchemaExtensionFileContent)
+                    .ConfigureAwait(false);
+
+                await WriteConfigurationAsync(context, cancellationToken);
+
+                return 0;
+            }
+
+
+            if (await ExecuteInternalAsync(context, cancellationToken).ConfigureAwait(false))
             {
                 return 0;
             }
@@ -74,20 +97,15 @@ namespace StrawberryShake.Tools
             InitCommandContext context,
             CancellationToken cancellationToken)
         {
-            if(context.Uri is null)
-            {
-                return true;
-            }
+            using var activity = Output.WriteActivity("Download schema");
 
-            using IActivity activity = Output.WriteActivity("Download schema");
-
-            string schemaFilePath = FileSystem.CombinePath(
+            var schemaFilePath = FileSystem.CombinePath(
                 context.Path, context.SchemaFileName);
-            string schemaExtensionFilePath = FileSystem.CombinePath(
+            var schemaExtensionFilePath = FileSystem.CombinePath(
                 context.Path, context.SchemaExtensionFileName);
 
-            HttpClient client = HttpClientFactory.Create(
-                context.Uri, context.Token, context.Scheme, context.CustomHeaders);
+            var client = HttpClientFactory.Create(
+                new(context.Uri), context.Token, context.Scheme, context.CustomHeaders);
 
             if (await IntrospectionHelper.DownloadSchemaAsync(
                 client, FileSystem, activity, schemaFilePath,
@@ -108,9 +126,9 @@ namespace StrawberryShake.Tools
            InitCommandContext context,
            CancellationToken cancellationToken)
         {
-            using IActivity activity = Output.WriteActivity("Client configuration");
+            using var activity = Output.WriteActivity("Client configuration");
 
-            string configFilePath = FileSystem.CombinePath(
+            var configFilePath = FileSystem.CombinePath(
                 context.Path, context.ConfigFileName);
 
             var configuration = new GraphQLConfig
@@ -122,8 +140,7 @@ namespace StrawberryShake.Tools
                     {
                         Name = context.ClientName,
                         Namespace = context.CustomNamespace,
-                        Url = context.Uri!.ToString(),
-                        DependencyInjection = context.UseDependencyInjection
+                        Url = context.Uri
                     }
                 }
             };

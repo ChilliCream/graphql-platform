@@ -1,6 +1,5 @@
 using System;
 using HotChocolate.Execution;
-using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
 using Xunit;
 
@@ -45,33 +44,33 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void QueryReturnsMonday()
         {
             IExecutionResult? result = testExecutor.Execute("query { test: monday }");
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal(1, queryResult!.Data!["test"]);
+            
+            Assert.Equal(1, result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
         public void QueryReturnsSunday()
         {
             IExecutionResult? result = testExecutor.Execute("query { test: sunday }");
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal(7, queryResult!.Data!["test"]);
+            
+            Assert.Equal(7, result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
         public void QueryReturnsFriday()
         {
             IExecutionResult? result = testExecutor.Execute("query { test: friday }");
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal(5, queryResult!.Data!["test"]);
+            
+            Assert.Equal(5, result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
         public void QueryDoesntReturnNone()
         {
             IExecutionResult? result = testExecutor.Execute("query { test: none }");
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Null(queryResult!.Data);
-            Assert.NotEmpty(queryResult!.Errors);
+            
+            Assert.Null(result.ExpectQueryResult().Data);
+            Assert.NotEmpty(result.ExpectQueryResult().Errors);
         }
 
         [Fact]
@@ -82,8 +81,8 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetQuery("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
                     .SetVariableValue("arg", 1)
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal(2, queryResult!.Data!["test"]);
+            
+            Assert.Equal(2, result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
@@ -94,8 +93,8 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetQuery("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
                     .SetVariableValue("arg", 7)
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal(1, queryResult!.Data!["test"]);
+            
+            Assert.Equal(1, result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
@@ -106,9 +105,9 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetQuery("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
                     .SetVariableValue("arg", 0)
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Null(queryResult!.Data);
-            Assert.Equal(1, queryResult!.Errors!.Count);
+            
+            Assert.Null(result.ExpectQueryResult().Data);
+            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
         }
 
         [Fact]
@@ -119,9 +118,9 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetQuery("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
                     .SetVariableValue("arg", 8)
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Null(queryResult!.Data);
-            Assert.Equal(1, queryResult!.Errors!.Count);
+            
+            Assert.Null(result.ExpectQueryResult().Data);
+            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
         }
 
         [Fact]
@@ -132,9 +131,9 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetQuery("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
                     .SetVariableValue("arg", -2)
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Null(queryResult!.Data);
-            Assert.Equal(1, queryResult!.Errors!.Count);
+            
+            Assert.Null(result.ExpectQueryResult().Data);
+            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
         }
     }
 }

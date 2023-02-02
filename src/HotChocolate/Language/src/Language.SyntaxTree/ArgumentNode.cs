@@ -9,26 +9,74 @@ namespace HotChocolate.Language;
 /// </summary>
 public sealed class ArgumentNode : ISyntaxNode
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="ArgumentNode"/>.
+    /// </summary>
+    /// <param name="name">
+    /// The argument name.
+    /// </param>
+    /// <param name="value">
+    /// The argument value.
+    /// </param>
     public ArgumentNode(string name, string value)
         : this(null, new NameNode(name), new StringValueNode(value))
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ArgumentNode"/>.
+    /// </summary>
+    /// <param name="name">
+    /// The argument name.
+    /// </param>
+    /// <param name="value">
+    /// The argument value.
+    /// </param>
     public ArgumentNode(string name, int value)
         : this(null, new NameNode(name), new IntValueNode(value))
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ArgumentNode"/>.
+    /// </summary>
+    /// <param name="name">
+    /// The argument name.
+    /// </param>
+    /// <param name="value">
+    /// The argument value.
+    /// </param>
     public ArgumentNode(string name, IValueNode value)
         : this(null, new NameNode(name), value)
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ArgumentNode"/>.
+    /// </summary>
+    /// <param name="name">
+    /// The argument name.
+    /// </param>
+    /// <param name="value">
+    /// The argument value.
+    /// </param>
     public ArgumentNode(NameNode name, IValueNode value)
         : this(null, name, value)
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ArgumentNode"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="name">
+    /// The argument name.
+    /// </param>
+    /// <param name="value">
+    /// The argument value.
+    /// </param>
     public ArgumentNode(Location? location, NameNode name, IValueNode value)
     {
         Location = location;
@@ -37,15 +85,19 @@ public sealed class ArgumentNode : ISyntaxNode
     }
 
     /// <inheritdoc />
-    public SyntaxKind Kind { get; } = SyntaxKind.Argument;
+    public SyntaxKind Kind => SyntaxKind.Argument;
 
     /// <inheritdoc />
     public Location? Location { get; }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// The name of the argument.
+    /// </summary>
     public NameNode Name { get; }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// The value of the argument.
+    /// </summary>
     public IValueNode Value { get; }
 
     /// <inheritdoc />
@@ -77,7 +129,7 @@ public sealed class ArgumentNode : ISyntaxNode
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
     /// <summary>
-    /// Creates a new node from the current instance and replaces the 
+    /// Creates a new node from the current instance and replaces the
     /// <see cref="Location" /> with <paramref name="location" />.
     /// </summary>
     /// <param name="location">
@@ -87,10 +139,10 @@ public sealed class ArgumentNode : ISyntaxNode
     /// Returns the new node with the new <paramref name="location" />.
     /// </returns>
     public ArgumentNode WithLocation(Location? location)
-        => new ArgumentNode(location, Name, Value);
+        => new(location, Name, Value);
 
     /// <summary>
-    /// Creates a new node from the current instance and replaces the 
+    /// Creates a new node from the current instance and replaces the
     /// <see cref="Name" /> with <paramref name="name" />.
     /// </summary>
     /// <param name="name">
@@ -100,10 +152,10 @@ public sealed class ArgumentNode : ISyntaxNode
     /// Returns the new node with the new <paramref name="name" />.
     /// </returns>
     public ArgumentNode WithName(NameNode name)
-        => new ArgumentNode(Location, name, Value);
+        => new(Location, name, Value);
 
     /// <summary>
-    /// Creates a new node from the current instance and replaces the 
+    /// Creates a new node from the current instance and replaces the
     /// <see cref="Value" /> with <paramref name="value" />.
     /// </summary>
     /// <param name="value">
@@ -113,5 +165,5 @@ public sealed class ArgumentNode : ISyntaxNode
     /// Returns the new node with the new <paramref name="value" />.
     /// </returns>
     public ArgumentNode WithValue(IValueNode value)
-        => new ArgumentNode(Location, Name, value);
+        => new(Location, Name, value);
 }

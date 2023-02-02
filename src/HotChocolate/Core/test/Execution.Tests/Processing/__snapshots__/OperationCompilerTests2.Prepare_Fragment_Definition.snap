@@ -1,0 +1,32 @@
+﻿{
+  hero(episode: EMPIRE) {
+    name
+    ... abc
+    ... def
+  }
+}
+
+fragment abc on Droid {
+  primaryFunction
+}
+
+fragment def on Human {
+  homePlanet
+}
+
+---------------------------------------------------------
+
+{
+  ... on Query {
+    hero(episode: EMPIRE) @__execute(id: 0, kind: DEFAULT, type: COMPOSITE) {
+      ... on Human {
+        name @__execute(id: 1, kind: DEFAULT, type: LEAF)
+        homePlanet @__execute(id: 2, kind: DEFAULT, type: LEAF)
+      }
+      ... on Droid {
+        name @__execute(id: 3, kind: DEFAULT, type: LEAF)
+        primaryFunction @__execute(id: 4, kind: DEFAULT, type: LEAF)
+      }
+    }
+  }
+}

@@ -1,35 +1,32 @@
-using System.Threading;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types.MongoDb;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
-using Snapshooter.Xunit;
-using Xunit;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public class ObjectIdTypeTests
 {
-    public class ObjectIdTypeTests
+    [Fact]
+    public async Task Should_MapObjectIdToScalar()
     {
-        [Fact]
-        public async Task Should_MapObjectIdToScalar()
-        {
-            // arrange
-            IRequestExecutor executor = await CreateSchema();
+        // arrange
+        var executor = await CreateSchema();
 
-            // act
-            string schema = executor.Schema.Print();
+        // act
+        var schema = executor.Schema.Print();
 
-            // assert
-            schema.MatchSnapshot();
-        }
+        // assert
+        schema.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task Should_ReturnObjectIdOnQuery()
-        {
-            // arrange
-            IRequestExecutor executor = await CreateSchema();
-            string query = @"
+    [Fact]
+    public async Task Should_ReturnObjectIdOnQuery()
+    {
+        // arrange
+        var executor = await CreateSchema();
+        var query = @"
             {
                 foo {
                     id
@@ -37,49 +34,48 @@ namespace HotChocolate.Types
             }
             ";
 
-            // act
-            IReadOnlyQueryRequest request = QueryRequestBuilder.Create(query);
-            IExecutionResult result = await executor.ExecuteAsync(request, CancellationToken.None);
+        // act
+        var request = QueryRequestBuilder.Create(query);
+        var result = await executor.ExecuteAsync(request, CancellationToken.None);
 
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task Should_ReturnInputOnQuery()
-        {
-            // arrange
-            IRequestExecutor executor = await CreateSchema();
-            string query = @"
+    [Fact]
+    public async Task Should_ReturnInputOnQuery()
+    {
+        // arrange
+        var executor = await CreateSchema();
+        var query = @"
             {
                 loopback(objectId: ""6124e80f3f5fc839830c1f6b"")
             }";
 
-            // act
-            IReadOnlyQueryRequest request = QueryRequestBuilder.Create(query);
-            IExecutionResult result = await executor.ExecuteAsync(request, CancellationToken.None);
+        // act
+        var request = QueryRequestBuilder.Create(query);
+        var result = await executor.ExecuteAsync(request, CancellationToken.None);
 
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        private ValueTask<IRequestExecutor> CreateSchema() =>
-            new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<Query>()
-                .AddType<ObjectIdType>()
-                .BuildRequestExecutorAsync();
+    private ValueTask<IRequestExecutor> CreateSchema() =>
+        new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddType<ObjectIdType>()
+            .BuildRequestExecutorAsync();
 
-        public class Query
-        {
-            public Foo GetFoo() => new() { Id = new ObjectId("6124e80f3f5fc839830c1f6b") };
+    public class Query
+    {
+        public Foo GetFoo() => new() { Id = new ObjectId("6124e80f3f5fc839830c1f6b") };
 
-            public ObjectId Loopback(ObjectId objectId) => objectId;
-        }
+        public ObjectId Loopback(ObjectId objectId) => objectId;
+    }
 
-        public class Foo
-        {
-            public ObjectId Id { get; set; }
-        }
+    public class Foo
+    {
+        public ObjectId Id { get; set; }
     }
 }

@@ -2,8 +2,6 @@
 title: Projections
 ---
 
-import { ExampleTabs, Annotation, Code, Schema } from "../../../../components/mdx/example-tabs"
-
 Every GraphQL request specifies exactly what data should be returned. Over or under fetching can be reduced
 or even eliminated. Hot Chocolate projections leverage this concept and directly projects incoming queries
 to the database.
@@ -32,11 +30,9 @@ LEFT JOIN "Address" AS "a" ON "u"."AddressId" = "a"."Id"
 
 # Getting Started
 
-Filtering is part of the `HotChocolate.Data` package. You can add the dependency with the `dotnet` cli
+Filtering is part of the `HotChocolate.Data` package.
 
-```bash
-  dotnet add package HotChocolate.Data
-```
+<PackageInstallation packageName="HotChocolate.Data" />
 
 To use projections with your GraphQL endpoint you have to register projections on the schema:
 
@@ -49,7 +45,7 @@ services.AddGraphQLServer()
 Projections can be registered on a field. A middleware will apply the selected fields on the result.
 Support for `IQueryable` comes out of the box.
 The projection middleware will create a projection for the whole subtree of its field. Only fields that
-are members of a type will be projected. Fields that define a customer resolver cannot be projected
+are members of a type will be projected. Fields that define a custom resolver cannot be projected
 to the database. If the middleware encounters a field that specifies `UseProjection()` this field will be skipped.
 
 <ExampleTabs>

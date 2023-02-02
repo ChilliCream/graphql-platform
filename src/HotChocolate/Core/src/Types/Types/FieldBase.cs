@@ -4,6 +4,8 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
+using HotChocolate.Utilities;
+using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
 
 #nullable enable
 
@@ -15,6 +17,7 @@ public abstract class FieldBase<TDefinition>
     where TDefinition : FieldDefinitionBase, IHasSyntaxNode
 {
     private TDefinition? _definition;
+    private FieldFlags _flags;
 
     protected FieldBase(TDefinition definition, int index)
     {
@@ -22,15 +25,16 @@ public abstract class FieldBase<TDefinition>
         Index = index;
 
         SyntaxNode = definition.SyntaxNode;
-        Name = definition.Name.EnsureNotEmpty(nameof(definition.Name));
+        Name = definition.Name.EnsureGraphQLName();
         Description = definition.Description;
+        Flags = definition.Flags;
         DeclaringType = default!;
         ContextData = default!;
         Directives = default!;
     }
 
     /// <inheritdoc />
-    public NameString Name { get; }
+    public string Name { get; }
 
     /// <inheritdoc />
     public string? Description { get; }
@@ -53,6 +57,16 @@ public abstract class FieldBase<TDefinition>
     /// <inheritdoc />
     public abstract Type RuntimeType { get; }
 
+    internal FieldFlags Flags
+    {
+        get => _flags;
+        set
+        {
+            AssertMutable();
+            _flags = value;
+        }
+    }
+
     /// <inheritdoc />
     public IReadOnlyDictionary<string, object?> ContextData { get; private set; }
 
@@ -60,10 +74,13 @@ public abstract class FieldBase<TDefinition>
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember)
     {
+        AssertMutable();
+
         OnCompleteField(context, declaringMember, _definition!);
 
         ContextData = _definition!.GetContextData();
         _definition = null;
+        _flags |= FieldFlags.Sealed;
     }
 
     protected virtual void OnCompleteField(
@@ -75,12 +92,22 @@ public abstract class FieldBase<TDefinition>
         Coordinate = declaringMember is IField field
             ? new FieldCoordinate(context.Type.Name, field.Name, definition.Name)
             : new FieldCoordinate(context.Type.Name, definition.Name);
+
         Directives = DirectiveCollection.CreateAndComplete(
             context, this, definition.GetDirectives());
+        Flags = definition.Flags;
     }
 
     void IFieldCompletion.CompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember)
         => CompleteField(context, declaringMember);
+
+    private void AssertMutable()
+    {
+        if ((_flags & FieldFlags.Sealed) == FieldFlags.Sealed)
+        {
+            throw ThrowHelper.FieldBase_Sealed();
+        }
+    }
 }

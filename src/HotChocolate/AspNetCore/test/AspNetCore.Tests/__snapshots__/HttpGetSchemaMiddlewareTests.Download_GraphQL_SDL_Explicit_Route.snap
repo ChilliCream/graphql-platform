@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: Query
   mutation: Mutation
   subscription: Subscription
@@ -74,6 +74,7 @@ type Query {
   droid(id: String): Droid
   time: Long!
   evict: Boolean!
+  wait(m: Int!): Boolean!
 }
 
 type Review {
@@ -89,8 +90,8 @@ type Starship {
 
 type Subscription {
   onReview(episode: Episode!): Review!
-  onNext: String
-  onException: String
+  onNext: String!
+  onException: String!
 }
 
 union SearchResult = Starship | Human | Droid

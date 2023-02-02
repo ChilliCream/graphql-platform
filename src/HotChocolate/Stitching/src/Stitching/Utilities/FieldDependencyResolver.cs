@@ -1,14 +1,11 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using HotChocolate.Language;
-using HotChocolate.Stitching.Processing.ScopedVariables;
+using HotChocolate.Stitching.Delegation.ScopedVariables;
 using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Utilities;
 
-internal sealed class FieldDependencyResolver : QuerySyntaxWalker<FieldDependencyResolver.Context>
+public class FieldDependencyResolver : QuerySyntaxWalker<FieldDependencyResolver.Context>
 {
     private readonly ISchema _schema;
 
@@ -81,8 +78,7 @@ internal sealed class FieldDependencyResolver : QuerySyntaxWalker<FieldDependenc
     {
         var fragments = new Dictionary<string, FragmentDefinitionNode>();
 
-        foreach (FragmentDefinitionNode fragment in
-            document.Definitions.OfType<FragmentDefinitionNode>())
+        foreach (var fragment in document.Definitions.OfType<FragmentDefinitionNode>())
         {
             if (!string.IsNullOrEmpty(fragment.Name.Value))
             {
@@ -96,7 +92,7 @@ internal sealed class FieldDependencyResolver : QuerySyntaxWalker<FieldDependenc
     protected override void VisitField(FieldNode node, Context context)
     {
         if (context.TypeContext is IComplexOutputType type &&
-            type.Fields.TryGetField(node.Name.Value, out IOutputField? field))
+            type.Fields.TryGetField(node.Name.Value, out var field))
         {
             CollectDelegationDependencies(context, type, field);
             CollectComputeDependencies(context, type, field);
@@ -108,12 +104,12 @@ internal sealed class FieldDependencyResolver : QuerySyntaxWalker<FieldDependenc
         Types.IHasName type,
         IOutputField field)
     {
-        IDirective? directive = field.Directives[DirectiveNames.Delegate].FirstOrDefault();
+        var directive = field.Directives[DirectiveNames.Delegate].FirstOrDefault();
 
         if (directive is not null)
         {
             CollectFieldNames(
-                directive.ToObject<DelegateDirective>(),
+                directive.AsValue<DelegateDirective>(),
                 type,
                 context.Dependencies);
         }
@@ -124,19 +120,20 @@ internal sealed class FieldDependencyResolver : QuerySyntaxWalker<FieldDependenc
         IComplexOutputType type,
         IOutputField field)
     {
-        IDirective? directive = field.Directives[DirectiveNames.Computed].FirstOrDefault();
-        NameString[]? dependantOn = directive?.ToObject<ComputedDirective>().DependantOn;
+        var directive = field.Directives[DirectiveNames.Computed].FirstOrDefault();
 
-        if (dependantOn is { })
+        var dependantOn = directive?.AsValue<ComputedDirective>().DependantOn;
+
+        if (dependantOn is not null)
         {
-            foreach (string fieldName in dependantOn)
+            foreach (var fieldName in dependantOn)
             {
-                if (type.Fields.TryGetField(
-                    fieldName,
-                    out IOutputField? dependency))
+                if (type.Fields.TryGetField(fieldName, out var dependency))
                 {
-                    context.Dependencies.Add(new FieldDependency(
-                        type.Name, dependency.Name));
+                    context.Dependencies.Add(
+                        new FieldDependency(
+                            type.Name,
+                            dependency.Name));
                 }
             }
         }
@@ -147,20 +144,20 @@ internal sealed class FieldDependencyResolver : QuerySyntaxWalker<FieldDependenc
         Types.IHasName type,
         ISet<FieldDependency> dependencies)
     {
-        if (directive.Path is null)
+        if (directive.Path is not null)
         {
-            return;
-        }
+            var path = SelectionPathParser.Parse(directive.Path);
 
-        foreach (SelectionPathComponent component in SelectionPathParser.Parse(directive.Path))
-        {
-            foreach (var fieldName in component.Arguments
-                .Select(t => t.Value)
-                .OfType<ScopedVariableNode>()
-                .Where(t => ScopeNames.Fields.Equals(t.Scope.Value))
-                .Select(t => t.Name.Value))
+            foreach (var component in path)
             {
-                dependencies.Add(new FieldDependency(type.Name, fieldName));
+                foreach (var fieldName in component.Arguments
+                    .Select(t => t.Value)
+                    .OfType<ScopedVariableNode>()
+                    .Where(t => ScopeNames.Fields.Equals(t.Scope.Value))
+                    .Select(t => t.Name.Value))
+                {
+                    dependencies.Add(new FieldDependency(type.Name, fieldName));
+                }
             }
         }
     }
@@ -172,7 +169,7 @@ internal sealed class FieldDependencyResolver : QuerySyntaxWalker<FieldDependenc
         base.VisitFragmentSpread(node, context);
 
         if (context.Fragments.TryGetValue(node.Name.Value,
-            out FragmentDefinitionNode? fragment))
+            out var fragment))
         {
             VisitFragmentDefinition(fragment, context);
         }
@@ -182,16 +179,18 @@ internal sealed class FieldDependencyResolver : QuerySyntaxWalker<FieldDependenc
         FragmentDefinitionNode node,
         Context context)
     {
-        Context newContext = context;
+        var newContext = context;
 
         if (newContext.FragmentPath.Contains(node.Name.Value))
         {
             return;
         }
 
-        if (_schema.TryGetType<IComplexOutputType>(node.TypeCondition.Name.Value, out IComplexOutputType? type))
+        if (_schema.TryGetType<IComplexOutputType>(node.TypeCondition.Name.Value, out var type))
         {
-            newContext = newContext.AddFragment(node.Name.Value).SetTypeContext(type);
+            newContext = newContext
+                .AddFragment(node.Name.Value)
+                .SetTypeContext(type);
         }
 
         base.VisitFragmentDefinition(node, newContext);
@@ -201,14 +200,12 @@ internal sealed class FieldDependencyResolver : QuerySyntaxWalker<FieldDependenc
         InlineFragmentNode node,
         Context context)
     {
-        Context newContext = context;
+        var newContext = context;
 
-        if (node.TypeCondition is not null)
+        if (node.TypeCondition is not null &&
+            _schema.TryGetType<IComplexOutputType>(node.TypeCondition.Name.Value, out var type))
         {
-            if (_schema.TryGetType<IComplexOutputType>(node.TypeCondition.Name.Value, out IComplexOutputType? type))
-            {
-                newContext = newContext.SetTypeContext(type);
-            }
+            newContext = newContext.SetTypeContext(type);
         }
 
         base.VisitInlineFragment(node, newContext);
@@ -253,14 +250,20 @@ internal sealed class FieldDependencyResolver : QuerySyntaxWalker<FieldDependenc
         public IDictionary<string, FragmentDefinitionNode> Fragments { get; }
 
         public Context SetTypeContext(INamedOutputType type)
-            => new(this, type);
+        {
+            return new Context(this, type);
+        }
 
         public Context AddFragment(string fragmentName)
-            => new(this, FragmentPath.Add(fragmentName));
+        {
+            return new Context(this, FragmentPath.Add(fragmentName));
+        }
 
         public static Context New(
             INamedOutputType typeContext,
             IDictionary<string, FragmentDefinitionNode> fragments)
-            => new(typeContext, fragments);
+        {
+            return new Context(typeContext, fragments);
+        }
     }
 }

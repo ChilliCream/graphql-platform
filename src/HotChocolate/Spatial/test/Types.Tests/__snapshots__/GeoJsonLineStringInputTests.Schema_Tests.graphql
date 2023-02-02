@@ -1,0 +1,29 @@
+schema {
+  query: Query
+}
+
+type Query {
+  test(arg: GeoJSONLineStringInput): String
+}
+
+input GeoJSONLineStringInput {
+  "The geometry type of the GeoJson object"
+  type: GeoJSONGeometryType
+  "The \"coordinates\" field is an array of two or more positions."
+  coordinates: [Position]
+  "The coordinate reference system integer identifier"
+  crs: Int
+}
+
+enum GeoJSONGeometryType {
+  Point
+  MultiPoint
+  LineString
+  MultiLineString
+  Polygon
+  MultiPolygon
+  GeometryCollection
+}
+
+"A position is an array of numbers. There MUST be two or more elements. The first two elements are longitude and latitude, or easting and northing, precisely in that order and using decimal numbers. Altitude or elevation MAY be included as an optional third element."
+scalar Position

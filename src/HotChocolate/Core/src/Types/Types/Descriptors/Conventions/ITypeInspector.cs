@@ -20,24 +20,23 @@ public interface ITypeInspector : IConvention
     /// <param name="type">
     /// The type that represents the object type.
     /// </param>
-    /// <returns>
-    /// Returns the relevant members of a object or input object.
-    /// </returns>
-    IEnumerable<MemberInfo> GetMembers(Type type);
-
-    /// <summary>
-    /// Gets the relevant members of a object or input object.
-    /// </summary>
-    /// <param name="type">
-    /// The type that represents the object type.
-    /// </param>
     /// <param name="includeIgnored">
-    /// The type that represents the object type.
+    /// Specifies if also by default ignored members shall be returned.
+    /// </param>
+    /// <param name="includeStatic">
+    /// Specifies if static members shall be returned.
+    /// </param>
+    /// <param name="allowObject">
+    /// Specifies if object is allowed as parameter or return type without a type attribute.
     /// </param>
     /// <returns>
     /// Returns the relevant members of a object or input object.
     /// </returns>
-    IEnumerable<MemberInfo> GetMembers(Type type, bool includeIgnored);
+    ReadOnlySpan<MemberInfo> GetMembers(
+        Type type,
+        bool includeIgnored = false,
+        bool includeStatic = false,
+        bool allowObject = false);
 
     /// <summary>
     /// Defines if a member shall be ignored. This method interprets ignore attributes.
@@ -68,7 +67,7 @@ public interface ITypeInspector : IConvention
     /// <returns>
     /// Returns a type reference describing the type of the field.
     /// </returns>
-    ITypeReference GetReturnTypeRef(
+    TypeReference GetReturnTypeRef(
         MemberInfo member,
         TypeContext context = TypeContext.None,
         string? scope = null,
@@ -103,7 +102,7 @@ public interface ITypeInspector : IConvention
     /// <returns>
     /// Returns a type reference describing the type of the argument.
     /// </returns>
-    ITypeReference GetArgumentTypeRef(
+    TypeReference GetArgumentTypeRef(
         ParameterInfo parameter,
         string? scope = null,
         bool ignoreAttributes = false);

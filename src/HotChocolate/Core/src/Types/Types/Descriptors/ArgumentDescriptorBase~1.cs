@@ -1,5 +1,4 @@
 using System;
-using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -80,7 +79,7 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentDef
     /// </summary>
     public void Type(Type type)
     {
-        ITypeInfo typeInfo = Context.TypeInspector.CreateTypeInfo(type);
+        var typeInfo = Context.TypeInspector.CreateTypeInfo(type);
 
         if (typeInfo.IsSchemaType && !typeInfo.IsInputType())
         {
@@ -117,7 +116,7 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentDef
     /// ITypeInspector inspector;
     /// ParameterInfo parameter;
     /// // get  reference
-    /// ITypeReference reference = inspector.GetArgumentType(parameter)
+    /// TypeReference reference = inspector.GetArgumentType(parameter)
     /// descriptor.Type(reference);
     /// </code>
     /// <p>
@@ -130,13 +129,12 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentDef
     /// </code>
     /// </example>
     /// </summary>
-    public void Type(ITypeReference typeReference)
+    public void Type(TypeReference typeReference)
     {
         if (typeReference is null)
         {
             throw new ArgumentNullException(nameof(typeReference));
         }
-
 
         Definition.Type = typeReference;
     }
@@ -169,7 +167,7 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentDef
         }
         else
         {
-            IExtendedType type = Context.TypeInspector.GetType(value.GetType());
+            var type = Context.TypeInspector.GetType(value.GetType());
             Definition.SetMoreSpecificType(type, TypeContext.Input);
             Definition.RuntimeDefaultValue = value;
             Definition.DefaultValue = null;
@@ -184,7 +182,7 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentDef
     public void Directive<TDirective>() where TDirective : class, new()
         => Definition.AddDirective(new TDirective(), Context.TypeInspector);
 
-    /// <inheritdoc cref="IArgumentDescriptor.Directive(NameString, ArgumentNode[])"/>
-    public void Directive(NameString name, params ArgumentNode[] arguments)
+    /// <inheritdoc cref="IArgumentDescriptor.Directive(string, ArgumentNode[])"/>
+    public void Directive(string name, params ArgumentNode[] arguments)
         => Definition.AddDirective(name, arguments);
 }

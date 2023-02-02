@@ -9,8 +9,8 @@ namespace HotChocolate.Data.Sorting;
 /// </summary>
 public interface ISortInputTypeDescriptor
     : IDescriptor<SortInputTypeDefinition>
-    , IFluent
     , IHasRuntimeType
+    , IFluent
 {
     /// <summary>
     /// Defines the name of the <see cref="SortInputType{T}"/>.
@@ -20,7 +20,7 @@ public interface ISortInputTypeDescriptor
     /// <paramref name="value"/> is <c>null</c> or
     /// <see cref="string.Empty"/>.
     /// </exception>
-    ISortInputTypeDescriptor Name(NameString value);
+    ISortInputTypeDescriptor Name(string value);
 
     /// <summary>
     /// Adds explanatory text of the <see cref="SortInputType{T}"/>
@@ -36,7 +36,7 @@ public interface ISortInputTypeDescriptor
     /// <param name="name">
     /// The name of the field.
     /// </param>
-    ISortFieldDescriptor Field(NameString name);
+    ISortFieldDescriptor Field(string name);
 
     /// <summary>
     /// Ignore the specified property.
@@ -44,7 +44,7 @@ public interface ISortInputTypeDescriptor
     /// <param name="name">
     /// The name of the field.
     /// </param>
-    ISortInputTypeDescriptor Ignore(NameString name);
+    ISortInputTypeDescriptor Ignore(string name);
 
     /// <summary>
     /// Adds a directive to this sort input type.
@@ -55,9 +55,7 @@ public interface ISortInputTypeDescriptor
     /// <typeparam name="TDirective">
     /// The type of the directive.
     /// </typeparam>
-    ISortInputTypeDescriptor Directive<TDirective>(
-        TDirective directive)
-        where TDirective : class;
+    ISortInputTypeDescriptor Directive<TDirective>(TDirective directive) where TDirective : class;
 
     /// <summary>
     /// Adds a directive to this sort input type.
@@ -65,8 +63,7 @@ public interface ISortInputTypeDescriptor
     /// <typeparam name="TDirective">
     /// The type of the directive.
     /// </typeparam>
-    ISortInputTypeDescriptor Directive<TDirective>()
-        where TDirective : class, new();
+    ISortInputTypeDescriptor Directive<TDirective>() where TDirective : class, new();
 
     /// <summary>
     /// Adds a directive to this sort input type.
@@ -77,7 +74,5 @@ public interface ISortInputTypeDescriptor
     /// <param name="arguments">
     /// The directive argument values.
     /// </param>
-    ISortInputTypeDescriptor Directive(
-        NameString name,
-        params ArgumentNode[] arguments);
+    ISortInputTypeDescriptor Directive(string name, params ArgumentNode[] arguments);
 }

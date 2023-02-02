@@ -5,14 +5,16 @@ using HotChocolate.Language.Utilities;
 namespace HotChocolate.Language;
 
 /// <summary>
+/// <para>
 /// The <see cref="DocumentNode"/> represents a parsed GraphQL document
 /// which also is the root node of a parsed GraphQL document.
-///
-/// The document can contain schema definition nodes or query nodes.
+/// </para>
+/// <para>The document can contain schema definition nodes or query nodes.</para>
 /// </summary>
-public sealed class DocumentNode
-    : ISyntaxNode
+public sealed class DocumentNode : ISyntaxNode
 {
+    private int _count = -1;
+
     /// <summary>
     /// Initializes a new instance of <see cref="DocumentNode"/>.
     /// </summary>
@@ -21,9 +23,7 @@ public sealed class DocumentNode
     /// </param>
     public DocumentNode(
         IReadOnlyList<IDefinitionNode> definitions)
-        : this(null, definitions)
-    {
-    }
+        : this(null, definitions) { }
 
     /// <summary>
     /// Initializes a new instance of <see cref="DocumentNode"/>.
@@ -39,17 +39,77 @@ public sealed class DocumentNode
         IReadOnlyList<IDefinitionNode> definitions)
     {
         Location = location;
-        Definitions = definitions ??
-            throw new ArgumentNullException(nameof(definitions));
+        Definitions = definitions ?? throw new ArgumentNullException(nameof(definitions));
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="DocumentNode"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location of the document in the parsed source text.
+    /// </param>
+    /// <param name="definitions">
+    /// The GraphQL definitions this document contains.
+    /// </param>
+    /// <param name="nodesCount">
+    /// The count of all nodes.
+    /// </param>
+    internal DocumentNode(
+        Location? location,
+        IReadOnlyList<IDefinitionNode> definitions,
+        int nodesCount)
+    {
+        Location = location;
+        Definitions = definitions ?? throw new ArgumentNullException(nameof(definitions));
+        _count = nodesCount;
     }
 
     /// <inheritdoc />
-    public SyntaxKind Kind { get; } = SyntaxKind.Document;
+    public SyntaxKind Kind => SyntaxKind.Document;
 
     /// <inheritdoc />
     public Location? Location { get; }
 
+    /// <summary>
+    /// Gets the documents definitions.
+    /// </summary>
     public IReadOnlyList<IDefinitionNode> Definitions { get; }
+
+    /// <summary>
+    /// Gets the
+    /// </summary>
+    public int Count
+    {
+        get
+        {
+            // the parser will always calculate the nodes efficiently and provide
+            // us with the correct count.
+            if (_count != -1)
+            {
+                return _count;
+            }
+
+            // in the case the document was constructed by hand or constructed through
+            // rewriting a document we will calculate the nodes.
+            var stack = new Stack<ISyntaxNode>(GetNodes());
+            var count = 0;
+
+            while (stack.Count > 0)
+            {
+                count++;
+
+                foreach (var node in stack.Pop().GetNodes())
+                {
+                    stack.Push(node);
+                }
+            }
+
+            // Since the calculation of the nodes requires us to walk the tree
+            // we will cache the result on the document.
+            _count = count;
+            return _count;
+        }
+    }
 
     /// <inheritdoc />
     public IEnumerable<ISyntaxNode> GetNodes() => Definitions;
@@ -86,8 +146,8 @@ public sealed class DocumentNode
     /// Returns a new instance that has all the characteristics of this
     /// documents but with a different location.
     /// </returns>
-    public DocumentNode WithLocation(Location? location) =>
-        new(location, Definitions);
+    public DocumentNode WithLocation(Location? location)
+        => new(location, Definitions);
 
     /// <summary>
     /// Creates a new instance that has all the characteristics of this
@@ -100,13 +160,11 @@ public sealed class DocumentNode
     /// Returns a new instance that has all the characteristics of this
     /// documents but with a different definitions.
     /// </returns>
-    public DocumentNode WithDefinitions(
-        IReadOnlyList<IDefinitionNode> definitions) =>
-        new(Location, definitions);
+    public DocumentNode WithDefinitions(IReadOnlyList<IDefinitionNode> definitions)
+        => new(Location, definitions);
 
     /// <summary>
     /// Gets an empty GraphQL document.
     /// </summary>
-    public static DocumentNode Empty { get; } =
-        new(null, Array.Empty<IDefinitionNode>());
+    public static DocumentNode Empty { get; } = new(null, Array.Empty<IDefinitionNode>());
 }

@@ -3,12 +3,20 @@ using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
+/// <summary>
+/// Represents list nullability syntax for specifying client-side nullability.
+/// </summary>
 public sealed class ListNullabilityNode : INullabilityNode
 {
-    public ListNullabilityNode(INullabilityNode element) : this(null, element) { }
-
-    public ListNullabilityNode(Location location) : this(location, null) { }
-
+    /// <summary>
+    /// Initializes a new instance of <see cref="ListNullabilityNode"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="element">
+    /// The element of the list nullability.
+    /// </param>
     public ListNullabilityNode(Location? location, INullabilityNode? element)
     {
         Location = location;

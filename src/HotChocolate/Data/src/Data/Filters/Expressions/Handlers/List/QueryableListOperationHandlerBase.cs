@@ -53,10 +53,10 @@ public abstract class QueryableListOperationHandlerBase
         if (context.RuntimeTypes.Count > 0 &&
             context.RuntimeTypes.Peek().TypeArguments is { Count: > 0 } args)
         {
-            Expression nestedProperty = context.GetInstance();
+            var nestedProperty = context.GetInstance();
             context.PushInstance(nestedProperty);
 
-            IExtendedType element = args[0];
+            var element = args[0];
             context.RuntimeTypes.Push(element);
             context.AddScope();
 
@@ -75,13 +75,13 @@ public abstract class QueryableListOperationHandlerBase
         ObjectFieldNode node,
         [NotNullWhen(true)] out ISyntaxVisitorAction? action)
     {
-        IExtendedType runtimeType = context.RuntimeTypes.Pop();
+        var runtimeType = context.RuntimeTypes.Pop();
 
-        if (context.TryCreateLambda(out LambdaExpression? lambda))
+        if (context.TryCreateLambda(out var lambda))
         {
             context.Scopes.Pop();
-            Expression instance = context.PopInstance();
-            Expression expression = HandleListOperation(
+            var instance = context.PopInstance();
+            var expression = HandleListOperation(
                 context,
                 field,
                 node,
@@ -98,7 +98,6 @@ public abstract class QueryableListOperationHandlerBase
             context.GetLevel().Enqueue(expression);
         }
 
-
         action = SyntaxVisitor.Continue;
         return true;
     }
@@ -110,6 +109,7 @@ public abstract class QueryableListOperationHandlerBase
     /// </summary>
     /// <param name="context">The context of the visitor</param>
     /// <param name="field">The currently visited filter field</param>
+    /// <param name="node">The object field node</param>
     /// <param name="closureType">The runtime type of the scope</param>
     /// <param name="lambda">The expression of the nested operations</param>
     /// <returns></returns>

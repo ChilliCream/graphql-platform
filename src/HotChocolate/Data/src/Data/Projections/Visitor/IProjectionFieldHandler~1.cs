@@ -15,7 +15,7 @@ public interface IProjectionFieldHandler<TContext>
     /// <param name="context">The context of the <see cref="IProjectionVisitorContext"/></param>
     /// <param name="selection">The current selection</param>
     /// <returns>
-    /// The instance of <see cref="TContext"/> that is used in TryHandleEnter
+    /// The instance of <typeparamref name="TContext"/> that is used in TryHandleEnter
     /// </returns>
     TContext OnBeforeEnter(TContext context, ISelection selection);
 
@@ -44,7 +44,7 @@ public interface IProjectionFieldHandler<TContext>
     /// <param name="selection">The current selection</param>
     /// <param name="result">The action produced by TryHandleEnter</param>
     /// <returns>
-    /// The instance of <see cref="TContext"/> that is used in on leave
+    /// The instance of <typeparamref name="TContext"/> that is used in on leave
     /// </returns>
     TContext OnAfterEnter(
         TContext context,
@@ -58,7 +58,7 @@ public interface IProjectionFieldHandler<TContext>
     /// <param name="context">The context of the <see cref="IProjectionVisitorContext"/></param>
     /// <param name="selection">The current selection</param>
     /// <returns>
-    /// The instance of <see cref="TContext"/> that is used in TryHandleLeave
+    /// The instance of <typeparamref name="TContext"/> that is used in TryHandleLeave
     /// </returns>
     TContext OnBeforeLeave(TContext context, ISelection selection);
 
@@ -87,7 +87,7 @@ public interface IProjectionFieldHandler<TContext>
     /// <param name="result">The action produced by TryHandleLeave</param>
     /// <param name="selection">The current selection</param>
     /// <returns>
-    /// The instance of <see cref="TContext"/> that is used in TryHandleLeave
+    /// The instance of <typeparamref name="TContext"/> that is used in TryHandleLeave
     /// </returns>
     TContext OnAfterLeave(
         TContext context,

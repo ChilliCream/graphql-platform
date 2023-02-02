@@ -4,87 +4,90 @@ using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+public class SourceObjectConversionTests
 {
-    public class SourceObjectConversionTests
+    [Fact]
+    public async Task ConvertSourceObject()
     {
-        [Fact]
-        public async Task ConvertSourceObject()
-        {
-            // arrange
-            var conversionTriggered = false;
+        // arrange
+        var conversionTriggered = false;
 
-            IRequestExecutor executor = new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<QueryType>()
-                .AddTypeConverter<Foo, Baz>(input =>
-                {
-                    conversionTriggered = true;
-                    return new Baz { Qux = input.Bar };
-                })
-                .Services
-                .BuildServiceProvider()
-                .GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync()
-                .Result;
-
-            // act
-            IExecutionResult result = await executor.ExecuteAsync("{ foo { qux } }");
-
-            // assert
-            Assert.True(result.Errors is null, "There should be no errors.");
-            Assert.True(conversionTriggered, "The custom converter should have been hit.");
-            result.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task NoConverter_Specified()
-        {
-            // arrange
-            ISchema schema =
-                SchemaBuilder.New()
-                    .AddQueryType<QueryType>()
-                    .Create();
-
-            // act
-            IReadOnlyQueryRequest request =
-                QueryRequestBuilder.New()
-                    .SetQuery("{ foo { qux } }")
-                    .Create();
-
-            IExecutionResult result =
-                await schema.MakeExecutable().ExecuteAsync(request);
-
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
-
-        public class Query
-        {
-            public Foo Foo { get; } = new Foo { Bar = "bar" };
-        }
-
-        public class QueryType : ObjectType<Query>
-        {
-            protected override void Configure(
-                IObjectTypeDescriptor<Query> descriptor)
+        var executor = new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryType>()
+            .AddTypeConverter<Foo, Baz>(input =>
             {
-                descriptor.Field(t => t.Foo).Type<BazType>();
-            }
-        }
+                conversionTriggered = true;
+                return new Baz { Qux = input.Bar };
+            })
+            .Services
+            .BuildServiceProvider()
+            .GetRequiredService<IRequestExecutorResolver>()
+            .GetRequestExecutorAsync()
+            .Result;
 
-        public class Foo
-        {
-            public string Bar { get; set; }
-        }
+        // act
+        var result = await executor.ExecuteAsync("{ foo { qux } }");
 
-        public class Baz
-        {
-            public string Qux { get; set; }
-        }
+        // assert
+        Assert.True(
+            Assert.IsType<QueryResult>(result).Errors is null,
+            "There should be no errors.");
+        Assert.True(
+            conversionTriggered,
+            "The custom converter should have been hit.");
+        result.MatchSnapshot();
+    }
 
-        public class BazType : ObjectType<Baz>
+    [Fact]
+    public async Task NoConverter_Specified()
+    {
+        // arrange
+        var schema =
+            SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .Create();
+
+        // act
+        var request =
+            QueryRequestBuilder.New()
+                .SetQuery("{ foo { qux } }")
+                .Create();
+
+        var result =
+            await schema.MakeExecutable().ExecuteAsync(request);
+
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
+
+    public class Query
+    {
+        public Foo Foo { get; } = new Foo { Bar = "bar" };
+    }
+
+    public class QueryType : ObjectType<Query>
+    {
+        protected override void Configure(
+            IObjectTypeDescriptor<Query> descriptor)
         {
+            descriptor.Field(t => t.Foo).Type<BazType>();
         }
+    }
+
+    public class Foo
+    {
+        public string Bar { get; set; }
+    }
+
+    public class Baz
+    {
+        public string Qux { get; set; }
+    }
+
+    public class BazType : ObjectType<Baz>
+    {
     }
 }

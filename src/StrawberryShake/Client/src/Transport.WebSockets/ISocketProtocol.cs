@@ -88,4 +88,16 @@ public interface ISocketProtocol : IAsyncDisposable
     /// </summary>
     /// <param name="listener"></param>
     void Unsubscribe(OnReceiveAsync listener);
+
+    /// <summary>
+    /// Notify the protocol to complete
+    /// </summary>
+    /// <param name="operationId">The id of the operation to stop</param>
+    /// <param name="cancellationToken">
+    /// A <see cref="CancellationToken"/> to cancel the notification
+    /// </param>
+    /// <returns>A task that is completed once the notification is completed</returns>
+    ValueTask NotifyCompletion(
+        string operationId,
+        CancellationToken cancellationToken);
 }

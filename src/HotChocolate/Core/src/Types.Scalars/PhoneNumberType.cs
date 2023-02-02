@@ -28,7 +28,7 @@ public class PhoneNumberType : RegexType
     /// Initializes a new instance of the <see cref="PhoneNumberType"/>
     /// </summary>
     public PhoneNumberType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(

@@ -1,12 +1,12 @@
+#nullable enable
+
 using System;
 using System.Linq;
-using System.Reflection;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Relay.Descriptors;
+using static System.Reflection.BindingFlags;
 using static HotChocolate.Utilities.ThrowHelper;
-
-#nullable enable
 
 namespace HotChocolate.Types.Relay;
 
@@ -30,7 +30,7 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
     /// </summary>
     public Type? NodeResolverType { get; set; }
 
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
         Type type)
@@ -46,12 +46,12 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
                 context.TypeInspector.GetType(typeof(IdType))));
         });
 
-        descriptor.Extend().OnBeforeCompletion((descriptorContext, definition) =>
+        descriptor.Extend().OnBeforeCompletion((completionContext, definition) =>
         {
             // first we try to resolve the id field.
             if (IdField is not null)
             {
-                MemberInfo? idField = type.GetMember(IdField).FirstOrDefault();
+                var idField = type.GetMember(IdField).FirstOrDefault();
 
                 if (idField is null)
                 {
@@ -74,16 +74,14 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
             {
                 if (NodeResolver is not null)
                 {
-                    MethodInfo? method = NodeResolverType.GetMethod(NodeResolver);
+                    var method = NodeResolverType.GetMethod(
+                        NodeResolver,
+                        Instance | Static | Public | FlattenHierarchy);
 
-                    if (method is null)
+                    if (method is not null)
                     {
-                        throw NodeAttribute_NodeResolverNotFound(
-                            NodeResolverType,
-                            NodeResolver);
+                        nodeDescriptor.ResolveNodeWith(method);
                     }
-
-                    nodeDescriptor.ResolveNodeWith(method);
                 }
                 else
                 {
@@ -92,54 +90,51 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
             }
             else if (NodeResolver is not null)
             {
-                MethodInfo? method = type.GetMethod(NodeResolver);
+                var method = type.GetMethod(
+                    NodeResolver,
+                    Instance | Static | Public | FlattenHierarchy);
 
-                if (method is null)
+                if (method is not null)
                 {
-                    throw NodeAttribute_NodeResolverNotFound(type, NodeResolver);
+                    nodeDescriptor.ResolveNodeWith(method);
                 }
-
-                nodeDescriptor.ResolveNodeWith(method);
             }
             else if (definition.RuntimeType != typeof(object) && definition.RuntimeType != type)
             {
-                MethodInfo? method = descriptorContext.TypeInspector.GetNodeResolverMethod(
+                var method = completionContext.TypeInspector.GetNodeResolverMethod(
                     definition.RuntimeType,
                     type);
 
-                if (method is null)
+                if (method is not null)
                 {
-                    throw NodeAttribute_NodeResolverNotFound(type, NodeResolver);
-                }
-
-                if (definition.Fields.Any(
-                    t => t.Member == method || t.ResolverMember == method))
-                {
-                    foreach (ObjectFieldDefinition? fieldDefinition in definition.Fields
-                        .Where(t => t.Member == method || t.ResolverMember == method)
-                        .ToArray())
+                    if (definition.Fields.Any(
+                        t => t.Member == method || t.ResolverMember == method))
                     {
-                        definition.Fields.Remove(fieldDefinition);
+                        foreach (var fieldDefinition in definition.Fields
+                            .Where(t => t.Member == method || t.ResolverMember == method)
+                            .ToArray())
+                        {
+                            definition.Fields.Remove(fieldDefinition);
+                        }
                     }
-                }
 
-                nodeDescriptor.ResolveNodeWith(method);
+                    nodeDescriptor.ResolveNodeWith(method);
+                }
             }
             else
             {
-                nodeDescriptor.ResolveNode(type);
+                nodeDescriptor.TryResolveNode(type);
             }
 
             // we trigger a late id field configuration
-            var descriptor = ObjectTypeDescriptor.From(
-            descriptorContext.DescriptorContext,
-            definition);
-            nodeDescriptor.ConfigureNodeField(descriptor);
-            descriptor.CreateDefinition();
+            var typeDescriptor = ObjectTypeDescriptor.From(
+                completionContext.DescriptorContext,
+                definition);
+            nodeDescriptor.ConfigureNodeField(typeDescriptor);
+            typeDescriptor.CreateDefinition();
 
-            // after that we complete the type definition
-            // to copy the node resolver to the context data.
-            nodeDescriptor.OnCompleteDefinition(definition);
+            // invoke completion explicitly.
+            nodeDescriptor.OnCompleteDefinition(completionContext, definition);
         });
     }
 }

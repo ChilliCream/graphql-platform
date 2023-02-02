@@ -1,4 +1,62 @@
-﻿{
+SDL:
+---------------
+query queryName($foo: ComplexType, $site: Site = MOBILE) {
+  whoever123is: node(id: [ 123, 456 ]) {
+    id
+    ... on User @defer {
+      field2 {
+        id
+        alias: field1(first: 10, after: $foo) @include(if: $foo) {
+          id
+          ... frag
+        }
+      }
+    }
+    ... @skip(unless: $foo) {
+      id
+    }
+    ... {
+      id
+    }
+  }
+}
+
+mutation likeStory {
+  like(story: 123) @defer {
+    story {
+      id
+    }
+  }
+}
+
+subscription StoryLikeSubscription($input: StoryLikeSubscribeInput) {
+  storyLikeSubscribe(input: $input) {
+    story {
+      likers {
+        count
+      }
+      likeSentence {
+        text
+      }
+    }
+  }
+}
+
+fragment frag on Friend {
+  foo(size: $size, bar: $b, obj: { key: "value", block: """
+      block string uses \"""
+  """ })
+}
+
+{
+  unnamed(truthy: true, falsey: false, nullish: null)
+  query
+}
+---------------
+
+AST:
+---------------
+{
   "Kind": "Document",
   "Location": {
     "Start": 0,
@@ -52,8 +110,7 @@
                 "Column": 18
               },
               "Value": "foo"
-            },
-            "Value": "foo"
+            }
           },
           "Type": {
             "Kind": "NamedType",
@@ -102,8 +159,7 @@
                 "Column": 37
               },
               "Value": "site"
-            },
-            "Value": "site"
+            }
           },
           "Type": {
             "Kind": "NamedType",
@@ -418,8 +474,7 @@
                                         "Column": 40
                                       },
                                       "Value": "foo"
-                                    },
-                                    "Value": "foo"
+                                    }
                                   }
                                 }
                               ],
@@ -550,8 +605,7 @@
                                             "Column": 60
                                           },
                                           "Value": "foo"
-                                        },
-                                        "Value": "foo"
+                                        }
                                       }
                                     }
                                   ]
@@ -645,8 +699,7 @@
                                 "Column": 24
                               },
                               "Value": "foo"
-                            },
-                            "Value": "foo"
+                            }
                           }
                         }
                       ]
@@ -978,8 +1031,7 @@
                 "Column": 37
               },
               "Value": "input"
-            },
-            "Value": "input"
+            }
           },
           "Type": {
             "Kind": "NamedType",
@@ -1053,8 +1105,7 @@
                       "Column": 30
                     },
                     "Value": "input"
-                  },
-                  "Value": "input"
+                  }
                 }
               }
             ],
@@ -1311,8 +1362,7 @@
                       "Column": 14
                     },
                     "Value": "size"
-                  },
-                  "Value": "size"
+                  }
                 }
               },
               {
@@ -1350,8 +1400,7 @@
                       "Column": 26
                     },
                     "Value": "b"
-                  },
-                  "Value": "b"
+                  }
                 }
               },
               {
@@ -1645,5 +1694,7 @@
         ]
       }
     }
-  ]
+  ],
+  "Count": 155
 }
+---------------

@@ -1,7 +1,5 @@
 ﻿{
-  "Label": null,
-  "Path": null,
-  "Data": {
+  "data": {
     "items": [
       {
         "model": {
@@ -17,9 +15,5 @@
         "model": null
       }
     ]
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null,
-  "HasNext": null
+  }
 }

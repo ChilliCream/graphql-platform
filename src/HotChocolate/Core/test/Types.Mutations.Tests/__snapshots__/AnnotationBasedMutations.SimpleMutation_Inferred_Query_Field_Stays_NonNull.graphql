@@ -1,0 +1,21 @@
+schema {
+  query: Query
+  mutation: SimpleMutation
+}
+
+type DoSomethingPayload {
+  string: String
+  query: Query!
+}
+
+type Query {
+  abc: String
+}
+
+type SimpleMutation {
+  doSomething(input: DoSomethingInput!): DoSomethingPayload!
+}
+
+input DoSomethingInput {
+  something: String!
+}

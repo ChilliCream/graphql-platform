@@ -54,6 +54,12 @@ public static class ErrorCodes
         /// A persisted query was not found when using the active persisted query pipeline.
         /// </summary>
         public const string PersistedQueryNotFound = "HC0020";
+
+        /// <summary>
+        /// Only persisted queries are allowed.
+        /// </summary>
+        public const string OnlyPersistedQueriesAllowed = "HC0067";
+
         public const string TaskProcessingError = "HC0008";
         public const string SyntaxError = "HC0014";
         public const string CannotCreateRootValue = "HC0019";
@@ -65,21 +71,21 @@ public static class ErrorCodes
 
         /// <summary>
         /// The Oneof Input Objects `{0}` require that exactly one field must be supplied and that
-        /// field must not be `null`. Oneof Input Objects are a special variant of Input Objects 
+        /// field must not be `null`. Oneof Input Objects are a special variant of Input Objects
         /// where the type system asserts that exactly one of the fields must be set and non-null.
         /// </summary>
         public const string OneOfNoFieldSet = "HC0054";
 
         /// <summary>
-        /// More than one field of the Oneof Input Object `{0}` is set. Oneof Input Objects 
-        /// are a special variant of Input Objects where the type system asserts that exactly 
+        /// More than one field of the Oneof Input Object `{0}` is set. Oneof Input Objects
+        /// are a special variant of Input Objects where the type system asserts that exactly
         /// one of the fields must be set and non-null.
         /// </summary>
         public const string OneOfMoreThanOneFieldSet = "HC0055";
 
         /// <summary>
-        /// `null` was set to the field `{0}`of the Oneof Input Object `{1}`. Oneof Input Objects 
-        /// are a special variant of Input Objects where the type system asserts that exactly 
+        /// `null` was set to the field `{0}`of the Oneof Input Object `{1}`. Oneof Input Objects
+        /// are a special variant of Input Objects where the type system asserts that exactly
         /// one of the fields must be set and non-null.
         /// </summary>
         public const string OneOfFieldIsNull = "HC0056";
@@ -171,6 +177,16 @@ public static class ErrorCodes
         /// The requested type does not exist.
         /// </summary>
         public const string TypeDoesNotExist = "HC0060";
+
+        /// <summary>
+        /// The request did not specify any supported accept media type.
+        /// </summary>
+        public const string NoSupportedAcceptMediaType = "HC0063";
+
+        /// <summary>
+        /// The request did not specify any supported accept media type.
+        /// </summary>
+        public const string InvalidAcceptHeaderValue = "HC0064";
     }
 
     public static class Schema
@@ -181,10 +197,10 @@ public static class ErrorCodes
         public const string UnresolvedTypes = "TS_UNRESOLVED_TYPES";
         public const string NoName = "TS_NO_NAME_DEFINED";
         public const string NoFieldType = "TS_NO_FIELD_TYPE";
-        public const string ArgumentValueTypeWrong = "TS_ARG_VALUE_TYPE_WRONG";
         public const string InvalidArgument = "TS_INVALID_ARG";
-        public const string NonNullArgument = "TS_ARG_NON_NULL";
         public const string InterfaceNotImplemented = "SCHEMA_INTERFACE_NO_IMPL";
+        public const string DuplicateTypeName = "HC0065";
+        public const string DuplicateMutationErrorTypeName = "HC0066";
 
         /// <summary>
         /// The middleware order of a field pipeline is incorrect.
@@ -192,9 +208,35 @@ public static class ErrorCodes
         public const string MiddlewareOrderInvalid = "HC0050";
 
         /// <summary>
-        /// Type system members are not supported as runtime types
+        /// Type system members are not supported as runtime types.
         /// </summary>
-        public const string NoSchemaTypesAllowedAsRuntimeType = "HC0051";
+        public const string NoSchemaTypesAllowedAsRuntimeType = "HC0073";
+
+        /// <summary>
+        /// An object type implementing the node interface does not provide a node resolver.
+        /// </summary>
+        public const string NodeResolverMissing = "HC0068";
+
+        /// <summary>
+        /// A mutation payload type must be an object type.
+        /// </summary>
+        public const string MutationPayloadMustBeObject = "HC0069";
+
+        /// <summary>
+        /// The schema building directive `@mutation`
+        /// can only be applied on object fields.
+        /// </summary>
+        public const string MutationConvDirectiveWrongLocation = "HC0070";
+
+        /// <summary>
+        /// A schema building directive had an argument with an unexpected value.
+        /// </summary>
+        public const string DirectiveArgumentUnexpectedValue = "HC0071";
+
+        /// <summary>
+        /// The specified directive argument does not exist.
+        /// </summary>
+        public const string UnknownDirectiveArgument = "HC0072";
     }
 
     public static class Scalars

@@ -14,9 +14,9 @@ namespace HotChocolate.Utilities.Introspection
             typeDefinitions.Add(CreateSchema(result.Data.Schema));
             typeDefinitions.AddRange(CreateTypes(result.Data.Schema.Types));
 
-            foreach (Directive directive in result.Data.Schema.Directives)
+            foreach (var directive in result.Data.Schema.Directives)
             {
-                DirectiveDefinitionNode directiveDefinition =
+                var directiveDefinition =
                     CreateDirectiveDefinition(directive);
                 if (directiveDefinition.Locations.Any())
                 {
@@ -72,7 +72,7 @@ namespace HotChocolate.Utilities.Introspection
         private static IEnumerable<ITypeDefinitionNode> CreateTypes(
             ICollection<FullType> types)
         {
-            foreach (FullType type in types)
+            foreach (var type in types)
             {
                 yield return CreateTypes(type);
             }
@@ -123,7 +123,7 @@ namespace HotChocolate.Utilities.Introspection
         {
             var values = new List<EnumValueDefinitionNode>();
 
-            foreach (EnumValue value in enumValues)
+            foreach (var value in enumValues)
             {
 
                 values.Add(new EnumValueDefinitionNode
@@ -158,7 +158,7 @@ namespace HotChocolate.Utilities.Introspection
         {
             var list = new List<InputValueDefinitionNode>();
 
-            foreach (InputField field in fields)
+            foreach (var field in fields)
             {
                 list.Add(new InputValueDefinitionNode
                 (
@@ -207,7 +207,7 @@ namespace HotChocolate.Utilities.Introspection
         {
             var list = new List<FieldDefinitionNode>();
 
-            foreach (Field field in fields)
+            foreach (var field in fields)
             {
                 list.Add(new FieldDefinitionNode
                 (
@@ -252,7 +252,7 @@ namespace HotChocolate.Utilities.Introspection
         private static DirectiveDefinitionNode CreateDirectiveDefinition(
             Directive directive)
         {
-            IReadOnlyList<NameNode> locations = directive.Locations == null
+            var locations = directive.Locations == null
                 ? InferDirectiveLocation(directive)
                 : directive.Locations.Select(t => new NameNode(t)).ToList();
 
@@ -306,7 +306,7 @@ namespace HotChocolate.Utilities.Introspection
         {
             var list = new List<NamedTypeNode>();
 
-            foreach (TypeRef typeRef in interfaces)
+            foreach (var typeRef in interfaces)
             {
                 list.Add(new NamedTypeNode(new NameNode(typeRef.Name)));
             }

@@ -1,23 +1,23 @@
 using System.Collections.Generic;
 using System.Linq;
+using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
+
 using Xunit;
 
 namespace HotChocolate.Data.Tests;
 
-public class SortInputTypeTest
-    : SortTestBase
+public class SortInputTypeTest : SortTestBase
 {
     [Fact]
     public void SortInputType_DynamicName()
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(
+        var schema = CreateSchema(
             s => s.AddType(
                 new SortInputType<Foo>(
                     d => d
@@ -26,7 +26,7 @@ public class SortInputTypeTest
                         .Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -34,7 +34,7 @@ public class SortInputTypeTest
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(
+        var schema = CreateSchema(
             s => s.AddType(
                 new SortInputType<Foo>(
                     d => d.Name(dep => dep.Name + "Foo")
@@ -42,7 +42,7 @@ public class SortInputTypeTest
                         .Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public class SortInputTypeTest
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(
+        var schema = CreateSchema(
             s => s.AddDirectiveType<FooDirectiveType>()
                 .AddType(
                     new SortInputType<Foo>(
@@ -58,7 +58,7 @@ public class SortInputTypeTest
                             .Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -66,18 +66,13 @@ public class SortInputTypeTest
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(
-            s => s.AddDirectiveType<FooDirectiveType>()
-                .AddType(
-                    new SortInputType<Foo>(
-                        d => d.Directive(new NameString("foo"))
-                            .Field(x => x.Bar)
-                    )
-                )
-        );
+        var schema = CreateSchema(
+            s => s
+                .AddDirectiveType<FooDirectiveType>()
+                .AddType(new SortInputType<Foo>(d => d.Directive("foo").Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -85,14 +80,14 @@ public class SortInputTypeTest
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(
+        var schema = CreateSchema(
             s => s.AddDirectiveType<FooDirectiveType>()
                 .AddType(
                     new SortInputType<Foo>(
                         d => d.Directive(new DirectiveNode("foo")).Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -100,7 +95,7 @@ public class SortInputTypeTest
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(
+        var schema = CreateSchema(
             s => s.AddDirectiveType<FooDirectiveType>()
                 .AddType(
                     new SortInputType<Foo>(
@@ -109,7 +104,7 @@ public class SortInputTypeTest
                             .Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -117,7 +112,7 @@ public class SortInputTypeTest
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(
+        var schema = CreateSchema(
             s => s.AddDirectiveType<FooDirectiveType>()
                 .AddType(
                     new SortInputType<Foo>(
@@ -126,7 +121,7 @@ public class SortInputTypeTest
                             .Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -134,13 +129,13 @@ public class SortInputTypeTest
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(
+        var schema = CreateSchema(
             s => s.AddType(
                 new SortInputType<Foo>(
                     d => d.Description("Test").Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -148,20 +143,20 @@ public class SortInputTypeTest
     {
         // arrange
         // act
-        ISchema schema = CreateSchema(
+        var schema = CreateSchema(
             s => s.AddType(
                 new SortInputType<Foo>(
                     d => d.Name("Test").Field(x => x.Bar))));
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public void SortInputType_Should_ThrowException_WhenNoConventionIsRegistered()
     {
         // arrange
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddQueryType(
                 c =>
                     c.Name("Query")
@@ -171,7 +166,7 @@ public class SortInputTypeTest
 
         // act
         // assert
-        SchemaException exception = Assert.Throws<SchemaException>(() => builder.Create());
+        var exception = Assert.Throws<SchemaException>(() => builder.Create());
         exception.Message.MatchSnapshot();
     }
 
@@ -179,7 +174,7 @@ public class SortInputTypeTest
     public void SortInputType_Should_ThrowException_WhenNoConventionIsRegisteredDefault()
     {
         // arrange
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddQueryType(
                 c =>
                     c.Name("Query")
@@ -189,7 +184,7 @@ public class SortInputTypeTest
 
         // act
         // assert
-        SchemaException exception = Assert.Throws<SchemaException>(() => builder.Create());
+        var exception = Assert.Throws<SchemaException>(() => builder.Create());
         exception.Message.MatchSnapshot();
     }
 
@@ -197,7 +192,7 @@ public class SortInputTypeTest
     public void SortInputType_Should_UseCustomSortType_When_Nested()
     {
         // arrange
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddSorting()
             .AddQueryType<UserQueryType>();
 
@@ -210,7 +205,7 @@ public class SortInputTypeTest
     public void SortInputType_Should_IgnoreFieldWithoutCallingConvention()
     {
         // arrange
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddSorting(
                 x => x.AddDefaultOperations()
                     .BindRuntimeType<int, DefaultSortEnumType>()
@@ -224,26 +219,26 @@ public class SortInputTypeTest
                         .UseSorting<IgnoreTestSortInputType>()));
 
         // act
-        ISchema schema = builder.Create();
+        var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
-    public void FilterInputType_Should_InfereType_When_ItIsAInterface()
+    public void SortInputType_Should_InfereType_When_ItIsAInterface()
     {
         // arrange
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddFiltering()
             .AddQueryType<TestingType<ITest<Foo>>>()
             .AddObjectType<ITest<Foo>>();
 
         // act
-        ISchema schema = builder.Create();
+        var schema = builder.Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
         schema.Print().MatchSnapshot();
     }
 
@@ -307,6 +302,8 @@ public class SortInputTypeTest
 
         [GraphQLNonNullType]
         public string Name { get; set; } = default!;
+
+        public User? Account { get; set; }
     }
 
     public class User

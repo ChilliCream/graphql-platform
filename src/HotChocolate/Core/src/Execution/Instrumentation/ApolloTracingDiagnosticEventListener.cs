@@ -26,9 +26,9 @@ internal class ApolloTracingDiagnosticEventListener : ExecutionDiagnosticEventLi
     {
         if (IsEnabled(context.ContextData))
         {
-            DateTime startTime = _timestampProvider.UtcNow();
+            var startTime = _timestampProvider.UtcNow();
 
-            ApolloTracingResultBuilder builder = CreateBuilder(context.ContextData);
+            var builder = CreateBuilder(context.ContextData);
 
             builder.SetRequestStartTime(
                 startTime,
@@ -41,21 +41,21 @@ internal class ApolloTracingDiagnosticEventListener : ExecutionDiagnosticEventLi
 
     public override IDisposable ParseDocument(IRequestContext context)
     {
-        return TryGetBuilder(context.ContextData, out ApolloTracingResultBuilder? builder)
+        return TryGetBuilder(context.ContextData, out var builder)
             ? new ParseDocumentScope(builder, _timestampProvider)
             : EmptyScope;
     }
 
     public override IDisposable ValidateDocument(IRequestContext context)
     {
-        return TryGetBuilder(context.ContextData, out ApolloTracingResultBuilder? builder)
+        return TryGetBuilder(context.ContextData, out var builder)
             ? new ValidateDocumentScope(builder, _timestampProvider)
             : EmptyScope;
     }
 
     public override IDisposable ResolveFieldValue(IMiddlewareContext context)
     {
-        return TryGetBuilder(context.ContextData, out ApolloTracingResultBuilder? builder)
+        return TryGetBuilder(context.ContextData, out var builder)
             ? new ResolveFieldValueScope(context, builder, _timestampProvider)
             : EmptyScope;
     }
@@ -72,7 +72,7 @@ internal class ApolloTracingDiagnosticEventListener : ExecutionDiagnosticEventLi
         IDictionary<string, object?> contextData,
         [NotNullWhen(true)] out ApolloTracingResultBuilder? builder)
     {
-        if (contextData.TryGetValue(nameof(ApolloTracingResultBuilder), out object? value) &&
+        if (contextData.TryGetValue(nameof(ApolloTracingResultBuilder), out var value) &&
             value is ApolloTracingResultBuilder b)
         {
             builder = b;
@@ -114,10 +114,10 @@ internal class ApolloTracingDiagnosticEventListener : ExecutionDiagnosticEventLi
         {
             if (!_disposed)
             {
-                DateTime endTime = _timestampProvider.UtcNow();
+                var endTime = _timestampProvider.UtcNow();
                 _builder.SetRequestDuration(endTime - _startTime);
 
-                if (_context.Result is IReadOnlyQueryResult queryResult)
+                if (_context.Result is IQueryResult queryResult)
                 {
                     _context.Result = QueryResultBuilder.FromResult(queryResult)
                         .AddExtension(_extensionKey, _builder.Build())

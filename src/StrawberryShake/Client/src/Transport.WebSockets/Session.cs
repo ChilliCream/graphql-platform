@@ -24,6 +24,8 @@ public sealed class Session : ISession
     {
         _socketClient = socketClient ??
                         throw new ArgumentNullException(nameof(socketClient));
+
+        _socketClient.ReceiveFinished += ReceiveFinishHandler;
     }
 
     /// <inheritdoc />
@@ -91,6 +93,21 @@ public sealed class Session : ISession
 
             await operation.DisposeAsync().ConfigureAwait(false);
         }
+    }
+
+    /// <inheritdoc />
+    private async ValueTask CompleteOperation(CancellationToken cancellationToken)
+    {
+        foreach (var operation in _operations)
+        {
+            await operation.Value.CompleteAsync(cancellationToken);
+        }
+    }
+
+    /// <inheritdoc />
+    private void ReceiveFinishHandler(object? sender, EventArgs args)
+    {
+        _ = CompleteOperation(default);
     }
 
     /// <summary>
@@ -166,6 +183,7 @@ public sealed class Session : ISession
                 _operations.Clear();
             }
 
+            _socketClient.ReceiveFinished -= ReceiveFinishHandler;
             _socketProtocol?.Unsubscribe(ReceiveMessage);
             await _socketClient.DisposeAsync();
         }

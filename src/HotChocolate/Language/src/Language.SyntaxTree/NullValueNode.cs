@@ -5,27 +5,40 @@ using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
+/// <summary>
+/// Represents the null value syntax.
+/// </summary>
 public sealed class NullValueNode
     : IValueNode<object?>
     , IEquatable<NullValueNode>
 {
-    private const string _null = "null";
-
     private NullValueNode()
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="NullValueNode"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
     public NullValueNode(Location? location)
     {
         Location = location;
     }
 
-    public SyntaxKind Kind { get; } = SyntaxKind.NullValue;
+    /// <inheritdoc />
+    public SyntaxKind Kind => SyntaxKind.NullValue;
 
+    /// <inheritdoc />
     public Location? Location { get; }
 
+    /// <summary>
+    /// The null runtime value.
+    /// </summary>
     public object? Value { get; }
 
+    /// <inheritdoc />
     public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
 
     /// <summary>
@@ -41,15 +54,7 @@ public sealed class NullValueNode
     /// to the current <see cref="NullValueNode"/>;
     /// otherwise, <c>false</c>.
     /// </returns>
-    public bool Equals(NullValueNode? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
-
-        return true;
-    }
+    public bool Equals(NullValueNode? other) => other is not null;
 
     /// <summary>
     /// Determines whether the specified <see cref="IValueNode"/> is equal
@@ -114,7 +119,7 @@ public sealed class NullValueNode
     /// A hash code for this instance that is suitable for use in
     /// hashing algorithms and data structures such as a hash table.
     /// </returns>
-    public override int GetHashCode() => 104729;
+    public override int GetHashCode() => HashCode.Combine(Kind);
 
     /// <summary>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
@@ -137,10 +142,20 @@ public sealed class NullValueNode
     /// </returns>
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
-    public static NullValueNode Default { get; } = new NullValueNode();
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Location" /> with <paramref name="location" />.
+    /// </summary>
+    /// <param name="location">
+    /// The location that shall be used to replace the current location.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="location" />.
+    /// </returns>
+    public NullValueNode WithLocation(Location? location) => new(location);
 
-    public NullValueNode WithLocation(Location? location)
-    {
-        return new NullValueNode(location);
-    }
+    /// <summary>
+    /// Gets the default null value instance.
+    /// </summary>
+    public static NullValueNode Default { get; } = new();
 }

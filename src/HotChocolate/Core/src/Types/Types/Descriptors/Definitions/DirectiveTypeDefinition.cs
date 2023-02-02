@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -16,7 +17,6 @@ public class DirectiveTypeDefinition
 {
     private Type _clrType = typeof(object);
     private List<DirectiveMiddleware>? _middlewareComponents;
-    private HashSet<DirectiveLocation>? _locations;
     private BindableList<DirectiveArgumentDefinition>? _arguments;
 
     /// <summary>
@@ -28,12 +28,12 @@ public class DirectiveTypeDefinition
     /// Initializes a new instance of <see cref="DirectiveTypeDefinition"/>.
     /// </summary>
     public DirectiveTypeDefinition(
-        NameString name,
+        string name,
         string? description = null,
         Type? runtimeType = null,
         bool isRepeatable = false)
     {
-        Name = name;
+        Name = name.EnsureGraphQLName();
         Description = description;
         RuntimeType = runtimeType ?? typeof(object);
         IsRepeatable = isRepeatable;
@@ -71,15 +71,29 @@ public class DirectiveTypeDefinition
     /// <summary>
     /// Defines the location on which a directive can be annotated.
     /// </summary>
-    public ISet<DirectiveLocation> Locations => _locations ??= new HashSet<DirectiveLocation>();
+    public DirectiveLocation Locations { get; set; }
 
     /// <summary>
     /// Gets the directive arguments.
     /// </summary>
-    public IBindableList<DirectiveArgumentDefinition> Arguments =>
-        _arguments ??= new BindableList<DirectiveArgumentDefinition>();
+    public IBindableList<DirectiveArgumentDefinition> Arguments
+        => _arguments ??= new BindableList<DirectiveArgumentDefinition>();
 
+    /// <summary>
+    /// Specifies if this directive definition has an arguments.
+    /// </summary>
     public bool HasArguments => _arguments is { Count: > 0 };
+
+
+    /// <summary>
+    /// Gets or sets the input object runtime value factory delegate.
+    /// </summary>
+    public Func<object?[], object>? CreateInstance { get; set; }
+
+    /// <summary>
+    /// Gets or sets the delegate to extract the field values from the runtime value.
+    /// </summary>
+    public Action<object, object?[]>? GetFieldData { get; set; }
 
     public override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
     {
@@ -87,7 +101,7 @@ public class DirectiveTypeDefinition
 
         configs.AddRange(Configurations);
 
-        foreach (DirectiveArgumentDefinition field in GetArguments())
+        foreach (var field in GetArguments())
         {
             configs.AddRange(field.Configurations);
         }
@@ -106,19 +120,6 @@ public class DirectiveTypeDefinition
         }
 
         return _middlewareComponents;
-    }
-
-    /// <summary>
-    /// Defines the location on which a directive can be annotated.
-    /// </summary>
-    internal IReadOnlyCollection<DirectiveLocation> GetLocations()
-    {
-        if (_locations is null)
-        {
-            return Array.Empty<DirectiveLocation>();
-        }
-
-        return _locations;
     }
 
     /// <summary>

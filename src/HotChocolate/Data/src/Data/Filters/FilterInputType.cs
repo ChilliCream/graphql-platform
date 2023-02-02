@@ -1,9 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Internal.FieldInitHelper;
 
@@ -31,15 +31,22 @@ public class FilterInputType
     protected override InputObjectTypeDefinition CreateDefinition(
         ITypeDiscoveryContext context)
     {
-        var descriptor = FilterInputTypeDescriptor.FromSchemaType(
-            context.DescriptorContext,
-            GetType(),
-            context.Scope);
+        try
+        {
+            if (Definition is null)
+            {
+                var descriptor = FilterInputTypeDescriptor
+                    .FromSchemaType(context.DescriptorContext, GetType(), context.Scope);
+                _configure!(descriptor);
+                Definition = descriptor.CreateDefinition();
+            }
 
-        _configure!(descriptor);
-        _configure = null;
-
-        return descriptor.CreateDefinition();
+            return Definition;
+        }
+        finally
+        {
+            _configure = null;
+        }
     }
 
     protected override void OnRegisterDependencies(
@@ -90,7 +97,7 @@ public class FilterInputType
             index++;
         }
 
-        foreach (InputFieldDefinition fieldDefinition in
+        foreach (var fieldDefinition in
             definition.Fields.Where(t => !t.Ignore))
         {
             switch (fieldDefinition)

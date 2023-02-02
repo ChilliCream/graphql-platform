@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -17,13 +16,12 @@ public class QueryRequestBuilder : IQueryRequestBuilder
     private string? _operationName;
     private IReadOnlyDictionary<string, object?>? _readOnlyVariableValues;
     private Dictionary<string, object?>? _variableValues;
-    private object? _initialValue;
     private IReadOnlyDictionary<string, object?>? _readOnlyContextData;
     private Dictionary<string, object?>? _contextData;
     private IReadOnlyDictionary<string, object?>? _readOnlyExtensions;
     private Dictionary<string, object?>? _extensions;
     private IServiceProvider? _services;
-    private OperationType[]? _allowedOperations;
+    private GraphQLRequestFlags _flags = GraphQLRequestFlags.AllowAll;
 
     public IQueryRequestBuilder SetQuery(string sourceText)
     {
@@ -67,12 +65,6 @@ public class QueryRequestBuilder : IQueryRequestBuilder
         return this;
     }
 
-    public IQueryRequestBuilder SetInitialValue(object? initialValue)
-    {
-        _initialValue = initialValue;
-        return this;
-    }
-
     public IQueryRequestBuilder SetServices(
         IServiceProvider? services)
     {
@@ -87,10 +79,10 @@ public class QueryRequestBuilder : IQueryRequestBuilder
         return this;
     }
 
-    public IQueryRequestBuilder SetAllowedOperations(
-        OperationType[]? allowedOperations)
+    public IQueryRequestBuilder SetFlags(
+        GraphQLRequestFlags flags)
     {
-        _allowedOperations = allowedOperations;
+        _flags = flags;
         return this;
     }
 
@@ -301,7 +293,7 @@ public class QueryRequestBuilder : IQueryRequestBuilder
         return this;
     }
 
-    public IReadOnlyQueryRequest Create()
+    public IQueryRequest Create()
         => new QueryRequest
         (
             query: _query,
@@ -312,8 +304,7 @@ public class QueryRequestBuilder : IQueryRequestBuilder
             contextData: GetContextData(),
             extensions: GetExtensions(),
             services: _services,
-            initialValue: _initialValue,
-            allowedOperations: _allowedOperations
+            flags: _flags
         );
 
     private IReadOnlyDictionary<string, object?> GetVariableValues()
@@ -367,7 +358,7 @@ public class QueryRequestBuilder : IQueryRequestBuilder
         }
     }
 
-    public static IReadOnlyQueryRequest Create(string query) =>
+    public static IQueryRequest Create(string query) =>
         New().SetQuery(query).Create();
 
     public static QueryRequestBuilder New() => new();
@@ -381,10 +372,10 @@ public class QueryRequestBuilder : IQueryRequestBuilder
             _queryHash = request.QueryHash,
             _operationName = request.OperationName,
             _readOnlyVariableValues = request.VariableValues,
-            _initialValue = request.InitialValue,
             _readOnlyContextData = request.ContextData,
             _readOnlyExtensions = request.Extensions,
-            _services = request.Services
+            _services = request.Services,
+            _flags = request.Flags
         };
 
         if (builder._query is null && builder._queryName is null)
@@ -398,7 +389,7 @@ public class QueryRequestBuilder : IQueryRequestBuilder
 
     public static QueryRequestBuilder From(GraphQLRequest request)
     {
-        QueryRequestBuilder builder = New();
+        var builder = New();
 
         builder
             .SetQueryId(request.QueryId)

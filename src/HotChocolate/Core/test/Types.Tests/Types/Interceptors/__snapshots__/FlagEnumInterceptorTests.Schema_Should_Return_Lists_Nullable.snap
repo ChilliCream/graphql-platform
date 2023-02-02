@@ -1,0 +1,34 @@
+﻿List:
+{
+  "data": {
+    "test": [
+      {
+        "isBar": true,
+        "isBaz": false,
+        "isFoo": false
+      }
+    ]
+  }
+}
+NestedList:
+{
+  "data": {
+    "test": [
+      [
+        {
+          "isBar": true,
+          "isBaz": true,
+          "isFoo": false
+        }
+      ]
+    ]
+  }
+}
+Null
+{
+  "data": {
+    "test": [
+      null
+    ]
+  }
+}

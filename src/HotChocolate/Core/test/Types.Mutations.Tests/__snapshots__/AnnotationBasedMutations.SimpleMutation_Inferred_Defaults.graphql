@@ -1,0 +1,26 @@
+schema {
+  mutation: SimpleMutationWithSingleError
+}
+
+interface Error {
+  message: String!
+}
+
+type CustomError implements Error {
+  message: String!
+}
+
+type DoSomethingOut {
+  string: String
+  errors: [DoSomethingFault!]
+}
+
+type SimpleMutationWithSingleError {
+  doSomething(inputArgument: DoSomethingIn!): DoSomethingOut!
+}
+
+union DoSomethingFault = CustomError
+
+input DoSomethingIn {
+  something: String!
+}

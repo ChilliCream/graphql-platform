@@ -4,9 +4,33 @@ using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
-public sealed class InlineFragmentNode
-    : ISelectionNode
+/// <summary>
+/// <para>
+/// Represents an inline fragment.
+/// </para>
+/// <para>
+/// Inline Fragments can be used directly within
+/// a selection to condition upon a type condition
+/// when querying against an interface or union.
+/// </para>
+/// </summary>
+public sealed class InlineFragmentNode : ISelectionNode
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="FragmentDefinitionNode"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="typeCondition">
+    /// The type condition.
+    /// </param>
+    /// <param name="directives">
+    /// The applied directives.
+    /// </param>
+    /// <param name="selectionSet">
+    /// The fragments selection set.
+    /// </param>
     public InlineFragmentNode(
         Location? location,
         NamedTypeNode? typeCondition,
@@ -15,13 +39,11 @@ public sealed class InlineFragmentNode
     {
         Location = location;
         TypeCondition = typeCondition;
-        Directives = directives
-            ?? throw new ArgumentNullException(nameof(directives));
-        SelectionSet = selectionSet
-            ?? throw new ArgumentNullException(nameof(selectionSet));
+        Directives = directives ?? throw new ArgumentNullException(nameof(directives));
+        SelectionSet = selectionSet ?? throw new ArgumentNullException(nameof(selectionSet));
     }
 
-    public SyntaxKind Kind { get; } = SyntaxKind.InlineFragment;
+    public SyntaxKind Kind => SyntaxKind.InlineFragment;
 
     public Location? Location { get; }
 
@@ -33,12 +55,12 @@ public sealed class InlineFragmentNode
 
     public IEnumerable<ISyntaxNode> GetNodes()
     {
-        if (TypeCondition is { })
+        if (TypeCondition is not null)
         {
             yield return TypeCondition;
         }
 
-        foreach (DirectiveNode directive in Directives)
+        foreach (var directive in Directives)
         {
             yield return directive;
         }
@@ -67,34 +89,57 @@ public sealed class InlineFragmentNode
     /// </returns>
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Location" /> with <paramref name="location" />.
+    /// </summary>
+    /// <param name="location">
+    /// The location that shall be used to replace the current location.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="location" />.
+    /// </returns>
     public InlineFragmentNode WithLocation(Location? location)
-    {
-        return new InlineFragmentNode(
-            location, TypeCondition,
-            Directives, SelectionSet);
-    }
+        => new(location, TypeCondition, Directives, SelectionSet);
 
-    public InlineFragmentNode WithTypeCondition(
-        NamedTypeNode? typeCondition)
-    {
-        return new InlineFragmentNode(
-            Location, typeCondition,
-            Directives, SelectionSet);
-    }
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="TypeCondition" /> with <paramref name="typeCondition" />.
+    /// </summary>
+    /// <param name="typeCondition">
+    /// The type condition that shall be used to replace the
+    /// current <see cref="TypeCondition" />.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="typeCondition" />.
+    /// </returns>
+    public InlineFragmentNode WithTypeCondition(NamedTypeNode? typeCondition)
+        => new(Location, typeCondition, Directives, SelectionSet);
 
-    public InlineFragmentNode WithDirectives(
-        IReadOnlyList<DirectiveNode> directives)
-    {
-        return new InlineFragmentNode(
-            Location, TypeCondition,
-            directives, SelectionSet);
-    }
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="NamedSyntaxNode.Directives" /> with <paramref name="directives" />.
+    /// </summary>
+    /// <param name="directives">
+    /// The directives that shall be used to replace the current
+    /// <see cref="NamedSyntaxNode.Directives" />.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="directives" />.
+    /// </returns>
+    public InlineFragmentNode WithDirectives(IReadOnlyList<DirectiveNode> directives)
+        => new(Location, TypeCondition, directives, SelectionSet);
 
-    public InlineFragmentNode WithSelectionSet(
-        SelectionSetNode selectionSet)
-    {
-        return new InlineFragmentNode(
-            Location, TypeCondition,
-            Directives, selectionSet);
-    }
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="SelectionSet" /> with <paramref name="selectionSet" />.
+    /// </summary>
+    /// <param name="selectionSet">
+    /// The selectionSet that shall be used to replace the current <see cref="SelectionSet" />.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="selectionSet" />.
+    /// </returns>
+    public InlineFragmentNode WithSelectionSet(SelectionSetNode selectionSet)
+        => new(Location, TypeCondition, Directives, selectionSet);
 }

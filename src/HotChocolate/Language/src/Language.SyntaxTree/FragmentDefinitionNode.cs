@@ -4,10 +4,41 @@ using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
-public sealed class FragmentDefinitionNode
-    : NamedSyntaxNode
-    , IExecutableDefinitionNode
+/// <summary>
+/// <para>
+/// Represents a named fragment definition.
+/// </para>
+/// <para>
+/// Fragments are the primary unit of composition in GraphQL.
+/// </para>
+/// <para>
+/// Fragments allow for the reuse of common repeated selections of fields,
+/// reducing duplicated text in the document.
+/// </para>
+/// </summary>
+public sealed class FragmentDefinitionNode : NamedSyntaxNode, IExecutableDefinitionNode
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="FragmentDefinitionNode"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="name">
+    /// The name of the fragment definition.
+    /// </param>
+    /// <param name="variableDefinitions">
+    /// The variables that are declared for this fragment definition.
+    /// </param>
+    /// <param name="typeCondition">
+    /// The type condition.
+    /// </param>
+    /// <param name="directives">
+    /// The applied directives.
+    /// </param>
+    /// <param name="selectionSet">
+    /// The fragments selection set.
+    /// </param>
     public FragmentDefinitionNode(
         Location? location,
         NameNode name,
@@ -25,20 +56,31 @@ public sealed class FragmentDefinitionNode
             ?? throw new ArgumentNullException(nameof(selectionSet));
     }
 
-    public override SyntaxKind Kind { get; } = SyntaxKind.FragmentDefinition;
+    /// <inheritdoc />
+    public override SyntaxKind Kind => SyntaxKind.FragmentDefinition;
 
+    /// <summary>
+    /// Gets the variables that are declared for this fragment definition.
+    /// </summary>
     public IReadOnlyList<VariableDefinitionNode> VariableDefinitions { get; }
 
+    /// <summary>
+    /// Gets the type condition.
+    /// </summary>
     public NamedTypeNode TypeCondition { get; }
 
+    /// <summary>
+    /// Gets the fragments selection set.
+    /// </summary>
     public SelectionSetNode SelectionSet { get; }
 
+    /// <inheritdoc />
     public override IEnumerable<ISyntaxNode> GetNodes()
     {
         yield return Name;
         yield return TypeCondition;
 
-        foreach (DirectiveNode directive in Directives)
+        foreach (var directive in Directives)
         {
             yield return directive;
         }
@@ -67,61 +109,88 @@ public sealed class FragmentDefinitionNode
     /// </returns>
     public override string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Location" /> with <paramref name="location" />.
+    /// </summary>
+    /// <param name="location">
+    /// The location that shall be used to replace the current location.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="location" />.
+    /// </returns>
     public FragmentDefinitionNode WithLocation(Location? location)
-    {
-        return new FragmentDefinitionNode(
-            location, Name,
-            VariableDefinitions,
-            TypeCondition,
-            Directives, SelectionSet);
-    }
+        => new(location, Name, VariableDefinitions, TypeCondition, Directives, SelectionSet);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="NamedSyntaxNode.Name" /> with <paramref name="name" />.
+    /// </summary>
+    /// <param name="name">
+    /// The name that shall be used to replace the current <see cref="NamedSyntaxNode.Name" />.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="name" />.
+    /// </returns>
     public FragmentDefinitionNode WithName(NameNode name)
-    {
-        return new FragmentDefinitionNode(
-            Location, name,
-            VariableDefinitions,
-            TypeCondition,
-            Directives, SelectionSet);
-    }
+        => new(Location, name, VariableDefinitions, TypeCondition, Directives, SelectionSet);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="VariableDefinitions" /> with <paramref name="variableDefinitions" />.
+    /// </summary>
+    /// <param name="variableDefinitions">
+    /// The variable definitions that shall be used to replace the
+    /// current <see cref="VariableDefinitions" />.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="variableDefinitions" />.
+    /// </returns>
     public FragmentDefinitionNode WithVariableDefinitions(
         IReadOnlyList<VariableDefinitionNode> variableDefinitions)
-    {
-        return new FragmentDefinitionNode(
-            Location, Name,
-            variableDefinitions,
-            TypeCondition,
-            Directives, SelectionSet);
-    }
+        => new(Location, Name, variableDefinitions, TypeCondition, Directives, SelectionSet);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="TypeCondition" /> with <paramref name="typeCondition" />.
+    /// </summary>
+    /// <param name="typeCondition">
+    /// The type condition that shall be used to replace the
+    /// current <see cref="TypeCondition" />.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="typeCondition" />.
+    /// </returns>
     public FragmentDefinitionNode WithTypeCondition(
         NamedTypeNode typeCondition)
-    {
-        return new FragmentDefinitionNode(
-            Location, Name,
-            VariableDefinitions,
-            typeCondition,
-            Directives, SelectionSet);
-    }
+        => new(Location, Name, VariableDefinitions, typeCondition, Directives, SelectionSet);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="NamedSyntaxNode.Directives" /> with <paramref name="directives" />.
+    /// </summary>
+    /// <param name="directives">
+    /// The directives that shall be used to replace the current
+    /// <see cref="NamedSyntaxNode.Directives" />.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="directives" />.
+    /// </returns>
     public FragmentDefinitionNode WithDirectives(
         IReadOnlyList<DirectiveNode> directives)
-    {
-        return new FragmentDefinitionNode(
-            Location, Name,
-            VariableDefinitions,
-            TypeCondition,
-            directives, SelectionSet);
-    }
+        => new(Location, Name, VariableDefinitions, TypeCondition, directives, SelectionSet);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="SelectionSet" /> with <paramref name="selectionSet" />.
+    /// </summary>
+    /// <param name="selectionSet">
+    /// The selectionSet that shall be used to replace the current <see cref="SelectionSet" />.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="selectionSet" />.
+    /// </returns>
     public FragmentDefinitionNode WithSelectionSet(
         SelectionSetNode selectionSet)
-    {
-        return new FragmentDefinitionNode(
-            Location, Name,
-            VariableDefinitions,
-            TypeCondition,
-            Directives, selectionSet);
-    }
+        => new(Location, Name, VariableDefinitions, TypeCondition, Directives, selectionSet);
 }

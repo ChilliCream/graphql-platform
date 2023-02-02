@@ -23,7 +23,7 @@ public interface ISortConvention : IConvention
     /// <returns>
     /// Returns the GraphQL type name that was inferred from the <paramref name="runtimeType"/>.
     /// </returns>
-    NameString GetTypeName(Type runtimeType);
+    string GetTypeName(Type runtimeType);
 
     /// <summary>
     /// Gets the GraphQL type description from a runtime type.
@@ -46,7 +46,7 @@ public interface ISortConvention : IConvention
     /// <returns>
     /// Returns the GraphQL field name that was inferred from the <see cref="MemberInfo"/>.
     /// </returns>
-    NameString GetFieldName(MemberInfo member);
+    string GetFieldName(MemberInfo member);
 
     /// <summary>
     /// Gets the GraphQL field description from a <see cref="MemberInfo"/>.
@@ -67,7 +67,7 @@ public interface ISortConvention : IConvention
     /// The member from which a field shall be inferred.
     /// </param>
     /// <returns>
-    /// Returns a <see cref="ClrTypeReference"/> that represents the field type.
+    /// Returns a <see cref="ExtendedTypeReference"/> that represents the field type.
     /// </returns>
     ExtendedTypeReference GetFieldType(MemberInfo member);
 
@@ -80,7 +80,7 @@ public interface ISortConvention : IConvention
     /// <returns>
     /// Returns the operation name.
     /// </returns>
-    NameString GetOperationName(int operationId);
+    string GetOperationName(int operationId);
 
     /// <summary>
     /// Gets the operation description for the provided <paramref name="operationId"/>.
@@ -99,7 +99,7 @@ public interface ISortConvention : IConvention
     /// <returns>
     /// Returns the sort argument name.
     /// </returns>
-    NameString GetArgumentName();
+    string GetArgumentName();
 
     /// <summary>
     /// Applies configurations to a sort type.
@@ -111,7 +111,7 @@ public interface ISortConvention : IConvention
     /// The descriptor to which the configurations shall be applied to.
     /// </param>
     void ApplyConfigurations(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         ISortInputTypeDescriptor descriptor);
 
     /// <summary>
@@ -124,7 +124,7 @@ public interface ISortConvention : IConvention
     /// The descriptor to which the configurations shall be applied to.
     /// </param>
     void ApplyConfigurations(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         ISortEnumTypeDescriptor descriptor);
 
     bool TryGetFieldHandler(
@@ -153,11 +153,19 @@ public interface ISortConvention : IConvention
     FieldMiddleware CreateExecutor<TEntityType>();
 
     /// <summary>
-    /// Configures the field where the filters are applied. This can be used to add context
+    /// Configures the field where the sortings are applied. This can be used to add context
     /// data to the field.
     /// </summary>
     /// <param name="fieldDescriptor">
-    /// the field descriptor where the filtering is applied
+    /// the field descriptor where the sorting is applied
     /// </param>
     void ConfigureField(IObjectFieldDescriptor fieldDescriptor);
+
+    /// <summary>
+    /// Creates metadata for a field that the provider can pick up an use for the translation
+    /// </summary>
+    ISortMetadata? CreateMetaData(
+        ITypeCompletionContext context,
+        ISortInputTypeDefinition typeDefinition,
+        ISortFieldDefinition fieldDefinition);
 }

@@ -1,295 +1,314 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using HotChocolate.Execution;
+using CookieCrumble;
 using HotChocolate.Data.MongoDb.Filters;
+using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Driver;
-using Snapshooter.Xunit;
 using Squadron;
-using Xunit;
 
-namespace HotChocolate.Data.MongoDb.Paging
+namespace HotChocolate.Data.MongoDb.Paging;
+
+public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
 {
-    public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
+    private readonly List<Foo> foos = new()
     {
-        private readonly List<Foo> foos = new List<Foo>
-        {
-            new Foo { Bar = "a" },
-            new Foo { Bar = "b" },
-            new Foo { Bar = "d" },
-            new Foo { Bar = "e" },
-            new Foo { Bar = "f" }
-        };
+        new Foo { Bar = "a" },
+        new Foo { Bar = "b" },
+        new Foo { Bar = "d" },
+        new Foo { Bar = "e" },
+        new Foo { Bar = "f" }
+    };
 
-        private readonly MongoResource _resource;
+    private readonly MongoResource _resource;
 
-        public MongoDbCursorPagingFindFluentTests(MongoResource resource)
-        {
-            _resource = resource;
-        }
+    public MongoDbCursorPagingFindFluentTests(MongoResource resource)
+    {
+        _resource = resource;
+    }
 
-        [Fact]
-        public async Task Simple_StringList_Default_Items()
-        {
-            Snapshot.FullName();
+    [Fact]
+    public async Task Simple_StringList_Default_Items()
+    {
+        // arrange
+        var executor = await CreateSchemaAsync();
 
-            IRequestExecutor executor = await CreateSchemaAsync();
-
-            IExecutionResult result = await executor
-                .ExecuteAsync(@"
-                    {
-                        foos {
-                            edges {
-                                node {
-                                    bar
-                                }
-                                cursor
-                            }
-                            nodes {
-                                bar
-                            }
-                            pageInfo {
-                                hasNextPage
-                                hasPreviousPage
-                                startCursor
-                                endCursor
-                            }
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                foos {
+                    edges {
+                        node {
+                            bar
                         }
-                    }");
-            result.MatchDocumentSnapshot();
-        }
+                        cursor
+                    }
+                    nodes {
+                        bar
+                    }
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                        startCursor
+                        endCursor
+                    }
+                }
+            }");
 
-        [Fact]
-        public async Task Simple_StringList_First_2()
-        {
-            Snapshot.FullName();
+        // assert
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), result)
+            .MatchAsync();
+    }
 
-            IRequestExecutor executor = await CreateSchemaAsync();
+    [Fact]
+    public async Task Simple_StringList_First_2()
+    {
+        // arrange
+        var executor = await CreateSchemaAsync();
 
-            IExecutionResult result = await executor
-                .ExecuteAsync(@"
-                    {
-                        foos(first: 2) {
-                            edges {
-                                node {
-                                    bar
-                                }
-                                cursor
-                            }
-                            nodes {
-                                bar
-                            }
-                            pageInfo {
-                                hasNextPage
-                                hasPreviousPage
-                                startCursor
-                                endCursor
-                            }
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                foos(first: 2) {
+                    edges {
+                        node {
+                            bar
                         }
-                    }");
-            result.MatchDocumentSnapshot();
-        }
+                        cursor
+                    }
+                    nodes {
+                        bar
+                    }
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                        startCursor
+                        endCursor
+                    }
+                }
+            }");
 
-        [Fact]
-        public async Task Simple_StringList_First_2_After()
-        {
-            Snapshot.FullName();
+        // assert
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), result)
+            .MatchAsync();
+    }
 
-            IRequestExecutor executor = await CreateSchemaAsync();
+    [Fact]
+    public async Task Simple_StringList_First_2_After()
+    {
+        // arrange
+        var executor = await CreateSchemaAsync();
 
-            IExecutionResult result = await executor
-                .ExecuteAsync(@"
-                    {
-                        foos(first: 2 after: ""MQ=="") {
-                            edges {
-                                node {
-                                    bar
-                                }
-                                cursor
-                            }
-                            nodes {
-                                bar
-                            }
-                            pageInfo {
-                                hasNextPage
-                                hasPreviousPage
-                                startCursor
-                                endCursor
-                            }
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                foos(first: 2 after: ""MQ=="") {
+                    edges {
+                        node {
+                            bar
                         }
-                    }");
-            result.MatchDocumentSnapshot();
-        }
+                        cursor
+                    }
+                    nodes {
+                        bar
+                    }
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                        startCursor
+                        endCursor
+                    }
+                }
+            }");
 
-        [Fact]
-        public async Task Simple_StringList_Last_1_Before()
-        {
-            Snapshot.FullName();
+        // assert
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), result)
+            .MatchAsync();
+    }
 
-            IRequestExecutor executor = await CreateSchemaAsync();
+    [Fact]
+    public async Task Simple_StringList_Last_1_Before()
+    {
+        // arrange
+        var executor = await CreateSchemaAsync();
 
-            IExecutionResult result = await executor
-                .ExecuteAsync(@"
-                    {
-                        foos(last: 1 before: ""NA=="") {
-                            edges {
-                                node {
-                                    bar
-                                }
-                                cursor
-                            }
-                            nodes {
-                                bar
-                            }
-                            pageInfo {
-                                hasNextPage
-                                hasPreviousPage
-                                startCursor
-                                endCursor
-                            }
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                foos(last: 1 before: ""NA=="") {
+                    edges {
+                        node {
+                            bar
                         }
-                    }");
-            result.MatchDocumentSnapshot();
-        }
+                        cursor
+                    }
+                    nodes {
+                        bar
+                    }
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                        startCursor
+                        endCursor
+                    }
+                }
+            }");
 
-        [Fact]
-        public async Task Simple_StringList_Global_DefaultItem_2()
-        {
-            Snapshot.FullName();
+        // assert
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), result)
+            .MatchAsync();
+    }
 
-            IRequestExecutor executor = await CreateSchemaAsync();
+    [Fact]
+    public async Task Simple_StringList_Global_DefaultItem_2()
+    {
+        // arrange
+        var executor = await CreateSchemaAsync();
 
-
-            IExecutionResult result = await executor
-                .ExecuteAsync(@"
-                    {
-                        foos {
-                            edges {
-                                node {
-                                    bar
-                                }
-                                cursor
-                            }
-                            nodes {
-                                bar
-                            }
-                            pageInfo {
-                                hasNextPage
-                                hasPreviousPage
-                                startCursor
-                                endCursor
-                            }
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                foos {
+                    edges {
+                        node {
+                            bar
                         }
-                    }");
-            result.MatchDocumentSnapshot();
-        }
+                        cursor
+                    }
+                    nodes {
+                        bar
+                    }
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                        startCursor
+                        endCursor
+                    }
+                }
+            }");
 
-        [Fact]
-        public async Task JustTotalCount()
-        {
-            Snapshot.FullName();
+        // assert
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), result)
+            .MatchAsync();
+    }
 
-            IRequestExecutor executor = await CreateSchemaAsync();
+    [Fact]
+    public async Task JustTotalCount()
+    {
+        // arrange
+        var executor = await CreateSchemaAsync();
 
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                foos {
+                    totalCount
+                }
+            }");
 
-            IExecutionResult result = await executor
-                .ExecuteAsync(@"
-                    {
-                        foos {
-                            totalCount
-                        }
-                    }");
-            result.MatchDocumentSnapshot();
-        }
+        // assert
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), result)
+            .MatchAsync();
+    }
 
-        [Fact]
-        public async Task TotalCount_AndFirst()
-        {
-            Snapshot.FullName();
+    [Fact]
+    public async Task TotalCount_AndFirst()
+    {
+        // arrange
+        var executor = await CreateSchemaAsync();
 
-            IRequestExecutor executor = await CreateSchemaAsync();
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                foos(first:1) {
+                    totalCount
+                }
+            }");
 
-            IExecutionResult result = await executor
-                .ExecuteAsync(@"
-                    {
-                        foos(first:1) {
-                            totalCount
-                        }
-                    }");
-            result.MatchDocumentSnapshot();
-        }
+        // assert
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), result)
+            .MatchAsync();
+    }
 
-        public class Foo
-        {
-            [BsonId]
-            public Guid Id { get; set; } = Guid.NewGuid();
+    public class Foo
+    {
+        [BsonId]
+        public Guid Id { get; set; } = Guid.NewGuid();
 
-            public string Bar { get; set; } = default!;
-        }
+        public string Bar { get; set; } = default!;
+    }
 
-        private Func<IResolverContext, MongoDbCollectionExecutable<TResult>> BuildResolver<TResult>(
-            MongoResource mongoResource,
-            IEnumerable<TResult> results)
-            where TResult : class
-        {
-            IMongoCollection<TResult> collection =
-                mongoResource.CreateCollection<TResult>("data_" + Guid.NewGuid().ToString("N"));
+    private Func<IResolverContext, MongoDbCollectionExecutable<TResult>> BuildResolver<TResult>(
+        MongoResource mongoResource,
+        IEnumerable<TResult> results)
+        where TResult : class
+    {
+        var collection =
+            mongoResource.CreateCollection<TResult>("data_" + Guid.NewGuid().ToString("N"));
 
-            collection.InsertMany(results);
+        collection.InsertMany(results);
 
-            return ctx => collection.AsExecutable();
-        }
+        return ctx => collection.AsExecutable();
+    }
 
-        private ValueTask<IRequestExecutor> CreateSchemaAsync()
-        {
-            return new ServiceCollection()
-                .AddGraphQL()
-                .AddMongoDbPagingProviders()
-                .AddFiltering(x => x.AddMongoDbDefaults())
-                .AddQueryType(
-                    descriptor =>
-                    {
-                        descriptor
-                            .Field("foos")
-                            .Resolve(BuildResolver(_resource, foos))
-                            .Type<ListType<ObjectType<Foo>>>()
-                            .Use(
-                                next => async context =>
+    private ValueTask<IRequestExecutor> CreateSchemaAsync()
+    {
+        return new ServiceCollection()
+            .AddGraphQL()
+            .AddMongoDbPagingProviders()
+            .AddFiltering(x => x.AddMongoDbDefaults())
+            .AddQueryType(
+                descriptor =>
+                {
+                    descriptor
+                        .Field("foos")
+                        .Resolve(BuildResolver(_resource, foos))
+                        .Type<ListType<ObjectType<Foo>>>()
+                        .Use(
+                            next => async context =>
+                            {
+                                await next(context);
+                                if (context.Result is IExecutable executable)
                                 {
-                                    await next(context);
-                                    if (context.Result is IExecutable executable)
-                                    {
-                                        context.ContextData["query"] = executable.Print();
-                                    }
-                                })
-                            .UsePaging<ObjectType<Foo>>(
-                                options: new PagingOptions { IncludeTotalCount = true });
-                    })
-                .UseRequest(
-                    next => async context =>
+                                    context.ContextData["query"] = executable.Print();
+                                }
+                            })
+                        .UsePaging<ObjectType<Foo>>(
+                            options: new PagingOptions { IncludeTotalCount = true });
+                })
+            .UseRequest(
+                next => async context =>
+                {
+                    await next(context);
+                    if (context.ContextData.TryGetValue("query", out var queryString))
                     {
-                        await next(context);
-                        if (context.Result is IReadOnlyQueryResult result &&
-                            context.ContextData.TryGetValue("query", out object? queryString))
-                        {
-                            context.Result =
-                                QueryResultBuilder
-                                    .FromResult(result)
-                                    .SetContextData("query", queryString)
-                                    .Create();
-                        }
-                    })
-                .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
-                .UseDefaultPipeline()
-                .Services
-                .BuildServiceProvider()
-                .GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
-        }
+                        context.Result =
+                            QueryResultBuilder
+                                .FromResult(context.Result!.ExpectQueryResult())
+                                .SetContextData("query", queryString)
+                                .Create();
+                    }
+                })
+            .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
+            .UseDefaultPipeline()
+            .Services
+            .BuildServiceProvider()
+            .GetRequiredService<IRequestExecutorResolver>()
+            .GetRequestExecutorAsync();
     }
 }

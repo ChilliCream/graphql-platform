@@ -14,7 +14,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 
 internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocketProtocolHandler
 {
-    private readonly JsonQueryResultSerializer _serializer = new();
+    private readonly JsonResultFormatter _formatter = new();
     private readonly ISocketSessionInterceptor _interceptor;
 
     public GraphQLOverWebSocketProtocolHandler(ISocketSessionInterceptor interceptor)
@@ -44,11 +44,11 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         ReadOnlySequence<byte> message,
         CancellationToken cancellationToken)
     {
-        ISocketConnection connection = session.Connection;
+        var connection = session.Connection;
 
         var connected = connection.ContextData.ContainsKey(Connected);
         using var document = JsonDocument.Parse(message);
-        JsonElement root = document.RootElement;
+        var root = document.RootElement;
         JsonElement idProp;
 
         if (root.ValueKind is not JsonValueKind.Object)
@@ -57,7 +57,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
             return;
         }
 
-        if (!root.TryGetProperty(Utf8MessageProperties.Type, out JsonElement type) ||
+        if (!root.TryGetProperty(Utf8MessageProperties.Type, out var type) ||
             type.ValueKind is not JsonValueKind.String)
         {
             await connection.CloseMessageTypeIsMandatoryAsync(cancellationToken);
@@ -66,12 +66,12 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
 
         if (type.ValueEquals(Utf8Messages.Ping))
         {
-            PingMessage operationMessageObj =
-                TryGetPayload(root, out JsonElement payload)
+            var operationMessageObj =
+                TryGetPayload(root, out var payload)
                     ? new PingMessage(payload)
                     : PingMessage.Default;
 
-            IReadOnlyDictionary<string, object?>? responsePayload =
+            var responsePayload =
                 await _interceptor.OnPingAsync(session, operationMessageObj, cancellationToken);
 
             await SendPongMessageAsync(session, responsePayload, cancellationToken);
@@ -80,8 +80,8 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
 
         if (type.ValueEquals(Utf8Messages.Pong))
         {
-            PongMessage operationMessageObj =
-                TryGetPayload(root, out JsonElement payload)
+            var operationMessageObj =
+                TryGetPayload(root, out var payload)
                     ? new PongMessage(payload)
                     : PongMessage.Default;
 
@@ -97,12 +97,12 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
                 return;
             }
 
-            ConnectionInitMessage operationMessageObj =
-                TryGetPayload(root, out JsonElement payload)
+            var operationMessageObj =
+                TryGetPayload(root, out var payload)
                     ? new ConnectionInitMessage(payload)
                     : ConnectionInitMessage.Default;
 
-            ConnectionStatus connectionStatus =
+            var connectionStatus =
                 await _interceptor.OnConnectAsync(
                     session,
                     operationMessageObj,
@@ -135,7 +135,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         {
             try
             {
-                if (!TryParseSubscribeMessage(root, out SubscribeMessage? subscribeMessage))
+                if (!TryParseSubscribeMessage(root, out var subscribeMessage))
                 {
                     await connection.CloseInvalidSubscribeMessageAsync(cancellationToken);
                     return;
@@ -204,7 +204,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         jsonWriter.WriteString(Id, operationSessionId);
         jsonWriter.WriteString(MessageProperties.Type, Utf8Messages.Next);
         jsonWriter.WritePropertyName(Payload);
-        _serializer.Serialize(result, jsonWriter);
+        _formatter.Format(result, jsonWriter);
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(cancellationToken);
         await session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
@@ -222,7 +222,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         jsonWriter.WriteString(Id, operationSessionId);
         jsonWriter.WriteString(MessageProperties.Type, Utf8Messages.Error);
         jsonWriter.WritePropertyName(Payload);
-        _serializer.Serialize(errors, jsonWriter);
+        _formatter.FormatErrors(errors, jsonWriter);
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(cancellationToken);
         await session.Connection.SendAsync(arrayWriter.Body, cancellationToken);
@@ -291,7 +291,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         JsonElement messageElement,
         [NotNullWhen(true)] out SubscribeMessage? message)
     {
-        if (!messageElement.TryGetProperty(Id, out JsonElement idProp) ||
+        if (!messageElement.TryGetProperty(Id, out var idProp) ||
             idProp.ValueKind is not JsonValueKind.String ||
             string.IsNullOrEmpty(idProp.GetString()))
         {
@@ -299,7 +299,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
             return false;
         }
 
-        if (!messageElement.TryGetProperty(Payload, out JsonElement payloadProp) ||
+        if (!messageElement.TryGetProperty(Payload, out var payloadProp) ||
             payloadProp.ValueKind is not JsonValueKind.Object)
         {
             message = null;
@@ -307,7 +307,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         }
 
         var id = idProp.GetString()!;
-        IReadOnlyList<GraphQLRequest> request = Parse(payloadProp.GetRawText());
+        var request = Parse(payloadProp.GetRawText());
 
         if (request.Count == 0)
         {

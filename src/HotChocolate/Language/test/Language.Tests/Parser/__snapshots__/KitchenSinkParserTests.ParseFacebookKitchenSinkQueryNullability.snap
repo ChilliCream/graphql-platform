@@ -1,4 +1,102 @@
-﻿{
+SDL:
+---------------
+query queryName($foo: ComplexType, $site: Site = MOBILE) @onQuery {
+  whoever123is: node(id: [ 123, 456 ]) {
+    id
+    ... on User @onInlineFragment {
+      field2 {
+        id
+        alias: field1(first: 10, after: $foo) @include(if: $foo) {
+          id
+          ... frag @onFragmentSpread
+        }
+      }
+      field3!
+      requiredField4: field4!
+      field5?
+      optionalField6: field6?
+      unsetListItemsRequiredList: listField[]!
+      requiredListItemsUnsetList: listField[!]
+      requiredListItemsRequiredList: listField[!]!
+      unsetListItemsOptionalList: listField[]?
+      optionalListItemsUnsetList: listField[?]
+      optionalListItemsOptionalList: listField[?]?
+      multidimensionalList: listField[[[!]!]!]!
+      field7! {
+        field8
+      }
+      requiredField4: field7! {
+        field8
+      }
+      field9? {
+        field10
+      }
+      optionalField9: field9? {
+        field10
+      }
+      field11[]! {
+        field12
+      }
+      requiredField11: field11[]! {
+        field12
+      }
+      unsetListItemsRequiredList: listField[]!
+      requiredListItemsUnsetList: listField[!]
+      requiredListItemsRequiredList: listField[!]!
+      unsetListItemsOptionalList: listField[]?
+      optionalListItemsUnsetList: listField[?]
+      optionalListItemsOptionalList: listField[?]?
+      multidimensionalList: listField[[[!]!]!]!
+    }
+    ... @skip(unless: $foo) {
+      id
+    }
+    ... {
+      id
+    }
+  }
+}
+
+mutation likeStory @onMutation {
+  like(story: 123) @onField {
+    story {
+      id @onField
+    }
+  }
+}
+
+subscription StoryLikeSubscription($input: StoryLikeSubscribeInput) @onSubscription {
+  storyLikeSubscribe(input: $input) {
+    story {
+      likers {
+        count
+      }
+      likeSentence {
+        text
+      }
+    }
+  }
+}
+
+fragment frag on Friend@onFragmentDefinition {
+  foo(size: $size, bar: $b, obj: { key: "value", block: """
+  block string uses \"""
+  """ })
+}
+
+{
+  unnamed(truthy: true, falsy: false, nullish: null)
+  query
+}
+
+{
+  __typename
+}
+---------------
+
+AST:
+---------------
+{
   "Kind": "Document",
   "Location": {
     "Start": 0,
@@ -52,8 +150,7 @@
                 "Column": 18
               },
               "Value": "foo"
-            },
-            "Value": "foo"
+            }
           },
           "Type": {
             "Kind": "NamedType",
@@ -102,8 +199,7 @@
                 "Column": 37
               },
               "Value": "site"
-            },
-            "Value": "site"
+            }
           },
           "Type": {
             "Kind": "NamedType",
@@ -439,8 +535,7 @@
                                         "Column": 42
                                       },
                                       "Value": "foo"
-                                    },
-                                    "Value": "foo"
+                                    }
                                   }
                                 }
                               ],
@@ -592,8 +687,7 @@
                                             "Column": 61
                                           },
                                           "Value": "foo"
-                                        },
-                                        "Value": "foo"
+                                        }
                                       }
                                     }
                                   ]
@@ -2124,8 +2218,7 @@
                                 "Column": 25
                               },
                               "Value": "foo"
-                            },
-                            "Value": "foo"
+                            }
                           }
                         }
                       ]
@@ -2499,8 +2592,7 @@
                 "Column": 4
               },
               "Value": "input"
-            },
-            "Value": "input"
+            }
           },
           "Type": {
             "Kind": "NamedType",
@@ -2616,8 +2708,7 @@
                       "Column": 30
                     },
                     "Value": "input"
-                  },
-                  "Value": "input"
+                  }
                 }
               }
             ],
@@ -2874,8 +2965,7 @@
                       "Column": 12
                     },
                     "Value": "size"
-                  },
-                  "Value": "size"
+                  }
                 }
               },
               {
@@ -2913,8 +3003,7 @@
                       "Column": 11
                     },
                     "Value": "b"
-                  },
-                  "Value": "b"
+                  }
                 }
               },
               {
@@ -3277,5 +3366,7 @@
         ]
       }
     }
-  ]
+  ],
+  "Count": 312
 }
+---------------

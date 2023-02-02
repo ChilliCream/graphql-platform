@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using CookieCrumble;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data.Filters;
 
@@ -14,14 +12,14 @@ public class FilterConventionScopeTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddConvention<IFilterConvention, BarFilterConvention>("Bar")
             .AddQueryType<Query1>()
             .AddFiltering()
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -29,14 +27,14 @@ public class FilterConventionScopeTests
     {
         // arrange
         // act
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddConvention<IFilterConvention, BarFilterConvention>("Bar")
             .AddQueryType<QueryType>()
             .AddFiltering()
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     public class QueryType : ObjectType

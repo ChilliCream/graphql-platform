@@ -43,7 +43,7 @@ namespace HotChocolate.Stitching
 
             using (IServiceScope scope = services.CreateScope())
             {
-                IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                IQueryRequest request = QueryRequestBuilder.New()
                     .SetQuery("query foo ($ids: [ID!]!) " +
                         "{ customers(ids: $ids) { id } }")
                     .SetServices(scope.ServiceProvider)
@@ -96,7 +96,7 @@ namespace HotChocolate.Stitching
 
             using (IServiceScope scope = services.CreateScope())
             {
-                IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                IQueryRequest request = QueryRequestBuilder.New()
                     .SetQuery("query foo { allCustomers { id } }")
                     .SetServices(scope.ServiceProvider)
                     .SetProperty("ids", new List<object>
@@ -139,7 +139,7 @@ namespace HotChocolate.Stitching
 
             using (IServiceScope scope = services.CreateScope())
             {
-                IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                IQueryRequest request = QueryRequestBuilder.New()
                     .SetQuery(@"
                     mutation createCustomer($name: String!) {
                         createCustomer(input: { name: $name })

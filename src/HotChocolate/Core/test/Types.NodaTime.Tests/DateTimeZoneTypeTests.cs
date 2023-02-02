@@ -1,6 +1,5 @@
 using System.Linq;
 using HotChocolate.Execution;
-using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
 using Xunit;
 
@@ -41,37 +40,33 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void QueryReturnsUtc()
         {
-            IExecutionResult? result = testExecutor.Execute("query { test: utc }");
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("UTC", queryResult!.Data!["test"]);
+            IExecutionResult result =  testExecutor.Execute("query { test: utc }");
+            Assert.Equal("UTC", Assert.IsType<QueryResult>(result).Data!["test"]);
         }
 
         [Fact]
         public void QueryReturnsRome()
         {
-            IExecutionResult? result = testExecutor.Execute("query { test: rome }");
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("Europe/Rome", queryResult!.Data!["test"]);
+            IExecutionResult result = testExecutor.Execute("query { test: rome }");
+            Assert.Equal("Europe/Rome", Assert.IsType<QueryResult>(result).Data!["test"]);
         }
 
         [Fact]
         public void QueryReturnsChihuahua()
         {
-            IExecutionResult? result = testExecutor.Execute("query { test: chihuahua }");
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("America/Chihuahua", queryResult!.Data!["test"]);
+            IExecutionResult result = testExecutor.Execute("query { test: chihuahua }");
+            Assert.Equal("America/Chihuahua", Assert.IsType<QueryResult>(result).Data!["test"]);
         }
 
         [Fact]
         public void ParsesVariable()
         {
-            IExecutionResult? result = testExecutor
+            IExecutionResult result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation($arg: DateTimeZone!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "Europe/Amsterdam")
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("Europe/Amsterdam", queryResult!.Data!["test"]);
+            Assert.Equal("Europe/Amsterdam", Assert.IsType<QueryResult>(result).Data!["test"]);
         }
 
         [Fact]
@@ -82,9 +77,8 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetQuery("mutation($arg: DateTimeZone!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "Europe/Hamster")
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Null(queryResult!.Data);
-            Assert.Equal(1, queryResult!.Errors!.Count);
+            Assert.Null(Assert.IsType<QueryResult>(result).Data);
+            Assert.Equal(1, Assert.IsType<QueryResult>(result).Errors!.Count);
         }
 
         [Fact]
@@ -94,22 +88,22 @@ namespace HotChocolate.Types.NodaTime.Tests
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation { test(arg: \"Europe/Amsterdam\") }")
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("Europe/Amsterdam", queryResult!.Data!["test"]);
+            Assert.Equal("Europe/Amsterdam", Assert.IsType<QueryResult>(result).Data!["test"]);
         }
 
         [Fact]
         public void DoesntParseIncorrectLiteral()
         {
-            IExecutionResult? result = testExecutor
+            IExecutionResult result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation { test(arg: \"Europe/Hamster\") }")
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Null(queryResult!.Data);
-            Assert.Equal(1, queryResult!.Errors!.Count);
-            Assert.Null(queryResult.Errors.First().Code);
-            Assert.Equal("Unable to deserialize string to DateTimeZone", queryResult.Errors.First().Message);
+            Assert.Null(Assert.IsType<QueryResult>(result).Data);
+            Assert.Equal(1, Assert.IsType<QueryResult>(result).Errors!.Count);
+            Assert.Null(Assert.IsType<QueryResult>(result).Errors!.First().Code);
+            Assert.Equal(
+                "Unable to deserialize string to DateTimeZone",
+                Assert.IsType<QueryResult>(result).Errors!.First().Message);
         }
     }
 }

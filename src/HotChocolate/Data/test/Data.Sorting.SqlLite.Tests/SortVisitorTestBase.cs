@@ -20,9 +20,9 @@ public class SortVisitorTestBase
         dbContext.Database.EnsureDeleted();
         dbContext.Database.EnsureCreated();
 
-        DbSet<TResult> set = dbContext.Set<TResult>();
+        var set = dbContext.Set<TResult>();
 
-        foreach (TResult? result in results)
+        foreach (var result in results)
         {
             if (result is not null)
             {
@@ -44,9 +44,9 @@ public class SortVisitorTestBase
     {
         convention ??= new SortConvention(x => x.AddDefaults().BindRuntimeType<TEntity, T>());
 
-        Func<IResolverContext, IEnumerable<TEntity>> resolver = BuildResolver(entities);
+        var resolver = BuildResolver(entities);
 
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddConvention<ISortConvention>(convention)
             .AddSorting()
             .AddQueryType(
@@ -64,7 +64,7 @@ public class SortVisitorTestBase
                         false);
                 });
 
-        ISchema? schema = builder.Create();
+        var schema = builder.Create();
 
         return new ServiceCollection()
             .Configure<RequestExecutorSetup>(
@@ -75,12 +75,11 @@ public class SortVisitorTestBase
                 next => async context =>
                 {
                     await next(context);
-                    if (context.Result is IReadOnlyQueryResult result &&
-                        context.ContextData.TryGetValue("sql", out var queryString))
+                    if (context.ContextData.TryGetValue("sql", out var queryString))
                     {
                         context.Result =
                             QueryResultBuilder
-                                .FromResult(result)
+                                .FromResult(context.Result!.ExpectQueryResult())
                                 .SetContextData("sql", queryString)
                                 .Create();
                     }

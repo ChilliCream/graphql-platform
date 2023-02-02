@@ -1,7 +1,6 @@
-﻿namespace HotChocolate.Data.Neo4J.Extensions
+﻿namespace HotChocolate.Data.Neo4J.Extensions;
+
+internal static class StringExtensions
 {
-    internal static class StringExtensions
-    {
-        public static bool HasText(this string str) => !string.IsNullOrEmpty(str);
-    }
+    public static bool HasText(this string str) => !string.IsNullOrEmpty(str);
 }

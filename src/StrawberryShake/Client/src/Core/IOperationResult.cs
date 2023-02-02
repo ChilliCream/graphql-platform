@@ -6,7 +6,7 @@ namespace StrawberryShake;
 /// <summary>
 /// The result of a GraphQL operation.
 /// </summary>
-public interface IOperationResult<TResultData> : IOperationResult where TResultData : class
+public interface IOperationResult<TResultData>: IOperationResult where TResultData : class
 {
     /// <summary>
     /// Gets the data object or <c>null</c>.

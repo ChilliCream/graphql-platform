@@ -1,15 +1,13 @@
-using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Projections.Expressions;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Data.Projections;
 
@@ -24,63 +22,69 @@ public class QueryableProjectionExtensionsTests
     public async Task Extensions_Should_ProjectQuery()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddProjections()
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult res1 = await executor.ExecuteAsync(
+        var res1 = await executor.ExecuteAsync(
             QueryRequestBuilder
                 .New()
                 .SetQuery("{ shouldWork { bar baz }}")
                 .Create());
 
         // assert
-        res1.ToJson().MatchSnapshot();
+        res1.MatchSnapshot();
     }
 
     [Fact]
     public async Task Extension_Should_BeTypeMissMatch()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddProjections()
-            .CreateExecptionExecutor();
+            .CreateExceptionExecutor();
 
         // act
-        IExecutionResult res1 = await executor.ExecuteAsync(
+        var res1 = await executor.ExecuteAsync(
             QueryRequestBuilder
                 .New()
                 .SetQuery("{ typeMissmatch { bar baz }}")
                 .Create());
 
         // assert
-        res1.MatchException();
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Extension_Should_BeMissingMiddleware()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddProjections()
-            .CreateExecptionExecutor();
+            .CreateExceptionExecutor();
 
         // act
-        IExecutionResult res1 = await executor.ExecuteAsync(
+        var res1 = await executor.ExecuteAsync(
             QueryRequestBuilder
                 .New()
                 .SetQuery("{ missingMiddleware { bar baz }}")
                 .Create());
 
         // assert
-        res1.MatchException();
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     public class Query
@@ -121,7 +125,7 @@ public class QueryableProjectionExtensionsTests
 
     public class AddTypeMissmatchMiddlewareAttribute : ObjectFieldDescriptorAttribute
     {
-        public override void OnConfigure(
+        protected override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
             MemberInfo member)

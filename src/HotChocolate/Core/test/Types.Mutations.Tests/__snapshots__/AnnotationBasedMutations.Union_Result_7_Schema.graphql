@@ -1,0 +1,42 @@
+schema {
+  mutation: MutationWithUnionResult7
+}
+
+interface Error {
+  message: String!
+}
+
+type Custom2Error implements Error {
+  message: String!
+}
+
+type Custom4Error implements Error {
+  message: String!
+}
+
+type Custom5 implements Error {
+  message: String!
+}
+
+type Custom6 implements Error {
+  message: String!
+}
+
+type CustomError implements Error {
+  message: String!
+}
+
+type DoSomethingPayload {
+  string: String
+  errors: [DoSomethingError!]
+}
+
+type MutationWithUnionResult7 {
+  doSomething(input: DoSomethingInput!): DoSomethingPayload!
+}
+
+union DoSomethingError = CustomError | Custom2Error | Custom4Error | Custom5 | Custom6
+
+input DoSomethingInput {
+  something: String!
+}

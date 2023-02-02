@@ -26,7 +26,7 @@ public interface IObjectTypeDescriptor<TRuntimeType>
     /// <paramref name="value"/> is <c>null</c> or
     /// <see cref="string.Empty"/>.
     /// </exception>
-    IObjectTypeDescriptor<TRuntimeType> Name(NameString value);
+    IObjectTypeDescriptor<TRuntimeType> Name(string value);
 
     /// <summary>
     /// Adds explanatory text of the <see cref="ObjectType"/>
@@ -52,9 +52,17 @@ public interface IObjectTypeDescriptor<TRuntimeType>
     /// Explicit:
     /// All field have to be specified explicitly via
     /// <see cref="Field(Expression{Func{TRuntimeType, object}})"/>
-    /// or <see cref="Field(NameString)"/>.
+    /// or <see cref="Field(string)"/>.
     /// </param>
     IObjectTypeDescriptor<TRuntimeType> BindFields(BindingBehavior behavior);
+
+    /// <summary>
+    /// Defines from which runtime member the GraphQL type shall infer its fields.
+    /// </summary>
+    /// <param name="bindingFlags">
+    /// The binding flags.
+    /// </param>
+    IObjectTypeDescriptor<TRuntimeType> BindFields(FieldBindingFlags bindingFlags);
 
     /// <summary>
     /// Defines that all fields have to be specified explicitly.
@@ -155,7 +163,7 @@ public interface IObjectTypeDescriptor<TRuntimeType>
     /// <param name="name">
     /// The name that the field shall have.
     /// </param>
-    IObjectFieldDescriptor Field(NameString name);
+    IObjectFieldDescriptor Field(string name);
 
     /// <summary>
     /// Specifies an object type field which is bound to a resolver type.
@@ -184,7 +192,7 @@ public interface IObjectTypeDescriptor<TRuntimeType>
         where TDirective : class, new();
 
     IObjectTypeDescriptor<TRuntimeType> Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments);
 
     /// <summary>

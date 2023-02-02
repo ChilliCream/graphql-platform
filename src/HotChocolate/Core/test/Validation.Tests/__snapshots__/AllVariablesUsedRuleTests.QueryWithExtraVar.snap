@@ -58,8 +58,7 @@
                 "Column": 42
               },
               "Value": "atOtherHomes"
-            },
-            "Value": "atOtherHomes"
+            }
           },
           "Type": {
             "Kind": "NamedType",
@@ -108,8 +107,7 @@
                 "Column": 66
               },
               "Value": "extra"
-            },
-            "Value": "extra"
+            }
           },
           "Type": {
             "Kind": "NamedType",

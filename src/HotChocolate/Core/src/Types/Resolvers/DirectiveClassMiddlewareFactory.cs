@@ -1,87 +1,153 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Resolvers;
 
-public static class DirectiveClassMiddlewareFactory
+internal static class DirectiveClassMiddlewareFactory
 {
-    private static MethodInfo _createGeneric =
+    private static readonly MethodInfo _createGeneric =
         typeof(DirectiveClassMiddlewareFactory)
-        .GetTypeInfo().DeclaredMethods.First(t =>
-        {
-            if (t.Name.EqualsOrdinal(
-                nameof(DirectiveClassMiddlewareFactory.Create))
-                && t.GetGenericArguments().Length == 1)
-            {
-                return t.GetParameters().Length == 0;
-            }
-            return false;
-        });
+            .GetTypeInfo().DeclaredMethods.First(
+                t =>
+                {
+                    if (t.Name.EqualsOrdinal(nameof(Create)) && t.GetGenericArguments().Length == 1)
+                    {
+                        return t.GetParameters().Length == 0;
+                    }
+                    return false;
+                });
 
-    private static PropertyInfo _services =
-        typeof(IResolverContext).GetProperty(nameof(IResolverContext.Services));
+    private static readonly PropertyInfo _services =
+        typeof(IResolverContext).GetProperty(nameof(IResolverContext.Services))!;
 
     internal static DirectiveMiddleware Create<TMiddleware>()
         where TMiddleware : class
     {
-        return next =>
-        {
-            MiddlewareFactory<TMiddleware, IServiceProvider, FieldDelegate> factory =
-                MiddlewareCompiler<TMiddleware>
-                    .CompileFactory<IServiceProvider, FieldDelegate>(
-                        (services, next) =>
-                        new IParameterHandler[] { new ServiceParameterHandler(services) });
+        var sync = new object();
+        MiddlewareFactory<TMiddleware, IServiceProvider, FieldDelegate>? activate = null;
+        ClassQueryDelegate<TMiddleware, IMiddlewareContext>? invoke = null;
+        TMiddleware? instance = null;
 
-            return CreateDelegate(
-                (s, n) => factory(s, n),
-                next);
+        return (next, directive) =>
+        {
+            if (invoke is null || activate is null)
+            {
+                lock (sync)
+                {
+                    if (invoke is null || activate is null)
+                    {
+                        var directiveHandler = new DirectiveParameterHandler(directive);
+
+                        activate =
+                            MiddlewareCompiler<TMiddleware>
+                                .CompileFactory<IServiceProvider, FieldDelegate>(
+                                    (services, _) => new IParameterHandler[]
+                                    {
+                                        directiveHandler, new ServiceParameterHandler(services)
+                                    });
+
+                        invoke =
+                            MiddlewareCompiler<TMiddleware>
+                                .CompileDelegate<IMiddlewareContext>(
+                                    (context, _) => new List<IParameterHandler>
+                                    {
+                                        directiveHandler,
+                                        new ServiceParameterHandler(
+                                            Expression.Property(context, _services))
+                                    });
+                    }
+                }
+            }
+
+            return context =>
+            {
+                instance ??= activate(context.Services, next);
+                return invoke(context, instance);
+            };
         };
     }
 
     internal static DirectiveMiddleware Create(Type middlewareType)
-    {
-        return (DirectiveMiddleware)_createGeneric
+        => (DirectiveMiddleware)_createGeneric
             .MakeGenericMethod(middlewareType)
-            .Invoke(null, Array.Empty<object>());
-    }
+            .Invoke(null, Array.Empty<object>())!;
 
     internal static DirectiveMiddleware Create<TMiddleware>(
-        Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
+        Func<IServiceProvider, FieldDelegate, TMiddleware> activate)
         where TMiddleware : class
     {
-        return next => CreateDelegate(factory, next);
-    }
+        var sync = new object();
+        ClassQueryDelegate<TMiddleware, IMiddlewareContext>? invoke = null;
+        TMiddleware? instance = null;
 
-    internal static DirectiveDelegate CreateDelegate<TMiddleware>(
-        Func<IServiceProvider, FieldDelegate, TMiddleware> factory,
-        FieldDelegate next)
-        where TMiddleware : class
-    {
-        object sync = new object();
-        TMiddleware middleware = null;
-
-        ClassQueryDelegate<TMiddleware, IDirectiveContext> compiled =
-            MiddlewareCompiler<TMiddleware>.CompileDelegate<IDirectiveContext>(
-                (context, middleware) => new List<IParameterHandler>
-                {
-                        new ServiceParameterHandler(Expression.Property(context, _services))
-                });
-
-        return context =>
+        return (next, directive) =>
         {
-            if (middleware is null)
+            if (invoke is null)
             {
                 lock (sync)
                 {
-                    middleware = middleware ?? factory(context.Services, next);
+                    if (invoke is null)
+                    {
+                        var directiveHandler = new DirectiveParameterHandler(directive);
+
+                        invoke =
+                            MiddlewareCompiler<TMiddleware>
+                                .CompileDelegate<IMiddlewareContext>(
+                                    (context, _) => new List<IParameterHandler>
+                                    {
+                                        directiveHandler,
+                                        new ServiceParameterHandler(
+                                            Expression.Property(context, _services))
+                                    });
+                    }
                 }
             }
 
-            return compiled(context, middleware);
+            return context =>
+            {
+                instance ??= activate(context.Services, next);
+                return invoke(context, instance);
+            };
         };
+    }
+
+    private sealed class DirectiveParameterHandler : IParameterHandler
+    {
+        private readonly Directive _directive;
+        private readonly Type _runtimeType;
+
+        public DirectiveParameterHandler(Directive directive)
+        {
+            _directive = directive;
+            _runtimeType = directive.Type.RuntimeType;
+        }
+
+        public bool CanHandle(ParameterInfo parameter)
+            => parameter.ParameterType == typeof(Directive) ||
+                parameter.ParameterType == typeof(DirectiveNode) ||
+                (_runtimeType != typeof(object) && _runtimeType == parameter.ParameterType);
+
+        public Expression CreateExpression(ParameterInfo parameter)
+        {
+            if (parameter.ParameterType == typeof(Directive))
+            {
+                return Expression.Constant(_directive, typeof(Directive));
+            }
+
+            if (parameter.ParameterType == typeof(DirectiveNode))
+            {
+                return Expression.Constant(_directive.AsSyntaxNode(), typeof(DirectiveNode));
+            }
+
+            return  Expression.Constant(_directive.AsValue<object>(), _runtimeType);
+        }
     }
 }

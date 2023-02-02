@@ -1,8 +1,7 @@
 using System.Text;
-using ChilliCream.Testing;
-using Snapshooter;
-using Snapshooter.Xunit;
+using CookieCrumble;
 using Xunit;
+using static CookieCrumble.Formatters.SnapshotValueFormatters;
 
 namespace HotChocolate.Language;
 
@@ -19,11 +18,13 @@ public class KitchenSinkParserTests
             Encoding.UTF8.GetBytes(schemaSource));
 
         // act
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
-        document.ToString().MatchSnapshot(new SnapshotNameExtension("sdl"));
-        document.MatchSnapshot();
+        var snapshot = new Snapshot();
+        snapshot.Add(document, "SDL:");
+        snapshot.Add(document, "AST:", Json);
+        snapshot.Match();
     }
 
     [Fact]
@@ -37,11 +38,13 @@ public class KitchenSinkParserTests
             Encoding.UTF8.GetBytes(querySource));
 
         // act
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
-        document.ToString().MatchSnapshot(new SnapshotNameExtension("sdl"));
-        document.MatchSnapshot();
+        var snapshot = new Snapshot();
+        snapshot.Add(document, "SDL:");
+        snapshot.Add(document, "AST:", Json);
+        snapshot.Match();
     }
 
     [Fact]
@@ -55,10 +58,12 @@ public class KitchenSinkParserTests
             Encoding.UTF8.GetBytes(querySource));
 
         // act
-        DocumentNode document = parser.Parse();
+        var document = parser.Parse();
 
         // assert
-        document.ToString().MatchSnapshot(new SnapshotNameExtension("sdl"));
-        document.MatchSnapshot();
+        var snapshot = new Snapshot();
+        snapshot.Add(document, "SDL:");
+        snapshot.Add(document, "AST:", Json);
+        snapshot.Match();
     }
 }

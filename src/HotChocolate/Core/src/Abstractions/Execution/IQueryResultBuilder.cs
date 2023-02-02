@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 #nullable enable
 
@@ -7,9 +8,9 @@ namespace HotChocolate.Execution;
 
 public interface IQueryResultBuilder
 {
-    IQueryResultBuilder SetData(
-        IReadOnlyDictionary<string, object?>? data,
-        IDisposable? disposable = null);
+    IQueryResultBuilder SetData(IReadOnlyDictionary<string, object?>? data);
+
+    IQueryResultBuilder SetItems(IReadOnlyList<object?>? items);
 
     IQueryResultBuilder AddError(IError error);
 
@@ -25,13 +26,15 @@ public interface IQueryResultBuilder
 
     IQueryResultBuilder SetContextData(string key, object? data);
 
-    IQueryResultBuilder ClearContextData();
+    IQueryResultBuilder SetContextData(IReadOnlyDictionary<string, object?>? contextData);
 
     IQueryResultBuilder SetLabel(string? label);
 
     IQueryResultBuilder SetPath(Path? path);
 
     IQueryResultBuilder SetHasNext(bool? hasNext);
+
+    IQueryResultBuilder RegisterForCleanup(Func<ValueTask> clean);
 
     IQueryResult Create();
 }

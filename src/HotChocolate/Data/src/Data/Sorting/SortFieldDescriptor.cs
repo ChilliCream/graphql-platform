@@ -1,4 +1,5 @@
 using System;
+using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -14,11 +15,28 @@ public class SortFieldDescriptor
     protected SortFieldDescriptor(
         IDescriptorContext context,
         string? scope,
-        NameString fieldName)
+        string fieldName)
         : base(context)
     {
-        Definition.Name = fieldName.EnsureNotEmpty(nameof(fieldName));
+        Definition.Name = fieldName;
         Definition.Scope = scope;
+    }
+
+    protected SortFieldDescriptor(
+         IDescriptorContext context,
+         string? scope,
+         Expression expression)
+         : base(context)
+    {
+        var convention = context.GetSortConvention(scope);
+
+        Definition.Expression = expression;
+        Definition.Scope = scope;
+        if (Definition.Expression is LambdaExpression lambda)
+        {
+            Definition.Type = convention.GetFieldType(lambda.ReturnType);
+            Definition.RuntimeType = lambda.ReturnType;
+        }
     }
 
     protected SortFieldDescriptor(
@@ -27,7 +45,7 @@ public class SortFieldDescriptor
         MemberInfo member)
         : base(context)
     {
-        ISortConvention? convention = context.GetSortConvention(scope);
+        var convention = context.GetSortConvention(scope);
 
         Definition.Member = member ??
             throw new ArgumentNullException(nameof(member));
@@ -73,9 +91,9 @@ public class SortFieldDescriptor
         return this;
     }
 
-    public ISortFieldDescriptor Name(NameString value)
+    public ISortFieldDescriptor Name(string value)
     {
-        Definition.Name = value.EnsureNotEmpty(nameof(value));
+        Definition.Name = value;
         return this;
     }
 
@@ -147,7 +165,7 @@ public class SortFieldDescriptor
     }
 
     public new ISortFieldDescriptor Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments)
     {
         base.Directive(name, arguments);
@@ -157,12 +175,18 @@ public class SortFieldDescriptor
     public static SortFieldDescriptor New(
         IDescriptorContext context,
         string? scope,
-        MemberInfo member) =>
-        new SortFieldDescriptor(context, scope, member);
+        MemberInfo member)
+        => new(context, scope, member);
 
     public static SortFieldDescriptor New(
         IDescriptorContext context,
-        NameString fieldName,
-        string? scope) =>
-        new SortFieldDescriptor(context, scope, fieldName);
+        string fieldName,
+        string? scope)
+        => new(context, scope, fieldName);
+
+    internal static SortFieldDescriptor New(
+        IDescriptorContext context,
+        string? scope,
+        Expression expression)
+        => new(context, scope, expression);
 }

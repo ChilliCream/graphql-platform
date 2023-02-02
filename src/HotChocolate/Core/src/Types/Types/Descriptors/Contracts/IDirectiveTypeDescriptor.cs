@@ -28,7 +28,7 @@ public interface IDirectiveTypeDescriptor
     /// <paramref name="value"/> is <c>null</c> or
     /// <see cref="string.Empty"/>.
     /// </exception>
-    IDirectiveTypeDescriptor Name(NameString value);
+    IDirectiveTypeDescriptor Name(string value);
 
     /// <summary>
     /// Adds explanatory text to the <see cref="DirectiveType"/>
@@ -41,7 +41,7 @@ public interface IDirectiveTypeDescriptor
     /// Specifies a directive argument.
     /// </summary>
     /// <param name="name">The name of the argument.</param>
-    IDirectiveArgumentDescriptor Argument(NameString name);
+    IDirectiveArgumentDescriptor Argument(string name);
 
     /// <summary>
     /// Specifies in which location the directive belongs in.

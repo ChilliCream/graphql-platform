@@ -13,13 +13,13 @@ internal static class TypeInfoExtensions
     {
         return typeInfo.GetDeclaredMethods(name).FirstOrDefault(t =>
         {
-            ParameterInfo[] parameters = t.GetParameters();
+            var parameters = t.GetParameters();
             if (types.Length != parameters.Length)
             {
                 return false;
             }
 
-            for (int i = 0; i < types.Length; i++)
+            for (var i = 0; i < types.Length; i++)
             {
                 if (types[i] != parameters[i].ParameterType)
                 {

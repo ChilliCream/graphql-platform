@@ -1,18 +1,16 @@
 using System;
 using System.Buffers;
-using System.IO;
-using System.Text;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Serialization;
 using static HotChocolate.Execution.Properties.Resources;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate;
 
 public static class ExecutionResultExtensions
 {
-    private static readonly JsonQueryResultSerializer _serializer = new(false);
-    private static readonly JsonQueryResultSerializer _serializerIndented = new(true);
+    private static readonly JsonResultFormatter _formatter = new(new() { Indented = false});
+    private static readonly JsonResultFormatter _formatterIndented = new(new() { Indented = true});
 
     public static void WriteTo(
         this IQueryResult result,
@@ -31,11 +29,11 @@ public static class ExecutionResultExtensions
 
         if (withIndentations)
         {
-            _serializerIndented.Serialize(result, writer);
+            _formatterIndented.Format(result, writer);
         }
         else
         {
-            _serializer.Serialize(result, writer);
+            _formatter.Format(result, writer);
         }
     }
 
@@ -48,11 +46,11 @@ public static class ExecutionResultExtensions
             throw new ArgumentNullException(nameof(result));
         }
 
-        if (result is IReadOnlyQueryResult queryResult)
+        if (result is IQueryResult queryResult)
         {
             return withIndentations
-                ? _serializerIndented.Serialize(queryResult)
-                : _serializer.Serialize(queryResult);
+                ? _formatterIndented.Format(queryResult)
+                : _formatter.Format(queryResult);
         }
 
         throw new NotSupportedException(ExecutionResultExtensions_OnlyQueryResults);

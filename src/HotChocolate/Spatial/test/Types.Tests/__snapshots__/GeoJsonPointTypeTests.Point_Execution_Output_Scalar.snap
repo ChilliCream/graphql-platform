@@ -1,18 +1,12 @@
-﻿{
-  "Label": null,
-  "Path": null,
-  "Data": {
+{
+  "data": {
     "test": {
       "coordinates": [
-        30.0,
-        10.0
+        30,
+        10
       ],
       "type": "Point",
       "crs": 0
     }
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null,
-  "HasNext": null
+  }
 }

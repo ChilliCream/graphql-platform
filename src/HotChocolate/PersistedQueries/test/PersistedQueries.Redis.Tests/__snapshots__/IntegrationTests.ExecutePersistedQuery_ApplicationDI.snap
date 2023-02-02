@@ -1,13 +1,16 @@
 ﻿{
+  "Kind": "SingleResult",
   "Label": null,
   "Path": null,
   "Data": {
     "__typename": "Query"
   },
+  "Items": null,
   "Errors": null,
   "Extensions": {
     "persistedDocument": true
   },
+  "Incremental": null,
   "ContextData": null,
   "HasNext": null
 }

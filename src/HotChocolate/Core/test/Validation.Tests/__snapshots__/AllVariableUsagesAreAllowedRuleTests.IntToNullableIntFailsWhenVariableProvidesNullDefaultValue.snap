@@ -3,13 +3,19 @@
     "Message": "The variable `intVar` is not compatible with the type of the current location.",
     "Code": null,
     "Path": {
+      "Name": "nonNullIntArgField",
       "Parent": {
-        "Parent": null,
-        "Depth": 0,
-        "Name": "arguments"
+        "Name": "arguments",
+        "Parent": {
+          "Parent": null,
+          "Length": -1,
+          "IsRoot": true
+        },
+        "Length": 0,
+        "IsRoot": false
       },
-      "Depth": 1,
-      "Name": "nonNullIntArgField"
+      "Length": 1,
+      "IsRoot": false
     },
     "Locations": [
       {
@@ -41,8 +47,7 @@
           "Column": 53
         },
         "Value": "intVar"
-      },
-      "Value": "intVar"
+      }
     }
   }
 ]

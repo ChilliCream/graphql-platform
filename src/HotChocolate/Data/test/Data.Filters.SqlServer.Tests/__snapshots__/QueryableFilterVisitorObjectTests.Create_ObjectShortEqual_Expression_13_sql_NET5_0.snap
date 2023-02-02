@@ -1,4 +1,0 @@
-﻿SELECT "d"."Id", "d"."FooId"
-FROM "Data" AS "d"
-LEFT JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarShort" = @__p_0

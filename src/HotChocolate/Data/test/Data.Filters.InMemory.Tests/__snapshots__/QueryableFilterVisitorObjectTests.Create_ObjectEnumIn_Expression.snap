@@ -1,0 +1,60 @@
+BarAndFoo
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barEnum": "BAR"
+        }
+      },
+      {
+        "foo": {
+          "barEnum": "FOO"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+FOO
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barEnum": "FOO"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+nullAndFoo
+---------------
+{
+  "errors": [
+    {
+      "message": "The specified value type of field \u0060in\u0060 does not match the field type.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 39
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "fieldName": "in",
+        "fieldType": "[BarEnum!]",
+        "locationType": "[BarEnum!]",
+        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+      }
+    }
+  ]
+}
+---------------

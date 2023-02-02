@@ -19,12 +19,15 @@ public class ValidationConfiguration : IValidationConfiguration
     public IEnumerable<IDocumentValidatorRule> GetRules(string schemaName)
         => GetOptions(schemaName).Rules;
 
+    public IEnumerable<IValidationResultAggregator> GetResultAggregators(string schemaName)
+        => GetOptions(schemaName).ResultAggregators;
+
     public ValidationOptions GetOptions(string schemaName)
         => _optionsCache.GetOrAdd(schemaName, CreateOptions);
 
     private ValidationOptions CreateOptions(string schemaName)
     {
-        ValidationOptionsModifiers modifiers = _optionsMonitor.Get(schemaName);
+        var modifiers = _optionsMonitor.Get(schemaName);
         var options = new ValidationOptions();
 
         for (var i = 0; i < modifiers.Modifiers.Count; i++)

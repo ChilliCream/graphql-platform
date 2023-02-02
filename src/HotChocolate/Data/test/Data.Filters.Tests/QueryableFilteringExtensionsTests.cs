@@ -1,31 +1,29 @@
-using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
-using Xunit;
 
-namespace HotChocolate.Data.Filtering;
+namespace HotChocolate.Data.Filters;
 
 public class QueryableFilteringExtensionsTests
 {
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { Bar = true, Baz = "a" },
-            new Foo { Bar = false, Baz = "b" }
-        };
+        new() { Bar = true, Baz = "a" },
+        new() { Bar = false, Baz = "b" }
+    };
 
     [Fact]
     public async Task Test()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(x =>
             {
@@ -40,77 +38,83 @@ public class QueryableFilteringExtensionsTests
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult res1 = await executor.ExecuteAsync(
+        var res1 = await executor.ExecuteAsync(
             QueryRequestBuilder
                 .New()
                 .SetQuery("{ shouldWork(where: {bar: {eq: true}}) { bar baz }}")
                 .Create());
 
         // assert
-        res1.ToJson().MatchSnapshot();
+        res1.MatchSnapshot();
     }
 
     [Fact]
     public async Task Extensions_Should_FilterQuery()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddFiltering()
             .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult res1 = await executor.ExecuteAsync(
+        var res1 = await executor.ExecuteAsync(
             QueryRequestBuilder
                 .New()
                 .SetQuery("{ shouldWork(where: {bar: {eq: true}}) { bar baz }}")
                 .Create());
 
         // assert
-        res1.ToJson().MatchSnapshot();
+        res1.MatchSnapshot();
     }
 
     [Fact]
     public async Task Extension_Should_BeTypeMissMatch()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddFiltering()
-            .CreateExecptionExecutor();
+            .CreateExceptionExecutor();
 
         // act
-        IExecutionResult res1 = await executor.ExecuteAsync(
+        var res1 = await executor.ExecuteAsync(
             QueryRequestBuilder
                 .New()
                 .SetQuery("{ typeMissmatch(where: {bar: {eq: true}}) { bar baz }}")
                 .Create());
 
         // assert
-        res1.MatchException();
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     [Fact]
     public async Task Extension_Should_BeMissingMiddleware()
     {
         // arrange
-        IRequestExecutor executor = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddFiltering()
-            .CreateExecptionExecutor();
+            .CreateExceptionExecutor();
 
         // act
-        IExecutionResult res1 = await executor.ExecuteAsync(
+        var res1 = await executor.ExecuteAsync(
             QueryRequestBuilder
                 .New()
                 .SetQuery("{ missingMiddleware { bar baz }}")
                 .Create());
 
         // assert
-        res1.MatchException();
+        await SnapshotExtensions.AddResult(
+                Snapshot
+                    .Create(), res1)
+            .MatchAsync();
     }
 
     public class Query
@@ -151,7 +155,7 @@ public class QueryableFilteringExtensionsTests
 
     public class AddTypeMissmatchMiddlewareAttribute : ObjectFieldDescriptorAttribute
     {
-        public override void OnConfigure(
+        protected override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
             MemberInfo member)

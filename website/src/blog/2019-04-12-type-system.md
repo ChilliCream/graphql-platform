@@ -415,4 +415,4 @@ With Hot Chocolate we are building a GraphQL server for the community, so join a
 We value any kind of contribution, whether you give us a star, a feedback, find a bug, a typo, or whether you contribute code. Every bit matters and makes our project better.
 
 [hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/hotchocolate
+[hot chocolate source code]: https://github.com/ChilliCream/graphql-platform

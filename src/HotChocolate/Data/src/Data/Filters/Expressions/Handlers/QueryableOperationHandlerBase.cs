@@ -1,7 +1,6 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
-using HotChocolate.Internal;
+using HotChocolate.Data.Filters.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -15,6 +14,9 @@ public abstract class QueryableOperationHandlerBase
         InputParser = inputParser;
     }
 
+    /// <summary>
+    /// Provides access to the input parser.
+    /// </summary>
     protected InputParser InputParser { get; }
 
     public override bool TryHandleOperation(
@@ -23,18 +25,26 @@ public abstract class QueryableOperationHandlerBase
         ObjectFieldNode node,
         [NotNullWhen(true)] out Expression? result)
     {
-        IValueNode value = node.Value;
-        IExtendedType runtimeType = context.RuntimeTypes.Peek();
+        var value = node.Value;
+        var runtimeType = context.RuntimeTypes.Peek();
 
-        Type type = field.Type.IsListType()
+        var type = field.Type.IsListType()
             ? runtimeType.Source.MakeArrayType()
             : runtimeType.Source;
 
-        object? parsedValue = InputParser.ParseLiteral(value, field, type);
+        var parsedValue = InputParser.ParseLiteral(value, field, type);
 
         if ((!runtimeType.IsNullable || !CanBeNull) && parsedValue is null)
         {
-            IError error = ErrorHelper.CreateNonNullError(field, value, context);
+            var error = ErrorHelper.CreateNonNullError(field, value, context);
+            context.ReportError(error);
+            result = null!;
+            return false;
+        }
+
+        if (!ValueNullabilityHelpers.IsListValueValid(field.Type, runtimeType, node.Value))
+        {
+            var error = ErrorHelper.CreateNonNullError(field, value, context, true);
             context.ReportError(error);
             result = null!;
             return false;
@@ -44,8 +54,21 @@ public abstract class QueryableOperationHandlerBase
         return true;
     }
 
+    /// <summary>
+    /// if this value is true, null values are allowed as inputs
+    /// </summary>
     protected bool CanBeNull { get; set; } = true;
 
+    /// <summary>
+    /// Maps a operation field to a provider specific result.
+    /// This method is called when the <see cref="FilterVisitor{TContext,T}"/> enters a
+    /// field
+    /// </summary>
+    /// <param name="context">The <see cref="IFilterVisitorContext{T}"/> of the visitor</param>
+    /// <param name="field">The field that is currently being visited</param>
+    /// <param name="value">The value node of this field</param>
+    /// <param name="parsedValue">The value of the value node</param>
+    /// <returns>If <c>true</c> is returned the action is used for further processing</returns>
     public abstract Expression HandleOperation(
         QueryableFilterContext context,
         IFilterOperationField field,

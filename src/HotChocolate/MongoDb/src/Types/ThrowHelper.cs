@@ -1,3 +1,4 @@
+using System.Globalization;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Types.MongoDb.Resources;
@@ -11,6 +12,7 @@ internal static class ThrowHelper
         object? value) =>
         new(
             string.Format(
+                CultureInfo.InvariantCulture,
                 MongoDbTypesResources.Bson_Type_CouldNotParseValue,
                 value?.ToString() ?? "null"),
             type);
@@ -19,6 +21,8 @@ internal static class ThrowHelper
         ScalarType type,
         IValueNode literal) =>
         new(
-            string.Format(MongoDbTypesResources.Bson_Type_CouldNotParseLiteral, literal.Print()),
+            string.Format(
+                CultureInfo.InvariantCulture,
+                MongoDbTypesResources.Bson_Type_CouldNotParseLiteral, literal.Print()),
             type);
 }

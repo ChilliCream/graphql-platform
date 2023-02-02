@@ -1,10 +1,9 @@
-namespace HotChocolate.CodeGeneration.Types
+namespace HotChocolate.CodeGeneration.Types;
+
+public enum SortDirection
 {
-    public enum SortDirection
-    {
-        Asc,
-        Desc,
-        All,
-        None
-    }
+    Asc,
+    Desc,
+    All,
+    None
 }

@@ -1,9 +1,4 @@
-using System.Linq;
 using HotChocolate.AspNetCore.Serialization;
-using HotChocolate.AspNetCore.Utilities;
-using HotChocolate.Execution.Configuration;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Xunit;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -16,16 +11,15 @@ public class ServiceCollectionExtensionTests
         var serviceCollection = new ServiceCollection();
 
         // act
-        HotChocolateAspNetCoreServiceCollectionExtensions
-            .AddHttpResultSerializer<DefaultHttpResultSerializer>(serviceCollection);
+        serviceCollection.AddHttpResponseFormatter<DefaultHttpResponseFormatter>();
 
         // assert
         Assert.Collection(
             serviceCollection,
             t =>
             {
-                Assert.Equal(typeof(IHttpResultSerializer), t.ServiceType);
-                Assert.Equal(typeof(DefaultHttpResultSerializer), t.ImplementationType);
+                Assert.Equal(typeof(IHttpResponseFormatter), t.ServiceType);
+                Assert.Equal(typeof(DefaultHttpResponseFormatter), t.ImplementationType);
             });
     }
 }

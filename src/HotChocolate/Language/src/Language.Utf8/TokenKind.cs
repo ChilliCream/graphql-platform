@@ -31,7 +31,7 @@ public enum TokenKind : byte
     Dollar,
 
     /// <summary>
-    /// &
+    /// &amp;
     /// </summary>
     Ampersand,
 

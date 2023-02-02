@@ -1,5 +1,6 @@
 ﻿[
   {
+    "Kind": "SingleResult",
     "Label": null,
     "Path": null,
     "Data": {
@@ -9,6 +10,7 @@
         "c": "c"
       }
     },
+    "Items": null,
     "Errors": null,
     "Extensions": {
       "loads": [
@@ -19,15 +21,18 @@
         ]
       ]
     },
+    "Incremental": null,
     "ContextData": null,
     "HasNext": null
   },
   {
+    "Kind": "SingleResult",
     "Label": null,
     "Path": null,
     "Data": {
       "a": "a"
     },
+    "Items": null,
     "Errors": null,
     "Extensions": {
       "loads": [
@@ -36,15 +41,18 @@
         ]
       ]
     },
+    "Incremental": null,
     "ContextData": null,
     "HasNext": null
   },
   {
+    "Kind": "SingleResult",
     "Label": null,
     "Path": null,
     "Data": {
       "c": "c"
     },
+    "Items": null,
     "Errors": null,
     "Extensions": {
       "loads": [
@@ -53,6 +61,7 @@
         ]
       ]
     },
+    "Incremental": null,
     "ContextData": null,
     "HasNext": null
   }

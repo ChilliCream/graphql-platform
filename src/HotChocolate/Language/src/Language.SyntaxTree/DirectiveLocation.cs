@@ -1,3 +1,5 @@
+#pragma warning disable CS1591
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -5,17 +7,14 @@ using HotChocolate.Language.Properties;
 
 namespace HotChocolate.Language;
 
-public sealed class DirectiveLocation
-    : IEquatable<DirectiveLocation?>
+public sealed class DirectiveLocation : IEquatable<DirectiveLocation?>
 {
     private static readonly Dictionary<string, DirectiveLocation> _cache;
 
     static DirectiveLocation()
     {
-        _cache = GetAll().ToDictionary(t => t._value);
+        _cache = GetAll().ToDictionary(t => t.Value);
     }
-
-    private readonly string _value;
 
     private DirectiveLocation(string value)
     {
@@ -26,14 +25,14 @@ public sealed class DirectiveLocation
                 nameof(value));
         }
 
-        _value = value;
+        Value = value;
     }
 
-    public string Value => _value;
+    public string Value { get; }
 
     public bool Equals(DirectiveLocation? other)
     {
-        if (ReferenceEquals(null, other))
+        if (other is null)
         {
             return false;
         }
@@ -43,12 +42,12 @@ public sealed class DirectiveLocation
             return true;
         }
 
-        return other._value.Equals(_value, StringComparison.Ordinal);
+        return other.Value.Equals(Value, StringComparison.Ordinal);
     }
 
     public override bool Equals(object? obj)
     {
-        if (ReferenceEquals(null, obj))
+        if (obj is null)
         {
             return false;
         }
@@ -65,14 +64,11 @@ public sealed class DirectiveLocation
     {
         unchecked
         {
-            return 17 * _value.GetHashCode();
+            return 17 * Value.GetHashCode();
         }
     }
 
-    public override string ToString()
-    {
-        return _value;
-    }
+    public override string ToString() => Value;
 
     public static DirectiveLocation Query { get; } = new("QUERY");
 
@@ -110,20 +106,13 @@ public sealed class DirectiveLocation
 
     public static DirectiveLocation InputObject { get; } = new("INPUT_OBJECT");
 
-    public static DirectiveLocation InputFieldDefinition { get; } =
-        new("INPUT_FIELD_DEFINITION");
+    public static DirectiveLocation InputFieldDefinition { get; } = new("INPUT_FIELD_DEFINITION");
 
     public static bool IsValidName(string value)
-    {
-        return _cache.ContainsKey(value);
-    }
+        => _cache.ContainsKey(value);
 
-    public static bool TryParse(
-        string value,
-        out DirectiveLocation? location)
-    {
-        return _cache.TryGetValue(value, out location);
-    }
+    public static bool TryParse(string value, out DirectiveLocation? location)
+        => _cache.TryGetValue(value, out location);
 
     private static IEnumerable<DirectiveLocation> GetAll()
     {

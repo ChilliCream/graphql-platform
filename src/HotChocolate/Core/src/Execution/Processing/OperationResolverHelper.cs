@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
@@ -15,10 +16,12 @@ internal static class OperationResolverHelper
         if (string.IsNullOrEmpty(operationName))
         {
             OperationDefinitionNode? operation = null;
+            var definitions = document.Definitions;
+            var length = definitions.Count;
 
-            for (int i = 0; i < document.Definitions.Count; i++)
+            for (var i = 0; i < length; i++)
             {
-                if (document.Definitions[i] is OperationDefinitionNode op)
+                if (definitions[i] is OperationDefinitionNode op)
                 {
                     if (operation is null)
                     {
@@ -40,7 +43,7 @@ internal static class OperationResolverHelper
         }
         else
         {
-            for (int i = 0; i < document.Definitions.Count; i++)
+            for (var i = 0; i < document.Definitions.Count; i++)
             {
                 if (document.Definitions[i] is OperationDefinitionNode { Name: { } } op &&
                     op.Name!.Value.EqualsOrdinal(operationName))
@@ -56,8 +59,18 @@ internal static class OperationResolverHelper
     public static Dictionary<string, FragmentDefinitionNode> GetFragments(
         this DocumentNode document)
     {
-        return document.Definitions
-            .OfType<FragmentDefinitionNode>()
-            .ToDictionary(t => t.Name.Value);
+        var definitions = document.Definitions;
+        var length = definitions.Count;
+        var map = new Dictionary<string, FragmentDefinitionNode>(StringComparer.Ordinal);
+
+        for (var i = 0; i < length; i++)
+        {
+            if (definitions[i] is FragmentDefinitionNode fragmentDef)
+            {
+                map.Add(fragmentDef.Name.Value, fragmentDef);
+            }
+        }
+
+        return map;
     }
 }

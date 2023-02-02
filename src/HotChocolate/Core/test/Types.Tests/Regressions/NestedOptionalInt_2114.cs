@@ -8,23 +8,23 @@ using Xunit;
 
 #nullable enable
 
-namespace HotChocolate.Regressions
-{
-    // Relates to issue https://github.com/ChilliCream/hotchocolate/issues/2114
-    public class NestedOptionalInt_2114
-    {
-        [Fact]
-        public async Task ShouldNotFailWithExplicitValues()
-        {
-            // arrange
-            ToppingInput? input = null;
-            IRequestExecutor executor = CreateExecutor(value =>
-            {
-                input = value;
-                return true;
-            });
+namespace HotChocolate.Regressions;
 
-            const string Query = @"
+// Relates to issue https://github.com/ChilliCream/graphql-platform/issues/2114
+public class NestedOptionalInt_2114
+{
+    [Fact]
+    public async Task ShouldNotFailWithExplicitValues()
+    {
+        // arrange
+        ToppingInput? input = null;
+        var executor = CreateExecutor(value =>
+        {
+            input = value;
+            return true;
+        });
+
+        const string Query = @"
                 mutation {
                     eat(topping: {
                         pickles: [ {
@@ -33,26 +33,26 @@ namespace HotChocolate.Regressions
                                 complexAssigned: { value: 3 },
                                 complexAssignedNull: null, complexList: [ { value: 2 } ] } } ] })
                 }";
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(Query);
+        // act
+        var result = await executor.ExecuteAsync(Query);
 
-            // assert
-            Assert.Null(result.Errors);
-            Verify(input);
-        }
+        // assert
+        Assert.Null(result.ExpectQueryResult().Errors);
+        Verify(input);
+    }
 
-        [Fact]
-        public async Task ShouldNotFailWithVariables()
+    [Fact]
+    public async Task ShouldNotFailWithVariables()
+    {
+        // arrange
+        ToppingInput? input = null;
+        var executor = CreateExecutor(value =>
         {
-            // arrange
-            ToppingInput? input = null;
-            IRequestExecutor executor = CreateExecutor(value =>
-            {
-                input = value;
-                return true;
-            });
+            input = value;
+            return true;
+        });
 
-            const string Query = @"
+        const string Query = @"
                 mutation a($input: ButterPickleInput!)
                 {
                     eat(topping: {
@@ -61,111 +61,110 @@ namespace HotChocolate.Regressions
                         ] } )
                 }";
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                Query,
-                new Dictionary<string, object?>
+        // act
+        var result = await executor.ExecuteAsync(
+            Query,
+            new Dictionary<string, object?>
+            {
                 {
+                    "input",
+                    new Dictionary<string, object?>
                     {
-                        "input",
-                        new Dictionary<string, object?>
+                        { "size", 5 },
                         {
-                            { "size", 5 },
+                            "complexAssigned",
+                            new Dictionary<string, object?>
                             {
-                                "complexAssigned",
-                                new Dictionary<string, object?>
-                                {
-                                    { "value", 3 }
-                                }
-                            },
-                            { "complexAssignedNull", null} ,
+                                { "value", 3 }
+                            }
+                        },
+                        { "complexAssignedNull", null} ,
+                        {
+                            "complexList",
+                            new List<Dictionary<string, object?>>
                             {
-                                "complexList",
-                                new List<Dictionary<string, object?>>
-                                {
-                                    new() { { "value", 2 } }
-                                }
+                                new() { { "value", 2 } }
                             }
                         }
                     }
-                });
+                }
+            });
 
-            // assert
-            Assert.Null(result.Errors);
-            Verify(input);
-        }
+        // assert
+        Assert.Null(result.ExpectQueryResult().Errors);
+        Verify(input);
+    }
 
-        private static void Verify(ToppingInput? input)
+    private static void Verify(ToppingInput? input)
+    {
+        Assert.NotNull(input);
+        var pickle = input?.Pickles!.First()?.ButterPickle;
+        Assert.NotNull(pickle);
+        Assert.Equal(5, pickle?.Size);
+        Assert.False(pickle?.Width.HasValue);
+        Assert.False(pickle?.ComplexUnassigned.HasValue);
+        Assert.True(pickle?.ComplexAssigned.HasValue);
+        Assert.Equal(3, pickle?.ComplexAssigned.Value?.Value);
+        Assert.True(pickle?.ComplexAssignedNull.HasValue);
+        Assert.Null(pickle?.ComplexAssignedNull.Value);
+        Assert.True(pickle?.ComplexList.HasValue);
+        Assert.Equal(2, pickle?.ComplexList.Value?.First().Value);
+    }
+
+    private static IRequestExecutor CreateExecutor(Func<ToppingInput, bool>? onEat = null)
+    {
+        return SchemaBuilder.New()
+            .AddQueryType<Query>()
+            .AddMutationType(new MutationType(onEat))
+            .Create()
+            .MakeExecutable();
+    }
+
+    public class Query
+    {
+        public string Chocolate => "rain";
+    }
+
+    public class MutationType : ObjectType
+    {
+        private readonly Func<ToppingInput, bool> _onEat;
+
+        public MutationType(Func<ToppingInput, bool>? onEat = null)
         {
-            Assert.NotNull(input);
-            ButterPickleInput? pickle = input?.Pickles!.First()?.ButterPickle;
-            Assert.NotNull(pickle);
-            Assert.Equal(5, pickle?.Size);
-            Assert.False(pickle?.Width.HasValue);
-            Assert.False(pickle?.ComplexUnassigned.HasValue);
-            Assert.True(pickle?.ComplexAssigned.HasValue);
-            Assert.Equal(3, pickle?.ComplexAssigned.Value?.Value);
-            Assert.True(pickle?.ComplexAssignedNull.HasValue);
-            Assert.Null(pickle?.ComplexAssignedNull.Value);
-            Assert.True(pickle?.ComplexList.HasValue);
-            Assert.Equal(2, pickle?.ComplexList.Value?.First().Value);
+            _onEat = onEat ?? (_ => true);
         }
 
-        private static IRequestExecutor CreateExecutor(Func<ToppingInput, bool>? onEat = null)
+        protected override void Configure(IObjectTypeDescriptor descriptor)
         {
-            return SchemaBuilder.New()
-                .AddQueryType<Query>()
-                .AddMutationType(new MutationType(onEat))
-                .Create()
-                .MakeExecutable();
+            descriptor.Field("eat")
+                .Type<NonNullType<BooleanType>>()
+                .Argument("topping", arg => arg.Type(typeof(ToppingInput)))
+                .Resolve(ctx => _onEat(ctx.ArgumentValue<ToppingInput>("topping")));
         }
+    }
 
-        public class Query
-        {
-            public string Chocolate => "rain";
-        }
+    public class ToppingInput
+    {
+        public IEnumerable<PicklesInput>? Pickles { get; set; }
+    }
 
-        public class MutationType : ObjectType
-        {
-            private readonly Func<ToppingInput, bool> _onEat;
+    public class PicklesInput
+    {
+        public ButterPickleInput? ButterPickle { get; set; }
+    }
 
-            public MutationType(Func<ToppingInput, bool>? onEat = null)
-            {
-                _onEat = onEat ?? (_ => true);
-            }
+    public class ButterPickleInput
+    {
+        public Optional<int> Size { get; set; }
+        public Optional<int?> Width { get; set; }
+        public Optional<SomeComplexInput?> ComplexUnassigned { get; set; }
+        public Optional<SomeComplexInput?> ComplexAssigned { get; set; }
+        public Optional<SomeComplexInput?> ComplexAssignedNull { get; set; }
+        public Optional<List<SomeComplexInput>?> ComplexList { get; set; }
+    }
 
-            protected override void Configure(IObjectTypeDescriptor descriptor)
-            {
-                descriptor.Field("eat")
-                    .Type<NonNullType<BooleanType>>()
-                    .Argument("topping", arg => arg.Type(typeof(ToppingInput)))
-                    .Resolve(ctx => _onEat(ctx.ArgumentValue<ToppingInput>("topping")));
-            }
-        }
-
-        public class ToppingInput
-        {
-            public IEnumerable<PicklesInput>? Pickles { get; set; }
-        }
-
-        public class PicklesInput
-        {
-            public ButterPickleInput? ButterPickle { get; set; }
-        }
-
-        public class ButterPickleInput
-        {
-            public Optional<int> Size { get; set; }
-            public Optional<int?> Width { get; set; }
-            public Optional<SomeComplexInput?> ComplexUnassigned { get; set; }
-            public Optional<SomeComplexInput?> ComplexAssigned { get; set; }
-            public Optional<SomeComplexInput?> ComplexAssignedNull { get; set; }
-            public Optional<List<SomeComplexInput>?> ComplexList { get; set; }
-        }
-
-        public class SomeComplexInput
-        {
-            public int Value { get; set; }
-        }
+    public class SomeComplexInput
+    {
+        public int Value { get; set; }
     }
 }

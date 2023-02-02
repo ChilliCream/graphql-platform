@@ -3,14 +3,30 @@ using System.Buffers.Text;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using HotChocolate.Language.Properties;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
-public sealed class IntValueNode
-    : IValueNode<string>
-    , IEquatable<IntValueNode>
-    , IIntValueLiteral
+/// <summary>
+/// <para>
+/// An IntValue is specified without a decimal point or exponent but may be negative (ex. -123).
+/// It must not have any leading 0.
+/// </para>
+/// <para>
+/// An IntValue must not be followed by a Digit. In other words, an IntValue token is always
+/// the longest possible valid sequence. The source characters 12 cannot be interpreted as
+/// two tokens since 1 is followed by the Digit 2. This also means the source 00 is invalid
+/// since it can neither be interpreted as a single token nor two 0 tokens.
+/// </para>
+/// <para>
+/// An IntValue must not be followed by a . or NameStart.
+/// If either . or ExponentIndicator follows then the token must only be interpreted as a
+/// possible FloatValue. No other NameStart character can follow. For example the sequences
+/// 0x123 and 123L have no valid lexical representations.
+/// </para>
+/// </summary>
+public sealed class IntValueNode : IValueNode<string>, IIntValueLiteral
 {
     private ReadOnlyMemory<byte> _memory;
     private string? _stringValue;
@@ -26,11 +42,24 @@ public sealed class IntValueNode
     private uint? _uIntValue;
     private ulong? _uLongValue;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="IntValueNode"/>
+    /// </summary>
+    /// <param name="value">
+    /// The value.
+    /// </param>
     public IntValueNode(byte value)
-        : this(null, value)
-    {
-    }
+        : this(null, value) { }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="IntValueNode"/>
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="value">
+    /// The value.
+    /// </param>
     public IntValueNode(Location? location, byte value)
     {
         Location = location;
@@ -38,119 +67,223 @@ public sealed class IntValueNode
         _shortValue = value;
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="IntValueNode"/>
+    /// </summary>
+    /// <param name="value">
+    /// The value.
+    /// </param>
     public IntValueNode(short value)
-        : this(null, value)
-    {
-    }
+        : this(null, value) { }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="IntValueNode"/>
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="value">
+    /// The value.
+    /// </param>
     public IntValueNode(Location? location, short value)
     {
         Location = location;
         _shortValue = value;
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="IntValueNode"/>
+    /// </summary>
+    /// <param name="value">
+    /// The value.
+    /// </param>
     public IntValueNode(int value)
-        : this(null, value)
-    {
-    }
+        : this(null, value) { }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="IntValueNode"/>
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="value">
+    /// The value.
+    /// </param>
     public IntValueNode(Location? location, int value)
     {
         Location = location;
         _intValue = value;
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="IntValueNode"/>
+    /// </summary>
+    /// <param name="value">
+    /// The value.
+    /// </param>
     public IntValueNode(long value)
-        : this(null, value)
-    {
-    }
+        : this(null, value) { }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="IntValueNode"/>
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="value">
+    /// The value.
+    /// </param>
     public IntValueNode(Location? location, long value)
     {
         Location = location;
         _longValue = value;
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="IntValueNode"/>
+    /// </summary>
+    /// <param name="value">
+    /// The value.
+    /// </param>
     public IntValueNode(sbyte value)
-        : this(null, value)
-    {
-    }
+        : this(null, value) { }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="IntValueNode"/>
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="value">
+    /// The value.
+    /// </param>
     public IntValueNode(Location? location, sbyte value)
     {
         Location = location;
         _sbyteValue = value;
 
         Span<byte> buffer = stackalloc byte[32];
-        Utf8Formatter.TryFormat(value, buffer, out int written);
+        Utf8Formatter.TryFormat(value, buffer, out var written);
         var memory = new Memory<byte>(new byte[written]);
         buffer.Slice(0, written).CopyTo(memory.Span);
         _memory = memory;
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="IntValueNode"/>
+    /// </summary>
+    /// <param name="value">
+    /// The value.
+    /// </param>
     public IntValueNode(ushort value)
-        : this(null, value)
-    {
-    }
+        : this(null, value) { }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="IntValueNode"/>
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="value">
+    /// The value.
+    /// </param>
     public IntValueNode(Location? location, ushort value)
     {
         Location = location;
         _uShortValue = value;
 
         Span<byte> buffer = stackalloc byte[32];
-        Utf8Formatter.TryFormat(value, buffer, out int written);
+        Utf8Formatter.TryFormat(value, buffer, out var written);
         var memory = new Memory<byte>(new byte[written]);
         buffer.Slice(0, written).CopyTo(memory.Span);
         _memory = memory;
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="IntValueNode"/>
+    /// </summary>
+    /// <param name="value">
+    /// The value.
+    /// </param>
     public IntValueNode(uint value)
-        : this(null, value)
-    {
-    }
+        : this(null, value) { }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="IntValueNode"/>
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="value">
+    /// The value.
+    /// </param>
     public IntValueNode(Location? location, uint value)
     {
         Location = location;
         _uIntValue = value;
 
         Span<byte> buffer = stackalloc byte[32];
-        Utf8Formatter.TryFormat(value, buffer, out int written);
+        Utf8Formatter.TryFormat(value, buffer, out var written);
         var memory = new Memory<byte>(new byte[written]);
         buffer.Slice(0, written).CopyTo(memory.Span);
         _memory = memory;
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="IntValueNode"/>
+    /// </summary>
+    /// <param name="value">
+    /// The value.
+    /// </param>
     public IntValueNode(ulong value)
-        : this(null, value)
-    {
-    }
+        : this(null, value) { }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="IntValueNode"/>
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="value">
+    /// The value.
+    /// </param>
     public IntValueNode(Location? location, ulong value)
     {
         Location = location;
         _uLongValue = value;
 
         Span<byte> buffer = stackalloc byte[32];
-        Utf8Formatter.TryFormat(value, buffer, out int written);
+        Utf8Formatter.TryFormat(value, buffer, out var written);
         var memory = new Memory<byte>(new byte[written]);
         buffer.Slice(0, written).CopyTo(memory.Span);
         _memory = memory;
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="IntValueNode"/>
+    /// </summary>
+    /// <param name="value">
+    /// The value.
+    /// </param>
     public IntValueNode(ReadOnlyMemory<byte> value)
-        : this(null, value)
-    {
-    }
+        : this(null, value) { }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="IntValueNode"/>
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="value">
+    /// The value.
+    /// </param>
     public IntValueNode(Location? location, ReadOnlyMemory<byte> value)
     {
         if (value.IsEmpty)
         {
             throw new ArgumentNullException(
-                "The value of an int value node mustn't be empty.",
-                nameof(value));
+                nameof(value),
+                Resources.IntValueNode_ValueCannotBeEmpty);
         }
 
         Location = location;
@@ -162,17 +295,23 @@ public sealed class IntValueNode
         Location = location;
     }
 
-    public SyntaxKind Kind { get; } = SyntaxKind.IntValue;
+    /// <inheritdoc />
+    public SyntaxKind Kind => SyntaxKind.IntValue;
 
+    /// <inheritdoc />
     public Location? Location { get; }
 
+    /// <summary>
+    /// The raw parsed string representation of the parsed value node.
+    /// </summary>
     public unsafe string Value
     {
         get
         {
             if (_stringValue is null)
             {
-                ReadOnlySpan<byte> span = AsSpan();
+                var span = AsSpan();
+
                 fixed (byte* b = span)
                 {
                     _stringValue = Encoding.UTF8.GetString(b, span.Length);
@@ -182,114 +321,10 @@ public sealed class IntValueNode
         }
     }
 
-    object? IValueNode.Value => Value;
+    object IValueNode.Value => Value;
 
+    /// <inheritdoc />
     public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
-
-    /// <summary>
-    /// Determines whether the specified <see cref="IntValueNode"/>
-    /// is equal to the current <see cref="IntValueNode"/>.
-    /// </summary>
-    /// <param name="other">
-    /// The <see cref="IntValueNode"/> to compare with the current
-    /// <see cref="IntValueNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="IntValueNode"/> is equal
-    /// to the current <see cref="IntValueNode"/>;
-    /// otherwise, <c>false</c>.
-    /// </returns>
-    public bool Equals(IntValueNode? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(other, this))
-        {
-            return true;
-        }
-
-        return other.Value.Equals(Value, StringComparison.Ordinal);
-    }
-
-    /// <summary>
-    /// Determines whether the specified <see cref="IValueNode"/> is equal
-    /// to the current <see cref="IntValueNode"/>.
-    /// </summary>
-    /// <param name="other">
-    /// The <see cref="IValueNode"/> to compare with the current
-    /// <see cref="IntValueNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="IValueNode"/> is equal
-    /// to the current <see cref="IntValueNode"/>;
-    /// otherwise, <c>false</c>.
-    /// </returns>
-    public bool Equals(IValueNode? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(other, this))
-        {
-            return true;
-        }
-
-        if (other is IntValueNode n)
-        {
-            return Equals(n);
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Determines whether the specified <see cref="object"/> is equal to
-    /// the current <see cref="IntValueNode"/>.
-    /// </summary>
-    /// <param name="obj">
-    /// The <see cref="object"/> to compare with the current
-    /// <see cref="IntValueNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="object"/> is equal to the
-    /// current <see cref="IntValueNode"/>; otherwise, <c>false</c>.
-    /// </returns>
-    public override bool Equals(object? obj)
-    {
-        if (obj is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(obj, this))
-        {
-            return true;
-        }
-
-        return Equals(obj as IntValueNode);
-    }
-
-    /// <summary>
-    /// Serves as a hash function for a <see cref="IntValueNode"/>
-    /// object.
-    /// </summary>
-    /// <returns>
-    /// A hash code for this instance that is suitable for use in
-    /// hashing algorithms and data structures such as a hash table.
-    /// </returns>
-    public override int GetHashCode()
-    {
-        unchecked
-        {
-            return (Kind.GetHashCode() * 397)
-             ^ (Value.GetHashCode() * 97);
-        }
-    }
 
     /// <summary>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
@@ -312,6 +347,9 @@ public sealed class IntValueNode
     /// </returns>
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
+    /// <summary>
+    /// Reads the parsed int value as <see cref="byte"/>.
+    /// </summary>
     public byte ToByte()
     {
         if (_byteValue.HasValue)
@@ -328,6 +366,9 @@ public sealed class IntValueNode
         throw new InvalidFormatException();
     }
 
+    /// <summary>
+    /// Reads the parsed int value as <see cref="short"/>.
+    /// </summary>
     public short ToInt16()
     {
         if (_shortValue.HasValue)
@@ -344,6 +385,9 @@ public sealed class IntValueNode
         throw new InvalidFormatException();
     }
 
+    /// <summary>
+    /// Reads the parsed int value as <see cref="int"/>.
+    /// </summary>
     public int ToInt32()
     {
         if (_intValue.HasValue)
@@ -360,6 +404,9 @@ public sealed class IntValueNode
         throw new InvalidFormatException();
     }
 
+    /// <summary>
+    /// Reads the parsed int value as <see cref="long"/>.
+    /// </summary>
     public long ToInt64()
     {
         if (_longValue.HasValue)
@@ -376,6 +423,9 @@ public sealed class IntValueNode
         throw new InvalidFormatException();
     }
 
+    /// <summary>
+    /// Reads the parsed int value as <see cref="sbyte"/>.
+    /// </summary>
     public sbyte ToSByte()
     {
         if (_sbyteValue.HasValue)
@@ -392,6 +442,9 @@ public sealed class IntValueNode
         throw new InvalidFormatException();
     }
 
+    /// <summary>
+    /// Reads the parsed int value as <see cref="ushort"/>.
+    /// </summary>
     public ushort ToUInt16()
     {
         if (_uShortValue.HasValue)
@@ -408,6 +461,9 @@ public sealed class IntValueNode
         throw new InvalidFormatException();
     }
 
+    /// <summary>
+    /// Reads the parsed int value as <see cref="uint"/>.
+    /// </summary>
     public uint ToUInt32()
     {
         if (_uIntValue.HasValue)
@@ -424,6 +480,9 @@ public sealed class IntValueNode
         throw new InvalidFormatException();
     }
 
+    /// <summary>
+    /// Reads the parsed int value as <see cref="ulong"/>.
+    /// </summary>
     public ulong ToUInt64()
     {
         if (_uLongValue.HasValue)
@@ -440,6 +499,9 @@ public sealed class IntValueNode
         throw new InvalidFormatException();
     }
 
+    /// <summary>
+    /// Reads the parsed int value as <see cref="float"/>.
+    /// </summary>
     public float ToSingle()
     {
         if (_floatValue.HasValue)
@@ -456,6 +518,9 @@ public sealed class IntValueNode
         throw new InvalidFormatException();
     }
 
+    /// <summary>
+    /// Reads the parsed int value as <see cref="double"/>.
+    /// </summary>
     public double ToDouble()
     {
         if (_doubleValue.HasValue)
@@ -472,6 +537,9 @@ public sealed class IntValueNode
         throw new InvalidFormatException();
     }
 
+    /// <summary>
+    /// Reads the parsed int value as <see cref="decimal"/>.
+    /// </summary>
     public decimal ToDecimal()
     {
         if (_decimalValue.HasValue)
@@ -488,15 +556,21 @@ public sealed class IntValueNode
         throw new InvalidFormatException();
     }
 
+    /// <summary>
+    /// Gets a readonly span to access the int value memory.
+    /// </summary>
     public ReadOnlySpan<byte> AsSpan()
+        => AsMemory().Span;
+
+    internal ReadOnlyMemory<byte> AsMemory()
     {
         if (!_memory.IsEmpty)
         {
-            return _memory.Span;
+            return _memory;
         }
 
         Span<byte> buffer = stackalloc byte[32];
-        var written = 0;
+        int written;
 
         if (_shortValue.HasValue)
         {
@@ -519,12 +593,21 @@ public sealed class IntValueNode
         buffer.Slice(0, written).CopyTo(memory.Span);
         _memory = memory;
 
-        return _memory.Span;
+        return _memory;
     }
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Location" /> with <paramref name="location" />.
+    /// </summary>
+    /// <param name="location">
+    /// The location that shall be used to replace the current location.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="location" />.
+    /// </returns>
     public IntValueNode WithLocation(Location? location)
-    {
-        return new IntValueNode(location)
+        => new(location)
         {
             _stringValue = _stringValue,
             _shortValue = _shortValue,
@@ -533,35 +616,76 @@ public sealed class IntValueNode
             _sbyteValue = _sbyteValue,
             _memory = _memory
         };
-    }
 
-    public IntValueNode WithValue(byte value)
-    {
-        return new IntValueNode(Location, value);
-    }
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Value" /> with <paramref name="value" />.
+    /// </summary>
+    /// <param name="value">
+    /// The value that shall be used to replace the current value.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="value" />.
+    /// </returns>
+    public IntValueNode WithValue(byte value) => new(Location, value);
 
-    public IntValueNode WithValue(sbyte value)
-    {
-        return new IntValueNode(Location, value);
-    }
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Value" /> with <paramref name="value" />.
+    /// </summary>
+    /// <param name="value">
+    /// The value that shall be used to replace the current value.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="value" />.
+    /// </returns>
+    public IntValueNode WithValue(sbyte value) => new(Location, value);
 
-    public IntValueNode WithValue(short value)
-    {
-        return new IntValueNode(Location, value);
-    }
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Value" /> with <paramref name="value" />.
+    /// </summary>
+    /// <param name="value">
+    /// The value that shall be used to replace the current value.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="value" />.
+    /// </returns>
+    public IntValueNode WithValue(short value) => new(Location, value);
 
-    public IntValueNode WithValue(int value)
-    {
-        return new IntValueNode(Location, value);
-    }
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Value" /> with <paramref name="value" />.
+    /// </summary>
+    /// <param name="value">
+    /// The value that shall be used to replace the current value.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="value" />.
+    /// </returns>
+    public IntValueNode WithValue(int value) => new(Location, value);
 
-    public IntValueNode WithValue(long value)
-    {
-        return new IntValueNode(Location, value);
-    }
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Value" /> with <paramref name="value" />.
+    /// </summary>
+    /// <param name="value">
+    /// The value that shall be used to replace the current value.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="value" />.
+    /// </returns>
+    public IntValueNode WithValue(long value) => new(Location, value);
 
-    public IntValueNode WithValue(ReadOnlyMemory<byte> value)
-    {
-        return new IntValueNode(Location, value);
-    }
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Value" /> with <paramref name="value" />.
+    /// </summary>
+    /// <param name="value">
+    /// The value that shall be used to replace the current value.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="value" />.
+    /// </returns>
+    public IntValueNode WithValue(ReadOnlyMemory<byte> value) => new(Location, value);
 }

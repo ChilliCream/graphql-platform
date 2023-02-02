@@ -14,8 +14,8 @@ internal class CompletedDependencyDescriptor
     {
     }
 
-    protected override TypeDependencyKind DependencyKind =>
-        TypeDependencyKind.Completed;
+    protected override TypeDependencyFulfilled DependencyFulfilled =>
+        TypeDependencyFulfilled.Completed;
 
     public ICompletedDependencyDescriptor DependsOn<TType>()
         where TType : ITypeSystemMember =>
@@ -40,11 +40,11 @@ internal class CompletedDependencyDescriptor
     }
 
     public ICompletedDependencyDescriptor DependsOn(
-        NameString typeName) =>
-        DependsOn(typeName, false);
+        string typeName)
+        => DependsOn(typeName, false);
 
     public new ICompletedDependencyDescriptor DependsOn(
-        NameString typeName,
+        string typeName,
         bool mustBeCompleted)
     {
         base.DependsOn(typeName, mustBeCompleted);

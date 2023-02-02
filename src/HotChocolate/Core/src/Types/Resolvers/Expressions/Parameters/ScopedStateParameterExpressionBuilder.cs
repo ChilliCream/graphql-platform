@@ -39,18 +39,19 @@ internal class ScopedStateParameterExpressionBuilder : IParameterExpressionBuild
     public virtual bool CanHandle(ParameterInfo parameter)
         => parameter.IsDefined(typeof(ScopedStateAttribute));
 
-    public virtual Expression Build(ParameterInfo parameter, Expression context)
+    public virtual Expression Build(ParameterExpressionBuilderContext context)
     {
+        var parameter = context.Parameter;
         var key = GetKey(parameter);
 
-        ConstantExpression keyExpression =
+        var keyExpression =
             key is null
                 ? Expression.Constant(parameter.Name, typeof(string))
                 : Expression.Constant(key, typeof(string));
 
         return IsStateSetter(parameter.ParameterType)
-            ? BuildSetter(parameter, keyExpression, context)
-            : BuildGetter(parameter, keyExpression, context);
+            ? BuildSetter(parameter, keyExpression, context.ResolverContext)
+            : BuildGetter(parameter, keyExpression, context.ResolverContext);
     }
 
     protected virtual string? GetKey(ParameterInfo parameter)
@@ -61,7 +62,7 @@ internal class ScopedStateParameterExpressionBuilder : IParameterExpressionBuild
         ConstantExpression key,
         Expression context)
     {
-        MethodInfo setGlobalState =
+        var setGlobalState =
             parameter.ParameterType.IsGenericType
                 ? SetStateGenericMethod.MakeGenericMethod(
                     parameter.ParameterType.GetGenericArguments()[0])
@@ -81,9 +82,9 @@ internal class ScopedStateParameterExpressionBuilder : IParameterExpressionBuild
     {
         targetType ??= parameter.ParameterType;
 
-        MemberExpression contextData = Expression.Property(context, ContextDataProperty);
+        var contextData = Expression.Property(context, ContextDataProperty);
 
-        MethodInfo getScopedState =
+        var getScopedState =
             parameter.HasDefaultValue
                 ? _getScopedStateWithDefault.MakeGenericMethod(targetType)
                 : _getScopedState.MakeGenericMethod(targetType);

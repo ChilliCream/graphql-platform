@@ -3,12 +3,20 @@ using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
+/// <summary>
+/// Represents the required modifier syntax.
+/// </summary>
 public sealed class RequiredModifierNode : INullabilityModifierNode
 {
-    public RequiredModifierNode(ListNullabilityNode element) : this(null, element) { }
-
-    public RequiredModifierNode(Location location) : this(location, null) { }
-
+    /// <summary>
+    /// Initializes a new instance of <see cref="RequiredModifierNode"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="element">
+    /// The list nullability modifier.
+    /// </param>
     public RequiredModifierNode(Location? location, ListNullabilityNode? element)
     {
         Location = location;

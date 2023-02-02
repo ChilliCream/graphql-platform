@@ -2,212 +2,210 @@
 using HotChocolate.Language;
 using Xunit;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public class MultiplierPathTypeTests
 {
-    public class MultiplierPathTypeTests
+    [Fact]
+    public void EnsureStringTypeKindIsCorret()
     {
-        [Fact]
-        public void EnsureStringTypeKindIsCorret()
-        {
-            // arrange
-            var type = new MultiplierPathType();
+        // arrange
+        var type = new MultiplierPathType();
 
-            // act
-            TypeKind kind = type.Kind;
+        // act
+        var kind = type.Kind;
 
-            // assert
-            Assert.Equal(TypeKind.Scalar, type.Kind);
-        }
+        // assert
+        Assert.Equal(TypeKind.Scalar, kind);
+    }
 
-        [Fact]
-        public void IsInstanceOfType_ValueNode()
-        {
-            // arrange
-            var type = new MultiplierPathType();
-            var input = new StringValueNode("_123.456");
+    [Fact]
+    public void IsInstanceOfType_ValueNode()
+    {
+        // arrange
+        var type = new MultiplierPathType();
+        var input = new StringValueNode("_123.456");
 
-            // act
-            bool result = type.IsInstanceOfType(input);
+        // act
+        var result = type.IsInstanceOfType(input);
 
-            // assert
-            Assert.True(result);
-        }
+        // assert
+        Assert.True(result);
+    }
 
-        [Fact]
-        public void IsInstanceOfType_NullValueNode()
-        {
-            // arrange
-            var type = new MultiplierPathType();
-            NullValueNode input = NullValueNode.Default;
+    [Fact]
+    public void IsInstanceOfType_NullValueNode()
+    {
+        // arrange
+        var type = new MultiplierPathType();
+        var input = NullValueNode.Default;
 
-            // act
-            bool result = type.IsInstanceOfType(input);
+        // act
+        var result = type.IsInstanceOfType(input);
 
-            // assert
-            Assert.True(result);
-        }
+        // assert
+        Assert.True(result);
+    }
 
-        [Fact]
-        public void IsInstanceOfType_Wrong_ValueNode()
-        {
-            // arrange
-            var type = new MultiplierPathType();
-            var input = new IntValueNode(123456);
+    [Fact]
+    public void IsInstanceOfType_Wrong_ValueNode()
+    {
+        // arrange
+        var type = new MultiplierPathType();
+        var input = new IntValueNode(123456);
 
-            // act
-            bool result = type.IsInstanceOfType(input);
+        // act
+        var result = type.IsInstanceOfType(input);
 
-            // assert
-            Assert.False(result);
-        }
+        // assert
+        Assert.False(result);
+    }
 
-        [InlineData("1234")]
-        [InlineData("  ")]
-        [Theory]
-        public void IsInstanceOfType_Wrong_StringValue(string s)
-        {
-            // arrange
-            var type = new MultiplierPathType();
-            var input = new StringValueNode(s);
+    [InlineData("1234")]
+    [InlineData("  ")]
+    [Theory]
+    public void IsInstanceOfType_Wrong_StringValue(string s)
+    {
+        // arrange
+        var type = new MultiplierPathType();
+        var input = new StringValueNode(s);
 
-            // act
-            bool result = type.IsInstanceOfType(input);
+        // act
+        var result = type.IsInstanceOfType(input);
 
-            // assert
-            Assert.False(result);
-        }
+        // assert
+        Assert.False(result);
+    }
 
-        [Fact]
-        public void IsInstanceOfType_Null_Throws()
-        {
-            // arrange
-            var type = new MultiplierPathType();
+    [Fact]
+    public void IsInstanceOfType_Null_Throws()
+    {
+        // arrange
+        var type = new MultiplierPathType();
 
-            // act
-            // assert
-            Assert.Throws<ArgumentNullException>(
-                () => type.IsInstanceOfType(null));
-        }
+        // act
+        // assert
+        Assert.Throws<ArgumentNullException>(
+            () => type.IsInstanceOfType(null!));
+    }
 
-        [Fact]
-        public void Serialize_Type()
-        {
-            // arrange
-            var type = new MultiplierPathType();
-            MultiplierPathString input = "_123456";
+    [Fact]
+    public void Serialize_Type()
+    {
+        // arrange
+        var type = new MultiplierPathType();
+        MultiplierPathString input = "_123456";
 
-            // act
-            object serializedValue = type.Serialize(input);
+        // act
+        var serializedValue = type.Serialize(input);
 
-            // assert
-            Assert.IsType<string>(serializedValue);
-            Assert.Equal("_123456", serializedValue);
-        }
+        // assert
+        Assert.IsType<string>(serializedValue);
+        Assert.Equal("_123456", serializedValue);
+    }
 
-        [Fact]
-        public void Serialize_Null()
-        {
-            // arrange
-            var type = new MultiplierPathType();
+    [Fact]
+    public void Serialize_Null()
+    {
+        // arrange
+        var type = new MultiplierPathType();
 
-            // act
-            object serializedValue = type.Serialize(null);
+        // act
+        var serializedValue = type.Serialize(null);
 
-            // assert
-            Assert.Null(serializedValue);
-        }
+        // assert
+        Assert.Null(serializedValue);
+    }
 
-        [Fact]
-        public void Serialize_Wrong_Type_Throws()
-        {
-            // arrange
-            var type = new MultiplierPathType();
-            object input = 123456;
+    [Fact]
+    public void Serialize_Wrong_Type_Throws()
+    {
+        // arrange
+        var type = new MultiplierPathType();
+        object input = 123456;
 
-            // act
-            // assert
-            Assert.Throws<SerializationException>(
-                () => type.Serialize(input));
-        }
+        // act
+        // assert
+        Assert.Throws<SerializationException>(
+            () => type.Serialize(input));
+    }
 
-        [Fact]
-        public void ParseLiteral_ValueNode()
-        {
-            // arrange
-            var type = new MultiplierPathType();
-            var input = new StringValueNode("__123456");
+    [Fact]
+    public void ParseLiteral_ValueNode()
+    {
+        // arrange
+        var type = new MultiplierPathType();
+        var input = new StringValueNode("__123456");
 
-            // act
-            object output = type.ParseLiteral(input);
+        // act
+        var output = type.ParseLiteral(input);
 
-            // assert
-            Assert.IsType<MultiplierPathString>(output);
-            Assert.Equal(new MultiplierPathString("__123456"), output);
-        }
+        // assert
+        Assert.IsType<MultiplierPathString>(output);
+        Assert.Equal(new MultiplierPathString("__123456"), output);
+    }
 
-        [Fact]
-        public void ParseLiteral_NullValueNode()
-        {
-            // arrange
-            var type = new MultiplierPathType();
-            NullValueNode input = NullValueNode.Default;
+    [Fact]
+    public void ParseLiteral_NullValueNode()
+    {
+        // arrange
+        var type = new MultiplierPathType();
+        var input = NullValueNode.Default;
 
-            // act
-            object output = type.ParseLiteral(input);
+        // act
+        var output = type.ParseLiteral(input);
 
-            // assert
-            Assert.Null(output);
-        }
+        // assert
+        Assert.Null(output);
+    }
 
-        [Fact]
-        public void ParseLiteral_Wrong_ValueNode_Throws()
-        {
-            // arrange
-            var type = new MultiplierPathType();
-            var input = new IntValueNode(123456);
+    [Fact]
+    public void ParseLiteral_Wrong_ValueNode_Throws()
+    {
+        // arrange
+        var type = new MultiplierPathType();
+        var input = new IntValueNode(123456);
 
-            // act
-            // assert
-            Assert.Throws<SerializationException>(
-                () => type.ParseLiteral(input));
-        }
+        // act
+        // assert
+        Assert.Throws<SerializationException>(
+            () => type.ParseLiteral(input));
+    }
 
-        [Fact]
-        public void ParseLiteral_Null_Throws()
-        {
-            // arrange
-            var type = new MultiplierPathType();
+    [Fact]
+    public void ParseLiteral_Null_Throws()
+    {
+        // arrange
+        var type = new MultiplierPathType();
 
-            // act
-            // assert
-            Assert.Throws<ArgumentNullException>(() => type.ParseLiteral(null));
-        }
+        // act
+        // assert
+        Assert.Throws<ArgumentNullException>(() => type.ParseLiteral(null!));
+    }
 
-        [Fact]
-        public void ParseValue_Wrong_Value_Throws()
-        {
-            // arrange
-            var type = new MultiplierPathType();
-            object input = 123456;
+    [Fact]
+    public void ParseValue_Wrong_Value_Throws()
+    {
+        // arrange
+        var type = new MultiplierPathType();
+        object input = 123456;
 
-            // act
-            // assert
-            Assert.Throws<SerializationException>(
-                () => type.ParseValue(input));
-        }
+        // act
+        // assert
+        Assert.Throws<SerializationException>(
+            () => type.ParseValue(input));
+    }
 
-        [Fact]
-        public void ParseValue_Null()
-        {
-            // arrange
-            var type = new MultiplierPathType();
-            object input = null;
+    [Fact]
+    public void ParseValue_Null()
+    {
+        // arrange
+        var type = new MultiplierPathType();
 
-            // act
-            object output = type.ParseValue(input);
+        // act
+        object output = type.ParseValue(null!);
 
-            // assert
-            Assert.IsType<NullValueNode>(output);
-        }
+        // assert
+        Assert.IsType<NullValueNode>(output);
     }
 }

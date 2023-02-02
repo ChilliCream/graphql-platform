@@ -21,8 +21,7 @@ public class SortInputTypeDescriptor
         : base(context)
     {
         Convention = context.GetSortConvention(scope);
-        Definition.EntityType = entityType ??
-            throw new ArgumentNullException(nameof(entityType));
+        Definition.EntityType = entityType ?? throw new ArgumentNullException(nameof(entityType));
         Definition.RuntimeType = typeof(object);
         Definition.Name = Convention.GetTypeName(entityType);
         Definition.Description = Convention.GetTypeDescription(entityType);
@@ -53,7 +52,7 @@ public class SortInputTypeDescriptor
 
     protected ISortConvention Convention { get; }
 
-    protected override SortInputTypeDefinition Definition { get; set; } =
+    protected internal override SortInputTypeDefinition Definition { get; protected set; } =
         new SortInputTypeDefinition();
 
     protected BindableList<SortFieldDescriptor> Fields { get; } =
@@ -70,7 +69,7 @@ public class SortInputTypeDescriptor
             Definition.AttributesAreApplied = true;
         }
 
-        var fields = new Dictionary<NameString, SortFieldDefinition>();
+        var fields = new Dictionary<string, SortFieldDefinition>(StringComparer.Ordinal);
         var handledProperties = new HashSet<MemberInfo>();
 
         FieldDescriptorUtilities.AddExplicitFields(
@@ -85,15 +84,16 @@ public class SortInputTypeDescriptor
     }
 
     protected virtual void OnCompleteFields(
-        IDictionary<NameString, SortFieldDefinition> fields,
+        IDictionary<string, SortFieldDefinition> fields,
         ISet<MemberInfo> handledProperties)
     {
     }
 
     /// <inheritdoc />
-    public ISortInputTypeDescriptor Name(NameString value)
+    public ISortInputTypeDescriptor Name(string value)
     {
-        Definition.Name = value.EnsureNotEmpty(nameof(value));
+        Definition.Name = value;
+        Definition.IsNamed = true;
         return this;
     }
 
@@ -112,16 +112,16 @@ public class SortInputTypeDescriptor
         return this;
     }
 
-    protected ISortInputTypeDescriptor BindFieldsExplicitly() =>
-        BindFields(BindingBehavior.Explicit);
+    protected ISortInputTypeDescriptor BindFieldsExplicitly()
+        => BindFields(BindingBehavior.Explicit);
 
-    protected ISortInputTypeDescriptor BindFieldsImplicitly() =>
-        BindFields(BindingBehavior.Implicit);
+    protected ISortInputTypeDescriptor BindFieldsImplicitly()
+        => BindFields(BindingBehavior.Implicit);
 
     /// <inheritdoc />
-    public ISortFieldDescriptor Field(NameString name)
+    public ISortFieldDescriptor Field(string name)
     {
-        SortFieldDescriptor? fieldDescriptor =
+        var fieldDescriptor =
             Fields.FirstOrDefault(t => t.Definition.Name == name);
 
         if (fieldDescriptor is null)
@@ -134,9 +134,9 @@ public class SortInputTypeDescriptor
     }
 
     /// <inheritdoc />
-    public ISortInputTypeDescriptor Ignore(NameString name)
+    public ISortInputTypeDescriptor Ignore(string name)
     {
-        SortFieldDescriptor? fieldDescriptor =
+        var fieldDescriptor =
             Fields.FirstOrDefault(t => t.Definition.Name == name);
 
         if (fieldDescriptor is null)
@@ -171,7 +171,7 @@ public class SortInputTypeDescriptor
 
     /// <inheritdoc />
     public ISortInputTypeDescriptor Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments)
     {
         Definition.AddDirective(name, arguments);
@@ -181,21 +181,21 @@ public class SortInputTypeDescriptor
     public static SortInputTypeDescriptor New(
         IDescriptorContext context,
         Type entityType,
-        string? scope = null) =>
-        new SortInputTypeDescriptor(context, entityType, scope);
+        string? scope = null)
+        => new(context, entityType, scope);
 
     public static SortInputTypeDescriptor<T> New<T>(
         IDescriptorContext context,
         Type entityType,
-        string? scope = null) =>
-        new SortInputTypeDescriptor<T>(context, entityType, scope);
+        string? scope = null)
+        => new(context, entityType, scope);
 
     public static SortInputTypeDescriptor FromSchemaType(
         IDescriptorContext context,
         Type schemaType,
         string? scope = null)
     {
-        SortInputTypeDescriptor? descriptor = New(context, schemaType, scope);
+        var descriptor = New(context, schemaType, scope);
         descriptor.Definition.RuntimeType = typeof(object);
         return descriptor;
     }
@@ -203,17 +203,17 @@ public class SortInputTypeDescriptor
     public static SortInputTypeDescriptor From(
         IDescriptorContext context,
         SortInputTypeDefinition definition,
-        string? scope = null) =>
-        new SortInputTypeDescriptor(context, definition, scope);
+        string? scope = null)
+        => new(context, definition, scope);
 
     public static SortInputTypeDescriptor<T> From<T>(
         IDescriptorContext context,
         SortInputTypeDefinition definition,
-        string? scope = null) =>
-        new SortInputTypeDescriptor<T>(context, definition, scope);
+        string? scope = null)
+        => new(context, definition, scope);
 
     public static SortInputTypeDescriptor<T> From<T>(
         SortInputTypeDescriptor descriptor,
-        string? scope = null) =>
-        From<T>(descriptor.Context, descriptor.Definition, scope);
+        string? scope = null)
+        => From<T>(descriptor.Context, descriptor.Definition, scope);
 }

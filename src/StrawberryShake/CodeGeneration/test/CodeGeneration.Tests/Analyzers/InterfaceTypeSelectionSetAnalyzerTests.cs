@@ -30,8 +30,8 @@ public class InterfaceTypeSelectionSetAnalyzerTests
                 }");
 
         var context = new DocumentAnalyzerContext(schema, document);
-        SelectionSetVariants selectionSetVariants = context.CollectFields();
-        FieldSelection fieldSelection = selectionSetVariants.ReturnType.Fields.First();
+        var selectionSetVariants = context.CollectFields();
+        var fieldSelection = selectionSetVariants.ReturnType.Fields.First();
         selectionSetVariants = context.CollectFields(fieldSelection);
 
         // act
@@ -75,8 +75,8 @@ public class InterfaceTypeSelectionSetAnalyzerTests
                 }");
 
         var context = new DocumentAnalyzerContext(schema, document);
-        SelectionSetVariants selectionSetVariants = context.CollectFields();
-        FieldSelection fieldSelection = selectionSetVariants.ReturnType.Fields.First();
+        var selectionSetVariants = context.CollectFields();
+        var fieldSelection = selectionSetVariants.ReturnType.Fields.First();
         selectionSetVariants = context.CollectFields(fieldSelection);
 
         // act
@@ -120,8 +120,8 @@ public class InterfaceTypeSelectionSetAnalyzerTests
                 }");
 
         var context = new DocumentAnalyzerContext(schema, document);
-        SelectionSetVariants selectionSetVariants = context.CollectFields();
-        FieldSelection fieldSelection = selectionSetVariants.ReturnType.Fields.First();
+        var selectionSetVariants = context.CollectFields();
+        var fieldSelection = selectionSetVariants.ReturnType.Fields.First();
         selectionSetVariants = context.CollectFields(fieldSelection);
 
         // act
@@ -173,8 +173,8 @@ public class InterfaceTypeSelectionSetAnalyzerTests
                 }");
 
         var context = new DocumentAnalyzerContext(schema, document);
-        SelectionSetVariants selectionSetVariants = context.CollectFields();
-        FieldSelection fieldSelection = selectionSetVariants.ReturnType.Fields.First();
+        var selectionSetVariants = context.CollectFields();
+        var fieldSelection = selectionSetVariants.ReturnType.Fields.First();
         selectionSetVariants = context.CollectFields(fieldSelection);
 
         // act
@@ -231,8 +231,8 @@ public class InterfaceTypeSelectionSetAnalyzerTests
                 }");
 
         var context = new DocumentAnalyzerContext(schema, document);
-        SelectionSetVariants selectionSetVariants = context.CollectFields();
-        FieldSelection fieldSelection = selectionSetVariants.ReturnType.Fields.First();
+        var selectionSetVariants = context.CollectFields();
+        var fieldSelection = selectionSetVariants.ReturnType.Fields.First();
         selectionSetVariants = context.CollectFields(fieldSelection);
 
         // act

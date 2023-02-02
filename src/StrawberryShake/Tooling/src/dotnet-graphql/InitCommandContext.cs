@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using StrawberryShake.Tools.Configuration;
 
 namespace StrawberryShake.Tools
@@ -9,7 +7,7 @@ namespace StrawberryShake.Tools
         public InitCommandContext(
             string name,
             string path,
-            Uri uri,
+            string uri,
             string? token,
             string? scheme,
             Dictionary<string, IEnumerable<string>> customHeaders)
@@ -31,11 +29,10 @@ namespace StrawberryShake.Tools
         public string ConfigFileName => FileNames.GraphQLConfigFile;
         public string ClientName { get; }
         public string Path { get; }
-        public Uri? Uri { get; }
+        public string Uri { get; }
         public string? Token { get; }
         public string? Scheme { get; }
         public Dictionary<string, IEnumerable<string>> CustomHeaders { get; }
         public string? CustomNamespace { get; set; }
-        public bool UseDependencyInjection { get; set; } = true;
     }
 }

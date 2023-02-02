@@ -1,9 +1,8 @@
 using System;
-using HotChocolate.Language;
-using HotChocolate.Language.Utilities;
-using HotChocolate.Stitching.SchemaBuilding;
 using Snapshooter.Xunit;
 using Xunit;
+using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Stitching.Merge;
 
@@ -18,7 +17,7 @@ public class AddSchemaExtensionRewriterTests
 
         // act
         var rewriter = new AddSchemaExtensionRewriter();
-        DocumentNode merged = rewriter.AddExtensions(
+        var merged = rewriter.AddExtensions(
             Utf8GraphQLParser.Parse(schema),
             Utf8GraphQLParser.Parse(extensions));
 
@@ -35,7 +34,7 @@ public class AddSchemaExtensionRewriterTests
 
         // act
         var rewriter = new AddSchemaExtensionRewriter();
-        DocumentNode merged = rewriter.AddExtensions(
+        var merged = rewriter.AddExtensions(
             Utf8GraphQLParser.Parse(schema),
             Utf8GraphQLParser.Parse(extensions));
 
@@ -53,7 +52,7 @@ public class AddSchemaExtensionRewriterTests
 
         // act
         var rewriter = new AddSchemaExtensionRewriter();
-        DocumentNode merged = rewriter.AddExtensions(
+        var merged = rewriter.AddExtensions(
             Utf8GraphQLParser.Parse(schema),
             Utf8GraphQLParser.Parse(extensions));
 
@@ -71,7 +70,7 @@ public class AddSchemaExtensionRewriterTests
 
         // act
         var rewriter = new AddSchemaExtensionRewriter();
-        DocumentNode merged = rewriter.AddExtensions(
+        var merged = rewriter.AddExtensions(
             Utf8GraphQLParser.Parse(schema),
             Utf8GraphQLParser.Parse(extensions));
 
@@ -89,7 +88,7 @@ public class AddSchemaExtensionRewriterTests
 
         // act
         var rewriter = new AddSchemaExtensionRewriter();
-        DocumentNode merged = rewriter.AddExtensions(
+        var merged = rewriter.AddExtensions(
             Utf8GraphQLParser.Parse(schema),
             Utf8GraphQLParser.Parse(extensions));
 
@@ -107,7 +106,7 @@ public class AddSchemaExtensionRewriterTests
 
         // act
         var rewriter = new AddSchemaExtensionRewriter();
-        DocumentNode merged = rewriter.AddExtensions(
+        var merged = rewriter.AddExtensions(
             Utf8GraphQLParser.Parse(schema),
             Utf8GraphQLParser.Parse(extensions));
 
@@ -126,8 +125,8 @@ public class AddSchemaExtensionRewriterTests
         // act
         var rewriter = new AddSchemaExtensionRewriter();
         Action action = () => rewriter.AddExtensions(
-              Utf8GraphQLParser.Parse(schema),
-              Utf8GraphQLParser.Parse(extensions));
+            Utf8GraphQLParser.Parse(schema),
+            Utf8GraphQLParser.Parse(extensions));
 
         // assert
         Assert.Throws<SchemaMergeException>(action).Message.MatchSnapshot();
@@ -143,8 +142,8 @@ public class AddSchemaExtensionRewriterTests
         // act
         var rewriter = new AddSchemaExtensionRewriter();
         Action action = () => rewriter.AddExtensions(
-              Utf8GraphQLParser.Parse(schema),
-              Utf8GraphQLParser.Parse(extensions));
+            Utf8GraphQLParser.Parse(schema),
+            Utf8GraphQLParser.Parse(extensions));
 
         // assert
         Assert.Throws<SchemaMergeException>(action).Message.MatchSnapshot();
@@ -159,7 +158,7 @@ public class AddSchemaExtensionRewriterTests
 
         // act
         var rewriter = new AddSchemaExtensionRewriter();
-        DocumentNode merged = rewriter.AddExtensions(
+        var merged = rewriter.AddExtensions(
             Utf8GraphQLParser.Parse(schema),
             Utf8GraphQLParser.Parse(extensions));
 
@@ -177,7 +176,7 @@ public class AddSchemaExtensionRewriterTests
 
         // act
         var rewriter = new AddSchemaExtensionRewriter();
-        DocumentNode merged = rewriter.AddExtensions(
+        var merged = rewriter.AddExtensions(
             Utf8GraphQLParser.Parse(schema),
             Utf8GraphQLParser.Parse(extensions));
 
@@ -195,7 +194,7 @@ public class AddSchemaExtensionRewriterTests
 
         // act
         var rewriter = new AddSchemaExtensionRewriter();
-        DocumentNode merged = rewriter.AddExtensions(
+        var merged = rewriter.AddExtensions(
             Utf8GraphQLParser.Parse(schema),
             Utf8GraphQLParser.Parse(extensions));
 
@@ -214,8 +213,8 @@ public class AddSchemaExtensionRewriterTests
         // act
         var rewriter = new AddSchemaExtensionRewriter();
         Action action = () => rewriter.AddExtensions(
-              Utf8GraphQLParser.Parse(schema),
-              Utf8GraphQLParser.Parse(extensions));
+            Utf8GraphQLParser.Parse(schema),
+            Utf8GraphQLParser.Parse(extensions));
 
         // assert
         Assert.Throws<SchemaMergeException>(action).Message.MatchSnapshot();
@@ -231,8 +230,8 @@ public class AddSchemaExtensionRewriterTests
         // act
         var rewriter = new AddSchemaExtensionRewriter();
         Action action = () => rewriter.AddExtensions(
-              Utf8GraphQLParser.Parse(schema),
-              Utf8GraphQLParser.Parse(extensions));
+            Utf8GraphQLParser.Parse(schema),
+            Utf8GraphQLParser.Parse(extensions));
 
         // assert
         Assert.Throws<SchemaMergeException>(action).Message.MatchSnapshot();
@@ -250,7 +249,7 @@ public class AddSchemaExtensionRewriterTests
 
         // act
         var rewriter = new AddSchemaExtensionRewriter();
-        DocumentNode merged = rewriter.AddExtensions(
+        var merged = rewriter.AddExtensions(
             Utf8GraphQLParser.Parse(schema),
             Utf8GraphQLParser.Parse(extensions));
 
@@ -270,7 +269,7 @@ public class AddSchemaExtensionRewriterTests
 
         // act
         var rewriter = new AddSchemaExtensionRewriter();
-        DocumentNode merged = rewriter.AddExtensions(
+        var merged = rewriter.AddExtensions(
             Utf8GraphQLParser.Parse(schema),
             Utf8GraphQLParser.Parse(extensions));
 
@@ -291,8 +290,8 @@ public class AddSchemaExtensionRewriterTests
         // act
         var rewriter = new AddSchemaExtensionRewriter();
         Action action = () => rewriter.AddExtensions(
-              Utf8GraphQLParser.Parse(schema),
-              Utf8GraphQLParser.Parse(extensions));
+            Utf8GraphQLParser.Parse(schema),
+            Utf8GraphQLParser.Parse(extensions));
 
         // assert
         Assert.Throws<SchemaMergeException>(action).Message.MatchSnapshot();
@@ -310,8 +309,8 @@ public class AddSchemaExtensionRewriterTests
         // act
         var rewriter = new AddSchemaExtensionRewriter();
         Action action = () => rewriter.AddExtensions(
-              Utf8GraphQLParser.Parse(schema),
-              Utf8GraphQLParser.Parse(extensions));
+            Utf8GraphQLParser.Parse(schema),
+            Utf8GraphQLParser.Parse(extensions));
 
         // assert
         Assert.Throws<SchemaMergeException>(action).Message.MatchSnapshot();
@@ -326,7 +325,7 @@ public class AddSchemaExtensionRewriterTests
 
         // act
         var rewriter = new AddSchemaExtensionRewriter();
-        DocumentNode merged = rewriter.AddExtensions(
+        var merged = rewriter.AddExtensions(
             Utf8GraphQLParser.Parse(schema),
             Utf8GraphQLParser.Parse(extensions));
 
@@ -344,7 +343,7 @@ public class AddSchemaExtensionRewriterTests
 
         // act
         var rewriter = new AddSchemaExtensionRewriter();
-        DocumentNode merged = rewriter.AddExtensions(
+        var merged = rewriter.AddExtensions(
             Utf8GraphQLParser.Parse(schema),
             Utf8GraphQLParser.Parse(extensions));
 
@@ -362,7 +361,7 @@ public class AddSchemaExtensionRewriterTests
 
         // act
         var rewriter = new AddSchemaExtensionRewriter();
-        DocumentNode merged = rewriter.AddExtensions(
+        var merged = rewriter.AddExtensions(
             Utf8GraphQLParser.Parse(schema),
             Utf8GraphQLParser.Parse(extensions));
 
@@ -381,8 +380,8 @@ public class AddSchemaExtensionRewriterTests
         // act
         var rewriter = new AddSchemaExtensionRewriter();
         Action action = () => rewriter.AddExtensions(
-              Utf8GraphQLParser.Parse(schema),
-              Utf8GraphQLParser.Parse(extensions));
+            Utf8GraphQLParser.Parse(schema),
+            Utf8GraphQLParser.Parse(extensions));
 
         // assert
         Assert.Throws<SchemaMergeException>(action).Message.MatchSnapshot();
@@ -398,8 +397,8 @@ public class AddSchemaExtensionRewriterTests
         // act
         var rewriter = new AddSchemaExtensionRewriter();
         Action action = () => rewriter.AddExtensions(
-              Utf8GraphQLParser.Parse(schema),
-              Utf8GraphQLParser.Parse(extensions));
+            Utf8GraphQLParser.Parse(schema),
+            Utf8GraphQLParser.Parse(extensions));
 
         // assert
         Assert.Throws<SchemaMergeException>(action).Message.MatchSnapshot();
@@ -414,7 +413,7 @@ public class AddSchemaExtensionRewriterTests
 
         // act
         var rewriter = new AddSchemaExtensionRewriter();
-        DocumentNode merged = rewriter.AddExtensions(
+        var merged = rewriter.AddExtensions(
             Utf8GraphQLParser.Parse(schema),
             Utf8GraphQLParser.Parse(extensions));
 
@@ -432,7 +431,7 @@ public class AddSchemaExtensionRewriterTests
 
         // act
         var rewriter = new AddSchemaExtensionRewriter();
-        DocumentNode merged = rewriter.AddExtensions(
+        var merged = rewriter.AddExtensions(
             Utf8GraphQLParser.Parse(schema),
             Utf8GraphQLParser.Parse(extensions));
 
@@ -451,8 +450,8 @@ public class AddSchemaExtensionRewriterTests
         // act
         var rewriter = new AddSchemaExtensionRewriter();
         Action action = () => rewriter.AddExtensions(
-              Utf8GraphQLParser.Parse(schema),
-              Utf8GraphQLParser.Parse(extensions));
+            Utf8GraphQLParser.Parse(schema),
+            Utf8GraphQLParser.Parse(extensions));
 
         // assert
         Assert.Throws<SchemaMergeException>(action).Message.MatchSnapshot();
@@ -469,8 +468,8 @@ public class AddSchemaExtensionRewriterTests
         // act
         var rewriter = new AddSchemaExtensionRewriter();
         Action action = () => rewriter.AddExtensions(
-              Utf8GraphQLParser.Parse(schema),
-              Utf8GraphQLParser.Parse(extensions));
+            Utf8GraphQLParser.Parse(schema),
+            Utf8GraphQLParser.Parse(extensions));
 
         // assert
         Assert.Throws<SchemaMergeException>(action).Message.MatchSnapshot();
@@ -486,8 +485,8 @@ public class AddSchemaExtensionRewriterTests
         // act
         var rewriter = new AddSchemaExtensionRewriter();
         Action action = () => rewriter.AddExtensions(
-              Utf8GraphQLParser.Parse(schema),
-              Utf8GraphQLParser.Parse(extensions));
+            Utf8GraphQLParser.Parse(schema),
+            Utf8GraphQLParser.Parse(extensions));
 
         // assert
         Assert.Throws<SchemaMergeException>(action).Message.MatchSnapshot();

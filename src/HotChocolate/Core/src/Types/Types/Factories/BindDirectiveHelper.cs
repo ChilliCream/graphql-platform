@@ -17,7 +17,7 @@ internal static class BindDirectiveHelper
 
     public static string? GetBindingValue(this Language.IHasDirectives syntaxNode)
     {
-        DirectiveNode? directive = syntaxNode.Directives.FirstOrDefault(
+        var directive = syntaxNode.Directives.FirstOrDefault(
             t => t.Name.Value == Name);
 
         if (directive is null)
@@ -27,7 +27,7 @@ internal static class BindDirectiveHelper
 
         if (directive.Arguments.Count == 1)
         {
-            ArgumentNode to = directive.Arguments[0];
+            var to = directive.Arguments[0];
 
             if (to.Name.Value.EqualsOrdinal(ToArgument) &&
                 to.Value is StringValueNode { Value: { Length: > 0 } value })

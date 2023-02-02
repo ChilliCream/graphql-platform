@@ -4,7 +4,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing;
 
-internal class OperationContextOwner : IOperationContextOwner
+internal sealed class OperationContextOwner : IDisposable
 {
     private readonly OperationContext _operationContext;
     private readonly ObjectPool<OperationContext> _operationContextPool;
@@ -18,7 +18,7 @@ internal class OperationContextOwner : IOperationContextOwner
         _operationContextPool = operationContextPool;
     }
 
-    public IOperationContext OperationContext
+    public OperationContext OperationContext
     {
         get
         {
@@ -33,12 +33,9 @@ internal class OperationContextOwner : IOperationContextOwner
 
     public void Dispose()
     {
-        if (_disposed == 0)
+        if (_disposed is 0 && Interlocked.CompareExchange(ref _disposed, 1, 0) == 0)
         {
-            if (Interlocked.CompareExchange(ref _disposed, 1, 0) == 0)
-            {
-                _operationContextPool.Return(_operationContext);
-            }
+            _operationContextPool.Return(_operationContext);
         }
     }
 }

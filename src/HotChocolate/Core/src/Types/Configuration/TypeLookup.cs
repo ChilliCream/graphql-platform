@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using HotChocolate.Internal;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
 #nullable  enable
@@ -13,7 +11,7 @@ namespace HotChocolate.Configuration;
 
 internal sealed class TypeLookup
 {
-    private readonly Dictionary<ITypeReference, ITypeReference> _refs = new();
+    private readonly Dictionary<TypeReference, TypeReference> _refs = new();
     private readonly ITypeInspector _typeInspector;
     private readonly TypeRegistry _typeRegistry;
 
@@ -28,8 +26,8 @@ internal sealed class TypeLookup
     }
 
     public bool TryNormalizeReference(
-        ITypeReference typeRef,
-        [NotNullWhen(true)] out ITypeReference? namedTypeRef)
+        TypeReference typeRef,
+        [NotNullWhen(true)] out TypeReference? namedTypeRef)
     {
         if (typeRef is null)
         {
@@ -59,7 +57,7 @@ internal sealed class TypeLookup
                 return true;
 
             case SyntaxTypeReference r:
-                NameString typeName = r.Type.NamedType().Name.Value;
+                var typeName = r.Type.NamedType().Name.Value;
                 if (_typeRegistry.TryGetTypeRef(typeName, out namedTypeRef))
                 {
                     _refs[typeRef] = namedTypeRef;
@@ -71,37 +69,22 @@ internal sealed class TypeLookup
                 _refs[typeRef] = r;
                 namedTypeRef = r;
                 return true;
-        }
 
-        namedTypeRef = null;
-        return false;
-    }
+            case NameDirectiveReference dirRef:
+                if (_typeRegistry.TryGetTypeRef(dirRef.Name, out namedTypeRef))
+                {
+                    _refs[typeRef] = namedTypeRef;
+                    return true;
+                }
+                break;
 
-    public bool TryNormalizeReference(
-        IDirectiveReference directiveRef,
-        [NotNullWhen(true)] out ITypeReference? namedTypeRef)
-    {
-        if (directiveRef is null)
-        {
-            throw new ArgumentNullException(nameof(directiveRef));
-        }
-
-        if (directiveRef is ClrTypeDirectiveReference cr)
-        {
-            ExtendedTypeReference directiveTypeRef = _typeInspector.GetTypeRef(cr.ClrType);
-            if (!_typeRegistry.TryGetTypeRef(directiveTypeRef, out namedTypeRef))
-            {
-                namedTypeRef = directiveTypeRef;
-            }
-            return true;
-        }
-
-        if (directiveRef is NameDirectiveReference nr)
-        {
-            namedTypeRef = _typeRegistry.Types
-                .FirstOrDefault(t => t.Type is DirectiveType && t.Type.Name.Equals(nr.Name))?
-                .References[0];
-            return namedTypeRef is not null;
+            case ExtendedTypeDirectiveReference dirRef:
+                if (TryNormalizeExtendedTypeReference(TypeReference.Create(dirRef.Type), out namedTypeRef))
+                {
+                    _refs[typeRef] = namedTypeRef;
+                    return true;
+                }
+                break;
         }
 
         namedTypeRef = null;
@@ -110,7 +93,7 @@ internal sealed class TypeLookup
 
     private bool TryNormalizeExtendedTypeReference(
         ExtendedTypeReference typeRef,
-        [NotNullWhen(true)] out ITypeReference? namedTypeRef)
+        [NotNullWhen(true)] out TypeReference? namedTypeRef)
     {
         if (typeRef is null)
         {
@@ -120,7 +103,7 @@ internal sealed class TypeLookup
         // if the typeRef refers to a schema type base class we skip since such a type is not
         // resolvable.
         if (typeRef.Type.Type.IsNonGenericSchemaType() ||
-            !_typeInspector.TryCreateTypeInfo(typeRef.Type, out ITypeInfo? typeInfo))
+            !_typeInspector.TryCreateTypeInfo(typeRef.Type, out var typeInfo))
         {
             namedTypeRef = null;
             return false;
@@ -138,8 +121,8 @@ internal sealed class TypeLookup
         // eg list<byte> to ByteArray.
         for (var i = 0; i < typeInfo.Components.Count; i++)
         {
-            IExtendedType componentType = typeInfo.Components[i].Type;
-            ExtendedTypeReference componentRef = typeRef.WithType(componentType);
+            var componentType = typeInfo.Components[i].Type;
+            var componentRef = typeRef.WithType(componentType);
             if (_typeRegistry.TryGetTypeRef(componentRef, out namedTypeRef) ||
                 _typeRegistry.TryGetTypeRef(componentRef.WithContext(), out namedTypeRef))
             {

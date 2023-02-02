@@ -5,67 +5,66 @@ using HotChocolate.Data.Sorting;
 using HotChocolate.Resolvers;
 using MongoDB.Driver;
 
-namespace HotChocolate.Data.MongoDb
+namespace HotChocolate.Data.MongoDb;
+
+/// <inheritdoc/>
+public class MongoDbProjectionProvider
+    : ProjectionProvider
 {
     /// <inheritdoc/>
-    public class MongoDbProjectionProvider
-        : ProjectionProvider
+    public MongoDbProjectionProvider()
     {
-        /// <inheritdoc/>
-        public MongoDbProjectionProvider()
-        {
-        }
+    }
 
-        /// <inheritdoc/>
-        public MongoDbProjectionProvider(
-            Action<IProjectionProviderDescriptor> configure)
-            : base(configure)
-        {
-        }
+    /// <inheritdoc/>
+    public MongoDbProjectionProvider(
+        Action<IProjectionProviderDescriptor> configure)
+        : base(configure)
+    {
+    }
 
-        /// <inheritdoc/>
-        public override FieldMiddleware CreateExecutor<TEntityType>()
-        {
-            return next => context => ExecuteAsync(next, context);
+    /// <inheritdoc/>
+    public override FieldMiddleware CreateExecutor<TEntityType>()
+    {
+        return next => context => ExecuteAsync(next, context);
 
-            async ValueTask ExecuteAsync(
-                FieldDelegate next,
-                IMiddlewareContext context)
+        async ValueTask ExecuteAsync(
+            FieldDelegate next,
+            IMiddlewareContext context)
+        {
+            // first we let the pipeline run and produce a result.
+            await next(context).ConfigureAwait(false);
+
+            if (context.Result is not null)
             {
-                // first we let the pipeline run and produce a result.
-                await next(context).ConfigureAwait(false);
+                var visitorContext =
+                    new MongoDbProjectionVisitorContext(context, context.ObjectType);
 
-                if (context.Result is not null)
+                var visitor = new ProjectionVisitor<MongoDbProjectionVisitorContext>();
+                visitor.Visit(visitorContext);
+
+                if (!visitorContext.TryCreateQuery(
+                        out var projections) ||
+                    visitorContext.Errors.Count > 0)
                 {
-                    var visitorContext =
-                        new MongoDbProjectionVisitorContext(context, context.ObjectType);
-
-                    var visitor = new ProjectionVisitor<MongoDbProjectionVisitorContext>();
-                    visitor.Visit(visitorContext);
-
-                    if (!visitorContext.TryCreateQuery(
-                            out MongoDbProjectionDefinition? projections) ||
-                        visitorContext.Errors.Count > 0)
+                    context.Result = Array.Empty<TEntityType>();
+                    foreach (var error in visitorContext.Errors)
                     {
-                        context.Result = Array.Empty<TEntityType>();
-                        foreach (IError error in visitorContext.Errors)
-                        {
-                            context.ReportError(error.WithPath(context.Path));
-                        }
+                        context.ReportError(error.WithPath(context.Path));
                     }
-                    else
+                }
+                else
+                {
+                    context.LocalContextData =
+                        context.LocalContextData.SetItem(
+                            nameof(ProjectionDefinition<TEntityType>),
+                            projections);
+
+                    await next(context).ConfigureAwait(false);
+
+                    if (context.Result is IMongoDbExecutable executable)
                     {
-                        context.LocalContextData =
-                            context.LocalContextData.SetItem(
-                                nameof(ProjectionDefinition<TEntityType>),
-                                projections);
-
-                        await next(context).ConfigureAwait(false);
-
-                        if (context.Result is IMongoDbExecutable executable)
-                        {
-                            context.Result = executable.WithProjection(projections);
-                        }
+                        context.Result = executable.WithProjection(projections);
                     }
                 }
             }

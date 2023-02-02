@@ -6,7 +6,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Data.Filters;
 
 public sealed class OrField
-    : InputField
+    : FilterOperationField
     , IOrField
 {
     internal OrField(IDescriptorContext context, int index, string? scope)
@@ -31,7 +31,7 @@ public sealed class OrField
         base.OnCompleteField(context, declaringMember, definition);
     }
 
-    private static InputFieldDefinition CreateDefinition(
+    private static FilterOperationFieldDefinition CreateDefinition(
         IDescriptorContext context,
         string? scope) =>
         FilterOperationFieldDescriptor

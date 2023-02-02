@@ -32,7 +32,7 @@ public class OrderedDictionary<TKey, TValue>
         _order = new List<KeyValuePair<TKey, TValue>>();
         _map = new Dictionary<TKey, TValue>();
 
-        foreach (KeyValuePair<TKey, TValue> item in values)
+        foreach (var item in values)
         {
             _map.Add(item.Key, item.Value);
             _order.Add(item);
@@ -49,6 +49,14 @@ public class OrderedDictionary<TKey, TValue>
         _order = new List<KeyValuePair<TKey, TValue>>(source._order);
         _map = new Dictionary<TKey, TValue>(source._map);
     }
+
+#if NETCOREAPP3_1_OR_GREATER
+    public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
+        => _map.TryGetValue(key, out value);
+#else
+    public bool TryGetValue(TKey key, out TValue value)
+        => _map.TryGetValue(key, out value);
+#endif
 
     public TValue this[TKey key]
     {
@@ -103,19 +111,13 @@ public class OrderedDictionary<TKey, TValue>
     }
 
     public bool Contains(KeyValuePair<TKey, TValue> item)
-    {
-        return _order.Contains(item);
-    }
+        => _order.Contains(item);
 
     public bool ContainsKey(TKey key)
-    {
-        return _map.ContainsKey(key);
-    }
+        => _map.ContainsKey(key);
 
     public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
-    {
-        _order.CopyTo(array, arrayIndex);
-    }
+        => _order.CopyTo(array, arrayIndex);
 
     public bool Remove(TKey key)
     {
@@ -142,11 +144,6 @@ public class OrderedDictionary<TKey, TValue>
         return false;
     }
 
-    public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
-    {
-        return _map.TryGetValue(key, out value);
-    }
-
     private int IndexOfKey(TKey key)
     {
         for (var i = 0; i < _order.Count; i++)
@@ -160,14 +157,10 @@ public class OrderedDictionary<TKey, TValue>
     }
 
     public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
-    {
-        return _order.GetEnumerator();
-    }
+        => _order.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()
-    {
-        return _order.GetEnumerator();
-    }
+        => _order.GetEnumerator();
 
     public OrderedDictionary<TKey, TValue> Clone() => new(this);
 }

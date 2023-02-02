@@ -5,7 +5,9 @@ namespace HotChocolate.Validation.Options;
 /// <summary>
 /// The validation options.
 /// </summary>
-public class ValidationOptions : IMaxExecutionDepthOptionsAccessor, IErrorOptionsAccessor
+public class ValidationOptions
+    : IMaxExecutionDepthOptionsAccessor
+    , IErrorOptionsAccessor
 {
     private int? _maxAllowedExecutionDepth;
     private int _maxErrors = 5;
@@ -15,6 +17,12 @@ public class ValidationOptions : IMaxExecutionDepthOptionsAccessor, IErrorOption
     /// </summary>
     public IList<IDocumentValidatorRule> Rules { get; } =
         new List<IDocumentValidatorRule>();
+
+    /// <summary>
+    /// Gets the document rules that run async logic after the initial validators have run..
+    /// </summary>
+    public IList<IValidationResultAggregator> ResultAggregators { get; } =
+        new List<IValidationResultAggregator>();
 
     /// <summary>
     /// Gets the maximum allowed depth of a query. The default value is

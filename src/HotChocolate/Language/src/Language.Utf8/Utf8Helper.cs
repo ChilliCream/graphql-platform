@@ -54,7 +54,7 @@ internal static class Utf8Helper
                                 escapedString[++readPosition],
                                 escapedString[++readPosition],
                                 ref writePosition,
-                                ref unescapedString);
+                                unescapedString);
                         }
                         else
                         {
@@ -86,7 +86,7 @@ internal static class Utf8Helper
     public static void UnescapeUtf8Hex(
         byte a, byte b, byte c, byte d,
         ref int writePosition,
-        ref Span<byte> unescapedString)
+        Span<byte> unescapedString)
     {
         var unicodeDecimal = (HexToDecimal(a) << 12)
                              | (HexToDecimal(b) << 8)

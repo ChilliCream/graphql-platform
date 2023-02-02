@@ -4,9 +4,7 @@ using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
-public sealed class NonNullTypeNode
-    : ITypeNode
-    , IEquatable<NonNullTypeNode>
+public sealed class NonNullTypeNode : ITypeNode
 {
     public NonNullTypeNode(INullableTypeNode type)
         : this(null, type)
@@ -19,7 +17,7 @@ public sealed class NonNullTypeNode
         Type = type ?? throw new ArgumentNullException(nameof(type));
     }
 
-    public SyntaxKind Kind { get; } = SyntaxKind.NonNullType;
+    public SyntaxKind Kind => SyntaxKind.NonNullType;
 
     public Location? Location { get; }
 
@@ -28,44 +26,6 @@ public sealed class NonNullTypeNode
     public IEnumerable<ISyntaxNode> GetNodes()
     {
         yield return Type;
-    }
-
-    public bool Equals(NonNullTypeNode? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return Type.Equals(other.Type);
-    }
-
-    public override bool Equals(object? obj)
-    {
-        if (obj is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, obj))
-        {
-            return true;
-        }
-
-        return Equals(obj as NonNullTypeNode);
-    }
-
-    public override int GetHashCode()
-    {
-        unchecked
-        {
-            return Type.GetHashCode() * 397;
-        }
     }
 
     /// <summary>
@@ -89,13 +49,7 @@ public sealed class NonNullTypeNode
     /// </returns>
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
-    public NonNullTypeNode WithLocation(Location? location)
-    {
-        return new NonNullTypeNode(location, Type);
-    }
+    public NonNullTypeNode WithLocation(Location? location) => new(location, Type);
 
-    public NonNullTypeNode WithType(INullableTypeNode type)
-    {
-        return new NonNullTypeNode(Location, type);
-    }
+    public NonNullTypeNode WithType(INullableTypeNode type) => new(Location, type);
 }

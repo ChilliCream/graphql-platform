@@ -1,13 +1,16 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 using HotChocolate.Utilities;
 using static StrawberryShake.CodeGeneration.WellKnownNames;
 
 namespace StrawberryShake.CodeGeneration.Utilities;
 
-internal sealed class TypeNameQueryRewriter : QuerySyntaxRewriter<TypeNameQueryRewriter.Context>
+internal sealed class TypeNameQueryRewriter : SyntaxRewriter<TypeNameQueryRewriter.Context>
 {
     private static readonly FieldNode _typeNameField = new(
         null,
@@ -18,53 +21,54 @@ internal sealed class TypeNameQueryRewriter : QuerySyntaxRewriter<TypeNameQueryR
         Array.Empty<ArgumentNode>(),
         null);
 
-    protected override OperationDefinitionNode RewriteOperationDefinition(
+    protected override OperationDefinitionNode? RewriteOperationDefinition(
         OperationDefinitionNode node,
         Context context)
     {
         context.Nodes.Push(node);
-        node = base.RewriteOperationDefinition(node, context);
+        var rewritten = base.RewriteOperationDefinition(node, context);
         context.Nodes.Pop();
-        return node;
+        return rewritten;
     }
 
-    protected override FieldNode RewriteField(
+    protected override FieldNode? RewriteField(
         FieldNode node,
         Context context)
     {
         context.Nodes.Push(node);
-        node = base.RewriteField(node, context);
+        var rewritten = base.RewriteField(node, context);
         context.Nodes.Pop();
-        return node;
+        return rewritten;
     }
 
-    protected override InlineFragmentNode RewriteInlineFragment(
+    protected override InlineFragmentNode? RewriteInlineFragment(
         InlineFragmentNode node,
         Context context)
     {
         context.Nodes.Push(node);
-        node = base.RewriteInlineFragment(node, context);
+        var rewritten = base.RewriteInlineFragment(node, context);
         context.Nodes.Pop();
-        return node;
+        return rewritten;
     }
 
-    protected override FragmentDefinitionNode RewriteFragmentDefinition(
+    protected override FragmentDefinitionNode? RewriteFragmentDefinition(
         FragmentDefinitionNode node,
         Context context)
     {
         context.Nodes.Push(node);
-        node = base.RewriteFragmentDefinition(node, context);
+        var rewritten = base.RewriteFragmentDefinition(node, context);
         context.Nodes.Pop();
-        return node;
+        return rewritten;
     }
 
-    protected override SelectionSetNode RewriteSelectionSet(
+    protected override SelectionSetNode? RewriteSelectionSet(
         SelectionSetNode node,
         Context context)
     {
-        SelectionSetNode current = base.RewriteSelectionSet(node, context);
+        var current = base.RewriteSelectionSet(node, context);
 
-        if (context.Nodes.Peek() is FieldNode &&
+        if (current is not null &&
+            context.Nodes.Peek() is FieldNode &&
             !current.Selections
                 .OfType<FieldNode>()
                 .Any(t => t.Alias is null && t.Name.Value.EqualsOrdinal(TypeName)))
@@ -77,13 +81,13 @@ internal sealed class TypeNameQueryRewriter : QuerySyntaxRewriter<TypeNameQueryR
         return current;
     }
 
-    public static DocumentNode Rewrite(DocumentNode document)
+    public static DocumentNode? Rewrite(DocumentNode document)
     {
         var rewriter = new TypeNameQueryRewriter();
         return rewriter.RewriteDocument(document, new());
     }
 
-    public class Context
+    public class Context : ISyntaxVisitorContext
     {
         public Stack<ISyntaxNode> Nodes { get; } = new();
     }

@@ -48,12 +48,12 @@ public sealed class OperationDefinitionNode
             yield return Name;
         }
 
-        foreach (VariableDefinitionNode variable in VariableDefinitions)
+        foreach (var variable in VariableDefinitions)
         {
             yield return variable;
         }
 
-        foreach (DirectiveNode directive in Directives)
+        foreach (var directive in Directives)
         {
             yield return directive;
         }
@@ -83,53 +83,41 @@ public sealed class OperationDefinitionNode
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
     public OperationDefinitionNode WithLocation(Location? location)
-    {
-        return new(
+        => new(
             location, Name, Operation,
             VariableDefinitions,
             Directives, SelectionSet);
-    }
 
     public OperationDefinitionNode WithName(NameNode? name)
-    {
-        return new(
+        => new(
             Location, name, Operation,
             VariableDefinitions,
             Directives, SelectionSet);
-    }
 
     public OperationDefinitionNode WithOperation(OperationType operation)
-    {
-        return new(
+        => new(
             Location, Name, operation,
             VariableDefinitions,
             Directives, SelectionSet);
-    }
 
     public OperationDefinitionNode WithVariableDefinitions(
         IReadOnlyList<VariableDefinitionNode> variableDefinitions)
-    {
-        return new(
+        => new(
             Location, Name, Operation,
             variableDefinitions,
             Directives, SelectionSet);
-    }
 
     public OperationDefinitionNode WithDirectives(
         IReadOnlyList<DirectiveNode> directives)
-    {
-        return new(
+        => new(
             Location, Name, Operation,
             VariableDefinitions,
             directives, SelectionSet);
-    }
 
     public OperationDefinitionNode WithSelectionSet(
         SelectionSetNode selectionSet)
-    {
-        return new(
+        => new(
             Location, Name, Operation,
             VariableDefinitions,
             Directives, selectionSet);
-    }
 }

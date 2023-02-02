@@ -26,8 +26,7 @@ public static class TestServerHelper
                     .UseKestrel()
                     .ConfigureServices(services =>
                     {
-                        IRequestExecutorBuilder builder = services.AddRouting()
-                            .AddGraphQLServer();
+                        var builder = services.AddRouting().AddGraphQLServer();
 
                         configure(builder);
 
@@ -35,16 +34,22 @@ public static class TestServerHelper
                             .AddStarWarsTypes()
                             .AddExportDirectiveType()
                             .AddStarWarsRepositories()
-                            .AddInMemorySubscriptions();
+                            .AddInMemorySubscriptions()
+                            .ModifyOptions(
+                                o =>
+                                {
+                                    o.EnableDefer = true;
+                                    o.EnableStream = true;
+                                });
                     })
                     .Configure(app =>
                         app.Use(async (ct, next) =>
                             {
                                 try
                                 {
-                                        // Kestrel does not return proper error responses:
-                                        // https://github.com/aspnet/KestrelHttpServer/issues/43
-                                        await next();
+                                    // Kestrel does not return proper error responses:
+                                    // https://github.com/aspnet/KestrelHttpServer/issues/43
+                                    await next();
                                 }
                                 catch (Exception ex)
                                 {

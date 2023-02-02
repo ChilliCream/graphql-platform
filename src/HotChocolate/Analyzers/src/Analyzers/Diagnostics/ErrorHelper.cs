@@ -11,14 +11,18 @@ namespace HotChocolate.Analyzers.Diagnostics
         public const string Title = "title";
         public const string ErrorCategory = "HotChocolateSourceGenerator";
 
+#pragma warning disable RS2008
+#pragma warning disable RS1032
         private static readonly DiagnosticDescriptor _missingDependency =
             new DiagnosticDescriptor(
                 id: ErrorCodes.DependencyMissing,
                 title: "Dependency Missing",
-                messageFormat: "The package reference `{0}` is missing.\r\n`dotnet add package {0}`",
+                messageFormat: "The package reference `{0}` is missing. `dotnet add package {0}`",
                 category: ErrorCategory,
                 DiagnosticSeverity.Error,
                 isEnabledByDefault: true);
+#pragma warning restore RS1032
+#pragma warning restore RS2008
 
         public static void ReportDiagnostic(
             this GeneratorExecutionContext context,
@@ -97,12 +101,12 @@ namespace HotChocolate.Analyzers.Diagnostics
             this GeneratorExecutionContext context,
             IError error)
         {
-            string title =
+            var title =
                 error.Extensions is not null &&
                 error.Extensions.TryGetValue(ErrorHelper.Title, out var value) &&
                 value is string s ? s : nameof(ErrorCodes.Unexpected);
 
-            string code = error.Code ?? ErrorCodes.Unexpected;
+            var code = error.Code ?? ErrorCodes.Unexpected;
 
             if (error is { Locations: { Count: > 0 } locations } &&
                 error.Extensions is not null &&
@@ -126,7 +130,7 @@ namespace HotChocolate.Analyzers.Diagnostics
                     .SetMessage(exception.Message + Environment.NewLine + exception.GetType().Name)
                     .SetException(exception)
                     .Build());
-                    
+
         public static void ReportMissingDependency(
             GeneratorExecutionContext context,
             string packageName) =>

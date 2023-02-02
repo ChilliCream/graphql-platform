@@ -8,14 +8,13 @@ namespace HotChocolate.Language;
 
 public ref partial struct Utf8GraphQLParser
 {
-    internal TokenKind Kind => _reader.Kind;
-
+    // note: this is internal for legacy stitching
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal NameNode ParseName()
     {
-        TokenInfo start = Start();
+        var start = Start();
         var name = ExpectName();
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new NameNode
         (
@@ -24,18 +23,30 @@ public ref partial struct Utf8GraphQLParser
         );
     }
 
+    // note: this is internal for legacy stitching
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal bool MoveNext() => _reader.MoveNext();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private TokenInfo Start() =>
-        _createLocation
+    private TokenInfo Start()
+    {
+        if (++_parsedNodes > _maxAllowedNodes)
+        {
+            throw new SyntaxException(
+                _reader,
+                string.Format(
+                    Utf8GraphQLParser_Start_MaxAllowedNodesReached,
+                    _maxAllowedNodes));
+        }
+
+        return _createLocation
             ? new TokenInfo(
                 _reader.Start,
                 _reader.End,
                 _reader.Line,
                 _reader.Column)
             : default;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Location? CreateLocation(in TokenInfo start) =>
@@ -60,12 +71,18 @@ public ref partial struct Utf8GraphQLParser
         throw new SyntaxException(_reader, Parser_InvalidToken, TokenKind.Name, _reader.Kind);
     }
 
+    // note: this is internal for legacy stitching
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void ExpectColon() => Expect(TokenKind.Colon);
 
+    // note: this is internal for the stitching legacy layer
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void ExpectDollar() => Expect(TokenKind.Dollar);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ExpectAt() => Expect(TokenKind.At);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ExpectRightBracket() => Expect(TokenKind.RightBracket);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -82,22 +99,13 @@ public ref partial struct Utf8GraphQLParser
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Memory<byte> ExpectScalarValue()
-    {
-        if (TokenHelper.IsScalarValue(in _reader))
-        {
-            Memory<byte> value = _reader.Value.ToArray();
-            MoveNext();
-            return value;
-        }
-
-        throw new SyntaxException(_reader, Parser_InvalidScalarToken, _reader.Kind);
-    }
-
     private void ExpectSpread() => Expect(TokenKind.Spread);
 
+    // note: this is internal for legacy stitching
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void ExpectRightParenthesis() => Expect(TokenKind.RightParenthesis);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ExpectRightBrace() => Expect(TokenKind.RightBrace);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -109,10 +117,13 @@ public ref partial struct Utf8GraphQLParser
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ExpectDirectiveKeyword() => ExpectKeyword(GraphQLKeywords.Directive);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ExpectOnKeyword() => ExpectKeyword(GraphQLKeywords.On);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ExpectFragmentKeyword() => ExpectKeyword(GraphQLKeywords.Fragment);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -128,29 +139,37 @@ public ref partial struct Utf8GraphQLParser
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool SkipPipe() => _reader.Skip(TokenKind.Pipe);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool SkipEqual() => _reader.Skip(TokenKind.Equal);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool SkipColon() => _reader.Skip(TokenKind.Colon);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool SkipAmpersand() => _reader.Skip(TokenKind.Ampersand);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool SkipAt() => _reader.Skip(TokenKind.At);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool SkipDot() => _reader.Skip(TokenKind.Dot);
 
-    private bool SkipRepeatableKeyword() =>
-        SkipKeyword(GraphQLKeywords.Repeatable);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool SkipRepeatableKeyword()
+        => SkipKeyword(GraphQLKeywords.Repeatable);
 
-    private bool SkipImplementsKeyword() =>
-        SkipKeyword(GraphQLKeywords.Implements);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool SkipImplementsKeyword()
+        => SkipKeyword(GraphQLKeywords.Implements);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool SkipKeyword(ReadOnlySpan<byte> keyword)
     {
-        if (_reader.Kind == TokenKind.Name
-            && _reader.Value.SequenceEqual(keyword))
+        if (_reader.Kind == TokenKind.Name &&
+            _reader.Value.SequenceEqual(keyword))
         {
             MoveNext();
             return true;
@@ -161,11 +180,11 @@ public ref partial struct Utf8GraphQLParser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private StringValueNode? TakeDescription()
     {
-        StringValueNode? description = _description;
+        var description = _description;
         _description = null;
         return description;
     }
 
-    private SyntaxException Unexpected(TokenKind kind) =>
-        new(_reader, UnexpectedToken, Print(kind));
+    private SyntaxException Unexpected(TokenKind kind)
+        => new(_reader, UnexpectedToken, Print(kind));
 }

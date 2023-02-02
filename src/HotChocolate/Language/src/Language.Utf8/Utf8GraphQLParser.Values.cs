@@ -9,6 +9,7 @@ namespace HotChocolate.Language;
 // Implements the parsing rules in the Values section.
 public ref partial struct Utf8GraphQLParser
 {
+    // note: this is internal for the stitching legacy layer
     /// <summary>
     /// Parses a value.
     /// <see cref="IValueNode" />:
@@ -62,11 +63,11 @@ public ref partial struct Utf8GraphQLParser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private StringValueNode ParseStringLiteral()
     {
-        TokenInfo start = Start();
+        var start = Start();
 
         var isBlock = _reader.Kind == TokenKind.BlockString;
-        string value = ExpectString();
-        Location? location = CreateLocation(in start);
+        var value = ExpectString();
+        var location = CreateLocation(in start);
 
         return new StringValueNode(location, value, isBlock);
     }
@@ -84,7 +85,7 @@ public ref partial struct Utf8GraphQLParser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ListValueNode ParseList(bool isConstant)
     {
-        TokenInfo start = Start();
+        var start = Start();
 
         if (_reader.Kind != TokenKind.LeftBracket)
         {
@@ -108,7 +109,7 @@ public ref partial struct Utf8GraphQLParser
         // skip closing token
         Expect(TokenKind.RightBracket);
 
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new ListValueNode
         (
@@ -127,10 +128,9 @@ public ref partial struct Utf8GraphQLParser
     /// Defines if only constant values are allowed;
     /// otherwise, variables are allowed.
     /// </param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ObjectValueNode ParseObject(bool isConstant)
     {
-        TokenInfo start = Start();
+        var start = Start();
 
         if (_reader.Kind != TokenKind.LeftBrace)
         {
@@ -148,39 +148,24 @@ public ref partial struct Utf8GraphQLParser
 
         while (_reader.Kind != TokenKind.RightBrace)
         {
-            fields.Add(ParseObjectField(isConstant));
+            var fieldStart = Start();
+            var name = ParseName();
+            ExpectColon();
+            var value = ParseValueLiteral(isConstant);
+            var fieldLocation = CreateLocation(in fieldStart);
+
+            fields.Add(new ObjectFieldNode(fieldLocation, name, value));
         }
 
         // skip closing token
         Expect(TokenKind.RightBrace);
 
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new ObjectValueNode
         (
             location,
             fields
-        );
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ObjectFieldNode ParseObjectField(bool isConstant)
-    {
-        TokenInfo start = Start();
-
-        NameNode name = ParseName();
-
-        ExpectColon();
-
-        IValueNode value = ParseValueLiteral(isConstant);
-
-        Location? location = CreateLocation(in start);
-
-        return new ObjectFieldNode
-        (
-            location,
-            name,
-            value
         );
     }
 
@@ -192,8 +177,8 @@ public ref partial struct Utf8GraphQLParser
             return ParseStringLiteral();
         }
 
-        TokenInfo start = Start();
-        TokenKind kind = _reader.Kind;
+        var start = Start();
+        var kind = _reader.Kind;
 
         if (!TokenHelper.IsScalarValue(in _reader))
         {
@@ -201,10 +186,10 @@ public ref partial struct Utf8GraphQLParser
         }
 
         ReadOnlyMemory<byte> value = _reader.Value.ToArray();
-        FloatFormat? format = _reader.FloatFormat;
+        var format = _reader.FloatFormat;
         MoveNext();
 
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         if (kind == TokenKind.Float)
         {
@@ -231,7 +216,7 @@ public ref partial struct Utf8GraphQLParser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private IValueNode ParseEnumValue()
     {
-        TokenInfo start = Start();
+        var start = Start();
 
         Location? location;
 
@@ -260,7 +245,7 @@ public ref partial struct Utf8GraphQLParser
             return NullValueNode.Default;
         }
 
-        ReadOnlyMemory<byte> value = _reader.Value.ToArray();
+        var value = _reader.GetString();
         MoveNext();
         location = CreateLocation(in start);
 

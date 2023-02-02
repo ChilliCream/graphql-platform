@@ -1,75 +1,68 @@
 using System;
 using System.Globalization;
 using HotChocolate.Language.Properties;
+using static HotChocolate.Language.Properties.LangUtf8Resources;
+using static HotChocolate.Language.Utf8GraphQLReader;
 
 namespace HotChocolate.Language;
 
 internal static class ThrowHelper
 {
-    public static SyntaxException InvalidRequestStructure(Utf8GraphQLReader reader) =>
-        new SyntaxException(
-            reader,
-            "Expected `{` or `[` as first syntax token.");
+    public static SyntaxException InvalidRequestStructure(Utf8GraphQLReader reader)
+        => new(reader, ThrowHelper_InvalidRequestStructure);
 
-    public static SyntaxException NoIdAndNoQuery(Utf8GraphQLReader reader) =>
-        new SyntaxException(
-            reader,
-            "The request is missing the `query` property and the `id` property.");
+    public static SyntaxException NoIdAndNoQuery(Utf8GraphQLReader reader)
+        => new(reader, ThrowHelper_NoIdAndNoQuery);
 
-    public static SyntaxException QueryMustBeStringOrNull(Utf8GraphQLReader reader) =>
-        new SyntaxException(
-            reader,
-            "The query field must be a string or null.");
+    public static SyntaxException QueryMustBeStringOrNull(Utf8GraphQLReader reader)
+        => new(reader, ThrowHelper_QueryMustBeStringOrNull);
 
     public static SyntaxException UnexpectedProperty(
         Utf8GraphQLReader reader,
-        ReadOnlySpan<byte> fieldName) =>
-        new SyntaxException(
+        ReadOnlySpan<byte> fieldName)
+        => new(
             reader,
             string.Format(
                 CultureInfo.InvariantCulture,
-                "Unexpected request property name `{0}` found.",
-                Utf8GraphQLReader.GetString(fieldName, false)));
+                ThrowHelper_UnexpectedProperty,
+                GetString(fieldName, false)));
 
-    public static SyntaxException ExpectedObjectOrNull(Utf8GraphQLReader reader) =>
-        new SyntaxException(
+    public static SyntaxException ExpectedObjectOrNull(Utf8GraphQLReader reader)
+        => new(
             reader,
             string.Format(
                 CultureInfo.InvariantCulture,
-                "Expected an object or a null-token, " +
-                "but found a {0}-token with value `{1}`.",
+                ThrowHelper_ExpectedObjectOrNull,
                 reader.Kind.ToString(),
                 reader.GetString()));
 
-    public static SyntaxException ExpectedStringOrNull(Utf8GraphQLReader reader) =>
-        new SyntaxException(
+    public static SyntaxException ExpectedStringOrNull(Utf8GraphQLReader reader)
+        => new(
             reader,
             string.Format(
                 CultureInfo.InvariantCulture,
-                "Expected a string-token or a null-token, " +
-                "but found a {0}-token with value `{1}`.",
+                ThrowHelper_ExpectedStringOrNull,
                 reader.Kind.ToString(),
                 reader.GetString()));
 
-    public static SyntaxException UnexpectedToken(Utf8GraphQLReader reader) =>
-        new SyntaxException(
+    public static SyntaxException UnexpectedToken(Utf8GraphQLReader reader)
+        => new(
             reader,
             string.Format(
                 CultureInfo.InvariantCulture,
-                "Unexpected token found `{0}` " +
-                "while expecting a scalar value.",
+                ThrowHelper_UnexpectedToken,
                 reader.Kind));
 
-    public static SyntaxException Reader_UnexpectedDigitAfterDot(Utf8GraphQLReader reader) =>
-        new SyntaxException(reader, LangUtf8Resources.Reader_UnexpectedDigitAfterDot);
+    public static SyntaxException Reader_UnexpectedDigitAfterDot(Utf8GraphQLReader reader)
+        => new(reader, LangUtf8Resources.Reader_UnexpectedDigitAfterDot);
 
     public static SyntaxException Reader_InvalidToken(
         Utf8GraphQLReader reader,
-        TokenKind expected) =>
-        new SyntaxException(
+        TokenKind expected)
+        => new(
             reader,
             string.Format(
                 CultureInfo.InvariantCulture,
-                LangUtf8Resources.Reader_InvalidToken,
+                ThrowHelper_Reader_InvalidToken,
                 expected));
 }

@@ -1,27 +1,38 @@
 using System;
 using System.Collections.Generic;
-
-#nullable enable
+using System.Threading.Tasks;
 
 namespace HotChocolate.Execution;
 
-public class QueryResultBuilder : IQueryResultBuilder
+public sealed class QueryResultBuilder : IQueryResultBuilder
 {
     private IReadOnlyDictionary<string, object?>? _data;
+    private IReadOnlyList<object?>? _items;
     private List<IError>? _errors;
     private ExtensionData? _extensionData;
     private ExtensionData? _contextData;
+    private List<IQueryResult>? _incremental;
     private string? _label;
     private Path? _path;
     private bool? _hasNext;
-    private IDisposable? _disposable;
+    private Func<ValueTask>[] _cleanupTasks = Array.Empty<Func<ValueTask>>();
 
-    public IQueryResultBuilder SetData(
-        IReadOnlyDictionary<string, object?>? data,
-        IDisposable? disposable = null)
+    public IQueryResultBuilder SetData(IReadOnlyDictionary<string, object?>? data)
     {
         _data = data;
-        _disposable = disposable;
+        _items = null;
+        return this;
+    }
+
+    public IQueryResultBuilder SetItems(IReadOnlyList<object?>? items)
+    {
+        _items = items;
+
+        if (items is not null)
+        {
+            _data = null;
+        }
+
         return this;
     }
 
@@ -49,12 +60,6 @@ public class QueryResultBuilder : IQueryResultBuilder
         return this;
     }
 
-    public IQueryResultBuilder ClearErrors()
-    {
-        _errors = null;
-        return this;
-    }
-
     public IQueryResultBuilder AddExtension(string key, object? data)
     {
         _extensionData ??= new ExtensionData();
@@ -71,23 +76,18 @@ public class QueryResultBuilder : IQueryResultBuilder
 
     public IQueryResultBuilder SetExtensions(IReadOnlyDictionary<string, object?>? extensions)
     {
-        ClearExtensions();
-
         if (extensions is ExtensionData extensionData)
         {
             _extensionData = extensionData;
         }
-        else if (extensions is { })
+        else if (extensions is not null)
         {
             _extensionData = new ExtensionData(extensions);
         }
-
-        return this;
-    }
-
-    public IQueryResultBuilder ClearExtensions()
-    {
-        _extensionData = null;
+        else
+        {
+            _extensionData = null;
+        }
         return this;
     }
 
@@ -105,9 +105,32 @@ public class QueryResultBuilder : IQueryResultBuilder
         return this;
     }
 
-    public IQueryResultBuilder ClearContextData()
+    public IQueryResultBuilder SetContextData(IReadOnlyDictionary<string, object?>? contextData)
     {
-        _contextData = null;
+        if (contextData is ExtensionData extensionData)
+        {
+            _contextData = extensionData;
+        }
+        else if (contextData is not null)
+        {
+            _contextData = new ExtensionData(contextData);
+        }
+        else
+        {
+            _contextData = null;
+        }
+        return this;
+    }
+
+    public IQueryResultBuilder AddPatch(IQueryResult patch)
+    {
+        if (patch is null)
+        {
+            throw new ArgumentNullException(nameof(patch));
+        }
+
+        _incremental ??= new List<IQueryResult>();
+        _incremental.Add(patch);
         return this;
     }
 
@@ -129,18 +152,31 @@ public class QueryResultBuilder : IQueryResultBuilder
         return this;
     }
 
-    public IQueryResult Create()
+    public IQueryResultBuilder RegisterForCleanup(Func<ValueTask> clean)
     {
-        return new QueryResult(
+        if (clean is null)
+        {
+            throw new ArgumentNullException(nameof(clean));
+        }
+
+        var index = _cleanupTasks.Length;
+        Array.Resize(ref _cleanupTasks, index + 1);
+        _cleanupTasks[index] = clean;
+        return this;
+    }
+
+    public IQueryResult Create()
+        => new QueryResult(
             _data,
-            _errors is { Count: > 0 } ? _errors : null,
-            _extensionData is { Count: > 0 } ? _extensionData : null,
-            _contextData is { Count: > 0 } ? _contextData : null,
+            _errors?.Count > 0 ? _errors : null,
+            _extensionData?.Count > 0 ? _extensionData : null,
+            _contextData?.Count > 0 ? _contextData : null,
+            _items,
+            _incremental,
             _label,
             _path,
             _hasNext,
-            _disposable);
-    }
+            _cleanupTasks);
 
     public static QueryResultBuilder New() => new();
 
@@ -153,14 +189,27 @@ public class QueryResultBuilder : IQueryResultBuilder
             builder._errors = new List<IError>(result.Errors);
         }
 
-        if (result.Extensions is ExtensionData d)
+        if (result.Extensions is ExtensionData ext)
         {
-            builder._extensionData = new ExtensionData(d);
+            builder._extensionData = new ExtensionData(ext);
         }
         else if (result.Extensions is not null)
         {
             builder._extensionData = new ExtensionData(result.Extensions);
         }
+
+        if (result.ContextData is ExtensionData cd)
+        {
+            builder._contextData = new ExtensionData(cd);
+        }
+        else if (result.ContextData is not null)
+        {
+            builder._contextData = new ExtensionData(result.ContextData);
+        }
+
+        builder._label = result.Label;
+        builder._path = result.Path;
+        builder._hasNext = result.HasNext;
 
         return builder;
     }
@@ -171,7 +220,6 @@ public class QueryResultBuilder : IQueryResultBuilder
         => error is AggregateError aggregateError
             ? CreateError(aggregateError.Errors, contextData)
             : new QueryResult(null, new List<IError> { error }, contextData: contextData);
-
 
     public static IQueryResult CreateError(
         IReadOnlyList<IError> errors,

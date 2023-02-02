@@ -2,7 +2,6 @@ using System;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
-using static HotChocolate.Types.MemberKind;
 
 #nullable enable
 
@@ -20,7 +19,7 @@ public class DirectiveArgumentDescriptor
     /// </summary>
     protected internal DirectiveArgumentDescriptor(
         IDescriptorContext context,
-        NameString argumentName)
+        string argumentName)
         : base(context)
     {
         Definition.Name = argumentName;
@@ -34,17 +33,19 @@ public class DirectiveArgumentDescriptor
         PropertyInfo property)
         : base(context)
     {
-        Definition.Name = context.Naming.GetMemberName(property, DirectiveArgument);
-        Definition.Description = context.Naming.GetMemberDescription(property, DirectiveArgument);
+        Definition.Name = context.Naming.GetMemberName(
+            property, MemberKind.DirectiveArgument);
+        Definition.Description = context.Naming.GetMemberDescription(
+            property, MemberKind.DirectiveArgument);
         Definition.Type = context.TypeInspector.GetInputReturnTypeRef(property);
         Definition.Property = property;
 
-        if (context.TypeInspector.TryGetDefaultValue(property, out object? defaultValue))
+        if (context.TypeInspector.TryGetDefaultValue(property, out var defaultValue))
         {
             Definition.RuntimeDefaultValue = defaultValue;
         }
 
-        if (context.Naming.IsDeprecated(property, out string? reason))
+        if (context.Naming.IsDeprecated(property, out var reason))
         {
             Deprecated(reason);
         }
@@ -82,9 +83,9 @@ public class DirectiveArgumentDescriptor
     }
 
     /// <inheritdoc />
-    public IDirectiveArgumentDescriptor Name(NameString value)
+    public IDirectiveArgumentDescriptor Name(string value)
     {
-        Definition.Name = value.EnsureNotEmpty(nameof(value));
+        Definition.Name = value;
         return this;
     }
 
@@ -168,7 +169,7 @@ public class DirectiveArgumentDescriptor
     /// <returns>An instance of <see cref="DirectiveArgumentDescriptor "/></returns>
     public static DirectiveArgumentDescriptor New(
         IDescriptorContext context,
-        NameString argumentName)
+        string argumentName)
         => new(context, argumentName);
 
     /// <summary>

@@ -2,35 +2,34 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 
-namespace HotChocolate.Data.MongoDb
+namespace HotChocolate.Data.MongoDb;
+
+public static class SortDefinitionExtensions
 {
-    public static class SortDefinitionExtensions
+    public static MongoDbSortDefinition Wrap<T>(this SortDefinition<T> sortDefinition) =>
+        new SortDefinitionWrapper<T>(sortDefinition);
+
+    private sealed class SortDefinitionWrapper<TDocument> : MongoDbSortDefinition
     {
-        public static MongoDbSortDefinition Wrap<T>(this SortDefinition<T> sortDefinition) =>
-            new SortDefinitionWrapper<T>(sortDefinition);
+        private readonly SortDefinition<TDocument> _sort;
 
-        private sealed class SortDefinitionWrapper<TDocument> : MongoDbSortDefinition
+        public SortDefinitionWrapper(SortDefinition<TDocument> sort)
         {
-            private readonly SortDefinition<TDocument> _sort;
+            _sort = sort;
+        }
 
-            public SortDefinitionWrapper(SortDefinition<TDocument> sort)
+        public override BsonDocument Render(
+            IBsonSerializer documentSerializer,
+            IBsonSerializerRegistry serializerRegistry)
+        {
+            if (documentSerializer is IBsonSerializer<TDocument> typedSerializer)
             {
-                _sort = sort;
+                return _sort.Render(typedSerializer, serializerRegistry);
             }
 
-            public override BsonDocument Render(
-                IBsonSerializer documentSerializer,
-                IBsonSerializerRegistry serializerRegistry)
-            {
-                if (documentSerializer is IBsonSerializer<TDocument> typedSerializer)
-                {
-                    return _sort.Render(typedSerializer, serializerRegistry);
-                }
-
-                return _sort.Render(
-                    serializerRegistry.GetSerializer<TDocument>(),
-                    serializerRegistry);
-            }
+            return _sort.Render(
+                serializerRegistry.GetSerializer<TDocument>(),
+                serializerRegistry);
         }
     }
 }

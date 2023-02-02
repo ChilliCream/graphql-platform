@@ -3,8 +3,24 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Language;
 
+/// <summary>
+/// The base class for named syntax nodes.
+/// </summary>
 public abstract class NamedSyntaxNode : INamedSyntaxNode
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="NamedSyntaxNode"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="name">
+    /// The name that this syntax node holds.
+    /// </param>
+    /// <param name="directives">
+    /// The directives that are annotated to this syntax node.
+    /// </param>
+    /// <exception cref="ArgumentNullException"></exception>
     protected NamedSyntaxNode(
         Location? location,
         NameNode name,
@@ -33,6 +49,6 @@ public abstract class NamedSyntaxNode : INamedSyntaxNode
     /// <inheritdoc />
     public abstract string ToString(bool indented);
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="ISyntaxNode.ToString()" />
     public abstract override string ToString();
 }

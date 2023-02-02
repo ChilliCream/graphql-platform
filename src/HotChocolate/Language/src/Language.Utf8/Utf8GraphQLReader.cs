@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using System.Runtime.CompilerServices;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
@@ -12,6 +11,7 @@ public ref partial struct Utf8GraphQLReader
 {
     private readonly ReadOnlySpan<byte> _graphQLData;
     private readonly int _length;
+    private readonly int _maxAllowedTokens;
     private int _nextNewLines;
     private ReadOnlySpan<byte> _value;
     private FloatFormat? _floatFormat;
@@ -22,8 +22,9 @@ public ref partial struct Utf8GraphQLReader
     private int _line;
     private int _lineStart;
     private int _column;
+    private int _tokenCount;
 
-    public Utf8GraphQLReader(ReadOnlySpan<byte> graphQLData)
+    public Utf8GraphQLReader(ReadOnlySpan<byte> graphQLData, int maxAllowedTokens = int.MaxValue)
     {
         if (graphQLData.Length == 0)
         {
@@ -36,6 +37,8 @@ public ref partial struct Utf8GraphQLReader
         _lineStart = 0;
         _line = 1;
         _column = 1;
+        _maxAllowedTokens = maxAllowedTokens;
+        _tokenCount = 0;
         _graphQLData = graphQLData;
         _length = graphQLData.Length;
         _nextNewLines = 0;
@@ -125,6 +128,17 @@ public ref partial struct Utf8GraphQLReader
             return false;
         }
 
+        _tokenCount++;
+
+        if (_tokenCount > _maxAllowedTokens)
+        {
+            throw new SyntaxException(
+                this,
+                string.Format(
+                    Utf8GraphQLReader_Read_MaxAllowedTokensReached,
+                    _maxAllowedTokens));
+        }
+
         var code = _graphQLData[_position];
 
         if (code.IsPunctuator())
@@ -153,9 +167,9 @@ public ref partial struct Utf8GraphQLReader
 
         if (code is GraphQLConstants.Quote)
         {
-            if (_length > _position + 2
-                && _graphQLData[_position + 1] is GraphQLConstants.Quote
-                && _graphQLData[_position + 2] is GraphQLConstants.Quote)
+            if (_length > _position + 2 &&
+                _graphQLData[_position + 1] is GraphQLConstants.Quote &&
+                _graphQLData[_position + 2] is GraphQLConstants.Quote)
             {
                 _position += 2;
                 ReadBlockStringToken();
@@ -168,6 +182,18 @@ public ref partial struct Utf8GraphQLReader
         }
 
         throw new SyntaxException(this, UnexpectedCharacter, (char)code, code);
+    }
+
+    /// <summary>
+    /// Counts the tokens and returns the document token count.
+    /// </summary>
+    /// <returns>
+    /// Returns the token count of the document.
+    /// </returns>
+    public int Count()
+    {
+        while(Read()) { }
+        return _tokenCount;
     }
 
     /// <summary>
@@ -185,7 +211,8 @@ public ref partial struct Utf8GraphQLReader
         var start = _position;
         var position = _position;
 
-ReadNameToken_Next:
+        ReadNameToken_Next:
+
         if (++position < _length && _graphQLData[position].IsLetterOrDigitOrUnderscore())
         {
             goto ReadNameToken_Next;
@@ -239,7 +266,74 @@ ReadNameToken_Next:
         }
         else
         {
-            _kind = code.PunctuatorKind();
+            switch (code)
+            {
+                case GraphQLConstants.Bang:
+                    _kind = TokenKind.Bang;
+                    break;
+
+                case GraphQLConstants.Dollar:
+                    _kind = TokenKind.Dollar;
+                    break;
+
+                case GraphQLConstants.Ampersand:
+                    _kind = TokenKind.Ampersand;
+                    break;
+
+                case GraphQLConstants.LeftParenthesis:
+                    _kind = TokenKind.LeftParenthesis;
+                    break;
+
+                case GraphQLConstants.RightParenthesis:
+                    _kind = TokenKind.RightParenthesis;
+                    break;
+
+                case GraphQLConstants.Dot:
+                    _kind = TokenKind.Dot;
+                    break;
+
+                case GraphQLConstants.Colon:
+                    _kind = TokenKind.Colon;
+                    break;
+
+                case GraphQLConstants.Equal:
+                    _kind = TokenKind.Equal;
+                    break;
+
+                case GraphQLConstants.QuestionMark:
+                    _kind = TokenKind.QuestionMark;
+                    break;
+
+                case GraphQLConstants.At:
+                    _kind = TokenKind.At;
+                    break;
+
+                case GraphQLConstants.LeftBracket:
+                    _kind = TokenKind.LeftBracket;
+                    break;
+
+                case GraphQLConstants.RightBracket:
+                    _kind = TokenKind.RightBracket;
+                    break;
+
+                case GraphQLConstants.LeftBrace:
+                    _kind = TokenKind.LeftBrace;
+                    break;
+
+                case GraphQLConstants.Pipe:
+                    _kind = TokenKind.Pipe;
+                    break;
+
+                case GraphQLConstants.RightBrace:
+                    _kind = TokenKind.RightBrace;
+                    break;
+
+                default:
+                    // we should never get to this point since we first check
+                    // if code is a punctuator.
+                    throw new InvalidOperationException(
+                        Utf8GraphQLReader_ReadPunctuatorToken_InvalidState);
+            }
         }
     }
 
@@ -265,6 +359,7 @@ ReadNameToken_Next:
         if (code is GraphQLConstants.Zero && !IsEndOfStream(_position + 1))
         {
             code = _graphQLData[++_position];
+
             if (code.IsDigit())
             {
                 throw new SyntaxException(this, UnexpectedDigit, (char)code, code);
@@ -288,6 +383,7 @@ ReadNameToken_Next:
             isFloat = true;
             _floatFormat = Language.FloatFormat.Exponential;
             code = _graphQLData[++_position];
+
             if (code is GraphQLConstants.Plus or GraphQLConstants.Minus)
             {
                 code = _graphQLData[++_position];
@@ -295,7 +391,9 @@ ReadNameToken_Next:
             ReadDigits(code);
         }
 
-        _kind = isFloat ? TokenKind.Float : TokenKind.Integer;
+        _kind = isFloat
+            ? TokenKind.Float
+            : TokenKind.Integer;
         _start = start;
         _end = _position;
         _value = _graphQLData.Slice(start, _position - start);
@@ -320,6 +418,7 @@ ReadNameToken_Next:
             }
 
             code = _graphQLData[_position];
+
             if (!code.IsDigit())
             {
                 break;
@@ -440,6 +539,7 @@ ReadNameToken_Next:
 
                 case GraphQLConstants.Backslash:
                     code = _graphQLData[++_position];
+
                     if (!code.IsValidEscapeCharacter())
                     {
                         throw new SyntaxException(this, InvalidCharacterEscapeSequence, code);
@@ -507,6 +607,7 @@ ReadNameToken_Next:
 
                 case GraphQLConstants.Return:
                     var next = _position + 1;
+
                     if (next < _length && _graphQLData[next] is GraphQLConstants.LineFeed)
                     {
                         _position = next;
@@ -516,8 +617,8 @@ ReadNameToken_Next:
 
                 // Closing Triple-Quote (""")
                 case GraphQLConstants.Quote:
-                    if (_graphQLData[_position + 1] is GraphQLConstants.Quote
-                        && _graphQLData[_position + 2] is GraphQLConstants.Quote)
+                    if (_graphQLData[_position + 1] is GraphQLConstants.Quote &&
+                        _graphQLData[_position + 2] is GraphQLConstants.Quote)
                     {
                         _kind = TokenKind.BlockString;
                         _start = start;
@@ -531,9 +632,9 @@ ReadNameToken_Next:
                     break;
 
                 case GraphQLConstants.Backslash:
-                    if (_graphQLData[_position + 1] is GraphQLConstants.Quote
-                        && _graphQLData[_position + 2] is GraphQLConstants.Quote
-                        && _graphQLData[_position + 3] is GraphQLConstants.Quote)
+                    if (_graphQLData[_position + 1] is GraphQLConstants.Quote &&
+                        _graphQLData[_position + 2] is GraphQLConstants.Quote &&
+                        _graphQLData[_position + 3] is GraphQLConstants.Quote)
                     {
                         _position += 3;
                     }
@@ -570,7 +671,8 @@ ReadNameToken_Next:
                 case GraphQLConstants.RecordSeparator:
                 case GraphQLConstants.UnitSeparator:
                 case GraphQLConstants.Delete:
-                    throw new SyntaxException(this,
+                    throw new SyntaxException(
+                        this,
                         string.Format(InvalidCharacterWithinString, code));
             }
         }
@@ -599,8 +701,8 @@ ReadNameToken_Next:
                     break;
 
                 case GraphQLConstants.Return:
-                    if (++_position < _length
-                       && _graphQLData[_position] is GraphQLConstants.LineFeed)
+                    if (++_position < _length &&
+                        _graphQLData[_position] is GraphQLConstants.LineFeed)
                     {
                         ++_position;
                     }
@@ -626,8 +728,7 @@ ReadNameToken_Next:
 
         if (code is 239)
         {
-            if (_graphQLData[_position + 1] is 187
-                && _graphQLData[_position + 2] is 191)
+            if (_graphQLData[_position + 1] is 187 && _graphQLData[_position + 2] is 191)
             {
                 _position += 3;
             }
@@ -646,7 +747,7 @@ ReadNameToken_Next:
     /// Sets the state to a new line.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void NewLine()
+    private void NewLine()
     {
         _line++;
         _lineStart = _position;
@@ -660,7 +761,7 @@ ReadNameToken_Next:
     /// The number of lines to skip.
     /// </param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void NewLine(int lines)
+    private void NewLine(int lines)
     {
         if (lines < 1)
         {
@@ -679,14 +780,14 @@ ReadNameToken_Next:
     /// Updates the column index.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void UpdateColumn() => _column = 1 + _position - _lineStart;
+    private void UpdateColumn() => _column = 1 + _position - _lineStart;
 
     /// <summary>
     /// Checks if the lexer source pointer has reached
     /// the end of the GraphQL source text.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool IsEndOfStream() => _position >= _length;
+    private bool IsEndOfStream() => _position >= _length;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool IsEndOfStream(int position) => position >= _length;

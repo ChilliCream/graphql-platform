@@ -1,17 +1,11 @@
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Stitching.Execution;
 using HotChocolate.Stitching.Schemas.Customers;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Stitching.Integration;
 
@@ -28,11 +22,11 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     public async Task AutoMerge_Schema()
     {
         // arrange
-        IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultHttpClientFactory();
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
         // act
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
@@ -48,10 +42,10 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     public async Task AutoMerge_Execute()
     {
         // arrange
-        IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultHttpClientFactory();
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
@@ -61,73 +55,90 @@ public class BaseTests : IClassFixture<StitchingTestContext>
                 .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"{
-                allCustomers {
-                    id
-                    name
-                }
-            }");
+                    allCustomers {
+                        id
+                        name
+                    }
+                }");
 
         // assert
         result.MatchSnapshot();
     }
 
     [Fact]
-    public async Task AutoMerge_Subscription()
+    public async Task LocalField_Execute()
     {
         // arrange
-        IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultHttpClientFactory();
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-        ISocketClientFactory socketClientFactory =
-            Context.CreateDefaultWebSocketClientFactory();
-
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
-                .AddSingleton(socketClientFactory)
                 .AddGraphQL()
+                .AddTypeExtension(new ObjectTypeExtension(d
+                    => d.Name("Query").Field("local").Resolve("I am local.")))
                 .AddRemoteSchema(Context.ContractSchema)
-                .AddRemoteSchema(Context.CustomerSchema,
-                    capabilities: new EndpointCapabilities
-                    {
-                        Batching = BatchingSupport.RequestBatching,
-                        Subscriptions = SubscriptionSupport.WebSocket
-                    })
+                .AddRemoteSchema(Context.CustomerSchema)
                 .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .BuildRequestExecutorAsync();
 
         // act
-        var result = (SubscriptionResult)await executor.ExecuteAsync(
-            @"subscription Abc {
-                onCustomerChanged {
-                    id
-                    name
-                }
-            }");
+        var result = await executor.ExecuteAsync(
+            @"{
+                    local
+                    allCustomers {
+                        id
+                        name
+                    }
+                }");
 
         // assert
-        using var cts = new CancellationTokenSource(30_000);
-        var results = new List<string>();
+        result.MatchSnapshot();
+    }
 
-        await foreach (IQueryResult queryResult in result.ReadResultsAsync()
-            .WithCancellation(cts.Token))
-        {
-            results.Add(queryResult.ToJson());
-        }
+    [Fact]
+    public async Task Schema_AddResolver()
+    {
+        // arrange
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-        results.MatchSnapshot();
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddRemoteSchema(Context.ContractSchema)
+                .AddRemoteSchema(Context.CustomerSchema)
+                .AddResolver("Query", "local", "I am local")
+                .AddTypeExtensionsFromString("extend type Query { local: String }")
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                    local
+                    allCustomers {
+                        id
+                        name
+                    }
+                }");
+
+        // assert
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task AutoMerge_Execute_Inline_Fragment()
     {
         // arrange
-        IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultHttpClientFactory();
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
@@ -144,24 +155,24 @@ public class BaseTests : IClassFixture<StitchingTestContext>
                 .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"{
-                customer(id: ""Q3VzdG9tZXIKZDE="") {
-                    name
-                    consultant {
+                    customer(id: ""Q3VzdG9tZXIKZDE="") {
                         name
-                    }
-                    contracts {
-                        id
-                        ... on LifeInsuranceContract {
-                            premium
+                        consultant {
+                            name
                         }
-                        ... on SomeOtherContract {
-                            expiryDate
+                        contracts {
+                            id
+                            ... on LifeInsuranceContract {
+                                premium
+                            }
+                            ... on SomeOtherContract {
+                                expiryDate
+                            }
                         }
                     }
-                }
-            }");
+                }");
 
         // assert
         result.MatchSnapshot();
@@ -171,10 +182,10 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     public async Task AutoMerge_Execute_Fragment_Definition()
     {
         // arrange
-        IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultHttpClientFactory();
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
@@ -191,28 +202,28 @@ public class BaseTests : IClassFixture<StitchingTestContext>
                 .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"{
-                customer(id: ""Q3VzdG9tZXIKZDE="") {
-                    name
-                    consultant {
-                      name
-                    }
-                    contracts {
-                        id
-                        ...a
-                        ...b
+                    customer(id: ""Q3VzdG9tZXIKZDE="") {
+                        name
+                        consultant {
+                          name
+                        }
+                        contracts {
+                            id
+                            ...a
+                            ...b
+                        }
                     }
                 }
-            }
 
-            fragment a on LifeInsuranceContract {
-                premium
-            }
+                fragment a on LifeInsuranceContract {
+                    premium
+                }
 
-            fragment b on SomeOtherContract {
-                expiryDate
-            }");
+                fragment b on SomeOtherContract {
+                    expiryDate
+                }");
 
         // assert
         result.MatchSnapshot();
@@ -222,10 +233,10 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     public async Task AutoMerge_Execute_Variables()
     {
         // arrange
-        IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultHttpClientFactory();
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
@@ -241,15 +252,14 @@ public class BaseTests : IClassFixture<StitchingTestContext>
                 .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .BuildRequestExecutorAsync();
 
-        var variables = new Dictionary<string, object>
-            {
-                { "customerId", "Q3VzdG9tZXIKZDE=" },
-                { "deep", "deep" },
-                { "deeper", "deeper" }
-            };
+        var variables = new Dictionary<string, object?>
+        {
+            { "customerId", "Q3VzdG9tZXIKZDE=" },
+            { "deep", "deep" }, { "deeper", "deeper" }
+        };
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"query customer_query(
                     $customerId: ID!
                     $deep: String!
@@ -312,10 +322,10 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     public async Task AutoMerge_Execute_Union()
     {
         // arrange
-        IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultHttpClientFactory();
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
@@ -332,37 +342,37 @@ public class BaseTests : IClassFixture<StitchingTestContext>
                 .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"{
-                customer: customerOrConsultant(id: ""Q3VzdG9tZXIKZDE="") {
-                    ...customer
-                    ...consultant
+                    customer: customerOrConsultant(id: ""Q3VzdG9tZXIKZDE="") {
+                        ...customer
+                        ...consultant
+                    }
+                    consultant: customerOrConsultant(id: ""Q29uc3VsdGFudApkMQ=="") {
+                        ...customer
+                        ...consultant
+                    }
                 }
-                consultant: customerOrConsultant(id: ""Q29uc3VsdGFudApkMQ=="") {
-                    ...customer
-                    ...consultant
-                }
-            }
 
-            fragment customer on Customer {
-                name
-                consultant {
+                fragment customer on Customer {
                     name
-                }
-                contracts {
-                    id
-                    ... on LifeInsuranceContract {
-                        premium
+                    consultant {
+                        name
                     }
-                    ... on SomeOtherContract {
-                        expiryDate
+                    contracts {
+                        id
+                        ... on LifeInsuranceContract {
+                            premium
+                        }
+                        ... on SomeOtherContract {
+                            expiryDate
+                        }
                     }
                 }
-            }
 
-            fragment consultant on Consultant {
-                name
-            }");
+                fragment consultant on Consultant {
+                    name
+                }");
 
         // assert
         result.MatchSnapshot();
@@ -372,10 +382,10 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     public async Task Directive_Delegation()
     {
         // arrange
-        IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultHttpClientFactory();
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
@@ -392,7 +402,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
                 .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"{
                 customer: customerOrConsultant(id: ""Q3VzdG9tZXIKZDE="") {
                     ...customer
@@ -435,10 +445,10 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     public async Task AutoMerge_Execute_Arguments()
     {
         // arrange
-        IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultHttpClientFactory();
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
@@ -455,7 +465,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
                 .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"{
                     contracts(id: ""Q3VzdG9tZXIKZDE="") {
                         id
@@ -470,10 +480,10 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     public async Task AutoMerge_Execute_List_Aggregations()
     {
         // arrange
-        IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultHttpClientFactory();
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
@@ -490,12 +500,12 @@ public class BaseTests : IClassFixture<StitchingTestContext>
                 .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"{
-                customer(id: ""Q3VzdG9tZXIKZDE="") {
-                    contractIds
-                }
-            }");
+                    customer(id: ""Q3VzdG9tZXIKZDE="") {
+                        contractIds
+                    }
+                }");
 
         // assert
         result.MatchSnapshot();
@@ -505,10 +515,10 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     public async Task AutoMerge_Execute_Object_Aggregations()
     {
         // arrange
-        IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultHttpClientFactory();
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
@@ -525,12 +535,12 @@ public class BaseTests : IClassFixture<StitchingTestContext>
                 .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"{
-                consultant {
-                    name
-                }
-            }");
+                    consultant {
+                        name
+                    }
+                }");
 
         // assert
         result.MatchSnapshot();
@@ -540,10 +550,10 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     public async Task AutoMerge_Execute_Scalar_Aggregations()
     {
         // arrange
-        IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultHttpClientFactory();
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
@@ -560,10 +570,10 @@ public class BaseTests : IClassFixture<StitchingTestContext>
                 .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"{
-                consultantName
-            }");
+                    consultantName
+                }");
 
         // assert
         result.MatchSnapshot();
@@ -573,10 +583,10 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     public async Task AutoMerge_Execute_Computed()
     {
         // arrange
-        IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultHttpClientFactory();
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
@@ -588,9 +598,9 @@ public class BaseTests : IClassFixture<StitchingTestContext>
                         }")
                 .MapField(
                     new FieldReference("Customer", "foo"),
-                    _ => context =>
+                    next => context =>
                     {
-                        IReadOnlyDictionary<string, object> obj = context.Parent<IReadOnlyDictionary<string, object>>();
+                        var obj = context.Parent<IReadOnlyDictionary<string, object>>();
                         context.Result = obj["name"] + "_" + obj["id"];
                         return default;
                     })
@@ -598,12 +608,12 @@ public class BaseTests : IClassFixture<StitchingTestContext>
                 .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"{
-                customer(id: ""Q3VzdG9tZXIKZDE="") {
-                    foo
-                }
-            }");
+                    customer(id: ""Q3VzdG9tZXIKZDE="") {
+                        foo
+                    }
+                }");
 
         // assert
         result.MatchSnapshot();
@@ -613,10 +623,10 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     public async Task AutoMerge_Execute_RenameScalar()
     {
         // arrange
-        IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultHttpClientFactory();
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
@@ -634,45 +644,42 @@ public class BaseTests : IClassFixture<StitchingTestContext>
                 .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .BuildRequestExecutorAsync();
 
-        var variables = new Dictionary<string, object>
-            {
-                { "v", new FloatValueNode(1.2f) }
-            };
+        var variables = new Dictionary<string, object> { { "v", new FloatValueNode(1.2f) } };
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"query ($v: Foo) {
-                customer: customerOrConsultant(id: ""Q3VzdG9tZXIKZDE="") {
-                    ...customer
-                    ...consultant
+                    customer: customerOrConsultant(id: ""Q3VzdG9tZXIKZDE="") {
+                        ...customer
+                        ...consultant
+                    }
+                    consultant: customerOrConsultant(id: ""Q29uc3VsdGFudApkMQ=="") {
+                        ...customer
+                        ...consultant
+                    }
                 }
-                consultant: customerOrConsultant(id: ""Q29uc3VsdGFudApkMQ=="") {
-                    ...customer
-                    ...consultant
-                }
-            }
 
-            fragment customer on Customer {
-                name
-                consultant {
+                fragment customer on Customer {
                     name
-                }
-                contracts {
-                    id
-                    ... on LifeInsuranceContract {
-                        premium
-                        a: float_field(f: 1.1)
-                        b: float_field(f: $v)
+                    consultant {
+                        name
                     }
-                    ... on SomeOtherContract {
-                        expiryDate
+                    contracts {
+                        id
+                        ... on LifeInsuranceContract {
+                            premium
+                            a: float_field(f: 1.1)
+                            b: float_field(f: $v)
+                        }
+                        ... on SomeOtherContract {
+                            expiryDate
+                        }
                     }
                 }
-            }
 
-            fragment consultant on Consultant {
-                name
-            }",
+                fragment consultant on Consultant {
+                    name
+                }",
             variables);
 
         // assert
@@ -683,16 +690,15 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     public async Task AutoMerge_Execute_IntField()
     {
         // arrange
-        IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultHttpClientFactory();
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
                 .AddRemoteSchema(Context.ContractSchema)
                 .AddRemoteSchema(Context.CustomerSchema)
-                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .AddTypeExtensionsFromString(
                     @"extend type Customer {
                             int: Int!
@@ -704,12 +710,12 @@ public class BaseTests : IClassFixture<StitchingTestContext>
                 .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"{
-                customer(id: ""Q3VzdG9tZXIKZDE="") {
-                    int
-                }
-            }");
+                    customer(id: ""Q3VzdG9tZXIKZDE="") {
+                        int
+                    }
+                }");
 
         // assert
         result.MatchSnapshot();
@@ -719,10 +725,10 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     public async Task AutoMerge_Execute_Customer_DoesNotExist_And_Is_Correctly_Null()
     {
         // arrange
-        IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultHttpClientFactory();
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
@@ -739,12 +745,12 @@ public class BaseTests : IClassFixture<StitchingTestContext>
                 .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"{
-                customer(id: ""Q3VzdG9tZXIKaTI5OTk="") {
-                    int
-                }
-            }");
+                    customer(id: ""Q3VzdG9tZXIKaTI5OTk="") {
+                        int
+                    }
+                }");
 
         // assert
         result.MatchSnapshot();
@@ -754,10 +760,10 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     public async Task AutoMerge_Execute_GuidField()
     {
         // arrange
-        IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultHttpClientFactory();
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
@@ -774,7 +780,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
                 .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"{
                 customer(id: ""Q3VzdG9tZXIKZDE="") {
                     guid
@@ -786,14 +792,41 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     }
 
     [Fact]
+    public async Task AutoMerge_Execute_Schema_GuidField()
+    {
+        // arrange
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
+
+        var schema =
+            await new ServiceCollection()
+                .AddSingleton(httpClientFactory)
+                .AddGraphQL()
+                .AddRemoteSchema(Context.ContractSchema)
+                .AddRemoteSchema(Context.CustomerSchema)
+                .AddTypeExtensionsFromString(
+                    @"extend type Customer {
+                            guid: UUID!
+                                @delegate(
+                                    schema: ""contract"",
+                                    path: ""guid(guid:$fields:someGuid)"")
+                        }")
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildSchemaAsync();
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Add_Dummy_Directive()
     {
         // arrange
-        IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultHttpClientFactory();
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
         // act
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
@@ -812,11 +845,11 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     public async Task Add_Dummy_Directive_From_Resource()
     {
         // arrange
-        IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultHttpClientFactory();
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
         // act
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
@@ -836,8 +869,8 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     public async Task Add_Dummy_Directive_From_Resource_Key_Does_Not_Exist()
     {
         // arrange
-        IHttpClientFactory httpClientFactory =
-            Context.CreateDefaultHttpClientFactory();
+        var httpClientFactory =
+            Context.CreateDefaultRemoteSchemas();
 
         // act
         async Task Configure() =>
@@ -853,7 +886,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
                 .BuildSchemaAsync();
 
         // assert
-        SchemaException exception = await Assert.ThrowsAsync<SchemaException>(Configure);
+        var exception = await Assert.ThrowsAsync<SchemaException>(Configure);
         Assert.Contains(
             "The resource `HotChocolate.Stitching.__resources__.abc` was not found!",
             exception.Message);
@@ -864,14 +897,14 @@ public class BaseTests : IClassFixture<StitchingTestContext>
     {
         // arrange
         var connections = new Dictionary<string, HttpClient>
-            {
-                { Context.ContractSchema, Context.CreateContractService().CreateClient() }
-            };
+        {
+            { Context.ContractSchema, Context.CreateContractService().CreateClient() }
+        };
 
-        IHttpClientFactory httpClientFactory =
-            StitchingTestContext.CreateHttpClientFactory(connections);
+        var httpClientFactory =
+            StitchingTestContext.CreateRemoteSchemas(connections);
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
@@ -890,7 +923,7 @@ public class BaseTests : IClassFixture<StitchingTestContext>
                 .BuildRequestExecutorAsync();
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"{
                 customer(id: ""Q3VzdG9tZXIKZDE="") {
                     name

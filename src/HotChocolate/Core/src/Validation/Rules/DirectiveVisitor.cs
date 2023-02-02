@@ -1,7 +1,10 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
+using static HotChocolate.Language.SyntaxKind;
 using DirectiveLoc = HotChocolate.Types.DirectiveLocation;
+using IHasDirectives = HotChocolate.Language.IHasDirectives;
 
 namespace HotChocolate.Validation.Rules;
 
@@ -32,6 +35,15 @@ namespace HotChocolate.Validation.Rules;
 /// therefore only one of each directive is allowed per location.
 ///
 /// http://spec.graphql.org/draft/#sec-Directives-Are-Unique-Per-Location
+///
+/// AND
+///
+/// The @defer and @stream directives each accept an argument “label”.
+/// This label may be used by GraphQL clients to uniquely identify response payloads.
+/// If a label is passed, it must not be a variable and it must be unique within
+/// all other @defer and @stream directives in the document.
+///
+/// http://spec.graphql.org/draft/#sec-Defer-And-Stream-Directive-Labels-Are-Unique
 /// </summary>
 internal sealed class DirectiveVisitor : DocumentValidatorVisitor
 {
@@ -49,15 +61,15 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
     {
         switch (node.Kind)
         {
-            case SyntaxKind.Field:
-            case SyntaxKind.SelectionSet:
-            case SyntaxKind.InlineFragment:
-            case SyntaxKind.FragmentSpread:
-            case SyntaxKind.FragmentDefinition:
+            case Field:
+            case SelectionSet:
+            case InlineFragment:
+            case FragmentSpread:
+            case FragmentDefinition:
             case SyntaxKind.Directive:
-            case SyntaxKind.VariableDefinition:
-            case SyntaxKind.OperationDefinition:
-            case SyntaxKind.Document:
+            case VariableDefinition:
+            case OperationDefinition:
+            case Document:
                 return base.Enter(node, context);
 
             default:
@@ -69,7 +81,7 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
         OperationDefinitionNode node,
         IDocumentValidatorContext context)
     {
-        ValidateDirectiveAreUniquePerLocation(node, context);
+        ValidateDirectives(node, context);
         return Continue;
     }
 
@@ -77,7 +89,7 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
         VariableDefinitionNode node,
         IDocumentValidatorContext context)
     {
-        ValidateDirectiveAreUniquePerLocation(node, context);
+        ValidateDirectives(node, context);
         return Continue;
     }
 
@@ -85,7 +97,7 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
         FieldNode node,
         IDocumentValidatorContext context)
     {
-        ValidateDirectiveAreUniquePerLocation(node, context);
+        ValidateDirectives(node, context);
         return Continue;
     }
 
@@ -93,7 +105,7 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
         InlineFragmentNode node,
         IDocumentValidatorContext context)
     {
-        ValidateDirectiveAreUniquePerLocation(node, context);
+        ValidateDirectives(node, context);
         return Continue;
     }
 
@@ -101,7 +113,7 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
         FragmentDefinitionNode node,
         IDocumentValidatorContext context)
     {
-        ValidateDirectiveAreUniquePerLocation(node, context);
+        ValidateDirectives(node, context);
         return Continue;
     }
 
@@ -109,7 +121,7 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
         FragmentSpreadNode node,
         IDocumentValidatorContext context)
     {
-        ValidateDirectiveAreUniquePerLocation(node, context);
+        ValidateDirectives(node, context);
         return Continue;
     }
 
@@ -117,11 +129,11 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
         DirectiveNode node,
         IDocumentValidatorContext context)
     {
-        if (context.Schema.TryGetDirectiveType(node.Name.Value, out DirectiveType? dt))
+        if (context.Schema.TryGetDirectiveType(node.Name.Value, out var dt))
         {
-            if (context.Path.TryPeek(out ISyntaxNode? parent) &&
-                TryLookupLocation(parent, out DirectiveLoc location) &&
-                !dt.Locations.Contains(location))
+            if (context.Path.TryPeek(out var parent) &&
+                TryLookupLocation(parent, out var location) &&
+                (dt.Locations & location) != location)
             {
                 context.ReportError(context.DirectiveNotValidInLocation(node));
             }
@@ -133,19 +145,38 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
         return Skip;
     }
 
-    private void ValidateDirectiveAreUniquePerLocation<T>(
+    private static void ValidateDirectives<T>(
         T node,
         IDocumentValidatorContext context)
-        where T : ISyntaxNode, Language.IHasDirectives
+        where T : ISyntaxNode, IHasDirectives
     {
         context.Names.Clear();
-        foreach (DirectiveNode directive in node.Directives)
+        foreach (var directive in node.Directives)
         {
-            if (context.Schema.TryGetDirectiveType(directive.Name.Value, out DirectiveType? dt)
+            // ValidateDirectiveAreUniquePerLocation
+            if (context.Schema.TryGetDirectiveType(directive.Name.Value, out var dt)
                 && !dt.IsRepeatable
                 && !context.Names.Add(directive.Name.Value))
             {
                 context.ReportError(context.DirectiveMustBeUniqueInLocation(directive));
+            }
+
+            // Defer And Stream Directive Labels Are Unique
+            if (node.Kind is Field or InlineFragment or FragmentSpread &&
+                (directive.Name.Value.EqualsOrdinal(WellKnownDirectives.Defer) ||
+                directive.Name.Value.EqualsOrdinal(WellKnownDirectives.Stream)))
+            {
+                if (directive.GetLabelArgumentValueOrDefault() is StringValueNode sn)
+                {
+                    if (!context.Declared.Add(sn.Value))
+                    {
+                        context.ReportError(context.DeferAndStreamDuplicateLabel(node, sn.Value));
+                    }
+                }
+                else if (directive.GetLabelArgumentValueOrDefault() is VariableNode vn)
+                {
+                    context.ReportError(context.DeferAndStreamLabelIsVariable(node, vn.Name.Value));
+                }
             }
         }
     }
@@ -154,27 +185,27 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
     {
         switch (node.Kind)
         {
-            case SyntaxKind.Field:
+            case Field:
                 location = DirectiveLoc.Field;
                 return true;
 
-            case SyntaxKind.FragmentDefinition:
+            case FragmentDefinition:
                 location = DirectiveLoc.FragmentDefinition;
                 return true;
 
-            case SyntaxKind.FragmentSpread:
+            case FragmentSpread:
                 location = DirectiveLoc.FragmentSpread;
                 return true;
 
-            case SyntaxKind.InlineFragment:
+            case InlineFragment:
                 location = DirectiveLoc.InlineFragment;
                 return true;
 
-            case SyntaxKind.VariableDefinition:
+            case VariableDefinition:
                 location = DirectiveLoc.VariableDefinition;
                 return true;
 
-            case SyntaxKind.OperationDefinition:
+            case OperationDefinition:
                 switch (((OperationDefinitionNode)node).Operation)
                 {
                     case OperationType.Query:

@@ -18,9 +18,9 @@ public class SqlLiteOffsetTestBase
         dbContext.Database.EnsureDeleted();
         dbContext.Database.EnsureCreated();
 
-        DbSet<TResult>? set = dbContext.Set<TResult>();
+        var set = dbContext.Set<TResult>();
 
-        foreach (TResult result in results)
+        foreach (var result in results)
         {
             set.Add(result);
             dbContext.SaveChanges();
@@ -34,14 +34,14 @@ public class SqlLiteOffsetTestBase
     protected IRequestExecutor CreateSchema<TEntity>(TEntity[] entities)
         where TEntity : class
     {
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddQueryType(
                 c => c.Name("Query")
                     .Field("root")
                     .UseDbContext<DatabaseContext<TEntity>>()
                     .Resolve(ctx =>
                     {
-                        DatabaseContext<TEntity> context =
+                        var context =
                             ctx.DbContext<DatabaseContext<TEntity>>();
                         BuildContext(context, entities);
                         return context.Data;
@@ -68,7 +68,7 @@ public class SqlLiteOffsetTestBase
                         IncludeTotalCount = true
                     }));
 
-        ISchema schema = builder.Create();
+        var schema = builder.Create();
 
         return new ServiceCollection()
             .Configure<RequestExecutorSetup>(

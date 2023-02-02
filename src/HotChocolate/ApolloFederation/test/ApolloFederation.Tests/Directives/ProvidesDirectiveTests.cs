@@ -1,8 +1,8 @@
 using System.Linq;
 using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.ApolloFederation.Directives;
 
@@ -12,23 +12,20 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
     public void AddProvidesDirective_EnsureAvailableInSchema()
     {
         // arrange
-        ISchema schema = CreateSchema(b => b.AddDirectiveType<ProvidesDirectiveType>());
+        var schema = CreateSchema(b => b.AddDirectiveType<ProvidesDirectiveType>());
 
         // act
-        DirectiveType? directive =
+        var directive =
             schema.DirectiveTypes.FirstOrDefault(
-                t => t.Name.Equals(WellKnownTypeNames.Provides));
+                t => t.Name.EqualsOrdinal(WellKnownTypeNames.Provides));
 
         // assert
         Assert.NotNull(directive);
         Assert.IsType<ProvidesDirectiveType>(directive);
         Assert.Equal(WellKnownTypeNames.Provides, directive!.Name);
         Assert.Single(directive.Arguments);
-        this.AssertDirectiveHasFieldsArgument(directive);
-        Assert.Collection(
-            directive.Locations,
-            t => Assert.Equal(DirectiveLocation.FieldDefinition, t));
-
+        AssertDirectiveHasFieldsArgument(directive);
+        Assert.Equal(DirectiveLocation.FieldDefinition, directive.Locations);
     }
 
     [Fact]
@@ -37,7 +34,7 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
         // arrange
         Snapshot.FullName();
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString(
                 @"
                     type Review @key(fields: ""id"") {
@@ -56,22 +53,19 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
             .AddDirectiveType<KeyDirectiveType>()
             .AddDirectiveType<ProvidesDirectiveType>()
             .AddType<FieldSetType>()
-            .Use(next => context => default)
+            .Use(_ => _ => default)
             .Create();
 
         // act
-        ObjectType testType = schema.GetType<ObjectType>("Review");
+        var testType = schema.GetType<ObjectType>("Review");
 
         // assert
-        Assert.Collection(testType.Fields.Single(field => field.Name.Value == "product").Directives,
+        Assert.Collection(testType.Fields.Single(field => field.Name == "product").Directives,
             providesDirective =>
             {
-                Assert.Equal(
-                    WellKnownTypeNames.Provides,
-                    providesDirective.Name
-                );
-                Assert.Equal("fields", providesDirective.ToNode().Arguments[0].Name.ToString());
-                Assert.Equal("\"name\"", providesDirective.ToNode().Arguments[0].Value.ToString());
+                Assert.Equal(WellKnownTypeNames.Provides, providesDirective.Type.Name);
+                Assert.Equal("fields", providesDirective.AsSyntaxNode().Arguments[0].Name.ToString());
+                Assert.Equal("\"name\"", providesDirective.AsSyntaxNode().Arguments[0].Value.ToString());
             });
 
         schema.ToString().MatchSnapshot();
@@ -83,7 +77,7 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
         // arrange
         Snapshot.FullName();
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddType(
                 new ObjectType(o =>
                 {
@@ -112,22 +106,22 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
             .Create();
 
         // act
-        ObjectType testType = schema.GetType<ObjectType>("Review");
+        var testType = schema.GetType<ObjectType>("Review");
 
         // assert
         Assert.Collection(
-            testType.Fields.Single(field => field.Name.Value == "product").Directives,
+            testType.Fields.Single(field => field.Name == "product").Directives,
             providesDirective =>
             {
                 Assert.Equal(
                     WellKnownTypeNames.Provides,
-                    providesDirective.Name);
+                    providesDirective.Type.Name);
                 Assert.Equal(
                     "fields",
-                    providesDirective.ToNode().Arguments[0].Name.ToString());
+                    providesDirective.AsSyntaxNode().Arguments[0].Name.ToString());
                 Assert.Equal(
                     "\"name\"",
-                    providesDirective.ToNode().Arguments[0].Value.ToString());
+                    providesDirective.AsSyntaxNode().Arguments[0].Value.ToString());
             });
 
         schema.ToString().MatchSnapshot();
@@ -139,28 +133,28 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
         // arrange
         Snapshot.FullName();
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<Query>()
             .Create();
 
         // act
-        ObjectType testType = schema.GetType<ObjectType>("Review");
+        var testType = schema.GetType<ObjectType>("Review");
 
         // assert
         Assert.Collection(
-            testType.Fields.Single(field => field.Name.Value == "product").Directives,
+            testType.Fields.Single(field => field.Name == "product").Directives,
             providesDirective =>
             {
                 Assert.Equal(
                     WellKnownTypeNames.Provides,
-                    providesDirective.Name);
+                    providesDirective.Type.Name);
                 Assert.Equal(
                     "fields",
-                    providesDirective.ToNode().Arguments[0].Name.ToString());
+                    providesDirective.AsSyntaxNode().Arguments[0].Name.ToString());
                 Assert.Equal(
                     "\"name\"",
-                    providesDirective.ToNode().Arguments[0].Value.ToString());
+                    providesDirective.AsSyntaxNode().Arguments[0].Value.ToString());
             });
 
         schema.ToString().MatchSnapshot();

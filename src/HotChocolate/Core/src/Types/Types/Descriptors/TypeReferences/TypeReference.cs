@@ -12,7 +12,7 @@ namespace HotChocolate.Types.Descriptors;
 /// A type reference is used to refer to a type in the type system.
 /// This allows us to loosely couple types during schema creation.
 /// </summary>
-public abstract class TypeReference : ITypeReference
+public abstract class TypeReference : IEquatable<TypeReference>
 {
     protected TypeReference(
         TypeReferenceKind kind,
@@ -33,7 +33,7 @@ public abstract class TypeReference : ITypeReference
     /// <inheritdoc />
     public string? Scope { get; }
 
-    protected bool IsEqual(ITypeReference other)
+    protected bool IsEqual(TypeReference other)
     {
         if (Context != other.Context
             && Context != TypeContext.None
@@ -50,7 +50,7 @@ public abstract class TypeReference : ITypeReference
         return true;
     }
 
-    public abstract bool Equals(ITypeReference? other);
+    public abstract bool Equals(TypeReference? other);
 
     public override bool Equals(object? obj)
     {
@@ -64,27 +64,20 @@ public abstract class TypeReference : ITypeReference
             return true;
         }
 
-        return Equals(obj as ITypeReference);
+        return Equals(obj as TypeReference);
     }
 
     public override int GetHashCode()
-    {
-        unchecked
-        {
-            var hash = 0;
+        => HashCode.Combine(Kind, Scope);
 
-            if (Scope is { })
-            {
-                hash ^= Scope.GetHashCode() * 397;
-            }
-
-            return hash;
-        }
-    }
+    protected string ToString(object name)
+        => Context is TypeContext.None
+            ? name.ToString()!
+            : $"{name} ({Context})";
 
     public static DependantFactoryTypeReference Create(
-        NameString name,
-        ITypeReference dependency,
+        string name,
+        TypeReference dependency,
         Func<IDescriptorContext, TypeSystemObjectBase> factory,
         TypeContext context = TypeContext.None,
         string? scope = null)
@@ -101,6 +94,14 @@ public abstract class TypeReference : ITypeReference
         return new SchemaTypeReference(type, scope: scope);
     }
 
+    public static NameDirectiveReference CreateDirective(
+        string directiveName) =>
+        new(directiveName);
+
+    public static ExtendedTypeDirectiveReference CreateDirective(
+        IExtendedType type) =>
+        new(type);
+
     public static SyntaxTypeReference Create(
         ITypeNode type,
         TypeContext context = TypeContext.None,
@@ -109,11 +110,11 @@ public abstract class TypeReference : ITypeReference
         new(type, context, scope, factory);
 
     public static SyntaxTypeReference Create(
-        NameString typeName,
+        string typeName,
         TypeContext context = TypeContext.None,
         string? scope = null,
         Func<IDescriptorContext, TypeSystemObjectBase>? factory = null) =>
-        new(new NamedTypeNode(typeName), context, scope, factory);
+        new(new NamedTypeNode(typeName.EnsureGraphQLName()), context, scope, factory);
 
     public static SyntaxTypeReference Parse(
         string sourceText,
@@ -135,9 +136,6 @@ public abstract class TypeReference : ITypeReference
                 scope);
         }
 
-        return new ExtendedTypeReference(
-            type,
-            context,
-            scope);
+        return new ExtendedTypeReference(type, context, scope);
     }
 }

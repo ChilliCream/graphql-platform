@@ -1,4 +1,4 @@
-import { createReducer, onAction } from "../state.helpers";
+import { createReducer, onAction } from "@/state/state.helpers";
 import {
   changeSearchQuery,
   closeAside,

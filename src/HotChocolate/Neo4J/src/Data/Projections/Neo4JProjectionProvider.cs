@@ -1,66 +1,63 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Data.Neo4J.Execution;
 using HotChocolate.Data.Projections;
 using HotChocolate.Resolvers;
 
-namespace HotChocolate.Data.Neo4J.Projections
+namespace HotChocolate.Data.Neo4J.Projections;
+
+/// <inheritdoc/>
+public class Neo4JProjectionProvider
+    : ProjectionProvider
 {
     /// <inheritdoc/>
-    public class Neo4JProjectionProvider
-        : ProjectionProvider
+    public Neo4JProjectionProvider()
     {
-        /// <inheritdoc/>
-        public Neo4JProjectionProvider()
-        {
-        }
+    }
 
-        /// <inheritdoc/>
-        public Neo4JProjectionProvider(Action<IProjectionProviderDescriptor> configure)
-            : base(configure)
-        {
-        }
+    /// <inheritdoc/>
+    public Neo4JProjectionProvider(Action<IProjectionProviderDescriptor> configure)
+        : base(configure)
+    {
+    }
 
-        /// <inheritdoc/>
-        public override FieldMiddleware CreateExecutor<TEntityType>()
-        {
-            return next => context => ExecuteAsync(next, context);
+    /// <inheritdoc/>
+    public override FieldMiddleware CreateExecutor<TEntityType>()
+    {
+        return next => context => ExecuteAsync(next, context);
 
-            async ValueTask ExecuteAsync(
-                FieldDelegate next,
-                IMiddlewareContext context)
+        async ValueTask ExecuteAsync(
+            FieldDelegate next,
+            IMiddlewareContext context)
+        {
+            // first we let the pipeline run and produce a result.
+            await next(context).ConfigureAwait(false);
+
+            if (context.Result is not null)
             {
-                // first we let the pipeline run and produce a result.
-                await next(context).ConfigureAwait(false);
+                var visitorContext =
+                    new Neo4JProjectionVisitorContext(context, context.ObjectType);
 
-                if (context.Result is not null)
+                var visitor = new ProjectionVisitor<Neo4JProjectionVisitorContext>();
+                visitor.Visit(visitorContext);
+
+                if (!visitorContext.TryCreateQuery(out var projections) ||
+                    visitorContext.Errors.Count > 0)
                 {
-                    var visitorContext =
-                        new Neo4JProjectionVisitorContext(context, context.ObjectType);
-
-                    var visitor = new ProjectionVisitor<Neo4JProjectionVisitorContext>();
-                    visitor.Visit(visitorContext);
-
-                    if (!visitorContext.TryCreateQuery(out object[]? projections) ||
-                        visitorContext.Errors.Count > 0)
+                    context.Result = Array.Empty<TEntityType>();
+                    foreach (var error in visitorContext.Errors)
                     {
-                        context.Result = Array.Empty<TEntityType>();
-                        foreach (IError error in visitorContext.Errors)
-                        {
-                            context.ReportError(error.WithPath(context.Path));
-                        }
+                        context.ReportError(error.WithPath(context.Path));
                     }
-                    else
+                }
+                else
+                {
+                    context.LocalContextData =
+                        context.LocalContextData.SetItem("ProjectionDefinition", projections);
+
+                    await next(context).ConfigureAwait(false);
+
+                    if (context.Result is INeo4JExecutable executable)
                     {
-                        context.LocalContextData =
-                            context.LocalContextData.SetItem("ProjectionDefinition", projections);
-
-                        await next(context).ConfigureAwait(false);
-
-                        if (context.Result is INeo4JExecutable executable)
-                        {
-                            context.Result = executable.WithProjection(projections);
-                        }
+                        context.Result = executable.WithProjection(projections);
                     }
                 }
             }

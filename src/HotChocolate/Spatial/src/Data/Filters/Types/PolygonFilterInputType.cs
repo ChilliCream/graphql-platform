@@ -1,9 +1,8 @@
 using NetTopologySuite.Geometries;
 
-namespace HotChocolate.Data.Filters.Spatial
+namespace HotChocolate.Data.Filters.Spatial;
+
+public class PolygonFilterInputType
+    : GeometryFilterInputType<Polygon>
 {
-    public class PolygonFilterInputType
-        : GeometryFilterInputType<Polygon>
-    {
-    }
 }

@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "A document containing TypeSystemDefinition is invalid for execution.",
     "Code": null,
@@ -82,9 +82,14 @@
     "Message": "The field `color` does not exist on the type `Dog`.",
     "Code": null,
     "Path": {
-      "Parent": null,
-      "Depth": 0,
-      "Name": "dog"
+      "Name": "dog",
+      "Parent": {
+        "Parent": null,
+        "Length": -1,
+        "IsRoot": true
+      },
+      "Length": 0,
+      "IsRoot": false
     },
     "Locations": [
       {

@@ -1,4 +1,4 @@
-import { createAction } from "../state.helpers";
+import { createAction } from "@/state/state.helpers";
 
 export const changeSearchQuery = createAction<{ readonly query: string }>(
   "[Common] Change search query"

@@ -1,4 +1,3 @@
-using System.Linq;
 using HotChocolate.Execution;
 using NodaTime;
 using NodaTime.Text;
@@ -8,7 +7,7 @@ namespace HotChocolate.Types.NodaTime.Tests;
 
 public class ZonedDateTimeTypeCustomIntegrationTests
 {
-    private readonly IRequestExecutor testExecutor;
+    private readonly IRequestExecutor _testExecutor;
 
     public ZonedDateTimeTypeCustomIntegrationTests()
     {
@@ -16,7 +15,7 @@ public class ZonedDateTimeTypeCustomIntegrationTests
             "uuuu'-'MM'-'dd'T'HH':'mm':'ss' 'z' '(o<g>)",
             DateTimeZoneProviders.Tzdb);
 
-        testExecutor = SchemaBuilder.New()
+        _testExecutor = SchemaBuilder.New()
             .AddQueryType<ZonedDateTimeTypeIntegrationTests.Schema.Query>()
             .AddMutationType<ZonedDateTimeTypeIntegrationTests.Schema.Mutation>()
             .AddNodaTime(typeof(ZonedDateTimeType))
@@ -28,91 +27,99 @@ public class ZonedDateTimeTypeCustomIntegrationTests
     [Fact]
     public void QueryReturns()
     {
-        IExecutionResult? result = testExecutor.Execute("query { test: rome }");
-        var queryResult = result as IReadOnlyQueryResult;
-        Assert.Equal("2020-12-31T18:30:13 Asia/Kathmandu (+05:45)", queryResult!.Data!["test"]);
+        IExecutionResult result = _testExecutor.Execute("query { test: rome }");
+        Assert.Equal(
+            "2020-12-31T18:30:13 Asia/Kathmandu (+05:45)", 
+            result.ExpectQueryResult().Data!["test"]);
     }
 
     [Fact]
     public void QueryReturnsUtc()
     {
-        IExecutionResult? result = testExecutor.Execute("query { test: utc }");
-        var queryResult = result as IReadOnlyQueryResult;
-        Assert.Equal("2020-12-31T18:30:13 UTC (+00)", queryResult!.Data!["test"]);
+        IExecutionResult result = _testExecutor.Execute("query { test: utc }");
+        Assert.Equal("2020-12-31T18:30:13 UTC (+00)", result.ExpectQueryResult().Data!["test"]);
     }
 
     [Fact]
     public void ParsesVariable()
     {
-        IExecutionResult? result = testExecutor
+        IExecutionResult result = _testExecutor
             .Execute(QueryRequestBuilder.New()
                 .SetQuery("mutation($arg: ZonedDateTime!) { test(arg: $arg) }")
                 .SetVariableValue("arg", "2020-12-31T19:30:13 Asia/Kathmandu (+05:45)")
                 .Create());
-        var queryResult = result as IReadOnlyQueryResult;
-        Assert.Equal("2020-12-31T19:40:13 Asia/Kathmandu (+05:45)", queryResult!.Data!["test"]);
+
+        Assert.Equal(
+            "2020-12-31T19:40:13 Asia/Kathmandu (+05:45)",
+            result.ExpectQueryResult().Data!["test"]);
     }
 
     [Fact]
     public void ParsesVariableWithUTC()
     {
-        IExecutionResult? result = testExecutor
+        IExecutionResult result = _testExecutor
             .Execute(QueryRequestBuilder.New()
                 .SetQuery("mutation($arg: ZonedDateTime!) { test(arg: $arg) }")
                 .SetVariableValue("arg", "2020-12-31T19:30:13 UTC (+00)")
                 .Create());
-        var queryResult = result as IReadOnlyQueryResult;
-        Assert.Equal("2020-12-31T19:40:13 UTC (+00)", queryResult!.Data!["test"]);
+
+        Assert.Equal("2020-12-31T19:40:13 UTC (+00)", result.ExpectQueryResult().Data!["test"]);
     }
 
     [Fact]
     public void DoesntParseAnIncorrectVariable()
     {
-        IExecutionResult? result = testExecutor
+        IExecutionResult result = _testExecutor
             .Execute(QueryRequestBuilder.New()
                 .SetQuery("mutation($arg: ZonedDateTime!) { test(arg: $arg) }")
                 .SetVariableValue("arg", "2020-12-31T19:30:13 (UTC)")
                 .Create());
-        var queryResult = result as IReadOnlyQueryResult;
-        Assert.Null(queryResult!.Data);
-        Assert.Equal(1, queryResult!.Errors!.Count);
+
+        Assert.Null(result.ExpectQueryResult().Data);
+        Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
     }
 
     [Fact]
     public void ParsesLiteral()
     {
-        IExecutionResult? result = testExecutor
+        IExecutionResult result = _testExecutor
             .Execute(QueryRequestBuilder.New()
-                .SetQuery("mutation { test(arg: \"2020-12-31T19:30:13 Asia/Kathmandu (+05:45)\") }")
+                .SetQuery(
+                    @"mutation
+                    {
+                        test(arg: ""2020-12-31T19:30:13 Asia/Kathmandu (+05:45)"") 
+                    }")
                 .Create());
-        var queryResult = result as IReadOnlyQueryResult;
-        Assert.Equal("2020-12-31T19:40:13 Asia/Kathmandu (+05:45)", queryResult!.Data!["test"]);
+
+        Assert.Equal(
+            "2020-12-31T19:40:13 Asia/Kathmandu (+05:45)",
+            result.ExpectQueryResult().Data!["test"]);
     }
 
     [Fact]
     public void ParsesLiteralWithUTC()
     {
-        IExecutionResult? result = testExecutor
+        IExecutionResult result = _testExecutor
             .Execute(QueryRequestBuilder.New()
                 .SetQuery("mutation { test(arg: \"2020-12-31T19:30:13 UTC (+00)\") }")
                 .Create());
-        var queryResult = result as IReadOnlyQueryResult;
-        Assert.Equal("2020-12-31T19:40:13 UTC (+00)", queryResult!.Data!["test"]);
+
+        Assert.Equal("2020-12-31T19:40:13 UTC (+00)", result.ExpectQueryResult().Data!["test"]);
     }
 
     [Fact]
     public void DoesntParseIncorrectLiteral()
     {
-        IExecutionResult? result = testExecutor
+        IExecutionResult result = _testExecutor
             .Execute(QueryRequestBuilder.New()
                 .SetQuery("mutation { test(arg: \"2020-12-31T19:30:13 (UTC)\") }")
                 .Create());
-        var queryResult = result as IReadOnlyQueryResult;
-        Assert.Null(queryResult!.Data);
-        Assert.Equal(1, queryResult!.Errors!.Count);
-        Assert.Null(queryResult.Errors[0].Code);
+
+        Assert.Null(result.ExpectQueryResult().Data);
+        Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
+        Assert.Null(result.ExpectQueryResult().Errors![0].Code);
         Assert.Equal(
             "Unable to deserialize string to ZonedDateTime",
-            queryResult.Errors[0].Message);
+            result.ExpectQueryResult().Errors![0].Message);
     }
 }

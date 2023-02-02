@@ -1,139 +1,138 @@
 using System;
 using System.Collections.Generic;
 
-namespace HotChocolate.Data.Neo4J.Language
+namespace HotChocolate.Data.Neo4J.Language;
+
+/// <summary>
+/// Represents a map projection as described in
+/// <a href="https://medium.com/neo4j/loading-graph-data-for-an-object-graph-mapper-or-graphql-5103b1a8b66e">
+/// Read More
+/// </a>
+/// </summary>
+public class MapProjection : Expression
 {
-    /// <summary>
-    /// Represents a map projection as described in
-    /// <a href="https://medium.com/neo4j/loading-graph-data-for-an-object-graph-mapper-or-graphql-5103b1a8b66e">
-    /// Read More
-    /// </a>
-    /// </summary>
-    public class MapProjection : Expression
+    private readonly SymbolicName _name;
+    private readonly MapExpression _expression;
+
+    public MapProjection(SymbolicName name, MapExpression expression)
     {
-        private readonly SymbolicName _name;
-        private readonly MapExpression _expression;
+        _name = name;
+        _expression = expression;
+    }
 
-        public MapProjection(SymbolicName name, MapExpression expression)
+    public override ClauseKind Kind => ClauseKind.MapProjection;
+
+    public MapProjection And(params object[] content) =>
+        new(_name, _expression.AddEntries(CreateNewContent(content)));
+
+    private static List<Expression> CreateNewContent(params object[] content)
+    {
+        List<Expression> newContent = new();
+        HashSet<string> knownKeys = new();
+
+        string? lastKey = null;
+        Expression? lastExpression = null;
+        var i = 0;
+        while (i < content.Length)
         {
-            _name = name;
-            _expression = expression;
-        }
+            var next = i + 1 >= content.Length ? null : ContentAt(content, i + 1);
+            var current = ContentAt(content, i);
 
-        public override ClauseKind Kind => ClauseKind.MapProjection;
-
-        public MapProjection And(params object[] content) =>
-            new(_name, _expression.AddEntries(CreateNewContent(content)));
-
-        private static List<Expression> CreateNewContent(params object[] content)
-        {
-            List<Expression> newContent = new();
-            HashSet<string> knownKeys = new();
-
-            string? lastKey = null;
-            Expression? lastExpression = null;
-            var i = 0;
-            while (i < content.Length)
+            switch (current)
             {
-                object? next = i + 1 >= content.Length ? null : ContentAt(content, i + 1);
-                object? current = ContentAt(content, i);
+                case string s when next is Expression expression:
+                    lastKey = s;
+                    lastExpression = expression;
+                    i += 2;
+                    break;
+                case string s:
+                    lastKey = null;
+                    lastExpression = PropertyLookup.ForName(s);
+                    i += 1;
+                    break;
+                case Expression expression:
+                    lastKey = null;
+                    lastExpression = expression;
+                    i += 1;
+                    break;
+            }
 
-                switch (current)
+            if (lastExpression is Asterisk)
+            {
+                lastExpression = PropertyLookup.Wildcard();
+            }
+
+            if (lastKey != null)
+            {
+                Ensure.IsTrue(!knownKeys.Contains(lastKey), "Duplicate key '" + lastKey + "'");
+                newContent.Add(new KeyValueMapEntry(lastKey, lastExpression));
+                knownKeys.Add(lastKey);
+            }
+            else
+            {
+                switch (lastExpression)
                 {
-                    case string s when next is Expression expression:
-                        lastKey = s;
-                        lastExpression = expression;
-                        i += 2;
+                    case SymbolicName:
+                    case PropertyLookup:
+                        newContent.Add(lastExpression);
                         break;
-                    case string s:
-                        lastKey = null;
-                        lastExpression = PropertyLookup.ForName(s);
-                        i += 1;
-                        break;
-                    case Expression expression:
-                        lastKey = null;
-                        lastExpression = expression;
-                        i += 1;
-                        break;
-                }
+                    case Property property:
+                        var names = property.Names;
 
-                if (lastExpression is Asterisk)
-                {
-                    lastExpression = PropertyLookup.Wildcard();
-                }
-
-                if (lastKey != null)
-                {
-                    Ensure.IsTrue(!knownKeys.Contains(lastKey), "Duplicate key '" + lastKey + "'");
-                    newContent.Add(new KeyValueMapEntry(lastKey, lastExpression));
-                    knownKeys.Add(lastKey);
-                }
-                else
-                {
-                    switch (lastExpression)
-                    {
-                        case SymbolicName:
-                        case PropertyLookup:
-                            newContent.Add(lastExpression);
-                            break;
-                        case Property property:
-                            List<PropertyLookup> names = property.Names;
-
-                            if (names.Count > 1)
-                            {
-                                throw new InvalidOperationException(
-                                    "Cannot project nested properties");
-                            }
-
-                            newContent.AddRange(names);
-                            break;
-
-                        case AliasedExpression expression:
-                            newContent.Add(new KeyValueMapEntry(expression.Alias, expression));
-                            break;
-
-                        case null:
+                        if (names.Count > 1)
+                        {
                             throw new InvalidOperationException(
-                                "Could not determine an expression from the given content!");
-                        default:
-                            throw new InvalidOperationException(lastExpression + " of type " +
-                                " cannot be used with an implicit name as map entry.");
-                    }
+                                "Cannot project nested properties");
+                        }
+
+                        newContent.AddRange(names);
+                        break;
+
+                    case AliasedExpression expression:
+                        newContent.Add(new KeyValueMapEntry(expression.Alias, expression));
+                        break;
+
+                    case null:
+                        throw new InvalidOperationException(
+                            "Could not determine an expression from the given content!");
+                    default:
+                        throw new InvalidOperationException(lastExpression + " of type " +
+                                                            " cannot be used with an implicit name as map entry.");
                 }
-
-                lastKey = null;
-                lastExpression = null;
             }
 
-            return newContent;
+            lastKey = null;
+            lastExpression = null;
         }
 
-        public override void Visit(CypherVisitor cypherVisitor)
+        return newContent;
+    }
+
+    public override void Visit(CypherVisitor cypherVisitor)
+    {
+        cypherVisitor.Enter(this);
+        _name.Visit(cypherVisitor);
+        _expression.Visit(cypherVisitor);
+        cypherVisitor.Leave(this);
+    }
+
+    public static MapProjection Create(SymbolicName name, params object[] content) =>
+        new(name, MapExpression.WithEntries(CreateNewContent(content)));
+
+    private static object? ContentAt(object[] content, int i)
+    {
+        if (content == null)
         {
-            cypherVisitor.Enter(this);
-            _name.Visit(cypherVisitor);
-            _expression.Visit(cypherVisitor);
-            cypherVisitor.Leave(this);
+            throw new ArgumentNullException(nameof(content));
         }
 
-        public static MapProjection Create(SymbolicName name, params object[] content) =>
-            new(name, MapExpression.WithEntries(CreateNewContent(content)));
+        var currentObject = content[i];
 
-        private static object? ContentAt(object[] content, int i)
+        return currentObject switch
         {
-            if (content == null)
-            {
-                throw new ArgumentNullException(nameof(content));
-            }
-
-            object currentObject = content[i];
-
-            return currentObject switch
-            {
-                Expression expression => Expressions.NameOrExpression(expression),
-                INamed named => named.SymbolicName,
-                _ => currentObject
-            };
-        }
+            Expression expression => Expressions.NameOrExpression(expression),
+            INamed named => named.SymbolicName,
+            _ => currentObject
+        };
     }
 }

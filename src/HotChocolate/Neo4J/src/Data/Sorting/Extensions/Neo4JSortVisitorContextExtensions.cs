@@ -1,23 +1,21 @@
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Data.Neo4J.Language;
 
-namespace HotChocolate.Data.Neo4J.Sorting
+namespace HotChocolate.Data.Neo4J.Sorting;
+
+internal static class Neo4JSortVisitorContextExtensions
 {
-    internal static class Neo4JSortVisitorContextExtensions
+    public static bool TryCreateQuery(
+        this Neo4JSortVisitorContext context,
+        [NotNullWhen(true)] out Neo4JSortDefinition[]? query)
     {
-        public static bool TryCreateQuery(
-            this Neo4JSortVisitorContext context,
-            [NotNullWhen(true)] out Neo4JSortDefinition[]? query)
+        query = null;
+
+        if (context.Operations.Count == 0)
         {
-            query = null;
-
-            if (context.Operations.Count == 0)
-            {
-                return false;
-            }
-
-            query = context.Operations.ToArray();
-            return true;
+            return false;
         }
+
+        query = context.Operations.ToArray();
+        return true;
     }
 }

@@ -1,15 +1,9 @@
 using System.Linq;
-using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration.CSharp;
 
 internal static class StringExtensions
 {
-    public static string AsStringToken(this NameString str)
-    {
-        return AsStringToken(str.Value);
-    }
-
     public static string AsStringToken(this string str)
     {
         return "\"" + str + "\"";

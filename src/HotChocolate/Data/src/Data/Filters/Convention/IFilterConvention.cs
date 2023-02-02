@@ -22,7 +22,7 @@ public interface IFilterConvention : IConvention
     /// <returns>
     /// Returns the GraphQL type name that was inferred from the <paramref name="runtimeType"/>.
     /// </returns>
-    NameString GetTypeName(Type runtimeType);
+    string GetTypeName(Type runtimeType);
 
     /// <summary>
     /// Gets the GraphQL type description from a runtime type.
@@ -45,7 +45,7 @@ public interface IFilterConvention : IConvention
     /// <returns>
     /// Returns the GraphQL field name that was inferred from the <see cref="MemberInfo"/>.
     /// </returns>
-    NameString GetFieldName(MemberInfo member);
+    string GetFieldName(MemberInfo member);
 
     /// <summary>
     /// Gets the GraphQL field description from a <see cref="MemberInfo"/>.
@@ -66,7 +66,7 @@ public interface IFilterConvention : IConvention
     /// The member from which a field shall be inferred.
     /// </param>
     /// <returns>
-    /// Returns a <see cref="RuntimeTypeReference"/> that represents the field type.
+    /// Returns a <see cref="ExtendedTypeReference"/> that represents the field type.
     /// </returns>
     ExtendedTypeReference GetFieldType(MemberInfo member);
 
@@ -79,7 +79,7 @@ public interface IFilterConvention : IConvention
     /// <returns>
     /// Returns the operation name.
     /// </returns>
-    NameString GetOperationName(int operationId);
+    string GetOperationName(int operationId);
 
     /// <summary>
     /// Gets the operation description for the provided <paramref name="operationId"/>.
@@ -98,7 +98,7 @@ public interface IFilterConvention : IConvention
     /// <returns>
     /// Returns the filter argument name.
     /// </returns>
-    NameString GetArgumentName();
+    string GetArgumentName();
 
     /// <summary>
     /// Applies configurations to a filter type.
@@ -110,7 +110,7 @@ public interface IFilterConvention : IConvention
     /// The descriptor to which the configurations shall be applied to.
     /// </param>
     void ApplyConfigurations(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         IFilterInputTypeDescriptor descriptor);
 
     bool TryGetHandler(
@@ -118,6 +118,14 @@ public interface IFilterConvention : IConvention
         IFilterInputTypeDefinition typeDefinition,
         IFilterFieldDefinition fieldDefinition,
         [NotNullWhen(true)] out IFilterFieldHandler? handler);
+
+    /// <summary>
+    /// Creates metadata for a field that the provider can pick up an use for the translation
+    /// </summary>
+    IFilterMetadata? CreateMetaData(
+        ITypeCompletionContext context,
+        IFilterInputTypeDefinition typeDefinition,
+        IFilterFieldDefinition fieldDefinition);
 
     /// <summary>
     /// Creates a middleware that represents the filter execution logic

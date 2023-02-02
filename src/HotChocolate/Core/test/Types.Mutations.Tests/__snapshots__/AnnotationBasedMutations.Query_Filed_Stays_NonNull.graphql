@@ -1,0 +1,36 @@
+schema {
+  query: Query
+  mutation: MutationWithPayloadOverride
+}
+
+interface Error {
+  message: String!
+}
+
+type Custom2Error implements Error {
+  message: String!
+}
+
+type CustomError implements Error {
+  message: String!
+}
+
+type DoSomething2Payload {
+  userId: Int
+  errors: [DoSomething2Error!]
+  query: Query!
+}
+
+type MutationWithPayloadOverride {
+  doSomething2(input: DoSomething2Input!): DoSomething2Payload!
+}
+
+type Query {
+  abc: String
+}
+
+union DoSomething2Error = CustomError | Custom2Error
+
+input DoSomething2Input {
+  userId: Int
+}

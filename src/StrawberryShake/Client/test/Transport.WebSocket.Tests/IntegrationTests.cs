@@ -1,23 +1,20 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
-using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Types;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using StrawberryShake.Transport.WebSockets.Protocols;
-using Xunit;
 using static HotChocolate.Tests.TestHelper;
 
 namespace StrawberryShake.Transport.WebSockets;
@@ -30,13 +27,13 @@ public class IntegrationTests : ServerTestBase
     [Fact]
     public async Task Simple_Request()
     {
-        Snapshot.FullName();
+        var snapshot = Snapshot.Create();
 
         await TryTest(
             async ct =>
             {
                 // arrange
-                using IWebHost host = TestServerHelper.CreateServer(
+                using var host = TestServerHelper.CreateServer(
                     x => x.AddTypeExtension<StringSubscriptionExtensions>(),
                     out var port);
                 var serviceCollection = new ServiceCollection();
@@ -48,7 +45,7 @@ public class IntegrationTests : ServerTestBase
                 IServiceProvider services =
                     serviceCollection.BuildServiceProvider();
 
-                ISessionPool sessionPool =
+                var sessionPool =
                     services.GetRequiredService<ISessionPool>();
 
                 List<JsonDocument> results = new();
@@ -59,7 +56,7 @@ public class IntegrationTests : ServerTestBase
                 var connection =
                     new WebSocketConnection(async _ => await sessionPool.CreateAsync("Foo", _));
 
-                await foreach (Response<JsonDocument> response in
+                await foreach (var response in
                     connection.ExecuteAsync(request).WithCancellation(ct))
                 {
                     if (response.Body is not null)
@@ -70,20 +67,22 @@ public class IntegrationTests : ServerTestBase
 
 
                 // assert
-                results.Select(x => x.RootElement.ToString()).ToList().MatchSnapshot();
+                await snapshot
+                    .Add(results.Select(x => x.RootElement.ToString()).ToList())
+                    .MatchAsync(ct);
             });
     }
 
     [Fact]
     public async Task Execution_Error()
     {
-        Snapshot.FullName();
+        var snapshot = Snapshot.Create();
 
         await TryTest(
             async ct =>
             {
                 // arrange
-                using IWebHost host = TestServerHelper.CreateServer(
+                using var host = TestServerHelper.CreateServer(
                     x => x.AddTypeExtension<StringSubscriptionExtensions>(),
                     out var port);
 
@@ -95,7 +94,7 @@ public class IntegrationTests : ServerTestBase
                         c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
 
                 IServiceProvider services = serviceCollection.BuildServiceProvider();
-                ISessionPool sessionPool = services.GetRequiredService<ISessionPool>();
+                var sessionPool = services.GetRequiredService<ISessionPool>();
 
                 List<JsonDocument> results = new();
                 MockDocument document = new("subscription Test { onTest }");
@@ -105,7 +104,7 @@ public class IntegrationTests : ServerTestBase
                 var connection =
                     new WebSocketConnection(async _ => await sessionPool.CreateAsync("Foo", _));
 
-                await foreach (Response<JsonDocument> response in
+                await foreach (var response in
                     connection.ExecuteAsync(request).WithCancellation(ct))
                 {
                     if (response.Body is not null)
@@ -115,20 +114,22 @@ public class IntegrationTests : ServerTestBase
                 }
 
                 // assert
-                results.Select(x => x.RootElement.ToString()).ToList().MatchSnapshot();
+                await snapshot
+                    .Add(results.Select(x => x.RootElement.ToString()).ToList())
+                    .MatchAsync(ct);
             });
     }
 
     [Fact]
     public async Task Validation_Error()
     {
-        Snapshot.FullName();
+        var snapshot = Snapshot.Create();
 
         await TryTest(
             async ct =>
             {
                 // arrange
-                using IWebHost host = TestServerHelper.CreateServer(
+                using var host = TestServerHelper.CreateServer(
                     x => x.AddTypeExtension<StringSubscriptionExtensions>(),
                     out var port);
                 var serviceCollection = new ServiceCollection();
@@ -140,7 +141,7 @@ public class IntegrationTests : ServerTestBase
                 IServiceProvider services =
                     serviceCollection.BuildServiceProvider();
 
-                ISessionPool sessionPool =
+                var sessionPool =
                     services.GetRequiredService<ISessionPool>();
 
                 List<string> results = new();
@@ -151,7 +152,7 @@ public class IntegrationTests : ServerTestBase
                 var connection =
                     new WebSocketConnection(async _ => await sessionPool.CreateAsync("Foo", _));
 
-                await foreach (Response<JsonDocument> response in
+                await foreach (var response in
                     connection.ExecuteAsync(request).WithCancellation(ct))
                 {
                     if (response.Exception is not null)
@@ -161,14 +162,14 @@ public class IntegrationTests : ServerTestBase
                 }
 
                 // assert
-                results.MatchSnapshot();
+                await snapshot.Add(results).MatchAsync(ct);
             });
     }
 
     [Fact]
     public async Task Request_With_ConnectionPayload()
     {
-        Snapshot.FullName();
+        var snapshot = Snapshot.Create();
 
         await TryTest(
             async ct =>
@@ -176,7 +177,7 @@ public class IntegrationTests : ServerTestBase
                 // arrange
                 var payload = new Dictionary<string, object> { ["Key"] = "Value" };
                 var sessionInterceptor = new StubSessionInterceptor();
-                using IWebHost host = TestServerHelper.CreateServer(
+                using var host = TestServerHelper.CreateServer(
                     builder => builder
                         .AddTypeExtension<StringSubscriptionExtensions>()
                         .AddSocketSessionInterceptor<ISocketSessionInterceptor>(
@@ -192,7 +193,7 @@ public class IntegrationTests : ServerTestBase
                     .ConfigureConnectionInterceptor(new StubConnectionInterceptor(payload));
 
                 IServiceProvider services = serviceCollection.BuildServiceProvider();
-                ISessionPool sessionPool = services.GetRequiredService<ISessionPool>();
+                var sessionPool = services.GetRequiredService<ISessionPool>();
 
                 List<string> results = new();
                 MockDocument document = new("subscription Test { onTest(id:1) }");
@@ -202,34 +203,34 @@ public class IntegrationTests : ServerTestBase
                 var connection =
                     new WebSocketConnection(async _ => await sessionPool.CreateAsync("Foo", _));
 
-                await foreach (Response<JsonDocument> response in
+                await foreach (var response in
                     connection.ExecuteAsync(request).WithCancellation(ct))
                 {
                     if (response.Body is not null)
                     {
-                        results.Add(response.Body.RootElement.ToString()!);
+                        results.Add(response.Body.RootElement.ToString());
                     }
                 }
 
                 // assert
-                Dictionary<string, string> message =
+                var message =
                     Assert.IsType<Dictionary<string, string>>(
                         sessionInterceptor.InitializeConnectionMessage);
                 Assert.Equal(payload["Key"], message["Key"]);
-                results.MatchSnapshot();
+                await snapshot.Add(results).MatchAsync(ct);
             });
     }
 
     [Fact]
     public async Task Parallel_Request_SameSocket()
     {
-        Snapshot.FullName();
+        var snapshot = Snapshot.Create();
 
         await TryTest(
             async ct =>
             {
                 // arrange
-                using IWebHost host = TestServerHelper
+                using var host = TestServerHelper
                     .CreateServer(
                         x => x.AddTypeExtension<StringSubscriptionExtensions>(),
                         out var port);
@@ -242,7 +243,7 @@ public class IntegrationTests : ServerTestBase
                         c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
                 IServiceProvider services = serviceCollection.BuildServiceProvider();
 
-                ISessionPool sessionPool = services.GetRequiredService<ISessionPool>();
+                var sessionPool = services.GetRequiredService<ISessionPool>();
                 ConcurrentDictionary<int, List<JsonDocument>> results = new();
 
                 async Task CreateSubscription(int id)
@@ -254,7 +255,7 @@ public class IntegrationTests : ServerTestBase
                         $"subscription Test {{ onTest(id:{id.ToString()}) }}");
                     var request = new OperationRequest("Test", document);
 
-                    await foreach (Response<JsonDocument> response in
+                    await foreach (var response in
                         connection.ExecuteAsync(request).WithCancellation(ct))
                     {
                         if (response.Body is not null)
@@ -284,9 +285,9 @@ public class IntegrationTests : ServerTestBase
                 // assert
                 var str = "";
 
-                foreach (KeyValuePair<int, List<JsonDocument>> sub in results.OrderBy(x => x.Key))
+                foreach (var sub in results.OrderBy(x => x.Key))
                 {
-                    JsonDocument[] jsonDocuments = sub.Value.ToArray();
+                    var jsonDocuments = sub.Value.ToArray();
 
                     str += "Operation " + sub.Key + "\n";
 
@@ -296,7 +297,7 @@ public class IntegrationTests : ServerTestBase
                     }
                 }
 
-                str.MatchSnapshot();
+                await snapshot.Add(str).MatchAsync(ct);
             });
     }
 
@@ -324,7 +325,9 @@ public class IntegrationTests : ServerTestBase
         }
 
 
+#pragma warning disable CS0618
         [SubscribeAndResolve]
+#pragma warning restore CS0618
         public async IAsyncEnumerable<int> CountUp()
         {
             for (var i = 0; i < 100; i++)

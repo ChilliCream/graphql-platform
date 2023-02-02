@@ -3,7 +3,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
-using HotChocolate.Stitching.Processing;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -15,10 +14,10 @@ public class RemoteQueryBuilderTests
     public void BuildRemoteQuery()
     {
         // arrange
-        IImmutableStack<SelectionPathComponent> path =
+        var path =
             SelectionPathParser.Parse("a.b.c.d(a: $fields:bar)");
 
-        DocumentNode initialQuery =
+        var initialQuery =
             Utf8GraphQLParser.Parse(
                 @"{
                         foo {
@@ -33,7 +32,7 @@ public class RemoteQueryBuilderTests
                       }
                     ");
 
-        FieldNode field = initialQuery.Definitions
+        var field = initialQuery.Definitions
             .OfType<OperationDefinitionNode>().Single()
             .SelectionSet.Selections
             .OfType<FieldNode>().Single()
@@ -41,12 +40,12 @@ public class RemoteQueryBuilderTests
             .OfType<FieldNode>().Single();
 
         // act
-        DocumentNode newQuery = RemoteQueryBuilder.New()
+        var newQuery = RemoteQueryBuilder.New()
             .SetOperation(null, OperationType.Query)
             .SetSelectionPath(path)
             .SetRequestField(field)
             .AddVariable("__fields_bar", new NamedTypeNode(null, new NameNode("String")))
-            .Build("abc", new Dictionary<(NameString Type, NameString Schema), NameString>());
+            .Build("abc", new Dictionary<(string Type, string Schema), string>());
 
         // assert
         newQuery.Print().MatchSnapshot();
@@ -56,10 +55,10 @@ public class RemoteQueryBuilderTests
     public void BuildRemoteQueryCanOverrideOperationName()
     {
         // arrange
-        IImmutableStack<SelectionPathComponent> path =
+        var path =
             SelectionPathParser.Parse("a.b.c.d(a: $fields:bar)");
 
-        DocumentNode initialQuery =
+        var initialQuery =
             Utf8GraphQLParser.Parse(
                 @"{
                         foo {
@@ -74,7 +73,7 @@ public class RemoteQueryBuilderTests
                       }
                     ");
 
-        FieldNode field = initialQuery.Definitions
+        var field = initialQuery.Definitions
             .OfType<OperationDefinitionNode>().Single()
             .SelectionSet.Selections
             .OfType<FieldNode>().Single()
@@ -83,14 +82,14 @@ public class RemoteQueryBuilderTests
 
 
         // act
-        DocumentNode newQuery = RemoteQueryBuilder.New()
+        var newQuery = RemoteQueryBuilder.New()
             .SetOperation(new NameNode(
-                nameof(BuildRemoteQueryCanOverrideOperationName)),
+                    nameof(BuildRemoteQueryCanOverrideOperationName)),
                 OperationType.Query)
             .SetSelectionPath(path)
             .SetRequestField(field)
             .AddVariable("__fields_bar", new NamedTypeNode(null, new NameNode("String")))
-            .Build("abc", new Dictionary<(NameString Type, NameString Schema), NameString>());
+            .Build("abc", new Dictionary<(string Type, string Schema), string>());
 
         // assert
         newQuery.Print().MatchSnapshot();

@@ -2,8 +2,10 @@ const { createFilePath } = require("gatsby-source-filesystem");
 const path = require("path");
 const git = require("simple-git/promise");
 
+/** @type import('gatsby').GatsbyNode["createPages"] */
 exports.createPages = async ({ actions, graphql, reporter }) => {
-  const { createPage, createRedirect } = actions;
+  const { createPage } = actions;
+
   const result = await graphql(`
     {
       blog: allMdx(
@@ -34,6 +36,15 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
           }
         }
       }
+      productsConfig: file(
+        sourceInstanceName: { eq: "docs" }
+        relativePath: { eq: "docs.json" }
+      ) {
+        products: childrenDocsJson {
+          path
+          latestStableVersion
+        }
+      }
     }
   `);
 
@@ -44,76 +55,10 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
   }
 
   createBlogArticles(createPage, result.data.blog);
-  createDocPages(createPage, result.data.docs);
 
-  createRedirect({
-    fromPath: "/blog/2019/03/18/entity-framework",
-    toPath: "/blog/2020/03/18/entity-framework",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
-  createRedirect({
-    fromPath: "/docs/",
-    toPath: "/docs/hotchocolate/",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
-  createRedirect({
-    fromPath: "/docs/marshmallowpie/",
-    toPath: "/docs/hotchocolate/",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
+  const products = result.data.productsConfig.products;
 
-  // images
-  createRedirect({
-    fromPath: "/img/projects/greendonut-banner.svg",
-    toPath: "/resources/greendonut-banner.svg",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
-  createRedirect({
-    fromPath: "/img/projects/greendonut-signet.png",
-    toPath: "/resources/greendonut-signet.png",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
-  createRedirect({
-    fromPath: "/img/projects/hotchocolate-banner.svg",
-    toPath: "/resources/hotchocolate-banner.svg",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
-  createRedirect({
-    fromPath: "/img/projects/hotchocolate-signet.png",
-    toPath: "/resources/hotchocolate-signet.png",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
-  createRedirect({
-    fromPath: "/img/projects/react-rasta-banner.svg",
-    toPath: "/resources/react-rasta-banner.svg",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
-  createRedirect({
-    fromPath: "/img/projects/react-rasta-signet.png",
-    toPath: "/resources/react-rasta-signet.png",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
-  createRedirect({
-    fromPath: "/img/projects/strawberryshake-banner.svg",
-    toPath: "/resources/strawberryshake-banner.svg",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
-  createRedirect({
-    fromPath: "/img/projects/strawberryshake-signet.png",
-    toPath: "/resources/strawberryshake-signet.png",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
+  createDocPages(createPage, result.data.docs, products);
 };
 
 exports.onCreateNode = async ({ node, actions, getNode, reporter }) => {
@@ -123,7 +68,7 @@ exports.onCreateNode = async ({ node, actions, getNode, reporter }) => {
     return;
   }
 
-  // if the path is defined on the frontmatter (like for posts) use that as slug
+  // if the path is defined on the frontmatter (like for blogs) use that as slug
   let path = node.frontmatter && node.frontmatter.path;
 
   if (!path) {
@@ -229,23 +174,70 @@ function createBlogArticles(createPage, data) {
   });
 }
 
-function createDocPages(createPage, data) {
+function createDocPages(createPage, data, products) {
   const docTemplate = path.resolve(`src/templates/doc-page-template.tsx`);
   const { pages } = data;
 
   // Create Single Pages
   pages.forEach((page) => {
-    const path = page.childMdx.fields.slug;
+    const slug = page.childMdx.fields.slug;
     const originPath = `${page.relativeDirectory}/${page.name}.md`;
 
+    const product = getProductFromSlug(slug, products);
+
+    if (product && product.version === product.latestStableVersion) {
+      const unversionedSlug = slug.replace(
+        product.basePath,
+        "/docs/" + product.path
+      );
+
+      // Instead of duplicating the page here, we could just create a page that
+      // does a JS redirect to the actual (versioned) slug. Google's crawler
+      // should handle that just fine. But just to be fully backwards compatible,
+      // this duplicates all of the versioned pages of the latest
+      // stable version as unversioned pages.
+      // If v12 is the stable version, two versions will live side by side:
+      // /docs/hotchocolate/v12/whatever
+      // /docs/hotchocolate/whatever
+
+      createPage({
+        path: unversionedSlug,
+        component: docTemplate,
+        context: {
+          originPath,
+        },
+      });
+    }
+
     createPage({
-      path,
+      path: slug,
       component: docTemplate,
       context: {
         originPath,
       },
     });
   });
+}
+
+const productAndVersionPattern = /^\/docs\/([\w-]+)(?:\/(v\d+))?/;
+
+function getProductFromSlug(slug, products) {
+  const productMatch = productAndVersionPattern.exec(slug);
+
+  if (!productMatch) {
+    return null;
+  }
+
+  const productName = productMatch[1] || "";
+  const productVersion = productMatch[2] || "";
+
+  const product = products.find((p) => p?.path === productName);
+
+  return {
+    ...product,
+    version: productVersion,
+    basePath: productMatch[0],
+  };
 }
 
 function getGitLog(filepath) {

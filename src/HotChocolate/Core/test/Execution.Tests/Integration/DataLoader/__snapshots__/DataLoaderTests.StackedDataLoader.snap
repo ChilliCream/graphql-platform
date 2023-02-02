@@ -1,35 +1,44 @@
 ﻿[
   {
+    "Kind": "SingleResult",
     "Label": null,
     "Path": null,
     "Data": {
       "a": "aaabacadaeafagah",
       "b": "babbbcbdbebfbgbh"
     },
+    "Items": null,
     "Errors": null,
     "Extensions": null,
+    "Incremental": null,
     "ContextData": null,
     "HasNext": null
   },
   {
+    "Kind": "SingleResult",
     "Label": null,
     "Path": null,
     "Data": {
       "a": "aaabacadaeafagah"
     },
+    "Items": null,
     "Errors": null,
     "Extensions": null,
+    "Incremental": null,
     "ContextData": null,
     "HasNext": null
   },
   {
+    "Kind": "SingleResult",
     "Label": null,
     "Path": null,
     "Data": {
       "c": "cacbcccdcecfcgch"
     },
+    "Items": null,
     "Errors": null,
     "Extensions": null,
+    "Incremental": null,
     "ContextData": null,
     "HasNext": null
   }

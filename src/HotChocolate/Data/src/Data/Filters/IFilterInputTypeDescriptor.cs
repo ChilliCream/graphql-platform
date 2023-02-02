@@ -20,7 +20,7 @@ public interface IFilterInputTypeDescriptor
     /// <paramref name="value"/> is <c>null</c> or
     /// <see cref="string.Empty"/>.
     /// </exception>
-    IFilterInputTypeDescriptor Name(NameString value);
+    IFilterInputTypeDescriptor Name(string value);
 
     /// <summary>
     /// Adds explanatory text of the <see cref="FilterInputType{T}"/>
@@ -44,7 +44,7 @@ public interface IFilterInputTypeDescriptor
     /// <param name="name">
     /// The name of the field.
     /// </param>
-    IFilterFieldDescriptor Field(NameString name);
+    IFilterFieldDescriptor Field(string name);
 
     /// <summary>
     /// Ignore the specified property.
@@ -60,7 +60,7 @@ public interface IFilterInputTypeDescriptor
     /// <param name="name">
     /// The name of the field.
     /// </param>
-    IFilterInputTypeDescriptor Ignore(NameString name);
+    IFilterInputTypeDescriptor Ignore(string name);
 
     /// <summary>
     /// Defines if OR-combinators are allowed for this filter.
@@ -110,6 +110,6 @@ public interface IFilterInputTypeDescriptor
     /// The directive argument values.
     /// </param>
     IFilterInputTypeDescriptor Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments);
 }

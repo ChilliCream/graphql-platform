@@ -8,7 +8,10 @@ public static class AccountsSchemaRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddAccountsSchema(
         this IRequestExecutorBuilder builder)
     {
-        builder.Services.AddSingleton<UserRepository>();
-        return builder.AddQueryType<Query>();
+        builder.Services
+            .AddSingleton<UserRepository>();
+
+        return builder
+            .AddQueryType<Query>();
     }
 }

@@ -1,0 +1,8 @@
+schema {
+  query: WithStaticField2
+}
+
+type WithStaticField2 {
+  staticHello: String!
+  hello: String!
+}

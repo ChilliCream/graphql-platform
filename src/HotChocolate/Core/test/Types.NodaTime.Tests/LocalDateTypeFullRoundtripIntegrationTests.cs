@@ -1,4 +1,3 @@
-using System.Linq;
 using HotChocolate.Execution;
 using NodaTime.Text;
 using Xunit;
@@ -24,8 +23,8 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void QueryReturns()
         {
             IExecutionResult? result = testExecutor.Execute("query { test: one }");
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("5780-05-25 (Hebrew Civil)", queryResult!.Data!["test"]);
+            
+            Assert.Equal("5780-05-25 (Hebrew Civil)", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
@@ -36,8 +35,8 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetQuery("mutation($arg: LocalDate!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "2020-02-21 (Hebrew Civil)")
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("2020-02-24 (Hebrew Civil)", queryResult!.Data!["test"]);
+            
+            Assert.Equal("2020-02-24 (Hebrew Civil)", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
@@ -48,9 +47,9 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetQuery("mutation($arg: LocalDate!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "2020-02-20T17:42:59 (Hebrew Civil)")
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Null(queryResult!.Data);
-            Assert.Equal(1, queryResult!.Errors!.Count);
+            
+            Assert.Null(result.ExpectQueryResult().Data);
+            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
         }
 
         [Fact]
@@ -60,8 +59,8 @@ namespace HotChocolate.Types.NodaTime.Tests
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation { test(arg: \"2020-02-20 (Hebrew Civil)\") }")
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("2020-02-23 (Hebrew Civil)", queryResult!.Data!["test"]);
+            
+            Assert.Equal("2020-02-23 (Hebrew Civil)", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
@@ -71,13 +70,13 @@ namespace HotChocolate.Types.NodaTime.Tests
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation { test(arg: \"2020-02-20T17:42:59 (Hebrew Civil)\") }")
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Null(queryResult!.Data);
-            Assert.Equal(1, queryResult!.Errors!.Count);
-            Assert.Null(queryResult.Errors[0].Code);
+            
+            Assert.Null(result.ExpectQueryResult().Data);
+            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
+            Assert.Null(result.ExpectQueryResult().Errors![0].Code);
             Assert.Equal(
                 "Unable to deserialize string to LocalDate",
-                queryResult.Errors[0].Message);
+                result.ExpectQueryResult().Errors![0].Message);
         }
     }
 }

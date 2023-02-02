@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(LibraryTargetFrameworks)</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Authorization</PackageId>
+    <AssemblyName>HotChocolate.Authorization</AssemblyName>
+    <RootNamespace>HotChocolate.Authorization</RootNamespace>
+    <Description>This package contains the authorization abstractions for Hot Chocolate.</Description>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore.Authorization.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\AuthCoreResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>AuthCoreResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\AuthCoreResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AuthCoreResources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="AuthorizationTypeInterceptor.ObjectTypeInfo.cs">
+      <DependentUpon>AuthorizationTypeInterceptor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="AuthorizationTypeInterceptor.State.cs">
+      <DependentUpon>AuthorizationTypeInterceptor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="AuthorizationTypeInterceptor.TypeInfo.cs">
+      <DependentUpon>AuthorizationTypeInterceptor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="AuthorizationTypeInterceptor.UnionTypeInfo.cs">
+      <DependentUpon>AuthorizationTypeInterceptor.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+</Project>

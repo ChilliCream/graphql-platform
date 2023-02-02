@@ -4,7 +4,8 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.AspNetCore.Tests.Utilities;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Diagnostics.ActivityTestHelper;
@@ -25,7 +26,7 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer();
+            using var server = CreateInstrumentedServer();
 
             // act
             await server.PostAsync(new ClientQueryRequest
@@ -39,7 +40,11 @@ public class ServerInstrumentationTests : ServerTestBase
             });
 
             // assert
+#if NET7_0_OR_GREATER
+            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+#else
             activities.MatchSnapshot();
+#endif
         }
     }
 
@@ -49,7 +54,7 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer(
+            using var server = CreateInstrumentedServer(
                 o => o.Scopes = ActivityScopes.All);
 
             // act
@@ -64,7 +69,11 @@ public class ServerInstrumentationTests : ServerTestBase
             });
 
             // assert
+#if NET7_0_OR_GREATER
+            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+#else
             activities.MatchSnapshot();
+#endif
         }
     }
 
@@ -74,7 +83,7 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer(
+            using var server = CreateInstrumentedServer(
                 o => o.Scopes = ActivityScopes.All);
 
             // act
@@ -89,7 +98,11 @@ public class ServerInstrumentationTests : ServerTestBase
             });
 
             // assert
+#if NET7_0_OR_GREATER
+            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+#else
             activities.MatchSnapshot();
+#endif
         }
     }
 
@@ -99,7 +112,7 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer(
+            using var server = CreateInstrumentedServer(
                 o => o.Scopes = ActivityScopes.All);
 
             // act
@@ -111,11 +124,15 @@ public class ServerInstrumentationTests : ServerTestBase
                         name
                     }
                 }",
-                Variables = new Dictionary<string, object> { { "episode", "NEW_HOPE" } }
+                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
             });
 
             // assert
+#if NET7_0_OR_GREATER
+            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+#else
             activities.MatchSnapshot();
+#endif
         }
     }
 
@@ -125,7 +142,7 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer(
+            using var server = CreateInstrumentedServer(
                 o =>
                 {
                     o.Scopes = ActivityScopes.All;
@@ -141,11 +158,15 @@ public class ServerInstrumentationTests : ServerTestBase
                         name
                     }
                 }",
-                Variables = new Dictionary<string, object> { { "episode", "NEW_HOPE" } }
+                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
             });
 
             // assert
+#if NET7_0_OR_GREATER
+            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+#else
             activities.MatchSnapshot();
+#endif
         }
     }
 
@@ -155,7 +176,7 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer(
+            using var server = CreateInstrumentedServer(
                 o =>
                 {
                     o.Scopes = ActivityScopes.All;
@@ -171,11 +192,15 @@ public class ServerInstrumentationTests : ServerTestBase
                         name
                     }
                 }",
-                Variables = new Dictionary<string, object> { { "episode", "NEW_HOPE" } }
+                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
             });
 
             // assert
+#if NET7_0_OR_GREATER
+            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+#else
             activities.MatchSnapshot();
+#endif
         }
     }
 
@@ -185,7 +210,7 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer(
+            using var server = CreateInstrumentedServer(
                 o => o.Scopes = ActivityScopes.All);
 
             // act
@@ -197,12 +222,16 @@ public class ServerInstrumentationTests : ServerTestBase
                         name
                     }
                 }",
-                Variables = new Dictionary<string, object> { { "episode", "NEW_HOPE" } },
-                Extensions = new Dictionary<string, object> { { "test", "abc" } }
+                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } },
+                Extensions = new Dictionary<string, object?> { { "test", "abc" } }
             });
 
             // assert
+#if NET7_0_OR_GREATER
+            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+#else
             activities.MatchSnapshot();
+#endif
         }
     }
 
@@ -212,18 +241,22 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer(o => o.Scopes = ActivityScopes.All);
+            using var server = CreateInstrumentedServer(o => o.Scopes = ActivityScopes.All);
             var url = TestServerExtensions.CreateUrl("/graphql?sdl");
             var request = new HttpRequestMessage(HttpMethod.Get, url);
 
             // act
-            HttpResponseMessage response = await server.CreateClient().SendAsync(request);
+            var response = await server.CreateClient().SendAsync(request);
 
             // assert
             await response.Content.ReadAsStringAsync();
 
             // assert
+#if NET7_0_OR_GREATER
+            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+#else
             activities.MatchSnapshot();
+#endif
         }
     }
 
@@ -233,7 +266,7 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer(o => o.Scopes = ActivityScopes.All);
+            using var server = CreateInstrumentedServer(o => o.Scopes = ActivityScopes.All);
 
             // act
             await server.PostRawAsync(new ClientQueryRequest
@@ -252,7 +285,11 @@ public class ServerInstrumentationTests : ServerTestBase
             });
 
             // assert
+#if NET7_0_OR_GREATER
+            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+#else
             activities.MatchSnapshot();
+#endif
         }
     }
 
@@ -262,7 +299,7 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer(o => o.Scopes = ActivityScopes.All);
+            using var server = CreateInstrumentedServer(o => o.Scopes = ActivityScopes.All);
 
             // act
             await server.PostRawAsync(new ClientQueryRequest
@@ -287,7 +324,11 @@ public class ServerInstrumentationTests : ServerTestBase
             });
 
             // assert
+#if NET7_0_OR_GREATER
+            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+#else
             activities.MatchSnapshot();
+#endif
         }
     }
 
@@ -297,7 +338,7 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer(o => o.Scopes = ActivityScopes.All);
+            using var server = CreateInstrumentedServer(o => o.Scopes = ActivityScopes.All);
 
             // act
             await server.PostRawAsync(new ClientQueryRequest
@@ -322,7 +363,11 @@ public class ServerInstrumentationTests : ServerTestBase
             });
 
             // assert
+#if NET7_0_OR_GREATER
+            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+#else
             activities.MatchSnapshot();
+#endif
         }
     }
 
@@ -332,7 +377,7 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer(
+            using var server = CreateInstrumentedServer(
                 o =>
                 {
                     o.Scopes = ActivityScopes.All;
@@ -349,7 +394,11 @@ public class ServerInstrumentationTests : ServerTestBase
             });
 
             // assert
+#if NET7_0_OR_GREATER
+            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+#else
             activities.MatchSnapshot();
+#endif
         }
     }
 
@@ -359,7 +408,7 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer(
+            using var server = CreateInstrumentedServer(
                 o =>
                 {
                     o.Scopes = ActivityScopes.All;
@@ -376,7 +425,11 @@ public class ServerInstrumentationTests : ServerTestBase
             });
 
             // assert
+#if NET7_0_OR_GREATER
+            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
+#else
             activities.MatchSnapshot();
+#endif
         }
     }
 
@@ -386,5 +439,11 @@ public class ServerInstrumentationTests : ServerTestBase
                 configureServices: services =>
                     services
                         .AddGraphQLServer()
-                        .AddInstrumentation(options));
+                        .AddInstrumentation(options)
+                        .ModifyOptions(
+                            o =>
+                            {
+                                o.EnableDefer = true;
+                                o.EnableStream = true;
+                            }));
 }

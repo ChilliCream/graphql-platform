@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace HotChocolate.Data;
 
@@ -171,8 +171,7 @@ public class FilterConventionExtensionsTests
 
         // assert
         Assert.NotNull(convention.DefinitionAccessor);
-        List<ConfigureFilterInputType> configuration =
-            Assert.Single(convention.DefinitionAccessor!.Configurations.Values)!;
+        var configuration = Assert.Single(convention.DefinitionAccessor!.Configurations.Values)!;
         Assert.Equal(2, configuration.Count);
     }
 
@@ -260,14 +259,22 @@ public class FilterConventionExtensionsTests
     {
         public IReadOnlyCollection<IFilterFieldHandler> FieldHandlers { get; } = null!;
 
-        public FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
+        public FieldMiddleware CreateExecutor<TEntityType>(string argumentName)
         {
             throw new NotImplementedException();
         }
 
-        public void ConfigureField(NameString argumentName, IObjectFieldDescriptor descriptor)
+        public void ConfigureField(string argumentName, IObjectFieldDescriptor descriptor)
         {
             throw new NotImplementedException();
+        }
+
+        public IFilterMetadata? CreateMetaData(
+            ITypeCompletionContext context,
+            IFilterInputTypeDefinition typeDefinition,
+            IFilterFieldDefinition fieldDefinition)
+        {
+            return null;
         }
     }
 
@@ -279,6 +286,6 @@ public class FilterConventionExtensionsTests
         {
         }
 
-        public FilterConventionDefinition? DefinitionAccessor => base.Definition;
+        public FilterConventionDefinition? DefinitionAccessor => Definition;
     }
 }

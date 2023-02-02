@@ -1,0 +1,1 @@
+The type Qux is an abstract type. You need to provide a type for a selection of a interface or union. Possible types are: Foo,Bar

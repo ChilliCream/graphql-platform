@@ -1,9 +1,12 @@
-import { css, SimpleInterpolation } from "styled-components";
+import { css, keyframes, SimpleInterpolation } from "styled-components";
+
+/** Fix a problem with the interpolation parsing that invalidates the first rule passed. */
+const fixForInterpolation = (style: SimpleInterpolation) => ";" + style;
 
 export function IsMobile(innerStyle: SimpleInterpolation) {
   return css`
     @media only screen and (max-width: 450px) {
-      ${innerStyle}
+      ${fixForInterpolation(innerStyle)}
     }
   `;
 }
@@ -11,7 +14,15 @@ export function IsMobile(innerStyle: SimpleInterpolation) {
 export function IsPhablet(innerStyle: SimpleInterpolation) {
   return css`
     @media only screen and (max-width: 860px) {
-      ${innerStyle}
+      ${fixForInterpolation(innerStyle)}
+    }
+  `;
+}
+
+export function IsSmallTablet(innerStyle: SimpleInterpolation) {
+  return css`
+    @media only screen and (max-width: 992px) {
+      ${fixForInterpolation(innerStyle)}
     }
   `;
 }
@@ -19,7 +30,7 @@ export function IsPhablet(innerStyle: SimpleInterpolation) {
 export function IsTablet(innerStyle: SimpleInterpolation) {
   return css`
     @media only screen and (max-width: 1110px) {
-      ${innerStyle}
+      ${fixForInterpolation(innerStyle)}
     }
   `;
 }
@@ -27,7 +38,7 @@ export function IsTablet(innerStyle: SimpleInterpolation) {
 export function IsSmallDesktop(innerStyle: SimpleInterpolation) {
   return css`
     @media only screen and (max-width: 1280px) {
-      ${innerStyle}
+      ${fixForInterpolation(innerStyle)}
     }
   `;
 }
@@ -35,10 +46,19 @@ export function IsSmallDesktop(innerStyle: SimpleInterpolation) {
 export function IsDesktop(innerStyle: SimpleInterpolation) {
   return css`
     @media only screen and (min-width: 1281px) {
-      ${innerStyle}
+      ${fixForInterpolation(innerStyle)}
     }
   `;
 }
+
+export const FULL_ROTATION = keyframes`
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+`;
 
 export const DocPageDesktopGridColumns = css`
   grid-template-columns: 1fr 250px 820px 250px 1fr;
@@ -51,6 +71,7 @@ export const BoxShadow = css`
 export interface ThemeColors {
   readonly backdrop: string;
   readonly background: string;
+  readonly backgroundAlt: string;
   readonly shadow: string;
   readonly primary: string;
   readonly primaryButton: string;
@@ -68,11 +89,13 @@ export interface ThemeColors {
   readonly boxHighlight: string;
   readonly boxBorder: string;
   readonly warning: string;
+  readonly spinner: string;
 }
 
 export const THEME_COLORS: ThemeColors = {
   backdrop: "var(--cc-backdrop-color)",
   background: "var(--cc-background-color)",
+  backgroundAlt: "var(--cc-background-alt-color)",
   shadow: "var(--cc-shadow-color)",
   primary: "var(--cc-primary-color)",
   primaryButton: "var(--cc-primary-button-color)",
@@ -90,11 +113,13 @@ export const THEME_COLORS: ThemeColors = {
   boxHighlight: "var(--cc-box-highlight-color)",
   boxBorder: "var(--cc-box-border-color)",
   warning: "var(--cc-warning-color)",
+  spinner: "var(--cc-spinner-color)",
 };
 
 export const DEFAULT_THEME_COLORS = css`
   --cc-backdrop-color: #cbd0db16;
   --cc-background-color: #ffffff;
+  --cc-background-alt-color: #e8ecf5;
   --cc-shadow-color: #0f1725;
   --cc-primary-color: #3b4f74; //before: f40010;
   --cc-primary-button-color: #cb1974;
@@ -109,9 +134,10 @@ export const DEFAULT_THEME_COLORS = css`
   --cc-heading-text-color: #3b4f74;
   --cc-footer-text-color: #c6c6ce;
   --cc-text-contrast-color: #fff;
-  --cc-box-highlight-color: #e8ecf5;
+  --cc-box-highlight-color: var(--cc-background-alt-color);
   --cc-box-border-color: #bfcef1;
   --cc-warning-color: #ffba00;
+  --cc-spinner-color: #3b4f74;
 `;
 
 export const FONT_FAMILY =

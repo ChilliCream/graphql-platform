@@ -1,4 +1,6 @@
-﻿{
+result:
+---------------
+{
   "data": {
     "throw": {
       "errors": [
@@ -10,3 +12,34 @@
     }
   }
 }
+---------------
+
+schema:
+---------------
+schema {
+  mutation: Mutation
+}
+
+interface Error {
+  message: String!
+}
+
+type CustomErrorWithMultipleFactory implements Error {
+  message: String!
+}
+
+type Mutation {
+  throw: ThrowPayload!
+}
+
+type Payload {
+  foo: String!
+}
+
+type ThrowPayload {
+  payload: Payload
+  errors: [ThrowError!]
+}
+
+union ThrowError = CustomErrorWithMultipleFactory
+---------------

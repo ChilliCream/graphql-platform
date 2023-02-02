@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Data.Filters;
@@ -220,7 +221,7 @@ internal static class ThrowHelper
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    DataResources.SortInterceptor_NoFieldHandlerFoundForField,
+                        DataResources.SortInterceptor_NoFieldHandlerFoundForField,
                     field.Name,
                     type.Name)
                 .Build());
@@ -345,6 +346,12 @@ internal static class ThrowHelper
                 .SetMessage(DataResources.ProjectionConvention_CouldNotProject)
                 .Build());
 
+    public static SchemaException ProjectionConvention_NodeFieldWasInInvalidState() =>
+        new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(DataResources.ProjectionConvention_NodeFieldWasInInvalidState)
+                .Build());
+
     public static SchemaException Projection_ProjectionWasNotFound(IResolverContext context) =>
         new SchemaException(
             SchemaErrorBuilder.New()
@@ -403,6 +410,30 @@ internal static class ThrowHelper
             field.DeclaringType.Print(),
             field.Name,
             field.Type.Print()));
+
+    public static InvalidOperationException QueryableFiltering_ExpressionParameterInvalid(
+        Type type,
+        IFilterField field) =>
+        new(string.Format(
+            CultureInfo.CurrentCulture,
+            DataResources.QueryableFiltering_ExpressionParameterInvalid,
+            type.FullName,
+            field.DeclaringType.Print(),
+            field.Name,
+            field.Type.Print()));
+
+    public static SchemaException QueryableFilterProvider_ExpressionParameterInvalid(
+        ITypeSystemObject type,
+        IFilterInputTypeDefinition typeDefinition,
+        IFilterFieldDefinition field) =>
+        new(SchemaErrorBuilder
+                .New()
+                .SetMessage(
+                    DataResources.QueryableFilterProvider_ExpressionParameterInvalid,
+                    typeDefinition.EntityType?.FullName,
+                    field.Name)
+                .SetTypeSystemObject(type)
+                .Build());
 
     public static InvalidOperationException QueryableFiltering_NoMemberDeclared(IFilterField field)
         =>
@@ -475,6 +506,30 @@ internal static class ThrowHelper
             field.Name,
             field.Type.Print()));
 
+    public static InvalidOperationException QueryableSorting_ExpressionParameterInvalid(
+        Type type,
+        ISortField field) =>
+        new(string.Format(
+            CultureInfo.CurrentCulture,
+            DataResources.QueryableSorting_ExpressionParameterInvalid,
+            type.FullName,
+            field.DeclaringType.Print(),
+            field.Name,
+            field.Type.Print()));
+
+    public static SchemaException QueryableSortProvider_ExpressionParameterInvalid(
+        ITypeSystemObject type,
+        ISortInputTypeDefinition typeDefinition,
+        ISortFieldDefinition field) =>
+        new(SchemaErrorBuilder
+            .New()
+            .SetMessage(
+                DataResources.QueryableSortProvider_ExpressionParameterInvalid,
+                typeDefinition.EntityType?.FullName,
+                field.Name)
+            .SetTypeSystemObject(type)
+            .Build());
+
     public static InvalidOperationException QueryableSorting_NoMemberDeclared(ISortField field) =>
         new(string.Format(
             CultureInfo.CurrentCulture,
@@ -507,4 +562,13 @@ internal static class ThrowHelper
                 "The IDs `{0}` have an invalid format.",
                 string.Join(", ", ids))
             .Build());
+
+    public static InvalidOperationException SelectionContext_NoTypeForAbstractFieldProvided(
+        INamedType type,
+        IEnumerable<ObjectType> possibleTypes) =>
+        new(string.Format(
+            CultureInfo.CurrentCulture,
+            DataResources.SelectionContext_NoTypeForAbstractFieldProvided,
+            type.NamedType().Name,
+            string.Join(",", possibleTypes.Select(x => x.NamedType().Name))));
 }

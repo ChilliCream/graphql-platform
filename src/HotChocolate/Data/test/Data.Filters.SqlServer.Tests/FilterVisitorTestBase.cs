@@ -28,9 +28,9 @@ public class FilterVisitorTestBase
         dbContext.Database.EnsureDeleted();
         dbContext.Database.EnsureCreated();
 
-        DbSet<TResult> set = dbContext.Set<TResult>();
+        var set = dbContext.Set<TResult>();
 
-        foreach (TResult result in results)
+        foreach (var result in results)
         {
             set.Add(result);
             dbContext.SaveChanges();
@@ -52,10 +52,10 @@ public class FilterVisitorTestBase
     {
         convention ??= new FilterConvention(x => x.AddDefaults().BindRuntimeType<TEntity, T>());
 
-        Func<IResolverContext, IEnumerable<TEntity>>? resolver =
+        var resolver =
             BuildResolver(onModelCreating, entities);
 
-        ISchemaBuilder builder = SchemaBuilder.New()
+        var builder = SchemaBuilder.New()
             .AddConvention<IFilterConvention>(convention)
             .AddFiltering()
             .AddQueryType(
@@ -75,7 +75,7 @@ public class FilterVisitorTestBase
 
         configure?.Invoke(builder);
 
-        ISchema schema = builder.Create();
+        var schema = builder.Create();
 
         return new ServiceCollection()
             .Configure<RequestExecutorSetup>(
@@ -86,12 +86,11 @@ public class FilterVisitorTestBase
                 next => async context =>
                 {
                     await next(context);
-                    if (context.Result is IReadOnlyQueryResult result &&
-                        context.ContextData.TryGetValue("sql", out var queryString))
+                    if (context.ContextData.TryGetValue("sql", out var queryString))
                     {
                         context.Result =
                             QueryResultBuilder
-                                .FromResult(result)
+                                .FromResult(context.Result!.ExpectQueryResult())
                                 .SetContextData("sql", queryString)
                                 .Create();
                     }

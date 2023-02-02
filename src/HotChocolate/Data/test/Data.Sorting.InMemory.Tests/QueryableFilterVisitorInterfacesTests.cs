@@ -1,9 +1,7 @@
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
-using HotChocolate.Tests;
-using HotChocolate.Types;
-using Xunit;
 
 namespace HotChocolate.Data.Filters.Expressions;
 
@@ -17,8 +15,7 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
 
     private readonly SchemaCache _cache;
 
-    public QueryableFilterVisitorInterfacesTests(
-        SchemaCache cache)
+    public QueryableFilterVisitorInterfacesTests(SchemaCache cache)
     {
         _cache = cache;
     }
@@ -27,30 +24,32 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
     public async Task Create_InterfaceStringEqual_Expression()
     {
         // arrange
-        IRequestExecutor tester = _cache
+        var tester = _cache
             .CreateSchema<BarInterface, SortInputType<BarInterface>>(
                 _barEntities,
                 configure: Configure);
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(order: { test: { prop: ASC}}) " +
                     "{ test{ prop }}}")
                 .Create());
 
-        res1.MatchSnapshot("ASC");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(order: { test: { prop: DESC}}) " +
                     "{ test{ prop }}}")
                 .Create());
 
-        res2.MatchSnapshot("DESC");
+        // assert
+        await Snapshot
+            .Create()
+            .Add(res1, "ASC")
+            .Add(res2, "ASC")
+            .MatchAsync();
     }
 
     private static void Configure(ISchemaBuilder builder)

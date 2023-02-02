@@ -1,4 +1,6 @@
-﻿{
+result:
+---------------
+{
   "data": {
     "throw": {
       "errors": [
@@ -11,3 +13,36 @@
     }
   }
 }
+---------------
+
+schema:
+---------------
+schema {
+  mutation: Mutation
+}
+
+interface UserError {
+  message: String!
+  code: String!
+}
+
+type CustomInterfaceError implements UserError {
+  message: String!
+  code: String!
+}
+
+type Mutation {
+  throw: ThrowPayload!
+}
+
+type Payload {
+  foo: String!
+}
+
+type ThrowPayload {
+  payload: Payload
+  errors: [ThrowError!]
+}
+
+union ThrowError = CustomInterfaceError
+---------------

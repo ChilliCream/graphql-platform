@@ -1,11 +1,10 @@
-namespace HotChocolate.Data.Neo4J.Language
+namespace HotChocolate.Data.Neo4J.Language;
+
+public enum OperatorType
 {
-    public enum OperatorType
-    {
-        Binary,
-        Prefix,
-        Postfix,
-        Property,
-        Label
-    }
+    Binary,
+    Prefix,
+    Postfix,
+    Property,
+    Label
 }

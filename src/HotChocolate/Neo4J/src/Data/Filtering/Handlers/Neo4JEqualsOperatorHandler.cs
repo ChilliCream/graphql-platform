@@ -4,39 +4,38 @@ using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Data.Neo4J.Filtering
+namespace HotChocolate.Data.Neo4J.Filtering;
+
+/// <summary>
+/// This filter operation handler maps a Equals operation field to a
+/// <see cref="Condition"/>
+/// </summary>
+public class Neo4JEqualsOperationHandler
+    : Neo4JFilterOperationHandlerBase
 {
-    /// <summary>
-    /// This filter operation handler maps a Equals operation field to a
-    /// <see cref="Condition"/>
-    /// </summary>
-    public class Neo4JEqualsOperationHandler
-        : Neo4JFilterOperationHandlerBase
+    public Neo4JEqualsOperationHandler(InputParser inputParser)
+        : base(inputParser)
     {
-        public Neo4JEqualsOperationHandler(InputParser inputParser)
-            : base(inputParser)
-        {
-        }
+    }
 
-        /// <inheritdoc />
-        public override bool CanHandle(
-            ITypeCompletionContext context,
-            IFilterInputTypeDefinition typeDefinition,
-            IFilterFieldDefinition fieldDefinition) =>
-            fieldDefinition is FilterOperationFieldDefinition
-                { Id: DefaultFilterOperations.Equals };
+    /// <inheritdoc />
+    public override bool CanHandle(
+        ITypeCompletionContext context,
+        IFilterInputTypeDefinition typeDefinition,
+        IFilterFieldDefinition fieldDefinition) =>
+        fieldDefinition is FilterOperationFieldDefinition
+            { Id: DefaultFilterOperations.Equals };
 
-        /// <inheritdoc />
-        public override Condition HandleOperation(
-            Neo4JFilterVisitorContext context,
-            IFilterOperationField field,
-            IValueNode value,
-            object? parsedValue)
-        {
-            return context
-                .GetNode()
-                .Property(context.GetNeo4JFilterScope().GetPath())
-                .IsEqualTo(Cypher.LiteralOf(parsedValue));
-        }
+    /// <inheritdoc />
+    public override Condition HandleOperation(
+        Neo4JFilterVisitorContext context,
+        IFilterOperationField field,
+        IValueNode value,
+        object? parsedValue)
+    {
+        return context
+            .GetNode()
+            .Property(context.GetNeo4JFilterScope().GetPath())
+            .IsEqualTo(Cypher.LiteralOf(parsedValue));
     }
 }

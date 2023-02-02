@@ -1,5 +1,4 @@
-using System;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -10,161 +9,156 @@ using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 using Squadron;
-using Xunit;
 
-namespace HotChocolate.Data.MongoDb.Filters
+namespace HotChocolate.Data.MongoDb.Filters;
+
+public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
 {
-    public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
+    private static readonly Foo[] _fooEntities =
     {
-        private static readonly Foo[] _fooEntities =
-        {
-            new Foo { Bar = true }, new Foo { Bar = false }
-        };
+        new() { Bar = true },
+        new() { Bar = false }
+    };
 
-        private static readonly Bar[] _barEntities =
-        {
-            new Bar { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
-            new Bar { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) }
-        };
+    private static readonly Bar[] _barEntities =
+    {
+        new() { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
+        new() { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) }
+    };
 
-        private readonly MongoResource _resource;
+    private readonly MongoResource _resource;
 
-        public MongoDbAggregateFluentTests(MongoResource resource)
-        {
-            _resource = resource;
-        }
+    public MongoDbAggregateFluentTests(MongoResource resource)
+    {
+        _resource = resource;
+    }
 
-        [Fact]
-        public async Task BsonElement_Rename()
-        {
-            // arrange
-            IRequestExecutor tester = CreateSchema(
-                () =>
-                {
-                    IMongoCollection<Foo> collection =
-                        _resource.CreateCollection<Foo>("data_" + Guid.NewGuid().ToString("N"));
+    [Fact]
+    public async Task BsonElement_Rename()
+    {
+        // arrange
+        var tester = CreateSchema(
+            () =>
+            {
+                var col = _resource.CreateCollection<Foo>("data_" + Guid.NewGuid().ToString("N"));
+                col.InsertMany(_fooEntities);
+                return col.Aggregate().AsExecutable();
+            });
 
-                    collection.InsertMany(_fooEntities);
+        // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { bar: { eq: true}}){ bar}}")
+                .Create());
 
-                    return collection.Aggregate().AsExecutable();
-                });
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { bar: { eq: false}}){ bar}}")
+                .Create());
 
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { eq: true}}){ bar}}")
-                    .Create());
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "true"), res2, "false")
+            .MatchAsync();
+    }
 
-            res1.MatchDocumentSnapshot("true");
+    [Fact]
+    public async Task AggregateFluent_Serializer()
+    {
+        // arrange
+        BsonClassMap.RegisterClassMap<Bar>(
+            x => x.MapField(y => y.Baz)
+                .SetSerializer(new DateTimeOffsetSerializer(BsonType.String))
+                .SetElementName("testName"));
 
-            IExecutionResult res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { eq: false}}){ bar}}")
-                    .Create());
+        var tester = CreateSchema(
+            () =>
+            {
+                var col = _resource.CreateCollection<Bar>("data_" + Guid.NewGuid().ToString("N"));
+                col.InsertMany(_barEntities);
+                return col.Aggregate().AsExecutable();
+            });
 
-            res2.MatchDocumentSnapshot("false");
-        }
+        // act
+        var res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { baz: { eq: \"2020-01-11T00:00:00Z\"}}){ baz}}")
+                .Create());
 
-        [Fact]
-        public async Task AggregateFluent_Serializer()
-        {
-            // arrange
-            BsonClassMap.RegisterClassMap<Bar>(
-                x => x.MapField(y => y.Baz)
-                    .SetSerializer(new DateTimeOffsetSerializer(BsonType.String))
-                    .SetElementName("testName"));
+        var res2 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { baz: { eq: \"2020-01-12T00:00:00Z\"}}){ baz}}")
+                .Create());
 
-            IRequestExecutor tester = CreateSchema(
-                () =>
-                {
-                    IMongoCollection<Bar> collection =
-                        _resource.CreateCollection<Bar>("data_" + Guid.NewGuid().ToString("N"));
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "2020-01-11"), res2, "2020-01-12")
+            .MatchAsync();
+    }
 
-                    collection.InsertMany(_barEntities);
+    public class Foo
+    {
+        [BsonId]
+        public Guid Id { get; set; } = Guid.NewGuid();
 
-                    return collection.Aggregate().AsExecutable();
-                });
+        [BsonElement("renameTest")]
+        public bool Bar { get; set; }
+    }
 
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { baz: { eq: \"2020-01-11T00:00:00Z\"}}){ baz}}")
-                    .Create());
+    public class Bar
+    {
+        [BsonId]
+        public Guid Id { get; set; } = Guid.NewGuid();
 
-            res1.MatchDocumentSnapshot("2020-01-11");
+        public DateTimeOffset Baz { get; set; }
+    }
 
-            IExecutionResult res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { baz: { eq: \"2020-01-12T00:00:00Z\"}}){ baz}}")
-                    .Create());
-
-            res2.MatchDocumentSnapshot("2020-01-12");
-        }
-
-        public class Foo
-        {
-            [BsonId]
-            public Guid Id { get; set; } = Guid.NewGuid();
-
-            [BsonElement("renameTest")]
-            public bool Bar { get; set; }
-        }
-
-        public class Bar
-        {
-            [BsonId]
-            public Guid Id { get; set; } = Guid.NewGuid();
-
-            public DateTimeOffset Baz { get; set; }
-        }
-
-        private static IRequestExecutor CreateSchema<TEntity>(
-            Func<IExecutable<TEntity>> resolver)
-            where TEntity : class
-        {
-            return new ServiceCollection()
-                .AddGraphQL()
-                .AddFiltering(x => x.AddMongoDbDefaults())
-                .AddQueryType(
-                    c => c
-                        .Name("Query")
-                        .Field("root")
-                        .Type<ListType<ObjectType<TEntity>>>()
-                        .Resolve(
-                            async ctx => await new ValueTask<IExecutable<TEntity>>(resolver()))
-                        .Use(
-                            next => async context =>
-                            {
-                                await next(context);
-                                if (context.Result is IExecutable executable)
-                                {
-                                    context.ContextData["query"] = executable.Print();
-                                }
-                            })
-                        .UseFiltering<FilterInputType<TEntity>>())
-                .UseRequest(
-                    next => async context =>
-                    {
-                        await next(context);
-                        if (context.Result is IReadOnlyQueryResult result &&
-                            context.ContextData.TryGetValue("query", out object? queryString))
+    private static IRequestExecutor CreateSchema<TEntity>(
+        Func<IExecutable<TEntity>> resolver)
+        where TEntity : class
+    {
+        return new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering(x => x.AddMongoDbDefaults())
+            .AddQueryType(
+                c => c
+                    .Name("Query")
+                    .Field("root")
+                    .Type<ListType<ObjectType<TEntity>>>()
+                    .Resolve(async _ => await new ValueTask<IExecutable<TEntity>>(resolver()))
+                    .Use(
+                        next => async context =>
                         {
-                            context.Result =
-                                QueryResultBuilder
-                                    .FromResult(result)
-                                    .SetContextData("query", queryString)
-                                    .Create();
-                        }
-                    })
-                .UseDefaultPipeline()
-                .Services
-                .BuildServiceProvider()
-                .GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync()
-                .GetAwaiter()
-                .GetResult();
-        }
+                            await next(context);
+                            if (context.Result is IExecutable executable)
+                            {
+                                context.ContextData["query"] = executable.Print();
+                            }
+                        })
+                    .UseFiltering<FilterInputType<TEntity>>())
+            .UseRequest(
+                next => async context =>
+                {
+                    await next(context);
+                    if (context.ContextData.TryGetValue("query", out var queryString))
+                    {
+                        context.Result =
+                            QueryResultBuilder
+                                .FromResult(context.Result!.ExpectQueryResult())
+                                .SetContextData("query", queryString)
+                                .Create();
+                    }
+                })
+            .UseDefaultPipeline()
+            .Services
+            .BuildServiceProvider()
+            .GetRequiredService<IRequestExecutorResolver>()
+            .GetRequestExecutorAsync()
+            .GetAwaiter()
+            .GetResult();
     }
 }

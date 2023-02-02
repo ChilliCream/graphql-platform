@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Pagination;
 public interface IPagingProvider
 {
     /// <summary>
-    /// Specifies if this paging provider can handle the specified <see cref="source"/>.
+    /// Specifies if this paging provider can handle the specified <paramref name="source"/>.
     /// </summary>
     /// <param name="source">
     /// The source type represents the result of the field resolver and could be a collection,

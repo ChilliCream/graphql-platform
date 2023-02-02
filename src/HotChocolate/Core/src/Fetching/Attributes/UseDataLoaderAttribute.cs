@@ -1,7 +1,6 @@
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
 #nullable enable
@@ -18,7 +17,7 @@ public sealed class UseDataLoaderAttribute : ObjectFieldDescriptorAttribute
         Order = order;
     }
 
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member)

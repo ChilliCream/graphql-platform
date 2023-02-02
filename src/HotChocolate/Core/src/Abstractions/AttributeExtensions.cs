@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 namespace HotChocolate;
 
@@ -21,7 +20,7 @@ internal static class AttributeExtensions
             throw new ArgumentNullException(nameof(type));
         }
 
-        TypeInfo typeInfo = type.GetTypeInfo();
+        var typeInfo = type.GetTypeInfo();
         var name = typeInfo.IsDefined(typeof(GraphQLNameAttribute), false)
             ? typeInfo.GetCustomAttribute<GraphQLNameAttribute>()!.Name
             : GetFromType(typeInfo);
@@ -39,7 +38,7 @@ internal static class AttributeExtensions
         var name = property.IsDefined(
             typeof(GraphQLNameAttribute), false)
             ? property.GetCustomAttribute<GraphQLNameAttribute>()!.Name
-            : NormalizeName(property.Name);
+            : NormalizeFieldName(property.Name);
 
         return NameUtils.MakeValidGraphQLName(name)!;
     }
@@ -69,7 +68,7 @@ internal static class AttributeExtensions
         var name = parameter.IsDefined(
             typeof(GraphQLNameAttribute), false)
             ? parameter.GetCustomAttribute<GraphQLNameAttribute>()!.Name
-            : NormalizeName(parameter.Name!);
+            : NormalizeFieldName(parameter.Name!);
 
         return NameUtils.MakeValidGraphQLName(name)!;
     }
@@ -112,7 +111,7 @@ internal static class AttributeExtensions
             name = name.Substring(0, name.Length - _async.Length);
         }
 
-        return NormalizeName(name);
+        return NormalizeFieldName(name);
     }
 
     private static bool IsAsyncMethod(Type returnType)
@@ -125,7 +124,7 @@ internal static class AttributeExtensions
 
         if (returnType.IsGenericType)
         {
-            Type typeDefinition = returnType.GetGenericTypeDefinition();
+            var typeDefinition = returnType.GetGenericTypeDefinition();
             return typeof(ValueTask<>) == typeDefinition
                 || typeof(IAsyncEnumerable<>) == typeDefinition;
         }
@@ -155,7 +154,7 @@ internal static class AttributeExtensions
         this ICustomAttributeProvider attributeProvider,
         out string? reason)
     {
-        GraphQLDeprecatedAttribute? deprecatedAttribute =
+        var deprecatedAttribute =
             GetAttributeIfDefined<GraphQLDeprecatedAttribute>(attributeProvider);
 
         if (deprecatedAttribute is not null)
@@ -164,7 +163,7 @@ internal static class AttributeExtensions
             return true;
         }
 
-        ObsoleteAttribute? obsoleteAttribute =
+        var obsoleteAttribute =
             GetAttributeIfDefined<ObsoleteAttribute>(attributeProvider);
 
         if (obsoleteAttribute is not null)
@@ -187,7 +186,7 @@ internal static class AttributeExtensions
 
             name = name.Substring(0, name.Length - _typePostfix.Length);
 
-            IEnumerable<string> arguments = type
+            var arguments = type
                 .GetTypeInfo().GenericTypeArguments
                 .Select(GetFromType);
 
@@ -196,7 +195,7 @@ internal static class AttributeExtensions
         return type.Name;
     }
 
-    private static string NormalizeName(string name)
+    public static string NormalizeFieldName(string name)
         => name.Length > 1
             ? name.Substring(0, 1).ToLowerInvariant() + name.Substring(1)
             : name.ToLowerInvariant();
@@ -205,7 +204,7 @@ internal static class AttributeExtensions
         ICustomAttributeProvider attributeProvider)
         where TAttribute : Attribute
     {
-        Type attributeType = typeof(TAttribute);
+        var attributeType = typeof(TAttribute);
 
         if (attributeProvider.IsDefined(attributeType, false))
         {

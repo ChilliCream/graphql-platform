@@ -13,6 +13,7 @@ type Query {
   droid(id: String): Droid
   time: Long!
   evict: Boolean!
+  wait(m: Int!): Boolean!
 }
 
 type Mutation {
@@ -21,8 +22,8 @@ type Mutation {
 
 type Subscription {
   onReview(episode: Episode!): Review!
-  onNext: String
-  onException: String
+  onNext: String!
+  onException: String!
 }
 
 type Human implements Character {

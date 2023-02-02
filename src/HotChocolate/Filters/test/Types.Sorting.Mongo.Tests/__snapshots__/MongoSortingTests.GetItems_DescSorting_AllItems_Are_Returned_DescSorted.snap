@@ -1,7 +1,5 @@
 ﻿{
-  "Label": null,
-  "Path": null,
-  "Data": {
+  "data": {
     "items": [
       {
         "foo": "def"
@@ -10,9 +8,5 @@
         "foo": "abc"
       }
     ]
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null,
-  "HasNext": null
+  }
 }

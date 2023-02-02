@@ -1,4 +1,3 @@
-using HotChocolate;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Utilities;
@@ -33,12 +32,12 @@ public static class NamingConventions
     public static string CreateDocumentTypeName(string operationTypeName) =>
         operationTypeName + "Document";
 
-    public static NameString CreateDataMapperName(
+    public static string CreateDataMapperName(
         string typeName,
         string graphqlTypename) =>
         typeName + "From" + CreateDataTypeName(graphqlTypename) + "Mapper";
 
-    public static NameString CreateEntityMapperName(
+    public static string CreateEntityMapperName(
         string typeName,
         string graphqlTypeName) =>
         typeName + "From" + CreateEntityTypeName(graphqlTypeName) + "Mapper";

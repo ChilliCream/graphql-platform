@@ -36,9 +36,9 @@ internal static class MiddlewareCompiler<TMiddleware>
     internal static MiddlewareFactory<TMiddleware, TContext, TNext> CompileFactory<TContext, TNext>(
         CreateFactoryHandlers? createParameters = null)
     {
-        Type type = typeof(TMiddleware);
-        ParameterExpression context = Expression.Parameter(typeof(TContext), "context");
-        ParameterExpression next = Expression.Parameter(typeof(TNext), "next");
+        var type = typeof(TMiddleware);
+        var context = Expression.Parameter(typeof(TContext), "context");
+        var next = Expression.Parameter(typeof(TNext), "next");
 
         var handlers = new List<IParameterHandler>();
         handlers.Add(new TypeParameterHandler(typeof(TNext), next));
@@ -47,7 +47,7 @@ internal static class MiddlewareCompiler<TMiddleware>
             handlers.AddRange(createParameters(context, next));
         }
 
-        NewExpression createInstance = CreateMiddleware(type, handlers);
+        var createInstance = CreateMiddleware(type, handlers);
 
         return Expression
             .Lambda<MiddlewareFactory<TMiddleware, TContext, TNext>>(
@@ -58,8 +58,8 @@ internal static class MiddlewareCompiler<TMiddleware>
     internal static ClassQueryDelegate<TMiddleware, TContext> CompileDelegate<TContext>(
         CreateDelegateHandlers? createParameters = null)
     {
-        Type middlewareType = typeof(TMiddleware);
-        MethodInfo? method = GetInvokeMethod(middlewareType);
+        var middlewareType = typeof(TMiddleware);
+        var method = GetInvokeMethod(middlewareType);
 
         if (method == null)
         {
@@ -67,8 +67,8 @@ internal static class MiddlewareCompiler<TMiddleware>
                 UtilityResources.MiddlewareActivator_NoInvokeMethod);
         }
 
-        ParameterExpression context = Expression.Parameter(typeof(TContext));
-        ParameterExpression middleware = Expression.Parameter(middlewareType);
+        var context = Expression.Parameter(typeof(TContext));
+        var middleware = Expression.Parameter(middlewareType);
 
         var handlers = new List<IParameterHandler>();
         handlers.Add(new TypeParameterHandler(typeof(TContext), context));
@@ -77,11 +77,8 @@ internal static class MiddlewareCompiler<TMiddleware>
             handlers.AddRange(createParameters(context, middleware));
         }
 
-        List<Expression> arguments =
-            CreateParameters(method.GetParameters(), handlers);
-
-        MethodCallExpression? middlewareCall =
-            CreateInvokeMethodCall(middleware, method, arguments);
+        var arguments = CreateParameters(method.GetParameters(), handlers);
+        var middlewareCall = CreateInvokeMethodCall(middleware, method, arguments);
 
         return Expression.Lambda<ClassQueryDelegate<TMiddleware, TContext>>(
             middlewareCall, context, middleware)
@@ -112,15 +109,15 @@ internal static class MiddlewareCompiler<TMiddleware>
         Type middleware,
         IReadOnlyList<IParameterHandler> parameterHandlers)
     {
-        ConstructorInfo constructor = CreateConstructor(middleware);
-        List<Expression> arguments = CreateParameters(
+        var constructor = CreateConstructor(middleware);
+        var arguments = CreateParameters(
             constructor.GetParameters(), parameterHandlers);
         return Expression.New(constructor, arguments);
     }
 
     private static ConstructorInfo CreateConstructor(Type middleware)
     {
-        ConstructorInfo? constructor =
+        var constructor =
             middleware.GetConstructors().SingleOrDefault(t => t.IsPublic);
 
         if (constructor is null)
@@ -138,7 +135,7 @@ internal static class MiddlewareCompiler<TMiddleware>
     {
         var arguments = new List<Expression>();
 
-        foreach (ParameterInfo parameter in parameters)
+        foreach (var parameter in parameters)
         {
             if (parameterHandlers.FirstOrDefault(t => t.CanHandle(parameter)) is { } h)
             {

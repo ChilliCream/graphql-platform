@@ -53,8 +53,7 @@
                   "Column": 18
                 },
                 "Value": "foo"
-              },
-              "Value": "foo"
+              }
             },
             "Type": {
               "Kind": "NamedType",
@@ -103,8 +102,7 @@
                   "Column": 37
                 },
                 "Value": "site"
-              },
-              "Value": "site"
+              }
             },
             "Type": {
               "Kind": "NamedType",
@@ -419,8 +417,7 @@
                                           "Column": 40
                                         },
                                         "Value": "foo"
-                                      },
-                                      "Value": "foo"
+                                      }
                                     }
                                   }
                                 ],
@@ -551,8 +548,7 @@
                                               "Column": 60
                                             },
                                             "Value": "foo"
-                                          },
-                                          "Value": "foo"
+                                          }
                                         }
                                       }
                                     ]
@@ -646,8 +642,7 @@
                                   "Column": 24
                                 },
                                 "Value": "foo"
-                              },
-                              "Value": "foo"
+                              }
                             }
                           }
                         ]
@@ -979,8 +974,7 @@
                   "Column": 37
                 },
                 "Value": "input"
-              },
-              "Value": "input"
+              }
             },
             "Type": {
               "Kind": "NamedType",
@@ -1054,8 +1048,7 @@
                         "Column": 30
                       },
                       "Value": "input"
-                    },
-                    "Value": "input"
+                    }
                   }
                 }
               ],
@@ -1312,8 +1305,7 @@
                         "Column": 14
                       },
                       "Value": "size"
-                    },
-                    "Value": "size"
+                    }
                   }
                 },
                 {
@@ -1351,8 +1343,7 @@
                         "Column": 26
                       },
                       "Value": "b"
-                    },
-                    "Value": "b"
+                    }
                   }
                 },
                 {
@@ -1646,7 +1637,8 @@
           ]
         }
       }
-    ]
+    ],
+    "Count": 155
   },
   {
     "Kind": "OperationDefinition",
@@ -1693,8 +1685,7 @@
               "Column": 18
             },
             "Value": "foo"
-          },
-          "Value": "foo"
+          }
         },
         "Type": {
           "Kind": "NamedType",
@@ -1743,8 +1734,7 @@
               "Column": 37
             },
             "Value": "site"
-          },
-          "Value": "site"
+          }
         },
         "Type": {
           "Kind": "NamedType",
@@ -2059,8 +2049,7 @@
                                       "Column": 40
                                     },
                                     "Value": "foo"
-                                  },
-                                  "Value": "foo"
+                                  }
                                 }
                               }
                             ],
@@ -2191,8 +2180,7 @@
                                           "Column": 60
                                         },
                                         "Value": "foo"
-                                      },
-                                      "Value": "foo"
+                                      }
                                     }
                                   }
                                 ]
@@ -2286,8 +2274,7 @@
                               "Column": 24
                             },
                             "Value": "foo"
-                          },
-                          "Value": "foo"
+                          }
                         }
                       }
                     ]
@@ -2678,8 +2665,7 @@
                                     "Column": 40
                                   },
                                   "Value": "foo"
-                                },
-                                "Value": "foo"
+                                }
                               }
                             }
                           ],
@@ -2810,8 +2796,7 @@
                                         "Column": 60
                                       },
                                       "Value": "foo"
-                                    },
-                                    "Value": "foo"
+                                    }
                                   }
                                 }
                               ]
@@ -2905,8 +2890,7 @@
                             "Column": 24
                           },
                           "Value": "foo"
-                        },
-                        "Value": "foo"
+                        }
                       }
                     }
                   ]
@@ -3287,8 +3271,7 @@
                                 "Column": 40
                               },
                               "Value": "foo"
-                            },
-                            "Value": "foo"
+                            }
                           }
                         }
                       ],
@@ -3419,8 +3402,7 @@
                                     "Column": 60
                                   },
                                   "Value": "foo"
-                                },
-                                "Value": "foo"
+                                }
                               }
                             }
                           ]
@@ -3514,8 +3496,7 @@
                         "Column": 24
                       },
                       "Value": "foo"
-                    },
-                    "Value": "foo"
+                    }
                   }
                 }
               ]
@@ -3829,8 +3810,7 @@
                               "Column": 40
                             },
                             "Value": "foo"
-                          },
-                          "Value": "foo"
+                          }
                         }
                       }
                     ],
@@ -3961,8 +3941,7 @@
                                   "Column": 60
                                 },
                                 "Value": "foo"
-                              },
-                              "Value": "foo"
+                              }
                             }
                           }
                         ]
@@ -4056,8 +4035,7 @@
                       "Column": 24
                     },
                     "Value": "foo"
-                  },
-                  "Value": "foo"
+                  }
                 }
               }
             ]
@@ -4354,8 +4332,7 @@
                           "Column": 40
                         },
                         "Value": "foo"
-                      },
-                      "Value": "foo"
+                      }
                     }
                   }
                 ],
@@ -4486,8 +4463,7 @@
                               "Column": 60
                             },
                             "Value": "foo"
-                          },
-                          "Value": "foo"
+                          }
                         }
                       }
                     ]
@@ -4641,8 +4617,7 @@
                         "Column": 40
                       },
                       "Value": "foo"
-                    },
-                    "Value": "foo"
+                    }
                   }
                 }
               ],
@@ -4773,8 +4748,7 @@
                             "Column": 60
                           },
                           "Value": "foo"
-                        },
-                        "Value": "foo"
+                        }
                       }
                     }
                   ]
@@ -4918,8 +4892,7 @@
                     "Column": 40
                   },
                   "Value": "foo"
-                },
-                "Value": "foo"
+                }
               }
             }
           ],
@@ -5050,8 +5023,7 @@
                         "Column": 60
                       },
                       "Value": "foo"
-                    },
-                    "Value": "foo"
+                    }
                   }
                 }
               ]
@@ -5188,8 +5160,7 @@
                   "Column": 40
                 },
                 "Value": "foo"
-              },
-              "Value": "foo"
+              }
             }
           }
         ],
@@ -5320,8 +5291,7 @@
                       "Column": 60
                     },
                     "Value": "foo"
-                  },
-                  "Value": "foo"
+                  }
                 }
               }
             ]
@@ -5441,8 +5411,7 @@
               "Column": 40
             },
             "Value": "foo"
-          },
-          "Value": "foo"
+          }
         }
       }
     ],
@@ -5573,8 +5542,7 @@
                   "Column": 60
                 },
                 "Value": "foo"
-              },
-              "Value": "foo"
+              }
             }
           }
         ]
@@ -5754,8 +5722,7 @@
               "Column": 60
             },
             "Value": "foo"
-          },
-          "Value": "foo"
+          }
         }
       }
     ]
@@ -5795,8 +5762,7 @@
           "Column": 60
         },
         "Value": "foo"
-      },
-      "Value": "foo"
+      }
     }
   },
   {
@@ -5816,8 +5782,7 @@
         "Column": 60
       },
       "Value": "foo"
-    },
-    "Value": "foo"
+    }
   },
   {
     "Kind": "Name",
@@ -5933,8 +5898,7 @@
           "Column": 40
         },
         "Value": "foo"
-      },
-      "Value": "foo"
+      }
     }
   },
   {
@@ -5954,8 +5918,7 @@
         "Column": 40
       },
       "Value": "foo"
-    },
-    "Value": "foo"
+    }
   },
   {
     "Kind": "Name",
@@ -6130,8 +6093,7 @@
                   "Column": 24
                 },
                 "Value": "foo"
-              },
-              "Value": "foo"
+              }
             }
           }
         ]
@@ -6296,8 +6258,7 @@
               "Column": 24
             },
             "Value": "foo"
-          },
-          "Value": "foo"
+          }
         }
       }
     ]
@@ -6337,8 +6298,7 @@
           "Column": 24
         },
         "Value": "foo"
-      },
-      "Value": "foo"
+      }
     }
   },
   {
@@ -6358,8 +6318,7 @@
         "Column": 24
       },
       "Value": "foo"
-    },
-    "Value": "foo"
+    }
   },
   {
     "Kind": "Name",
@@ -6662,8 +6621,7 @@
           "Column": 18
         },
         "Value": "foo"
-      },
-      "Value": "foo"
+      }
     },
     "Type": {
       "Kind": "NamedType",
@@ -6733,8 +6691,7 @@
         "Column": 18
       },
       "Value": "foo"
-    },
-    "Value": "foo"
+    }
   },
   {
     "Kind": "Name",
@@ -6771,8 +6728,7 @@
           "Column": 37
         },
         "Value": "site"
-      },
-      "Value": "site"
+      }
     },
     "Type": {
       "Kind": "NamedType",
@@ -6861,8 +6817,7 @@
         "Column": 37
       },
       "Value": "site"
-    },
-    "Value": "site"
+    }
   },
   {
     "Kind": "Name",
@@ -7707,8 +7662,7 @@
               "Column": 37
             },
             "Value": "input"
-          },
-          "Value": "input"
+          }
         },
         "Type": {
           "Kind": "NamedType",
@@ -7782,8 +7736,7 @@
                     "Column": 30
                   },
                   "Value": "input"
-                },
-                "Value": "input"
+                }
               }
             }
           ],
@@ -8018,8 +7971,7 @@
                   "Column": 30
                 },
                 "Value": "input"
-              },
-              "Value": "input"
+              }
             }
           }
         ],
@@ -8244,8 +8196,7 @@
               "Column": 30
             },
             "Value": "input"
-          },
-          "Value": "input"
+          }
         }
       }
     ],
@@ -9186,8 +9137,7 @@
           "Column": 30
         },
         "Value": "input"
-      },
-      "Value": "input"
+      }
     }
   },
   {
@@ -9207,8 +9157,7 @@
         "Column": 30
       },
       "Value": "input"
-    },
-    "Value": "input"
+    }
   },
   {
     "Kind": "Name",
@@ -9265,8 +9214,7 @@
           "Column": 37
         },
         "Value": "input"
-      },
-      "Value": "input"
+      }
     },
     "Type": {
       "Kind": "NamedType",
@@ -9336,8 +9284,7 @@
         "Column": 37
       },
       "Value": "input"
-    },
-    "Value": "input"
+    }
   },
   {
     "Kind": "Name",
@@ -9429,8 +9376,7 @@
                     "Column": 14
                   },
                   "Value": "size"
-                },
-                "Value": "size"
+                }
               }
             },
             {
@@ -9468,8 +9414,7 @@
                     "Column": 26
                   },
                   "Value": "b"
-                },
-                "Value": "b"
+                }
               }
             },
             {
@@ -9651,8 +9596,7 @@
                   "Column": 14
                 },
                 "Value": "size"
-              },
-              "Value": "size"
+              }
             }
           },
           {
@@ -9690,8 +9634,7 @@
                   "Column": 26
                 },
                 "Value": "b"
-              },
-              "Value": "b"
+              }
             }
           },
           {
@@ -9846,8 +9789,7 @@
               "Column": 14
             },
             "Value": "size"
-          },
-          "Value": "size"
+          }
         }
       },
       {
@@ -9885,8 +9827,7 @@
               "Column": 26
             },
             "Value": "b"
-          },
-          "Value": "b"
+          }
         }
       },
       {
@@ -10035,8 +9976,7 @@
           "Column": 14
         },
         "Value": "size"
-      },
-      "Value": "size"
+      }
     }
   },
   {
@@ -10056,8 +9996,7 @@
         "Column": 14
       },
       "Value": "size"
-    },
-    "Value": "size"
+    }
   },
   {
     "Kind": "Name",
@@ -10114,8 +10053,7 @@
           "Column": 26
         },
         "Value": "b"
-      },
-      "Value": "b"
+      }
     }
   },
   {
@@ -10135,8 +10073,7 @@
         "Column": 26
       },
       "Value": "b"
-    },
-    "Value": "b"
+    }
   },
   {
     "Kind": "Name",

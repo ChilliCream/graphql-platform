@@ -1,9 +1,8 @@
 ![ChilliCream GraphQL Platform](https://chillicream.com/resources/chillicream-graphql-banner.svg)
 
-[![NuGet Package](https://img.shields.io/nuget/v/hotchocolate.svg)](https://www.nuget.org/packages/HotChocolate/) 
-[![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/ChilliCream/hotchocolate/blob/main/LICENSE) 
-[![Coverage Status](https://sonarcloud.io/api/project_badges/measure?project=HotChocolate&metric=coverage)](https://sonarcloud.io/dashboard?id=HotChocolate) 
-[![Slack channel](https://img.shields.io/badge/join%20the%20community-on%20slack-blue.svg)](http://slack.chillicream.com/) 
+[![NuGet Package](https://img.shields.io/nuget/v/hotchocolate.svg)](https://www.nuget.org/packages/HotChocolate/)
+[![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/ChilliCream/graphql-platform/blob/main/LICENSE)
+[![Slack channel](https://img.shields.io/badge/join%20the%20community-on%20slack-blue.svg)](http://slack.chillicream.com/)
 [![Twitter](https://img.shields.io/badge/join%20us-on%20twitter-green.svg)](https://twitter.com/chilli_cream)
 
 ---
@@ -38,18 +37,18 @@ Our GraphQL client to fetch data from any GraphQL endpoint.
 
 Our DataLoader to solve the N+1 problem.
 
-[Documentation](https://chillicream.com/docs/greendonut/)
+[Documentation](https://chillicream.com/docs/hotchocolate/fetching-data/dataloader/)
 
 ## Roadmap
 
-If you are interested in upcoming releases, check out our [Roadmap](https://github.com/ChilliCream/hotchocolate/projects/28).
+If you are interested in upcoming releases, check out our [Roadmap](https://github.com/ChilliCream/graphql-platform/projects/28).
 
 ## Official examples
 
 Examples of things built on top of the ChilliCream GraphQL Platform that are open source and can be explored by others.
 
 - [GraphQL workshop](https://github.com/ChilliCream/graphql-workshop)
-- [HotChocolate examples](https://github.com/ChilliCream/hotchocolate-examples)
+- [HotChocolate examples](https://github.com/ChilliCream/graphql-platform-examples)
 
 ## Contributing
 

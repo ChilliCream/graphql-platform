@@ -3,13 +3,19 @@
     "Message": "The variable `stringListVar` is not compatible with the type of the current location.",
     "Code": null,
     "Path": {
+      "Name": "stringListNonNullArgField",
       "Parent": {
-        "Parent": null,
-        "Depth": 0,
-        "Name": "arguments"
+        "Name": "arguments",
+        "Parent": {
+          "Parent": null,
+          "Length": -1,
+          "IsRoot": true
+        },
+        "Length": 0,
+        "IsRoot": false
       },
-      "Depth": 1,
-      "Name": "stringListNonNullArgField"
+      "Length": 1,
+      "IsRoot": false
     },
     "Locations": [
       {
@@ -41,8 +47,7 @@
           "Column": 74
         },
         "Value": "stringListVar"
-      },
-      "Value": "stringListVar"
+      }
     }
   }
 ]

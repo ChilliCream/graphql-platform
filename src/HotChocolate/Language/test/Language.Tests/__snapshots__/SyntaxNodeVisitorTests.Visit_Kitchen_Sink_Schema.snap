@@ -2899,7 +2899,6 @@
         },
         "Description": null,
         "IsRepeatable": false,
-        "IsUnique": true,
         "Arguments": [
           {
             "Kind": "InputValueDefinition",
@@ -3005,7 +3004,6 @@
         },
         "Description": null,
         "IsRepeatable": true,
-        "IsUnique": false,
         "Arguments": [
           {
             "Kind": "InputValueDefinition",
@@ -3111,7 +3109,6 @@
         },
         "Description": null,
         "IsRepeatable": false,
-        "IsUnique": true,
         "Arguments": [
           {
             "Kind": "InputValueDefinition",
@@ -3217,7 +3214,6 @@
         },
         "Description": null,
         "IsRepeatable": false,
-        "IsUnique": true,
         "Arguments": [
           {
             "Kind": "InputValueDefinition",
@@ -3397,7 +3393,8 @@
           }
         ]
       }
-    ]
+    ],
+    "Count": 325
   },
   {
     "Kind": "SchemaDefinition",
@@ -11539,7 +11536,6 @@
     },
     "Description": null,
     "IsRepeatable": false,
-    "IsUnique": true,
     "Arguments": [
       {
         "Kind": "InputValueDefinition",
@@ -11802,7 +11798,6 @@
     },
     "Description": null,
     "IsRepeatable": true,
-    "IsUnique": false,
     "Arguments": [
       {
         "Kind": "InputValueDefinition",
@@ -12065,7 +12060,6 @@
     },
     "Description": null,
     "IsRepeatable": false,
-    "IsUnique": true,
     "Arguments": [
       {
         "Kind": "InputValueDefinition",
@@ -12328,7 +12322,6 @@
     },
     "Description": null,
     "IsRepeatable": false,
-    "IsUnique": true,
     "Arguments": [
       {
         "Kind": "InputValueDefinition",

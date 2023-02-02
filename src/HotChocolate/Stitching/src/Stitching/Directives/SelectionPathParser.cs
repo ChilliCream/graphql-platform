@@ -18,7 +18,7 @@ internal static class SelectionPathParser
         }
 
         byte[]? rented = null;
-        Span<byte> buffer = path.Length < _maxStackSize
+        var buffer = path.Length < _maxStackSize
             ? stackalloc byte[path.Length]
             : rented = ArrayPool<byte>.Shared.Rent(path.Length);
 
@@ -52,11 +52,11 @@ internal static class SelectionPathParser
     private static ImmutableStack<SelectionPathComponent> ParseSelectionPath(
         ref Utf8GraphQLParser parser)
     {
-        ImmutableStack<SelectionPathComponent>? path = ImmutableStack<SelectionPathComponent>.Empty;
+        var path = ImmutableStack<SelectionPathComponent>.Empty;
 
         parser.MoveNext();
 
-        while (parser.Kind != TokenKind.EndOfFile)
+        while (!parser.IsEndOfFile)
         {
             path = path.Push(ParseSelectionPathComponent(ref parser));
         }
@@ -67,8 +67,8 @@ internal static class SelectionPathParser
     private static SelectionPathComponent ParseSelectionPathComponent(
         ref Utf8GraphQLParser parser)
     {
-        NameNode name = parser.ParseName();
-        List<ArgumentNode> arguments = ParseArguments(ref parser);
+        var name = parser.ParseName();
+        var arguments = ParseArguments(ref parser);
         return new SelectionPathComponent(name, arguments);
     }
 
@@ -77,12 +77,12 @@ internal static class SelectionPathParser
     {
         var list = new List<ArgumentNode>();
 
-        if (parser.Kind == TokenKind.LeftParenthesis)
+        if (parser.Reader.Kind == TokenKind.LeftParenthesis)
         {
             // skip opening token
             parser.MoveNext();
 
-            while (parser.Kind != TokenKind.RightParenthesis)
+            while (parser.Reader.Kind != TokenKind.RightParenthesis)
             {
                 list.Add(ParseArgument(ref parser));
             }
@@ -96,11 +96,11 @@ internal static class SelectionPathParser
 
     private static ArgumentNode ParseArgument(ref Utf8GraphQLParser parser)
     {
-        NameNode name = parser.ParseName();
+        var name = parser.ParseName();
 
         parser.ExpectColon();
 
-        IValueNode value = ParseValueLiteral(ref parser);
+        var value = ParseValueLiteral(ref parser);
 
         return new ArgumentNode
         (
@@ -112,7 +112,7 @@ internal static class SelectionPathParser
     private static IValueNode ParseValueLiteral(
         ref Utf8GraphQLParser parser)
     {
-        if (parser.Kind == TokenKind.Dollar)
+        if (parser.Reader.Kind == TokenKind.Dollar)
         {
             return ParseVariable(ref parser);
         }
@@ -122,9 +122,9 @@ internal static class SelectionPathParser
     private static ScopedVariableNode ParseVariable(ref Utf8GraphQLParser parser)
     {
         parser.ExpectDollar();
-        NameNode scope = parser.ParseName();
+        var scope = parser.ParseName();
         parser.ExpectColon();
-        NameNode name = parser.ParseName();
+        var name = parser.ParseName();
 
         return new ScopedVariableNode
         (

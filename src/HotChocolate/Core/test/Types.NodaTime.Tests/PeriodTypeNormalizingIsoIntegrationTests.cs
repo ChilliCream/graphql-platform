@@ -1,4 +1,3 @@
-using System.Linq;
 using HotChocolate.Execution;
 using NodaTime.Text;
 using Xunit;
@@ -24,8 +23,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void QueryReturns()
         {
             IExecutionResult? result = testExecutor.Execute("query { test: one }");
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("P-17DT-23H-59M-59.9999861S", queryResult!.Data!["test"]);
+            Assert.Equal("P-17DT-23H-59M-59.9999861S", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
@@ -36,8 +34,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetQuery("mutation($arg: Period!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "P-17DT-23H-59M-59.9999861S")
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("P-18DT-9M-59.9999861S", queryResult!.Data!["test"]);
+            Assert.Equal("P-18DT-9M-59.9999861S", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
@@ -48,9 +45,8 @@ namespace HotChocolate.Types.NodaTime.Tests
                     .SetQuery("mutation($arg: Period!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "-P-17DT-23H-59M-59.9999861S")
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Null(queryResult!.Data);
-            Assert.Equal(1, queryResult!.Errors!.Count);
+            Assert.Null(result.ExpectQueryResult().Data);
+            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
         }
 
         [Fact]
@@ -60,8 +56,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation { test(arg: \"P-17DT-23H-59M-59.9999861S\") }")
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Equal("P-18DT-9M-59.9999861S", queryResult!.Data!["test"]);
+            Assert.Equal("P-18DT-9M-59.9999861S", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
@@ -71,11 +66,12 @@ namespace HotChocolate.Types.NodaTime.Tests
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation { test(arg: \"-P-17DT-23H-59M-59.9999861S\") }")
                     .Create());
-            var queryResult = result as IReadOnlyQueryResult;
-            Assert.Null(queryResult!.Data);
-            Assert.Equal(1, queryResult!.Errors!.Count);
-            Assert.Null(queryResult.Errors[0].Code);
-            Assert.Equal("Unable to deserialize string to Period", queryResult.Errors[0].Message);
+            Assert.Null(result.ExpectQueryResult().Data);
+            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
+            Assert.Null(result.ExpectQueryResult().Errors![0].Code);
+            Assert.Equal(
+                "Unable to deserialize string to Period",
+                result.ExpectQueryResult().Errors![0].Message);
         }
     }
 }

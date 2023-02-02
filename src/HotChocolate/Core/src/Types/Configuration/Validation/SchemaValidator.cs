@@ -30,10 +30,10 @@ internal static class SchemaValidator
             throw new ArgumentNullException(nameof(options));
         }
 
-        var types = typeSystemObjects.ToList();
+        var types = typeSystemObjects.ToArray();
         var errors = new List<ISchemaError>();
 
-        foreach (ISchemaValidationRule rule in _rules)
+        foreach (var rule in _rules)
         {
             rule.Validate(types, options, errors);
         }

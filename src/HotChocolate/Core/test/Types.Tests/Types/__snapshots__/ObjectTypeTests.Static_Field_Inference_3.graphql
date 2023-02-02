@@ -1,0 +1,7 @@
+schema {
+  query: WithStaticField
+}
+
+type WithStaticField {
+  hello: String!
+}

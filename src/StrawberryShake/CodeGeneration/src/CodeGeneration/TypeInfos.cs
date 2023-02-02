@@ -45,6 +45,7 @@ public sealed class TypeInfos
         { GraphQLWebSocketProtocolFactory, new RuntimeTypeInfo(GraphQLWebSocketProtocolFactory) },
         { JsonElement, new RuntimeTypeInfo(JsonElement, true) },
         { JsonDocument, new RuntimeTypeInfo(JsonDocument) },
+        { Upload, new RuntimeTypeInfo(Upload, true) },
         { String, new RuntimeTypeInfo(String) },
         { Byte, new RuntimeTypeInfo(Byte, true) },
         { ByteArray, new RuntimeTypeInfo(ByteArray, true) },
@@ -117,11 +118,11 @@ public sealed class TypeInfos
             fullTypeName = "global::" + fullTypeName;
         }
 
-        if (!_infos.TryGetValue(fullTypeName, out RuntimeTypeInfo? typeInfo))
+        if (!_infos.TryGetValue(fullTypeName, out var typeInfo))
         {
             typeInfo = factory();
             Debug.Assert(
-                typeInfo.FullName == fullTypeName, 
+                typeInfo.FullName == fullTypeName,
                 $"Expected generated type '{typeInfo.FullName}' to equal '{fullTypeName}'.");
             _infos.Add(fullTypeName, typeInfo);
         }

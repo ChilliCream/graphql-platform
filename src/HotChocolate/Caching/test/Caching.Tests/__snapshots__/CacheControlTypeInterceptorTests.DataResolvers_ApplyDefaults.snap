@@ -1,0 +1,126 @@
+﻿schema {
+  query: Query
+}
+
+"Information about the offset pagination."
+type CollectionSegmentInfo {
+  "Indicates whether more items exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more items exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+}
+
+type NestedType {
+  taskField: String! @cacheControl(maxAge: 0)
+  valueTaskField: String! @cacheControl(maxAge: 0)
+  executableField: [String!]! @cacheControl(maxAge: 0)
+  queryableField: [String!]! @cacheControl(maxAge: 0)
+  queryableFieldWithConnection("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): QueryableFieldWithConnectionConnection @cacheControl(maxAge: 0)
+  queryableFieldWithCollectionSegment(skip: Int take: Int): QueryableFieldWithCollectionSegmentCollectionSegment @cacheControl(maxAge: 0)
+  taskFieldWithCacheControl: String! @cacheControl(maxAge: 200)
+  valueTaskFieldWithCacheControl: String! @cacheControl(maxAge: 200)
+  executableFieldWithCacheControl: [String!]! @cacheControl(maxAge: 200)
+  queryableFieldWithCacheControl: [String!]! @cacheControl(maxAge: 200)
+  queryableFieldWithConnectionWithCacheControl("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): QueryableFieldWithConnectionWithCacheControlConnection @cacheControl(maxAge: 200)
+  queryableFieldWithCollectionSegmentWithCacheControl(skip: Int take: Int): QueryableFieldWithCollectionSegmentWithCacheControlCollectionSegment @cacheControl(maxAge: 200)
+  pureField: String!
+  pureFieldWithCacheControl: String! @cacheControl(maxAge: 200)
+}
+
+type NestedType2 {
+  taskFieldWithInheritMaxAge: String! @cacheControl(inheritMaxAge: true)
+}
+
+"Information about pagination in a connection."
+type PageInfo {
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+  "When paginating backwards, the cursor to continue."
+  startCursor: String
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
+}
+
+type Query {
+  taskField: String! @cacheControl(maxAge: 0)
+  valueTaskField: String! @cacheControl(maxAge: 0)
+  executableField: [String!]! @cacheControl(maxAge: 0)
+  queryableField: [String!]! @cacheControl(maxAge: 0)
+  queryableFieldWithConnection("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): QueryableFieldWithConnectionConnection @cacheControl(maxAge: 0)
+  queryableFieldWithCollectionSegment(skip: Int take: Int): QueryableFieldWithCollectionSegmentCollectionSegment @cacheControl(maxAge: 0)
+  taskFieldWithCacheControl: String! @cacheControl(maxAge: 200)
+  valueTaskFieldWithCacheControl: String! @cacheControl(maxAge: 200)
+  executableFieldWithCacheControl: [String!]! @cacheControl(maxAge: 200)
+  queryableFieldWithCacheControl: [String!]! @cacheControl(maxAge: 200)
+  queryableFieldWithConnectionWithCacheControl("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): QueryableFieldWithConnectionWithCacheControlConnection @cacheControl(maxAge: 200)
+  queryableFieldWithCollectionSegmentWithCacheControl(skip: Int take: Int): QueryableFieldWithCollectionSegmentWithCacheControlCollectionSegment @cacheControl(maxAge: 200)
+  nested: NestedType! @cacheControl(maxAge: 0)
+  nested2: NestedType2! @cacheControl(maxAge: 0)
+  pureField: String! @cacheControl(maxAge: 0)
+  pureFieldWithCacheControl: String! @cacheControl(maxAge: 200)
+}
+
+"A segment of a collection."
+type QueryableFieldWithCollectionSegmentCollectionSegment {
+  "Information to aid in pagination."
+  pageInfo: CollectionSegmentInfo!
+  "A flattened list of the items."
+  items: [String!]
+}
+
+"A segment of a collection."
+type QueryableFieldWithCollectionSegmentWithCacheControlCollectionSegment {
+  "Information to aid in pagination."
+  pageInfo: CollectionSegmentInfo!
+  "A flattened list of the items."
+  items: [String!]
+}
+
+"A connection to a list of items."
+type QueryableFieldWithConnectionConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [QueryableFieldWithConnectionEdge!]
+  "A flattened list of the nodes."
+  nodes: [String!]
+}
+
+"An edge in a connection."
+type QueryableFieldWithConnectionEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: String!
+}
+
+"A connection to a list of items."
+type QueryableFieldWithConnectionWithCacheControlConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [QueryableFieldWithConnectionWithCacheControlEdge!]
+  "A flattened list of the nodes."
+  nodes: [String!]
+}
+
+"An edge in a connection."
+type QueryableFieldWithConnectionWithCacheControlEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: String!
+}
+
+"The scope of a cache hint."
+enum CacheControlScope {
+  "The value to cache is not tied to a single user."
+  PUBLIC
+  "The value to cache is specific to a single user."
+  PRIVATE
+}
+
+"The `@cacheControl` directive may be provided for individual fields or entire object, interface or union types to provide caching hints to the executor."
+directive @cacheControl("The maximum amount of time this field's cached value is valid, in seconds." maxAge: Int "If `PRIVATE`, the field's value is specific to a single user. The default value is `PUBLIC`, which means the field's value is not tied to a single user." scope: CacheControlScope "If `true`, the field inherits the `maxAge` of its parent field." inheritMaxAge: Boolean) on OBJECT | FIELD_DEFINITION | INTERFACE | UNION

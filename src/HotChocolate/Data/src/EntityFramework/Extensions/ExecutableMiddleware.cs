@@ -3,6 +3,8 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types;
 
+#pragma warning disable CA1812
+
 internal class ExecutableMiddleware
 {
     private readonly FieldDelegate _next;

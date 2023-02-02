@@ -5,7 +5,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 public sealed class ScalarTypeDescriptor : ILeafTypeDescriptor
 {
     public ScalarTypeDescriptor(
-        NameString name,
+        string name,
         RuntimeTypeInfo runtimeType,
         RuntimeTypeInfo serializationType)
     {
@@ -17,7 +17,7 @@ public sealed class ScalarTypeDescriptor : ILeafTypeDescriptor
     /// <summary>
     /// Gets the GraphQL type name.
     /// </summary>
-    public NameString Name { get; }
+    public string Name { get; }
 
     /// <summary>
     /// Gets the type kind.

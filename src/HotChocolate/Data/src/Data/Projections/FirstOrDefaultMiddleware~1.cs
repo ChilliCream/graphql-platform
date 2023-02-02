@@ -29,7 +29,7 @@ public sealed class FirstOrDefaultMiddleware<T>
         {
             case IAsyncEnumerable<T> ae:
                 {
-                    await using IAsyncEnumerator<T> enumerator =
+                    await using var enumerator =
                         ae.GetAsyncEnumerator(context.RequestAborted);
 
                     if (await enumerator.MoveNextAsync().ConfigureAwait(false))

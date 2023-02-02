@@ -1,9 +1,8 @@
 using HotChocolate.Data.Filters.Expressions;
 
-namespace HotChocolate.Data.Filters.Spatial
+namespace HotChocolate.Data.Filters.Spatial;
+
+public class QueryableSpatialGeometryDataHandler : QueryableDataOperationHandler
 {
-    public class QueryableSpatialGeometryDataHandler : QueryableDataOperationHandler
-    {
-        protected override int Operation => SpatialFilterOperations.Geometry;
-    }
+    protected override int Operation => SpatialFilterOperations.Geometry;
 }

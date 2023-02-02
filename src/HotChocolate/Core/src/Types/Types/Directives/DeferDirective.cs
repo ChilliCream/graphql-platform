@@ -12,7 +12,7 @@ namespace HotChocolate.Types;
 ///
 /// directive @defer(label: String, if: Boolean) on FRAGMENT_SPREAD | INLINE_FRAGMENT
 /// </summary>
-public class DeferDirective
+public sealed class DeferDirective
 {
     /// <summary>
     /// Initializes a new instance of <see cref="DeferDirective"/>

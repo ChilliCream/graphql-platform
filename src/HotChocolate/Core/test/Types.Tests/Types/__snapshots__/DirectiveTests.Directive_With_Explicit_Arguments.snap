@@ -1,0 +1,9 @@
+schema {
+  query: Query
+}
+
+type Query {
+  abc: String @Foo
+}
+
+directive @Foo on FIELD_DEFINITION

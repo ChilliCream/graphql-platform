@@ -6,20 +6,23 @@ using HotChocolate.Internal;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 #nullable enable
 
 namespace HotChocolate.Types;
 
 /// <summary>
+/// <para>
 /// Object type extensions are used to represent a type which has been extended
 /// from some original type.
-///
+/// </para>
+/// <para>
 /// For example, this might be used to represent local data, or by a GraphQL service
 /// which is itself an extension of another GraphQL service.
+/// </para>
 /// </summary>
-public class ObjectTypeExtension
-    : NamedTypeExtensionBase<ObjectTypeDefinition>
+public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeDefinition>
 {
     private Action<IObjectTypeDescriptor>? _configure;
 
@@ -119,19 +122,19 @@ public class ObjectTypeExtension
         ObjectTypeDefinition extensionDef,
         ObjectTypeDefinition typeDef)
     {
-        IReadOnlyList<ObjectFieldBinding> fieldIgnores = extensionDef.GetFieldIgnores();
+        var fieldIgnores = extensionDef.GetFieldIgnores();
 
         if (fieldIgnores.Count > 0)
         {
             var fields = new List<ObjectFieldDefinition>();
 
-            foreach (ObjectFieldBinding binding in fieldIgnores)
+            foreach (var binding in fieldIgnores)
             {
                 switch (binding.Type)
                 {
                     case ObjectFieldBindingType.Field:
                         if (typeDef.Fields.FirstOrDefault(
-                            t => t.Name.Equals(binding.Name)) is { } f)
+                            t => t.Name.EqualsOrdinal(binding.Name)) is { } f)
                         {
                             fields.Add(f);
                         }
@@ -140,7 +143,7 @@ public class ObjectTypeExtension
                     case ObjectFieldBindingType.Property:
                         if (typeDef.Fields.FirstOrDefault(
                             t => t.Member != null &&
-                                binding.Name.Equals(t.Member.Name)) is { } p)
+                                binding.Name.EqualsOrdinal(t.Member.Name)) is { } p)
                         {
                             fields.Add(p);
                         }
@@ -148,7 +151,7 @@ public class ObjectTypeExtension
                 }
             }
 
-            foreach (ObjectFieldDefinition? field in fields)
+            foreach (var field in fields)
             {
                 typeDef.Fields.Remove(field);
             }

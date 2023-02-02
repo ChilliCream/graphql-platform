@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Runtime.CompilerServices;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language;
@@ -17,17 +16,16 @@ public ref partial struct Utf8GraphQLParser
     /// <see cref="OperationDefinitionNode" />:
     /// OperationType? OperationName? ($x : Type = DefaultValue?)? SelectionSet
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private OperationDefinitionNode ParseOperationDefinition()
     {
-        TokenInfo start = Start();
+        var start = Start();
 
-        OperationType operation = ParseOperationType();
-        NameNode? name = _reader.Kind == TokenKind.Name ? ParseName() : null;
-        List<VariableDefinitionNode> variableDefinitions = ParseVariableDefinitions();
-        List<DirectiveNode> directives = ParseDirectives(false);
-        SelectionSetNode selectionSet = ParseSelectionSet();
-        Location? location = CreateLocation(in start);
+        var operation = ParseOperationType();
+        var name = _reader.Kind == TokenKind.Name ? ParseName() : null;
+        var variableDefinitions = ParseVariableDefinitions();
+        var directives = ParseDirectives(false);
+        var selectionSet = ParseSelectionSet();
+        var location = CreateLocation(in start);
 
         return new OperationDefinitionNode
         (
@@ -45,12 +43,11 @@ public ref partial struct Utf8GraphQLParser
     /// <see cref="OperationDefinitionNode" />:
     /// SelectionSet
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private OperationDefinitionNode ParseShortOperationDefinition()
     {
-        TokenInfo start = Start();
-        SelectionSetNode selectionSet = ParseSelectionSet();
-        Location? location = CreateLocation(in start);
+        var start = Start();
+        var selectionSet = ParseSelectionSet();
+        var location = CreateLocation(in start);
 
         return new OperationDefinitionNode
         (
@@ -66,7 +63,6 @@ public ref partial struct Utf8GraphQLParser
     /// <summary>
     /// Parses the <see cref="OperationType" />.
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private OperationType ParseOperationType()
     {
         if (_reader.Kind == TokenKind.Name)
@@ -98,7 +94,6 @@ public ref partial struct Utf8GraphQLParser
     /// <see cref="IEnumerable{VariableDefinitionNode}" />:
     /// ( VariableDefinition+ )
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private List<VariableDefinitionNode> ParseVariableDefinitions()
     {
         if (_reader.Kind == TokenKind.LeftParenthesis)
@@ -127,21 +122,20 @@ public ref partial struct Utf8GraphQLParser
     /// <see cref="VariableDefinitionNode" />:
     /// $variable : Type = DefaultValue?
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private VariableDefinitionNode ParseVariableDefinition()
     {
-        TokenInfo start = Start();
+        var start = Start();
 
-        VariableNode variable = ParseVariable();
+        var variable = ParseVariable();
         ExpectColon();
-        ITypeNode type = ParseTypeReference();
-        IValueNode? defaultValue = SkipEqual()
+        var type = ParseTypeReference();
+        var defaultValue = SkipEqual()
             ? ParseValueLiteral(true)
             : null;
-        List<DirectiveNode> directives =
+        var directives =
             ParseDirectives(true);
 
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new VariableDefinitionNode
         (
@@ -158,13 +152,12 @@ public ref partial struct Utf8GraphQLParser
     /// <see cref="VariableNode" />:
     /// $Name
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private VariableNode ParseVariable()
     {
-        TokenInfo start = Start();
+        var start = Start();
         ExpectDollar();
-        NameNode name = ParseName();
-        Location? location = CreateLocation(in start);
+        var name = ParseName();
+        var location = CreateLocation(in start);
 
         return new VariableNode
         (
@@ -178,10 +171,9 @@ public ref partial struct Utf8GraphQLParser
     /// <see cref="SelectionSetNode" />:
     /// { Selection+ }
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private SelectionSetNode ParseSelectionSet()
     {
-        TokenInfo start = Start();
+        var start = Start();
 
         if (_reader.Kind != TokenKind.LeftBrace)
         {
@@ -206,7 +198,7 @@ public ref partial struct Utf8GraphQLParser
         // skip closing token
         ExpectRightBrace();
 
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new SelectionSetNode
         (
@@ -222,7 +214,6 @@ public ref partial struct Utf8GraphQLParser
     /// - FragmentSpread
     /// - InlineFragment
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ISelectionNode ParseSelection()
     {
         if (_reader.Kind == TokenKind.Spread)
@@ -237,12 +228,11 @@ public ref partial struct Utf8GraphQLParser
     /// <see cref="FieldNode"  />:
     /// Alias? : Name Arguments? Directives? SelectionSet?
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private FieldNode ParseField()
     {
-        TokenInfo start = Start();
+        var start = Start();
 
-        NameNode name = ParseName();
+        var name = ParseName();
         NameNode? alias = null;
 
         if (SkipColon())
@@ -251,14 +241,14 @@ public ref partial struct Utf8GraphQLParser
             name = ParseName();
         }
 
-        List<ArgumentNode> arguments = ParseArguments(false);
-        INullabilityNode? required = ParseRequiredStatus();
-        List<DirectiveNode> directives = ParseDirectives(false);
-        SelectionSetNode? selectionSet = _reader.Kind == TokenKind.LeftBrace
+        var arguments = ParseArguments(false);
+        var required = ParseRequiredStatus();
+        var directives = ParseDirectives(false);
+        var selectionSet = _reader.Kind == TokenKind.LeftBrace
             ? ParseSelectionSet()
             : null;
 
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new FieldNode
         (
@@ -274,8 +264,8 @@ public ref partial struct Utf8GraphQLParser
 
     private INullabilityNode? ParseRequiredStatus()
     {
-        ListNullabilityNode? list = ParseListNullability();
-        INullabilityNode? modifier = ParseModifier(list);
+        var list = ParseListNullability();
+        var modifier = ParseModifier(list);
         return modifier ?? list;
     }
 
@@ -283,11 +273,11 @@ public ref partial struct Utf8GraphQLParser
     {
         if (_reader.Kind == TokenKind.LeftBracket)
         {
-            TokenInfo start = Start();
+            var start = Start();
             _reader.Skip(TokenKind.LeftBracket);
-            INullabilityNode? element = ParseRequiredStatus();
+            var element = ParseRequiredStatus();
             _reader.Expect(TokenKind.RightBracket);
-            Location? location = CreateLocation(in start);
+            var location = CreateLocation(in start);
             return new ListNullabilityNode(location, element);
         }
 
@@ -298,17 +288,17 @@ public ref partial struct Utf8GraphQLParser
     {
         if (_reader.Kind == TokenKind.QuestionMark)
         {
-            TokenInfo start = Start();
+            var start = Start();
             _reader.Skip(TokenKind.QuestionMark);
-            Location? location = CreateLocation(in start);
+            var location = CreateLocation(in start);
             return new OptionalModifierNode(location, listNullabilityNode);
         }
 
         if (_reader.Kind == TokenKind.Bang)
         {
-            TokenInfo start = Start();
+            var start = Start();
             _reader.Skip(TokenKind.Bang);
-            Location? location = CreateLocation(in start);
+            var location = CreateLocation(in start);
             return new RequiredModifierNode(location, listNullabilityNode);
         }
 
@@ -320,7 +310,6 @@ public ref partial struct Utf8GraphQLParser
     /// <see cref="ArgumentNode" />:
     /// Name : Value[isConstant]
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private List<ArgumentNode> ParseArguments(bool isConstant)
     {
         if (_reader.Kind == TokenKind.LeftParenthesis)
@@ -349,16 +338,15 @@ public ref partial struct Utf8GraphQLParser
     /// <see cref="ArgumentNode" />:
     /// Name : Value[isConstant]
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ArgumentNode ParseArgument(bool isConstant)
     {
-        TokenInfo start = Start();
+        var start = Start();
 
-        NameNode name = ParseName();
+        var name = ParseName();
         ExpectColon();
-        IValueNode value = ParseValueLiteral(isConstant);
+        var value = ParseValueLiteral(isConstant);
 
-        Location? location = CreateLocation(in start);
+        var location = CreateLocation(in start);
 
         return new ArgumentNode
         (

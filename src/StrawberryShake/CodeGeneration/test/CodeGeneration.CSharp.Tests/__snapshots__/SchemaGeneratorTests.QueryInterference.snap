@@ -113,7 +113,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (TotalCount == other.TotalCount) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Items, other.Items);
+            return (TotalCount == other.TotalCount) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Items, other.Items);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -198,7 +198,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Id.Equals(other.Id)) && Name.Equals(other.Name) && Level == other.Level && CanBeLearnedMoreThanOnce == other.CanBeLearnedMoreThanOnce && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Details, other.Details);
+            return (Id.Equals(other.Id)) && Name.Equals(other.Name) && Level == other.Level && CanBeLearnedMoreThanOnce == other.CanBeLearnedMoreThanOnce && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Details, other.Details);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -458,7 +458,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Items, other.Items));
+            return (global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Items, other.Items));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -548,7 +548,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Id.Equals(other.Id)) && Name.Equals(other.Name) && Level == other.Level && ((Special is null && other.Special is null) || Special != null && Special.Equals(other.Special)) && ((Trigger is null && other.Trigger is null) || Trigger != null && Trigger.Equals(other.Trigger)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Details, other.Details) && ActionType.Equals(other.ActionType);
+            return (Id.Equals(other.Id)) && Name.Equals(other.Name) && Level == other.Level && ((Special is null && other.Special is null) || Special != null && Special.Equals(other.Special)) && ((Trigger is null && other.Trigger is null) || Trigger != null && Trigger.Equals(other.Trigger)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Details, other.Details) && ActionType.Equals(other.ActionType);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -2198,7 +2198,7 @@ namespace Foo.Bar
             {
                 "ASC" => SortEnumType.Asc,
                 "DESC" => SortEnumType.Desc,
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"String value '{serializedValue}' can't be converted to enum SortEnumType")};
         }
 
         public global::System.Object Format(global::System.Object? runtimeValue)
@@ -2207,7 +2207,7 @@ namespace Foo.Bar
             {
                 SortEnumType.Asc => "ASC",
                 SortEnumType.Desc => "DESC",
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"Enum SortEnumType value '{runtimeValue}' can't be converted to string")};
         }
     }
 

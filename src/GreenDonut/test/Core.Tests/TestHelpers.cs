@@ -1,48 +1,47 @@
 using System;
 using System.Threading.Tasks;
 
-namespace GreenDonut
+namespace GreenDonut;
+
+internal static class TestHelpers
 {
-    internal static class TestHelpers
+    public static FetchDataDelegate<TKey, TValue> CreateFetch<TKey, TValue>()
     {
-        public static FetchDataDelegate<TKey, TValue> CreateFetch<TKey, TValue>()
-        {
-            return (_, _, _) => default;
-        }
+        return (_, _, _) => default;
+    }
 
-        public static FetchDataDelegate<TKey, TValue> CreateFetch<TKey, TValue>(Exception error)
+    public static FetchDataDelegate<TKey, TValue> CreateFetch<TKey, TValue>(Exception error)
+    {
+        return (_, results, _) =>
         {
-            return (_, results, _) =>
+            results.Span[0] = error;
+            return default;
+        };
+    }
+
+    public static FetchDataDelegate<TKey, TValue> CreateFetch<TKey, TValue>(
+        Result<TValue> value)
+    {
+        return (_, results, _) =>
+        {
+            results.Span[0] = value;
+            return default;
+        };
+    }
+
+    public static FetchDataDelegate<TKey, TValue> CreateFetch<TKey, TValue>(
+        Result<TValue>[] values)
+    {
+        return (_, results, _) =>
+        {
+            var span = results.Span;
+
+            for (var i = 0; i < results.Length; i++)
             {
-                results.Span[0] = error;
-                return default;
-            };
-        }
+                span[i] = values[i];
+            }
 
-        public static FetchDataDelegate<TKey, TValue> CreateFetch<TKey, TValue>(
-            Result<TValue> value)
-        {
-            return (_, results, _) =>
-            {
-                results.Span[0] = value;
-                return default;
-            };
-        }
-
-        public static FetchDataDelegate<TKey, TValue> CreateFetch<TKey, TValue>(
-            Result<TValue>[] values)
-        {
-            return (_, results, _) =>
-            {
-                Span<Result<TValue>> span = results.Span;
-
-                for (var i = 0; i < results.Length; i++)
-                {
-                    span[i] = values[i];
-                }
-
-                return default;
-            };
-        }
+            return default;
+        };
     }
 }

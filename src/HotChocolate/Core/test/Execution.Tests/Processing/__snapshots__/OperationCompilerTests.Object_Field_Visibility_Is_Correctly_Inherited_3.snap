@@ -1,11 +1,19 @@
 ﻿query foo($v: Boolean, $q: Boolean) {
+  hero(episode: EMPIRE) @include(if: $v) {
+    name @include(if: $q)
+  }
+}
+
+---------------------------------------------------------
+
+query foo($v: Boolean, $q: Boolean) @includeCondition(flag: 2) @includeCondition(flag: 3) {
   ... on Query {
-    hero(episode: EMPIRE) @include(if: $v) @__execute(id: 0, kind: DEFAULT, type: COMPOSITE) {
+    hero(episode: EMPIRE) @conditional @__execute(id: 0, kind: PURE, type: COMPOSITE) {
       ... on Human {
-        name @include(if: $q) @__execute(id: 1, kind: DEFAULT, type: LEAF)
+        name @conditional @__execute(id: 1, kind: PURE, type: LEAF)
       }
       ... on Droid {
-        name @include(if: $q) @__execute(id: 2, kind: DEFAULT, type: LEAF)
+        name @conditional @__execute(id: 2, kind: PURE, type: LEAF)
       }
     }
   }

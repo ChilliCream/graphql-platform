@@ -1,8 +1,8 @@
 using System.Linq;
 using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.ApolloFederation.Directives;
 
@@ -12,20 +12,19 @@ public class ExternalDirectiveTests : FederationTypesTestBase
     public void AddExternalDirective_EnsureAvailableInSchema()
     {
         // arrange
-        ISchema schema = CreateSchema(b => b.AddDirectiveType<ExternalDirectiveType>());
+        var schema = CreateSchema(b => b.AddDirectiveType<ExternalDirectiveType>());
 
         // act
-        DirectiveType? directive =
+        var directive =
             schema.DirectiveTypes.FirstOrDefault(
-                t => t.Name.Equals(WellKnownTypeNames.External));
+                t => t.Name.EqualsOrdinal(WellKnownTypeNames.External));
 
         // assert
         Assert.NotNull(directive);
         Assert.IsType<ExternalDirectiveType>(directive);
         Assert.Equal(WellKnownTypeNames.External, directive!.Name);
-        Assert.Empty(directive!.Arguments);
-        Assert.Collection(directive!.Locations,
-            t => Assert.Equal(DirectiveLocation.FieldDefinition, t));
+        Assert.Empty(directive.Arguments);
+        Assert.Equal(DirectiveLocation.FieldDefinition, directive.Locations);
     }
 
     [Fact]
@@ -34,7 +33,7 @@ public class ExternalDirectiveTests : FederationTypesTestBase
         // arrange
         Snapshot.FullName();
 
-        ISchema? schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(o => o
                 .Name("Query")
                 .Field("field")
@@ -46,16 +45,12 @@ public class ExternalDirectiveTests : FederationTypesTestBase
             .Create();
 
         // act
-        ObjectType query = schema.GetType<ObjectType>("Query");
+        var query = schema.GetType<ObjectType>("Query");
 
         // assert
         Assert.Collection(
             query.Fields["field"].Directives,
-            item => Assert.Equal(
-                WellKnownTypeNames.External,
-                item.Name
-            )
-        );
+            item => Assert.Equal(WellKnownTypeNames.External, item.Type.Name));
         schema.ToString().MatchSnapshot();
     }
 
@@ -66,7 +61,7 @@ public class ExternalDirectiveTests : FederationTypesTestBase
         // arrange
         Snapshot.FullName();
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString(
                 @"
                     type Query {
@@ -76,20 +71,16 @@ public class ExternalDirectiveTests : FederationTypesTestBase
                     "
             )
             .AddDirectiveType<ExternalDirectiveType>()
-            .Use(next => context => default)
+            .Use(_ => _ => default)
             .Create();
 
         // act
-        ObjectType queryInterface = schema.GetType<ObjectType>("Query");
+        var queryInterface = schema.GetType<ObjectType>("Query");
 
         // assert
         Assert.Collection(
             queryInterface.Fields["field"].Directives,
-            item => Assert.Equal(
-                WellKnownTypeNames.External,
-                item.Name
-            )
-        );
+            item => Assert.Equal(WellKnownTypeNames.External, item.Type.Name));
         schema.ToString().MatchSnapshot();
     }
 
@@ -99,22 +90,18 @@ public class ExternalDirectiveTests : FederationTypesTestBase
         // arrange
         Snapshot.FullName();
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<Query>()
             .Create();
 
         // act
-        ObjectType query = schema.GetType<ObjectType>("User");
+        var query = schema.GetType<ObjectType>("User");
 
         // assert
         Assert.Collection(
             query.Fields["idCode"].Directives,
-            item => Assert.Equal(
-                WellKnownTypeNames.External,
-                item.Name
-            )
-        );
+            item => Assert.Equal(WellKnownTypeNames.External, item.Type.Name));
         schema.ToString().MatchSnapshot();
     }
 }

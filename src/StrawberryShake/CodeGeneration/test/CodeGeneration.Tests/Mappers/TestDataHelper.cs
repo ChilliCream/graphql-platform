@@ -1,6 +1,4 @@
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
@@ -14,28 +12,29 @@ namespace StrawberryShake.CodeGeneration.Mappers;
 public static class TestDataHelper
 {
     public static ClientModel CreateClientModelAsync(
-        string queryResource, 
+        string queryResource,
         string schemaResource)
     {
-        ISchema schema = SchemaHelper.Load(
-            new GraphQLFile[] 
+        var schema = SchemaHelper.Load(
+            new GraphQLFile[]
             {
                 new(Utf8GraphQLParser.Parse(Open(schemaResource))),
                 new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")"))
             });
 
-        DocumentNode document = Utf8GraphQLParser.Parse(Open(queryResource));
+        var document = Utf8GraphQLParser.Parse(Open(queryResource));
 
         return DocumentAnalyzer
             .New()
             .SetSchema(schema)
             .AddDocument(document)
-            .Analyze();
+            .AnalyzeAsync()
+            .Result;
     }
 
     public static async Task<ClientModel> CreateClientModelAsync(string query)
     {
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddStarWarsRepositories()
                 .AddGraphQL()
@@ -43,18 +42,19 @@ public static class TestDataHelper
                 .BuildSchemaAsync();
 
         schema = SchemaHelper.Load(
-            new GraphQLFile[] 
+            new GraphQLFile[]
             {
                 new(schema.ToDocument()),
                 new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")"))
             });
 
-        DocumentNode document = Utf8GraphQLParser.Parse(query);
+        var document = Utf8GraphQLParser.Parse(query);
 
         return DocumentAnalyzer
             .New()
             .SetSchema(schema)
             .AddDocument(document)
-            .Analyze();
+            .AnalyzeAsync()
+            .Result;
     }
 }

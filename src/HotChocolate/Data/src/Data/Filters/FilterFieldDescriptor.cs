@@ -1,4 +1,5 @@
 using System;
+using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -14,10 +15,10 @@ public class FilterFieldDescriptor
     protected FilterFieldDescriptor(
         IDescriptorContext context,
         string? scope,
-        NameString fieldName)
+        string fieldName)
         : base(context)
     {
-        Definition.Name = fieldName.EnsureNotEmpty(nameof(fieldName));
+        Definition.Name = fieldName;
         Definition.Scope = scope;
     }
 
@@ -27,15 +28,32 @@ public class FilterFieldDescriptor
         MemberInfo member)
         : base(context)
     {
-        IFilterConvention convention = context.GetFilterConvention(scope);
+        var convention = context.GetFilterConvention(scope);
 
-        Definition.Member = member ??
-            throw new ArgumentNullException(nameof(member));
+        Definition.Member = member ?? throw new ArgumentNullException(nameof(member));
 
         Definition.Name = convention.GetFieldName(member);
         Definition.Description = convention.GetFieldDescription(member);
         Definition.Type = convention.GetFieldType(member);
         Definition.Scope = scope;
+    }
+
+    protected FilterFieldDescriptor(
+        IDescriptorContext context,
+        string? scope,
+        Expression expression)
+        : base(context)
+    {
+        var convention = context.GetFilterConvention(scope);
+
+        Definition.Expression = expression;
+        Definition.Scope = scope;
+
+        if (Definition.Expression is LambdaExpression lambda)
+        {
+            Definition.Type = convention.GetFieldType(lambda.ReturnType);
+            Definition.RuntimeType = lambda.ReturnType;
+        }
     }
 
     protected internal FilterFieldDescriptor(
@@ -73,9 +91,9 @@ public class FilterFieldDescriptor
         return this;
     }
 
-    public IFilterFieldDescriptor Name(NameString value)
+    public IFilterFieldDescriptor Name(string value)
     {
-        Definition.Name = value.EnsureNotEmpty(nameof(value));
+        Definition.Name = value;
         return this;
     }
 
@@ -85,7 +103,7 @@ public class FilterFieldDescriptor
         return this;
     }
 
-    public new IFilterFieldDescriptor Description(string value)
+   public new IFilterFieldDescriptor Description(string value)
     {
         base.Description(value);
         return this;
@@ -147,7 +165,7 @@ public class FilterFieldDescriptor
     }
 
     public new IFilterFieldDescriptor Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments)
     {
         base.Directive(name, arguments);
@@ -157,12 +175,18 @@ public class FilterFieldDescriptor
     public static FilterFieldDescriptor New(
         IDescriptorContext context,
         string? scope,
-        MemberInfo member) =>
-        new FilterFieldDescriptor(context, scope, member);
+        MemberInfo member)
+        => new(context, scope, member);
 
     public static FilterFieldDescriptor New(
         IDescriptorContext context,
-        NameString fieldName,
-        string? scope) =>
-        new FilterFieldDescriptor(context, scope, fieldName);
+        string fieldName,
+        string? scope)
+        => new(context, scope, fieldName);
+
+    internal static FilterFieldDescriptor New(
+        IDescriptorContext context,
+        string? scope,
+        Expression expression)
+        => new(context, scope, expression);
 }

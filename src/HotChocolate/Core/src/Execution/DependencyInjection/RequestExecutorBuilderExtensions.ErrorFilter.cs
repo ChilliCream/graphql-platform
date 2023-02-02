@@ -4,6 +4,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Errors;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class RequestExecutorBuilderExtensions
@@ -56,8 +57,10 @@ public static partial class RequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        builder.Services.TryAddTransient<T>();
-        return builder.ConfigureSchemaServices(s => s.AddSingleton<IErrorFilter, T>());
+        builder.Services.TryAddSingleton<T>();
+        return builder.ConfigureSchemaServices(
+            s => s.AddSingleton<IErrorFilter, T>(
+                sp => sp.GetApplicationService<T>()));
     }
 
     public static IServiceCollection AddErrorFilter(

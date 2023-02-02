@@ -1,13 +1,7 @@
-﻿{
-  "Label": null,
-  "Path": null,
-  "Data": {
+{
+  "data": {
     "test": {
       "crs": 4326
     }
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null,
-  "HasNext": null
+  }
 }

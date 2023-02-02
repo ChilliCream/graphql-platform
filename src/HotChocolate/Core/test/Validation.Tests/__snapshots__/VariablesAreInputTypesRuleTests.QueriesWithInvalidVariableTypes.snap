@@ -40,8 +40,7 @@
             "Column": 33
           },
           "Value": "cat"
-        },
-        "Value": "cat"
+        }
       },
       "Type": {
         "Kind": "NamedType",
@@ -125,8 +124,7 @@
                 "Column": 33
               },
               "Value": "cat"
-            },
-            "Value": "cat"
+            }
           },
           "Type": {
             "Kind": "NamedType",
@@ -205,8 +203,7 @@
             "Column": 37
           },
           "Value": "dog"
-        },
-        "Value": "dog"
+        }
       },
       "Type": {
         "Kind": "NonNullType",
@@ -299,8 +296,7 @@
                 "Column": 37
               },
               "Value": "dog"
-            },
-            "Value": "dog"
+            }
           },
           "Type": {
             "Kind": "NonNullType",
@@ -388,8 +384,7 @@
             "Column": 39
           },
           "Value": "pets"
-        },
-        "Value": "pets"
+        }
       },
       "Type": {
         "Kind": "ListType",
@@ -482,8 +477,7 @@
                 "Column": 39
               },
               "Value": "pets"
-            },
-            "Value": "pets"
+            }
           },
           "Type": {
             "Kind": "ListType",
@@ -571,8 +565,7 @@
             "Column": 38
           },
           "Value": "catOrDog"
-        },
-        "Value": "catOrDog"
+        }
       },
       "Type": {
         "Kind": "NamedType",
@@ -656,8 +649,7 @@
                 "Column": 38
               },
               "Value": "catOrDog"
-            },
-            "Value": "catOrDog"
+            }
           },
           "Type": {
             "Kind": "NamedType",

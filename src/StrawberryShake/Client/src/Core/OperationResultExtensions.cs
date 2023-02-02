@@ -57,7 +57,7 @@ public static class OperationResultExtensions
     /// </summary>
     /// <param name="result">The operation result.</param>
     /// <returns>
-    /// <c>true</c>, if the result has errors; otherwise, <c>false</c>.
+    /// <c>true</c>, if the result has no errors; otherwise, <c>false</c>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// The operation result is null.

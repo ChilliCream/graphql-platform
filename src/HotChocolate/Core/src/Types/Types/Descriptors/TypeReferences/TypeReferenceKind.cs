@@ -31,5 +31,15 @@ public enum TypeReferenceKind
     /// <summary>
     /// The type reference refers to a type that is dependant on another type.
     /// </summary>
-    DependantFactory = 4
+    DependantFactory = 4,
+
+    /// <summary>
+    /// The directive type reference is represented by a .NET type
+    /// </summary>
+    DirectiveExtendedType = 5,
+
+    /// <summary>
+    /// The directive type reference represented by the name of a directive.
+    /// </summary>
+    DirectiveName = 6,
 }

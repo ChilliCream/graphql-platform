@@ -1089,11 +1089,11 @@ We also support the full features shown here with multiple other approaches like
 
 With version 11 we are introducing a new more powerful query engine that will provide full query execution plan support. Version 11 will have even better filters and push what we showed here today to the limit.
 
-The example used in this post can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/blog/2020/2020-03-18-entity-framework/ContosoUni).
+The example used in this post can be found [here](https://github.com/ChilliCream/graphql-platform-examples/tree/master/blog/2020/2020-03-18-entity-framework/ContosoUni).
 
-We also have a more complex real-time GraphQL server example in multiple flavors and different database integrations [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/workshop/src/Server).
+We also have a more complex real-time GraphQL server example in multiple flavors and different database integrations [here](https://github.com/ChilliCream/graphql-platform-examples/tree/master/workshop/src/Server).
 
 If you want to get into contact with us head over to our slack channel and join our community.
 
 [hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/hotchocolate
+[hot chocolate source code]: https://github.com/ChilliCream/graphql-platform

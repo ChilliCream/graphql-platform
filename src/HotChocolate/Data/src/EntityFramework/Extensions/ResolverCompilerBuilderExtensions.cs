@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Data;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Internal;
@@ -31,7 +30,7 @@ public static class EntityFrameworkRequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder RegisterDbContext<TDbContext>(
         this IRequestExecutorBuilder builder,
-        DbContextKind kind = DbContextKind.Synchronized)
+        DbContextKind kind = DbContextKind.Resolver)
         where TDbContext : DbContext
     {
         builder.Services.AddSingleton<IParameterExpressionBuilder>(

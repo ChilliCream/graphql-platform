@@ -1,0 +1,15 @@
+schema {
+  mutation: SimpleMutationAttribute
+}
+
+type PayloadTypeName {
+  payloadFieldName: String
+}
+
+type SimpleMutationAttribute {
+  doSomething(inputArgumentName: InputTypeName!): PayloadTypeName!
+}
+
+input InputTypeName {
+  something: String!
+}

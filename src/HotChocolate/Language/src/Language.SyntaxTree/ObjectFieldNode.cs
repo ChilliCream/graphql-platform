@@ -4,56 +4,117 @@ using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
-public sealed class ObjectFieldNode
-    : ISyntaxNode
-    , IEquatable<ObjectFieldNode>
+/// <summary>
+/// Represents an object field literal.
+/// </summary>
+public sealed class ObjectFieldNode : ISyntaxNode
 {
-    private int? _hash;
-
+    /// <summary>
+    /// Initializes a new instance of <see cref="ObjectFieldNode"/>.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the field.
+    /// </param>
+    /// <param name="value">
+    /// The assigned field value.
+    /// </param>
     public ObjectFieldNode(string name, bool value)
         : this(null, new NameNode(name), new BooleanValueNode(value))
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ObjectFieldNode"/>.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the field.
+    /// </param>
+    /// <param name="value">
+    /// The assigned field value.
+    /// </param>
     public ObjectFieldNode(string name, int value)
         : this(null, new NameNode(name), new IntValueNode(value))
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ObjectFieldNode"/>.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the field.
+    /// </param>
+    /// <param name="value">
+    /// The assigned field value.
+    /// </param>
     public ObjectFieldNode(string name, double value)
         : this(null, new NameNode(name), new FloatValueNode(value))
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ObjectFieldNode"/>.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the field.
+    /// </param>
+    /// <param name="value">
+    /// The assigned field value.
+    /// </param>
     public ObjectFieldNode(string name, string value)
         : this(null, new NameNode(name), new StringValueNode(value))
     {
     }
 
-
+    /// <summary>
+    /// Initializes a new instance of <see cref="ObjectFieldNode"/>.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the field.
+    /// </param>
+    /// <param name="value">
+    /// The assigned field value.
+    /// </param>
     public ObjectFieldNode(string name, IValueNode value)
         : this(null, new NameNode(name), value)
     {
     }
 
-    public ObjectFieldNode(
-        Location? location,
-        NameNode name,
-        IValueNode value)
+    /// <summary>
+    /// Initializes a new instance of <see cref="ObjectFieldNode"/>.
+    /// </summary>
+    /// <param name="location">
+    /// The location of the syntax node within the original source text.
+    /// </param>
+    /// <param name="name">
+    /// The name of the field.
+    /// </param>
+    /// <param name="value">
+    /// The assigned field value.
+    /// </param>
+    public ObjectFieldNode(Location? location, NameNode name, IValueNode value)
     {
         Location = location;
         Name = name ?? throw new ArgumentNullException(nameof(name));
         Value = value ?? throw new ArgumentNullException(nameof(value));
     }
 
-    public SyntaxKind Kind { get; } = SyntaxKind.ObjectField;
+    /// <inheritdoc />
+    public SyntaxKind Kind => SyntaxKind.ObjectField;
 
+    /// <inheritdoc />
     public Location? Location { get; }
 
+    /// <summary>
+    /// Gets the name of the field.
+    /// </summary>
     public NameNode Name { get; }
 
+    /// <summary>
+    /// Gets the assigned field value.
+    /// </summary>
     public IValueNode Value { get; }
 
+    /// <inheritdoc />
     public IEnumerable<ISyntaxNode> GetNodes()
     {
         yield return Name;
@@ -89,56 +150,6 @@ public sealed class ObjectFieldNode
     }
 
     /// <summary>
-    /// Determines whether the specified <see cref="object"/> is equal to
-    /// the current <see cref="ObjectFieldNode"/>.
-    /// </summary>
-    /// <param name="obj">
-    /// The <see cref="object"/> to compare with the current
-    /// <see cref="ObjectFieldNode"/>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <see cref="object"/> is equal to the
-    /// current <see cref="ObjectFieldNode"/>; otherwise, <c>false</c>.
-    /// </returns>
-    public override bool Equals(object? obj)
-    {
-        if (obj is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(obj, this))
-        {
-            return true;
-        }
-
-        return Equals(obj as ObjectFieldNode);
-    }
-
-    /// <summary>
-    /// Serves as a hash function for a <see cref="ObjectFieldNode"/>
-    /// object.
-    /// </summary>
-    /// <returns>
-    /// A hash code for this instance that is suitable for use in
-    /// hashing algorithms and data structures such as a hash table.
-    /// </returns>
-    public override int GetHashCode()
-    {
-        unchecked
-        {
-            if (_hash == null)
-            {
-                _hash = (Kind.GetHashCode() * 397)
-                    ^ (Name.GetHashCode() * 97)
-                    ^ (Value.GetHashCode() * 7);
-            }
-
-            return _hash.Value;
-        }
-    }
-
-    /// <summary>
     /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
     /// </summary>
     /// <returns>
@@ -159,18 +170,39 @@ public sealed class ObjectFieldNode
     /// </returns>
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
-    public ObjectFieldNode WithLocation(Location? location)
-    {
-        return new ObjectFieldNode(location, Name, Value);
-    }
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Location" /> with <paramref name="location" />.
+    /// </summary>
+    /// <param name="location">
+    /// The location that shall be used to replace the current location.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="location" />.
+    /// </returns>
+    public ObjectFieldNode WithLocation(Location? location) => new(location, Name, Value);
 
-    public ObjectFieldNode WithName(NameNode name)
-    {
-        return new ObjectFieldNode(Location, name, Value);
-    }
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Name" /> with <paramref name="name" />.
+    /// </summary>
+    /// <param name="name">
+    /// The name that shall be used to replace the current <see cref="NamedSyntaxNode.Name" />.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="name" />.
+    /// </returns>
+    public ObjectFieldNode WithName(NameNode name) => new(Location, name, Value);
 
-    public ObjectFieldNode WithValue(IValueNode value)
-    {
-        return new ObjectFieldNode(Location, Name, value);
-    }
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the
+    /// <see cref="Value" /> with <paramref name="value" />.
+    /// </summary>
+    /// <param name="value">
+    /// The value that shall be used to replace the current <see cref="Value" />.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="value" />.
+    /// </returns>
+    public ObjectFieldNode WithValue(IValueNode value) => new(Location, Name, value);
 }

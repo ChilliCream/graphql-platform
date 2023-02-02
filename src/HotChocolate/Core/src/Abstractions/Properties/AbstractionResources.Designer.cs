@@ -45,12 +45,6 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string DataLoader_KeyMustNotBeNullOrEmpty {
-            get {
-                return ResourceManager.GetString("DataLoader_KeyMustNotBeNullOrEmpty", resourceCulture);
-            }
-        }
-        
         internal static string DirectiveArgument_NameMustNotBeNullOrempty {
             get {
                 return ResourceManager.GetString("DirectiveArgument_NameMustNotBeNullOrempty", resourceCulture);
@@ -216,6 +210,48 @@ namespace HotChocolate.Properties {
         internal static string ThrowHelper_SchemaCoordinate_MemberNameCannotBeSetOnADirectiveCoordinate {
             get {
                 return ResourceManager.GetString("ThrowHelper_SchemaCoordinate_MemberNameCannotBeSetOnADirectiveCoordinate", resourceCulture);
+            }
+        }
+        
+        internal static string ResponseStream_InvalidResultKind {
+            get {
+                return ResourceManager.GetString("ResponseStream_InvalidResultKind", resourceCulture);
+            }
+        }
+        
+        internal static string ExecutionResultExtensions_ExpectResponseStream_NotResponseStream {
+            get {
+                return ResourceManager.GetString("ExecutionResultExtensions_ExpectResponseStream_NotResponseStream", resourceCulture);
+            }
+        }
+        
+        internal static string ExecutionResultExtensions_ExpectQueryResult_NotQueryResult {
+            get {
+                return ResourceManager.GetString("ExecutionResultExtensions_ExpectQueryResult_NotQueryResult", resourceCulture);
+            }
+        }
+        
+        internal static string NameUtils_InvalidGraphQLName {
+            get {
+                return ResourceManager.GetString("NameUtils_InvalidGraphQLName", resourceCulture);
+            }
+        }
+        
+        internal static string MutationResult_ErrorElementIsNull {
+            get {
+                return ResourceManager.GetString("MutationResult_ErrorElementIsNull", resourceCulture);
+            }
+        }
+        
+        internal static string MutationResult_ErrorsIsEmpty {
+            get {
+                return ResourceManager.GetString("MutationResult_ErrorsIsEmpty", resourceCulture);
+            }
+        }
+        
+        internal static string MissingStateException_Message {
+            get {
+                return ResourceManager.GetString("MissingStateException_Message", resourceCulture);
             }
         }
     }

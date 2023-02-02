@@ -15,12 +15,26 @@ public class ComparableOperationFilterInputType<T>
         descriptor.Operation(DefaultFilterOperations.NotEquals)
             .Type(typeof(T))
             .MakeNullable();
-        descriptor.Operation(DefaultFilterOperations.In)
-            .Type(typeof(IEnumerable<T>))
-            .MakeNullable();
-        descriptor.Operation(DefaultFilterOperations.NotIn)
-            .Type(typeof(IEnumerable<T>))
-            .MakeNullable();
+
+        if (typeof(IType).IsAssignableFrom(typeof(T)))
+        {
+            descriptor.Operation(DefaultFilterOperations.In)
+                .Type(typeof(ListType<>).MakeGenericType(typeof(T)))
+                .MakeNullable();
+            descriptor.Operation(DefaultFilterOperations.NotIn)
+                .Type(typeof(ListType<>).MakeGenericType(typeof(T)))
+                .MakeNullable();
+        }
+        else
+        {
+            descriptor.Operation(DefaultFilterOperations.In)
+                .Type(typeof(IEnumerable<T>))
+                .MakeNullable();
+            descriptor.Operation(DefaultFilterOperations.NotIn)
+                .Type(typeof(IEnumerable<T>))
+                .MakeNullable();
+        }
+
         descriptor.Operation(DefaultFilterOperations.GreaterThan)
             .Type(typeof(T))
             .MakeNullable();

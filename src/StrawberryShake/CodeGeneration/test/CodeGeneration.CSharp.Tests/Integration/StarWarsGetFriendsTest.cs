@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.AspNetCore.Tests.Utilities;
 using StrawberryShake.Transport.WebSockets;
 using Xunit;
 
@@ -19,8 +19,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends
         public async Task Execute_StarWarsGetFriends_Test()
         {
             // arrange
-            CancellationToken ct = new CancellationTokenSource(20_000).Token;
-            using IWebHost host = TestServerHelper.CreateServer(
+            var ct = new CancellationTokenSource(20_000).Token;
+            using var host = TestServerHelper.CreateServer(
                 _ => { },
                 out var port);
             var serviceCollection = new ServiceCollection();
@@ -33,7 +33,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends
                     c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
-            IStarWarsGetFriendsClient client =
+            var client =
                 services.GetRequiredService<IStarWarsGetFriendsClient>();
 
             // act
