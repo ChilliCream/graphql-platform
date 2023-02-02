@@ -41,5 +41,7 @@ public sealed class InputObjectTypeAttribute
         {
             descriptor.Name(Name);
         }
+
+        descriptor.Extend().Definition.Fields.BindingBehavior = BindingBehavior.Implicit;
     }
 }

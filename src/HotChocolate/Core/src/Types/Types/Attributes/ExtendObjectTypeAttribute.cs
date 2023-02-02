@@ -102,9 +102,12 @@ public sealed class ExtendObjectTypeAttribute
             descriptor.Name(Name);
         }
 
+        var definition = descriptor.Extend().Definition;
+        definition.Fields.BindingBehavior = BindingBehavior.Implicit;
+
         if (IncludeStaticMembers)
         {
-            descriptor.Extend().Definition.FieldBindingFlags = Instance | Static;
+            definition.FieldBindingFlags = Instance | Static;
         }
 
         if (IgnoreFields is not null)

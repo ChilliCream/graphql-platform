@@ -16,6 +16,11 @@ public sealed class MutationTypeAttribute
     /// </summary>
     public bool Inherited { get; set; }
 
+    /// <summary>
+    /// Defines that static members are included.
+    /// </summary>
+    public bool IncludeStaticMembers { get; set; }
+
     TypeKind ITypeAttribute.Kind => TypeKind.Object;
 
     bool ITypeAttribute.IsTypeExtension => true;
@@ -24,5 +29,15 @@ public sealed class MutationTypeAttribute
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
         Type type)
-        => descriptor.Name(OperationTypeNames.Mutation);
+    {
+        descriptor.Name(OperationTypeNames.Mutation);
+
+        var definition = descriptor.Extend().Definition;
+        definition.Fields.BindingBehavior = BindingBehavior.Implicit;
+
+        if (IncludeStaticMembers)
+        {
+            definition.FieldBindingFlags = FieldBindingFlags.Instance | FieldBindingFlags.Static;
+        }
+    }
 }

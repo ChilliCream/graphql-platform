@@ -16,7 +16,5 @@ public sealed class StreamResultAttribute : ObjectFieldDescriptorAttribute
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member)
-    {
-        descriptor.StreamResult();
-    }
+        => descriptor.StreamResult();
 }
