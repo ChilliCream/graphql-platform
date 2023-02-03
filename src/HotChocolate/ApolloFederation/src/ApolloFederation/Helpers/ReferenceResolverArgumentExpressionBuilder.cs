@@ -38,14 +38,15 @@ internal sealed class ReferenceResolverArgumentExpressionBuilder
 
     protected override string GetKey(ParameterInfo parameter) => DataField;
 
-    public override Expression Build(ParameterInfo parameter, Expression context)
+    public override Expression Build(ParameterExpressionBuilderContext context)
     {
-        var path = Expression.Constant(GetPath(parameter), typeof(string[]));
+        var param = context.Parameter;
+        var path = Expression.Constant(GetPath(param), typeof(string[]));
         var dataKey = Expression.Constant(DataField, typeof(string));
         var typeKey = Expression.Constant(TypeField, typeof(string));
-        var value = BuildGetter(parameter, dataKey, context, typeof(IValueNode));
-        var objectType = BuildGetter(parameter, typeKey, context, typeof(ObjectType));
-        var getValueMethod = _getValue.MakeGenericMethod(parameter.ParameterType);
+        var value = BuildGetter(param, dataKey, context.ResolverContext, typeof(IValueNode));
+        var objectType = BuildGetter(param, typeKey, context.ResolverContext, typeof(ObjectType));
+        var getValueMethod = _getValue.MakeGenericMethod(param.ParameterType);
         Expression getValue = Expression.Call(getValueMethod, value, objectType, path);
         return getValue;
     }
@@ -58,12 +59,11 @@ internal sealed class ReferenceResolverArgumentExpressionBuilder
 
         if (Required.Count == 0)
         {
-            Required = new string[][] { path };
+            Required = new[] { path };
         }
         else if (Required.Count == 1)
         {
-            var required = new List<string[]>(Required);
-            required.Add(path);
+            var required = new List<string[]>(Required) { path };
             Required = required;
         }
         else if (Required is List<string[]> list)

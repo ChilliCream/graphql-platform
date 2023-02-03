@@ -316,4 +316,4 @@ stages:
               assetUploadMode: replace
               isPreRelease: true
               releaseNotesSource: input
-              releaseNotes: "For more details click [here](https://github.com/ChilliCream/hotchocolate/blob/master/CHANGELOG.md) to get to our CHANGELOG."
+              releaseNotes: "For more details click [here](https://github.com/ChilliCream/graphql-platform/blob/master/CHANGELOG.md) to get to our CHANGELOG."

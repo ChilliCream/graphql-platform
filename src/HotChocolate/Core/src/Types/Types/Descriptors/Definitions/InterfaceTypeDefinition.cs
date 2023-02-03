@@ -13,7 +13,7 @@ public class InterfaceTypeDefinition
     , IComplexOutputTypeDefinition
 {
     private List<Type>? _knownClrTypes;
-    private List<ITypeReference>? _interfaces;
+    private List<TypeReference>? _interfaces;
 
     /// <summary>
     /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
@@ -37,7 +37,7 @@ public class InterfaceTypeDefinition
 
     public ResolveAbstractType? ResolveAbstractType { get; set; }
 
-    public IList<ITypeReference> Interfaces => _interfaces ??= new List<ITypeReference>();
+    public IList<TypeReference> Interfaces => _interfaces ??= new List<TypeReference>();
 
     /// <summary>
     /// Specifies if this definition has interfaces.
@@ -91,11 +91,11 @@ public class InterfaceTypeDefinition
         return _knownClrTypes;
     }
 
-    internal IReadOnlyList<ITypeReference> GetInterfaces()
+    internal IReadOnlyList<TypeReference> GetInterfaces()
     {
         if (_interfaces is null)
         {
-            return Array.Empty<ITypeReference>();
+            return Array.Empty<TypeReference>();
         }
 
         return _interfaces;

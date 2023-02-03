@@ -14,7 +14,7 @@ public class SortObjectOperationDescriptor
     protected SortObjectOperationDescriptor(
         IDescriptorContext context,
         string name,
-        ITypeReference type,
+        TypeReference type,
         SortOperation operation)
         : base(context, name, type, operation)
     {
@@ -69,7 +69,7 @@ public class SortObjectOperationDescriptor
     public static SortObjectOperationDescriptor New(
         IDescriptorContext context,
         string name,
-        ITypeReference type,
+        TypeReference type,
         SortOperation operation)
         => new(context, name, type, operation);
 

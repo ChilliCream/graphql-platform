@@ -20,7 +20,7 @@ public abstract class DirectiveTypeDescriptorAttribute : DescriptorAttribute
         }
     }
 
-    public abstract void OnConfigure(
+    protected abstract void OnConfigure(
         IDescriptorContext context,
         IDirectiveTypeDescriptor descriptor,
         Type type);

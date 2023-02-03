@@ -22,7 +22,7 @@ internal sealed class TypeInitializer
     private readonly List<FieldMiddleware> _globalComps = new();
     private readonly List<ISchemaError> _errors = new();
     private readonly IDescriptorContext _context;
-    private readonly IReadOnlyList<ITypeReference> _initialTypes;
+    private readonly IReadOnlyList<TypeReference> _initialTypes;
     private readonly TypeInterceptor _interceptor;
     private readonly IsOfTypeFallback? _isOfType;
     private readonly Func<TypeSystemObjectBase, RootTypeKind> _getTypeKind;
@@ -32,14 +32,14 @@ internal sealed class TypeInitializer
     private readonly TypeReferenceResolver _typeReferenceResolver;
     private readonly List<RegisteredType> _next = new();
     private readonly List<RegisteredType> _temp = new();
-    private readonly List<ITypeReference> _typeRefs = new();
-    private readonly HashSet<ITypeReference> _typeRefSet = new();
+    private readonly List<TypeReference> _typeRefs = new();
+    private readonly HashSet<TypeReference> _typeRefSet = new();
     private readonly List<RegisteredRootType> _rootTypes = new();
 
     public TypeInitializer(
         IDescriptorContext descriptorContext,
         TypeRegistry typeRegistry,
-        IReadOnlyList<ITypeReference> initialTypes,
+        IReadOnlyList<TypeReference> initialTypes,
         IsOfTypeFallback? isOfType,
         Func<TypeSystemObjectBase, RootTypeKind> getTypeKind,
         IReadOnlySchemaOptions options)
@@ -453,7 +453,7 @@ internal sealed class TypeInitializer
         TypeDependencyFulfilled fulfilled,
         Func<RegisteredType, bool> action)
     {
-        var processed = new HashSet<ITypeReference>();
+        var processed = new HashSet<TypeReference>();
         var batch = new List<RegisteredType>(GetInitialBatch(fulfilled));
         var failed = false;
 
@@ -490,7 +490,7 @@ internal sealed class TypeInitializer
                     ? type.References[0].ToString()!
                     : type.Type.Name;
 
-                IReadOnlyList<ITypeReference> needed =
+                IReadOnlyList<TypeReference> needed =
                     TryNormalizeDependencies(
                         type.Conditionals,
                         out var normalized,
@@ -556,7 +556,7 @@ internal sealed class TypeInitializer
     }
 
     private IEnumerable<RegisteredType> GetNextBatch(
-        ISet<ITypeReference> processed)
+        ISet<TypeReference> processed)
     {
         foreach (var type in _next)
         {
@@ -582,9 +582,9 @@ internal sealed class TypeInitializer
             _temp.Clear();
         }
 
-        List<ITypeReference> GetTypeRefsExceptSelfRefs(
+        List<TypeReference> GetTypeRefsExceptSelfRefs(
             RegisteredType type,
-            IReadOnlyList<ITypeReference> normalizedTypeReferences)
+            IReadOnlyList<TypeReference> normalizedTypeReferences)
         {
             _typeRefs.Clear();
             _typeRefSet.Clear();
@@ -604,10 +604,10 @@ internal sealed class TypeInitializer
 
     private bool TryNormalizeDependencies(
         List<TypeDependency> dependencies,
-        [NotNullWhen(true)] out IReadOnlyList<ITypeReference>? normalized,
-        [NotNullWhen(false)] out IReadOnlyList<ITypeReference>? notFound)
+        [NotNullWhen(true)] out IReadOnlyList<TypeReference>? normalized,
+        [NotNullWhen(false)] out IReadOnlyList<TypeReference>? notFound)
     {
-        var n = new List<ITypeReference>();
+        var n = new List<TypeReference>();
 
         foreach (var dependency in dependencies)
         {

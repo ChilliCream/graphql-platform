@@ -27,9 +27,9 @@ internal class ScopedServiceParameterExpressionBuilder
         ServiceExpressionHelper.ApplyConfiguration(parameter, descriptor, kind);
     }
 
-    public Expression Build(ParameterInfo parameter, Expression context)
+    public Expression Build(ParameterExpressionBuilderContext context)
     {
-        ServiceExpressionHelper.TryGetServiceKind(parameter, out var kind);
-        return ServiceExpressionHelper.Build(parameter, context, kind);
+        ServiceExpressionHelper.TryGetServiceKind(context.Parameter, out var kind);
+        return ServiceExpressionHelper.Build(context.Parameter, context.ResolverContext, kind);
     }
 }

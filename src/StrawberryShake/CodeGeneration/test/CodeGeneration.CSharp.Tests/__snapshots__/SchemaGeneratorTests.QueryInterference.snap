@@ -2198,7 +2198,7 @@ namespace Foo.Bar
             {
                 "ASC" => SortEnumType.Asc,
                 "DESC" => SortEnumType.Desc,
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"String value '{serializedValue}' can't be converted to enum SortEnumType")};
         }
 
         public global::System.Object Format(global::System.Object? runtimeValue)
@@ -2207,7 +2207,7 @@ namespace Foo.Bar
             {
                 SortEnumType.Asc => "ASC",
                 SortEnumType.Desc => "DESC",
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"Enum SortEnumType value '{runtimeValue}' can't be converted to string")};
         }
     }
 

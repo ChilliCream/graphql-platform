@@ -4,6 +4,7 @@ using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Internal;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Stitching;
@@ -328,7 +329,15 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
         // Last but not least, we will setup the stitching context which will
         // provide access to the remote executors which in turn use the just configured
         // request executor proxies to send requests to the downstream services.
-        builder.Services.TryAddScoped<IStitchingContext, StitchingContext>();
+        builder.ConfigureSchemaServices(
+            c => c.TryAddSingleton<IRequestContextEnricher, StitchingContextEnricher>());
+
+        if (builder.Services.All(t => t.ImplementationType !=
+            typeof(StitchingContextParameterExpressionBuilder)))
+        {
+            builder.Services.AddSingleton<IParameterExpressionBuilder,
+                StitchingContextParameterExpressionBuilder>();
+        }
 
         if (ignoreRootTypes)
         {
@@ -390,7 +399,15 @@ public static partial class HotChocolateStitchingRequestExecutorExtensions
         // Last but not least, we will setup the stitching context which will
         // provide access to the remote executors which in turn use the just configured
         // request executor proxies to send requests to the downstream services.
-        builder.Services.TryAddScoped<IStitchingContext, StitchingContext>();
+        builder.ConfigureSchemaServices(
+            c => c.TryAddSingleton<IRequestContextEnricher, StitchingContextEnricher>());
+
+        if (builder.Services.All(t => t.ImplementationType !=
+            typeof(StitchingContextParameterExpressionBuilder)))
+        {
+            builder.Services.AddSingleton<IParameterExpressionBuilder,
+                StitchingContextParameterExpressionBuilder>();
+        }
 
         if (ignoreRootTypes)
         {

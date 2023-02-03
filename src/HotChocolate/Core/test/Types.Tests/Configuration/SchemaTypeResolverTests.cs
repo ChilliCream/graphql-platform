@@ -37,6 +37,47 @@ public class SchemaTypeResolverTests
     [InlineData(TypeContext.Output)]
     [InlineData(TypeContext.None)]
     [Theory]
+    public void InferObjectTypeFromStruct(TypeContext context)
+    {
+        // arrange
+        var descriptorContext = DescriptorContext.Create();
+        var typeReference = TypeReference.Create(TypeOf<BarStruct>(), context);
+
+        // act
+        var success = descriptorContext.TryInferSchemaType(typeReference, out var schemaTypes);
+
+        // assert
+        Assert.True(success);
+        Assert.Collection(schemaTypes,
+            type =>
+            {
+                Assert.Equal(TypeContext.Output, type.Context);
+                Assert.Equal(typeof(ObjectType<BarStruct>), ((ExtendedTypeReference)type).Type.Source);
+            });
+    }
+
+    [InlineData(TypeContext.Output)]
+    [InlineData(TypeContext.None)]
+    [Theory]
+    public void RejectRefStructAsObjectType(TypeContext context)
+    {
+        // arrange
+        var descriptorContext = DescriptorContext.Create();
+        var typeReference = TypeReference.Create(
+            _typeInspector.GetType(typeof(BarRefStruct)),
+            context);
+
+        // act
+        var success = descriptorContext.TryInferSchemaType(typeReference, out var schemaTypes);
+
+        // assert
+        Assert.False(success);
+        Assert.Null(schemaTypes);
+    }
+
+    [InlineData(TypeContext.Output)]
+    [InlineData(TypeContext.None)]
+    [Theory]
     public void InferInterfaceType(TypeContext context)
     {
         // arrange
@@ -54,7 +95,6 @@ public class SchemaTypeResolverTests
                 Assert.Equal(TypeContext.Output, type.Context);
                 Assert.Equal(typeof(InterfaceType<IBar>), ((ExtendedTypeReference)type).Type.Source);
             });
-
     }
 
     [Fact]
@@ -104,6 +144,16 @@ public class SchemaTypeResolverTests
     }
 
     public class Bar
+    {
+        public string Baz { get; }
+    }
+
+    public struct BarStruct
+    {
+        public string Baz { get; }
+    }
+
+    public ref struct BarRefStruct
     {
         public string Baz { get; }
     }

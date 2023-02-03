@@ -1,3 +1,4 @@
+#pragma warning disable CS0618
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ public class Query
 {
     [UseDbContext(typeof(BookContext))]
     public IQueryable<Author> GetAuthors(
+
         [ScopedService] BookContext context) =>
         context.Authors;
 
@@ -190,3 +192,4 @@ public class QueryType : ObjectType
             });
     }
 }
+#pragma warning restore CS0618

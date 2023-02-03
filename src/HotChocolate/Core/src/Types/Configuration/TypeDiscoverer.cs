@@ -12,9 +12,9 @@ namespace HotChocolate.Configuration;
 
 internal sealed class TypeDiscoverer
 {
-    private readonly List<ITypeReference> _unregistered = new();
+    private readonly List<TypeReference> _unregistered = new();
     private readonly List<ISchemaError> _errors = new();
-    private readonly List<ITypeReference> _resolved = new();
+    private readonly List<TypeReference> _resolved = new();
     private readonly IDescriptorContext _context;
     private readonly TypeRegistry _typeRegistry;
     private readonly TypeRegistrar _typeRegistrar;
@@ -25,7 +25,7 @@ internal sealed class TypeDiscoverer
         IDescriptorContext context,
         TypeRegistry typeRegistry,
         TypeLookup typeLookup,
-        IEnumerable<ITypeReference> initialTypes,
+        IEnumerable<TypeReference> initialTypes,
         TypeInterceptor interceptor,
         bool includeSystemTypes = true)
     {
@@ -84,7 +84,7 @@ internal sealed class TypeDiscoverer
     public IReadOnlyList<ISchemaError> DiscoverTypes()
     {
         const int max = 1000;
-        var processed = new HashSet<ITypeReference>();
+        var processed = new HashSet<TypeReference>();
 
 DISCOVER:
         var tries = 0;

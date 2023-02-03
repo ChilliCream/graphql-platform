@@ -11,7 +11,7 @@ namespace HotChocolate.Configuration;
 
 internal sealed class TypeLookup
 {
-    private readonly Dictionary<ITypeReference, ITypeReference> _refs = new();
+    private readonly Dictionary<TypeReference, TypeReference> _refs = new();
     private readonly ITypeInspector _typeInspector;
     private readonly TypeRegistry _typeRegistry;
 
@@ -26,8 +26,8 @@ internal sealed class TypeLookup
     }
 
     public bool TryNormalizeReference(
-        ITypeReference typeRef,
-        [NotNullWhen(true)] out ITypeReference? namedTypeRef)
+        TypeReference typeRef,
+        [NotNullWhen(true)] out TypeReference? namedTypeRef)
     {
         if (typeRef is null)
         {
@@ -93,7 +93,7 @@ internal sealed class TypeLookup
 
     private bool TryNormalizeExtendedTypeReference(
         ExtendedTypeReference typeRef,
-        [NotNullWhen(true)] out ITypeReference? namedTypeRef)
+        [NotNullWhen(true)] out TypeReference? namedTypeRef)
     {
         if (typeRef is null)
         {

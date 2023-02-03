@@ -1,0 +1,30 @@
+﻿Bar:
+{
+  "data": {
+    "test": {
+      "isBar": true,
+      "isBaz": false,
+      "isFoo": false
+    }
+  }
+}
+Bar Baz:
+{
+  "data": {
+    "test": {
+      "isBar": true,
+      "isBaz": true,
+      "isFoo": false
+    }
+  }
+}
+All
+{
+  "data": {
+    "test": {
+      "isBar": true,
+      "isBaz": true,
+      "isFoo": true
+    }
+  }
+}

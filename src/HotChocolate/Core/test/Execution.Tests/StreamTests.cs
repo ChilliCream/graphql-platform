@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using CookieCrumble;
+using Xunit;
 
 namespace HotChocolate.Execution;
 
@@ -78,7 +79,6 @@ public class StreamTests
 
         Assert.IsType<ResponseStream>(result).MatchSnapshot();
     }
-
 
     [Fact]
     public async Task Stream_Label_Set_To_abc()

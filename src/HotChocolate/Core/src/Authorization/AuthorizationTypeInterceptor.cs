@@ -22,7 +22,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     private readonly List<ObjectTypeInfo> _objectTypes = new();
     private readonly List<UnionTypeInfo> _unionTypes = new();
     private readonly Dictionary<ObjectType, IDirectiveCollection> _directives = new();
-    private readonly HashSet<ITypeReference> _completedTypeRefs = new();
+    private readonly HashSet<TypeReference> _completedTypeRefs = new();
     private readonly HashSet<RegisteredType> _completedTypes = new();
     private State? _state;
 
@@ -137,7 +137,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                                 interfaceTypeRef,
                                 out var authTypeRefs))
                             {
-                                authTypeRefs = new List<ITypeReference>();
+                                authTypeRefs = new List<TypeReference>();
                                 state.AbstractToConcrete.Add(interfaceTypeRef, authTypeRefs);
                             }
 
@@ -157,7 +157,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         {
             var unionTypeReg = type.TypeReg;
             var unionTypeRef = unionTypeReg.TypeReference;
-            List<ITypeReference>? authTypeRefs = null;
+            List<TypeReference>? authTypeRefs = null;
 
             foreach (var memberTypeRef in type.TypeDef.Types)
             {
@@ -171,7 +171,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                     if (authTypeRefs is null &&
                         !state.AbstractToConcrete.TryGetValue(unionTypeRef, out authTypeRefs))
                     {
-                        authTypeRefs = new List<ITypeReference>();
+                        authTypeRefs = new List<TypeReference>();
                         state.AbstractToConcrete.Add(unionTypeRef, authTypeRefs);
                     }
 
@@ -255,16 +255,21 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
         var directives = GetOrCreateDirectives(type.TypeReg);
         var length = directives.Count;
-        var start = directives.GetReference();
+        ref var start = ref directives.GetReference();
 
         for (var i = length - 1; i >= 0; i--)
         {
-            var directive = Unsafe.Add(ref start, i).AsValue<AuthorizeDirective>();
+            var directive = Unsafe.Add(ref start, i);
 
-            if (directive.Apply is ApplyPolicy.Validation)
+            if (directive.Type.Name.EqualsOrdinal(Authorize))
             {
-                _schemaContextData[AuthorizationRequestPolicy] = true;
-                return;
+                var authDir = directive.AsValue<AuthorizeDirective>();
+
+                if (authDir.Apply is ApplyPolicy.Validation)
+                {
+                    _schemaContextData[AuthorizationRequestPolicy] = true;
+                    return;
+                }
             }
         }
     }
@@ -325,28 +330,33 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     {
         var directives = GetOrCreateDirectives(authTypeReg);
         var length = directives.Count;
-        var start = directives.GetReference();
+        ref var start = ref directives.GetReference();
 
         for (var i = length - 1; i >= 0; i--)
         {
-            var directive = Unsafe.Add(ref start, i).AsValue<AuthorizeDirective>();
+            var directive = Unsafe.Add(ref start, i);
 
-            if (directive.Apply is ApplyPolicy.Validation)
+            if (directive.Type.Name.EqualsOrdinal(Authorize))
             {
-                _schemaContextData[AuthorizationRequestPolicy] = true;
-                continue;
-            }
+                var authDir = directive.AsValue<AuthorizeDirective>();
 
-            if (isNodeField && (options?.SkipNodeFields(directive) ?? false))
-            {
-                continue;
-            }
+                if (authDir.Apply is ApplyPolicy.Validation)
+                {
+                    _schemaContextData[AuthorizationRequestPolicy] = true;
+                    continue;
+                }
 
-            fieldDef.MiddlewareDefinitions.Insert(
-                0,
-                CreateAuthMiddleware(
-                    directive,
-                    schemaServices));
+                if (isNodeField && (options?.SkipNodeFields(authDir) ?? false))
+                {
+                    continue;
+                }
+
+                fieldDef.MiddlewareDefinitions.Insert(
+                    0,
+                    CreateAuthMiddleware(
+                        authDir,
+                        schemaServices));
+            }
         }
     }
 
@@ -441,8 +451,8 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     }
 
     private void CollectInterfaces(
-        IReadOnlyList<ITypeReference> interfaces,
-        Action<ITypeReference> register,
+        IReadOnlyList<TypeReference> interfaces,
+        Action<TypeReference> register,
         State state)
     {
         state.Queue.AddRange(interfaces);
@@ -466,7 +476,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         }
     }
 
-    private RegisteredType GetTypeRegistration(ITypeReference typeReference)
+    private RegisteredType GetTypeRegistration(TypeReference typeReference)
     {
         if (_typeLookup.TryNormalizeReference(typeReference, out var normalizedTypeRef) &&
             _typeRegistry.TryGetType(normalizedTypeRef, out var registration))
@@ -489,7 +499,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         var length = directives.Count;
 
 #if NET6_0_OR_GREATER
-        var start = MemoryMarshal.GetReference(CollectionsMarshal.AsSpan(directives));
+        ref var start = ref MemoryMarshal.GetReference(CollectionsMarshal.AsSpan(directives));
 #endif
 
         for (var i = 0; i < length; i++)

@@ -13,7 +13,7 @@ internal sealed class ExtendedTypeDirectiveReferenceHandler : ITypeRegistrarHand
 
     public TypeReferenceKind Kind => TypeReferenceKind.DirectiveExtendedType;
 
-    public void Handle(ITypeRegistrar typeRegistrar, ITypeReference typeReference)
+    public void Handle(ITypeRegistrar typeRegistrar, TypeReference typeReference)
     {
         var typeRef = (ExtendedTypeDirectiveReference)typeReference;
 

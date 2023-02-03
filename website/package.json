@@ -7,10 +7,10 @@
   "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/ChilliCream/hotchocolate"
+    "url": "https://github.com/ChilliCream/graphql-platform"
   },
   "bugs": {
-    "url": "https://github.com/ChilliCream/hotchocolate/issues"
+    "url": "https://github.com/ChilliCream/graphql-platform/issues"
   },
   "scripts": {
     "build": "gatsby build",

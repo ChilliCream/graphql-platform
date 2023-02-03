@@ -22,7 +22,7 @@ internal class ConnectionType
 {
     internal ConnectionType(
         string connectionName,
-        ITypeReference nodeType,
+        TypeReference nodeType,
         bool withTotalCount)
     {
         if (nodeType is null)
@@ -68,7 +68,7 @@ internal class ConnectionType
                 ApplyConfigurationOn.BeforeCompletion));
     }
 
-    internal ConnectionType(ITypeReference nodeType, bool withTotalCount)
+    internal ConnectionType(TypeReference nodeType, bool withTotalCount)
     {
         if (nodeType is null)
         {
@@ -147,7 +147,7 @@ internal class ConnectionType
 
     private static ObjectTypeDefinition CreateTypeDefinition(
         bool withTotalCount,
-        ITypeReference? edgesType = null)
+        TypeReference? edgesType = null)
     {
         var definition = new ObjectTypeDefinition
         {

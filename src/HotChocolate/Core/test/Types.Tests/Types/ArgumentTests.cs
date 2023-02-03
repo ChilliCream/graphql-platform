@@ -15,7 +15,7 @@ public class ArgumentTests
     [Fact]
     public async Task Integration_Collection_EnsureCorrectRuntimeType()
     {
-        // https://github.com/ChilliCream/hotchocolate/issues/4281
+        // https://github.com/ChilliCream/graphql-platform/issues/4281
 
         // arrange
         var executor = await new ServiceCollection()

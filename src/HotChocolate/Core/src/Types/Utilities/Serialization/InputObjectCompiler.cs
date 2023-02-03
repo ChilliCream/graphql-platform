@@ -23,82 +23,100 @@ internal static class InputObjectCompiler
         InputObjectType inputType,
         ConstructorInfo? constructor = null)
     {
-        var fields = TypeMemHelper.RentInputFieldMap();
+        var nameSet = TypeMemHelper.RentNameSetOrdinalIgnoreCase();
+        var unique = FieldsAreUnique(inputType, nameSet);
+        var fields = unique
+            ? TypeMemHelper.RentInputFieldMapOrdinalIgnoreCase()
+            : TypeMemHelper.RentInputFieldMap();
 
-        try
+        if (!unique)
         {
-            BuildFieldMap(inputType, fields);
-
-            constructor ??= GetCompatibleConstructor(
-                inputType.RuntimeType,
-                inputType.Fields,
-                fields);
-
-            var instance = constructor is null
-                ? Expression.New(inputType.RuntimeType)
-                : CreateInstance(fields, constructor, _fieldValues);
-
-            if (fields.Count == 0)
-            {
-                Expression casted = Expression.Convert(instance, typeof(object));
-                return Expression.Lambda<Func<object?[], object>>(casted, _fieldValues).Compile();
-            }
-
-            var variable = Expression.Variable(inputType.RuntimeType, "obj");
-
-            var expressions = new List<Expression>();
-            expressions.Add(Expression.Assign(variable, instance));
-            CompileSetProperties(variable, fields.Values, _fieldValues, expressions);
-            expressions.Add(Expression.Convert(variable, typeof(object)));
-            Expression body = Expression.Block(new[] { variable }, expressions);
-
-            return Expression.Lambda<Func<object?[], object>>(body, _fieldValues).Compile();
+            TypeMemHelper.Return(nameSet);
+            nameSet = TypeMemHelper.RentNameSet();
         }
-        finally
+
+        BuildFieldMap(inputType, fields);
+
+        constructor ??= GetCompatibleConstructor(
+            inputType.RuntimeType,
+            inputType.Fields,
+            fields,
+            nameSet);
+
+        var instance = constructor is null
+            ? Expression.New(inputType.RuntimeType)
+            : CreateInstance(fields, constructor, _fieldValues);
+
+        if (fields.Count == 0)
         {
-            TypeMemHelper.Return(fields);
+            Expression casted = Expression.Convert(instance, typeof(object));
+            return Expression.Lambda<Func<object?[], object>>(casted, _fieldValues).Compile();
         }
+
+        var variable = Expression.Variable(inputType.RuntimeType, "obj");
+
+        var expressions = new List<Expression>();
+        expressions.Add(Expression.Assign(variable, instance));
+        CompileSetProperties(variable, fields.Values, _fieldValues, expressions);
+        expressions.Add(Expression.Convert(variable, typeof(object)));
+        Expression body = Expression.Block(new[] { variable }, expressions);
+
+        var func = Expression.Lambda<Func<object?[], object>>(body, _fieldValues).Compile();
+
+        TypeMemHelper.Return(fields);
+        TypeMemHelper.Return(nameSet);
+
+        return func;
     }
 
     public static Func<object?[], object> CompileFactory(
         DirectiveType directiveType,
         ConstructorInfo? constructor = null)
     {
-        var arguments = TypeMemHelper.RentDirectiveArgumentMap();
+        var nameSet = TypeMemHelper.RentNameSetOrdinalIgnoreCase();
+        var unique = FieldsAreUnique(directiveType, nameSet);
+        var arguments = unique
+            ? TypeMemHelper.RentDirectiveArgumentMapOrdinalIgnoreCase()
+            : TypeMemHelper.RentDirectiveArgumentMap();
 
-        try
+        if (!unique)
         {
-            BuildFieldMap(directiveType, arguments);
-
-            constructor ??= GetCompatibleConstructor(
-                directiveType.RuntimeType,
-                directiveType.Arguments,
-                arguments);
-
-            var instance = constructor is null
-                ? Expression.New(directiveType.RuntimeType)
-                : CreateInstance(arguments, constructor, _fieldValues);
-
-            if (arguments.Count == 0)
-            {
-                Expression casted = Expression.Convert(instance, typeof(object));
-                return Expression.Lambda<Func<object?[], object>>(casted, _fieldValues).Compile();
-            }
-
-            var variable = Expression.Variable(directiveType.RuntimeType, "obj");
-
-            var expressions = new List<Expression>();
-            expressions.Add(Expression.Assign(variable, instance));
-            CompileSetProperties(variable, arguments.Values, _fieldValues, expressions);
-            expressions.Add(Expression.Convert(variable, typeof(object)));
-            Expression body = Expression.Block(new[] { variable }, expressions);
-
-            return Expression.Lambda<Func<object?[], object>>(body, _fieldValues).Compile();
+            TypeMemHelper.Return(nameSet);
+            nameSet = TypeMemHelper.RentNameSet();
         }
-        finally
+
+        BuildFieldMap(directiveType, arguments);
+
+        constructor ??= GetCompatibleConstructor(
+            directiveType.RuntimeType,
+            directiveType.Arguments,
+            arguments,
+            nameSet);
+
+        var instance = constructor is null
+            ? Expression.New(directiveType.RuntimeType)
+            : CreateInstance(arguments, constructor, _fieldValues);
+
+        if (arguments.Count == 0)
         {
-            TypeMemHelper.Return(arguments);
+            Expression casted = Expression.Convert(instance, typeof(object));
+            return Expression.Lambda<Func<object?[], object>>(casted, _fieldValues).Compile();
         }
+
+        var variable = Expression.Variable(directiveType.RuntimeType, "obj");
+
+        var expressions = new List<Expression>();
+        expressions.Add(Expression.Assign(variable, instance));
+        CompileSetProperties(variable, arguments.Values, _fieldValues, expressions);
+        expressions.Add(Expression.Convert(variable, typeof(object)));
+        Expression body = Expression.Block(new[] { variable }, expressions);
+
+        var func = Expression.Lambda<Func<object?[], object>>(body, _fieldValues).Compile();
+
+        TypeMemHelper.Return(arguments);
+        TypeMemHelper.Return(nameSet);
+
+        return func;
     }
 
     public static Action<object, object?[]> CompileGetFieldValues(InputObjectType inputType)
@@ -234,6 +252,42 @@ internal static class InputObjectCompiler
         Expression element = Expression.ArrayAccess(fieldValues, index);
         Expression casted = Expression.Convert(fieldValue, typeof(object));
         return Expression.Assign(element, casted);
+    }
+
+    private static bool FieldsAreUnique(
+        InputObjectType type,
+        HashSet<string> nameSetIgnoreCase)
+    {
+        var unique = true;
+
+        foreach (var field in type.Fields.AsSpan())
+        {
+            if (!nameSetIgnoreCase.Add(field.Property!.Name))
+            {
+                unique = false;
+                break;
+            }
+        }
+
+        return unique;
+    }
+
+    private static bool FieldsAreUnique(
+        DirectiveType type,
+        HashSet<string> nameSetIgnoreCase)
+    {
+        var unique = true;
+
+        foreach (var field in type.Arguments.AsSpan())
+        {
+            if (!nameSetIgnoreCase.Add(field.Property!.Name))
+            {
+                unique = false;
+                break;
+            }
+        }
+
+        return unique;
     }
 
     private static void BuildFieldMap(

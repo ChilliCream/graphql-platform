@@ -65,6 +65,6 @@ internal sealed class DbContextParameterExpressionBuilder<TDbContext>
         }
     }
 
-    public Expression Build(ParameterInfo parameter, Expression context)
-        => ServiceExpressionHelper.Build(parameter, context, _kind);
+    public Expression Build(ParameterExpressionBuilderContext context)
+        => ServiceExpressionHelper.Build(context.Parameter, context.ResolverContext, _kind);
 }

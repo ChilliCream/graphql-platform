@@ -92,9 +92,9 @@ public abstract class TypeInterceptor
     /// <returns>
     /// Returns types that shall be included into the schema.
     /// </returns>
-    public virtual IEnumerable<ITypeReference> RegisterMoreTypes(
+    public virtual IEnumerable<TypeReference> RegisterMoreTypes(
         IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
-        => Enumerable.Empty<ITypeReference>();
+        => Enumerable.Empty<TypeReference>();
 
     public virtual void OnTypeRegistered(
         ITypeDiscoveryContext discoveryContext) { }

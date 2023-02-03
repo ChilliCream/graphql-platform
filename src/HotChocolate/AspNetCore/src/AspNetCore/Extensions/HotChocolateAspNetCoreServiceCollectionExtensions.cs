@@ -1,7 +1,11 @@
+using System.Collections.Immutable;
+using HotChocolate.AspNetCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.AspNetCore.Instrumentation;
+using HotChocolate.AspNetCore.ParameterExpressionBuilders;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using static HotChocolate.AspNetCore.ServerDefaults;
 
@@ -39,7 +43,11 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
 
         services.AddGraphQLCore();
         services.TryAddSingleton<IHttpResponseFormatter>(
-            new DefaultHttpResponseFormatter());
+            DefaultHttpResponseFormatter.Create(
+                new HttpResponseFormatterOptions
+                {
+                    HttpTransportVersion = HttpTransportVersion.Latest
+                }));
         services.TryAddSingleton<IHttpRequestParser>(
             sp => new DefaultHttpRequestParser(
                 sp.GetRequiredService<IDocumentCache>(),
@@ -48,8 +56,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
                 sp.GetRequiredService<ParserOptions>()));
         services.TryAddSingleton<IServerDiagnosticEvents>(sp =>
         {
-            var listeners =
-                sp.GetServices<IServerDiagnosticEventListener>().ToArray();
+            var listeners = sp.GetServices<IServerDiagnosticEventListener>().ToArray();
             return listeners.Length switch
             {
                 0 => new NoopServerDiagnosticEventListener(),
@@ -57,6 +64,28 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
                 _ => new AggregateServerDiagnosticEventListener(listeners)
             };
         });
+
+        if (services.All(t => t.ImplementationType !=
+            typeof(HttpContextParameterExpressionBuilder)))
+        {
+            services.AddSingleton<IParameterExpressionBuilder,
+                HttpContextParameterExpressionBuilder>();
+        }
+
+        if (services.All(t => t.ImplementationType !=
+            typeof(HttpRequestParameterExpressionBuilder)))
+        {
+            services.AddSingleton<IParameterExpressionBuilder,
+                HttpRequestParameterExpressionBuilder>();
+        }
+
+        if (services.All(t => t.ImplementationType !=
+            typeof(HttpResponseParameterExpressionBuilder)))
+        {
+            services.AddSingleton<IParameterExpressionBuilder,
+                HttpResponseParameterExpressionBuilder>();
+        }
+
         return services;
     }
 
@@ -149,4 +178,25 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
                 .AddSubscriptionServices(),
             schemaBuilder)
             .Services;
+
+    /// <summary>
+    /// Registers the GraphQL Upload Scalar.
+    /// </summary>
+    /// <param name="builder">
+    /// The GraphQL configuration builder.
+    /// </param>
+    /// <returns>
+    /// Returns the GraphQL configuration builder for configuration chaining.
+    /// </returns>
+    public static IRequestExecutorBuilder AddUploadType(
+        this IRequestExecutorBuilder builder)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        builder.AddType<UploadType>();
+        return builder;
+    }
 }

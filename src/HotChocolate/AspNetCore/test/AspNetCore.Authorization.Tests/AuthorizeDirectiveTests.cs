@@ -182,6 +182,8 @@ public class AuthorizeDirectiveTests
         // act
         var schema =
             await new ServiceCollection()
+                .AddLogging()
+                .AddAuthorizationCore()
                 .AddGraphQL()
                 .AddQueryType(
                     c => c
@@ -203,6 +205,8 @@ public class AuthorizeDirectiveTests
         // act
         var schema =
             await new ServiceCollection()
+                .AddLogging()
+                .AddAuthorizationCore()
                 .AddGraphQL()
                 .AddQueryType(
                     c => c
@@ -224,6 +228,8 @@ public class AuthorizeDirectiveTests
         // act
         var schema =
             await new ServiceCollection()
+                .AddLogging()
+                .AddAuthorizationCore()
                 .AddGraphQL()
                 .AddQueryType(
                     c => c
@@ -245,6 +251,8 @@ public class AuthorizeDirectiveTests
         // act
         var schema =
             await new ServiceCollection()
+                .AddLogging()
+                .AddAuthorizationCore()
                 .AddGraphQL()
                 .AddQueryType(
                     c => c
@@ -279,6 +287,8 @@ public class AuthorizeDirectiveTests
         // act
         var schema =
             await new ServiceCollection()
+                .AddLogging()
+                .AddAuthorizationCore()
                 .AddGraphQL()
                 .AddQueryType(
                     c => c
@@ -300,6 +310,8 @@ public class AuthorizeDirectiveTests
         // act
         var schema =
             await new ServiceCollection()
+                .AddLogging()
+                .AddAuthorizationCore()
                 .AddGraphQL()
                 .AddQueryType(
                     c => c
@@ -321,6 +333,8 @@ public class AuthorizeDirectiveTests
         // act
         var schema =
             await new ServiceCollection()
+                .AddLogging()
+                .AddAuthorizationCore()
                 .AddGraphQL()
                 .AddQueryType(
                     c => c
@@ -342,6 +356,8 @@ public class AuthorizeDirectiveTests
         // act
         var schema =
             await new ServiceCollection()
+                .AddLogging()
+                .AddAuthorizationCore()
                 .AddGraphQL()
                 .AddQueryType(
                     c => c
@@ -376,6 +392,8 @@ public class AuthorizeDirectiveTests
         // act
         var schema =
             await new ServiceCollection()
+                .AddLogging()
+                .AddAuthorizationCore()
                 .AddGraphQL()
                 .AddQueryType(
                     c => c

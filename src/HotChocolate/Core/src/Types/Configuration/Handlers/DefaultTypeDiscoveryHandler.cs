@@ -19,11 +19,11 @@ internal sealed class DefaultTypeDiscoveryHandler : TypeDiscoveryHandler
     private ITypeInspector TypeInspector { get; }
 
     public override bool TryInferType(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         TypeDiscoveryInfo typeInfo,
-        [NotNullWhen(true)] out ITypeReference[]? schemaTypeRefs)
+        [NotNullWhen(true)] out TypeReference[]? schemaTypeRefs)
     {
-        ITypeReference? schemaType;
+        TypeReference? schemaType;
 
         if (typeInfo.IsStatic)
         {
@@ -108,7 +108,7 @@ internal sealed class DefaultTypeDiscoveryHandler : TypeDiscoveryHandler
     }
 
     public override bool TryInferKind(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         TypeDiscoveryInfo typeInfo,
         out TypeKind typeKind)
     {

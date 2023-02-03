@@ -1,0 +1,19 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  field1: String @cacheControl(maxAge: 0)
+  field2: String @cacheControl(maxAge: 200)
+}
+
+"The scope of a cache hint."
+enum CacheControlScope {
+  "The value to cache is not tied to a single user."
+  PUBLIC
+  "The value to cache is specific to a single user."
+  PRIVATE
+}
+
+"The `@cacheControl` directive may be provided for individual fields or entire object, interface or union types to provide caching hints to the executor."
+directive @cacheControl("The maximum amount of time this field's cached value is valid, in seconds." maxAge: Int "If `PRIVATE`, the field's value is specific to a single user. The default value is `PUBLIC`, which means the field's value is not tied to a single user." scope: CacheControlScope "If `true`, the field inherits the `maxAge` of its parent field." inheritMaxAge: Boolean) on OBJECT | FIELD_DEFINITION | INTERFACE | UNION

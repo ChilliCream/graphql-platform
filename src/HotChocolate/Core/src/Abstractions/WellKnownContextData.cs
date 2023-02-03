@@ -131,7 +131,7 @@ public static class WellKnownContextData
     /// The key to get the user provided transport operation session id when executing
     /// GraphQL over Websocket.
     /// </summary>
-    public const string OperationSessionId ="HotChocolate.Execution.Transport.OperationSessionId";
+    public const string OperationSessionId = "HotChocolate.Execution.Transport.OperationSessionId";
 
     /// <summary>
     /// The key to get the deferred task ID on the scoped context data.
@@ -228,15 +228,35 @@ public static class WellKnownContextData
     /// The key of the marker setting that a field on the mutation type represents
     /// the query field.
     /// </summary>
-    public const string MutationQueryField =  "HotChocolate.Relay.Mutations.QueryField";
+    public const string MutationQueryField = "HotChocolate.Relay.Mutations.QueryField";
+
+    /// <summary>
+    /// The key to get the Cache-Control header value from the context data.
+    /// </summary>
+    public const string CacheControlHeaderValue = "HotChocolate.Caching.CacheControlHeaderValue";
+
+    /// <summary>
+    /// The key to to ski caching a query result.
+    /// </summary>
+    public const string SkipQueryCaching = "HotChocolate.Caching.SkipQueryCaching";
+
+    /// <summary>
+    /// The key to retrieve the cache constraints from the operation.
+    /// </summary>
+    public const string CacheControlConstraints = "HotChocolate.Caching.CacheControlConstraints";
 
     /// <summary>
     /// The key to retrieve the authorization options from the context.
     /// </summary>
-    public const string AuthorizationOptions =  "HotChocolate.Authorization.Options";
+    public const string AuthorizationOptions = "HotChocolate.Authorization.Options";
 
     /// <summary>
     /// The key to check if this schema contains request policies.
     /// </summary>
-    public const string AuthorizationRequestPolicy =  "HotChocolate.Authorization.RequestPolicy";
+    public const string AuthorizationRequestPolicy = "HotChocolate.Authorization.RequestPolicy";
+
+    /// <summary>
+    /// The key to access the user state on the global context.
+    /// </summary>
+    public const string UserState = "HottChocolate.Authorization.UserState";
 }

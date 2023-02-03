@@ -17,7 +17,7 @@ public class ObjectTypeDefinition
     , IComplexOutputTypeDefinition
 {
     private List<Type>? _knownClrTypes;
-    private List<ITypeReference>? _interfaces;
+    private List<TypeReference>? _interfaces;
     private List<ObjectFieldBinding>? _fieldIgnores;
     private FieldBindingFlags _fieldBindingFlags = FieldBindingFlags.Instance;
 
@@ -83,8 +83,8 @@ public class ObjectTypeDefinition
     /// <summary>
     /// Gets the interfaces that this object type implements.
     /// </summary>
-    public IList<ITypeReference> Interfaces =>
-        _interfaces ??= new List<ITypeReference>();
+    public IList<TypeReference> Interfaces =>
+        _interfaces ??= new List<TypeReference>();
 
     /// <summary>
     /// Specifies if this definition has interfaces.
@@ -163,11 +163,11 @@ public class ObjectTypeDefinition
         return _knownClrTypes;
     }
 
-    internal IReadOnlyList<ITypeReference> GetInterfaces()
+    internal IReadOnlyList<TypeReference> GetInterfaces()
     {
         if (_interfaces is null)
         {
-            return Array.Empty<ITypeReference>();
+            return Array.Empty<TypeReference>();
         }
 
         return _interfaces;
@@ -194,7 +194,7 @@ public class ObjectTypeDefinition
 
         if (_interfaces is { Count: > 0 })
         {
-            target._interfaces = new List<ITypeReference>(_interfaces);
+            target._interfaces = new List<TypeReference>(_interfaces);
         }
 
         if (_fieldIgnores is { Count: > 0 })
@@ -229,7 +229,7 @@ public class ObjectTypeDefinition
 
         if (_interfaces is { Count: > 0 })
         {
-            target._interfaces ??= new List<ITypeReference>();
+            target._interfaces ??= new List<TypeReference>();
             target._interfaces.AddRange(_interfaces);
         }
 
@@ -286,7 +286,6 @@ public class ObjectTypeDefinition
                 newField.SourceType = target.RuntimeType;
 
                 SetResolverMember(newField, targetField);
-
                 target.Fields.Add(newField);
             }
             else

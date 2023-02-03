@@ -541,4 +541,4 @@ services
 
 This would add a field of type `Query` with the name of `rootQuery` to each top-level mutation field type, whose name ends in `Result`.
 
-> Warning: This feature currently doesn't work on a stitching gateway, however this will be addressed in a future release focused on stitching. It's tracked as [#3158](https://github.com/ChilliCream/hotchocolate/issues/3158).
+> Warning: This feature currently doesn't work on a stitching gateway, however this will be addressed in a future release focused on stitching. It's tracked as [#3158](https://github.com/ChilliCream/graphql-platform/issues/3158).

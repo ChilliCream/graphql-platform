@@ -3,6 +3,7 @@ using HotChocolate.Authorization;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -574,8 +575,9 @@ public class AnnotationBasedAuthorizationTests
             .Services
             .BuildServiceProvider();
 
+    [FooDirective]
     [Authorize("QUERY", ApplyPolicy.Validation)]
-    public  sealed class Query
+    public sealed class Query
     {
         [NodeResolver]
         public Person? GetPerson(string id)
@@ -592,16 +594,17 @@ public class AnnotationBasedAuthorizationTests
         [Authorize("READ_AUTH", ApplyPolicy.Validation)]
         public bool? ThisIsAuthorizedOnValidation() => true;
 
-        [ID(nameof(Person))] public string Test() => "abc";
+        [ID(nameof(Person))]
+        public string Test() => "abc";
     }
 
     [Authorize("READ_PERSON")]
-    public  sealed record Person(string Id, string? Name);
+    public sealed record Person(string Id, string? Name);
 
-    public  sealed record Street(string? Value) : ICityOrStreet;
+    public sealed record Street(string? Value) : ICityOrStreet;
 
     [Authorize("READ_CITY", Apply = ApplyPolicy.AfterResolver)]
-    public  sealed record City(string? Value) : ICityOrStreet;
+    public sealed record City(string? Value) : ICityOrStreet;
 
     [UnionType]
     public interface ICityOrStreet { }
@@ -609,7 +612,9 @@ public class AnnotationBasedAuthorizationTests
     private sealed class AuthHandler : IAuthorizationHandler
     {
         private readonly Func<IMiddlewareContext, AuthorizeDirective, AuthorizeResult> _resolver;
-        private readonly Func<AuthorizationContext, AuthorizeDirective, AuthorizeResult> _validation;
+
+        private readonly Func<AuthorizationContext, AuthorizeDirective, AuthorizeResult>
+            _validation;
 
         public AuthHandler(AuthorizeResult result)
         {
@@ -654,5 +659,17 @@ public class AnnotationBasedAuthorizationTests
 
             return new(AuthorizeResult.Allowed);
         }
+    }
+
+    [DirectiveType(DirectiveLocation.Object)]
+    public sealed class FooDirective { }
+
+    public sealed class FooDirectiveAttribute : ObjectTypeDescriptorAttribute
+    {
+        protected override void OnConfigure(
+            IDescriptorContext context,
+            IObjectTypeDescriptor descriptor,
+            Type type)
+            => descriptor.Directive(new FooDirective());
     }
 }

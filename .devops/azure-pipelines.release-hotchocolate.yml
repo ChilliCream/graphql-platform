@@ -22,7 +22,7 @@ stages:
             inputs:
               buildType: 'specific'
               project: 'aefb2b59-b7d8-48cf-8cb0-30fdea720770'
-              definition: '141'
+              definition: '84'
               buildVersionToDownload: 'latest'
               artifactName: 'WebApp'
               targetPath: './src/HotChocolate/AspNetCore/src/AspNetCore/Resources'
@@ -64,4 +64,4 @@ stages:
               assetUploadMode: replace
               isPreRelease: true
               releaseNotesSource: input
-              releaseNotes: "For more details click [here](https://github.com/ChilliCream/hotchocolate/blob/master/CHANGELOG.md) to get to our CHANGELOG."
+              releaseNotes: "For more details click [here](https://github.com/ChilliCream/graphql-platform/blob/master/CHANGELOG.md) to get to our CHANGELOG."

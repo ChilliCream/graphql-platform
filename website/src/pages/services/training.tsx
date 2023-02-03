@@ -66,13 +66,6 @@ const TrainingPage: FC = () => {
 
   const workshops: Workshop[] = [
     {
-      title: "Reactive Mobile Apps with GraphQL and Maui",
-      date: "23 - 24 Jan 2023",
-      host: "NDC",
-      place: "{ London }",
-      url: "https://ndclondon.com/workshops/reactive-mobile-apps-with-graphql-and-maui/8a69a3c2659d",
-    },
-    {
       title: "Building Modern Apps with GraphQL in ASP.NET Core 7 and React 18",
       date: "20 - 21 Apr 2023",
       host: "dotnetdays",

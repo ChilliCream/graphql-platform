@@ -30,7 +30,7 @@ LEFT JOIN "Address" AS "a" ON "u"."AddressId" = "a"."Id"
 
 # Getting Started
 
-Filtering is part of the `HotChocolate.Data` package.
+Projections are part of the `HotChocolate.Data` package.
 
 <PackageInstallation packageName="HotChocolate.Data" />
 

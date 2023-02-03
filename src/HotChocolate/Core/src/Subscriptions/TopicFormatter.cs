@@ -19,7 +19,7 @@ internal sealed class TopicFormatter
 
     public string Format(string topic)
     {
-        var length = checked(1 + topic.Length * 4 + _prefix.Length);
+        var length = checked(1 + (topic.Length * 4) + _prefix.Length);
         byte[]? topicBuffer = null;
 
         var topicSpan = length <= 256

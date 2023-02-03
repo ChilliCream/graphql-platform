@@ -8,8 +8,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types;
 
-public class UnionType<T>
-    : UnionType
+public class UnionType<T> : UnionType
 {
     private Action<IUnionTypeDescriptor>? _configure;
 

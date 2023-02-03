@@ -18,7 +18,7 @@ public readonly ref struct TypeDiscoveryInfo
     /// <summary>
     /// Initializes a new instance of <see cref="TypeDiscoveryInfo"/>.
     /// </summary>
-    public TypeDiscoveryInfo(ITypeReference typeReference)
+    public TypeDiscoveryInfo(TypeReference typeReference)
     {
         if (typeReference is null)
         {
@@ -135,18 +135,38 @@ public readonly ref struct TypeDiscoveryInfo
         IExtendedType unresolvedType,
         bool isPublic)
     {
-        var isComplexType =
+        var isComplexClass =
             isPublic &&
             unresolvedType.Type.IsClass &&
             unresolvedType.Type != typeof(string);
 
-        if (!isComplexType && unresolvedType.IsGeneric)
+#if NET6_0_OR_GREATER
+        var isComplexValueType =
+            isPublic &&
+            unresolvedType.Type is
+            {
+                IsValueType: true,
+                IsPrimitive: false,
+                IsEnum: false,
+                IsByRefLike: false
+            };
+
+        if (isComplexValueType && unresolvedType.IsGeneric)
         {
             var typeDefinition = unresolvedType.Definition;
             return typeDefinition == typeof(KeyValuePair<,>);
         }
 
-        return isComplexType;
+        return isComplexClass || isComplexValueType;
+#else
+        if (!isComplexClass && unresolvedType.IsGeneric)
+        {
+            var typeDefinition = unresolvedType.Definition;
+            return typeDefinition == typeof(KeyValuePair<,>);
+        }
+
+        return isComplexClass;
+#endif
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

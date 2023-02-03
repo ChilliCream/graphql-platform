@@ -9,11 +9,12 @@ namespace HotChocolate.Execution.Serialization;
 /// and writes it without validation to the JSON response object.
 /// </summary>
 /// <remarks>
+/// <para>
 /// The downside of this helper is that we bind it explicitly to JSON.
 /// If there were alternative query formatter that use different formats we would get
 /// into trouble with this.
-///
-/// This is also the reason for keeping this internal.
+/// </para>
+/// <para>This is also the reason for keeping this internal.</para>
 /// </remarks>
 internal readonly struct RawJsonValue
 {

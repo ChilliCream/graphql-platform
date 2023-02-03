@@ -463,7 +463,7 @@ services
     .AddRemoteSchemasFromRedis("Demo", sp => sp.GetRequiredService<ConnectionMultiplexer>());
 ```
 
-We have created some examples that show the various ways to set up schema stitching, which can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/Stitching).
+We have created some examples that show the various ways to set up schema stitching, which can be found [here](https://github.com/ChilliCream/graphql-platform-examples/tree/master/misc/Stitching).
 
 But as I said in the beginning, there is a lot more coming with the next dot updates. Like GraphQL over gRPC to improve efficiency between the gateway and the downstream services. Moreover, we are bringing in subscription stitching and full integration with the new execution engine. Furthermore, we will introduce a new fetch directive that will bring much more flexibility to integrating GraphQL schemas and other data sources.
 

@@ -128,21 +128,17 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             ? stackalloc byte[length]
             : source = ArrayPool<byte>.Shared.Rent(length);
 
-        try
+        Utf8GraphQLParser.ConvertToBytes(sourceText, ref sourceSpan);
+        var document = Utf8GraphQLParser.Parse(sourceSpan, _parserOptions);
+        var queryHash = _documentHashProvider.ComputeHash(sourceSpan);
+
+        if (source != null)
         {
-            Utf8GraphQLParser.ConvertToBytes(sourceText, ref sourceSpan);
-            var document = Utf8GraphQLParser.Parse(sourceSpan, _parserOptions);
-            var queryHash = _documentHashProvider.ComputeHash(sourceSpan);
-            return (queryHash, document);
+            sourceSpan.Clear();
+            ArrayPool<byte>.Shared.Return(source);
         }
-        finally
-        {
-            if (source != null)
-            {
-                sourceSpan.Clear();
-                ArrayPool<byte>.Shared.Return(source);
-            }
-        }
+
+        return (queryHash, document);
     }
 
     public IReadOnlyList<GraphQLRequest> ReadOperationsRequest(

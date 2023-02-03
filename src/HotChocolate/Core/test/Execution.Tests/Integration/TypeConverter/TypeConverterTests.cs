@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using HotChocolate.Tests;
+﻿using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Execution.Integration.TypeConverter;
@@ -26,12 +22,13 @@ public class TypeConverterTests
                         number
                     }
                 }",
-                request: r => r.AddVariableValue("a",
+                request: r => r.AddVariableValue(
+                    "a",
                     new Dictionary<string, object>
                     {
-                        {"id", "934b987bc0d842bbabfd8a3b3f8b476e"},
-                        {"time", "2018-05-29T01:00Z"},
-                        {"number", (byte)123}
+                        { "id", "934b987bc0d842bbabfd8a3b3f8b476e" },
+                        { "time", "2018-05-29T01:00Z" },
+                        { "number", (byte)123 }
                     }),
                 configure: c => c.AddQueryType<Query>())
             .MatchSnapshotAsync();
@@ -79,12 +76,13 @@ public class TypeConverterTests
                         number
                     }
                 }",
-                request: r => r.AddVariableValue("a",
+                request: r => r.AddVariableValue(
+                    "a",
                     new Dictionary<string, object>
                     {
-                        {"id", "934b987bc0d842bbabfd8a3b3f8b476e"},
-                        {"time", "2018-05-29T01:00Z"},
-                        {"number", (byte)123}
+                        { "id", "934b987bc0d842bbabfd8a3b3f8b476e" },
+                        { "time", "2018-05-29T01:00Z" },
+                        { "number", (byte)123 }
                     }),
                 configure: c => c.AddQueryType<QueryType>())
             .MatchSnapshotAsync();
@@ -141,8 +139,6 @@ public class TypeConverterTests
         Assert.Equal("a_123", conversion.Convert<char, string>('a'));
     }
 
-
-
     [Fact]
     public void Convert_Null_To_Value_Type_Default()
     {
@@ -152,8 +148,58 @@ public class TypeConverterTests
         Assert.Equal(Guid.Empty, empty);
     }
 
-    public class QueryType
-        : ObjectType<Query>
+    [Fact]
+    public async Task UseSet_As_InputType()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<QuerySet>()
+                .ExecuteRequestAsync("{ set(set: [\"abc\", \"abc\"]) }");
+
+        CookieCrumble.SnapshotExtensions.MatchInlineSnapshot(
+            result,
+            """
+            {
+              "data": {
+                "set": [
+                  "abc"
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task UseHashSet_As_InputType()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<QuerySet>()
+                .ExecuteRequestAsync("{ set2(set: [\"abc\", \"abc\"]) }");
+
+        CookieCrumble.SnapshotExtensions.MatchInlineSnapshot(
+            result,
+            """
+            {
+              "data": {
+                "set2": [
+                  "abc"
+                ]
+              }
+            }
+            """);
+    }
+
+    public class QuerySet
+    {
+        public ISet<string> Set(ISet<string> set) => set;
+
+        public HashSet<string> Set2(HashSet<string> set) => set;
+    }
+
+    public class QueryType : ObjectType<Query>
     {
         protected override void Configure(
             IObjectTypeDescriptor<Query> descriptor)
@@ -182,11 +228,9 @@ public class TypeConverterTests
         [GraphQLType(typeof(NonNullType<IdType>))]
         public Guid Id { get; set; }
 
-        [GraphQLType(typeof(DateTimeType))]
-        public DateTime? Time { get; set; }
+        [GraphQLType(typeof(DateTimeType))] public DateTime? Time { get; set; }
 
-        [GraphQLType(typeof(LongType))]
-        public int? Number { get; set; }
+        [GraphQLType(typeof(LongType))] public int? Number { get; set; }
     }
 
     public class IntToStringConverter : IChangeTypeProvider
