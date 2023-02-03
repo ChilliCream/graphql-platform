@@ -94,8 +94,6 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
 
         resolvePagingProvider ??= ResolvePagingProvider;
 
-        descriptor.AddOffsetPagingArguments();
-
         PagingHelper.UsePaging(
             descriptor,
             entityType,
@@ -106,6 +104,8 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
             .Extend()
             .OnBeforeCreate((c, d) =>
             {
+                descriptor.AddOffsetPagingArguments();
+
                 var pagingOptions = c.GetSettings(options);
                 if (string.IsNullOrEmpty(collectionSegmentName))
                 {
@@ -189,12 +189,12 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
             throw new ArgumentNullException(nameof(descriptor));
         }
 
-        descriptor.AddOffsetPagingArguments();
-
         descriptor
             .Extend()
             .OnBeforeCreate((c, d) =>
             {
+                descriptor.AddOffsetPagingArguments();
+
                 var pagingOptions = c.GetSettings(options);
                 if (string.IsNullOrEmpty(collectionSegmentName))
                 {
