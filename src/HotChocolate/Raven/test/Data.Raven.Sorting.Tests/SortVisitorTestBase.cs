@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
@@ -44,10 +45,9 @@ public class SortVisitorTestBase : IAsyncLifetime
         where T : SortInputType<TEntity>
     {
         var dbName = $"DB_{Guid.NewGuid():N}";
-        Resource.CreateDatabaseAsync(dbName).GetAwaiter().GetResult();
-        var store = DocumentStore.For(Resource.GetConnectionString(dbName));
+        var documentStore = Resource.CreateDatabase(dbName);
 
-        var resolver = BuildResolver(store, entities);
+        var resolver = BuildResolver(documentStore, entities);
 
         var builder = SchemaBuilder.New()
             .AddRavenSorting()
@@ -55,12 +55,12 @@ public class SortVisitorTestBase : IAsyncLifetime
                 c =>
                 {
                     ApplyConfigurationToField<TEntity, T>(
-                        store,
+                        documentStore,
                         c.Name("Query").Field("root").Resolve(resolver),
                         false);
 
                     ApplyConfigurationToField<TEntity, T>(
-                        store,
+                        documentStore,
                         c.Name("Query")
                             .Field("rootExecutable")
                             .Resolve(
@@ -119,7 +119,7 @@ public class SortVisitorTestBase : IAsyncLifetime
 
                 if (context.Result is IRavenQueryable<TEntity> queryable)
                 {
-                    context.ContextData["sql"] = queryable.ToCommand().CommandText;
+                    context.ContextData["sql"] = queryable.ToString();
                     context.Result = await queryable.ToListAsync(context.RequestAborted);
                 }
             });

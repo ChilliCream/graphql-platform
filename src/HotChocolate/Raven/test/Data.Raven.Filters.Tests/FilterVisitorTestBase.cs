@@ -31,8 +31,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
         var dbName = $"DB_{Guid.NewGuid():N}";
         var documentStore = Resource.CreateDatabase(dbName);
 
-        var resolver =
-            BuildResolver(documentStore, entities);
+        var resolver = BuildResolver(documentStore, entities);
 
         var builder = SchemaBuilder.New()
             .AddRavenFiltering()
