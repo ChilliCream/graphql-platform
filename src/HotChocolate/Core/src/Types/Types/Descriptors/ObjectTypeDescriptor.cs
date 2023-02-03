@@ -126,7 +126,7 @@ public class ObjectTypeDescriptor
         TypeMemHelper.Return(handledMembers);
     }
 
-    internal void InferFieldsFromFieldBindingType(
+    private protected void InferFieldsFromFieldBindingType(
         IDictionary<string, ObjectFieldDefinition> fields,
         ISet<MemberInfo> handledMembers,
         bool createDefinition = true)
