@@ -46,6 +46,19 @@ public class FilterInputTypeTest : FilterTestBase
     }
 
     [Fact]
+    public void FilterInputType_Struct()
+    {
+        // arrange
+        // act
+        var schema = CreateSchema(
+            s => s
+                .AddType(new FilterInputType<FilterWithStruct>()));
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
     public void FilterInput_AddDirectives_NameArgs()
     {
         // arrange
@@ -82,7 +95,8 @@ public class FilterInputTypeTest : FilterTestBase
         var schema = CreateSchema(s => s
             .AddDirectiveType<FooDirectiveType>()
             .AddType(new FilterInputType<Foo>(d => d
-                .Directive(new DirectiveNode("foo")).Field(x => x.Bar))));
+                .Directive(new DirectiveNode("foo"))
+                .Field(x => x.Bar))));
 
         // assert
         schema.MatchSnapshot();
@@ -369,8 +383,7 @@ public class FilterInputTypeTest : FilterTestBase
     public class FooDirectiveType
         : DirectiveType<FooDirective>
     {
-        protected override void Configure(
-            IDirectiveTypeDescriptor<FooDirective> descriptor)
+        protected override void Configure(IDirectiveTypeDescriptor<FooDirective> descriptor)
         {
             descriptor.Name("foo");
             descriptor.Location(Types.DirectiveLocation.InputObject)
@@ -408,6 +421,7 @@ public class FilterInputTypeTest : FilterTestBase
         public string? Title { get; set; }
 
         public int Pages { get; set; }
+
         public int Chapters { get; set; }
 
         public int[] LinesPerPage { get; set; } = Array.Empty<int>();
@@ -432,8 +446,11 @@ public class FilterInputTypeTest : FilterTestBase
     public class Address
     {
         public string? Street { get; set; }
+
         public string? PostalCode { get; set; }
+
         public string? City { get; set; }
+
         public Country? Country { get; set; }
     }
 
@@ -454,6 +471,7 @@ public class FilterInputTypeTest : FilterTestBase
     public interface ITest
     {
         public string? Prop { get; set; }
+
         public string? Prop2 { get; set; }
     }
 
@@ -556,4 +574,13 @@ public class FilterInputTypeTest : FilterTestBase
             throw new NotImplementedException();
         }
     }
+
+    public class FilterWithStruct
+    {
+        public ExampleValueType ValueType { get; set; }
+
+        public ExampleValueType? ValueTypeNullable { get; set; }
+    }
+
+    public record struct ExampleValueType(string Foo, string Bar);
 }

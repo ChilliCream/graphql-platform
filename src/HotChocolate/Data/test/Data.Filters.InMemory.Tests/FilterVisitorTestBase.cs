@@ -4,7 +4,6 @@ using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Data.Filters;
 
@@ -14,7 +13,6 @@ public class FilterVisitorTestBase
 
     private Func<IResolverContext, IEnumerable<TResult>> BuildResolver<TResult>(
         params TResult[] results)
-        where TResult : class
     {
         return _ => results.AsQueryable();
     }
@@ -26,7 +24,6 @@ public class FilterVisitorTestBase
         FilterConvention? convention = null,
         bool withPaging = false,
         Action<ISchemaBuilder>? configure = null)
-        where TEntity : class
         where T : FilterInputType<TEntity>
     {
         convention ??= new FilterConvention(x => x.AddDefaults().BindRuntimeType<TEntity, T>());
