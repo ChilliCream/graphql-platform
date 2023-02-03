@@ -28,6 +28,7 @@ public class JsonTypeTests
               someJson: JSON!
               manyJson: [JSON!]
               inputJson(input: JSON!): JSON!
+              jsonFromString: JSON!
             }
 
             scalar JSON
@@ -164,6 +165,32 @@ public class JsonTypeTests
             """);
     }
 
+    [Fact]
+    public async Task Output_Json_From_String()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        jsonFromString
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "jsonFromString": {
+                  "a": "b"
+                }
+              }
+            }
+            """);
+    }
+
     public class Query
     {
         public JsonElement GetSomeJson()
@@ -199,5 +226,9 @@ public class JsonTypeTests
 
         public JsonElement InputJson(JsonElement input)
             => input;
+
+        [GraphQLType<NonNullType<JsonType>>]
+        public string JsonFromString()
+            => "{ \"a\": \"b\" }";
     }
 }
