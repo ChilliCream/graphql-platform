@@ -1,10 +1,9 @@
 using System.Threading.Tasks;
 using System.Threading;
 
-namespace StrawberryShake.Tools
+namespace StrawberryShake.Tools;
+
+public abstract class CommandHandler<T>
 {
-    public abstract class CommandHandler<T>
-    {
-        public abstract Task<int> ExecuteAsync(T arguments, CancellationToken cancellationToken);
-    }
+    public abstract Task<int> ExecuteAsync(T arguments, CancellationToken cancellationToken);
 }
