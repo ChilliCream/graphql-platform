@@ -1,8 +1,7 @@
-namespace StrawberryShake.Tools
+namespace StrawberryShake.Tools;
+
+public interface ICompileContext
 {
-    public interface ICompileContext
-    {
-        string Path { get; }
-        bool Search { get; }
-    }
+    string Path { get; }
+    bool Search { get; }
 }
