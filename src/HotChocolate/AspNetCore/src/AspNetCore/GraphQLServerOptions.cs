@@ -35,4 +35,9 @@ public sealed class GraphQLServerOptions
     /// Defines if the GraphQL schema SDL can be downloaded.
     /// </summary>
     public bool EnableSchemaRequests { get; set; } = true;
+
+    /// <summary>
+    /// Defines if request batching is enabled.
+    /// </summary>
+    public bool EnableBatching { get; set; }
 }

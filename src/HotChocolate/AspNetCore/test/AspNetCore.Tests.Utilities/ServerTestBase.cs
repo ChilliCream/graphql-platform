@@ -96,7 +96,11 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
                 .UseEndpoints(
                     endpoints =>
                     {
-                        var builder = endpoints.MapGraphQL(pattern);
+                        var builder = endpoints.MapGraphQL(pattern)
+                            .WithOptions(new GraphQLServerOptions
+                            {
+                                EnableBatching = true
+                            });
 
                         configureConventions?.Invoke(builder);
                         endpoints.MapGraphQL("/evict", "evict");
@@ -104,6 +108,7 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
                         endpoints.MapGraphQL("/upload", "upload");
                         endpoints.MapGraphQL("/starwars", "StarWars");
                         endpoints.MapGraphQL("/test", "test");
+                        endpoints.MapGraphQL("/batching");
                     }));
     }
 
