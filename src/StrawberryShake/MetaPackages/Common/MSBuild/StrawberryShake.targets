@@ -15,6 +15,14 @@
   <Target
     Name="GenerateGraphQLCode"
     BeforeTargets="BeforeBuild"
+    DependsOnTargets="_GenerateGraphQLCode">
+    <ItemGroup>
+      <Compile Include="$(GraphQLCodeGenerationRoot)**\*.cs" />
+    </ItemGroup>
+  </Target>
+
+  <Target
+    Name="_GenerateGraphQLCode"
     Inputs="@(GraphQL)"
     Outputs="$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\.build.info"
     Condition="'@(GraphQL)' != ''">
@@ -28,7 +36,7 @@
       Condition="'$(DotNetMajor)' != '6' AND '$(DotNetMajor)' != '7'" />
 
     <PropertyGroup>
-      <GraphQLCodeGenerationRoot>$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\</GraphQLCodeGenerationRoot>
+      <GraphQLCodeGenerationRoot>$([System.IO.Path]::GetFullPath('$(IntermediateOutputPath)berry\'))</GraphQLCodeGenerationRoot>
       <GraphQLQueryGenerationRoot>$(MSBuildProjectDirectory)\$(GraphQLPersistedQueryOutput)</GraphQLQueryGenerationRoot>
       <GenTool Condition="'$(DotNetMajor)' == '6'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net6", "dotnet-graphql.dll"))</GenTool>
       <GenTool Condition="'$(DotNetMajor)' == '7'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net7", "dotnet-graphql.dll"))</GenTool>
@@ -53,10 +61,6 @@
 
     <MakeDir Directories="$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry" Condition="!EXISTS('$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\.build.info')" />
     <Touch Files="$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\.build.info" AlwaysCreate="true" />
-
-    <ItemGroup>
-      <Compile Include="$(GraphQLCodeGenerationRoot)**\*.cs" />
-    </ItemGroup>
   </Target>
 
   <UsingTask
