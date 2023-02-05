@@ -166,7 +166,8 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                         string? operationNames = context.Request.Query[_batchOperations];
 
                         if (!string.IsNullOrEmpty(operationNames) &&
-                            TryParseOperations(operationNames, out var ops))
+                            TryParseOperations(operationNames, out var ops) &&
+                            !(context.GetGraphQLServerOptions()?.EnableGetRequests ?? false))
                         {
                             result = await ExecuteOperationBatchAsync(
                                 context,
@@ -210,13 +211,23 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 // we need to execute a request batch where we need to execute multiple
                 // fully specified GraphQL requests at once.
                 default:
-                    result = await ExecuteBatchAsync(
-                        context,
-                        requestExecutor,
-                        requestInterceptor,
-                        DiagnosticEvents,
-                        requests,
-                        requestFlags);
+                    if (!(context.GetGraphQLServerOptions()?.EnableGetRequests ?? false))
+                    {
+                        result = await ExecuteBatchAsync(
+                            context,
+                            requestExecutor,
+                            requestInterceptor,
+                            DiagnosticEvents,
+                            requests,
+                            requestFlags);
+                    }
+                    else
+                    {
+                        var error = errorHandler.Handle(ErrorHelper.InvalidRequest());
+                        statusCode = HttpStatusCode.BadRequest;
+                        result = QueryResultBuilder.CreateError(error);
+                        DiagnosticEvents.HttpRequestError(context, error);
+                    }
                     break;
             }
         }
