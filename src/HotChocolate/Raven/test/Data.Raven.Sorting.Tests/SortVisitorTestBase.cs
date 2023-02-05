@@ -33,7 +33,7 @@ public class SortVisitorTestBase : IAsyncLifetime
 
         session.SaveChanges();
 
-        return ctx => ((IDocumentSession)ctx.LocalContextData["session"]!).Query<TResult>();
+        return ctx => ((IAsyncDocumentSession)ctx.LocalContextData["session"]!).Query<TResult>();
     }
 
     protected T[] CreateEntity<T>(params T[] entities) => entities;
@@ -106,7 +106,7 @@ public class SortVisitorTestBase : IAsyncLifetime
     {
         field.Use(next => async context =>
         {
-            using (var session = store.OpenSession())
+            using (var session = store.OpenAsyncSession())
             {
                 context.LocalContextData = context.LocalContextData.SetItem("session", session);
                 await next(context);

@@ -44,8 +44,8 @@ public interface IFilterConventionDescriptor
     /// <typeparam name="TFilterType">
     /// The filter type for which additional configuration shall be provided.
     /// </typeparam>
-    IFilterConventionDescriptor Configure<TFilterType>(ConfigureFilterInputType configure)
-        where TFilterType : FilterInputType;
+    IFilterConventionDescriptor ConfigureFilterType<TFilterType>(ConfigureFilterInputType configure)
+        where TFilterType : IFilterInputType;
 
     /// <summary>
     /// Provides additional configuration for a filter type.
@@ -53,15 +53,11 @@ public interface IFilterConventionDescriptor
     /// <param name="configure">
     /// The configuration that shall be applied to the specified filter type.
     /// </param>
-    /// <typeparam name="TFilterType">
-    /// The filter type for which additional configuration shall be provided.
-    /// </typeparam>
     /// <typeparam name="TRuntimeType">
     /// The underlying runtime type of the filter type.
     /// </typeparam>
-    IFilterConventionDescriptor Configure<TFilterType, TRuntimeType>(
-        ConfigureFilterInputType<TRuntimeType> configure)
-        where TFilterType : FilterInputType<TRuntimeType>;
+    IFilterConventionDescriptor Configure<TRuntimeType>(
+        ConfigureFilterInputType<TRuntimeType> configure);
 
     /// <summary>
     /// Specifies the filter provider.

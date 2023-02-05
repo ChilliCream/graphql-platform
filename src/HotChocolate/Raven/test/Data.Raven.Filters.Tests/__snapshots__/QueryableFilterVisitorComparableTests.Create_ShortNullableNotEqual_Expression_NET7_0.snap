@@ -4,6 +4,9 @@
   "data": {
     "root": [
       {
+        "barShort": null
+      },
+      {
         "barShort": 14
       },
       {
@@ -16,7 +19,7 @@
 
 12 SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foonullable as d where CAST(d.data ->> 'BarShort' as smallint) != :p0
+from 'FooNullables' where BarShort != $p0
 ---------------
 
 13 Result:
@@ -28,6 +31,9 @@ select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foo
         "barShort": 12
       },
       {
+        "barShort": null
+      },
+      {
         "barShort": 14
       }
     ]
@@ -37,7 +43,7 @@ select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foo
 
 13 SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foonullable as d where CAST(d.data ->> 'BarShort' as smallint) != :p0
+from 'FooNullables' where BarShort != $p0
 ---------------
 
 null Result:
@@ -61,5 +67,5 @@ null Result:
 
 null SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foonullable as d where d.data ->> 'BarShort' is not null
+from 'FooNullables' where BarShort != $p0
 ---------------

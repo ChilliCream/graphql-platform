@@ -3,7 +3,8 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Sorting;
 
-public class QueryableSortVisitorStringTests : IClassFixture<SchemaCache>
+[Collection(SchemaCacheCollectionFixture.DefinitionName)]
+public class QueryableSortVisitorStringTests
 {
     private static readonly Foo[] _fooEntities =
     {
@@ -83,14 +84,14 @@ public class QueryableSortVisitorStringTests : IClassFixture<SchemaCache>
 
     public class Foo
     {
-        public int Id { get; set; }
+        public string? Id { get; set; }
 
         public string Bar { get; set; } = null!;
     }
 
     public class FooNullable
     {
-        public int Id { get; set; }
+        public string? Id { get; set; }
 
         public string? Bar { get; set; }
     }

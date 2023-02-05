@@ -4,7 +4,8 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Sorting.Expressions;
 
-public class QueryableSortVisitorEnumTests : IClassFixture<SchemaCache>
+[Collection(SchemaCacheCollectionFixture.DefinitionName)]
+public class QueryableSortVisitorEnumTests
 {
     private static readonly Foo[] _fooEntities =
     {
@@ -91,14 +92,14 @@ public class QueryableSortVisitorEnumTests : IClassFixture<SchemaCache>
 
     public class Foo
     {
-        public int Id { get; set; }
+        public string? Id { get; set; }
 
         public FooEnum BarEnum { get; set; }
     }
 
     public class FooNullable
     {
-        public int Id { get; set; }
+        public string? Id { get; set; }
 
         public FooEnum? BarEnum { get; set; }
     }
