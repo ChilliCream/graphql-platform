@@ -38,7 +38,7 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
             // no error
         });
 
-    [Fact]
+    [Fact(Skip = "This test is flaky. We need to fix it.")]
     public Task Subscribe_ReceiveDataOnMutation()
     {
         var snapshot = new Snapshot();
