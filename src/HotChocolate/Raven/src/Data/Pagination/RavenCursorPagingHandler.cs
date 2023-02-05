@@ -30,7 +30,6 @@ internal class RavenCursorPagingHandler<TEntity> : CursorPagingHandler
         {
             IRavenQueryable<TEntity> e => e.ToAsyncDocumentQuery(),
             IAsyncDocumentQuery<TEntity> f => f,
-            IDocumentQuery<TEntity> m => m.ToQueryable().ToAsyncDocumentQuery(),
             _ => throw ThrowHelper.PagingTypeNotSupported(source.GetType())
         });
     }

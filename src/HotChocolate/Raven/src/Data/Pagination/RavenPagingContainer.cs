@@ -7,6 +7,7 @@ namespace HotChocolate.Data.Raven.Pagination;
 internal sealed class RavenPagingContainer<TEntity>
 {
     private IAsyncDocumentQuery<TEntity> _query;
+    private TaskCache? _totalCount = null;
 
     public RavenPagingContainer(IAsyncDocumentQuery<TEntity> query)
     {
@@ -14,23 +15,97 @@ internal sealed class RavenPagingContainer<TEntity>
     }
 
     public Task<int> CountAsync(CancellationToken cancellationToken)
-        => _query.CountAsync(cancellationToken);
+    {
+        if (_totalCount is null)
+        {
+            Interlocked.CompareExchange(ref _totalCount,
+                new TaskCache(() => _query.CountAsync(cancellationToken)),
+                null);
+        }
+
+        return _totalCount.Execute();
+    }
 
     public async ValueTask<IReadOnlyList<Edge<TEntity>>> ExecuteQueryAsync(
         int offset,
         CancellationToken cancellationToken)
     {
-        var list = new List<IndexEdge<TEntity>>();
-        await using var cursor =
-            await _query.AsAsyncEnumerable(cancellationToken).ConfigureAwait(false);
+        TaskCompletionSource<int>? totalCountCompletionSource = null;
 
-        var index = offset;
-        while (await cursor.MoveNextAsync().ConfigureAwait(false))
+        try
         {
-            list.Add(IndexEdge<TEntity>.Create(cursor.Current.Document, index++));
-        }
+            // we cannot do concurrent requests on the IAsyncDocumentSession and we can also get
+            // the total count from the stream directly. There are two execution strategies.
+            // 1. If CountAsync was already needed before, we wait until the completion of the query
+            //    and then continue with the stream.
+            // 2. If CountAsync was not called already, we can just get the totalCount out of the
+            //    stream over the statistics. We use a task completion source to make sure a
+            //    concurrent call on count async waits, until we are done with the query
+            if (_totalCount is null)
+            {
+                totalCountCompletionSource = new TaskCompletionSource<int>();
 
-        return list;
+                // capture the source so it is not in the outer scope
+                var source = totalCountCompletionSource;
+                var originalTotalCount =
+                    Interlocked.CompareExchange(ref _totalCount, new TaskCache(source.Task), null);
+
+                // in case CountAsync was already executed we reset the completion source and await
+                // the CountAsync call so that we do not have concurrent requests on the async
+                // session
+                if (originalTotalCount is not null)
+                {
+                    totalCountCompletionSource = null;
+                    await originalTotalCount.Execute();
+                }
+            }
+
+            // We only load the query stats when we not already have fetched them.
+            IAsyncEnumerator<StreamResult<TEntity>> cursor;
+            if (totalCountCompletionSource is { })
+            {
+                cursor = await _query
+                    .AsAsyncEnumerable(out var stats, cancellationToken)
+                    .ConfigureAwait(false);
+
+                totalCountCompletionSource?.SetResult(stats.TotalResults);
+            }
+            else
+            {
+                cursor = await _query
+                    .AsAsyncEnumerable(cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
+            // page through the response and create the array
+            var list = new List<IndexEdge<TEntity>>();
+            var index = offset;
+            while (await cursor.MoveNextAsync().ConfigureAwait(false))
+            {
+                list.Add(IndexEdge<TEntity>.Create(cursor.Current.Document, index++));
+            }
+
+            return list;
+        }
+        catch (OperationCanceledException)
+        {
+            totalCountCompletionSource?.SetCanceled(cancellationToken);
+
+            throw;
+        }
+        catch (Exception ex)
+        {
+            totalCountCompletionSource?.SetException(ex);
+
+            throw;
+        }
+        finally
+        {
+            if (totalCountCompletionSource is { Task.IsCompleted: false })
+            {
+                totalCountCompletionSource.SetCanceled(cancellationToken);
+            }
+        }
     }
 
     public async ValueTask<List<TEntity>> ToListAsync(CancellationToken cancellationToken)
@@ -51,15 +126,58 @@ internal sealed class RavenPagingContainer<TEntity>
 
         return this;
     }
+
+    private sealed class TaskCache
+    {
+        private readonly object _lock = new();
+        private Task<int>? _task;
+        private readonly Func<Task<int>> _factory;
+
+        public TaskCache(Func<Task<int>> factory)
+        {
+            _factory = factory;
+        }
+
+        public TaskCache(Task<int> task)
+        {
+            _task = task;
+            _factory = null!;
+        }
+
+        public Task<int> Execute()
+        {
+            if (_task is null)
+            {
+                lock (_lock)
+                {
+                    _task = _factory();
+                }
+            }
+
+            return _task;
+        }
+    }
 }
 
 static file class LocalExtensions
 {
     public static Task<IAsyncEnumerator<StreamResult<T>>> AsAsyncEnumerable<T>(
-        this IAsyncDocumentQuery<T> self, CancellationToken cancellationToken)
+        this IAsyncDocumentQuery<T> self,
+        CancellationToken cancellationToken)
     {
         var ravenQueryProvider = (AsyncDocumentQuery<T>)self;
 
         return ravenQueryProvider.AsyncSession.Advanced.StreamAsync(self, cancellationToken);
+    }
+
+    public static Task<IAsyncEnumerator<StreamResult<T>>> AsAsyncEnumerable<T>(
+        this IAsyncDocumentQuery<T> self,
+        out StreamQueryStatistics statistics,
+        CancellationToken cancellationToken)
+    {
+        var ravenQueryProvider = (AsyncDocumentQuery<T>)self;
+
+        return ravenQueryProvider.AsyncSession.Advanced
+            .StreamAsync(self, out statistics, cancellationToken);
     }
 }

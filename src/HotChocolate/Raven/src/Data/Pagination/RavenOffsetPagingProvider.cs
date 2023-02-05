@@ -33,7 +33,7 @@ public class RavenOffsetPagingProvider : OffsetPagingProvider
         }
 
         return (OffsetPagingHandler)_createHandler
-            .MakeGenericMethod(source.ElementType?.Source ?? source.Source)
+            .MakeGenericMethod(source.ElementType?.Source ?? source.Source.GetGenericArguments()[0])
             .Invoke(null, new object[] { options })!;
     }
 

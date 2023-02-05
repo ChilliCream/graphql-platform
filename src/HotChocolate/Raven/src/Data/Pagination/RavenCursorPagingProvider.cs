@@ -30,7 +30,7 @@ public class RavenCursorPagingProvider : CursorPagingProvider
         }
 
         return (CursorPagingHandler)_createHandler
-            .MakeGenericMethod(source.ElementType?.Source ?? source.Source)
+            .MakeGenericMethod(source.ElementType?.Source ?? source.Source.GetGenericArguments()[0])
             .Invoke(null, new object[] { options })!;
     }
 
