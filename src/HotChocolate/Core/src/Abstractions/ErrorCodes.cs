@@ -94,6 +94,11 @@ public static class ErrorCodes
         /// Value for oneof field {field.FieldName} must be non-null.
         /// </summary>
         public const string OneOfFieldMustBeNonNull = "HC0057";
+
+        /// <summary>
+        /// The request tried to fetch to many nodes at once.
+        /// </summary>
+        public const string FetchedToManyNodesAtOnce = "HC0076";
     }
 
     /// <summary>
