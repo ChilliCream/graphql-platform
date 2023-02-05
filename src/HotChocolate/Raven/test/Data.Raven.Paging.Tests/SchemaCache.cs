@@ -1,12 +1,16 @@
+using System;
 using System.Collections.Concurrent;
+using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
+using Squadron;
 
-namespace HotChocolate.Data.Filters;
+namespace HotChocolate.Data.Raven.Filters;
 
-public sealed class SchemaCache : FilterVisitorTestBase
+public sealed class SchemaCache : VisitorTestBase
 {
-    private readonly ConcurrentDictionary<(Type, Type, object), IRequestExecutor> _cache = new();
+    private readonly ConcurrentDictionary<(Type, Type, object), IRequestExecutor>
+        _cache = new();
 
     public IRequestExecutor CreateSchema<T, TType>(
         T[] entities,
@@ -16,6 +20,7 @@ public sealed class SchemaCache : FilterVisitorTestBase
         where TType : FilterInputType<T>
     {
         (Type, Type, T[] entites) key = (typeof(T), typeof(TType), entities);
+
         return _cache.GetOrAdd(
             key,
             _ => base.CreateSchema<T, TType>(

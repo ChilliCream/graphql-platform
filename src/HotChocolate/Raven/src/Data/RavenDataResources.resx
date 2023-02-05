@@ -45,6 +45,6 @@
     <value>The {0} could not parse the value of the filter. The value was {1}. The expected type was {2}. This error occured on {3}.{4}: {5}</value>
   </data>
   <data name="Paging_SourceIsNotSupported" xml:space="preserve">
-    <value>The provided source {0} is not supported for mongo paging</value>
+    <value>The provided source {0} is not supported for raven paging</value>
   </data>
 </root>
