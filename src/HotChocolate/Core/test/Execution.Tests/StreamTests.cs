@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using CookieCrumble;
+using Xunit;
 
 namespace HotChocolate.Execution;
 

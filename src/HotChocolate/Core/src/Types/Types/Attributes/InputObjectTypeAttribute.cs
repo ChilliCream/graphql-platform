@@ -32,7 +32,7 @@ public sealed class InputObjectTypeAttribute
 
     bool ITypeAttribute.IsTypeExtension => false;
 
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IInputObjectTypeDescriptor descriptor,
         Type type)
@@ -41,5 +41,7 @@ public sealed class InputObjectTypeAttribute
         {
             descriptor.Name(Name);
         }
+
+        descriptor.Extend().Definition.Fields.BindingBehavior = BindingBehavior.Implicit;
     }
 }

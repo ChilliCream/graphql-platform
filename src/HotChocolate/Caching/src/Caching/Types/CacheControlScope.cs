@@ -11,6 +11,7 @@ public enum CacheControlScope
     /// be only cached for and accessible to that user.
     /// </summary>
     Private,
+
     /// <summary>
     /// Public query results contain data
     /// that is not scoped to a particular user and can

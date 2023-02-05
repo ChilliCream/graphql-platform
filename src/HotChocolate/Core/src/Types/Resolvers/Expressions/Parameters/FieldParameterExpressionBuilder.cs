@@ -20,9 +20,10 @@ internal sealed class FieldParameterExpressionBuilder
     public override bool CanHandle(ParameterInfo parameter)
         => typeof(IOutputField).IsAssignableFrom(parameter.ParameterType);
 
-    public override Expression Build(ParameterInfo parameter, Expression context)
+    public override Expression Build(ParameterExpressionBuilderContext context)
     {
-        var expression = base.Build(parameter, context);
+        var expression = base.Build(context);
+        var parameter = context.Parameter;
 
         return parameter.ParameterType != typeof(IOutputField)
             ? Expression.Convert(expression, parameter.ParameterType)

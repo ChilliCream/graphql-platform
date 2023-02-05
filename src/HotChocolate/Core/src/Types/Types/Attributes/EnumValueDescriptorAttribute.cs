@@ -10,8 +10,7 @@ namespace HotChocolate.Types;
     AttributeTargets.Field,
     Inherited = true,
     AllowMultiple = true)]
-public abstract class EnumValueDescriptorAttribute
-    : DescriptorAttribute
+public abstract class EnumValueDescriptorAttribute : DescriptorAttribute
 {
     protected internal sealed override void TryConfigure(
         IDescriptorContext context,
@@ -25,7 +24,7 @@ public abstract class EnumValueDescriptorAttribute
         }
     }
 
-    public abstract void OnConfigure(
+    protected abstract void OnConfigure(
         IDescriptorContext context,
         IEnumValueDescriptor descriptor,
         FieldInfo field);

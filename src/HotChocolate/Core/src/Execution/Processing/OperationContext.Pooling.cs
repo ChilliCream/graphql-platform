@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using HotChocolate.Execution.DependencyInjection;
@@ -21,6 +20,7 @@ internal sealed partial class OperationContext
     private readonly DeferredWorkScheduler _deferredWorkScheduler;
     private readonly ResultBuilder _resultBuilder;
     private readonly PooledPathFactory _pathFactory;
+    private IRequestContext _requestContext = default!;
     private ISchema _schema = default!;
     private IErrorHandler _errorHandler = default!;
     private IActivator _activator = default!;
@@ -61,6 +61,7 @@ internal sealed partial class OperationContext
         object? rootValue,
         Func<object?> resolveQueryRootValue)
     {
+        _requestContext = requestContext;
         _schema = requestContext.Schema;
         _errorHandler = requestContext.ErrorHandler;
         _activator = requestContext.Activator;
@@ -79,11 +80,12 @@ internal sealed partial class OperationContext
         IncludeFlags = _operation.CreateIncludeFlags(variables);
         _workScheduler.Initialize(batchDispatcher);
         _deferredWorkScheduler.Initialize(this);
-        _resultBuilder.Initialize(_operation, _errorHandler, _diagnosticEvents);
+        _resultBuilder.Initialize(_requestContext, _diagnosticEvents);
     }
 
     public void InitializeFrom(OperationContext context)
     {
+        _requestContext = context._requestContext;
         _schema = context._schema;
         _errorHandler = context._errorHandler;
         _activator = context._activator;
@@ -102,7 +104,7 @@ internal sealed partial class OperationContext
         IncludeFlags = _operation.CreateIncludeFlags(_variables);
         _workScheduler.Initialize(_batchDispatcher);
         _deferredWorkScheduler.InitializeFrom(this, context._deferredWorkScheduler);
-        _resultBuilder.Initialize(_operation, _errorHandler, _diagnosticEvents);
+        _resultBuilder.Initialize(_requestContext, _diagnosticEvents);
     }
 
     public void Clean()
@@ -113,6 +115,7 @@ internal sealed partial class OperationContext
             _workScheduler.Clear();
             _resultBuilder.Clear();
             _deferredWorkScheduler.Clear();
+            _requestContext = default!;
             _schema = default!;
             _errorHandler = default!;
             _activator = default!;

@@ -22,6 +22,8 @@ internal sealed class SchemaParameterExpressionBuilder : IParameterExpressionBui
         => typeof(ISchema) == parameter.ParameterType ||
            typeof(Schema) == parameter.ParameterType;
 
-    public Expression Build(ParameterInfo parameter, Expression context)
-        => Expression.Convert(Expression.Property(context, _schema), parameter.ParameterType);
+    public Expression Build(ParameterExpressionBuilderContext context)
+        => Expression.Convert(
+            Expression.Property(context.ResolverContext, _schema),
+            context.Parameter.ParameterType);
 }

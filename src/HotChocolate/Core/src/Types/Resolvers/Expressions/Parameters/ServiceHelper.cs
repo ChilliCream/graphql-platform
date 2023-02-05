@@ -12,7 +12,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 /// <summary>
 /// The service helper configures the object fields with middleware to handle
-/// various service behaviours like pooled services.
+/// various service behaviors like pooled services.
 /// </summary>
 internal static class ServiceHelper
 {

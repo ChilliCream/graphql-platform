@@ -267,7 +267,9 @@ public class DataLoaderGenerator : ISyntaxGenerator
             sourceText
                 .Append(Indent)
                 .Append(Indent)
-                .AppendLine($"public {dataLoader.Name}(");
+                .Append("public ")
+                .Append(dataLoader.Name)
+                .AppendLine("(");
             sourceText
                 .Append(Indent)
                 .Append(Indent)
@@ -295,12 +297,16 @@ public class DataLoaderGenerator : ISyntaxGenerator
             sourceText
                 .Append(Indent)
                 .Append(Indent)
-                .AppendLine($"public {dataLoader.Name}(");
+                .Append("public ")
+                .Append(dataLoader.Name)
+                .AppendLine("(");
+
             sourceText
                 .Append(Indent)
                 .Append(Indent)
                 .Append(Indent)
                 .AppendLine("global::System.IServiceProvider services,");
+
             sourceText
                 .Append(Indent)
                 .Append(Indent)
@@ -313,7 +319,6 @@ public class DataLoaderGenerator : ISyntaxGenerator
                 .Append(Indent)
                 .AppendLine(": base(options)");
         }
-
 
         sourceText.AppendLine("        {");
         sourceText.AppendLine("            _services = services ??");
@@ -332,7 +337,7 @@ public class DataLoaderGenerator : ISyntaxGenerator
             sourceText.Append(">> ");
             sourceText.AppendLine("LoadBatchAsync(");
             sourceText.Append($"            {ReadOnlyList}<");
-            sourceText.AppendLine($"{keyType.ToFullyQualified()}> keys,");
+            sourceText.Append(keyType.ToFullyQualified()).AppendLine("> keys,");
             sourceText.AppendLine($"            global::{WellKnownTypes.CancellationToken} ct)");
         }
         else if (kind is DataLoaderKind.Group)
@@ -345,7 +350,7 @@ public class DataLoaderGenerator : ISyntaxGenerator
             sourceText.Append(">> ");
             sourceText.AppendLine("LoadGroupedBatchAsync(");
             sourceText.Append($"            {ReadOnlyList}<");
-            sourceText.AppendLine($"{keyType.ToFullyQualified()}> keys,");
+            sourceText.Append(keyType.ToFullyQualified()).AppendLine("> keys,");
             sourceText.AppendLine($"            global::{WellKnownTypes.CancellationToken} ct)");
         }
         else if (kind is DataLoaderKind.Cache)
@@ -354,7 +359,10 @@ public class DataLoaderGenerator : ISyntaxGenerator
             sourceText.Append(valueType.ToFullyQualified());
             sourceText.Append("> ");
             sourceText.AppendLine("LoadSingleAsync(");
-            sourceText.AppendLine($"            {keyType.ToFullyQualified()} key,");
+            sourceText
+                .Append("            ")
+                .Append(keyType.ToFullyQualified())
+                .AppendLine(" key,");
             sourceText.AppendLine($"            {WellKnownTypes.CancellationToken} ct)");
         }
 
@@ -370,7 +378,7 @@ public class DataLoaderGenerator : ISyntaxGenerator
 
             foreach (var item in services.OrderBy(t => t.Key))
             {
-                sourceText.Append($"            var p{item.Key} = ");
+                sourceText.Append("            var p").Append(item.Key).Append(" = ");
                 sourceText.Append("scope.ServiceProvider.GetRequiredService<");
                 sourceText.Append(item.Value);
                 sourceText.AppendLine(">();");
@@ -380,7 +388,10 @@ public class DataLoaderGenerator : ISyntaxGenerator
         {
             foreach (var item in services.OrderBy(t => t.Key))
             {
-                sourceText.Append($"            var p{item.Key} = _services.GetRequiredService<");
+                sourceText
+                    .Append("            var p")
+                    .Append(item.Key)
+                    .Append(" = _services.GetRequiredService<");
                 sourceText.Append(item.Value);
                 sourceText.AppendLine(">();");
             }
@@ -503,15 +514,8 @@ public class DataLoaderGenerator : ISyntaxGenerator
     }
 
     private static bool IsKeysArgument(ITypeSymbol type)
-    {
-        if (type is INamedTypeSymbol { IsGenericType: true, TypeArguments.Length: 1 } namedType &&
-            ReadOnlyList.Equals(ToTypeNameNoGenerics(namedType), Ordinal))
-        {
-            return true;
-        }
-
-        return false;
-    }
+        => type is INamedTypeSymbol { IsGenericType: true, TypeArguments.Length: 1 } nt &&
+            ReadOnlyList.Equals(ToTypeNameNoGenerics(nt), Ordinal);
 
     private static ITypeSymbol ExtractKeyType(ITypeSymbol type)
     {

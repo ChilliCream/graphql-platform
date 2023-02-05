@@ -4,12 +4,10 @@ using System;
 using System.Collections;
 using System.Threading;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
-using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate;
 
@@ -104,51 +102,88 @@ public class CodeFirstTests
     [Fact]
     public async Task Default_Type_Resolution_Shall_Be_Exact()
     {
-        Snapshot.FullName();
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    d.Field("shouldBeCat").Type<InterfaceType<IPet>>().Resolve(new Cat());
+                    d.Field("shouldBeDog").Type<InterfaceType<IPet>>().Resolve(new Dog());
+                })
+                .AddType<Dog>()
+                .AddType<Cat>()
+                .ExecuteRequestAsync("{ shouldBeCat { __typename } shouldBeDog { __typename } }");
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(d =>
-            {
-                d.Name("Query");
-                d.Field("shouldBeCat").Type<InterfaceType<IPet>>().Resolve(new Cat());
-                d.Field("shouldBeDog").Type<InterfaceType<IPet>>().Resolve(new Dog());
-            })
-            .AddType<Dog>()
-            .AddType<Cat>()
-            .ExecuteRequestAsync("{ shouldBeCat { __typename } shouldBeDog { __typename } }")
-            .MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Default_Type_Resolution_Shall_Be_Exact_Schema()
     {
-        Snapshot.FullName();
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    d.Field("shouldBeCat").Type<InterfaceType<IPet>>().Resolve(new Cat());
+                    d.Field("shouldBeDog").Type<InterfaceType<IPet>>().Resolve(new Dog());
+                })
+                .AddType<Dog>()
+                .AddType<Cat>()
+                .BuildSchemaAsync();
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(d =>
-            {
-                d.Name("Query");
-                d.Field("shouldBeCat").Type<InterfaceType<IPet>>().Resolve(new Cat());
-                d.Field("shouldBeDog").Type<InterfaceType<IPet>>().Resolve(new Dog());
-            })
-            .AddType<Dog>()
-            .AddType<Cat>()
-            .BuildSchemaAsync()
-            .MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
-    public async Task Structureal_Equality_Is_Ignored()
+    public async Task Structural_Equality_Is_Ignored()
     {
-        Snapshot.FullName();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryStructEquals>()
+                .BuildSchemaAsync();
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType<QueryStructEquals>()
-            .BuildSchemaAsync()
-            .MatchSnapshotAsync();
+        schema.MatchSnapshot();
+    }
+
+
+    [Fact]
+    public async Task Allow_PascalCasedArguments_Schema()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<PascalCaseQuery>()
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Allow_PascalCasedArguments()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<PascalCaseQuery>()
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        testResolver(testArgument: "abc")
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "testResolver": "abc"
+              }
+            }
+            """);
     }
 
     public class Query
@@ -283,5 +318,10 @@ public class CodeFirstTests
         public bool Equals(object? other, IEqualityComparer comparer) => throw new NotImplementedException();
 
         public int GetHashCode(IEqualityComparer comparer) => throw new NotImplementedException();
+    }
+
+    public class PascalCaseQuery
+    {
+        public string TestResolver(string TestArgument) => "abc";
     }
 }

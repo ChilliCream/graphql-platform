@@ -10,8 +10,7 @@ namespace HotChocolate.Types;
     AttributeTargets.Enum | AttributeTargets.Class | AttributeTargets.Struct,
     Inherited = true,
     AllowMultiple = true)]
-public abstract class EnumTypeDescriptorAttribute
-    : DescriptorAttribute
+public abstract class EnumTypeDescriptorAttribute : DescriptorAttribute
 {
     protected internal sealed override void TryConfigure(
         IDescriptorContext context,
@@ -25,7 +24,7 @@ public abstract class EnumTypeDescriptorAttribute
         }
     }
 
-    public abstract void OnConfigure(
+    protected abstract void OnConfigure(
         IDescriptorContext context,
         IEnumTypeDescriptor descriptor,
         Type type);

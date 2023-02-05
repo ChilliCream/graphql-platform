@@ -169,6 +169,11 @@ public class SchemaOptions : IReadOnlySchemaOptions
     public bool EnableStream { get; set; }
 
     /// <summary>
+    /// Specifies the maximum allowed nodes that can be fetched at once through the nodes field.
+    /// </summary>
+    public int MaxAllowedNodeBatchSize { get; set; } = 10;
+
+    /// <summary>
     /// Creates a mutable options object from a read-only options object.
     /// </summary>
     /// <param name="options">The read-only options object.</param>
@@ -199,7 +204,8 @@ public class SchemaOptions : IReadOnlySchemaOptions
             EnableFlagEnums = options.EnableFlagEnums,
             EnableDefer = options.EnableDefer,
             EnableStream = options.EnableStream,
-            DefaultFieldBindingFlags = options.DefaultFieldBindingFlags
+            DefaultFieldBindingFlags = options.DefaultFieldBindingFlags,
+            MaxAllowedNodeBatchSize = options.MaxAllowedNodeBatchSize
         };
     }
 }

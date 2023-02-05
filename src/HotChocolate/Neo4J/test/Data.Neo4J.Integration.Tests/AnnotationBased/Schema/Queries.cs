@@ -14,7 +14,9 @@ public class Queries
     [UseFiltering]
     [UseSorting]
     public Neo4JExecutable<Actor> GetActors(
+#pragma warning disable CS0618
         [ScopedService] IAsyncSession session) =>
+#pragma warning restore CS0618
         new (session);
 
     [GraphQLName("movies")]
@@ -23,6 +25,8 @@ public class Queries
     [UseFiltering]
     [UseSorting]
     public Neo4JExecutable<Movie> GetMovies(
+#pragma warning disable CS0618
         [ScopedService] IAsyncSession session) =>
+#pragma warning restore CS0618
         new (session);
 }

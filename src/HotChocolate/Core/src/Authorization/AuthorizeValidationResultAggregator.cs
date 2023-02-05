@@ -4,19 +4,17 @@ using System.Threading.Tasks;
 using HotChocolate.Authorization.Properties;
 using HotChocolate.Language;
 using HotChocolate.Validation;
+using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Authorization;
 
 internal sealed class AuthorizeValidationResultAggregator : IValidationResultAggregator
 {
-    private readonly IAuthorizationHandler _handler;
     private readonly IServiceProvider _services;
 
     public AuthorizeValidationResultAggregator(
-        IAuthorizationHandler handler,
         IServiceProvider services)
     {
-        _handler = handler ?? throw new ArgumentNullException(nameof(handler));
         _services = services ?? throw new ArgumentNullException(nameof(services));
     }
 
@@ -25,6 +23,15 @@ internal sealed class AuthorizeValidationResultAggregator : IValidationResultAgg
         DocumentNode document,
         CancellationToken ct)
     {
+        if (!context.ContextData.TryGetValue(AuthorizationHandler, out var handlerValue) ||
+            handlerValue is not IAuthorizationHandler handler)
+        {
+            throw new MissingStateException(
+                "Authorization",
+                AuthorizationHandler,
+                StateKind.Global);
+        }
+
         if (context.ContextData.TryGetValue(AuthContextData.Directives, out var value) &&
             value is AuthorizeDirective[] directives)
         {
@@ -35,11 +42,11 @@ internal sealed class AuthorizeValidationResultAggregator : IValidationResultAgg
                 document,
                 context.DocumentId);
 
-            var result = await _handler.AuthorizeAsync(ctx, directives, ct).ConfigureAwait(false);
+            var result = await handler.AuthorizeAsync(ctx, directives, ct).ConfigureAwait(false);
 
             if (result is not AuthorizeResult.Allowed)
             {
-                context.ContextData[WellKnownContextData.HttpStatusCode] = 401;
+                context.ContextData[HttpStatusCode] = 401;
                 context.ReportError(CreateError(result));
             }
         }

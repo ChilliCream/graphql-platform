@@ -25,8 +25,8 @@ internal sealed partial class ResultBuilder
             if (!fieldErrors.Contains(violation.Selection))
             {
                 var error = NonNullOutputFieldViolation(path, violation.Selection.SyntaxNode);
-                error = _errorHandler.Handle(error);
-                _diagnosticEvents.ResolverError(_operation, violation.Selection, error);
+                error = _context.ErrorHandler.Handle(error);
+                _diagnosticEvents.ResolverError(_context, violation.Selection, error);
                 errors.Add(error);
             }
 

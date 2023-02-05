@@ -238,15 +238,6 @@ internal static class InternalServiceCollectionExtensions
         return services;
     }
 
-    internal static IServiceCollection TryAddRequestContextAccessor(
-        this IServiceCollection services)
-    {
-        services.TryAddSingleton<DefaultRequestContextAccessor>();
-        services.TryAddSingleton<IRequestContextAccessor>(
-            sp => sp.GetRequiredService<DefaultRequestContextAccessor>());
-        return services;
-    }
-
     internal static IServiceCollection TryAddDefaultDataLoaderRegistry(
         this IServiceCollection services)
     {

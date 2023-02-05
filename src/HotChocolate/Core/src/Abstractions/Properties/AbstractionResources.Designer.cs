@@ -248,5 +248,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("MutationResult_ErrorsIsEmpty", resourceCulture);
             }
         }
+        
+        internal static string MissingStateException_Message {
+            get {
+                return ResourceManager.GetString("MissingStateException_Message", resourceCulture);
+            }
+        }
     }
 }

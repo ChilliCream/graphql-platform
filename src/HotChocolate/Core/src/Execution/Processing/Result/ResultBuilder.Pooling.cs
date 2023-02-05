@@ -4,8 +4,7 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed partial class ResultBuilder
 {
-    private IOperation _operation = default!;
-    private IErrorHandler _errorHandler = default!;
+    private IRequestContext _context = default!;
     private IExecutionDiagnosticEvents _diagnosticEvents = default!;
 
     public ResultBuilder(ResultPool resultPool)
@@ -15,12 +14,10 @@ internal sealed partial class ResultBuilder
     }
 
     public void Initialize(
-        IOperation operation,
-        IErrorHandler errorHandler,
+        IRequestContext context,
         IExecutionDiagnosticEvents diagnosticEvents)
     {
-        _operation = operation;
-        _errorHandler = errorHandler;
+        _context = context;
         _diagnosticEvents = diagnosticEvents;
     }
 
@@ -37,8 +34,7 @@ internal sealed partial class ResultBuilder
 
         InitializeResult();
 
-        _operation = default!;
-        _errorHandler = default!;
+        _context = default!;
         _diagnosticEvents = default!;
         _data = null;
         _items = null;

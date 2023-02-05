@@ -97,8 +97,7 @@ internal sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
         return (next, directive) =>
         {
             var value = directive.AsValue<AuthorizeDirective>();
-            var handler = schemaServices.GetApplicationService<IAuthorizationHandler>();
-            var auth = new AuthorizeMiddleware(next, handler, value);
+            var auth = new AuthorizeMiddleware(next, value);
             return async context => await auth.InvokeAsync(context).ConfigureAwait(false);
         };
     }

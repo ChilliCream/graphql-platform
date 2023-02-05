@@ -27,9 +27,20 @@ public class TypeDiscoveryTests
             .MatchSnapshot();
     }
 
+    [Fact]
+    public void TypeDiscovery_Should_InferStructs()
+    {
+        SchemaBuilder.New()
+            .AddQueryType<QueryTypeWithStruct>()
+            .Create()
+            .Print()
+            .MatchSnapshot();
+    }
+
     public class QueryWithDateTime
     {
         public DateTimeOffset DateTimeOffset(DateTimeOffset time) => time;
+
         public DateTime DateTime(DateTime time) => time;
     }
 
@@ -50,8 +61,7 @@ public class TypeDiscoveryTests
 
     public class ModelType : ObjectType<Model>
     {
-        protected override void Configure(
-            IObjectTypeDescriptor<Model> descriptor)
+        protected override void Configure(IObjectTypeDescriptor<Model> descriptor)
         {
             descriptor.Field(t => t.Time)
                 .Type<NonNullType<DateTimeType>>();
@@ -64,9 +74,39 @@ public class TypeDiscoveryTests
     public class Model
     {
         public string Foo { get; set; }
+
         public int Bar { get; set; }
+
         public bool Baz { get; set; }
+
         public DateTime Time { get; set; }
+
         public DateTime Date { get; set; }
+    }
+
+    public struct InferStruct
+    {
+        public Guid Id { get; set; }
+
+        public int Number { get; set; }
+    }
+
+    public class QueryTypeWithStruct
+    {
+        public InferStruct Struct { get; set; }
+
+        public InferStruct? NullableStruct { get; set; }
+
+        public InferStruct[] StructArray { get; set; }
+
+        public InferStruct?[] NullableStructArray { get; set; }
+
+        public InferStruct[][] StructNestedArray { get; set; }
+
+        public InferStruct?[][] NullableStructNestedArray { get; set; }
+
+        public Guid ScalarGuid { get; set; }
+
+        public DateTime ScalarDateTime { get; set; }
     }
 }

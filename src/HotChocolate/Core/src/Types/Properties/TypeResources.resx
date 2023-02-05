@@ -1080,4 +1080,7 @@ Type: `{0}`</value>
   <data name="TypeDiscoveryInfo_TypeRefKindNotSupported" xml:space="preserve">
     <value>TypeReference kind not supported.</value>
   </data>
+  <data name="ErrorHelper_FetchedToManyNodesAtOnce" xml:space="preserve">
+    <value>The maximum number of nodes that can be fetched at once is {0}. This selection tried to fetch {1} nodes that exceeded the maximum allowed amount.</value>
+  </data>
 </root>
