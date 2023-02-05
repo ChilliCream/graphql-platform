@@ -10,7 +10,6 @@ public class RavenCursorPagingProviderTests
     [Theory]
     [InlineData(nameof(RavenQueryable), true)]
     [InlineData(nameof(AsyncDocumentQuery), true)]
-    [InlineData(nameof(DocumentQuery), true)]
     public void CanHandle_MethodReturnType_MatchesResult(string methodName, bool expected)
     {
         // arrange
@@ -28,8 +27,6 @@ public class RavenCursorPagingProviderTests
     public IRavenQueryable<Foo> RavenQueryable() => throw new InvalidOperationException();
 
     public IAsyncDocumentQuery<Foo> AsyncDocumentQuery() => throw new InvalidOperationException();
-
-    public IDocumentQuery<Foo> DocumentQuery() => throw new InvalidOperationException();
 
     public class Foo
     {

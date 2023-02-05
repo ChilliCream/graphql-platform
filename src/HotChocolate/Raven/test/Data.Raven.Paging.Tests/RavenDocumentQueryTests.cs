@@ -428,11 +428,10 @@ public class RavenQueryableTests
                     await next(context);
                     if (context.ContextData.TryGetValue("query", out var queryString))
                     {
-                        context.Result =
-                            QueryResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
-                                .SetContextData("query", queryString)
-                                .Create();
+                        context.Result = QueryResultBuilder
+                            .FromResult(context.Result!.ExpectQueryResult())
+                            .SetContextData("query", queryString)
+                            .Create();
                     }
                 })
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)

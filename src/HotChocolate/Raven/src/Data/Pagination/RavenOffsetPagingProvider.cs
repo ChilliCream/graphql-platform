@@ -20,8 +20,7 @@ public class RavenOffsetPagingProvider : OffsetPagingProvider
         => source.Source.IsGenericType &&
             source.Source.GetGenericTypeDefinition() is { } type && (
                 type == typeof(IRavenQueryable<>) ||
-                type == typeof(IAsyncDocumentQuery<>) ||
-                type == typeof(IDocumentQuery<>));
+                type == typeof(IAsyncDocumentQuery<>));
 
     protected override OffsetPagingHandler CreateHandler(
         IExtendedType source,

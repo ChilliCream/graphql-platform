@@ -17,8 +17,7 @@ public class RavenCursorPagingProvider : CursorPagingProvider
         => source.Source.IsGenericType &&
             source.Source.GetGenericTypeDefinition() is { } type && (
                 type == typeof(IRavenQueryable<>) ||
-                type == typeof(IAsyncDocumentQuery<>) ||
-                type == typeof(IDocumentQuery<>));
+                type == typeof(IAsyncDocumentQuery<>));
 
     protected override CursorPagingHandler CreateHandler(
         IExtendedType source,
