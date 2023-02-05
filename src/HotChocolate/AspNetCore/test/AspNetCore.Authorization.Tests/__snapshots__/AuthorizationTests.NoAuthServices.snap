@@ -1,0 +1,11 @@
+{
+  "ContentType": "application/graphql-response+json; charset=utf-8",
+  "StatusCode": "InternalServerError",
+  "Data": null,
+  "Errors": [
+    {
+      "message": "Unexpected Execution Error"
+    }
+  ],
+  "Extensions": null
+}

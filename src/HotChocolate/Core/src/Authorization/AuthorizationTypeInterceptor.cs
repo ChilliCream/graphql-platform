@@ -377,7 +377,6 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                 // pipeline.
                 var auth = new AuthorizeMiddleware(
                     next,
-                    schemaServices.GetApplicationService<IAuthorizationHandler>(),
                     directive);
 
                 return async context => await auth.InvokeAsync(context);
