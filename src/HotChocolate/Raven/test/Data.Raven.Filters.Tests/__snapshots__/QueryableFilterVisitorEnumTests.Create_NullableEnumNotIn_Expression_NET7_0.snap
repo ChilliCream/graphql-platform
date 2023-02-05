@@ -1,0 +1,71 @@
+BarAndFoo Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barEnum": "BAZ"
+      },
+      {
+        "barEnum": "QUX"
+      }
+    ]
+  }
+}
+---------------
+
+BarAndFoo SQL:
+---------------
+select d.id, d.data from public.mt_doc_queryablefiltervisitorenumtests_foonullable as d where NOT(CAST(d.data ->> 'BarEnum' as integer) = ANY(:p0))
+---------------
+
+FOO Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barEnum": "BAR"
+      },
+      {
+        "barEnum": "BAZ"
+      },
+      {
+        "barEnum": "QUX"
+      }
+    ]
+  }
+}
+---------------
+
+FOO SQL:
+---------------
+select d.id, d.data from public.mt_doc_queryablefiltervisitorenumtests_foonullable as d where NOT(CAST(d.data ->> 'BarEnum' as integer) = ANY(:p0))
+---------------
+
+nullAndFoo
+---------------
+{
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "message": "Object reference not set to an instance of an object.",
+        "stackTrace": "   at Baseline.TypeExtensions.As[T](Object target)\r\n   at Weasel.Postgresql.SqlGeneration.EnumIsOneOfWhereFragment..ctor(Object values, EnumStorage enumStorage, String locator)\r\n   at Raven.Linq.Parsing.Methods.IsOneOf.Parse(IFieldMapping mapping, ISerializer serializer, MethodCallExpression expression)\r\n   at Raven.LinqParsing.BuildWhereFragment(IFieldMapping mapping, MethodCallExpression expression, ISerializer serializer)\r\n   at Raven.Linq.Parsing.WhereClauseParser.VisitMethodCall(MethodCallExpression node)\r\n   at Raven.Linq.Parsing.WhereClauseParser.VisitUnary(UnaryExpression node)\r\n   at Raven.Linq.Parsing.WhereClauseParser.Build(WhereClause clause)\r\n   at Raven.Linq.SqlGeneration.DocumentStatement.buildWhereFragment(IRavenSession session)\r\n   at Raven.Linq.SqlGeneration.Statement.CompileLocal(IRavenSession session)\r\n   at Raven.Linq.SqlGeneration.DocumentStatement.CompileLocal(IRavenSession session)\r\n   at Raven.Linq.SqlGeneration.Statement.CompileStructure(IRavenSession session)\r\n   at Raven.Linq.Parsing.LinqHandlerBuilder.BuildDatabaseStatement()\r\n   at Raven.Linq.Parsing.LinqHandlerBuilder.BuildDiagnosticCommand(FetchType fetchType, CommandBuilder sql)\r\n   at Raven.Linq.RavenLinqQueryable\u00601.ToPreviewCommand(FetchType fetchType)\r\n   at Raven.QueryableExtensions.ToCommand[T](IQueryable\u00601 queryable, FetchType fetchType)\r\n   at HotChocolate.Data.Filters.FilterVisitorTestBase.\u003C\u003Ec__DisplayClass7_2\u00602.\u003C\u003CApplyConfigurationToField\u003Eb__3\u003Ed.MoveNext() in C:\\Users\\jabellard\\dev\\hc\\hotchocolate\\src\\HotChocolate\\Raven\\test\\Data.Raven.Filters.Tests\\FilterVisitorTestBase.cs:line 109\r\n--- End of stack trace from previous location ---\r\n   at HotChocolate.Data.Filters.FilterVisitorTestBase.\u003C\u003Ec__DisplayClass7_1\u00602.\u003C\u003CApplyConfigurationToField\u003Eb__2\u003Ed.MoveNext() in C:\\Users\\jabellard\\dev\\hc\\hotchocolate\\src\\HotChocolate\\Raven\\test\\Data.Raven.Filters.Tests\\FilterVisitorTestBase.cs:line 99\r\n--- End of stack trace from previous location ---\r\n   at HotChocolate.Data.Filters.FilterVisitorTestBase.\u003C\u003Ec__DisplayClass7_1\u00602.\u003C\u003CApplyConfigurationToField\u003Eb__2\u003Ed.MoveNext() in C:\\Users\\jabellard\\dev\\hc\\hotchocolate\\src\\HotChocolate\\Raven\\test\\Data.Raven.Filters.Tests\\FilterVisitorTestBase.cs:line 100\r\n--- End of stack trace from previous location ---\r\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.ExecuteResolverPipelineAsync(CancellationToken cancellationToken) in C:\\Users\\jabellard\\dev\\hc\\hotchocolate\\src\\HotChocolate\\Core\\src\\Execution\\Processing\\Tasks\\ResolverTask.Execute.cs:line 128\r\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.TryExecuteAsync(CancellationToken cancellationToken) in C:\\Users\\jabellard\\dev\\hc\\hotchocolate\\src\\HotChocolate\\Core\\src\\Execution\\Processing\\Tasks\\ResolverTask.Execute.cs:line 107"
+      }
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}
+---------------
