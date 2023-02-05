@@ -710,7 +710,7 @@ input UserFilterInput {
 
 When you add custom scalars, you will have to create custom filter types.
 Scalars are mapped to a `FilterInputType` that defines the operations that are possible for this scalar.
-The built in scalars are already mapped to matching filter types.
+The built-in scalars are already mapped to matching filter types.
 For custom scalars, or scalars from `HotChocolate.Types.Scalars`, you have to create and bind types.
 
 ```csharp
