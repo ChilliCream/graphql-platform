@@ -319,6 +319,4 @@ We aligned the naming of state related APIs:
 - `IQueryRequestBuilder.TryAddProperty` --> `IQueryRequestBuilder.TryAddGlobalState`
 - `IQueryRequestBuilder.TryRemoveProperty` --> `IQueryRequestBuilder.RemoveGlobalState`
 
-<!--
-TODO: Link to new docs once done
--->
+Learn more about [global state](/docs/hotchocolate/v13/execution-engine/global-state), [scoped state](/docs/hotchocolate/v13/execution-engine/scoped-state) and [local state](/docs/hotchocolate/v13/execution-engine/local-state).

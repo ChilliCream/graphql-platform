@@ -192,6 +192,26 @@
               {
                 "path": "field-middleware",
                 "title": "Field middleware"
+              },
+              {
+                "path": "request-middleware",
+                "title": "Request middleware"
+              },
+              {
+                "path": "global-state",
+                "title": "Global state"
+              },
+              {
+                "path": "scoped-state",
+                "title": "Scoped state"
+              },
+              {
+                "path": "local-state",
+                "title": "Local state"
+              },
+              {
+                "path": "resolver-compiler",
+                "title": "Resolver compiler"
               }
             ]
           },
@@ -246,10 +266,6 @@
                 "title": "Interceptors"
               },
               {
-                "path": "global-state",
-                "title": "Global State"
-              },
-              {
                 "path": "introspection",
                 "title": "Introspection"
               },
@@ -260,6 +276,14 @@
               {
                 "path": "instrumentation",
                 "title": "Instrumentation"
+              },
+              {
+                "path": "dynamic-schemas",
+                "title": "Dynamic schemas"
+              },
+              {
+                "path": "batching",
+                "title": "Batching"
               }
             ]
           },
@@ -348,10 +372,6 @@
               {
                 "path": "visitors",
                 "title": "Visitors"
-              },
-              {
-                "path": "aspnetcore",
-                "title": "ASP.NET Core"
               },
               {
                 "path": "apollo-federation",

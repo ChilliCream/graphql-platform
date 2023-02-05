@@ -24,12 +24,6 @@ In the case of WebSockets, the interceptor also allows you to handle life cycle 
 
 [Learn more about interceptors](/docs/hotchocolate/v13/server/interceptors)
 
-# Global State
-
-With Global State you can define properties on a per-request basis to be made available to all resolvers and middleware.
-
-[Learn more about Global State](/docs/hotchocolate/v13/server/global-state)
-
 # Introspection
 
 Introspection allows you to query the type system of your GraphQL server using regular GraphQL queries. While this is a powerful feature, enabling all sorts of amazing developer tooling, it can also be used as an attack vector. We will take a look at how you can control who is allowed to issue introspection queries against your GraphQL server.
@@ -47,3 +41,15 @@ Though not considered one of the responsibilities of a GraphQL server, for conve
 Hot Chocolate allows you to gather instrumentation data about your GraphQL server, by hooking into various events in the execution process of a GraphQL request. You will also learn how to setup our OpenTelemetry integration and how to utilize _Apollo Tracing_.
 
 [Learn more about instrumentation](/docs/hotchocolate/v13/server/instrumentation)
+
+# Dynamic schemas
+
+Type modules allow you model parts of your GraphQL schema based on a dynamic data source, like a file or a database. They can even update the schema at runtime, if the underlying data source changes!
+
+[Learn more about dynamic schemas](/docs/hotchocolate/v13/server/dynamic-schemas)
+
+# Batching
+
+You can send and execute multiple GraphQL documents in the same requests.
+
+[Learn more about batching](/docs/hotchocolate/v13/server/batching)
