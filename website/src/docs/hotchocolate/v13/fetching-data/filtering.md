@@ -750,9 +750,9 @@ These types have to be registered on the filter convention:
 
 ```csharp
 services
-  .AddGraphQLServer()
-  .AddFiltering(x => x.AddDefaults().BindRuntimeType<uint, UnsignedIntOperationFilterInputType>())
-  ...;
+    .AddGraphQLServer()
+    .AddFiltering(x => x.AddDefaults().BindRuntimeType<uint, UnsignedIntOperationFilterInputType>())
+    ...;
 ```
 
 ## Extend FilterTypes
