@@ -4,6 +4,9 @@ true Result:
   "data": {
     "root": [
       {
+        "bar": null
+      },
+      {
         "bar": false
       }
     ]
@@ -13,7 +16,7 @@ true Result:
 
 true SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorbooleantests_foonullable as d where CAST(d.data ->> 'Bar' as boolean) != :p0
+from 'FooNullables' where Bar != $p0
 ---------------
 
 false Result:
@@ -23,6 +26,9 @@ false Result:
     "root": [
       {
         "bar": true
+      },
+      {
+        "bar": null
       }
     ]
   }
@@ -31,7 +37,7 @@ false Result:
 
 false SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorbooleantests_foonullable as d where CAST(d.data ->> 'Bar' as boolean) != :p0
+from 'FooNullables' where Bar != $p0
 ---------------
 
 null Result:
@@ -52,5 +58,5 @@ null Result:
 
 null SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorbooleantests_foonullable as d where d.data ->> 'Bar' is not null
+from 'FooNullables' where Bar != $p0
 ---------------

@@ -35,6 +35,19 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
 
         var extensionDefinition = descriptor.CreateDefinition();
 
+        if (extensionDefinition.HasFieldIgnores)
+        {
+            // if we find fields that match field name that are ignored we will
+            // remove them from the field map.
+            foreach (var ignore in extensionDefinition.FieldIgnores)
+            {
+                if (def.Fields.FirstOrDefault(x => x.Name == ignore.Name) is { } field)
+                {
+                    def.Fields.Remove(field);
+                }
+            }
+        }
+
         ApplyCorrectScope(extensionDefinition, discoveryContext);
 
         discoveryContext.RegisterDependencies(extensionDefinition);

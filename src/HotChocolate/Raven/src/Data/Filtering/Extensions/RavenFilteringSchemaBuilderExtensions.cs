@@ -8,12 +8,12 @@ public static class RavenFilteringSchemaBuilderExtensions
     public static ISchemaBuilder AddRavenFiltering(this ISchemaBuilder schemaBuilder)
         => schemaBuilder
             .AddFiltering(
-                t => t
+                t => t.ConfigureFilterType<IListFilterInputType>(
+                        x => x.Operation(DefaultFilterOperations.All).Ignore())
                     .AddDefaultOperations()
                     .BindDefaultTypes()
                     .UseRavenQueryableFilterProvider());
 
-    private static void UseRavenQueryableFilterProvider(
-        this IFilterConventionDescriptor descriptor)
+    private static void UseRavenQueryableFilterProvider(this IFilterConventionDescriptor descriptor)
         => descriptor.Provider<RavenQueryableFilterProvider>();
 }

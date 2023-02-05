@@ -171,8 +171,7 @@ public class FilterConventionExtensionsTests
 
         // assert
         Assert.NotNull(convention.DefinitionAccessor);
-        var configuration = Assert.Single(convention.DefinitionAccessor!.Configurations.Values)!;
-        Assert.Equal(2, configuration.Count);
+        Assert.Equal(2, convention.DefinitionAccessor!.Configurations.Count);
     }
 
     [Fact]

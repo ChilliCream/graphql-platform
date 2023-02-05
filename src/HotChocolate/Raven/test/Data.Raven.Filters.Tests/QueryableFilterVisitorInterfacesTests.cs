@@ -5,7 +5,8 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters;
 
-public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
+[Collection(SchemaCacheCollectionFixture.DefinitionName)]
+public class QueryableFilterVisitorInterfacesTests
 {
     private static readonly BarInterface[] _barEntities =
     {
@@ -68,7 +69,7 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
     public abstract class Test
     {
         [Key]
-        public int Id { get; set; }
+        public string? Id { get; set; }
 
         public string Prop { get; set; } = default!;
     }
@@ -86,7 +87,7 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
     public class BarInterface
     {
         [Key]
-        public int Id { get; set; }
+        public string? Id { get; set; }
 
         public Test Test { get; set; } = default!;
     }

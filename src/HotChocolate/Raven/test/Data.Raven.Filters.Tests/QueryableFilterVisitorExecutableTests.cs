@@ -3,8 +3,8 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Filters;
 
+[Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class QueryableFilterVisitorExecutableTests
-    : IClassFixture<SchemaCache>
 {
     private static readonly Foo[] _fooEntities =
     {
@@ -140,14 +140,14 @@ public class QueryableFilterVisitorExecutableTests
 
     public class Foo
     {
-        public int Id { get; set; }
+        public string? Id { get; set; }
 
         public bool Bar { get; set; }
     }
 
     public class FooNullable
     {
-        public int Id { get; set; }
+        public string? Id { get; set; }
 
         public bool? Bar { get; set; }
     }
