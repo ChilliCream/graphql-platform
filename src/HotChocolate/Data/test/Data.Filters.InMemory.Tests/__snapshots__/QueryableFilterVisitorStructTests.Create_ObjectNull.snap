@@ -1,0 +1,90 @@
+selected
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barShort": 12
+        }
+      },
+      {
+        "foo": {
+          "barShort": null
+        }
+      },
+      {
+        "foo": {
+          "barShort": 14
+        }
+      },
+      {
+        "foo": {
+          "barShort": 13
+        }
+      }
+    ]
+  }
+}
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter \u0060foo\u0060 of type FooNullableFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 22
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "FooNullableFilterInput!",
+        "filterType": "FooNullableFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": []
+  }
+}
+---------------
+
+all
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barShort": 12
+        }
+      },
+      {
+        "foo": {
+          "barShort": null
+        }
+      },
+      {
+        "foo": {
+          "barShort": 14
+        }
+      },
+      {
+        "foo": {
+          "barShort": 13
+        }
+      },
+      {
+        "foo": null
+      }
+    ]
+  }
+}
+---------------
