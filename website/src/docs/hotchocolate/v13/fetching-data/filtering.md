@@ -746,7 +746,8 @@ public class UnsignedIntOperationFilterInputType
 }
 ```
 
-These types, have to be registered on the filter convention:
+These types have to be registered on the filter convention:
+
 ```csharp
 services
   .AddGraphQLServer()
