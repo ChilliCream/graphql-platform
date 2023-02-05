@@ -16,7 +16,7 @@
 
 12and13 SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foo as d where CAST(d.data ->> 'BarShort' as smallint) = ANY(:p0)
+from 'Foos' where BarShort in ($p0)
 ---------------
 
 13and14 Result:
@@ -37,7 +37,7 @@ select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foo
 
 13and14 SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foo as d where CAST(d.data ->> 'BarShort' as smallint) = ANY(:p0)
+from 'Foos' where BarShort in ($p0)
 ---------------
 
 nullAnd14

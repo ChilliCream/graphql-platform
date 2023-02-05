@@ -1,9 +1,11 @@
 using CookieCrumble;
 using HotChocolate.Execution;
+using Raven.Client.Documents.Session;
 
 namespace HotChocolate.Data.Filters;
 
-public class QueryableFilterVisitorEnumTests : IClassFixture<SchemaCache>
+[Collection(SchemaCacheCollectionFixture.DefinitionName)]
+public class QueryableFilterVisitorEnumTests
 {
     private static readonly Foo[] _fooEntities =
     {
@@ -280,14 +282,14 @@ public class QueryableFilterVisitorEnumTests : IClassFixture<SchemaCache>
 
     public class Foo
     {
-        public int Id { get; set; }
+        public string? Id { get; set; }
 
         public FooEnum BarEnum { get; set; }
     }
 
     public class FooNullable
     {
-        public int Id { get; set; }
+        public string? Id { get; set; }
 
         public FooEnum? BarEnum { get; set; }
     }

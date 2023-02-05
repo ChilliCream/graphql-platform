@@ -3,7 +3,8 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Filters;
 
-public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
+[Collection(SchemaCacheCollectionFixture.DefinitionName)]
+public class QueryableFilterVisitorObjectTests
 {
     private static readonly Bar[] _barEntities =
     {

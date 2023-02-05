@@ -6,6 +6,7 @@ namespace HotChocolate.Data.Filters;
 
 public class FilterInputType<T>
     : FilterInputType
+    , IFilterInputType<T>
 {
     private Action<IFilterInputTypeDescriptor<T>>? _configure;
 

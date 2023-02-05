@@ -71,6 +71,26 @@ public class FilterInputTypeDescriptor
             Definition.AttributesAreApplied = true;
         }
 
+        foreach (var field in Fields)
+        {
+            if (field.Definition.Ignore)
+            {
+                Definition.FieldIgnores.Add(
+                    new FilterFieldBinding(field.Definition.Name,
+                        FilterFieldBindingType.Field));
+            }
+        }
+
+        foreach (var operation in Operations)
+        {
+            if (operation.Definition.Ignore)
+            {
+                Definition.FieldIgnores.Add(
+                    new FilterFieldBinding(operation.Definition.Name,
+                        FilterFieldBindingType.Field));
+            }
+        }
+
         var fields = new Dictionary<string, FilterFieldDefinition>(StringComparer.Ordinal);
         var handledProperties = new HashSet<MemberInfo>();
 
@@ -97,6 +117,7 @@ public class FilterInputTypeDescriptor
     {
         Definition.Name = value;
         Definition.IsNamed = true;
+
         return this;
     }
 
@@ -104,12 +125,14 @@ public class FilterInputTypeDescriptor
     public IFilterInputTypeDescriptor Description(string? value)
     {
         Definition.Description = value;
+
         return this;
     }
 
     protected IFilterInputTypeDescriptor BindFields(BindingBehavior bindingBehavior)
     {
         Definition.Fields.BindingBehavior = bindingBehavior;
+
         return this;
     }
 
@@ -168,6 +191,7 @@ public class FilterInputTypeDescriptor
         }
 
         fieldDescriptor.Ignore();
+
         return this;
     }
 
@@ -187,6 +211,7 @@ public class FilterInputTypeDescriptor
         }
 
         fieldDescriptor.Ignore();
+
         return this;
     }
 
@@ -194,6 +219,7 @@ public class FilterInputTypeDescriptor
     public IFilterInputTypeDescriptor AllowOr(bool allow = true)
     {
         Definition.UseOr = allow;
+
         return this;
     }
 
@@ -201,6 +227,7 @@ public class FilterInputTypeDescriptor
     public IFilterInputTypeDescriptor AllowAnd(bool allow = true)
     {
         Definition.UseAnd = allow;
+
         return this;
     }
 
@@ -209,6 +236,7 @@ public class FilterInputTypeDescriptor
         where TDirective : class
     {
         Definition.AddDirective(directive, Context.TypeInspector);
+
         return this;
     }
 
@@ -217,6 +245,7 @@ public class FilterInputTypeDescriptor
         where TDirective : class, new()
     {
         Definition.AddDirective(new TDirective(), Context.TypeInspector);
+
         return this;
     }
 
@@ -226,6 +255,7 @@ public class FilterInputTypeDescriptor
         params ArgumentNode[] arguments)
     {
         Definition.AddDirective(name, arguments);
+
         return this;
     }
 
@@ -248,6 +278,7 @@ public class FilterInputTypeDescriptor
     {
         var descriptor = New(context, schemaType, scope);
         descriptor.Definition.RuntimeType = typeof(object);
+
         return descriptor;
     }
 

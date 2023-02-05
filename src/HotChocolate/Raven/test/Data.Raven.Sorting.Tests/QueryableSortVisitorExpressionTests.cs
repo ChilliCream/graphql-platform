@@ -5,7 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data.Sorting;
 
-public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
+[Collection(SchemaCacheCollectionFixture.DefinitionName)]
+public class QueryableSortVisitorExpressionTests
 {
     private static readonly Foo[] _fooEntities =
     {
@@ -80,7 +81,7 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
 
     public class Foo
     {
-        public int Id { get; set; }
+        public string? Id { get; set; }
 
         public string? Name { get; set; }
 
@@ -91,7 +92,7 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
 
     public class Bar
     {
-        public int Id { get; set; }
+        public string? Id { get; set; }
 
         public string? Value { get; set; }
     }

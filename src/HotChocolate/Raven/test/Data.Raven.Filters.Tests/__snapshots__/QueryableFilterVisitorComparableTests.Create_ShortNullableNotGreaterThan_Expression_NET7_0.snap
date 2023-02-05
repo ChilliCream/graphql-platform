@@ -5,6 +5,9 @@
     "root": [
       {
         "barShort": 12
+      },
+      {
+        "barShort": null
       }
     ]
   }
@@ -13,7 +16,7 @@
 
 12 SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foonullable as d where CAST(d.data ->> 'BarShort' as smallint) <= :p0
+from 'FooNullables' where (true and not ((BarShort > $p0 and BarShort != $p1)))
 ---------------
 
 13 Result:
@@ -25,6 +28,9 @@ select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foo
         "barShort": 12
       },
       {
+        "barShort": null
+      },
+      {
         "barShort": 13
       }
     ]
@@ -34,7 +40,7 @@ select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foo
 
 13 SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foonullable as d where CAST(d.data ->> 'BarShort' as smallint) <= :p0
+from 'FooNullables' where (true and not ((BarShort > $p0 and BarShort != $p1)))
 ---------------
 
 14 Result:
@@ -44,6 +50,9 @@ select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foo
     "root": [
       {
         "barShort": 12
+      },
+      {
+        "barShort": null
       },
       {
         "barShort": 14
@@ -58,7 +67,7 @@ select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foo
 
 14 SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foonullable as d where CAST(d.data ->> 'BarShort' as smallint) <= :p0
+from 'FooNullables' where (true and not ((BarShort > $p0 and BarShort != $p1)))
 ---------------
 
 null

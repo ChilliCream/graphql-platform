@@ -1,3 +1,4 @@
+using HotChocolate.Data.Raven.Pagination;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
@@ -12,7 +13,7 @@ namespace HotChocolate.Data.Filters;
 
 public abstract class FilterVisitorTestBase : IAsyncLifetime
 {
-    protected RavenDBResource Resource { get; } = new();
+    public RavenDBResource Resource { get; } = new();
 
     public Task InitializeAsync() => Resource.InitializeAsync();
 
@@ -56,6 +57,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
         var schema = builder.Create();
 
         return new ServiceCollection()
+            .AddSingleton<IDocumentStore>(documentStore)
             .Configure<RequestExecutorSetup>(
                 Schema.DefaultName,
                 o => o.Schema = schema)
@@ -92,7 +94,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
         field.Use(
             next => async context =>
             {
-                using (var session = store.OpenSession())
+                using (var session = store.OpenAsyncSession())
                 {
                     context.LocalContextData = context.LocalContextData.SetItem("session", session);
                     await next(context);

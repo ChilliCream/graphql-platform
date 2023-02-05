@@ -28,7 +28,7 @@ public class FilterConvention
     private INamingConventions _namingConventions = default!;
     private IReadOnlyDictionary<int, FilterOperation> _operations = default!;
     private IDictionary<Type, Type> _bindings = default!;
-    private IDictionary<TypeReference, List<ConfigureFilterInputType>> _configs = default!;
+    private List<FilteringTypeReferenceConfiguration> _configs = default!;
 
     private string _argumentName = default!;
     private IFilterProvider _provider = default!;
@@ -153,8 +153,7 @@ public class FilterConvention
         }
 
         if (typeof(IListFilterInputType).IsAssignableFrom(runtimeType) &&
-            runtimeType.GenericTypeArguments.Length == 1 &&
-            runtimeType.GetGenericTypeDefinition() == typeof(ListFilterInputType<>))
+            runtimeType.GenericTypeArguments.Length == 1)
         {
             var genericType = runtimeType.GenericTypeArguments[0];
             string genericName;
@@ -253,13 +252,11 @@ public class FilterConvention
         TypeReference typeReference,
         IFilterInputTypeDescriptor descriptor)
     {
-        if (_configs.TryGetValue(
-                typeReference,
-                out var configurations))
+        foreach (var config in _configs)
         {
-            foreach (var configure in configurations)
+            if (config.CanHandle(typeReference))
             {
-                configure(descriptor);
+                config.Configure(descriptor);
             }
         }
     }
@@ -307,11 +304,14 @@ public class FilterConvention
         IFilterFieldDefinition fieldDefinition)
         => _provider.CreateMetaData(context, typeDefinition, fieldDefinition);
 
-    private bool TryCreateFilterType(
+    protected bool TryResolveBinding(Type runtimeType, [NotNullWhen(true)] out Type? type)
+        => _bindings.TryGetValue(runtimeType, out type);
+
+    protected virtual bool TryCreateFilterType(
         IExtendedType runtimeType,
         [NotNullWhen(true)] out Type? type)
     {
-        if (_bindings.TryGetValue(runtimeType.Source, out type))
+        if (TryResolveBinding(runtimeType.Source, out type))
         {
             return true;
         }

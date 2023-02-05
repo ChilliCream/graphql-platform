@@ -1,6 +1,9 @@
 using System.Globalization;
 using System.Reflection;
+using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;
+using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.Raven;
@@ -45,4 +48,29 @@ internal static class ThrowHelper
             field.DeclaringType.Print(),
             field.Name,
             field.Type.Print()));
+
+    public static InvalidOperationException Filtering_CouldNotParseValue(
+        IFilterFieldHandler handler,
+        IValueNode valueNode,
+        IType expectedType,
+        IFilterField field) =>
+        new(string.Format(
+            CultureInfo.CurrentCulture,
+            RavenDataResources.Filtering_CouldNotParseValue,
+            handler.GetType().Name,
+            valueNode.Print(),
+            expectedType.Print(),
+            field.Name,
+            field.Type.Print()));
+
+    public static GraphQLException PagingTypeNotSupported(Type type)
+    {
+        return new GraphQLException(
+            ErrorBuilder.New()
+                .SetMessage(
+                    RavenDataResources.Paging_SourceIsNotSupported,
+                    type.FullName ?? type.Name)
+                .SetCode(ErrorCodes.Data.NoPaginationProviderFound)
+                .Build());
+    }
 }

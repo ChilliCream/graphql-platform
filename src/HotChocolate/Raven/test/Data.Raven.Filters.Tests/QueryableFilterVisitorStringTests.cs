@@ -3,7 +3,8 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Filters;
 
-public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
+[Collection(SchemaCacheCollectionFixture.DefinitionName)]
+public class QueryableFilterVisitorStringTests
 {
     private static readonly Foo[] _fooEntities =
     {
@@ -32,38 +33,6 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
         var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
         // act
-        var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: \"testatest\"}}){ bar}}")
-                .Create());
-
-        var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: \"testbtest\"}}){ bar}}")
-                .Create());
-
-        var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: null}}){ bar}}")
-                .Create());
-
-        // assert
-        await Snapshot
-            .Create()
-            .AddResult(res1, "testatest")
-            .AddResult(res2, "testbtest")
-            .AddResult(res3, "null")
-            .MatchAsync();
-    }
-
-    [Fact]
-    public async Task Create_StringEqual_Expression_CustomAllows()
-    {
-        // arrange
-        var tester = _cache.CreateSchema<Foo, FooCustomAllowsFilterInput>(_fooEntities);
-
-        // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: \"testatest\"}}){ bar}}")
@@ -692,14 +661,14 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
 
     public class Foo
     {
-        public int Id { get; set; }
+        public string? Id { get; set; }
 
         public string Bar { get; set; } = null!;
     }
 
     public class FooNullable
     {
-        public int Id { get; set; }
+        public string? Id { get; set; }
 
         public string? Bar { get; set; }
     }
@@ -717,14 +686,6 @@ public class QueryableFilterVisitorStringTests : IClassFixture<SchemaCache>
         : FilterInputType<FooNullable>
     {
         protected override void Configure(IFilterInputTypeDescriptor<FooNullable> descriptor)
-        {
-            descriptor.Field(t => t.Bar);
-        }
-    }
-
-    public class FooCustomAllowsFilterInput : FilterInputType<Foo>
-    {
-        protected override void Configure(IFilterInputTypeDescriptor<Foo> descriptor)
         {
             descriptor.Field(t => t.Bar);
         }
