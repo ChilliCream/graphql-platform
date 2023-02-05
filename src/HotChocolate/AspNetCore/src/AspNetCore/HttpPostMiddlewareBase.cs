@@ -167,7 +167,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
 
                         if (!string.IsNullOrEmpty(operationNames) &&
                             TryParseOperations(operationNames, out var ops) &&
-                            !(context.GetGraphQLServerOptions()?.EnableGetRequests ?? false))
+                            (context.GetGraphQLServerOptions()?.EnableGetRequests ?? false))
                         {
                             result = await ExecuteOperationBatchAsync(
                                 context,
@@ -211,7 +211,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 // we need to execute a request batch where we need to execute multiple
                 // fully specified GraphQL requests at once.
                 default:
-                    if (!(context.GetGraphQLServerOptions()?.EnableGetRequests ?? false))
+                    if (context.GetGraphQLServerOptions()?.EnableGetRequests ?? false)
                     {
                         result = await ExecuteBatchAsync(
                             context,
