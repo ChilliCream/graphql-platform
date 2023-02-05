@@ -456,4 +456,18 @@ internal static class ErrorHelper
             .SetTypeSystemObject(type)
             .Build();
 
+    public static IError FetchedToManyNodesAtOnce(
+        FieldNode fieldNode,
+        Path path,
+        int maxAllowedNodes,
+        int requestNodes)
+        => ErrorBuilder.New()
+            .SetMessage(
+                ErrorHelper_FetchedToManyNodesAtOnce,
+                maxAllowedNodes,
+                requestNodes)
+            .AddLocation(fieldNode)
+            .SetPath(path)
+            .SetCode(ErrorCodes.Execution.FetchedToManyNodesAtOnce)
+            .Build();
 }

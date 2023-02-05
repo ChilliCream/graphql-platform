@@ -116,6 +116,30 @@ public class NodeFieldSupportTests
     }
 
     [Fact]
+    public async Task Tow_Many_Nodes()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddGlobalObjectIdentification()
+            .AddQueryType<Foo>()
+            .AddObjectType<Bar>(d => d
+                .ImplementsNode()
+                .IdField(t => t.Id)
+                .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(default)))
+            .ModifyOptions(o => o.MaxAllowedNodeBatchSize = 1)
+            .Create();
+
+        var executor = schema.MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ nodes(ids: [\"QmFyCmQxMjM=\", \"QmFyCmQxMjM=\"]) { id } }");
+
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Nodes_Get_Many()
     {
         // arrange
