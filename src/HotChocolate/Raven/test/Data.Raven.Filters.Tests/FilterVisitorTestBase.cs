@@ -25,7 +25,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
         TEntity[] entities,
         FilterConvention? convention = null,
         bool withPaging = false,
-        Action<ISchemaBuilder>? configure = null)
+        Action<IRequestExecutorBuilder>? configure = null)
         where TEntity : class
         where T : FilterInputType<TEntity>
     {
@@ -34,8 +34,11 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
 
         var resolver = BuildResolver(documentStore, entities);
 
-        var builder = SchemaBuilder.New()
+        var builder = new ServiceCollection()
+            .AddSingleton<IDocumentStore>(documentStore)
+            .AddGraphQLServer()
             .AddRavenFiltering()
+            .AddRavenPagingProviders()
             .AddQueryType(
                 c =>
                 {
@@ -50,18 +53,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
                             .Field("rootExecutable")
                             .Resolve(ctx => resolver(ctx).AsExecutable()),
                         withPaging);
-                });
-
-        configure?.Invoke(builder);
-
-        var schema = builder.Create();
-
-        return new ServiceCollection()
-            .AddSingleton<IDocumentStore>(documentStore)
-            .Configure<RequestExecutorSetup>(
-                Schema.DefaultName,
-                o => o.Schema = schema)
-            .AddGraphQL()
+                })
             .UseRequest(
                 next => async context =>
                 {
@@ -76,12 +68,11 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
                     }
                 })
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
-            .UseDefaultPipeline()
-            .Services
-            .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync()
-            .Result;
+            .UseDefaultPipeline();
+
+        configure?.Invoke(builder);
+
+        return builder.BuildRequestExecutorAsync().GetAwaiter().GetResult();
     }
 
     private void ApplyConfigurationToField<TEntity, TType>(
@@ -120,7 +111,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
         field.UseFiltering<TType>();
     }
 
-    private Func<IResolverContext, IQueryable<TResult>> BuildResolver<TResult>(
+    private Func<IResolverContext, IRavenQueryable<TResult>> BuildResolver<TResult>(
         IDocumentStore store,
         params TResult[] results)
         where TResult : class
