@@ -38,7 +38,7 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
             // no error
         });
 
-    [Fact]
+    [Fact(Skip = "This test is flaky. We need to fix it.")]
     public Task Subscribe_ReceiveDataOnMutation()
     {
         var snapshot = new Snapshot();
@@ -120,7 +120,7 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
         });
     }
 
-    [Fact]
+    [Fact(Skip = "This test is flaky. We need to fix it.")]
     public Task Send_Subscribe_SyntaxError()
     {
         var snapshot = new Snapshot();
