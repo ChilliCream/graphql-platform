@@ -50,6 +50,6 @@ Type modules allow you model parts of your GraphQL schema based on a dynamic dat
 
 # Batching
 
-You can send and execute multiple GraphQL documents in the same requests.
+Batching allows you to send and execute a sequence of GraphQL operations in a single request.
 
 [Learn more about batching](/docs/hotchocolate/v13/server/batching)

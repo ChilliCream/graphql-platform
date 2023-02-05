@@ -297,3 +297,25 @@ descriptor
         }
     })
 ```
+
+# Sharing data
+
+You can use local state to share data between field middleware and also between field middleware and the actual resolver of the field.
+
+```csharp
+descriptor
+    .Use(next => async (context) =>
+    {
+        context.SetLocalValue("local-value", 123);
+        await next(context);
+    })
+    .Resolve((context) =>
+    {
+        int localValue = context.GetLocalValue<int>("local-value");
+        // Omitted for brevity
+    });
+```
+
+[Learn more about local state](/docs/hotchocolate/v13/execution-engine/local-state)
+
+<!-- todo: UseField and how to add middleware to multiple fields automatically -->

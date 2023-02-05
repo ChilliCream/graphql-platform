@@ -1,5 +1,7 @@
 import React, { FC } from "react";
 
 export const WorkInProgress: FC = () => {
-  return <blockquote>Work in progress</blockquote>;
+  return (
+    <blockquote>This piece of documentation is a work in progress.</blockquote>
+  );
 };
