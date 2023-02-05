@@ -1,8 +1,4 @@
 <Project>
-  <PropertyGroup>
-    <GenTool>$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "dotnet-graphql.dll"))</GenTool>
-  </PropertyGroup>
-
   <ItemGroup>
     <PropertyPageSchema Include="$(MSBuildThisFileDirectory)StrawberryShake.MSBuild.xaml" />
     <PropertyPageSchema Include="$(MSBuildThisFileDirectory)StrawberryShake.MSBuild.ContentType.xaml" />
@@ -19,17 +15,38 @@
   <Target
     Name="GenerateGraphQLCode"
     BeforeTargets="BeforeBuild"
+    DependsOnTargets="_GenerateGraphQLCode">
+    <ItemGroup>
+      <Compile Include="$(GraphQLCodeGenerationRoot)**\*.cs" />
+    </ItemGroup>
+  </Target>
+
+  <Target
+    Name="_GenerateGraphQLCode"
+    Inputs="@(GraphQL)"
+    Outputs="$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\.build.info"
     Condition="'@(GraphQL)' != ''">
+
+    <DotNetMajor>
+      <Output TaskParameter="Major" PropertyName="DotNetMajor" />
+    </DotNetMajor>
+
+    <Error
+      Text="The Strawberry Shake code generation requires .NET SDK 6 or .NET SDK 7 to work."
+      Condition="'$(DotNetMajor)' != '6' AND '$(DotNetMajor)' != '7'" />
+
     <PropertyGroup>
-      <GraphQLCodeGenerationRoot>$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\</GraphQLCodeGenerationRoot>
+      <GraphQLCodeGenerationRoot>$([System.IO.Path]::GetFullPath('$(IntermediateOutputPath)berry\'))</GraphQLCodeGenerationRoot>
       <GraphQLQueryGenerationRoot>$(MSBuildProjectDirectory)\$(GraphQLPersistedQueryOutput)</GraphQLQueryGenerationRoot>
+      <GenTool Condition="'$(DotNetMajor)' == '6'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net6", "dotnet-graphql.dll"))</GenTool>
+      <GenTool Condition="'$(DotNetMajor)' == '7'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net7", "dotnet-graphql.dll"))</GenTool>
     </PropertyGroup>
 
     <PropertyGroup>
       <GenCommand>dotnet &quot;$(GenTool)&quot; generate &quot;$(MSBuildProjectDirectory)&quot;</GenCommand>
-      <GenCommand>$(GenCommand) -o $(GraphQLCodeGenerationRoot)</GenCommand>
+      <GenCommand>$(GenCommand) -o &quot;$(GraphQLCodeGenerationRoot)&quot;</GenCommand>
       <GenCommand Condition="'$(RootNamespace)' != ''">$(GenCommand) -n $(RootNamespace)</GenCommand>
-      <GenCommand Condition="'$(GraphQLPersistedQueryOutput)' != ''">$(GenCommand) -q $(GraphQLPersistedQueryOutput)</GenCommand>
+      <GenCommand Condition="'$(GraphQLPersistedQueryOutput)' != ''">$(GenCommand) -q &quot;$(GraphQLPersistedQueryOutput)&quot;</GenCommand>
       <GenCommand Condition="'$(GraphQLRequestHash)' != ''">$(GenCommand) -a $(GraphQLRequestHash)</GenCommand>
       <GenCommand Condition="'$(GraphQLStrictSchemaValidation)' != 'enable'">$(GenCommand) -s</GenCommand>
       <GenCommand Condition="'$(GraphQLClientStore)' != 'enable'">$(GenCommand) -t</GenCommand>
@@ -42,9 +59,44 @@
     <Message Text="$(GenCommand)" Importance="High" Condition="'$(GraphQLDebug)' == 'enable'" />
     <Exec Command="$(GenCommand)" WorkingDirectory="$(MSBuildThisFileDirectory)" ConsoleToMsBuild="true" />
 
-    <ItemGroup>
-      <Compile Include="$(GraphQLCodeGenerationRoot)**\*.cs" />
-    </ItemGroup>
+    <MakeDir Directories="$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry" Condition="!EXISTS('$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\.build.info')" />
+    <Touch Files="$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\.build.info" AlwaysCreate="true" />
   </Target>
+
+  <UsingTask
+    TaskName="DotNetMajor"
+    TaskFactory="RoslynCodeTaskFactory"
+    AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll" >
+    <ParameterGroup>
+      <Major ParameterType="System.String" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System"/>
+      <Using Namespace="System.Diagnostics"/>
+      <Code Type="Fragment" Language="cs">
+      <![CDATA[
+      var dotnetVersion = new ProcessStartInfo("dotnet", "--version")
+      {
+          UseShellExecute = false,
+          CreateNoWindow = true,
+          RedirectStandardOutput = true
+      };
+
+      var process = Process.Start(dotnetVersion);
+
+      if (process is not null)
+      {
+          var output = process.StandardOutput.ReadToEnd();
+          process.WaitForExit();
+
+          if (process.ExitCode == 0 && Version.TryParse(output.Trim(), out var version))
+          {
+              Major = version.Major.ToString();
+          }
+      }
+      ]]>
+      </Code>
+    </Task>
+  </UsingTask>
 
 </Project>
