@@ -85,7 +85,7 @@ public class ModuleGenerator : ISyntaxGenerator
                         sourceText.Append(Indent)
                             .Append(Indent)
                             .Append(Indent)
-                            .Append("builder.AddType<")
+                            .Append("builder.AddType<global::")
                             .Append(type.Name)
                             .AppendLine(">();");
                     }
@@ -100,7 +100,7 @@ public class ModuleGenerator : ISyntaxGenerator
                             sourceText.Append(Indent)
                                 .Append(Indent)
                                 .Append(Indent)
-                                .Append("builder.AddTypeExtension(typeof(")
+                                .Append("builder.AddTypeExtension(typeof(global::")
                                 .Append(extension.Name)
                                 .AppendLine("));");
                         }
@@ -109,7 +109,7 @@ public class ModuleGenerator : ISyntaxGenerator
                             sourceText.Append(Indent)
                                 .Append(Indent)
                                 .Append(Indent)
-                                .Append("builder.AddTypeExtension<")
+                                .Append("builder.AddTypeExtension<global::")
                                 .Append(extension.Name)
                                 .AppendLine(">();");
                         }
@@ -129,7 +129,7 @@ public class ModuleGenerator : ISyntaxGenerator
                         sourceText.Append(Indent)
                             .Append(Indent)
                             .Append(Indent)
-                            .Append("builder.AddDataLoader<")
+                            .Append("builder.AddDataLoader<global::")
                             .Append(dataLoader.Name)
                             .AppendLine(">();");
                     }

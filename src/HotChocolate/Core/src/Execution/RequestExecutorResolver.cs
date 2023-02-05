@@ -263,7 +263,6 @@ internal sealed class RequestExecutorResolver
         serviceCollection.AddSingleton<IRequestExecutor>(
             sp => new RequestExecutor(
                 sp.GetRequiredService<ISchema>(),
-                _applicationServices.GetRequiredService<DefaultRequestContextAccessor>(),
                 _applicationServices,
                 sp,
                 sp.GetRequiredService<RequestDelegate>(),

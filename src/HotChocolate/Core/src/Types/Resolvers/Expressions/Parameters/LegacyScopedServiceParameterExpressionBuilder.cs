@@ -17,6 +17,9 @@ internal sealed class LegacyScopedServiceParameterExpressionBuilder : IParameter
         => parameter.IsDefined(typeof(ScopedServiceAttribute));
 #pragma warning restore CS0618
 
-    public Expression Build(ParameterInfo parameter, Expression context)
-        => ServiceExpressionHelper.Build(parameter, context, ServiceKind.Pooled);
+    public Expression Build(ParameterExpressionBuilderContext context)
+        => ServiceExpressionHelper.Build(
+            context.Parameter,
+            context.ResolverContext,
+            ServiceKind.Pooled);
 }

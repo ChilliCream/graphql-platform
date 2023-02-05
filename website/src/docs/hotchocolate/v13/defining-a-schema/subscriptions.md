@@ -164,7 +164,9 @@ To make pub/sub work, we also have to register a subscription provider. A subscr
 The In-Memory subscription provider does not need any configuration and is easily setup.
 
 ```csharp
-services.AddInMemorySubscriptions();
+services
+    .AddGraphQLServer()
+    .AddInMemorySubscriptions();
 ```
 
 ## Redis Provider
@@ -178,8 +180,9 @@ In order to use the Redis provider we have to add the `HotChocolate.Subscription
 After we have added the package we can setup the Redis subscription provider.
 
 ```csharp
-services.AddRedisSubscriptions((sp) =>
-    ConnectionMultiplexer.Connect("host:port"));
+services
+    .AddGraphQLServer()
+    .AddRedisSubscriptions((sp) => ConnectionMultiplexer.Connect("host:port"));
 ```
 
 Our Redis subscription provider uses the [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis) Redis client underneath.

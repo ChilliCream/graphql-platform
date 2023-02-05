@@ -29,11 +29,12 @@ public class FlagEnumInterceptorTests
     {
         var executor = await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x
-                => x.Name("Query")
-                    .Field("asd")
-                    .Argument("input", x => x.Type(typeof(FlagsWithDescription)))
-                    .Resolve(FlagsWithDescription.Bar))
+            .AddQueryType(
+                x
+                    => x.Name("Query")
+                        .Field("asd")
+                        .Argument("input", x => x.Type(typeof(FlagsWithDescription)))
+                        .Resolve(FlagsWithDescription.Bar))
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
         executor.Schema.Print().MatchSnapshot();
@@ -44,8 +45,9 @@ public class FlagEnumInterceptorTests
     {
         var executor = await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x
-                => x.Name("Query").Field("asd").Resolve("baz").Type<InterfaceType<Interface>>())
+            .AddQueryType(
+                x
+                    => x.Name("Query").Field("asd").Resolve("baz").Type<InterfaceType<Interface>>())
             .AddType<Impl>()
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
@@ -57,13 +59,16 @@ public class FlagEnumInterceptorTests
     {
         var executor = await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x
-                => x.Name("Query").Field("asd").Resolve("baz"))
-            .AddDirectiveType(new DirectiveType(x
-                => x.Name("Test")
-                    .Location(DirectiveLocation.FragmentSpread)
-                    .Argument("a")
-                    .Type(typeof(FlagsEnum))))
+            .AddQueryType(
+                x
+                    => x.Name("Query").Field("asd").Resolve("baz"))
+            .AddDirectiveType(
+                new DirectiveType(
+                    x
+                        => x.Name("Test")
+                            .Location(DirectiveLocation.FragmentSpread)
+                            .Argument("a")
+                            .Type(typeof(FlagsEnum))))
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
         executor.Schema.Print().MatchSnapshot();
@@ -160,8 +165,9 @@ public class FlagEnumInterceptorTests
 
         var executor3 = await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x
-                => x.Name("Query").Field("test").Resolve((FlagsEnum?)Baz | Bar | FlagsEnum.Foo))
+            .AddQueryType(
+                x
+                    => x.Name("Query").Field("test").Resolve((FlagsEnum?)Baz | Bar | FlagsEnum.Foo))
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
         var result3 = await executor3.ExecuteAsync("{ test {isBar isBaz isFoo }}");
@@ -198,8 +204,10 @@ public class FlagEnumInterceptorTests
 
         var executor2 = await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x
-                => x.Name("Query").Field("test").Resolve(new[] { new FlagsEnum?[] { Baz | Bar } }))
+            .AddQueryType(
+                x
+                    => x.Name("Query").Field("test")
+                        .Resolve(new[] { new FlagsEnum?[] { Baz | Bar } }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
         var result2 = await executor2.ExecuteAsync("{ test {isBar isBaz isFoo }}");
@@ -228,16 +236,18 @@ public class FlagEnumInterceptorTests
         FlagsEnum? result1 = null;
         var executor1 = await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x => x.Name("Query")
-                .Field("test")
-                .Type<StringType>()
-                .Argument("input", x => x.Type(typeof(FlagsEnum)))
-                .Resolve(ctx =>
-                {
-                    result1 = ctx.ArgumentValue<FlagsEnum>("input");
+            .AddQueryType(
+                x => x.Name("Query")
+                    .Field("test")
+                    .Type<StringType>()
+                    .Argument("input", x => x.Type(typeof(FlagsEnum)))
+                    .Resolve(
+                        ctx =>
+                        {
+                            result1 = ctx.ArgumentValue<FlagsEnum>("input");
 
-                    return "";
-                }))
+                            return "";
+                        }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
         await executor1.ExecuteAsync("{ test(input: {isBar: true, isBaz: false, isFoo: false}) }");
@@ -245,16 +255,18 @@ public class FlagEnumInterceptorTests
         FlagsEnum? result2 = null;
         var executor2 = await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x => x.Name("Query")
-                .Field("test")
-                .Type<StringType>()
-                .Argument("input", x => x.Type(typeof(FlagsEnum)))
-                .Resolve(ctx =>
-                {
-                    result2 = ctx.ArgumentValue<FlagsEnum>("input");
+            .AddQueryType(
+                x => x.Name("Query")
+                    .Field("test")
+                    .Type<StringType>()
+                    .Argument("input", x => x.Type(typeof(FlagsEnum)))
+                    .Resolve(
+                        ctx =>
+                        {
+                            result2 = ctx.ArgumentValue<FlagsEnum>("input");
 
-                    return "";
-                }))
+                            return "";
+                        }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
         await executor2.ExecuteAsync("{ test(input: {isBar: true, isBaz: false, isFoo: true}) }");
@@ -269,16 +281,18 @@ public class FlagEnumInterceptorTests
         FlagsEnum? result1 = null;
         var executor1 = await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x => x.Name("Query")
-                .Field("test")
-                .Type<StringType>()
-                .Argument("input", x => x.Type(typeof(List<FlagsEnum>)))
-                .Resolve(ctx =>
-                {
-                    result1 = ctx.ArgumentValue<List<FlagsEnum>>("input")[0];
+            .AddQueryType(
+                x => x.Name("Query")
+                    .Field("test")
+                    .Type<StringType>()
+                    .Argument("input", x => x.Type(typeof(List<FlagsEnum>)))
+                    .Resolve(
+                        ctx =>
+                        {
+                            result1 = ctx.ArgumentValue<List<FlagsEnum>>("input")[0];
 
-                    return "";
-                }))
+                            return "";
+                        }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
         await executor1.ExecuteAsync("{ test(input: {isBar: true, isBaz: false, isFoo: false}) }");
@@ -286,16 +300,18 @@ public class FlagEnumInterceptorTests
         FlagsEnum? result2 = null;
         var executor2 = await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x => x.Name("Query")
-                .Field("test")
-                .Type<StringType>()
-                .Argument("input", x => x.Type(typeof(List<List<FlagsEnum>>)))
-                .Resolve(ctx =>
-                {
-                    result2 = ctx.ArgumentValue<List<List<FlagsEnum>>>("input")[0][0];
+            .AddQueryType(
+                x => x.Name("Query")
+                    .Field("test")
+                    .Type<StringType>()
+                    .Argument("input", x => x.Type(typeof(List<List<FlagsEnum>>)))
+                    .Resolve(
+                        ctx =>
+                        {
+                            result2 = ctx.ArgumentValue<List<List<FlagsEnum>>>("input")[0][0];
 
-                    return "";
-                }))
+                            return "";
+                        }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
         await executor2.ExecuteAsync("{ test(input: {isBar: true, isBaz: false, isFoo: true}) }");
@@ -310,16 +326,18 @@ public class FlagEnumInterceptorTests
         FlagsEnum? result1 = null;
         var executor1 = await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x => x.Name("Query")
-                .Field("test")
-                .Type<StringType>()
-                .Argument("input", x => x.Type<InputObjectType<SimpleInput>>())
-                .Resolve(ctx =>
-                {
-                    result1 = ctx.ArgumentValue<SimpleInput>("input").Single;
+            .AddQueryType(
+                x => x.Name("Query")
+                    .Field("test")
+                    .Type<StringType>()
+                    .Argument("input", x => x.Type<InputObjectType<SimpleInput>>())
+                    .Resolve(
+                        ctx =>
+                        {
+                            result1 = ctx.ArgumentValue<SimpleInput>("input").Single;
 
-                    return "";
-                }))
+                            return "";
+                        }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
         await executor1.ExecuteAsync(
@@ -334,16 +352,18 @@ public class FlagEnumInterceptorTests
         FlagsEnum? enumValue = null;
         var executor = await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x => x.Name("Query")
-                .Field("test")
-                .Type<StringType>()
-                .Argument("input", x => x.Type(typeof(FlagsEnum)))
-                .Resolve(ctx =>
-                {
-                    enumValue = ctx.ArgumentValue<SimpleInput>("input").Single;
+            .AddQueryType(
+                x => x.Name("Query")
+                    .Field("test")
+                    .Type<StringType>()
+                    .Argument("input", x => x.Type(typeof(FlagsEnum)))
+                    .Resolve(
+                        ctx =>
+                        {
+                            enumValue = ctx.ArgumentValue<SimpleInput>("input").Single;
 
-                    return "";
-                }))
+                            return "";
+                        }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
         var result = await executor.ExecuteAsync("{ test(input: {}) }");
@@ -358,16 +378,18 @@ public class FlagEnumInterceptorTests
         FlagsEnum? enumValue = null;
         var executor = await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x => x.Name("Query")
-                .Field("test")
-                .Type<StringType>()
-                .Argument("input", x => x.Type(typeof(FlagsEnum)))
-                .Resolve(ctx =>
-                {
-                    enumValue = ctx.ArgumentValue<SimpleInput>("input").Single;
+            .AddQueryType(
+                x => x.Name("Query")
+                    .Field("test")
+                    .Type<StringType>()
+                    .Argument("input", x => x.Type(typeof(FlagsEnum)))
+                    .Resolve(
+                        ctx =>
+                        {
+                            enumValue = ctx.ArgumentValue<SimpleInput>("input").Single;
 
-                    return "";
-                }))
+                            return "";
+                        }))
             .AddDocumentFromString("extend input FlagsEnumFlagsInput { isAsd : Boolean }")
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
@@ -391,16 +413,18 @@ public class FlagEnumInterceptorTests
         object? result = null;
         var executor = await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x => x.Name("Query")
-                .Field("test")
-                .Type<StringType>()
-                .Argument("input", x => x.Type(type))
-                .Resolve(ctx =>
-                {
-                    result = ctx.ArgumentValue<object>("input");
+            .AddQueryType(
+                x => x.Name("Query")
+                    .Field("test")
+                    .Type<StringType>()
+                    .Argument("input", x => x.Type(type))
+                    .Resolve(
+                        ctx =>
+                        {
+                            result = ctx.ArgumentValue<object>("input");
 
-                    return "";
-                }))
+                            return "";
+                        }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
         await executor.ExecuteAsync(
@@ -429,12 +453,9 @@ public class FlagEnumInterceptorTests
     [Flags]
     public enum FlagsWithDescription
     {
-        [GraphQLDescription("Foo has a desc")]
-        Foo = 1,
-        [GraphQLDescription("Bar has a desc")]
-        Bar = 2,
-        [GraphQLDescription("Baz has a desc")]
-        Baz = 3
+        [GraphQLDescription("Foo has a desc")] Foo = 1,
+        [GraphQLDescription("Bar has a desc")] Bar = 2,
+        [GraphQLDescription("Baz has a desc")] Baz = 3
     }
 
     [InterfaceType()]
@@ -467,9 +488,9 @@ public class FlagEnumInterceptorTests
     {
         public FlagsEnum Single { get; set; }
 
-        public FlagsEnum[] List { get; set; }
+        public FlagsEnum[] List { get; set; } = default!;
 
-        public FlagsEnum[][] NestedList { get; set; }
+        public FlagsEnum[][] NestedList { get; set; } = default!;
 
         public FlagsEnum? NullableSingle { get; set; }
 

@@ -666,10 +666,60 @@ public class AnnotationBasedAuthorizationTests
 
     public sealed class FooDirectiveAttribute : ObjectTypeDescriptorAttribute
     {
-        public override void OnConfigure(
+        protected override void OnConfigure(
             IDescriptorContext context,
             IObjectTypeDescriptor descriptor,
             Type type)
             => descriptor.Directive(new FooDirective());
+    }
+
+    [Fact]
+    public async Task Ensure_Authorization_Works_On_Subscription()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(c => c.Field("n").Resolve("b"))
+                .AddSubscriptionType<Subscription>()
+                .AddInMemorySubscriptions()
+                .AddAuthorizationHandler<MockAuth>()
+                .ExecuteRequestAsync("subscription { onFoo }");
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The current user is not authorized to access this resource.",
+                  "extensions": {
+                    "code": "AUTH_NOT_AUTHORIZED"
+                  }
+                }
+              ]
+            }
+            """);
+    }
+
+    public class Subscription
+    {
+        [Authorize(Apply = ApplyPolicy.Validation)]
+        [Subscribe]
+        [Topic("Foo")]
+        public string OnFoo([EventMessage] string message) => message;
+    }
+
+    public sealed class MockAuth : IAuthorizationHandler
+    {
+        public ValueTask<AuthorizeResult> AuthorizeAsync(
+            IMiddlewareContext context,
+            AuthorizeDirective directive,
+            CancellationToken cancellationToken = default)
+            => new(AuthorizeResult.NotAllowed);
+
+        public ValueTask<AuthorizeResult> AuthorizeAsync(
+            AuthorizationContext context,
+            IReadOnlyList<AuthorizeDirective> directives,
+            CancellationToken cancellationToken = default)
+            => new(AuthorizeResult.NotAllowed);
     }
 }

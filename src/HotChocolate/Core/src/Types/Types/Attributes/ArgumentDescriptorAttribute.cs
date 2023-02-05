@@ -24,7 +24,7 @@ public abstract class ArgumentDescriptorAttribute : DescriptorAttribute
         }
     }
 
-    public abstract void OnConfigure(
+    protected abstract void OnConfigure(
         IDescriptorContext context,
         IArgumentDescriptor descriptor,
         ParameterInfo parameter);

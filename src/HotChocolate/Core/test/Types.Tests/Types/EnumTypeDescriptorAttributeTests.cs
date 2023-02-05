@@ -59,7 +59,7 @@ public class EnumTypeDescriptorAttributeTests
     public class RenameValueAttribute
         : EnumValueDescriptorAttribute
     {
-        public override void OnConfigure(
+        protected override void OnConfigure(
             IDescriptorContext context,
             IEnumValueDescriptor descriptor,
             FieldInfo field)
@@ -87,7 +87,7 @@ public class EnumTypeDescriptorAttributeTests
     public class RenameTypeAttribute
         : EnumTypeDescriptorAttribute
     {
-        public override void OnConfigure(
+        protected override void OnConfigure(
             IDescriptorContext context,
             IEnumTypeDescriptor descriptor,
             Type type)

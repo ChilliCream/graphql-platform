@@ -17,7 +17,7 @@ public sealed class UseServiceScopeAttribute : ObjectFieldDescriptorAttribute
         Order = order;
     }
 
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member)

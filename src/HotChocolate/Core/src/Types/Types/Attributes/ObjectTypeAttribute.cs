@@ -43,7 +43,7 @@ public sealed class ObjectTypeAttribute
 
     bool ITypeAttribute.IsTypeExtension => false;
 
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
         Type type)
@@ -53,9 +53,12 @@ public sealed class ObjectTypeAttribute
             descriptor.Name(Name);
         }
 
+        var definition = descriptor.Extend().Definition;
+        definition.Fields.BindingBehavior = BindingBehavior.Implicit;
+
         if (IncludeStaticMembers)
         {
-            descriptor.Extend().Definition.FieldBindingFlags = Instance | Static;
+            definition.FieldBindingFlags = Instance | Static;
         }
     }
 }

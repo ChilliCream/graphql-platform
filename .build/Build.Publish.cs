@@ -106,7 +106,9 @@ partial class Build
         .Requires(() => Configuration.Equals(Release))
         .Executes(() =>
         {
-            var packages = PackageDirectory.GlobFiles("*.*.nupkg");
+            // we do not push fusion yet.
+            var packages = PackageDirectory.GlobFiles("*.*.nupkg")
+                .Where(t => !t.Contains("Fusion")).ToArray();
 
             DotNetNuGetPush(
                 _ => _
