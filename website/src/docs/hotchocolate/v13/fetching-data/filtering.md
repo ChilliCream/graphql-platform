@@ -670,7 +670,7 @@ services
     ...;
 ```
 
-In case you use custom conventions, you can also bind the filter types on you convention.
+In case you use custom conventions, you can also bind the filter types on your convention.
 
 ```csharp
 public class CustomFilterConvention : FilterConvention
