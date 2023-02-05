@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Batching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Errors;
@@ -19,6 +21,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
+
+#if NET6_0_OR_GREATER
+[assembly: MetadataUpdateHandler(typeof(RequestExecutorResolver.ApplicationUpdateHandler))]
+#endif
 
 namespace HotChocolate.Execution;
 
@@ -45,6 +51,12 @@ internal sealed class RequestExecutorResolver
         _applicationServices = serviceProvider ??
             throw new ArgumentNullException(nameof(serviceProvider));
         _optionsMonitor.OnChange(EvictRequestExecutor);
+
+#if NET6_0_OR_GREATER
+        // we register the schema eviction for application updates when hot reload is used.
+        // Whenever a hot reload update is triggered we will evict all executors.
+        ApplicationUpdateHandler.RegisterForApplicationUpdate(() => EvictAllRequestExecutors());
+#endif
     }
 
     public async ValueTask<IRequestExecutor> GetRequestExecutorAsync(
@@ -132,6 +144,30 @@ internal sealed class RequestExecutorResolver
             }
         }
     }
+
+#if NET6_0_OR_GREATER
+    private void EvictAllRequestExecutors()
+    {
+        foreach (var key in _executors.Keys)
+        {
+            if (_executors.TryRemove(key, out var re))
+            {
+                re.DiagnosticEvents.ExecutorEvicted(key, re.Executor);
+
+                try
+                {
+                    RequestExecutorEvicted?.Invoke(
+                        this,
+                        new RequestExecutorEvictedEventArgs(key, re.Executor));
+                }
+                finally
+                {
+                    BeginRunEvictionEvents(re);
+                }
+            }
+        }
+    }
+#endif
 
     private static void BeginRunEvictionEvents(RegisteredExecutor registeredExecutor)
     {
@@ -482,7 +518,7 @@ internal sealed class RequestExecutorResolver
         {
             if (completionContext.IsSchema)
             {
-                definition!.Name = _schemaName;
+                definition.Name = _schemaName;
             }
         }
     }
@@ -594,4 +630,26 @@ internal sealed class RequestExecutorResolver
             return true;
         }
     }
+
+#if NET6_0_OR_GREATER
+    /// <summary>
+    /// A helper calls that receives hot reload update events from the runtime and triggers
+    /// reload of registered components.
+    /// </summary>
+    internal static class ApplicationUpdateHandler
+    {
+        private static readonly List<Action> _actions = new();
+
+        public static void RegisterForApplicationUpdate(Action action)
+            => _actions.Add(action);
+
+        public static void UpdateApplication(Type[]? updatedTypes)
+        {
+            foreach (var action in _actions)
+            {
+                action();
+            }
+        }
+    }
+#endif
 }
