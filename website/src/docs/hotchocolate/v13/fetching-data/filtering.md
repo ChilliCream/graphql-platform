@@ -664,10 +664,10 @@ public class UserFilterInput : FilterInputType<User>
 
 ```csharp
 services
-  .AddGraphQLServer()
-  .AddFiltering()
-  .AddType<UserFilterInput>()
-  ...;
+    .AddGraphQLServer()
+    .AddFiltering()
+    .AddType<UserFilterInput>()
+    ...;
 ```
 
 In case you use custom conventions, you can also bind the filter types on you convention.
