@@ -704,7 +704,6 @@ input UserFilterInput {
 # ... StringOperationFilterInput left out for brevity
 ```
 
-
 **Scalars / Operation Input Types**
 
 > This is also required when you use `HotChocolate.Types.Scalars`!
