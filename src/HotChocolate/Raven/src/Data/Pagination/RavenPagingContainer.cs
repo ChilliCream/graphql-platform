@@ -150,7 +150,10 @@ internal sealed class RavenPagingContainer<TEntity>
             {
                 lock (_lock)
                 {
-                    _task = _factory();
+                    if (_task is null)
+                    {
+                        _task = _factory();
+                    }
                 }
             }
 

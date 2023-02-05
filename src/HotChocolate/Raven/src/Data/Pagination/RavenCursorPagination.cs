@@ -18,9 +18,7 @@ internal sealed class RavenCursorPagination<TEntity>
     protected override async ValueTask<int> CountAsync(
         RavenPagingContainer<TEntity> query,
         CancellationToken cancellationToken)
-    {
-        return await query.CountAsync(cancellationToken).ConfigureAwait(false);
-    }
+        => await query.CountAsync(cancellationToken).ConfigureAwait(false);
 
     protected override ValueTask<IReadOnlyList<Edge<TEntity>>> ExecuteAsync(
         RavenPagingContainer<TEntity> query,
