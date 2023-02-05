@@ -733,6 +733,7 @@ public class EmailAddressOperationFilterInputType : FilterInputType
 ```
 
 For comparable value types, you can use the `ComparableOperationFilterInputType<T>` base class.
+
 ```csharp
 public class UnsignedIntOperationFilterInputType
     : ComparableOperationFilterInputType<UnsignedIntType>
