@@ -15,15 +15,15 @@ internal interface ITypeRegistrar
         bool inferred = false,
         Action<RegisteredType>? configure = null);
 
-    void MarkUnresolved(ITypeReference typeReference);
+    void MarkUnresolved(TypeReference typeReference);
 
-    void MarkResolved(ITypeReference typeReference);
+    void MarkResolved(TypeReference typeReference);
 
-    bool IsResolved(ITypeReference typeReference);
+    bool IsResolved(TypeReference typeReference);
 
     TypeSystemObjectBase CreateInstance(Type namedSchemaType);
 
-    IReadOnlyCollection<ITypeReference> Unresolved { get; }
+    IReadOnlyCollection<TypeReference> Unresolved { get; }
 
-    IReadOnlyCollection<ITypeReference> GetUnhandled();
+    IReadOnlyCollection<TypeReference> GetUnhandled();
 }

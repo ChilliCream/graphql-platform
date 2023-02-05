@@ -1,0 +1,24 @@
+schema {
+  query: Query4
+}
+
+type Bar {
+  baz: Long!
+  shouldNotBeVisible: Int
+}
+
+type Query4 {
+  bars(order: [ItWorks!]): [Bar!]!
+}
+
+input ItWorks {
+  baz: SortEnumType
+}
+
+enum SortEnumType {
+  ASC
+  DESC
+}
+
+"The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
+scalar Long

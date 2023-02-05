@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,11 +12,11 @@ namespace HotChocolate.Execution.Benchmarks
     public class DefaultExecutionPipelineBenchmark
     {
         private readonly IRequestExecutor _executor;
-        private readonly IReadOnlyQueryRequest _getHeroRequest;
-        private readonly IReadOnlyQueryRequest _getHeroWithFriendsRequest;
-        private readonly IReadOnlyQueryRequest _getTwoHeroesWithFriendsRequest;
-        private readonly IReadOnlyQueryRequest _largeQuery;
-        private readonly IReadOnlyQueryRequest _introspectionRequest;
+        private readonly IQueryRequest _getHeroRequest;
+        private readonly IQueryRequest _getHeroWithFriendsRequest;
+        private readonly IQueryRequest _getTwoHeroesWithFriendsRequest;
+        private readonly IQueryRequest _largeQuery;
+        private readonly IQueryRequest _introspectionRequest;
 
         public DefaultExecutionPipelineBenchmark()
         {
@@ -44,14 +43,14 @@ namespace HotChocolate.Execution.Benchmarks
             SchemaIntrospection().Wait();
         }
 
-        private static IReadOnlyQueryRequest CreateRequest(
+        private static IQueryRequest CreateRequest(
             MD5DocumentHashProvider md5,
             ResourceHelper resources,
             string resourceName)
         {
             var query = resources.GetResourceString(resourceName);
             var hash = md5.ComputeHash(Encoding.UTF8.GetBytes(query).AsSpan());
-            DocumentNode document = Utf8GraphQLParser.Parse(query);
+            var document = Utf8GraphQLParser.Parse(query);
 
             return QueryRequestBuilder.New()
                 .SetQuery(document)
@@ -74,52 +73,52 @@ namespace HotChocolate.Execution.Benchmarks
         }
 
         // note : 1 data fetch
-        [Benchmark]
+        // [Benchmark]
         public Task GetHero()
         {
             return OneRequest(_executor, _getHeroRequest);
         }
 
-        [Benchmark]
+        // [Benchmark]
         public Task GetHeroFiveParallelRequests()
         {
             return FiveRequestsInParallel(_executor, _getHeroRequest);
         }
 
         // note : 2 cascading data fetches
-        [Benchmark]
+        // [Benchmark]
         public Task GetHeroWithFriends()
         {
             return OneRequest(_executor, _getHeroWithFriendsRequest);
         }
 
-        [Benchmark]
+        // [Benchmark]
         public Task GetHeroWithFriendsFiveParallelRequests()
         {
             return FiveRequestsInParallel(_executor, _getHeroWithFriendsRequest);
         }
 
         // note : 4 data fetches (2 parallel 2 cascading)
-        [Benchmark]
-        public Task GetTwoHerosWithFriends()
+        // [Benchmark]
+        public Task GetTwoHeroesWithFriends()
         {
             return OneRequest(_executor, _getTwoHeroesWithFriendsRequest);
         }
 
-        [Benchmark]
+        // [Benchmark]
         public Task GetTwoHeroesWithFriendsFiveParallelRequests()
         {
             return FiveRequestsInParallel(_executor, _getTwoHeroesWithFriendsRequest);
         }
 
         // note : large query
-        [Benchmark]
+        // [Benchmark]
         public Task LargeQuery()
         {
             return OneRequest(_executor, _largeQuery);
         }
 
-        [Benchmark]
+        // [Benchmark]
         public Task LargeQueryFiveParallelRequests()
         {
             return FiveRequestsInParallel(_executor, _largeQuery);
@@ -127,10 +126,9 @@ namespace HotChocolate.Execution.Benchmarks
 
         private static async Task OneRequest(
             IRequestExecutor executor,
-            IReadOnlyQueryRequest request)
+            IQueryRequest request)
         {
-            IQueryResult result = (await executor.ExecuteAsync(request)).ExpectQueryResult();
-            
+            var result = (await executor.ExecuteAsync(request)).ExpectQueryResult();
 
             if (result.Errors is { Count: > 0 })
             {
@@ -140,19 +138,19 @@ namespace HotChocolate.Execution.Benchmarks
             }
 
             // var jsonWriter = new HotChocolate.Execution.Serialization.JsonQueryResultSerializer(true);
-            // Console.WriteLine(jsonWriter.Serialize((IReadOnlyQueryResult)result));
-            ((IDisposable)result).Dispose();
+            // Console.WriteLine(jsonWriter.Serialize((IQueryResult)result));
+            await result.DisposeAsync();
         }
 
         private static async Task FiveRequestsInParallel(
             IRequestExecutor executor,
-            IReadOnlyQueryRequest request)
+            IQueryRequest request)
         {
-            Task task1 = OneRequest(executor, request);
-            Task task2 = OneRequest(executor, request);
-            Task task3 = OneRequest(executor, request);
-            Task task4 = OneRequest(executor, request);
-            Task task5 = OneRequest(executor, request);
+            var task1 = OneRequest(executor, request);
+            var task2 = OneRequest(executor, request);
+            var task3 = OneRequest(executor, request);
+            var task4 = OneRequest(executor, request);
+            var task5 = OneRequest(executor, request);
 
             await WaitForTask(task1);
             await WaitForTask(task2);

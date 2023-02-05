@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,8 +21,8 @@ internal class ConnectionType
     , IPageType
 {
     internal ConnectionType(
-        NameString connectionName,
-        ITypeReference nodeType,
+        string connectionName,
+        TypeReference nodeType,
         bool withTotalCount)
     {
         if (nodeType is null)
@@ -28,10 +30,15 @@ internal class ConnectionType
             throw new ArgumentNullException(nameof(nodeType));
         }
 
-        ConnectionName = connectionName.EnsureNotEmpty(nameof(connectionName));
-        NameString edgeTypeName = NameHelper.CreateEdgeName(connectionName);
+        if (string.IsNullOrEmpty(connectionName))
+        {
+            throw new ArgumentNullException(nameof(connectionName));
+        }
 
-        SyntaxTypeReference edgesType =
+        ConnectionName = connectionName;
+        var edgeTypeName = NameHelper.CreateEdgeName(connectionName);
+
+        var edgesType =
             TypeReference.Parse(
                 $"[{edgeTypeName}!]",
                 TypeContext.Output,
@@ -45,36 +52,38 @@ internal class ConnectionType
                 (c, d) =>
                 {
                     var definition = (ObjectTypeDefinition)d;
-                    ObjectFieldDefinition nodes = definition.Fields.First(IsNodesField);
+                    var nodes = definition.Fields.First(IsNodesField);
                     nodes.Type = TypeReference.Parse(
                         $"[{c.GetType<IType>(nodeType).Print()}]",
                         TypeContext.Output);
                 },
                 Definition,
-                ApplyConfigurationOn.Naming,
+                ApplyConfigurationOn.BeforeNaming,
                 nodeType,
-                TypeDependencyKind.Named));
+                TypeDependencyFulfilled.Named));
         Definition.Configurations.Add(
             new CompleteConfiguration(
                 (c, _) => EdgeType = c.GetType<IEdgeType>(TypeReference.Create(edgeTypeName)),
                 Definition,
-                ApplyConfigurationOn.Completion));
+                ApplyConfigurationOn.BeforeCompletion));
     }
 
-    internal ConnectionType(ITypeReference nodeType, bool withTotalCount)
+    internal ConnectionType(TypeReference nodeType, bool withTotalCount)
     {
         if (nodeType is null)
         {
             throw new ArgumentNullException(nameof(nodeType));
         }
 
-        DependantFactoryTypeReference edgeType =
+        var edgeType =
             TypeReference.Create(
                 ContextDataKeys.EdgeType,
                 nodeType,
                 _ => new EdgeType(nodeType),
                 TypeContext.Output);
 
+        // the property is set later in the configuration
+        ConnectionName = default!;
         Definition = CreateTypeDefinition(withTotalCount);
         Definition.Dependencies.Add(new(nodeType));
         Definition.Dependencies.Add(new(edgeType));
@@ -84,12 +93,12 @@ internal class ConnectionType
             new CompleteConfiguration(
                 (c, d) =>
                 {
-                    IType type = c.GetType<IType>(nodeType);
+                    var type = c.GetType<IType>(nodeType);
                     ConnectionName = type.NamedType().Name;
 
                     var definition = (ObjectTypeDefinition)d;
-                    ObjectFieldDefinition edges = definition.Fields.First(IsEdgesField);
-                    ObjectFieldDefinition nodes = definition.Fields.First(IsNodesField);
+                    var edges = definition.Fields.First(IsEdgesField);
+                    var nodes = definition.Fields.First(IsNodesField);
 
                     definition.Name = NameHelper.CreateConnectionName(ConnectionName);
                     edges.Type = TypeReference.Parse(
@@ -101,9 +110,9 @@ internal class ConnectionType
                         TypeContext.Output);
                 },
                 Definition,
-                ApplyConfigurationOn.Naming,
+                ApplyConfigurationOn.BeforeNaming,
                 nodeType,
-                TypeDependencyKind.Named));
+                TypeDependencyFulfilled.Named));
         Definition.Configurations.Add(
             new CompleteConfiguration(
                 (c, _) =>
@@ -111,13 +120,13 @@ internal class ConnectionType
                     EdgeType = c.GetType<IEdgeType>(edgeType);
                 },
                 Definition,
-                ApplyConfigurationOn.Completion));
+                ApplyConfigurationOn.BeforeCompletion));
     }
 
     /// <summary>
     /// Gets the connection name of this connection type.
     /// </summary>
-    public NameString ConnectionName { get; private set; }
+    public string ConnectionName { get; private set; }
 
     /// <summary>
     /// Gets the edge type of this connection.
@@ -128,23 +137,23 @@ internal class ConnectionType
 
     protected override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext context,
-        DefinitionBase definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
         context.Dependencies.Add(new(
             context.TypeInspector.GetOutputTypeRef(typeof(PageInfoType))));
 
-        base.OnBeforeRegisterDependencies(context, definition, contextData);
+        base.OnBeforeRegisterDependencies(context, definition);
     }
 
     private static ObjectTypeDefinition CreateTypeDefinition(
         bool withTotalCount,
-        ITypeReference? edgesType = null)
+        TypeReference? edgesType = null)
     {
-        var definition = new ObjectTypeDefinition(
-            default,
-            ConnectionType_Description,
-            typeof(Connection));
+        var definition = new ObjectTypeDefinition
+        {
+            Description = ConnectionType_Description,
+            RuntimeType = typeof(Connection)
+        };
 
         definition.Fields.Add(new(
             Names.PageInfo,
@@ -169,6 +178,7 @@ internal class ConnectionType
         {
             definition.Fields.Add(new(
                 Names.TotalCount,
+                ConnectionType_TotalCount_Description,
                 type: TypeReference.Parse($"{ScalarNames.Int}!"),
                 resolver: GetTotalCountAsync));
         }

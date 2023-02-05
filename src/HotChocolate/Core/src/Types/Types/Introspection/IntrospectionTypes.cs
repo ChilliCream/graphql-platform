@@ -23,10 +23,10 @@ public static class IntrospectionTypes
             __DirectiveArgument.Names.__DirectiveArgument
         };
 
-    internal static IReadOnlyList<ITypeReference> CreateReferences(
+    internal static IReadOnlyList<TypeReference> CreateReferences(
         IDescriptorContext context)
     {
-        var types = new List<ITypeReference>
+        var types = new List<TypeReference>
             {
                 context.TypeInspector.GetTypeRef(typeof(__Directive)),
                 context.TypeInspector.GetTypeRef(typeof(__DirectiveLocation)),
@@ -50,12 +50,12 @@ public static class IntrospectionTypes
     /// <summary>
     /// Defines if the type name represents an introspection type.
     /// </summary>
-    public static bool IsIntrospectionType(NameString typeName) =>
-        typeName.HasValue && _typeNames.Contains(typeName.Value);
+    public static bool IsIntrospectionType(string typeName)
+        => !string.IsNullOrEmpty(typeName)  && _typeNames.Contains(typeName);
 
     /// <summary>
     /// Defines if the type represents an introspection type.
     /// </summary>
-    public static bool IsIntrospectionType(INamedType type) =>
-        IsIntrospectionType(type.Name);
+    public static bool IsIntrospectionType(INamedType type)
+        => IsIntrospectionType(type.Name);
 }

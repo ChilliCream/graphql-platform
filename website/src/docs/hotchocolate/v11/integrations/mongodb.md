@@ -5,15 +5,13 @@ title: MongoDB
 Hot Chocolate has a data integration for MongoDB.
 With this integration, you can translate paging, filtering, sorting, and projections, directly into native MongoDB queries.
 
-You can find a example project in [Hot Chocolate Examples](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/MongoDB)
+You can find a example project in [Hot Chocolate Examples](https://github.com/ChilliCream/graphql-platform-examples/tree/master/misc/MongoDB)
 
 # Get Started
 
 To use the MongoDB integration, you need to install the package `HotChocolate.Data.MongoDb`.
 
-```bash
-dotnet add package HotChocolate.Data.MongoDb
-```
+<PackageInstallation packageName="HotChocolate.Data.MongoDb" />
 
 # MongoExecutable
 
@@ -178,7 +176,7 @@ The integration comes with providers for offset and cursor-based pagination
 
 ## Cursor Pagination
 
-To use cursor based pagination annoate you resolver with `[UseMongoDbPaging]` or `.UseMongoDbPaging()`
+To use cursor based pagination annotate your resolver with `[UseMongoDbPaging]` or `.UseMongoDbPaging()`
 
 ```csharp
 [UseMongoDbPaging]
@@ -211,7 +209,7 @@ query GetPersons {
 
 ## Offset Pagination
 
-To use cursor based pagination annoate you resolver with `[UseMongoDbPaging]` or `.UseMongoDbPaging()`
+To use cursor based pagination annotate your resolver with `[UseMongoDbPaging]` or `.UseMongoDbPaging()`
 
 ```csharp
 [UseMongoDbOffsetPaging]

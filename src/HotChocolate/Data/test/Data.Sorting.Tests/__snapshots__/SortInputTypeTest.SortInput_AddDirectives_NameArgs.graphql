@@ -1,0 +1,18 @@
+schema {
+  query: Query
+}
+
+type Query {
+  foo: String
+}
+
+input FooSortInput @foo {
+  bar: SortEnumType
+}
+
+enum SortEnumType {
+  ASC
+  DESC
+}
+
+directive @foo on INPUT_OBJECT | INPUT_FIELD_DEFINITION

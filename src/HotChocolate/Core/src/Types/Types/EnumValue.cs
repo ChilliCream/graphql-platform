@@ -33,9 +33,9 @@ public sealed class EnumValue : IEnumValue
         }
 
         SyntaxNode = enumValueDefinition.SyntaxNode;
-        Name = enumValueDefinition.Name.HasValue
-            ? enumValueDefinition.Name
-            : (NameString)enumValueDefinition.RuntimeValue.ToString()!;
+        Name = string.IsNullOrEmpty(enumValueDefinition.Name)
+            ? enumValueDefinition.RuntimeValue.ToString()!
+            : enumValueDefinition.Name;
         Description = enumValueDefinition.Description;
         DeprecationReason = enumValueDefinition.DeprecationReason;
         IsDeprecated = !string.IsNullOrEmpty(enumValueDefinition.DeprecationReason);
@@ -50,7 +50,7 @@ public sealed class EnumValue : IEnumValue
 
     public EnumValueDefinitionNode? SyntaxNode { get; }
 
-    public NameString Name { get; }
+    public string Name { get; }
 
     public string? Description { get; }
 

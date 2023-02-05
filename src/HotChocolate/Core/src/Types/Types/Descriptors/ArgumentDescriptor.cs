@@ -17,10 +17,10 @@ public class ArgumentDescriptor
     /// </summary>
     protected internal ArgumentDescriptor(
         IDescriptorContext context,
-        NameString argumentName)
+        string argumentName)
         : base(context)
     {
-        Definition.Name = argumentName.EnsureNotEmpty(nameof(argumentName));
+        Definition.Name = argumentName;
     }
 
     /// <summary>
@@ -28,7 +28,7 @@ public class ArgumentDescriptor
     /// </summary>
     protected internal ArgumentDescriptor(
         IDescriptorContext context,
-        NameString argumentName,
+        string argumentName,
         Type argumentType)
         : this(context, argumentName)
     {
@@ -37,7 +37,6 @@ public class ArgumentDescriptor
             throw new ArgumentNullException(nameof(argumentType));
         }
 
-        Definition.Name = argumentName;
         Definition.Type = context.TypeInspector.GetTypeRef(argumentType, TypeContext.Input);
     }
 
@@ -54,7 +53,7 @@ public class ArgumentDescriptor
         Definition.Type = context.TypeInspector.GetArgumentTypeRef(parameter);
         Definition.Parameter = parameter;
 
-        if (context.TypeInspector.TryGetDefaultValue(parameter, out object defaultValue))
+        if (context.TypeInspector.TryGetDefaultValue(parameter, out var defaultValue))
         {
             Definition.RuntimeDefaultValue = defaultValue;
         }
@@ -181,7 +180,7 @@ public class ArgumentDescriptor
 
     /// <inheritdoc />
     public new IArgumentDescriptor Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments)
     {
         base.Directive(name, arguments);
@@ -196,8 +195,8 @@ public class ArgumentDescriptor
     /// <returns>An instance of <see cref="ArgumentDescriptor"/></returns>
     public static ArgumentDescriptor New(
         IDescriptorContext context,
-        NameString argumentName) =>
-        new(context, argumentName);
+        string argumentName)
+        => new(context, argumentName);
 
     /// <summary>
     /// Creates a new instance of <see cref="ArgumentDescriptor"/>
@@ -208,7 +207,7 @@ public class ArgumentDescriptor
     /// <returns>An instance of <see cref="ArgumentDescriptor"/></returns>
     public static ArgumentDescriptor New(
         IDescriptorContext context,
-        NameString argumentName,
+        string argumentName,
         Type argumentType) =>
         new(context, argumentName, argumentType);
 

@@ -1,10 +1,11 @@
 import { createGlobalStyle } from "styled-components";
+
 import {
   DEFAULT_THEME_COLORS,
   FONT_FAMILY,
   FONT_FAMILY_HEADING,
   THEME_COLORS,
-} from "../../shared-style";
+} from "@/shared-style";
 
 export const GlobalStyle = createGlobalStyle`
   :root {
@@ -18,31 +19,17 @@ export const GlobalStyle = createGlobalStyle`
     height: 100vh;
     overflow: hidden;
     font-family: ${FONT_FAMILY};
-    -ms-text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
   }
 
   body {
     margin: 0;
-    height: 100vh;
     overflow: hidden;
     font-size: 18px;
     line-height: 30px;
     color: ${THEME_COLORS.text};
-    scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-
-    > div:first-child {
-      display: block;
-      height: 100vh;
-
-      > div {
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-      }
-    }
   }
 
   * {
@@ -81,7 +68,7 @@ export const GlobalStyle = createGlobalStyle`
   h6 {
     margin-bottom: 10px;
     font-family: ${FONT_FAMILY_HEADING};
-    font-weight: bold;
+    font-weight: 500;
     line-height: 1.250em;
     text-rendering: optimizeLegibility;
     color: ${THEME_COLORS.heading};
@@ -128,12 +115,12 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   strong {
-    font-weight: bold;
+    font-weight: 600;
   }
 
   blockquote {
     margin-bottom: 20px;
-    background-color: #e8ecf5;
+    background-color: ${THEME_COLORS.backgroundAlt};
 
     > p:last-child {
       margin-bottom: 0;
@@ -187,7 +174,7 @@ export const GlobalStyle = createGlobalStyle`
     }
 
     > tr:hover {
-      background-color: #e8ecf5;
+      background-color: ${THEME_COLORS.backgroundAlt};
     }
   }
 
@@ -203,7 +190,7 @@ export const GlobalStyle = createGlobalStyle`
   th {
     border-top: 1px solid #aaa;
     border-bottom: 2px solid #aaa;
-    font-weight: bold;
+    font-weight: 600;
   }
 
   th:first-child,

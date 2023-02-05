@@ -12,7 +12,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 /// <summary>
 /// The service helper configures the object fields with middleware to handle
-/// various service behaviours like pooled services.
+/// various service behaviors like pooled services.
 /// </summary>
 internal static class ServiceHelper
 {
@@ -43,19 +43,18 @@ internal static class ServiceHelper
         FieldMiddlewareDefinition serviceMiddleware =
             new(next => async context =>
                 {
-                    IServiceProvider services = context.Services;
+                    var services = context.RequestServices;
                     var objectPool = services.GetRequiredService<ObjectPool<TService>>();
-                    TService service = objectPool.Get();
+                    var service = objectPool.Get();
 
-                    try
+                    context.RegisterForCleanup(() =>
                     {
-                        context.SetLocalState(scopedServiceName, service);
-                        await next(context).ConfigureAwait(false);
-                    }
-                    finally
-                    {
-                        objectPool.Return(service!);
-                    }
+                        objectPool.Return(service);
+                        return default;
+                    });
+
+                    context.SetLocalState(scopedServiceName, service);
+                    await next(context).ConfigureAwait(false);
                 },
                 isRepeatable: true,
                 key: WellKnownMiddleware.PooledService);
@@ -76,7 +75,7 @@ internal static class ServiceHelper
     {
         var scopedServiceName = typeof(TService).FullName ?? typeof(TService).Name;
 
-        FieldMiddlewareDefinition? middleware =
+        var middleware =
             definition.MiddlewareDefinitions.FirstOrDefault(
                 t => t.Key == WellKnownMiddleware.ResolverServiceScope);
         var index = 0;
@@ -86,7 +85,13 @@ internal static class ServiceHelper
             middleware = new FieldMiddlewareDefinition(
                 next => async context =>
                 {
-                    using IServiceScope scope = context.Services.CreateScope();
+                    var service = context.RequestServices;
+                    var scope = service.CreateScope();
+                    context.RegisterForCleanup(() =>
+                    {
+                        scope.Dispose();
+                        return default;
+                    });
                     context.SetLocalState(WellKnownContextData.ResolverServiceScope, scope);
                     await next(context).ConfigureAwait(false);
                 },
@@ -102,7 +107,7 @@ internal static class ServiceHelper
         FieldMiddlewareDefinition serviceMiddleware =
             new(next => async context =>
                 {
-                    IServiceScope? scope = context.GetLocalStateOrDefault<IServiceScope>(
+                    var scope = context.GetLocalStateOrDefault<IServiceScope>(
                         WellKnownContextData.ResolverServiceScope);
 
                     if (scope is null)
@@ -111,12 +116,12 @@ internal static class ServiceHelper
                             TypeResources.ServiceHelper_UseResolverServiceInternal_Order);
                     }
 
-                    TService service = scope.ServiceProvider.GetRequiredService<TService>();
+                    var service = scope.ServiceProvider.GetRequiredService<TService>();
                     context.SetLocalState(scopedServiceName, service);
                     await next(context).ConfigureAwait(false);
                 },
                 isRepeatable: true,
-                key: WellKnownMiddleware.PooledService);
+                key: WellKnownMiddleware.ResolverService);
         definition.MiddlewareDefinitions.Insert(index + 1, serviceMiddleware);
     }
 }

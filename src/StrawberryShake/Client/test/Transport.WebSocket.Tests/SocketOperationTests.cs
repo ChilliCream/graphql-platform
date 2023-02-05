@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using HotChocolate.Language;
 using Moq;
 using StrawberryShake.Transport.WebSockets.Messages;
-using Xunit;
 
 namespace StrawberryShake.Transport.WebSockets;
 
@@ -15,11 +14,11 @@ public class SocketOperationTests
     public void Constructor_SingleArgs_CreateObject()
     {
         // arrange
-        ISession manager =
+        var manager =
             new Mock<ISession>().Object;
 
         // act
-        Exception? exception = Record.Exception(() =>
+        var exception = Record.Exception(() =>
             new SocketOperation(manager));
 
         // assert
@@ -30,7 +29,7 @@ public class SocketOperationTests
     public void Constructor_SingleArgs_CreateUniqueId()
     {
         // arrange
-        ISession manager =
+        var manager =
             new Mock<ISession>().Object;
 
         // act
@@ -47,12 +46,12 @@ public class SocketOperationTests
     public void Constructor_AllArgs_CreateObject()
     {
         // arrange
-        ISession manager =
+        var manager =
             new Mock<ISession>().Object;
-        string id = "123";
+        var id = "123";
 
         // act
-        Exception? exception = Record.Exception(() =>
+        var exception = Record.Exception(() =>
             new SocketOperation(manager, id));
 
         // assert
@@ -64,10 +63,10 @@ public class SocketOperationTests
     {
         // arrange
         ISession manager = null!;
-        string id = "123";
+        var id = "123";
 
         // act
-        Exception? exception = Record.Exception(() =>
+        var exception = Record.Exception(() =>
             new SocketOperation(manager, id));
 
         // assert
@@ -78,12 +77,12 @@ public class SocketOperationTests
     public void Constructor_FactoriesNull_CreateObject()
     {
         // arrange
-        ISession manager =
+        var manager =
             new Mock<ISession>().Object;
         string id = null!;
 
         // act
-        Exception? exception = Record.Exception(() =>
+        var exception = Record.Exception(() =>
             new SocketOperation(manager, id));
 
         // assert
@@ -94,7 +93,7 @@ public class SocketOperationTests
     public async Task ReadAsync_IsDisposed_Return()
     {
         // arrange
-        ISession manager = new Mock<ISession>().Object;
+        var manager = new Mock<ISession>().Object;
         const string id = "123";
         var operation = new SocketOperation(manager, id);
         await operation.DisposeAsync();
@@ -114,7 +113,7 @@ public class SocketOperationTests
     public async Task ReadAsync_IsDisposedDuringReceiving_Return()
     {
         // arrange
-        ISession manager = new Mock<ISession>().Object;
+        var manager = new Mock<ISession>().Object;
         const string id = "123";
         var operation = new SocketOperation(manager, id);
         List<OperationMessage> messages = new();
@@ -139,11 +138,11 @@ public class SocketOperationTests
     {
         // arrange
         var managerMock = new Mock<ISession>(MockBehavior.Strict);
-        string id = "123";
+        var id = "123";
         managerMock
             .Setup(x => x.StopOperationAsync(id, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
-        ISession manager = managerMock.Object;
+        var manager = managerMock.Object;
         var operation = new SocketOperation(manager, id);
 
         // act
@@ -158,11 +157,11 @@ public class SocketOperationTests
     {
         // arrange
         var managerMock = new Mock<ISession>(MockBehavior.Strict);
-        string id = "123";
+        var id = "123";
         managerMock
             .Setup(x => x.StopOperationAsync(id, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
-        ISession manager = managerMock.Object;
+        var manager = managerMock.Object;
         var operation = new SocketOperation(manager, id);
 
         // act

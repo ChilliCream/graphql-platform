@@ -10,25 +10,25 @@ internal sealed class IndexerPathSegmentPool
     {
     }
 
-    private sealed class BufferPolicy
-        : IPooledObjectPolicy<PathSegmentBuffer<IndexerPathSegment>>
+    private sealed class BufferPolicy : PooledObjectPolicy<PathSegmentBuffer<IndexerPathSegment>>
     {
         private static readonly IndexerPathSegmentPolicy _policy = new();
 
-        public PathSegmentBuffer<IndexerPathSegment> Create() => new(256, _policy);
+        public override PathSegmentBuffer<IndexerPathSegment> Create()
+            => new(256, _policy);
 
-        public bool Return(PathSegmentBuffer<IndexerPathSegment> obj)
+        public override bool Return(PathSegmentBuffer<IndexerPathSegment> obj)
         {
             obj.Reset();
             return true;
         }
     }
 
-    private sealed class IndexerPathSegmentPolicy : IPooledObjectPolicy<IndexerPathSegment>
+    private sealed class IndexerPathSegmentPolicy : PooledObjectPolicy<IndexerPathSegment>
     {
-        public IndexerPathSegment Create() => new();
+        public override IndexerPathSegment Create() => new();
 
-        public bool Return(IndexerPathSegment segment)
+        public override bool Return(IndexerPathSegment segment)
         {
             segment.Parent = Path.Root;
             return true;

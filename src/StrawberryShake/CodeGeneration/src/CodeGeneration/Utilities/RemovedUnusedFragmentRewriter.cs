@@ -12,7 +12,7 @@ internal sealed class RemovedUnusedFragmentRewriter
     {
         var definitions = node.Definitions.ToList();
 
-        foreach (FragmentDefinitionNode fragmentDefinition in
+        foreach (var fragmentDefinition in
             node.Definitions.OfType<FragmentDefinitionNode>())
         {
             if (!context.Used.Contains(fragmentDefinition.Name.Value))

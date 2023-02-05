@@ -7,10 +7,11 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types;
 
 /// <summary>
+/// <para>
 /// A GraphQL Input Object defines a set of input fields; the input fields are either scalars,
 /// enums, or other input objects. This allows arguments to accept arbitrarily complex structs.
-///
-/// In this example, an Input Object called Point2D describes x and y inputs:
+/// </para>
+/// <para>In this example, an Input Object called Point2D describes x and y inputs:</para>
 ///
 /// <code>
 /// input Point2D {

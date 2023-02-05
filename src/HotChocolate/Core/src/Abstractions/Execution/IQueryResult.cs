@@ -30,6 +30,15 @@ public interface IQueryResult : IExecutionResult
     IReadOnlyDictionary<string, object?>? Data { get; }
 
     /// <summary>
+    /// The `items` entry in a stream payload is a list of results from the execution of
+    /// the associated @stream directive. This output will be a list of the same type of
+    /// the field with the associated `@stream` directive. If `items` is set to `null`,
+    /// it indicates that an error has caused a `null` to bubble up to a field higher
+    /// than the list field with the associated `@stream` directive.
+    /// </summary>
+    IReadOnlyList<object?>? Items { get; }
+
+    /// <summary>
     /// Gets the GraphQL errors of the result.
     /// </summary>
     IReadOnlyList<IError>? Errors { get; }
@@ -39,6 +48,11 @@ public interface IQueryResult : IExecutionResult
     /// with the result and will be serialized for transport.
     /// </summary>
     IReadOnlyDictionary<string, object?>? Extensions { get; }
+
+    /// <summary>
+    /// Gets the incremental patches provided with this result.
+    /// </summary>
+    IReadOnlyList<IQueryResult>? Incremental { get; }
 
     /// <summary>
     /// A boolean that is present and <c>true</c> when there are more payloads

@@ -5,11 +5,14 @@ using HotChocolate.Internal;
 
 namespace HotChocolate.Types.Descriptors;
 
+/// <summary>
+/// Represent a type reference that points to a concrete GraphQL type instance.
+/// </summary>
 public sealed class SchemaTypeReference
     : TypeReference
     , IEquatable<SchemaTypeReference>
 {
-    public SchemaTypeReference(
+    internal SchemaTypeReference(
         ITypeSystemMember type,
         TypeContext? context = null,
         string? scope = null)
@@ -18,8 +21,12 @@ public sealed class SchemaTypeReference
         Type = type ?? throw new ArgumentNullException(nameof(type));
     }
 
+    /// <summary>
+    /// The GraphQL type instance.
+    /// </summary>
     public ITypeSystemMember Type { get; }
 
+    /// <inheritdoc />
     public bool Equals(SchemaTypeReference? other)
     {
         if (other is null)
@@ -40,7 +47,8 @@ public sealed class SchemaTypeReference
         return Type.Equals(other.Type);
     }
 
-    public override bool Equals(ITypeReference? other)
+    /// <inheritdoc />
+    public override bool Equals(TypeReference? other)
     {
         if (other is null)
         {
@@ -60,6 +68,7 @@ public sealed class SchemaTypeReference
         return false;
     }
 
+    /// <inheritdoc />
     public override bool Equals(object? obj)
     {
         if (obj is null)
@@ -80,6 +89,7 @@ public sealed class SchemaTypeReference
         return false;
     }
 
+    /// <inheritdoc />
     public override int GetHashCode()
     {
         unchecked
@@ -88,10 +98,9 @@ public sealed class SchemaTypeReference
         }
     }
 
+    /// <inheritdoc />
     public override string ToString()
-    {
-        return $"{Context}: {Type}";
-    }
+        => ToString(Type);
 
     public SchemaTypeReference WithType(ITypeSystemMember type)
     {
@@ -133,7 +142,7 @@ public sealed class SchemaTypeReference
     {
         if (type is IType t)
         {
-            INamedType namedType = t.NamedType();
+            var namedType = t.NamedType();
 
             if (namedType.IsInputType() && namedType.IsOutputType())
             {
@@ -176,7 +185,7 @@ public sealed class SchemaTypeReference
             throw new ArgumentNullException(nameof(type));
         }
 
-        Type? namedType = ExtendedType.Tools.GetNamedType(type);
+        var namedType = ExtendedType.Tools.GetNamedType(type);
         return InferTypeContextInternal(namedType ?? type);
     }
 

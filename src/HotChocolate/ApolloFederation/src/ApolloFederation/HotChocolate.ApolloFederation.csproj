@@ -28,9 +28,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>FederationResources.resx</DependentUpon>
     </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Update="Properties\FederationResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>FederationResources.Designer.cs</LastGenOutput>

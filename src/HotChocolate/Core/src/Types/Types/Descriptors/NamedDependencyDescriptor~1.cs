@@ -14,8 +14,8 @@ internal class NamedDependencyDescriptor
     {
     }
 
-    protected override TypeDependencyKind DependencyKind =>
-        TypeDependencyKind.Named;
+    protected override TypeDependencyFulfilled DependencyFulfilled =>
+        TypeDependencyFulfilled.Named;
 
     public INamedDependencyDescriptor DependsOn<TType>()
         where TType : ITypeSystemMember =>
@@ -39,11 +39,11 @@ internal class NamedDependencyDescriptor
     }
 
     public INamedDependencyDescriptor DependsOn(
-        NameString typeName) =>
+        string typeName) =>
         DependsOn(typeName, false);
 
     public new INamedDependencyDescriptor DependsOn(
-        NameString typeName,
+        string typeName,
         bool mustBeNamed)
     {
         base.DependsOn(typeName, mustBeNamed);

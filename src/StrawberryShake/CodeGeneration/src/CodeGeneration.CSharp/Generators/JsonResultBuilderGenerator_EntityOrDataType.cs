@@ -45,7 +45,7 @@ public partial class JsonResultBuilderGenerator
                     .AddArgument(WellKnownNames.TypeName.AsStringToken())
                     .Chain(x => x.SetMethodName(nameof(JsonElement.GetString)))));
 
-        foreach (ObjectTypeDescriptor concreteType in interfaceTypeDescriptor.ImplementedBy)
+        foreach (var concreteType in interfaceTypeDescriptor.ImplementedBy)
         {
             ICode builder;
             if (concreteType.IsEntity())

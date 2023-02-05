@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Net;
-using System.Net.Http;
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.AspNetCore.WebUtilities;
 using Newtonsoft.Json;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities;
@@ -18,7 +15,7 @@ public static class TestServerExtensions
         bool enableApolloTracing = false,
         bool includeQueryPlan = false)
     {
-        HttpResponseMessage response =
+        var response =
             await SendPostRequestAsync(
                 testServer,
                 JsonConvert.SerializeObject(request),
@@ -32,7 +29,7 @@ public static class TestServerExtensions
         }
 
         var json = await response.Content.ReadAsStringAsync();
-        ClientQueryResult result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json)!;
         result.StatusCode = response.StatusCode;
         result.ContentType = response.Content.Headers.ContentType!.ToString();
         return result;
@@ -43,7 +40,7 @@ public static class TestServerExtensions
         IReadOnlyList<ClientQueryRequest> request,
         string path = "/graphql")
     {
-        HttpResponseMessage response =
+        var response =
             await SendPostRequestAsync(
                 testServer,
                 JsonConvert.SerializeObject(request),
@@ -54,15 +51,31 @@ public static class TestServerExtensions
             return new[] { new ClientQueryResult { StatusCode = HttpStatusCode.NotFound } };
         }
 
-        var json = await response.Content.ReadAsStringAsync();
-        List<ClientQueryResult> result =
-            JsonConvert.DeserializeObject<List<ClientQueryResult>>(json);
+        var stream = await response.Content.ReadAsStreamAsync();
+        var reader = new MultipartReader("-", stream);
+        var result = new List<ClientQueryResult>();
+        MultipartSection? section;
 
-        foreach (ClientQueryResult item in result)
+        do
         {
-            item.StatusCode = response.StatusCode;
-            item.ContentType = response.Content.Headers.ContentType.ToString();
+            section = await reader.ReadNextSectionAsync();
+            if (section is not null)
+            {
+                await using (section.Body)
+                {
+                    using var mem = new MemoryStream();
+                    await section.Body.CopyToAsync(mem);
+
+                    var item =
+                        JsonConvert.DeserializeObject<ClientQueryResult>(
+                            Encoding.UTF8.GetString(mem.ToArray()))!;
+                    item.ContentType = section.ContentType;
+                    item.StatusCode = response.StatusCode;
+                    result.Add(item);
+                }
+            }
         }
+        while (section is not null);
 
         return result;
     }
@@ -72,10 +85,10 @@ public static class TestServerExtensions
         ClientQueryRequest request,
         string operationNames,
         string path = "/graphql",
-        Func<string, string> createOperationParameter = null)
+        Func<string, string>? createOperationParameter = null)
     {
         createOperationParameter ??= s => "batchOperations=[" + s + "]";
-        HttpResponseMessage response =
+        var response =
             await SendPostRequestAsync(
                 testServer,
                 JsonConvert.SerializeObject(request),
@@ -90,22 +103,39 @@ public static class TestServerExtensions
 
         try
         {
-            List<ClientQueryResult> result =
-                JsonConvert.DeserializeObject<List<ClientQueryResult>>(json);
+            var stream = await response.Content.ReadAsStreamAsync();
+            var reader = new MultipartReader("-", stream);
+            var result = new List<ClientQueryResult>();
+            MultipartSection? section;
 
-            foreach (ClientQueryResult item in result)
+            do
             {
-                item.StatusCode = response.StatusCode;
-                item.ContentType = response.Content.Headers.ContentType.ToString();
+                section = await reader.ReadNextSectionAsync();
+                if (section is not null)
+                {
+                    await using (section.Body)
+                    {
+                        using var mem = new MemoryStream();
+                        await section.Body.CopyToAsync(mem);
+
+                        var item =
+                            JsonConvert.DeserializeObject<ClientQueryResult>(
+                                Encoding.UTF8.GetString(mem.ToArray()))!;
+                        item.ContentType = section.ContentType;
+                        item.StatusCode = response.StatusCode;
+                        result.Add(item);
+                    }
+                }
             }
+            while (section is not null);
 
             return result;
         }
         catch
         {
-            ClientQueryResult result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+            var result = JsonConvert.DeserializeObject<ClientQueryResult>(json)!;
             result.StatusCode = response.StatusCode;
-            result.ContentType = response.Content.Headers.ContentType.ToString();
+            result.ContentType = response.Content.Headers.ContentType?.ToString();
             return new[] { result };
         }
     }
@@ -115,7 +145,7 @@ public static class TestServerExtensions
         string requestJson,
         string path = "/graphql")
     {
-        HttpResponseMessage response =
+        var response =
             await SendPostRequestAsync(
                 testServer,
                 requestJson,
@@ -127,9 +157,9 @@ public static class TestServerExtensions
         }
 
         var json = await response.Content.ReadAsStringAsync();
-        ClientQueryResult result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json)!;
         result.StatusCode = response.StatusCode;
-        result.ContentType = response.Content.Headers.ContentType.ToString();
+        result.ContentType = response.Content.Headers.ContentType?.ToString();
         return result;
     }
 
@@ -138,7 +168,7 @@ public static class TestServerExtensions
         MultipartFormDataContent content,
         string path = "/graphql")
     {
-        HttpResponseMessage response =
+        var response =
             await SendMultipartRequestAsync(
                 testServer,
                 content,
@@ -150,22 +180,24 @@ public static class TestServerExtensions
         }
 
         var json = await response.Content.ReadAsStringAsync();
-        ClientQueryResult result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json)!;
         result.StatusCode = response.StatusCode;
-        result.ContentType = response.Content.Headers.ContentType.ToString();
+        result.ContentType = response.Content.Headers.ContentType?.ToString();
         return result;
     }
 
     public static async Task<ClientRawResult> PostRawAsync(
         this TestServer testServer,
         ClientQueryRequest request,
-        string path = "/graphql")
+        string path = "/graphql",
+        bool enableApolloTracing = false)
     {
-        HttpResponseMessage response =
+        var response =
             await SendPostRequestAsync(
                 testServer,
                 JsonConvert.SerializeObject(request),
-                path);
+                path,
+                enableApolloTracing: enableApolloTracing);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
@@ -180,12 +212,28 @@ public static class TestServerExtensions
         };
     }
 
+    public static async Task<HttpResponseMessage> PostHttpAsync(
+        this TestServer testServer,
+        ClientQueryRequest request,
+        string path = "/graphql",
+        bool enableApolloTracing = false)
+    {
+        var response =
+            await SendPostRequestAsync(
+                testServer,
+                JsonConvert.SerializeObject(request),
+                path,
+                enableApolloTracing: enableApolloTracing);
+
+        return response;
+    }
+
     public static async Task<ClientQueryResult> GetAsync(
         this TestServer testServer,
         ClientQueryRequest request,
         string path = "/graphql")
     {
-        HttpResponseMessage response =
+        var response =
             await SendGetRequestAsync(testServer, request.ToString().Replace("+", "%2B"), path);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
@@ -194,9 +242,9 @@ public static class TestServerExtensions
         }
 
         var json = await response.Content.ReadAsStringAsync();
-        ClientQueryResult result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json)!;
         result.StatusCode = response.StatusCode;
-        result.ContentType = response.Content.Headers.ContentType.ToString();
+        result.ContentType = response.Content.Headers.ContentType?.ToString();
         return result;
     }
 
@@ -206,7 +254,7 @@ public static class TestServerExtensions
         string hash,
         string path = "/graphql")
     {
-        HttpResponseMessage response =
+        var response =
             await SendGetRequestAsync(
                 testServer,
                 $"extensions={{\"persistedQuery\":{{\"version\":1,\"{hashName}\":\"{hash}\"}}}}",
@@ -218,9 +266,9 @@ public static class TestServerExtensions
         }
 
         var json = await response.Content.ReadAsStringAsync();
-        ClientQueryResult result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json)!;
         result.StatusCode = response.StatusCode;
-        result.ContentType = response.Content.Headers.ContentType.ToString();
+        result.ContentType = response.Content.Headers.ContentType?.ToString();
         return result;
     }
 
@@ -231,7 +279,7 @@ public static class TestServerExtensions
         string hash,
         string path = "/graphql")
     {
-        HttpResponseMessage response =
+        var response =
             await SendGetRequestAsync(
                 testServer,
                 $"query={query}&" +
@@ -245,9 +293,9 @@ public static class TestServerExtensions
         }
 
         var json = await response.Content.ReadAsStringAsync();
-        ClientQueryResult result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+        var result = JsonConvert.DeserializeObject<ClientQueryResult>(json)!;
         result.StatusCode = response.StatusCode;
-        result.ContentType = response.Content.Headers.ContentType.ToString();
+        result.ContentType = response.Content.Headers.ContentType?.ToString();
         return result;
     }
 
@@ -311,7 +359,7 @@ public static class TestServerExtensions
     public static Task<HttpResponseMessage> SendGetRequestAsync(
         this TestServer testServer,
         string query,
-        string path = null) =>
+        string? path = null) =>
         testServer.CreateClient().GetAsync($"{CreateUrl(path)}/?{query}");
 
     public static string CreateUrl(string? path)

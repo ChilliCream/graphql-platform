@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 using ChilliCream.Testing;
-using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Language;
@@ -13,13 +10,9 @@ using HotChocolate.Stitching.Schemas.Inventory;
 using HotChocolate.Stitching.Schemas.Products;
 using HotChocolate.Stitching.Schemas.Reviews;
 using HotChocolate.Types;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Squadron;
 using StackExchange.Redis;
-using Xunit;
 using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Stitching.Integration;
@@ -48,13 +41,13 @@ public class FederatedRedisSchemaTests
     {
         // arrange
         using var cts = new CancellationTokenSource(20_000);
-        NameString configurationName = "C" + Guid.NewGuid().ToString("N");
-        IHttpClientFactory httpClientFactory = CreateDefaultRemoteSchemas(configurationName);
+        var configurationName = "C" + Guid.NewGuid().ToString("N");
+        var httpClientFactory = CreateDefaultRemoteSchemas(configurationName);
 
-        IDatabase database = _connection.GetDatabase();
-        while (!cts.IsCancellationRequested)
+        var database = _connection.GetDatabase();
+        while(!cts.IsCancellationRequested)
         {
-            if (await database.SetLengthAsync(configurationName.Value) == 4)
+            if (await database.SetLengthAsync(configurationName) == 4)
             {
                 break;
             }
@@ -63,7 +56,7 @@ public class FederatedRedisSchemaTests
         }
 
         // act
-        ISchema schema =
+        var schema =
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
@@ -81,14 +74,14 @@ public class FederatedRedisSchemaTests
     {
         // arrange
         using var cts = new CancellationTokenSource(20_000);
-        NameString configurationName = "C" + Guid.NewGuid().ToString("N");
+        var configurationName = "C" + Guid.NewGuid().ToString("N");
         var schemaDefinitionV2 = FileResource.Open("AccountSchemaDefinition.json");
-        IHttpClientFactory httpClientFactory = CreateDefaultRemoteSchemas(configurationName);
+        var httpClientFactory = CreateDefaultRemoteSchemas(configurationName);
 
-        IDatabase database = _connection.GetDatabase();
-        while (!cts.IsCancellationRequested)
+        var database = _connection.GetDatabase();
+        while(!cts.IsCancellationRequested)
         {
-            if (await database.SetLengthAsync(configurationName.Value) == 4)
+            if (await database.SetLengthAsync(configurationName) == 4)
             {
                 break;
             }
@@ -96,7 +89,7 @@ public class FederatedRedisSchemaTests
             await Task.Delay(150, cts.Token);
         }
 
-        IRequestExecutorResolver executorResolver =
+        var executorResolver =
             new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
@@ -120,9 +113,9 @@ public class FederatedRedisSchemaTests
         // act
         Assert.False(raised, "eviction was raised before act.");
         await database.StringSetAsync($"{configurationName}.{_accounts}", schemaDefinitionV2);
-        await _connection.GetSubscriber().PublishAsync(configurationName.Value, _accounts);
+        await _connection.GetSubscriber().PublishAsync(configurationName, _accounts);
 
-        while (!cts.IsCancellationRequested)
+        while(!cts.IsCancellationRequested)
         {
             if (raised)
             {
@@ -134,9 +127,9 @@ public class FederatedRedisSchemaTests
 
         // assert
         Assert.True(raised, "schema evicted.");
-        IRequestExecutor executor =
+        var executor =
             await executorResolver.GetRequestExecutorAsync(cancellationToken: cts.Token);
-        ObjectType type = executor.Schema.GetType<ObjectType>("User");
+        var type = executor.Schema.GetType<ObjectType>("User");
         Assert.True(type.Fields.ContainsField("foo"), "foo field exists.");
     }
 
@@ -145,16 +138,16 @@ public class FederatedRedisSchemaTests
     {
         // arrange
         using var cts = new CancellationTokenSource(20_000);
-        NameString configurationName = "C" + Guid.NewGuid().ToString("N");
+        var configurationName = "C" + Guid.NewGuid().ToString("N");
         var schemaDefinitionV2 = FileResource.Open("AccountSchemaDefinition.json");
-        IHttpClientFactory httpClientFactory = CreateDefaultRemoteSchemas(configurationName);
-        DocumentNode document = Utf8GraphQLParser.Parse("{ foo }");
+        var httpClientFactory = CreateDefaultRemoteSchemas(configurationName);
+        var document = Utf8GraphQLParser.Parse("{ foo }");
         var queryHash = "abc";
 
-        IDatabase database = _connection.GetDatabase();
-        while (!cts.IsCancellationRequested)
+        var database = _connection.GetDatabase();
+        while(!cts.IsCancellationRequested)
         {
-            if (await database.SetLengthAsync(configurationName.Value) == 4)
+            if (await database.SetLengthAsync(configurationName) == 4)
             {
                 break;
             }
@@ -162,7 +155,7 @@ public class FederatedRedisSchemaTests
             await Task.Delay(150, cts.Token);
         }
 
-        ServiceProvider serviceProvider =
+        var serviceProvider =
             new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
@@ -171,11 +164,11 @@ public class FederatedRedisSchemaTests
                 .Services
                 .BuildServiceProvider();
 
-        IRequestExecutorResolver executorResolver =
+        var executorResolver =
             serviceProvider.GetRequiredService<IRequestExecutorResolver>();
-        IDocumentCache documentCache =
+        var documentCache =
             serviceProvider.GetRequiredService<IDocumentCache>();
-        IPreparedOperationCache preparedOperationCache =
+        var preparedOperationCache =
             serviceProvider.GetRequiredService<IPreparedOperationCache>();
 
         await executorResolver.GetRequestExecutorAsync(cancellationToken: cts.Token);
@@ -192,24 +185,24 @@ public class FederatedRedisSchemaTests
         Assert.False(documentCache.TryGetDocument(queryHash, out _));
         Assert.False(preparedOperationCache.TryGetOperation(queryHash, out _));
 
-        IRequestExecutor requestExecutor =
+        var requestExecutor =
             await executorResolver.GetRequestExecutorAsync(cancellationToken: cts.Token);
 
         await requestExecutor
             .ExecuteAsync(QueryRequestBuilder
-                .New()
-                .SetQuery(document)
-                .SetQueryHash(queryHash)
-                .Create(),
+                    .New()
+                    .SetQuery(document)
+                    .SetQueryHash(queryHash)
+                    .Create(),
                 cts.Token);
 
         Assert.True(preparedOperationCache.TryGetOperation("_Default-1-abc", out _));
 
         // act
         await database.StringSetAsync($"{configurationName}.{_accounts}", schemaDefinitionV2);
-        await _connection.GetSubscriber().PublishAsync(configurationName.Value, _accounts);
+        await _connection.GetSubscriber().PublishAsync(configurationName, _accounts);
 
-        while (!cts.IsCancellationRequested)
+        while(!cts.IsCancellationRequested)
         {
             if (raised)
             {
@@ -229,14 +222,14 @@ public class FederatedRedisSchemaTests
     {
         // arrange
         using var cts = new CancellationTokenSource(20_000);
-        NameString configurationName = "C" + Guid.NewGuid().ToString("N");
-        IHttpClientFactory httpClientFactory = CreateDefaultRemoteSchemas(configurationName);
+        var configurationName = "C" + Guid.NewGuid().ToString("N");
+        var httpClientFactory = CreateDefaultRemoteSchemas(configurationName);
 
-        IDatabase database = _connection.GetDatabase();
+        var database = _connection.GetDatabase();
 
-        while (!cts.IsCancellationRequested)
+        while(!cts.IsCancellationRequested)
         {
-            if (await database.SetLengthAsync(configurationName.Value) == 4)
+            if (await database.SetLengthAsync(configurationName) == 4)
             {
                 break;
             }
@@ -244,7 +237,7 @@ public class FederatedRedisSchemaTests
             await Task.Delay(150, cts.Token);
         }
 
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
@@ -253,19 +246,19 @@ public class FederatedRedisSchemaTests
                 .BuildRequestExecutorAsync(cancellationToken: cts.Token);
 
         // act
-        IExecutionResult result = await executor.ExecuteAsync(
+        var result = await executor.ExecuteAsync(
             @"{
-                    me {
-                        id
-                        name
-                        reviews {
-                            body
-                            product {
-                                upc
-                            }
+                me {
+                    id
+                    name
+                    reviews {
+                        body
+                        product {
+                            upc
                         }
                     }
-                }",
+                }
+            }",
             cts.Token);
 
         // assert
@@ -277,15 +270,15 @@ public class FederatedRedisSchemaTests
     {
         await TryTest(async ct =>
         {
-                // arrange
-                NameString configurationName = "C" + Guid.NewGuid().ToString("N");
-            IHttpClientFactory httpClientFactory =
+            // arrange
+            var configurationName = "C" + Guid.NewGuid().ToString("N");
+            var httpClientFactory =
                 CreateDefaultRemoteSchemas(configurationName);
 
-            IDatabase database = _connection.GetDatabase();
+            var database = _connection.GetDatabase();
             while (!ct.IsCancellationRequested)
             {
-                if (await database.SetLengthAsync(configurationName.Value) == 4)
+                if (await database.SetLengthAsync(configurationName) == 4)
                 {
                     break;
                 }
@@ -293,7 +286,7 @@ public class FederatedRedisSchemaTests
                 await Task.Delay(150, ct);
             }
 
-            IRequestExecutor executor =
+            var executor =
                 await new ServiceCollection()
                     .AddSingleton(httpClientFactory)
                     .AddGraphQL(configurationName)
@@ -301,8 +294,8 @@ public class FederatedRedisSchemaTests
                     .AddRemoteSchemasFromRedis(configurationName, _ => _connection)
                     .BuildRequestExecutorAsync(configurationName, ct);
 
-                // act
-                IExecutionResult result = await executor.ExecuteAsync(
+            // act
+            var result = await executor.ExecuteAsync(
                 @"{
                     me {
                         id
@@ -316,18 +309,17 @@ public class FederatedRedisSchemaTests
                     }
                     local
                 }",
-            ct);
+                ct);
 
-                // assert
-                result.ToJson().MatchSnapshot();
+            // assert
+            result.ToJson().MatchSnapshot();
         });
     }
 
-    public TestServer CreateAccountsService(NameString configurationName) =>
+    public TestServer CreateAccountsService(string configurationName) =>
         Context.ServerFactory.Create(
             services => services
                 .AddRouting()
-                .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                 .AddGraphQLServer()
                 .AddAccountsSchema()
                 .InitializeOnStartup()
@@ -348,11 +340,10 @@ public class FederatedRedisSchemaTests
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL("/")));
 
-    public TestServer CreateInventoryService(NameString configurationName) =>
+    public TestServer CreateInventoryService(string configurationName) =>
         Context.ServerFactory.Create(
             services => services
                 .AddRouting()
-                .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                 .AddGraphQLServer()
                 .AddInventorySchema()
                 .InitializeOnStartup()
@@ -373,11 +364,10 @@ public class FederatedRedisSchemaTests
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL("/")));
 
-    public TestServer CreateProductsService(NameString configurationName) =>
+    public TestServer CreateProductsService(string configurationName) =>
         Context.ServerFactory.Create(
             services => services
                 .AddRouting()
-                .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                 .AddGraphQLServer()
                 .AddProductsSchema()
                 .InitializeOnStartup()
@@ -398,11 +388,10 @@ public class FederatedRedisSchemaTests
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL("/")));
 
-    public TestServer CreateReviewsService(NameString configurationName) =>
+    public TestServer CreateReviewsService(string configurationName) =>
         Context.ServerFactory.Create(
             services => services
                 .AddRouting()
-                .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                 .AddGraphQLServer()
                 .AddReviewSchema()
                 .InitializeOnStartup()
@@ -425,16 +414,16 @@ public class FederatedRedisSchemaTests
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL("/")));
 
-    public IHttpClientFactory CreateDefaultRemoteSchemas(NameString configurationName)
+    public IHttpClientFactory CreateDefaultRemoteSchemas(string configurationName)
     {
         var connections = new Dictionary<string, HttpClient>
-            {
-                { _accounts, CreateAccountsService(configurationName).CreateClient() },
-                { _inventory, CreateInventoryService(configurationName).CreateClient() },
-                { _products, CreateProductsService(configurationName).CreateClient() },
-                { _reviews, CreateReviewsService(configurationName).CreateClient() },
-            };
+        {
+            { _accounts, CreateAccountsService(configurationName).CreateClient() },
+            { _inventory, CreateInventoryService(configurationName).CreateClient() },
+            { _products, CreateProductsService(configurationName).CreateClient() },
+            { _reviews, CreateReviewsService(configurationName).CreateClient() },
+        };
 
-        return StitchingTestContext.CreateHttpClientFactory(connections);
+        return StitchingTestContext.CreateRemoteSchemas(connections);
     }
 }

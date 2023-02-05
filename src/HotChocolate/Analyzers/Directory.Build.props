@@ -7,21 +7,21 @@
      <Copyright>Copyright &#169; 2021 ChilliCream (Michael &amp; Rafael Staib)</Copyright>
      <PackageLicenseFile>LICENSE</PackageLicenseFile>
      <PackageProjectUrl>https://chillicream.com</PackageProjectUrl>
-     <PackageReleaseNotes>Release notes: https://github.com/ChilliCream/hotchocolate/releases/$(PackageVersion)</PackageReleaseNotes>
+     <PackageReleaseNotes>Release notes: https://github.com/ChilliCream/graphql-platform/releases/$(PackageVersion)</PackageReleaseNotes>
      <PackageTags>GraphQL ChilliCream</PackageTags>
      <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
      <PackageIcon>hotchocolate-signet.png</PackageIcon>
    </PropertyGroup>
 
    <PropertyGroup>
-     <LangVersion>latest</LangVersion>
-     <Nullable>enable</Nullable>
+    <LangVersion>preview</LangVersion>
+    <Nullable>enable</Nullable>
+    <SourceGenTargetFrameworks>net7.0; net6.0; netstandard2.0</SourceGenTargetFrameworks>
+    <SourceGenTestTargetFrameworks>net7.0; net6.0</SourceGenTestTargetFrameworks>
    </PropertyGroup>
 
    <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)..\..\..\website\static\resources\greendonut-signet.png" Pack="true" PackagePath="greendonut-signet.png" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\..\..\website\static\resources\hotchocolate-signet.png" Pack="true" PackagePath="hotchocolate-signet.png" Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)..\..\..\website\static\resources\strawberryshake-signet.png" Pack="true" PackagePath="strawberryshake-signet.png" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\..\..\LICEN*" Pack="true" PackagePath="" Visible="false" />
   </ItemGroup>
 

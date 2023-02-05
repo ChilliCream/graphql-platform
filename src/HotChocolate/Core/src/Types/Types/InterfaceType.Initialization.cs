@@ -83,7 +83,7 @@ public partial class InterfaceType
             {
                 types ??= _schema.GetPossibleTypes(this);
 
-                foreach (ObjectType type in types)
+                foreach (var type in types)
                 {
                     if (type.IsInstanceOfType(c, r))
                     {

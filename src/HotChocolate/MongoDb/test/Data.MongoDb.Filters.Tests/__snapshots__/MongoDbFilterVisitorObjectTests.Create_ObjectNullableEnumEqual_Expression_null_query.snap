@@ -1,1 +1,0 @@
-﻿find({ "Foo.BarEnum" : { "$eq" : null } })

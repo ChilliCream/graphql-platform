@@ -9,9 +9,16 @@ namespace HotChocolate.Utilities;
 public static class BufferHelper
 {
     public static Task<T> ReadAsync<T>(
-       Stream stream,
-       Func<byte[], int, T> deserialize,
-       CancellationToken cancellationToken)
+        Stream stream,
+        Func<byte[], int, T> deserialize,
+        CancellationToken cancellationToken)
+        => ReadAsync(stream, deserialize, static (b, l, d) => d(b, l), cancellationToken);
+
+    public static Task<T> ReadAsync<TState, T>(
+        Stream stream,
+        TState state,
+        Func<byte[], int, TState, T> deserialize,
+        CancellationToken cancellationToken)
     {
         if (stream is null)
         {
@@ -23,13 +30,15 @@ public static class BufferHelper
             throw new ArgumentNullException(nameof(deserialize));
         }
 
-        return ReadAsync(stream, deserialize, null, cancellationToken);
+        return ReadAsync(stream, state, int.MaxValue, deserialize, () => { }, cancellationToken);
     }
 
-    public static async Task<T> ReadAsync<T>(
+    public static async Task<T> ReadAsync<TState, T>(
         Stream stream,
-        Func<byte[], int, T> deserialize,
-        Action<int>? checkSize,
+        TState state,
+        int maxAllowedSize,
+        Func<byte[], int, TState, T> deserialize,
+        Action throwMaxAllowedError,
         CancellationToken cancellationToken)
     {
         var buffer = ArrayPool<byte>.Shared.Rent(1024);
@@ -62,10 +71,14 @@ public static class BufferHelper
                 }
 
                 bytesBuffered += bytesRead;
-                checkSize?.Invoke(bytesBuffered);
+
+                if (bytesBuffered > maxAllowedSize)
+                {
+                    throwMaxAllowedError();
+                }
             }
 
-            return deserialize(buffer, bytesBuffered);
+            return deserialize(buffer, bytesBuffered, state);
         }
         finally
         {

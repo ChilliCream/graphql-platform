@@ -70,7 +70,7 @@ public sealed class DeprecatedDirective
             reason = null;
         }
 
-        ArgumentNode[] arguments = reason is null
+        var arguments = reason is null
             ? Array.Empty<ArgumentNode>()
             : new[] { new ArgumentNode(DeprecatedDirectiveType.Names.Reason, reason) };
 

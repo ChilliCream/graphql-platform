@@ -19,6 +19,7 @@ public static partial class FederationSchemaPrinter
             .ToList();
 
         var locations = directiveType.Locations
+            .AsEnumerable()
             .Select(l => new NameNode(l.MapDirectiveLocation().ToString()))
             .ToList();
 

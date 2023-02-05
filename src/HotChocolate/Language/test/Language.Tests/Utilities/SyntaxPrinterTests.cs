@@ -81,7 +81,7 @@ public class SyntaxPrinterTests
         var printed = Utf8GraphQLParser.Parse(query).Print();
 
         // assert
-        DocumentNode document = Utf8GraphQLParser.Parse(printed);
+        var document = Utf8GraphQLParser.Parse(printed);
         Assert.Equal(printed, document.ToString());
     }
 
@@ -91,13 +91,13 @@ public class SyntaxPrinterTests
         // arrange
         var query = FileResource.Open("kitchen-sink.graphql");
 
-        DocumentNode queryDocument = Utf8GraphQLParser.Parse(query);
+        var queryDocument = Utf8GraphQLParser.Parse(query);
 
         // act
         var serializedQuery = queryDocument.Print();
 
         // assert
-        DocumentNode parsedQuery = Utf8GraphQLParser.Parse(serializedQuery);
+        var parsedQuery = Utf8GraphQLParser.Parse(serializedQuery);
         Assert.Equal(serializedQuery, parsedQuery.Print());
     }
 
@@ -109,7 +109,7 @@ public class SyntaxPrinterTests
             "query Foo($bar: [String!]!) { foo(s: \"String\") " +
             "{ bar @foo { baz @foo @bar } } }";
 
-        DocumentNode queryDocument = Utf8GraphQLParser.Parse(query);
+        var queryDocument = Utf8GraphQLParser.Parse(query);
 
         // act
         var printed = queryDocument.Print(false);
@@ -124,7 +124,7 @@ public class SyntaxPrinterTests
         // arrange
         var query = "fragment Foo ($bar: [String!]!) on Bar { baz }";
 
-        DocumentNode queryDocument = Utf8GraphQLParser.Parse(query,
+        var queryDocument = Utf8GraphQLParser.Parse(query,
             new ParserOptions(allowFragmentVariables: true));
 
         // act

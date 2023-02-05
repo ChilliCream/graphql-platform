@@ -14,7 +14,7 @@ internal sealed class ObjectTypeFactory
     public ObjectType Create(IDescriptorContext context, ObjectTypeDefinitionNode node)
     {
         var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
-        Stack<IDefinition> path = context.GetOrCreateDefinitionStack();
+        var path = context.GetOrCreateDefinitionStack();
         path.Clear();
 
         var typeDefinition = new ObjectTypeDefinition(
@@ -27,7 +27,7 @@ internal sealed class ObjectTypeFactory
             typeDefinition.SyntaxNode = node;
         }
 
-        foreach (NamedTypeNode typeNode in node.Interfaces)
+        foreach (var typeNode in node.Interfaces)
         {
             typeDefinition.Interfaces.Add(TypeReference.Create(typeNode));
         }
@@ -42,13 +42,13 @@ internal sealed class ObjectTypeFactory
     public ObjectTypeExtension Create(IDescriptorContext context, ObjectTypeExtensionNode node)
     {
         var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
-        Stack<IDefinition> path = context.GetOrCreateDefinitionStack();
+        var path = context.GetOrCreateDefinitionStack();
         path.Clear();
 
         var typeDefinition = new ObjectTypeDefinition(node.Name.Value);
         typeDefinition.BindTo = node.GetBindingValue();
 
-        foreach (NamedTypeNode typeNode in node.Interfaces)
+        foreach (var typeNode in node.Interfaces)
         {
             typeDefinition.Interfaces.Add(TypeReference.Create(typeNode));
         }
@@ -69,7 +69,7 @@ internal sealed class ObjectTypeFactory
     {
         path.Push(parent);
 
-        foreach (FieldDefinitionNode field in fields)
+        foreach (var field in fields)
         {
             var fieldDefinition = new ObjectFieldDefinition(
                 field.Name.Value,
@@ -106,7 +106,7 @@ internal sealed class ObjectTypeFactory
     {
         path.Push(parent);
 
-        foreach (InputValueDefinitionNode argument in field.Arguments)
+        foreach (var argument in field.Arguments)
         {
             var argumentDefinition = new ArgumentDefinition(
                 argument.Name.Value,

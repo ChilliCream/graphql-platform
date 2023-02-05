@@ -1,0 +1,20 @@
+schema {
+  query: Query
+}
+
+type Query {
+  test: String
+}
+
+input FooFilterInput {
+  and: [FooFilterInput!]
+  or: [FooFilterInput!]
+  bar: IdOperationFilterInput
+}
+
+input IdOperationFilterInput {
+  eq: ID
+  neq: ID
+  in: [ID]
+  nin: [ID]
+}

@@ -1,7 +1,7 @@
-namespace HotChocolate.Stitching.Schemas.Customers;
+﻿namespace HotChocolate.Stitching.Schemas.Customers;
 
 public class Consultant : ICustomerOrConsultant
 {
-    public string Id { get; set; }
-    public string Name { get; set; }
+    public string? Id { get; set; }
+    public string? Name { get; set; }
 }

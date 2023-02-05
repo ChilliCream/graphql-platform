@@ -10,6 +10,7 @@ using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Options;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -17,11 +18,11 @@ using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 
-// todo: where to put this
 #if NET6_0_OR_GREATER
 [assembly: MetadataUpdateHandler(typeof(ApplicationUpdateHandler))]
 #endif
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static class RequestExecutorServiceCollectionExtensions
@@ -45,7 +46,7 @@ public static class RequestExecutorServiceCollectionExtensions
 
         services.TryAddSingleton<ObjectPool<StringBuilder>>(sp =>
         {
-            ObjectPoolProvider provider = sp.GetRequiredService<ObjectPoolProvider>();
+            var provider = sp.GetRequiredService<ObjectPoolProvider>();
             var policy = new StringBuilderPooledObjectPolicy();
             return provider.Create(policy);
         });
@@ -59,7 +60,6 @@ public static class RequestExecutorServiceCollectionExtensions
             .TryAddDefaultCaches()
             .TryAddDefaultDocumentHashProvider()
             .TryAddDefaultBatchDispatcher()
-            .TryAddRequestContextAccessor()
             .TryAddDefaultDataLoaderRegistry()
             .TryAddIdSerializer()
             .TryAddDataLoaderParameterExpressionBuilder()
@@ -70,8 +70,10 @@ public static class RequestExecutorServiceCollectionExtensions
             .TryAddResultPool()
             .TryAddResolverTaskPool()
             .TryAddOperationContextPool()
+            .TryAddDeferredWorkStatePool()
             .TryAddDataLoaderTaskCachePool()
-            .TryAddPathSegmentPool();
+            .TryAddPathSegmentPool()
+            .TryAddOperationCompilerPool();
 
         // global executor services
         services
@@ -79,7 +81,28 @@ public static class RequestExecutorServiceCollectionExtensions
             .TryAddRequestExecutorResolver();
 
         // parser
-        services.TryAddSingleton(ParserOptions.Default);
+        services.TryAddSingleton(
+            sp =>
+            {
+                var modifiers = sp.GetService<IEnumerable<Action<RequestParserOptions>>?>();
+
+                if (modifiers is null)
+                {
+                    return ParserOptions.Default;
+                }
+
+                var options = new RequestParserOptions();
+
+                foreach (var configure in modifiers)
+                {
+                    configure(options);
+                }
+
+                return new ParserOptions(
+                    noLocations: !options.IncludeLocations,
+                    maxAllowedNodes: options.MaxAllowedNodes,
+                    maxAllowedTokens: options.MaxAllowedTokens);
+            });
 
         return services;
     }
@@ -99,14 +122,14 @@ public static class RequestExecutorServiceCollectionExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddGraphQL(
         this IServiceCollection services,
-        NameString schemaName = default)
+        string? schemaName = default)
     {
         if (services is null)
         {
             throw new ArgumentNullException(nameof(services));
         }
 
-        schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
+        schemaName ??= Schema.DefaultName;
 
         services
             .AddGraphQLCore()
@@ -130,14 +153,14 @@ public static class RequestExecutorServiceCollectionExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddGraphQL(
         this IRequestExecutorBuilder builder,
-        NameString schemaName = default)
+        string? schemaName = default)
     {
         if (builder is null)
         {
             throw new ArgumentNullException(nameof(builder));
         }
 
-        schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
+        schemaName ??= Schema.DefaultName;
 
         builder.Services.AddValidation(schemaName);
 
@@ -146,7 +169,7 @@ public static class RequestExecutorServiceCollectionExtensions
 
     private static IRequestExecutorBuilder CreateBuilder(
         IServiceCollection services,
-        NameString schemaName)
+        string schemaName)
     {
         var builder = new DefaultRequestExecutorBuilder(services, schemaName);
 
@@ -181,13 +204,10 @@ public static class RequestExecutorServiceCollectionExtensions
         int capacity = 100)
     {
         services.RemoveAll<IPreparedOperationCache>();
-        services.RemoveAll<IQueryPlanCache>();
         services.RemoveAll<IComplexityAnalyzerCache>();
 
         services.AddSingleton<IPreparedOperationCache>(
-            sp => new DefaultPreparedOperationCache(capacity));
-        services.AddSingleton<IQueryPlanCache>(
-            sp => new DefaultQueryPlanCache(capacity));
+            _ => new DefaultPreparedOperationCache(capacity));
         services.AddSingleton<IComplexityAnalyzerCache>(
             _ => new DefaultComplexityAnalyzerCache(capacity));
 

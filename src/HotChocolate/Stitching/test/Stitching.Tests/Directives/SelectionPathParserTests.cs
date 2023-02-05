@@ -6,14 +6,14 @@ namespace HotChocolate.Stitching;
 
 public class SelectionPathParserTests
 {
-    [Fact(Skip = "Disabled")]
+    [Fact]
     public void Parse_Single_Chain_No_Arguments()
     {
         // arrange
         var pathString = "foo";
 
         // act
-        IImmutableStack<SelectionPathComponent> path =
+        var path =
             SelectionPathParser.Parse(pathString);
 
         // assert
@@ -25,14 +25,14 @@ public class SelectionPathParserTests
             });
     }
 
-    [Fact(Skip = "Disabled")]
+    [Fact]
     public void Parse_Single_Chain_With_Literal()
     {
         // arrange
         var pathString = "foo(bar: 1)";
 
         // act
-        IImmutableStack<SelectionPathComponent> path =
+        var path =
             SelectionPathParser.Parse(pathString);
 
         // assert
@@ -49,14 +49,14 @@ public class SelectionPathParserTests
             });
     }
 
-    [Fact(Skip = "Disabled")]
+    [Fact]
     public void Parse_Two_Chain_No_Arguments()
     {
         // arrange
         var pathString = "foo.bar";
 
         // act
-        IImmutableStack<SelectionPathComponent> path =
+        var path =
             SelectionPathParser.Parse(pathString);
 
         // assert
@@ -73,14 +73,14 @@ public class SelectionPathParserTests
             });
     }
 
-    [Fact(Skip = "Disabled")]
+    [Fact]
     public void Parse_Two_Chain_With_Literal()
     {
         // arrange
         var pathString = "foo(bar: 1).baz(quox: 2)";
 
         // act
-        IImmutableStack<SelectionPathComponent> path =
+        var path =
             SelectionPathParser.Parse(pathString);
 
         // assert
@@ -107,14 +107,14 @@ public class SelectionPathParserTests
             });
     }
 
-    [Fact(Skip = "Disabled")]
+    [Fact]
     public void Parse_Single_Chain_With_ScopedVariable()
     {
         // arrange
         var pathString = "foo(bar: $fields:foo)";
 
         // act
-        IImmutableStack<SelectionPathComponent> path =
+        var path =
             SelectionPathParser.Parse(pathString);
 
         // assert
@@ -127,7 +127,7 @@ public class SelectionPathParserTests
                     {
                         Assert.Equal("bar", argument.Name.Value);
 
-                        ScopedVariableNode variable =
+                        var variable =
                             Assert.IsType<ScopedVariableNode>(argument.Value);
 
                         Assert.Equal("fields", variable.Scope.Value);
@@ -136,14 +136,14 @@ public class SelectionPathParserTests
             });
     }
 
-    [Fact(Skip = "Disabled")]
+    [Fact]
     public void Parse_Two_Chain_With_ScopedVariable()
     {
         // arrange
         var pathString = "foo(bar: $fields:foo).baz(quox: 1)";
 
         // act
-        IImmutableStack<SelectionPathComponent> path =
+        var path =
             SelectionPathParser.Parse(pathString);
 
         // assert
@@ -156,7 +156,7 @@ public class SelectionPathParserTests
                     {
                         Assert.Equal("bar", argument.Name.Value);
 
-                        ScopedVariableNode variable =
+                        var variable =
                             Assert.IsType<ScopedVariableNode>(argument.Value);
 
                         Assert.Equal("fields", variable.Scope.Value);

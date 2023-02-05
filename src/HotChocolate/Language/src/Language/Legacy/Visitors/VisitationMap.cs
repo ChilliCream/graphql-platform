@@ -931,7 +931,7 @@ public class VisitationMap
             return;
         }
 
-        for (int i = items.Count - 1; i >= 0; i--)
+        for (var i = items.Count - 1; i >= 0; i--)
         {
             children.Push(new SyntaxNodeInfo(items[i], name, i));
         }

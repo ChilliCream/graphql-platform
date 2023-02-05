@@ -2,7 +2,6 @@
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.Descriptors.TypeReference;
@@ -12,16 +11,17 @@ using static HotChocolate.Types.Descriptors.TypeReference;
 namespace HotChocolate.Types.Introspection;
 
 [Introspection]
+// ReSharper disable once InconsistentNaming
 internal sealed class __Schema : ObjectType
 {
     protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
     {
-        SyntaxTypeReference stringType = Create(ScalarNames.String);
-        SyntaxTypeReference typeListType = Parse($"[{nameof(__Type)}!]!");
-        SyntaxTypeReference typeType = Create(nameof(__Type));
-        SyntaxTypeReference nonNullTypeType = Parse($"{nameof(__Type)}!");
-        SyntaxTypeReference directiveListType = Parse($"[{nameof(__Directive)}!]!");
-        SyntaxTypeReference appDirectiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
+        var stringType = Create(ScalarNames.String);
+        var typeListType = Parse($"[{nameof(__Type)}!]!");
+        var typeType = Create(nameof(__Type));
+        var nonNullTypeType = Parse($"{nameof(__Type)}!");
+        var directiveListType = Parse($"[{nameof(__Directive)}!]!");
+        var appDirectiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
 
         var def = new ObjectTypeDefinition(Names.__Schema, Schema_Description, typeof(ISchema))
         {
@@ -82,11 +82,12 @@ internal sealed class __Schema : ObjectType
         public static object AppliedDirectives(IPureResolverContext context)
             => context.Parent<ISchema>().Directives
                 .Where(t => t.Type.IsPublic)
-                .Select(d => d.ToNode());
+                .Select(d => d.AsSyntaxNode());
     }
 
     public static class Names
     {
+        // ReSharper disable once InconsistentNaming
         public const string __Schema = "__Schema";
         public const string Description = "description";
         public const string Types = "types";

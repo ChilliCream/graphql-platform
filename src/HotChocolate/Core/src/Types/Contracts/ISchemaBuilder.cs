@@ -32,7 +32,7 @@ public interface ISchemaBuilder
 
     ISchemaBuilder SetOptions(IReadOnlySchemaOptions options);
 
-    ISchemaBuilder ModifyOptions(Action<ISchemaOptions> configure);
+    ISchemaBuilder ModifyOptions(Action<SchemaOptions> configure);
 
     ISchemaBuilder Use(FieldMiddleware middleware);
 
@@ -113,7 +113,7 @@ public interface ISchemaBuilder
     /// This type must inherit from <see cref="ObjectType{T}"/> or be a class.
     /// </param>
     /// <param name="operation">
-    /// The operation type that <see cref="rootType"/> represents.
+    /// The operation type that <paramref name="rootType"/> represents.
     /// </param>
     /// <returns>
     /// Returns the schema builder to chain in further configuration.
@@ -122,7 +122,7 @@ public interface ISchemaBuilder
     /// <paramref name="rootType"/> is null.
     /// </exception>
     /// <exception cref="ArgumentException">
-    /// - <see cref="rootType"/> is either not a class or is not inheriting from
+    /// - <paramref name="rootType"/> is either not a class or is not inheriting from
     /// <see cref="ObjectType{T}"/>.
     ///
     /// - A root type for the specified <paramref name="operation"/> was already set.
@@ -136,7 +136,7 @@ public interface ISchemaBuilder
     /// An instance of <see cref="ObjectType"/> that represents a root type.
     /// </param>
     /// <param name="operation">
-    /// The operation type that <see cref="rootType"/> represents.
+    /// The operation type that <paramref name="rootType"/> represents.
     /// </param>
     /// <returns>
     /// Returns the schema builder to chain in further configuration.
@@ -148,6 +148,26 @@ public interface ISchemaBuilder
     /// A root type for the specified <paramref name="operation"/> was already set.
     /// </exception>
     ISchemaBuilder AddRootType(ObjectType rootType, OperationType operation);
+
+    /// <summary>
+    /// Tries to add a GraphQL root type to the schema.
+    /// </summary>
+    /// <param name="rootType">
+    /// An instance of <see cref="ObjectType"/> that represents a root type.
+    /// </param>
+    /// <param name="operation">
+    /// The operation type that <paramref name="rootType"/> represents.
+    /// </param>
+    /// <returns>
+    /// Returns the schema builder to chain in further configuration.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="rootType"/> is null.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// A root type for the specified <paramref name="operation"/> was already set.
+    /// </exception>
+    ISchemaBuilder TryAddRootType(Func<ObjectType> rootType, OperationType operation);
 
     ISchemaBuilder AddDirectiveType(DirectiveType type);
 
@@ -161,11 +181,7 @@ public interface ISchemaBuilder
 
     ISchemaBuilder TryAddTypeInterceptor(Type interceptor);
 
-    ISchemaBuilder TryAddTypeInterceptor(ITypeInitializationInterceptor interceptor);
-
-    ISchemaBuilder TryAddSchemaInterceptor(Type interceptor);
-
-    ISchemaBuilder TryAddSchemaInterceptor(ISchemaInterceptor interceptor);
+    ISchemaBuilder TryAddTypeInterceptor(TypeInterceptor interceptor);
 
     ISchemaBuilder AddConvention(
         Type convention,

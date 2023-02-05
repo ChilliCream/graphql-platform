@@ -1,0 +1,21 @@
+﻿schema {
+  query: Query
+}
+
+interface Interface {
+  single: FlagsEnumFlags!
+}
+
+type FlagsEnumFlags {
+  isFoo: Boolean!
+  isBar: Boolean!
+  isBaz: Boolean!
+}
+
+type Impl implements Interface {
+  single: FlagsEnumFlags!
+}
+
+type Query {
+  asd: Interface
+}

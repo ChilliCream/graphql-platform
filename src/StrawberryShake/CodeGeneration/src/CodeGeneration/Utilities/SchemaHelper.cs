@@ -5,6 +5,7 @@ using System.Linq;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Types;
 using static StrawberryShake.CodeGeneration.Utilities.DocumentHelper;
@@ -33,11 +34,11 @@ public static class SchemaHelper
 
         builder.ModifyOptions(o => o.StrictValidation = strictValidation);
 
-        var leafTypes = new Dictionary<NameString, LeafTypeInfo>();
+        var leafTypes = new Dictionary<string, LeafTypeInfo>(StringComparer.Ordinal);
         var globalEntityPatterns = new List<SelectionSetNode>();
-        var typeEntityPatterns = new Dictionary<NameString, SelectionSetNode>();
+        var typeEntityPatterns = new Dictionary<string, SelectionSetNode>(StringComparer.Ordinal);
 
-        foreach (DocumentNode document in schemaFiles.Select(f => f.Document))
+        foreach (var document in schemaFiles.Select(f => f.Document))
         {
             if (document.Definitions.Any(t => t is ITypeSystemExtensionNode))
             {
@@ -72,6 +73,10 @@ public static class SchemaHelper
                             scalar.Name.Value,
                             scalar.Description?.Value));
                     }
+                    else if (scalar.Name.Value == ScalarNames.Any)
+                    {
+                        builder.AddType(new AnyType());
+                    }
                 }
 
                 builder.AddDocument(document);
@@ -81,6 +86,12 @@ public static class SchemaHelper
         AddDefaultScalarInfos(builder, leafTypes);
 
         return builder
+            .ModifyOptions(
+                o =>
+                {
+                    o.EnableDefer = true;
+                    o.EnableStream = true;
+                })
             .SetSchema(d => d.Extend().OnBeforeCreate(
                 c => c.ContextData.Add(_typeInfosKey, typeInfos)))
             .TryAddTypeInterceptor(
@@ -99,14 +110,14 @@ public static class SchemaHelper
 
     private static void CollectScalarInfos(
         IEnumerable<ScalarTypeExtensionNode> scalarTypeExtensions,
-        Dictionary<NameString, LeafTypeInfo> leafTypes,
+        Dictionary<string, LeafTypeInfo> leafTypes,
         TypeInfos typeInfos)
     {
-        foreach (ScalarTypeExtensionNode scalarTypeExtension in scalarTypeExtensions)
+        foreach (var scalarTypeExtension in scalarTypeExtensions)
         {
             if (!leafTypes.TryGetValue(
                     scalarTypeExtension.Name.Value,
-                    out LeafTypeInfo scalarInfo))
+                    out var scalarInfo))
             {
                 var runtimeType = GetRuntimeType(scalarTypeExtension);
                 var serializationType = GetSerializationType(scalarTypeExtension);
@@ -126,14 +137,14 @@ public static class SchemaHelper
 
     private static void CollectEnumInfos(
         IEnumerable<EnumTypeExtensionNode> enumTypeExtensions,
-        Dictionary<NameString, LeafTypeInfo> leafTypes,
+        Dictionary<string, LeafTypeInfo> leafTypes,
         TypeInfos typeInfos)
     {
-        foreach (EnumTypeExtensionNode scalarTypeExtension in enumTypeExtensions)
+        foreach (var scalarTypeExtension in enumTypeExtensions)
         {
             if (!leafTypes.TryGetValue(
                     scalarTypeExtension.Name.Value,
-                    out LeafTypeInfo scalarInfo))
+                    out var scalarInfo))
             {
                 var runtimeType = GetRuntimeType(scalarTypeExtension);
                 var serializationType = GetSerializationType(scalarTypeExtension);
@@ -160,16 +171,16 @@ public static class SchemaHelper
 
     private static RuntimeTypeDirective? GetDirectiveValue(
         HotChocolate.Language.IHasDirectives hasDirectives,
-        NameString directiveName)
+        string directiveName)
     {
-        DirectiveNode? directive = hasDirectives.Directives.FirstOrDefault(
-            t => directiveName.Equals(t.Name.Value));
+        var directive = hasDirectives.Directives.FirstOrDefault(
+            t => directiveName.EqualsOrdinal(t.Name.Value));
 
-        if (directive is { Arguments: { Count: > 0 } })
+        if (directive is { Arguments.Count: > 0 })
         {
-            ArgumentNode? name = directive.Arguments.FirstOrDefault(
+            var name = directive.Arguments.FirstOrDefault(
                 t => t.Name.Value.Equals("name"));
-            ArgumentNode? valueType = directive.Arguments.FirstOrDefault(
+            var valueType = directive.Arguments.FirstOrDefault(
                 t => t.Name.Value.Equals("valueType"));
 
             if (name is { Value: StringValueNode stringValue })
@@ -190,7 +201,7 @@ public static class SchemaHelper
         {
             foreach (var directive in schemaExtension.Directives)
             {
-                if (TryGetKeys(directive, out SelectionSetNode? selectionSet))
+                if (TryGetKeys(directive, out var selectionSet))
                 {
                     entityPatterns.Add(selectionSet);
                 }
@@ -200,11 +211,11 @@ public static class SchemaHelper
 
     private static void CollectTypeEntityPatterns(
         IEnumerable<ObjectTypeExtensionNode> objectTypeExtensions,
-        Dictionary<NameString, SelectionSetNode> entityPatterns)
+        Dictionary<string, SelectionSetNode> entityPatterns)
     {
-        foreach (ObjectTypeExtensionNode objectTypeExtension in objectTypeExtensions)
+        foreach (var objectTypeExtension in objectTypeExtensions)
         {
-            if (TryGetKeys(objectTypeExtension, out SelectionSetNode? selectionSet) &&
+            if (TryGetKeys(objectTypeExtension, out var selectionSet) &&
                 !entityPatterns.ContainsKey(objectTypeExtension.Name.Value))
             {
                 entityPatterns.Add(
@@ -216,7 +227,7 @@ public static class SchemaHelper
 
     private static void AddDefaultScalarInfos(
         ISchemaBuilder schemaBuilder,
-        Dictionary<NameString, LeafTypeInfo> leafTypes)
+        Dictionary<string, LeafTypeInfo> leafTypes)
     {
         TryAddLeafType(leafTypes, ScalarNames.String, TypeNames.String);
         TryAddLeafType(leafTypes, ScalarNames.ID, TypeNames.String);
@@ -247,6 +258,11 @@ public static class SchemaHelper
             typeName: ScalarNames.Any,
             runtimeType: TypeNames.JsonDocument,
             serializationType: TypeNames.JsonElement);
+        TryAddLeafType(
+            leafTypes,
+            typeName: "Upload",
+            runtimeType: TypeNames.Upload,
+            serializationType: TypeNames.String);
 
         // register aliases
         schemaBuilder.AddType(new UrlType());
@@ -262,7 +278,7 @@ public static class SchemaHelper
         HotChocolate.Language.IHasDirectives directives,
         [NotNullWhen(true)] out SelectionSetNode? selectionSet)
     {
-        DirectiveNode? directive = directives.Directives.FirstOrDefault(IsKeyDirective);
+        var directive = directives.Directives.FirstOrDefault(IsKeyDirective);
 
         if (directive is not null)
         {
@@ -292,12 +308,12 @@ public static class SchemaHelper
         directive.Name.Value.Equals("key", StringComparison.Ordinal);
 
     private static void TryAddLeafType(
-        Dictionary<NameString, LeafTypeInfo> leafTypes,
-        NameString typeName,
+        Dictionary<string, LeafTypeInfo> leafTypes,
+        string typeName,
         string runtimeType,
         string serializationType = TypeNames.String)
     {
-        if (!leafTypes.TryGetValue(typeName, out LeafTypeInfo leafType))
+        if (!leafTypes.TryGetValue(typeName, out var leafType))
         {
             leafType = new LeafTypeInfo(typeName, runtimeType, serializationType);
             leafTypes.Add(typeName, leafType);

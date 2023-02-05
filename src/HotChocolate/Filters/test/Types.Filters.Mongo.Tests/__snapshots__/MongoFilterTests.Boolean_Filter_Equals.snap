@@ -1,8 +1,5 @@
 ﻿{
-  "Kind": "SingleResult",
-  "Label": null,
-  "Path": null,
-  "Data": {
+  "data": {
     "paging": {
       "nodes": [
         {
@@ -10,9 +7,5 @@
         }
       ]
     }
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null,
-  "HasNext": null
+  }
 }

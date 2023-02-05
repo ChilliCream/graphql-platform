@@ -34,7 +34,7 @@ internal static class TestHelpers
     {
         return (_, results, _) =>
         {
-            Span<Result<TValue>> span = results.Span;
+            var span = results.Span;
 
             for (var i = 0; i < results.Length; i++)
             {

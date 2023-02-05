@@ -1,13 +1,10 @@
 using System.Net;
-using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.AspNetCore;
 
@@ -22,10 +19,10 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_Config_Without_Options()
     {
         // arrange
-        TestServer server = CreateStarWarsServer();
+        var server = CreateStarWarsServer();
 
         // act
-        Result result = await GetAsync(server);
+        var result = await GetAsync(server);
 
         // assert
         result.MatchSnapshot();
@@ -35,10 +32,10 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_Config_Without_Options_Explicit_Route()
     {
         // arrange
-        TestServer server = CreateServer(b => b.MapBananaCakePop());
+        var server = CreateServer(b => b.MapBananaCakePop());
 
         // act
-        Result result = await GetAsync(server, "/graphql/ui");
+        var result = await GetAsync(server, "/graphql/ui");
 
         // assert
         result.MatchSnapshot();
@@ -48,14 +45,14 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_Config_Without_Options_Explicit_Route_Combined()
     {
         // arrange
-        TestServer server = CreateServer(b =>
+        var server = CreateServer(b =>
         {
             b.MapGraphQLHttp();
             b.MapBananaCakePop();
         });
 
         // act
-        Result result = await GetAsync(server, "/graphql/ui");
+        var result = await GetAsync(server, "/graphql/ui");
 
         // assert
         result.MatchSnapshot();
@@ -65,10 +62,10 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_Config_Without_Options_Explicit_Route_Explicit_Path()
     {
         // arrange
-        TestServer server = CreateServer(b => b.MapBananaCakePop("/foo/bar"));
+        var server = CreateServer(b => b.MapBananaCakePop("/foo/bar"));
 
         // act
-        Result result = await GetAsync(server, "/foo/bar");
+        var result = await GetAsync(server, "/foo/bar");
 
         // assert
         result.MatchSnapshot();
@@ -78,7 +75,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_When_Disabled()
     {
         // arrange
-        TestServer server = CreateStarWarsServer(
+        var server = CreateStarWarsServer(
             configureConventions: e => e.WithOptions(
                 new GraphQLServerOptions
                 {
@@ -86,7 +83,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
                 }));
 
         // act
-        Result result = await GetAsync(server);
+        var result = await GetAsync(server);
 
         // assert
         result.MatchSnapshot();
@@ -98,28 +95,27 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
         // arrange
         var options = new GraphQLServerOptions
         {
-            Tool =
+            Tool = {
+                Document = "# foo",
+                IncludeCookies = true,
+                HttpHeaders = new HeaderDictionary
                 {
-                    Document = "# foo",
-                    IncludeCookies = true,
-                    HttpHeaders = new HeaderDictionary
-                    {
-                        { "Content-Type", "application/json" }
-                    },
-                    HttpMethod = DefaultHttpMethod.Get,
-                    Enable = true,
-                    Title = "Hello",
-                    GaTrackingId = "GA-FOO",
-                    GraphQLEndpoint = "/foo/bar",
-                    UseBrowserUrlAsGraphQLEndpoint = true,
-                    DisableTelemetry = true
-                }
+                    { "Content-Type", "application/json" }
+                },
+                HttpMethod = DefaultHttpMethod.Get,
+                Enable = true,
+                Title = "Hello",
+                GaTrackingId = "GA-FOO",
+                GraphQLEndpoint = "/foo/bar",
+                UseBrowserUrlAsGraphQLEndpoint = true,
+                DisableTelemetry = true
+            }
         };
-        TestServer server = CreateStarWarsServer("/graphql",
+        var server = CreateStarWarsServer("/graphql",
             configureConventions: builder => builder.WithOptions(options));
 
         // act
-        Result result = await GetAsync(server);
+        var result = await GetAsync(server);
 
         // assert
         result.MatchSnapshot();
@@ -129,10 +125,10 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_MapBananaCakePop_Tool_Config()
     {
         // arrange
-        TestServer server = CreateServer(endpoint => endpoint.MapBananaCakePop());
+        var server = CreateServer(endpoint => endpoint.MapBananaCakePop());
 
         // act
-        Result result = await GetAsync(server, "/graphql/ui");
+        var result = await GetAsync(server, "/graphql/ui");
 
         // assert
         result.MatchSnapshot();
@@ -140,23 +136,23 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
 
     private async Task<Result> GetAsync(TestServer server, string url = "/graphql")
     {
-        HttpResponseMessage response = await server.CreateClient().GetAsync(
+        var response = await server.CreateClient().GetAsync(
             TestServerExtensions.CreateUrl($"{url}/bcp-config.json"));
         var content = await response.Content.ReadAsStringAsync();
 
         return new Result
         {
             Content = content,
-            ContentType = response.Content.Headers.ContentType,
+            ContentType = response.Content.Headers.ContentType!,
             StatusCode = response.StatusCode,
         };
     }
 
     private sealed class Result
     {
-        public string Content { get; set; }
+        public string Content { get; set; } = default!;
 
-        public MediaTypeHeaderValue ContentType { get; set; }
+        public MediaTypeHeaderValue ContentType { get; set; } = default!;
 
         public HttpStatusCode StatusCode { get; set; }
     }

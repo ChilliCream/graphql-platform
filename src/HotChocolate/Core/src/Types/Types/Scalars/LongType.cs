@@ -33,7 +33,7 @@ public class LongType
     /// Initializes a new instance of the <see cref="LongType"/> class.
     /// </summary>
     public LongType(
-        NameString name,
+        string name,
         string? description = null,
         long min = long.MinValue,
         long max = long.MaxValue,

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -12,7 +13,7 @@ public class InterfaceTypeDefinition
     , IComplexOutputTypeDefinition
 {
     private List<Type>? _knownClrTypes;
-    private List<ITypeReference>? _interfaces;
+    private List<TypeReference>? _interfaces;
 
     /// <summary>
     /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
@@ -23,12 +24,12 @@ public class InterfaceTypeDefinition
     /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
     /// </summary>
     public InterfaceTypeDefinition(
-        NameString name,
+        string name,
         string? description = null,
         Type? runtimeType = null)
         : base(runtimeType ?? typeof(object))
     {
-        Name = name;
+        Name = name.EnsureGraphQLName();
         Description = description;
     }
 
@@ -36,7 +37,7 @@ public class InterfaceTypeDefinition
 
     public ResolveAbstractType? ResolveAbstractType { get; set; }
 
-    public IList<ITypeReference> Interfaces => _interfaces ??= new List<ITypeReference>();
+    public IList<TypeReference> Interfaces => _interfaces ??= new List<TypeReference>();
 
     /// <summary>
     /// Specifies if this definition has interfaces.
@@ -56,7 +57,7 @@ public class InterfaceTypeDefinition
             configs.AddRange(Configurations);
         }
 
-        foreach (InterfaceFieldDefinition field in Fields)
+        foreach (var field in Fields)
         {
             if (field.HasConfigurations)
             {
@@ -66,7 +67,7 @@ public class InterfaceTypeDefinition
 
             if (field.HasArguments)
             {
-                foreach (ArgumentDefinition argument in field.Arguments)
+                foreach (var argument in field.Arguments)
                 {
                     if (argument.HasConfigurations)
                     {
@@ -90,11 +91,11 @@ public class InterfaceTypeDefinition
         return _knownClrTypes;
     }
 
-    internal IReadOnlyList<ITypeReference> GetInterfaces()
+    internal IReadOnlyList<TypeReference> GetInterfaces()
     {
         if (_interfaces is null)
         {
-            return Array.Empty<ITypeReference>();
+            return Array.Empty<TypeReference>();
         }
 
         return _interfaces;

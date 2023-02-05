@@ -46,7 +46,9 @@ public sealed class SelectionPathComponent
     }
 
     private static string SerializeArgument(ArgumentNode argument)
-        => $"{argument.Name.Value}: {SerializeValue(argument.Value)}";
+    {
+        return $"{argument.Name.Value}: {SerializeValue(argument.Value)}";
+    }
 
     private static string SerializeValue(IValueNode value)
     {

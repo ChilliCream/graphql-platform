@@ -18,7 +18,7 @@ public class QueryableStringNotInHandler : QueryableStringOperationHandler
         IValueNode value,
         object? parsedValue)
     {
-        Expression property = context.GetInstance();
+        var property = context.GetInstance();
 
         return FilterExpressionBuilder.Not(
             FilterExpressionBuilder.In(

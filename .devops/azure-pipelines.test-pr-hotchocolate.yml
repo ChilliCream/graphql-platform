@@ -133,6 +133,18 @@ stages:
             inputs:
               artifactName: test-results
               pathtoPublish: "output/test-results"
+      - job: TestHotChocolateFusion
+        displayName: src/HotChocolate/Fusion
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            inputs:
+              script: "./build.cmd TestHotChocolateFusion --skip --test-partition $(System.JobPositionInPhase)"
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
       - job: TestHotChocolateLanguage
         displayName: src/HotChocolate/Language
         steps:
@@ -217,6 +229,18 @@ stages:
             inputs:
               artifactName: test-results
               pathtoPublish: "output/test-results"
+      - job: TestHotChocolateCaching
+        displayName: src/HotChocolate/Caching
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            inputs:
+              script: "./build.cmd TestHotChocolateCaching --skip --test-partition $(System.JobPositionInPhase)"
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
       - job: TestStrawberryShakeClient
         displayName: src/StrawberryShake/Client
         steps:
@@ -236,18 +260,6 @@ stages:
             displayName: "Run Tests"
             inputs:
               script: "./build.cmd TestStrawberryShakeCodeGeneration --skip --test-partition $(System.JobPositionInPhase)"
-          - task: PublishBuildArtifacts@1
-            displayName: "Upload Test Results"
-            inputs:
-              artifactName: test-results
-              pathtoPublish: "output/test-results"
-      - job: TestStrawberryShakeSourceGenerator
-        displayName: src/StrawberryShake/SourceGenerator
-        steps:
-          - task: CmdLine@2
-            displayName: "Run Tests"
-            inputs:
-              script: "./build.cmd TestStrawberryShakeSourceGenerator --skip --test-partition $(System.JobPositionInPhase)"
           - task: PublishBuildArtifacts@1
             displayName: "Upload Test Results"
             inputs:

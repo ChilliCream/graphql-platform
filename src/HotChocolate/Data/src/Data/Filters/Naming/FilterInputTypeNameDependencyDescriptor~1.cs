@@ -9,11 +9,11 @@ internal sealed class FilterInputTypeNameDependencyDescriptor<T>
     : IFilterInputTypeNameDependencyDescriptor<T>
 {
     private readonly IFilterInputTypeDescriptor<T> _descriptor;
-    private readonly Func<INamedType, NameString> _createName;
+    private readonly Func<INamedType, string> _createName;
 
     public FilterInputTypeNameDependencyDescriptor(
         IFilterInputTypeDescriptor<T> descriptor,
-        Func<INamedType, NameString> createName)
+        Func<INamedType, string> createName)
     {
         _descriptor = descriptor ??
             throw new ArgumentNullException(nameof(descriptor));

@@ -35,22 +35,5 @@
       <DependentUpon>NodaTimeResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
-
-<!--  TODO: Discuss
-<ItemGroup>
-    <EmbeddedResource Update="ScalarResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>ScalarResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="ScalarResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ScalarResources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  -->
-
+  
 </Project>

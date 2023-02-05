@@ -1,10 +1,7 @@
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.Http.Headers;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
@@ -13,7 +10,7 @@ namespace HotChocolate.AspNetCore;
 /// <summary>
 /// Enables serving static files for a given request path
 /// </summary>
-public class ToolStaticFileMiddleware
+public sealed class ToolStaticFileMiddleware
 {
     private readonly IContentTypeProvider _contentTypeProvider;
     private readonly IFileProvider _fileProvider;
@@ -21,12 +18,8 @@ public class ToolStaticFileMiddleware
     private readonly RequestDelegate _next;
 
     /// <summary>
-    /// Creates a new instance of the StaticFileMiddleware.
+    /// Creates a new instance of the ToolStaticFileMiddleware.
     /// </summary>
-    /// <param name="next">The next middleware in the pipeline.</param>
-    /// <param name="hostingEnv">The <see cref="IWebHostEnvironment"/> used by this middleware.</param>
-    /// <param name="options">The configuration options.</param>
-    /// <param name="loggerFactory">An <see cref="ILoggerFactory"/> instance used to create loggers.</param>
     public ToolStaticFileMiddleware(
         RequestDelegate next,
         IFileProvider fileProvider,
@@ -51,12 +44,10 @@ public class ToolStaticFileMiddleware
     /// <summary>
     /// Processes a request to determine if it matches a known file, and if so, serves it.
     /// </summary>
-    /// <param name="context"></param>
-    /// <returns></returns>
     public Task Invoke(HttpContext context)
     {
         if (context.Request.IsGetOrHeadMethod() &&
-            context.Request.TryMatchPath(_matchUrl, false, out PathString subPath) &&
+            context.Request.TryMatchPath(_matchUrl, false, out var subPath) &&
             _contentTypeProvider.TryGetContentType(subPath.Value!, out var contentType) &&
             (context.GetGraphQLToolOptions()?.Enable ?? true))
         {
@@ -68,7 +59,7 @@ public class ToolStaticFileMiddleware
 
     private Task TryServeStaticFile(HttpContext context, string contentType, PathString subPath)
     {
-        if (LookupFileInfo(subPath, contentType, out StaticFileInfo fileInfo))
+        if (LookupFileInfo(subPath, contentType, out var fileInfo))
         {
             return SendAsync(context, fileInfo);
         }
@@ -81,21 +72,21 @@ public class ToolStaticFileMiddleware
         string contentType,
         out StaticFileInfo staticFileInfo)
     {
-        IFileInfo? fileInfo = _fileProvider.GetFileInfo(subPath.Value);
+        var fileInfo = _fileProvider.GetFileInfo(subPath);
 
         if (fileInfo.Exists)
         {
             var length = fileInfo.Length;
 
-            DateTimeOffset last = fileInfo.LastModified;
+            var last = fileInfo.LastModified;
 
             // Truncate to the second.
-            DateTimeOffset lastModified = new DateTimeOffset(
+            var lastModified = new DateTimeOffset(
                 last.Year, last.Month, last.Day, last.Hour,
                 last.Minute, last.Second, last.Offset)
                 .ToUniversalTime();
 
-            long etagHash = lastModified.ToFileTime() ^ length;
+            var etagHash = lastModified.ToFileTime() ^ length;
             var etag = new EntityTagHeaderValue('\"' + Convert.ToString(etagHash, 16) + '\"');
 
             staticFileInfo = new StaticFileInfo(fileInfo, etag, contentType);
@@ -106,14 +97,14 @@ public class ToolStaticFileMiddleware
         return false;
     }
 
-    private async Task SendAsync(HttpContext context, StaticFileInfo fileInfo)
+    private static async Task SendAsync(HttpContext context, StaticFileInfo fileInfo)
     {
         SetCompressionMode(context);
         context.Response.StatusCode = 200;
         context.Response.ContentLength = fileInfo.File.Length;
         context.Response.ContentType = fileInfo.ContentType;
 
-        ResponseHeaders headers = context.Response.GetTypedHeaders();
+        var headers = context.Response.GetTypedHeaders();
         headers.LastModified = fileInfo.File.LastModified;
         headers.ETag = fileInfo.EntityTagHeader;
         headers.Headers[HeaderNames.AcceptRanges] = "bytes";
@@ -132,7 +123,7 @@ public class ToolStaticFileMiddleware
         }
     }
 
-    private void SetCompressionMode(HttpContext context)
+    private static void SetCompressionMode(HttpContext context)
     {
         if (context.Features.Get<IHttpsCompressionFeature>() is { } c)
         {

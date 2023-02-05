@@ -1,12 +1,11 @@
 using HotChocolate.Types;
 
-namespace HotChocolate.CodeGeneration.Types
+namespace HotChocolate.CodeGeneration.Types;
+
+public class PagingKindType : EnumType<PagingKind>
 {
-    public class PagingKindType : EnumType<PagingKind>
+    protected override void Configure(IEnumTypeDescriptor<PagingKind> descriptor)
     {
-        protected override void Configure(IEnumTypeDescriptor<PagingKind> descriptor)
-        {
-            descriptor.Name("_PagingKind");
-        }
+        descriptor.Name("_PagingKind");
     }
 }

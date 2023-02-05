@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Properties;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.Sorting;
@@ -33,9 +32,9 @@ public sealed class SortEnumValue : ISortEnumValue
         }
 
         SyntaxNode = enumValueDefinition.SyntaxNode;
-        Name = enumValueDefinition.Name.HasValue
+        Name = !string.IsNullOrEmpty(enumValueDefinition.Name)
             ? enumValueDefinition.Name
-            : (NameString)enumValueDefinition.Value.ToString()!;
+            : enumValueDefinition.Value.ToString()!;
         Description = enumValueDefinition.Description;
         DeprecationReason = enumValueDefinition.DeprecationReason;
         IsDeprecated = enumValueDefinition.IsDeprecated;
@@ -44,13 +43,15 @@ public sealed class SortEnumValue : ISortEnumValue
         Handler = enumValueDefinition.Handler;
         Operation = enumValueDefinition.Operation;
 
-        _directives = new DirectiveCollection(this, enumValueDefinition!.GetDirectives());
-        _directives.CompleteCollection(completionContext);
+        _directives = DirectiveCollection.CreateAndComplete(
+            completionContext,
+            this,
+            enumValueDefinition.GetDirectives());
     }
 
     public EnumValueDefinitionNode? SyntaxNode { get; }
 
-    public NameString Name { get; }
+    public string Name { get; }
 
     public string? Description { get; }
 

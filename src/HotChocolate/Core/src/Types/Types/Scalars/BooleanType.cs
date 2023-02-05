@@ -28,7 +28,7 @@ public class BooleanType : ScalarType<bool, BooleanValueNode>
     /// Initializes a new instance of the <see cref="BooleanType"/> class.
     /// </summary>
     public BooleanType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)

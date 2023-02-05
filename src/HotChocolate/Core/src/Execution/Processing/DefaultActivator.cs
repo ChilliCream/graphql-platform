@@ -24,7 +24,7 @@ internal sealed class DefaultActivator : IActivator
     {
         if (_instances.Count > 0)
         {
-            foreach (Service service in _instances.Values)
+            foreach (var service in _instances.Values)
             {
                 service.Dispose();
             }
@@ -59,7 +59,7 @@ internal sealed class DefaultActivator : IActivator
 
             if (_type != typeof(object))
             {
-                services.TryGetService(_type, out object? value);
+                services.TryGetService(_type, out var value);
 
                 if (value is null && !_type.IsAbstract && !_type.IsInterface)
                 {

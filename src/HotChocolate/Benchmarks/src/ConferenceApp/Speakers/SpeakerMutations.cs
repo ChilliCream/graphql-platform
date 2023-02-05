@@ -41,7 +41,7 @@ namespace HotChocolate.ConferencePlanner.Speakers
                     new UserError("Name cannot be null", "NAME_NULL"));
             }
 
-            Speaker? speaker = await context.Speakers.FindAsync(input.Id);
+            var speaker = await context.Speakers.FindAsync(input.Id);
 
             if (speaker is null)
             {

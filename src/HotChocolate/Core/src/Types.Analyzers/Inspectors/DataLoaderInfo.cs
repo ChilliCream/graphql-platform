@@ -1,13 +1,65 @@
+using HotChocolate.Types.Analyzers.Helpers;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
 namespace HotChocolate.Types.Analyzers.Inspectors;
 
 public sealed class DataLoaderInfo : ISyntaxInfo, IEquatable<DataLoaderInfo>
 {
-    public DataLoaderInfo(string name)
+    public DataLoaderInfo(
+        AttributeSyntax attributeSyntax,
+        IMethodSymbol attributeSymbol,
+        IMethodSymbol methodSymbol,
+        MethodDeclarationSyntax methodSyntax)
     {
-        Name = name;
+        AttributeSyntax = attributeSyntax;
+        AttributeSymbol = attributeSymbol;
+        MethodSymbol = methodSymbol;
+        MethodSyntax = methodSyntax;
+
+        var attribute = methodSymbol.GetDataLoaderAttribute();
+
+        Name = GetDataLoaderName(methodSymbol.Name, attribute);
+        InterfaceName = $"I{Name}";
+        Namespace = methodSymbol.ContainingNamespace.ToDisplayString();
+        FullName = $"{Namespace}.{Name}";
+        InterfaceFullName = $"{Namespace}.{InterfaceName}";
+        IsScoped = attribute.IsScoped();
+        IsPublic = attribute.IsPublic();
+        IsInterfacePublic = attribute.IsInterfacePublic();
+        MethodName = methodSymbol.Name;
+
+        var type = methodSymbol.ContainingType;
+        ContainingType = type.ToDisplayString();
     }
 
     public string Name { get; }
+
+    public string FullName { get; }
+
+    public string Namespace { get; }
+
+    public string InterfaceName { get; }
+
+    public string InterfaceFullName { get; }
+
+    public string ContainingType { get; }
+
+    public string MethodName { get; }
+
+    public bool? IsScoped { get; }
+
+    public bool? IsPublic { get; }
+
+    public bool? IsInterfacePublic { get; }
+
+    public AttributeSyntax AttributeSyntax { get; }
+
+    public IMethodSymbol AttributeSymbol { get; }
+
+    public IMethodSymbol MethodSymbol { get; }
+
+    public MethodDeclarationSyntax MethodSyntax { get; }
 
     public bool Equals(DataLoaderInfo? other)
     {
@@ -21,19 +73,48 @@ public sealed class DataLoaderInfo : ISyntaxInfo, IEquatable<DataLoaderInfo>
             return true;
         }
 
-        return Name == other.Name;
+        return AttributeSyntax.Equals(other.AttributeSyntax) &&
+            MethodSyntax.Equals(other.MethodSyntax);
     }
 
     public override bool Equals(object? obj)
-        => ReferenceEquals(this, obj) ||
-            obj is DataLoaderInfo other && Equals(other);
+    {
+        return ReferenceEquals(this, obj)
+            || obj is DataLoaderInfo other && Equals(other);
+    }
 
     public override int GetHashCode()
-        => Name.GetHashCode();
+    {
+        unchecked
+        {
+            var hashCode = AttributeSyntax.GetHashCode();
+            hashCode = (hashCode * 397) ^ MethodSyntax.GetHashCode();
+            return hashCode;
+        }
+    }
 
-    public static bool operator ==(DataLoaderInfo? left, DataLoaderInfo? right)
-        => Equals(left, right);
+    private static string GetDataLoaderName(string name, AttributeData attribute)
+    {
+        if (attribute.TryGetName(out var s))
+        {
+            return s;
+        }
 
-    public static bool operator !=(DataLoaderInfo? left, DataLoaderInfo? right)
-        => !Equals(left, right);
+        if (name.StartsWith("Get"))
+        {
+            name = name.Substring(3);
+        }
+
+        if (name.EndsWith("Async"))
+        {
+            name = name.Substring(0, name.Length - 5);
+        }
+
+        if (name.EndsWith("DataLoader"))
+        {
+            return name;
+        }
+
+        return name + "DataLoader";
+    }
 }

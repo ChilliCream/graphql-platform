@@ -67,9 +67,9 @@ partial class Build
             TestHotChocolateSpatial,
             TestHotChocolateStitching,
             TestHotChocolateUtilities,
+            TestHotChocolateCaching,
             TestStrawberryShakeClient,
             TestStrawberryShakeCodeGeneration,
-            TestStrawberryShakeSourceGenerator,
             TestStrawberryShakeTooling);
 
     Target Cover => _ => _
@@ -98,7 +98,8 @@ partial class Build
             }
         });
 
-    Target ReportCoverage => _ => _.DependsOn(Restore)
+    Target ReportCoverage => _ => _
+        .DependsOn(Restore)
         .DependsOn(Cover)
         .Consumes(Cover)
         .Executes(() =>

@@ -1,19 +1,19 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Factories;
+using HotChocolate.Types.Helpers;
 using HotChocolate.Types.Interceptors;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
 using Microsoft.Extensions.DependencyInjection;
-
-#nullable enable
 
 namespace HotChocolate;
 
@@ -35,8 +35,7 @@ public partial class SchemaBuilder
         {
             try
             {
-                var schemaInterceptors = new List<ISchemaInterceptor>();
-                var typeInterceptors = new List<ITypeInitializationInterceptor>();
+                var typeInterceptors = new List<TypeInterceptor>();
 
                 if (context.Options.StrictRuntimeTypeValidation &&
                     !builder._typeInterceptors.Contains(typeof(TypeValidationTypeInterceptor)))
@@ -44,35 +43,35 @@ public partial class SchemaBuilder
                     builder._typeInterceptors.Add(typeof(TypeValidationTypeInterceptor));
                 }
 
-                InitializeInterceptors(
-                    context.Services,
-                    builder._schemaInterceptors,
-                    schemaInterceptors);
+                if (context.Options.EnableFlagEnums &&
+                    !builder._typeInterceptors.Contains(typeof(FlagsEnumInterceptor)))
+                {
+                    builder._typeInterceptors.Add(typeof(FlagsEnumInterceptor));
+                }
 
                 InitializeInterceptors(
                     context.Services,
                     builder._typeInterceptors,
                     typeInterceptors);
 
-                ((AggregateSchemaInterceptor)context.SchemaInterceptor)
-                    .SetInterceptors(schemaInterceptors);
-
                 ((AggregateTypeInterceptor)context.TypeInterceptor)
                     .SetInterceptors(typeInterceptors);
 
-                context.SchemaInterceptor.OnBeforeCreate(context, builder);
+                context.TypeInterceptor.OnBeforeCreateSchema(context, builder);
 
-                IReadOnlyList<ITypeReference> typeReferences =
-                    CreateTypeReferences(builder, context);
-
-                TypeRegistry typeRegistry = InitializeTypes(builder, context, typeReferences);
+                var typeReferences = CreateTypeReferences(builder, context);
+                var typeRegistry = InitializeTypes(builder, context, typeReferences);
 
                 return CompleteSchema(builder, context, lazySchema, typeRegistry);
             }
             catch (Exception ex)
             {
-                context.SchemaInterceptor.OnError(context, ex);
+                context.TypeInterceptor.OnCreateSchemaError(context, ex);
                 throw;
+            }
+            finally
+            {
+                TypeMemHelper.Clear();
             }
         }
 
@@ -80,9 +79,8 @@ public partial class SchemaBuilder
             SchemaBuilder builder,
             LazySchema lazySchema)
         {
-            IServiceProvider services = builder._services ?? new EmptyServiceProvider();
+            var services = builder._services ?? new EmptyServiceProvider();
 
-            var schemaInterceptor = new AggregateSchemaInterceptor();
             var typeInterceptor = new AggregateTypeInterceptor();
 
             var context = DescriptorContext.Create(
@@ -91,19 +89,18 @@ public partial class SchemaBuilder
                 builder._conventions,
                 builder._contextData,
                 lazySchema,
-                schemaInterceptor,
                 typeInterceptor);
 
             return context;
         }
 
-        private static IReadOnlyList<ITypeReference> CreateTypeReferences(
+        private static IReadOnlyList<TypeReference> CreateTypeReferences(
             SchemaBuilder builder,
             IDescriptorContext context)
         {
-            var types = new List<ITypeReference>();
+            var types = new List<TypeReference>();
 
-            foreach (CreateRef typeRef in builder._types)
+            foreach (var typeRef in builder._types)
             {
                 types.Add(typeRef(context.TypeInspector));
             }
@@ -120,17 +117,17 @@ public partial class SchemaBuilder
             return types;
         }
 
-        private static IEnumerable<ITypeReference> ParseDocuments(
+        private static IEnumerable<TypeReference> ParseDocuments(
             SchemaBuilder builder,
             IDescriptorContext context)
         {
-            var types = new List<ITypeReference>();
+            var types = new List<TypeReference>();
             var documents = new List<DocumentNode>();
             context.ContextData[WellKnownContextData.SchemaDocuments] = documents;
 
-            foreach (LoadSchemaDocument fetchSchema in builder._documents)
+            foreach (var fetchSchema in builder._documents)
             {
-                DocumentNode schemaDocument = fetchSchema(context.Services);
+                var schemaDocument = fetchSchema(context.Services);
                 schemaDocument = schemaDocument.RemoveBuiltInTypes();
                 documents.Add(schemaDocument);
 
@@ -155,7 +152,7 @@ public partial class SchemaBuilder
                     OperationType.Subscription,
                     visitorContext.SubscriptionTypeName);
 
-                IReadOnlyCollection<DirectiveNode> directives =
+                var directives =
                     visitorContext.Directives ?? Array.Empty<DirectiveNode>();
 
                 if (builder._schema is null
@@ -165,7 +162,7 @@ public partial class SchemaBuilder
                     builder.SetSchema(new Schema(d =>
                     {
                         d.Description(visitorContext.Description);
-                        foreach (DirectiveNode directive in directives)
+                        foreach (var directive in directives)
                         {
                             d.Directive(directive);
                         }
@@ -193,10 +190,10 @@ public partial class SchemaBuilder
         private static TypeRegistry InitializeTypes(
             SchemaBuilder builder,
             IDescriptorContext context,
-            IReadOnlyList<ITypeReference> types)
+            IReadOnlyList<TypeReference> types)
         {
             var typeRegistry = new TypeRegistry(context.TypeInterceptor);
-            TypeInitializer initializer =
+            var initializer =
                 CreateTypeInitializer(builder, context, types, typeRegistry);
             initializer.Initialize();
             return typeRegistry;
@@ -205,7 +202,7 @@ public partial class SchemaBuilder
         private static TypeInitializer CreateTypeInitializer(
             SchemaBuilder builder,
             IDescriptorContext context,
-            IReadOnlyList<ITypeReference> typeReferences,
+            IReadOnlyList<TypeReference> typeReferences,
             TypeRegistry typeRegistry)
         {
             var operations =
@@ -221,12 +218,12 @@ public partial class SchemaBuilder
                 type => GetOperationKind(type, context.TypeInspector, operations),
                 builder._options);
 
-            foreach (FieldMiddleware component in builder._globalComponents)
+            foreach (var component in builder._globalComponents)
             {
                 initializer.GlobalComponents.Add(component);
             }
 
-            foreach (KeyValuePair<Type, (CreateRef, CreateRef)> binding in builder._clrTypes)
+            foreach (var binding in builder._clrTypes)
             {
                 typeRegistry.TryRegister(
                     (ExtendedTypeReference)binding.Value.Item1(context.TypeInspector),
@@ -273,7 +270,7 @@ public partial class SchemaBuilder
         private static RootTypeKind GetOperationKind(
             TypeSystemObjectBase type,
             ITypeInspector typeInspector,
-            Dictionary<OperationType, ITypeReference> operations)
+            Dictionary<OperationType, TypeReference> operations)
         {
             if (type is ObjectType objectType)
             {
@@ -312,9 +309,9 @@ public partial class SchemaBuilder
             ObjectType objectType,
             OperationType operationType,
             ITypeInspector typeInspector,
-            Dictionary<OperationType, ITypeReference> operations)
+            Dictionary<OperationType, TypeReference> operations)
         {
-            if (operations.TryGetValue(operationType, out ITypeReference? typeRef))
+            if (operations.TryGetValue(operationType, out var typeRef))
             {
                 if (typeRef is SchemaTypeReference sr)
                 {
@@ -323,26 +320,26 @@ public partial class SchemaBuilder
 
                 if (typeRef is ExtendedTypeReference cr)
                 {
-                    return cr.Type == typeInspector.GetType(objectType.GetType())
-                        || cr.Type == typeInspector.GetType(objectType.RuntimeType);
+                    return cr.Type.Equals(typeInspector.GetType(objectType.GetType()))
+                        || cr.Type.Equals(typeInspector.GetType(objectType.RuntimeType));
                 }
 
                 if (typeRef is SyntaxTypeReference str)
                 {
-                    return objectType.Name.Equals(str.Type.NamedType().Name.Value);
+                    return objectType.Name.EqualsOrdinal(str.Type.NamedType().Name.Value);
                 }
             }
             else if (operationType == OperationType.Query)
             {
-                return objectType.Name.Equals(OperationTypeNames.Query);
+                return objectType.Name.EqualsOrdinal(OperationTypeNames.Query);
             }
             else if (operationType == OperationType.Mutation)
             {
-                return objectType.Name.Equals(OperationTypeNames.Mutation);
+                return objectType.Name.EqualsOrdinal(OperationTypeNames.Mutation);
             }
             else if (operationType == OperationType.Subscription)
             {
-                return objectType.Name.Equals(OperationTypeNames.Subscription);
+                return objectType.Name.EqualsOrdinal(OperationTypeNames.Subscription);
             }
 
             return false;
@@ -354,7 +351,7 @@ public partial class SchemaBuilder
             LazySchema lazySchema,
             TypeRegistry typeRegistry)
         {
-            SchemaTypesDefinition definition =
+            var definition =
                 CreateSchemaDefinition(builder, context, typeRegistry);
 
             if (definition.QueryType is null && builder._options.StrictValidation)
@@ -365,10 +362,10 @@ public partial class SchemaBuilder
                         .Build());
             }
 
-            Schema schema = typeRegistry.Types.Select(t => t.Type).OfType<Schema>().First();
+            var schema = typeRegistry.Types.Select(t => t.Type).OfType<Schema>().First();
             schema.CompleteSchema(definition);
             lazySchema.Schema = schema;
-            context.SchemaInterceptor.OnAfterCreate(context, schema);
+            context.TypeInterceptor.OnAfterCreateSchema(context, schema);
             return schema;
         }
 
@@ -400,8 +397,7 @@ public partial class SchemaBuilder
 
             ResolveOperations(definition, operations, typeRegistry);
 
-            IReadOnlyCollection<TypeSystemObjectBase> types =
-                RemoveUnreachableTypes(builder, typeRegistry, definition);
+            var types = RemoveUnreachableTypes(builder, typeRegistry, definition);
 
             definition.Types = types.OfType<INamedType>().Distinct().ToArray();
             definition.DirectiveTypes = types.OfType<DirectiveType>().Distinct().ToArray();
@@ -411,7 +407,7 @@ public partial class SchemaBuilder
 
         private static void ResolveOperations(
             SchemaTypesDefinition schemaDef,
-            Dictionary<OperationType, ITypeReference> operations,
+            Dictionary<OperationType, TypeReference> operations,
             TypeRegistry typeRegistry)
         {
             if (operations.Count == 0)
@@ -427,12 +423,12 @@ public partial class SchemaBuilder
                 schemaDef.SubscriptionType = GetOperationType(OperationType.Subscription);
             }
 
-            ObjectType? GetObjectType(NameString typeName)
+            ObjectType? GetObjectType(string typeName)
             {
-                foreach (RegisteredType registeredType in typeRegistry.Types)
+                foreach (var registeredType in typeRegistry.Types)
                 {
                     if (registeredType.Type is ObjectType objectType &&
-                        objectType.Name.Equals(typeName))
+                        objectType.Name.EqualsOrdinal(typeName))
                     {
                         return objectType;
                     }
@@ -443,7 +439,7 @@ public partial class SchemaBuilder
 
             ObjectType? GetOperationType(OperationType operation)
             {
-                if (operations.TryGetValue(operation, out ITypeReference? reference))
+                if (operations.TryGetValue(operation, out var reference))
                 {
                     if (reference is SchemaTypeReference sr)
                     {
@@ -451,18 +447,18 @@ public partial class SchemaBuilder
                     }
 
                     if (reference is ExtendedTypeReference cr &&
-                        typeRegistry.TryGetType(cr, out RegisteredType? registeredType))
+                        typeRegistry.TryGetType(cr, out var registeredType))
                     {
                         return (ObjectType)registeredType.Type;
                     }
 
                     if (reference is SyntaxTypeReference str)
                     {
-                        NamedTypeNode namedType = str.Type.NamedType();
+                        var namedType = str.Type.NamedType();
                         return typeRegistry.Types
                             .Select(t => t.Type)
                             .OfType<ObjectType>()
-                            .FirstOrDefault(t => t.Name.Equals(namedType.Name.Value));
+                            .FirstOrDefault(t => t.Name.EqualsOrdinal(namedType.Name.Value));
                     }
                 }
 
@@ -484,7 +480,7 @@ public partial class SchemaBuilder
                 return trimmer.Trim();
             }
 
-            return typeRegistry.Types.Select(t => t.Type).ToList();
+            return typeRegistry.Types.Select(t => t.Type).ToArray();
         }
     }
 }

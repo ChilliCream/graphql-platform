@@ -12,7 +12,7 @@ public class DelegateDirectiveTests
     public void Directive_Definition_PrintIsMtch()
     {
         // arrange
-        DocumentNode schemaDocument = SchemaBuilder.New()
+        var schemaDocument = SchemaBuilder.New()
             .ModifyOptions(x => x.StrictValidation = false)
             .AddDirectiveType<DelegateDirectiveType>()
             .Create()

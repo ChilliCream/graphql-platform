@@ -23,8 +23,8 @@ public class MongoDbOffsetPagingProviderTests
     {
         // arrange
         var provider = new MongoDbOffsetPagingProvider();
-        MethodInfo member = typeof(MongoDbOffsetPagingProviderTests).GetMethod(methodName)!;
-        IExtendedType type = new DefaultTypeInspector().GetReturnType(member);
+        var member = typeof(MongoDbOffsetPagingProviderTests).GetMethod(methodName)!;
+        var type = new DefaultTypeInspector().GetReturnType(member);
 
         // act
         var result = provider.CanHandle(type);

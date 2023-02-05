@@ -8,21 +8,21 @@ public class SyntaxParserHelperTests
     [Fact]
     public static void ParseField()
     {
-        FieldNode field = Utf8GraphQLParser.Syntax.ParseField("foo");
+        var field = Utf8GraphQLParser.Syntax.ParseField("foo");
         Assert.Equal("foo", field.Name.Value);
     }
 
     [Fact]
     public static void ParseCompositeField()
     {
-        FieldNode field = Utf8GraphQLParser.Syntax.ParseField("foo { bar }");
+        var field = Utf8GraphQLParser.Syntax.ParseField("foo { bar }");
         Assert.Equal("foo", field.Name.Value);
     }
 
     [Fact]
     public static void ParseSelectionSet()
     {
-        SelectionSetNode selectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet("{ bar }");
+        var selectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet("{ bar }");
         Assert.Collection(
             selectionSet.Selections,
             field => Assert.Equal("bar",
@@ -32,14 +32,14 @@ public class SyntaxParserHelperTests
     [Fact]
     public static void ParseValueLiteral()
     {
-        IValueNode literal = Utf8GraphQLParser.Syntax.ParseValueLiteral("BAZ");
+        var literal = Utf8GraphQLParser.Syntax.ParseValueLiteral("BAZ");
         Assert.IsType<EnumValueNode>(literal);
     }
 
     [Fact]
     public static void ParseVariable()
     {
-        IValueNode literal = Utf8GraphQLParser.Syntax.ParseValueLiteral("$foo", false);
+        var literal = Utf8GraphQLParser.Syntax.ParseValueLiteral("$foo", false);
         Assert.IsType<VariableNode>(literal);
     }
 
@@ -47,10 +47,10 @@ public class SyntaxParserHelperTests
     public static void ParseTypeReference()
     {
         // arrange
-        string sourceText = "[[String!]]";
+        var sourceText = "[[String!]]";
 
         // act
-        ITypeNode type = Utf8GraphQLParser.Syntax.ParseTypeReference(sourceText);
+        var type = Utf8GraphQLParser.Syntax.ParseTypeReference(sourceText);
 
         // assert
         Assert.Equal(
@@ -65,10 +65,10 @@ public class SyntaxParserHelperTests
     public static void ParseTypeReference_Span()
     {
         // arrange
-        byte[] sourceText = Encoding.UTF8.GetBytes("[[String!]]");
+        var sourceText = Encoding.UTF8.GetBytes("[[String!]]");
 
         // act
-        ITypeNode type = Utf8GraphQLParser.Syntax.ParseTypeReference(sourceText);
+        var type = Utf8GraphQLParser.Syntax.ParseTypeReference(sourceText);
 
         // assert
         Assert.Equal(
@@ -83,12 +83,12 @@ public class SyntaxParserHelperTests
     public static void ParseTypeReference_Reader()
     {
         // arrange
-        byte[] sourceText = Encoding.UTF8.GetBytes("[[String!]]");
+        var sourceText = Encoding.UTF8.GetBytes("[[String!]]");
         var reader = new Utf8GraphQLReader(sourceText);
         reader.MoveNext();
 
         // act
-        ITypeNode type = Utf8GraphQLParser.Syntax.ParseTypeReference(reader);
+        var type = Utf8GraphQLParser.Syntax.ParseTypeReference(reader);
 
         // assert
         Assert.Equal(

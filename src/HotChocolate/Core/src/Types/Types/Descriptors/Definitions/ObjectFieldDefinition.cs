@@ -3,7 +3,9 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -16,7 +18,8 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 public class ObjectFieldDefinition : OutputFieldDefinitionBase
 {
     private List<FieldMiddlewareDefinition>? _middlewareDefinitions;
-    private List<ResultConverterDefinition>? _resultConverters;
+    private List<ResultFormatterDefinition>? _resultConverters;
+    private List<IParameterExpressionBuilder>? _expressionBuilders;
     private List<object>? _customSettings;
     private bool _middlewareDefinitionsCleaned;
     private bool _resultConvertersCleaned;
@@ -24,23 +27,27 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     /// <summary>
     /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
     /// </summary>
-    public ObjectFieldDefinition() { }
+    public ObjectFieldDefinition()
+    {
+        IsParallelExecutable = true;
+    }
 
     /// <summary>
     /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
     /// </summary>
     public ObjectFieldDefinition(
-        NameString name,
+        string name,
         string? description = null,
-        ITypeReference? type = null,
+        TypeReference? type = null,
         FieldResolverDelegate? resolver = null,
         PureFieldDelegate? pureResolver = null)
     {
-        Name = name;
+        Name = name.EnsureGraphQLName();
         Description = description;
         Type = type;
         Resolver = resolver;
         PureResolver = pureResolver;
+        IsParallelExecutable = true;
     }
 
     /// <summary>
@@ -77,6 +84,11 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     /// The result type of the resolver.
     /// </summary>
     public Type? ResultType { get; set; }
+
+    /// <summary>
+    /// The member name that represents the event stream factory.
+    /// </summary>
+    public string? SubscribeWith { get; set; }
 
     /// <summary>
     /// The delegate that represents the resolver.
@@ -120,19 +132,31 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     }
 
     /// <summary>
-    /// A list of converters that can transform the resolver result.
+    /// A list of formatters that can transform the resolver result.
     /// </summary>
-    public IList<ResultConverterDefinition> ResultConverters
+    public IList<ResultFormatterDefinition> FormatterDefinitions
     {
         get
         {
             _resultConvertersCleaned = false;
-            return _resultConverters ??= new List<ResultConverterDefinition>();
+            return _resultConverters ??= new List<ResultFormatterDefinition>();
         }
     }
 
     /// <summary>
-    /// A list of custom settings objects that can be user in the type interceptors.
+    /// A list of parameter expression builders that shall be applied when compiling
+    /// the resolver or when arguments are inferred from a method.
+    /// </summary>
+    public IList<IParameterExpressionBuilder> ParameterExpressionBuilders
+    {
+        get
+        {
+            return _expressionBuilders ??= new List<IParameterExpressionBuilder>();
+        }
+    }
+
+    /// <summary>
+    /// A list of custom settings objects that can be used in the type interceptors.
     /// Custom settings are not copied to the actual type system object.
     /// </summary>
     public IList<object> CustomSettings
@@ -141,12 +165,60 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     /// <summary>
     /// Defines if this field configuration represents an introspection field.
     /// </summary>
-    public bool IsIntrospectionField { get; internal set; }
+    public bool IsIntrospectionField
+    {
+        get => (Flags & FieldFlags.Introspection) == FieldFlags.Introspection;
+        internal set
+        {
+            if (value)
+            {
+                Flags |= FieldFlags.Introspection;
+            }
+            else
+            {
+                Flags &= ~FieldFlags.Introspection;
+            }
+        }
+    }
 
     /// <summary>
     /// Defines if this field can be executed in parallel with other fields.
     /// </summary>
-    public bool IsParallelExecutable { get; set; } = true;
+    public bool IsParallelExecutable
+    {
+        get => (Flags & FieldFlags.ParallelExecutable) == FieldFlags.ParallelExecutable;
+        set
+        {
+            if (value)
+            {
+                Flags |= FieldFlags.ParallelExecutable;
+            }
+            else
+            {
+                Flags &= ~FieldFlags.ParallelExecutable;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Defines that the resolver pipeline returns an
+    /// <see cref="IAsyncEnumerable{T}"/> as its result.
+    /// </summary>
+    public bool HasStreamResult
+    {
+        get => (Flags & FieldFlags.Stream) == FieldFlags.Stream;
+        set
+        {
+            if (value)
+            {
+                Flags |= FieldFlags.Stream;
+            }
+            else
+            {
+                Flags &= ~FieldFlags.Stream;
+            }
+        }
+    }
 
     /// <summary>
     /// A list of middleware components which will be used to form the field pipeline.
@@ -166,16 +238,30 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     /// <summary>
     /// A list of converters that can transform the resolver result.
     /// </summary>
-    internal IReadOnlyList<ResultConverterDefinition> GetResultConverters()
+    internal IReadOnlyList<ResultFormatterDefinition> GetResultConverters()
     {
         if (_resultConverters is null)
         {
-            return Array.Empty<ResultConverterDefinition>();
+            return Array.Empty<ResultFormatterDefinition>();
         }
 
         CleanMiddlewareDefinitions(_resultConverters, ref _resultConvertersCleaned);
 
         return _resultConverters;
+    }
+
+    /// <summary>
+    /// A list of parameter expression builders that shall be applied when compiling
+    /// the resolver or when arguments are inferred from a method.
+    /// </summary>
+    internal IReadOnlyList<IParameterExpressionBuilder> GetParameterExpressionBuilders()
+    {
+        if (_expressionBuilders is null)
+        {
+            return Array.Empty<IParameterExpressionBuilder>();
+        }
+
+        return _expressionBuilders;
     }
 
     /// <summary>
@@ -211,6 +297,11 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
             _resultConvertersCleaned = false;
         }
 
+        if (_expressionBuilders is { Count: > 0 })
+        {
+            target._expressionBuilders = new(_expressionBuilders);
+        }
+
         if (_customSettings is { Count: > 0 })
         {
             target._customSettings = new(_customSettings);
@@ -228,6 +319,8 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
         target.SubscribeResolver = SubscribeResolver;
         target.IsIntrospectionField = IsIntrospectionField;
         target.IsParallelExecutable = IsParallelExecutable;
+        target.HasStreamResult = HasStreamResult;
+        target.SubscribeWith = SubscribeWith;
     }
 
     internal void MergeInto(ObjectFieldDefinition target)
@@ -243,9 +336,15 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
 
         if (_resultConverters is { Count: > 0 })
         {
-            target._resultConverters ??= new List<ResultConverterDefinition>();
+            target._resultConverters ??= new List<ResultFormatterDefinition>();
             target._resultConverters.AddRange(_resultConverters);
             _resultConvertersCleaned = false;
+        }
+
+        if (_expressionBuilders is { Count: > 0 })
+        {
+            target._expressionBuilders ??= new List<IParameterExpressionBuilder>();
+            target._expressionBuilders.AddRange(_expressionBuilders);
         }
 
         if (_customSettings is { Count: > 0 })
@@ -257,6 +356,11 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
         if (!IsParallelExecutable)
         {
             target.IsParallelExecutable = false;
+        }
+
+        if (!HasStreamResult)
+        {
+            target.HasStreamResult = false;
         }
 
         if (ResolverType is not null)
@@ -298,6 +402,11 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
         {
             target.SubscribeResolver = SubscribeResolver;
         }
+
+        if (SubscribeWith is not null)
+        {
+            target.SubscribeWith = SubscribeWith;
+        }
     }
 
     private static void CleanMiddlewareDefinitions<T>(
@@ -336,9 +445,9 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
             {
                 var nonRepeatable = 0;
 
-                foreach (T def in definitions)
+                foreach (var def in definitions)
                 {
-                    if (!def.IsRepeatable && def.Key is not null)
+                    if (def is { IsRepeatable: false, Key: not null })
                     {
                         nonRepeatable++;
                     }
@@ -375,7 +484,6 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
                             keys[ki++] = def.Key;
                             i++;
                         }
-
                     } while (i < count);
 
                     ArrayPool<string>.Shared.Return(keys);
@@ -385,4 +493,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
             }
         }
     }
+
+    internal bool CustomSettingExists(object value)
+        => _customSettings is not null && _customSettings.Contains(value);
 }

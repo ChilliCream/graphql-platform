@@ -1,33 +1,32 @@
 using HotChocolate.Types;
 
-namespace HotChocolate.CodeGeneration.Types
+namespace HotChocolate.CodeGeneration.Types;
+
+public class PagingDirectiveType : DirectiveType<PagingDirective>
 {
-    public class PagingDirectiveType : DirectiveType<PagingDirective>
+    protected override void Configure(IDirectiveTypeDescriptor<PagingDirective> descriptor)
     {
-        protected override void Configure(IDirectiveTypeDescriptor<PagingDirective> descriptor)
-        {
-            descriptor
-                .Name("paging")
-                .Location(DirectiveLocation.Object | DirectiveLocation.Schema);
+        descriptor
+            .Name("paging")
+            .Location(DirectiveLocation.Object | DirectiveLocation.Schema);
 
-            descriptor
-                .Argument(t => t.Kind)
-                .Type<PagingKindType>();
+        descriptor
+            .Argument(t => t.Kind)
+            .Type<PagingKindType>();
 
-            descriptor
-                .Argument(t => t.DefaultPageSize)
-                .Type<IntType>()
-                .DefaultValue(10);
+        descriptor
+            .Argument(t => t.DefaultPageSize)
+            .Type<IntType>()
+            .DefaultValue(10);
 
-            descriptor
-                .Argument(t => t.MaxPageSize)
-                .Type<IntType>()
-                .DefaultValue(50);
+        descriptor
+            .Argument(t => t.MaxPageSize)
+            .Type<IntType>()
+            .DefaultValue(50);
 
-            descriptor
-                .Argument(t => t.IncludeTotalCount)
-                .Type<BooleanType>()
-                .DefaultValue(false);
-        }
+        descriptor
+            .Argument(t => t.IncludeTotalCount)
+            .Type<BooleanType>()
+            .DefaultValue(false);
     }
 }

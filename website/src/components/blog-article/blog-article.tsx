@@ -3,14 +3,17 @@ import { GatsbyImage } from "gatsby-plugin-image";
 import { MDXRenderer } from "gatsby-plugin-mdx";
 import React, { FC } from "react";
 import styled from "styled-components";
-import { BlogArticleFragment } from "../../../graphql-types";
-import { Article } from "../articles/article";
-import { ArticleComments } from "../articles/article-comments";
+
+import { Article } from "@/components/articles/article";
+import { ArticleComments } from "@/components/articles/article-comments";
 import {
   ArticleContent,
   ArticleHeader,
+  ArticleHeaderVideoContainer,
   ArticleTitle,
-} from "../articles/article-elements";
+  ArticleVideo,
+} from "@/components/articles/article-elements";
+import { BlogArticleFragment } from "@/graphql-types";
 import { BlogArticleMetadata } from "./blog-article-metadata";
 import { BlogArticleSharebar } from "./blog-article-sharebar";
 import { BlogArticleTags } from "./blog-article-tags";
@@ -29,6 +32,7 @@ export const BlogArticle: FC<BlogArticleProps> = ({ data }) => {
     : [];
   const featuredImage =
     frontmatter!.featuredImage?.childImageSharp?.gatsbyImageData;
+  const featuredVideoId = frontmatter!.featuredVideoId;
 
   return (
     <Container>
@@ -36,7 +40,14 @@ export const BlogArticle: FC<BlogArticleProps> = ({ data }) => {
       <ArticleWrapper>
         <Article>
           <ArticleHeader kind="blog">
-            {featuredImage && <GatsbyImage image={featuredImage} alt={title} />}
+            {featuredVideoId && (
+              <ArticleHeaderVideoContainer>
+                <ArticleVideo videoId={featuredVideoId} />
+              </ArticleHeaderVideoContainer>
+            )}
+            {featuredImage && !featuredVideoId && (
+              <GatsbyImage image={featuredImage} alt={title} />
+            )}
             <ArticleTitle>{title}</ArticleTitle>
             <BlogArticleMetadata data={mdx!} />
             <BlogArticleTags tags={existingTags} />
@@ -61,8 +72,10 @@ export const BlogArticleGraphQLFragment = graphql`
             gatsbyImageData(layout: CONSTRAINED, width: 800, quality: 100)
           }
         }
+        featuredVideoId
         path
         title
+        description
         ...BlogArticleTags
       }
       body

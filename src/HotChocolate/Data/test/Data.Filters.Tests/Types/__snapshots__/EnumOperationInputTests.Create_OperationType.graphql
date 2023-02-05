@@ -1,0 +1,19 @@
+schema {
+  query: Query
+}
+
+type Query {
+  foo(test: FooBarOperationFilterInput): String
+}
+
+input FooBarOperationFilterInput {
+  eq: FooBar
+  neq: FooBar
+  in: [FooBar!]
+  nin: [FooBar!]
+}
+
+enum FooBar {
+  FOO
+  BAR
+}

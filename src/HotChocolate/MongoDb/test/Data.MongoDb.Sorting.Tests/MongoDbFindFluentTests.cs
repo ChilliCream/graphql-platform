@@ -1,5 +1,4 @@
-using System;
-using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -10,7 +9,6 @@ using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 using Squadron;
-using Xunit;
 
 namespace HotChocolate.Data.MongoDb.Sorting;
 
@@ -18,21 +16,22 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
 {
     private static readonly Foo[] _fooEntities =
     {
-            new Foo { Bar = true }, new Foo { Bar = false }
-        };
+        new() { Bar = true },
+        new() { Bar = false }
+    };
 
     private static readonly Bar[] _barEntities =
     {
-            new Bar { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
-            new Bar { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) }
-        };
+        new() { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
+        new() { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) }
+    };
 
     private static readonly Baz[] _bazEntities =
     {
-            new Baz { Bar = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero), Qux = 1 },
-            new Baz { Bar = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero), Qux = 0 },
-            new Baz { Bar = new DateTimeOffset(1996, 1, 11, 0, 0, 0, TimeSpan.Zero), Qux = -1 }
-        };
+        new() { Bar = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero), Qux = 1 },
+        new() { Bar = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero), Qux = 0 },
+        new() { Bar = new DateTimeOffset(1996, 1, 11, 0, 0, 0, TimeSpan.Zero), Qux = -1 }
+    };
 
     private readonly MongoResource _resource;
 
@@ -45,10 +44,10 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
     public async Task BsonElement_Rename()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema(
+        var tester = CreateSchema(
             () =>
             {
-                IMongoCollection<Foo> collection =
+                var collection =
                     _resource.CreateCollection<Foo>("data_" + Guid.NewGuid().ToString("N"));
 
                 collection.InsertMany(_fooEntities);
@@ -56,19 +55,22 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
             });
 
         // act
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { bar: ASC}){ bar}}")
                 .Create());
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { bar: DESC}){ bar}}")
                 .Create());
 
         // assert
-        res1.MatchDocumentSnapshot("ASC");
-        res2.MatchDocumentSnapshot("DESC");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
+            .MatchAsync();
     }
 
     [Fact]
@@ -80,10 +82,10 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
                 .SetSerializer(new DateTimeOffsetSerializer(BsonType.String))
                 .SetElementName("testName"));
 
-        IRequestExecutor tester = CreateSchema(
+        var tester = CreateSchema(
             () =>
             {
-                IMongoCollection<Bar> collection =
+                var collection =
                     _resource.CreateCollection<Bar>("data_" + Guid.NewGuid().ToString("N"));
 
                 collection.InsertMany(_barEntities);
@@ -91,29 +93,32 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
             });
 
         // act
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { baz: ASC}){ baz}}")
                 .Create());
 
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { baz: DESC}){ baz}}")
                 .Create());
 
         // assert
-        res1.MatchDocumentSnapshot("ASC");
-        res2.MatchDocumentSnapshot("DESC");
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
+            .MatchAsync();
     }
 
     [Fact]
     public async Task FindFluent_CombineQuery()
     {
         // arrange
-        IRequestExecutor tester = CreateSchema(
+        var tester = CreateSchema(
             () =>
             {
-                IMongoCollection<Baz> collection =
+                var collection =
                     _resource.CreateCollection<Baz>("data_" + Guid.NewGuid().ToString("N"));
 
                 collection.InsertMany(_bazEntities);
@@ -125,20 +130,22 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
             });
 
         // act
-        // assert
-        IExecutionResult res1 = await tester.ExecuteAsync(
+        var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { bar: ASC}){ bar}}")
                 .Create());
 
-        res1.MatchDocumentSnapshot("ASC");
-
-        IExecutionResult res2 = await tester.ExecuteAsync(
+        var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(order: { bar: DESC}){ bar}}")
                 .Create());
 
-        res2.MatchDocumentSnapshot("DESC");
+        // assert
+        await SnapshotExtensions.AddResult(
+                SnapshotExtensions.AddResult(
+                    Snapshot
+                        .Create(), res1, "ASC"), res2, "DESC")
+            .MatchAsync();
     }
 
     public class Foo

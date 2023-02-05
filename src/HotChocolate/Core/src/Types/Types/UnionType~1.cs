@@ -8,8 +8,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types;
 
-public class UnionType<T>
-    : UnionType
+public class UnionType<T> : UnionType
 {
     private Action<IUnionTypeDescriptor>? _configure;
 
@@ -33,27 +32,5 @@ public class UnionType<T>
         _configure = null;
 
         return descriptor.CreateDefinition();
-    }
-
-    protected override void OnCompleteTypeSet(
-        ITypeCompletionContext context,
-        UnionTypeDefinition definition,
-        ISet<ObjectType> typeSet)
-    {
-        base.OnCompleteTypeSet(context, definition, typeSet);
-
-        Type markerType = definition.RuntimeType;
-
-        if (markerType != typeof(object))
-        {
-            foreach (ObjectType type in context.GetTypes<ObjectType>())
-            {
-                if (type.RuntimeType != typeof(object)
-                    && markerType.IsAssignableFrom(type.RuntimeType))
-                {
-                    typeSet.Add(type);
-                }
-            }
-        }
     }
 }

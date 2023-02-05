@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace StrawberryShake.Serialization;
 
 public class ByteArraySerializerTests
@@ -15,7 +13,7 @@ public class ByteArraySerializerTests
         byte[] buffer = { 1 };
 
         // act
-        byte[] result = Serializer.Parse(buffer);
+        var result = Serializer.Parse(buffer);
 
         // assert
         Assert.Same(buffer, result);
@@ -27,7 +25,7 @@ public class ByteArraySerializerTests
         // arrange
 
         // act
-        object? result = Serializer.Format(null);
+        var result = Serializer.Format(null);
 
         // assert
         Assert.Null(result);
@@ -40,7 +38,7 @@ public class ByteArraySerializerTests
         byte[] buffer = { 1 };
 
         // act
-        object? result = Serializer.Format(buffer);
+        var result = Serializer.Format(buffer);
 
         // assert
         Assert.Same(buffer, result);
@@ -52,7 +50,7 @@ public class ByteArraySerializerTests
         // arrange
 
         // act
-        string typeName = Serializer.TypeName;
+        var typeName = Serializer.TypeName;
 
         // assert
         Assert.Equal("ByteArray", typeName);
@@ -64,7 +62,7 @@ public class ByteArraySerializerTests
         // arrange
 
         // act
-        string typeName = CustomSerializer.TypeName;
+        var typeName = CustomSerializer.TypeName;
 
         // assert
         Assert.Equal("Abc", typeName);

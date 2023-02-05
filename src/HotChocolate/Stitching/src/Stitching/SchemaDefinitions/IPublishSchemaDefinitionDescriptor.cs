@@ -15,7 +15,7 @@ public interface IPublishSchemaDefinitionDescriptor
     /// <returns>
     /// Returns the <see cref="IPublishSchemaDefinitionDescriptor"/>
     /// </returns>
-    IPublishSchemaDefinitionDescriptor SetName(NameString name);
+    IPublishSchemaDefinitionDescriptor SetName(string  name);
 
     IPublishSchemaDefinitionDescriptor AddTypeExtensionsFromFile(
         string fileName);
@@ -33,14 +33,14 @@ public interface IPublishSchemaDefinitionDescriptor
     IPublishSchemaDefinitionDescriptor IgnoreRootTypes();
 
     IPublishSchemaDefinitionDescriptor IgnoreType(
-        NameString typeName);
+        string typeName);
 
     IPublishSchemaDefinitionDescriptor RenameType(
-        NameString typeName,
-        NameString newTypeName);
+        string typeName,
+        string newTypeName);
 
     IPublishSchemaDefinitionDescriptor RenameField(
-        NameString typeName,
-        NameString fieldName,
-        NameString newFieldName);
+        string typeName,
+        string fieldName,
+        string newFieldName);
 }

@@ -22,23 +22,7 @@ public interface IFilterConvention : IConvention
     /// <returns>
     /// Returns the GraphQL type name that was inferred from the <paramref name="runtimeType"/>.
     /// </returns>
-    NameString GetTypeName(Type runtimeType);
-
-    /// <summary>
-    /// Gets the GraphQL type name for a inline type based on the field definition and the
-    /// parent type name.
-    /// </summary>
-    /// <param name="parentType">
-    /// The parent type of the field that refrences the new type.
-    /// </param>
-    /// <param name="fieldDefinition">
-    /// The definition of the field that refrences the new type.
-    /// </param>
-    /// <returns>
-    /// Returns the GraphQL type name that was inferred from the <paramref name="parentType"/> and
-    /// the <paramref name="fieldDefinition"/>.
-    /// </returns>
-    NameString GetTypeName(IFilterInputType parentType, FilterFieldDefinition fieldDefinition);
+    string GetTypeName(Type runtimeType);
 
     /// <summary>
     /// Gets the GraphQL type description from a runtime type.
@@ -61,7 +45,7 @@ public interface IFilterConvention : IConvention
     /// <returns>
     /// Returns the GraphQL field name that was inferred from the <see cref="MemberInfo"/>.
     /// </returns>
-    NameString GetFieldName(MemberInfo member);
+    string GetFieldName(MemberInfo member);
 
     /// <summary>
     /// Gets the GraphQL field description from a <see cref="MemberInfo"/>.
@@ -95,7 +79,7 @@ public interface IFilterConvention : IConvention
     /// <returns>
     /// Returns the operation name.
     /// </returns>
-    NameString GetOperationName(int operationId);
+    string GetOperationName(int operationId);
 
     /// <summary>
     /// Gets the operation description for the provided <paramref name="operationId"/>.
@@ -114,7 +98,7 @@ public interface IFilterConvention : IConvention
     /// <returns>
     /// Returns the filter argument name.
     /// </returns>
-    NameString GetArgumentName();
+    string GetArgumentName();
 
     /// <summary>
     /// Applies configurations to a filter type.
@@ -126,7 +110,7 @@ public interface IFilterConvention : IConvention
     /// The descriptor to which the configurations shall be applied to.
     /// </param>
     void ApplyConfigurations(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         IFilterInputTypeDescriptor descriptor);
 
     bool TryGetHandler(

@@ -2,7 +2,6 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Resolvers;
-using HotChocolate.Resolvers.Expressions;
 
 #nullable enable
 
@@ -35,16 +34,14 @@ public abstract class CustomParameterExpressionBuilder : IParameterExpressionBui
     /// <summary>
     /// Builds an expression that resolves a resolver parameter.
     /// </summary>
-    /// <param name="parameter">
-    /// The parameter that needs to be resolved.
-    /// </param>
     /// <param name="context">
-    /// An expression that represents the resolver context.
+    /// The parameter expression builder context.
     /// </param>
     /// <returns>
-    /// Returns an expression that resolves the value for this <paramref name="parameter"/>.
+    /// Returns an expression the handles the value injection into the parameter specified by
+    /// <see cref="ParameterExpressionBuilderContext.Parameter"/>.
     /// </returns>
-    public abstract Expression Build(ParameterInfo parameter, Expression context);
+    public abstract Expression Build(ParameterExpressionBuilderContext context);
 }
 
 /// <summary>
@@ -87,9 +84,29 @@ public sealed class CustomParameterExpressionBuilder<TArg> : CustomParameterExpr
 
     }
 
+    /// <summary>
+    /// Checks if this expression builder can handle the following parameter.
+    /// </summary>
+    /// <param name="parameter">
+    /// The parameter that needs to be resolved.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the parameter can be handled by this expression builder;
+    /// otherwise <c>false</c>.
+    /// </returns>
     public override bool CanHandle(ParameterInfo parameter)
         => _canHandle(parameter);
 
-    public override Expression Build(ParameterInfo parameter, Expression context)
-        => Expression.Invoke(_expression, context);
+    /// <summary>
+    /// Builds an expression that resolves a resolver parameter.
+    /// </summary>
+    /// <param name="context">
+    /// The parameter expression builder context.
+    /// </param>
+    /// <returns>
+    /// Returns an expression the handles the value injection into the parameter specified by
+    /// <see cref="ParameterExpressionBuilderContext.Parameter"/>.
+    /// </returns>
+    public override Expression Build(ParameterExpressionBuilderContext context)
+        => Expression.Invoke(_expression, context.ResolverContext);
 }

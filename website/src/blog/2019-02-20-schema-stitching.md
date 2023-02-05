@@ -493,7 +493,7 @@ services.AddStitchedSchema(builder => builder
   })
 ```
 
-> There are also methods for renaming types and fields where the stitching engine will take care that the schema is consitently rewritten so that all the type references will refer to the corrent new type/field name.
+> There are also methods for renaming types and fields where the stitching engine will take care that the schema is consistently rewritten so that all the type references will refer to the current new type/field name.
 
 With that we have removed the types from our stitched schema. Now, let us move on to extend our message type.
 
@@ -861,7 +861,7 @@ Stitching queries is straight forward and works like described earlier. Mutation
 
 Query resolvers are executed in parallel when possible. All fields of a query have to be side-effect free.
 
-https://facebook.github.io/graphql/June2018/#sec-Normal-and-Serial-Execution
+<https://facebook.github.io/graphql/June2018/#sec-Normal-and-Serial-Execution>
 
 > Normally the executor can execute the entries in a grouped field set in whatever order it chooses (normally in parallel). Because the resolution of fields other than top‐level mutation fields must always be side effect‐free and idempotent, the execution order must not affect the result, and hence the server has the freedom to execute the field entries in whatever order it deems optimal.
 
@@ -932,7 +932,7 @@ IExecutionResult result = remoteQueryClient.ExecuteAsync("{ foo { bar } }")
 
 ## Example
 
-We have a simple stitching example [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/Stitching).
+We have a simple stitching example [here](https://github.com/ChilliCream/graphql-platform-examples/tree/master/Stitching).
 
 ## Version 9
 
@@ -941,6 +941,3 @@ We originally wanted to include subscription stitching with version 8, but are n
 Apart from that, Version 9 will mainly focus on schema improvements.
 
 If you have feedback or feature requests for our schema stitching we love to talk to you about it. Head over to our slack channel.
-
-[hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/hotchocolate

@@ -2,60 +2,59 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace StrawberryShake.Tools
+namespace StrawberryShake.Tools;
+
+public class DefaultConsoleOutputActivity
+    : IActivity
 {
-    public class DefaultConsoleOutputActivity
-        : IActivity
+    private readonly string _activityText;
+    private readonly string? _path;
+    private readonly Action _errorReceived;
+    private readonly Stopwatch _stopwatch;
+    private bool _hasErrors;
+
+    public DefaultConsoleOutputActivity(string activityText, string? path, Action errorReceived)
     {
-        private readonly string _activityText;
-        private readonly string? _path;
-        private readonly Action _errorReceived;
-        private readonly Stopwatch _stopwatch;
-        private bool _hasErrors;
+        _activityText = activityText;
+        _path = path;
+        _errorReceived = errorReceived;
+        _stopwatch = Stopwatch.StartNew();
+        Console.WriteLine($"{activityText} started.");
+    }
 
-        public DefaultConsoleOutputActivity(string activityText, string? path, Action errorReceived)
-        {
-            _activityText = activityText;
-            _path = path;
-            _errorReceived = errorReceived;
-            _stopwatch = Stopwatch.StartNew();
-            Console.WriteLine($"{activityText} started.");
-        }
+    public void WriteError(HotChocolate.IError error)
+    {
+        _hasErrors = true;
+        error.Write();
+        _errorReceived();
+    }
 
-        public void WriteError(HotChocolate.IError error)
+    public void WriteErrors(IEnumerable<HotChocolate.IError> errors)
+    {
+        foreach (var error in errors)
         {
             _hasErrors = true;
             error.Write();
             _errorReceived();
         }
+    }
 
-        public void WriteErrors(IEnumerable<HotChocolate.IError> errors)
+    public void Dispose()
+    {
+        _stopwatch.Stop();
+
+        if (!_hasErrors)
         {
-            foreach (HotChocolate.IError error in errors)
+            Console.Write(
+                $"{_activityText} completed in " +
+                $"{_stopwatch.ElapsedMilliseconds} ms");
+            if (_path is { })
             {
-                _hasErrors = true;
-                error.Write();
-                _errorReceived();
+                Console.WriteLine($"for {_path}.");
             }
-        }
-
-        public void Dispose()
-        {
-            _stopwatch.Stop();
-
-            if (!_hasErrors)
+            else
             {
-                Console.Write(
-                    $"{_activityText} completed in " +
-                    $"{_stopwatch.ElapsedMilliseconds} ms");
-                if (_path is { })
-                {
-                    Console.WriteLine($"for {_path}.");
-                }
-                else
-                {
-                    Console.WriteLine();
-                }
+                Console.WriteLine();
             }
         }
     }

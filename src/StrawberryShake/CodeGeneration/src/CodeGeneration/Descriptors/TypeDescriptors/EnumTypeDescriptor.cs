@@ -6,7 +6,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 public sealed class EnumTypeDescriptor : ILeafTypeDescriptor
 {
     public EnumTypeDescriptor(
-        NameString name,
+        string name,
         RuntimeTypeInfo runtimeType,
         RuntimeTypeInfo? underlyingType,
         IReadOnlyList<EnumValueDescriptor> values,
@@ -17,12 +17,13 @@ public sealed class EnumTypeDescriptor : ILeafTypeDescriptor
         SerializationType = new RuntimeTypeInfo(TypeNames.String);
         UnderlyingType = underlyingType;
         Values = values;
+        Documentation = documentation;
     }
 
     /// <summary>
     /// Gets the GraphQL type name.
     /// </summary>
-    public NameString Name { get; }
+    public string Name { get; }
 
     /// <summary>
     /// Gets the type kind.

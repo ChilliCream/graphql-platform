@@ -168,7 +168,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Errors, other.Errors));
+            return (global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Errors, other.Errors));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -500,7 +500,7 @@ namespace Foo.Bar
                 "MISSING_ARGUMENT" => ErrorCode.MissingArgument,
                 "INVALID_ARGUMENT" => ErrorCode.InvalidArgument,
                 "FAILED" => ErrorCode.Failed,
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"String value '{serializedValue}' can't be converted to enum ErrorCode")};
         }
 
         public global::System.Object Format(global::System.Object? runtimeValue)
@@ -511,7 +511,7 @@ namespace Foo.Bar
                 ErrorCode.MissingArgument => "MISSING_ARGUMENT",
                 ErrorCode.InvalidArgument => "INVALID_ARGUMENT",
                 ErrorCode.Failed => "FAILED",
-                _ => throw new global::StrawberryShake.GraphQLClientException()};
+                _ => throw new global::StrawberryShake.GraphQLClientException($"Enum ErrorCode value '{runtimeValue}' can't be converted to string")};
         }
     }
 

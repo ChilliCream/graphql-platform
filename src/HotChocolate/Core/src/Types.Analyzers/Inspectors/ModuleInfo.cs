@@ -38,10 +38,4 @@ public sealed class ModuleInfo : ISyntaxInfo, IEquatable<ModuleInfo>
             return (ModuleName.GetHashCode() * 397) ^ (int)Options;
         }
     }
-
-    public static bool operator ==(ModuleInfo? left, ModuleInfo? right)
-        => Equals(left, right);
-
-    public static bool operator !=(ModuleInfo? left, ModuleInfo? right)
-        => !Equals(left, right);
 }

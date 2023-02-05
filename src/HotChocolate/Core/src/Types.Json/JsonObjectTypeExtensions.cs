@@ -12,7 +12,7 @@ namespace HotChocolate.Types;
 public static class JsonObjectTypeExtensions
 {
     /// <summary>
-    /// Specifies that this field will be resolved from the JsonELement representing the instance
+    /// Specifies that this field will be resolved from the JsonElement representing the instance
     /// of this type.
     /// </summary>
     /// <param name="descriptor">
@@ -35,31 +35,32 @@ public static class JsonObjectTypeExtensions
 
         descriptor
             .Extend()
-            .OnBeforeCompletion((ctx, def) =>
-            {
-                propertyName ??= def.Name.Value;
-                IType type = ctx.GetType<IType>(def.Type!);
-                INamedType namedType = type.NamedType();
-
-                if (type.IsListType())
+            .OnBeforeCompletion(
+                (ctx, def) =>
                 {
+                    propertyName ??= def.Name;
+                    var type = ctx.GetType<IType>(def.Type!);
+                    var namedType = type.NamedType();
+
+                    if (type.IsListType())
+                    {
+                        throw ThrowHelper.CannotInferTypeFromJsonObj(ctx.Type.Name);
+                    }
+
+                    if (namedType is ScalarType scalarType)
+                    {
+                        InferResolver(ctx.Type, def, scalarType, propertyName);
+                        return;
+                    }
+
                     throw ThrowHelper.CannotInferTypeFromJsonObj(ctx.Type.Name);
-                }
-
-                if (namedType is ScalarType scalarType)
-                {
-                    InferResolver(ctx.Type, def, scalarType, propertyName);
-                    return;
-                }
-
-                throw ThrowHelper.CannotInferTypeFromJsonObj(ctx.Type.Name);
-            });
+                });
 
         return descriptor;
     }
 
     /// <summary>
-    /// Specifies that this field will be resolved from the JsonELement representing the instance
+    /// Specifies that this field will be resolved from the JsonElement representing the instance
     /// of this type.
     /// </summary>
     /// <param name="descriptor">
@@ -87,11 +88,12 @@ public static class JsonObjectTypeExtensions
 
         descriptor
             .Extend()
-            .OnBeforeCreate(def =>
-            {
-                def.ResultType = typeof(TResult);
-                def.PureResolver = ctx => resolve(ctx.Parent<JsonElement>());
-            });
+            .OnBeforeCreate(
+                def =>
+                {
+                    def.ResultType = typeof(TResult);
+                    def.PureResolver = ctx => resolve(ctx.Parent<JsonElement>());
+                });
 
         return descriptor;
     }
@@ -102,68 +104,161 @@ public static class JsonObjectTypeExtensions
         ScalarType scalarType,
         string propertyName)
     {
-        switch (scalarType.Name.Value)
+        switch (scalarType.Name)
         {
             case ScalarNames.ID:
             case ScalarNames.String:
                 def.PureResolver = ctx => ctx.GetProperty(propertyName)?.GetString();
                 return;
+
             case ScalarNames.Boolean:
-                def.PureResolver = ctx => ctx.GetProperty(propertyName)?.GetBoolean();
+                def.PureResolver = ctx =>
+                {
+                    var property = ctx.GetProperty(propertyName);
+
+                    return property is null or { ValueKind: JsonValueKind.Null }
+                        ? null
+                        : property.Value.GetBoolean();
+                };
                 return;
+
             case ScalarNames.Short:
-                def.PureResolver = ctx => ctx.GetProperty(propertyName)?.GetInt16();
+                def.PureResolver = ctx =>
+                {
+                    var property = ctx.GetProperty(propertyName);
+
+                    return property is null or { ValueKind: JsonValueKind.Null }
+                        ? null
+                        : property.Value.GetInt16();
+                };
                 return;
+
             case ScalarNames.Int:
-                def.PureResolver = ctx => ctx.GetProperty(propertyName)?.GetInt32();
+                def.PureResolver = ctx =>
+                {
+                    var property = ctx.GetProperty(propertyName);
+
+                    return property is null or { ValueKind: JsonValueKind.Null }
+                        ? null
+                        : property.Value.GetInt32();
+                };
                 return;
+
             case ScalarNames.Long:
-                def.PureResolver = ctx => ctx.GetProperty(propertyName)?.GetInt64();
+                def.PureResolver = ctx =>
+                {
+                    var property = ctx.GetProperty(propertyName);
+
+                    return property is null or { ValueKind: JsonValueKind.Null }
+                        ? null
+                        : property.Value.GetUInt64();
+                };
                 return;
+
             case ScalarNames.Float:
-                def.PureResolver = ctx => ctx.GetProperty(propertyName)?.GetDouble();
+                def.PureResolver = ctx =>
+                {
+                    var property = ctx.GetProperty(propertyName);
+
+                    return property is null or { ValueKind: JsonValueKind.Null }
+                        ? null
+                        : property.Value.GetDouble();
+                };
                 return;
+
             case ScalarNames.Decimal:
-                def.PureResolver = ctx => ctx.GetProperty(propertyName)?.GetDecimal();
+                def.PureResolver = ctx =>
+                {
+                    var property = ctx.GetProperty(propertyName);
+
+                    return property is null or { ValueKind: JsonValueKind.Null }
+                        ? null
+                        : property.Value.GetDecimal();
+                };
                 return;
+
             case ScalarNames.URL:
-                def.PureResolver = ctx => new Uri(ctx.GetProperty(propertyName)?.GetString()!);
+                def.PureResolver = ctx =>
+                {
+                    var property = ctx.GetProperty(propertyName);
+
+                    if (property is null or { ValueKind: JsonValueKind.Null })
+                    {
+                        return null;
+                    }
+
+                    return new Uri(property.Value.GetString()!);
+                };
                 return;
+
             case ScalarNames.UUID:
-                def.PureResolver = ctx => ctx.GetProperty(propertyName)?.GetGuid();
+                def.PureResolver = ctx =>
+                {
+                    var property = ctx.GetProperty(propertyName);
+
+                    return property is null or { ValueKind: JsonValueKind.Null }
+                        ? null
+                        : property.Value.GetGuid();
+                };
                 return;
+
             case ScalarNames.Byte:
-                def.PureResolver = ctx => ctx.GetProperty(propertyName)?.GetByte();
+                def.PureResolver = ctx =>
+                {
+                    var property = ctx.GetProperty(propertyName);
+
+                    return property is null or { ValueKind: JsonValueKind.Null }
+                        ? null
+                        : property.Value.GetByte();
+                };
                 return;
+
             case ScalarNames.ByteArray:
-                def.PureResolver = ctx => ctx.GetProperty(propertyName)?.GetBytesFromBase64();
+                def.PureResolver = ctx =>
+                {
+                    var property = ctx.GetProperty(propertyName);
+
+                    return property is null or { ValueKind: JsonValueKind.Null }
+                        ? null
+                        : property.Value.GetBytesFromBase64();
+                };
                 return;
+
             case ScalarNames.Date:
                 def.PureResolver = ctx =>
                 {
-                    var value = ctx.GetProperty(propertyName)?.GetString();
+                    var property = ctx.GetProperty(propertyName);
 
-                    if (value is null)
+                    if (property is null or { ValueKind: JsonValueKind.Null })
                     {
                         return null;
                     }
 
                     return DateTime.Parse(
-                        value,
+                        property.Value.GetString()!,
                         CultureInfo.InvariantCulture,
                         DateTimeStyles.AssumeUniversal);
                 };
                 return;
+
             case ScalarNames.DateTime:
-                def.PureResolver = ctx => ctx.GetProperty(propertyName)?.GetDateTimeOffset();
+                def.PureResolver = ctx =>
+                {
+                    var property = ctx.GetProperty(propertyName);
+
+                    return property is null or { ValueKind: JsonValueKind.Null }
+                        ? null
+                        : property.Value.GetDateTimeOffset();
+                };
                 return;
+
             default:
                 throw ThrowHelper.CannotInferTypeFromJsonObj(type.Name);
         }
     }
 
     private static JsonElement? GetProperty(this IPureResolverContext context, string propertyName)
-        => context.Parent<JsonElement>().TryGetProperty(propertyName, out JsonElement element)
+        => context.Parent<JsonElement>().TryGetProperty(propertyName, out var element)
             ? element
             : null;
 }

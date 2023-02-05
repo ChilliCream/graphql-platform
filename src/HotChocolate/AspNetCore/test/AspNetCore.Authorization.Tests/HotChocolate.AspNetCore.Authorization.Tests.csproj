@@ -6,7 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\test\Utilities\HotChocolate.Tests.Utilities.csproj" />
     <ProjectReference Include="..\AspNetCore.Tests\HotChocolate.AspNetCore.Tests.csproj" />
     <ProjectReference Include="..\..\..\Core\test\StarWars\HotChocolate.StarWars.Tests.csproj" />
     <ProjectReference Include="..\..\src\AspNetCore.Authorization\HotChocolate.AspNetCore.Authorization.csproj" />
@@ -19,11 +18,6 @@
     <None Update="$(MSBuildProjectDirectory)\xunit.runner.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <!--For Visual Studio for Mac Test Explorer we need this reference here-->
-  <ItemGroup>
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
   </ItemGroup>
 
 </Project>

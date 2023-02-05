@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -43,7 +42,20 @@ public abstract class NamedTypeBase<TDefinition>
             {
                 throw new TypeInitializationException();
             }
+
             return _directives;
+        }
+
+        // we allow internal type interceptors to set the directives before the type is completed.
+        // this gets rid of the need to initialize the directives twice.
+        internal set
+        {
+            if (_directives is not null)
+            {
+                throw new TypeInitializationException();
+            }
+
+            _directives = value;
         }
     }
 
@@ -77,9 +89,6 @@ public abstract class NamedTypeBase<TDefinition>
         base.OnRegisterDependencies(context, definition);
 
         UpdateRuntimeType(definition);
-
-        context.RegisterDependencyRange(
-            definition.GetDirectives().Select(t => t.Reference));
     }
 
     /// <inheritdoc />
@@ -93,7 +102,7 @@ public abstract class NamedTypeBase<TDefinition>
 
         _syntaxNode = definition.SyntaxNode;
 
-        _directives = DirectiveCollection.CreateAndComplete(
+        _directives ??= DirectiveCollection.CreateAndComplete(
             context, this, definition.GetDirectives());
     }
 

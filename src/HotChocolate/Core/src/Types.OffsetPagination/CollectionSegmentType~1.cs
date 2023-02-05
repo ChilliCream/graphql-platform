@@ -15,8 +15,8 @@ internal class CollectionSegmentType
     , IPageType
 {
     internal CollectionSegmentType(
-        NameString? collectionSegmentName,
-        ITypeReference nodeType,
+        string? collectionSegmentName,
+        TypeReference nodeType,
         bool withTotalCount)
     {
         if (nodeType is null)
@@ -28,7 +28,7 @@ internal class CollectionSegmentType
 
         if (collectionSegmentName is not null)
         {
-            Definition.Name = collectionSegmentName.Value + "CollectionSegment";
+            Definition.Name = collectionSegmentName + "CollectionSegment";
         }
         else
         {
@@ -36,14 +36,14 @@ internal class CollectionSegmentType
                 new CompleteConfiguration(
                     (c, d) =>
                     {
-                        IType type = c.GetType<IType>(nodeType);
+                        var type = c.GetType<IType>(nodeType);
                         var definition = (ObjectTypeDefinition)d;
                         definition.Name = type.NamedType().Name + "CollectionSegment";
                     },
                     Definition,
-                    ApplyConfigurationOn.Naming,
+                    ApplyConfigurationOn.BeforeNaming,
                     nodeType,
-                    TypeDependencyKind.Named));
+                    TypeDependencyFulfilled.Named));
         }
 
         Definition.Configurations.Add(
@@ -53,13 +53,13 @@ internal class CollectionSegmentType
                     ItemType = c.GetType<IOutputType>(nodeType);
 
                     var definition = (ObjectTypeDefinition)d;
-                    ObjectFieldDefinition nodes = definition.Fields.First(IsItemsField);
+                    var nodes = definition.Fields.First(IsItemsField);
                     nodes.Type = TypeReference.Parse($"[{ItemType.Print()}]", TypeContext.Output);
                 },
                 Definition,
-                ApplyConfigurationOn.Naming,
+                ApplyConfigurationOn.BeforeNaming,
                 nodeType,
-                TypeDependencyKind.Named));
+                TypeDependencyFulfilled.Named));
 
         Definition.Dependencies.Add(new(nodeType));
     }
@@ -71,21 +71,20 @@ internal class CollectionSegmentType
 
     protected override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext context,
-        DefinitionBase definition,
-        IDictionary<string, object?> contextData)
+        DefinitionBase definition)
     {
-        context.Dependencies.Add(new(
-            context.TypeInspector.GetOutputTypeRef(typeof(CollectionSegmentInfoType))));
-
-        base.OnBeforeRegisterDependencies(context, definition, contextData);
+        var typeRef = context.TypeInspector.GetOutputTypeRef(typeof(CollectionSegmentInfoType));
+        context.Dependencies.Add(new(typeRef));
+        base.OnBeforeRegisterDependencies(context, definition);
     }
 
     private static ObjectTypeDefinition CreateTypeDefinition(bool withTotalCount)
     {
-        var definition = new ObjectTypeDefinition(
-            default,
-            CollectionSegmentType_Description,
-            typeof(CollectionSegment));
+        var definition = new ObjectTypeDefinition
+        {
+            Description = CollectionSegmentType_Description,
+            RuntimeType = typeof(CollectionSegment)
+        };
 
         definition.Fields.Add(new(
             Names.PageInfo,
@@ -119,8 +118,7 @@ internal class CollectionSegmentType
         => await context.Parent<CollectionSegment>().GetTotalCountAsync(context.RequestAborted);
 
     private static bool IsItemsField(ObjectFieldDefinition field)
-        => field.CustomSettings.Count > 0 &&
-            field.CustomSettings[0].Equals(ContextDataKeys.Items);
+        => field.CustomSettings.Count > 0 && field.CustomSettings[0].Equals(ContextDataKeys.Items);
 
     internal static class Names
     {

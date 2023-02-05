@@ -34,6 +34,10 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
         }
     }
 
+    public string DocumentId { get; set; } = default!;
+
+    public OperationType? OperationType { get; set; }
+
     public IOutputType NonNullString
     {
         get
@@ -98,13 +102,15 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
 
     public int Max { get; set; }
 
+    public int Allowed { get; set; }
+
     public IDictionary<string, object?> ContextData { get; set; } = default!;
 
     public IList<FieldInfo> RentFieldInfoList()
     {
-        FieldInfoListBuffer buffer = _buffers.Peek();
+        var buffer = _buffers.Peek();
 
-        if (!buffer.TryPop(out IList<FieldInfo>? list))
+        if (!buffer.TryPop(out var list))
         {
             buffer = _fieldInfoPool.Get();
             _buffers.Push(buffer);
@@ -134,6 +140,7 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
         _nonNullString = null;
         VariableValues = null;
         ContextData = default!;
+        DocumentId = default!;
         Path.Clear();
         SelectionSets.Clear();
         FieldSets.Clear();
@@ -155,6 +162,7 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
         UnexpectedErrorsDetected = false;
         Count = 0;
         Max = 0;
+        Allowed = 0;
         MaxAllowedErrors = 0;
     }
 
@@ -162,7 +170,7 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
     {
         if (_buffers.Count > 1)
         {
-            FieldInfoListBuffer buffer = _buffers.Pop();
+            var buffer = _buffers.Pop();
             buffer.Clear();
 
             for (var i = 0; i < _buffers.Count; i++)

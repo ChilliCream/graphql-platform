@@ -37,14 +37,14 @@ internal sealed class TypeReferenceResolver
             .OfType<T>()
             .Distinct();
 
-    public ITypeReference GetNamedTypeReference(ITypeReference typeRef)
+    public TypeReference GetNamedTypeReference(TypeReference typeRef)
     {
         if (typeRef is null)
         {
             throw new ArgumentNullException(nameof(typeRef));
         }
 
-        if (_typeLookup.TryNormalizeReference(typeRef, out ITypeReference? namedTypeRef))
+        if (_typeLookup.TryNormalizeReference(typeRef, out var namedTypeRef))
         {
             return namedTypeRef;
         }
@@ -52,7 +52,7 @@ internal sealed class TypeReferenceResolver
         throw new NotSupportedException();
     }
 
-    public bool TryGetType(ITypeReference typeRef, [NotNullWhen(true)] out IType? type)
+    public bool TryGetType(TypeReference typeRef, [NotNullWhen(true)] out IType? type)
     {
         if (typeRef is null)
         {
@@ -65,19 +65,19 @@ internal sealed class TypeReferenceResolver
             return true;
         }
 
-        if (!_typeLookup.TryNormalizeReference(typeRef, out ITypeReference? namedTypeRef))
+        if (!_typeLookup.TryNormalizeReference(typeRef, out var namedTypeRef))
         {
             type = null;
             return false;
         }
 
-        TypeId typeId = CreateId(typeRef, namedTypeRef);
+        var typeId = CreateId(typeRef, namedTypeRef);
         if (_typeCache.TryGetValue(typeId, out type))
         {
             return true;
         }
 
-        if (!_typeRegistry.TryGetType(namedTypeRef, out RegisteredType? registeredType) ||
+        if (!_typeRegistry.TryGetType(namedTypeRef, out var registeredType) ||
             registeredType.Type is not INamedType)
         {
             type = null;
@@ -89,7 +89,7 @@ internal sealed class TypeReferenceResolver
         switch (typeRef)
         {
             case ExtendedTypeReference r:
-                ITypeFactory typeFactory = _typeInspector.CreateTypeFactory(r.Type);
+                var typeFactory = _typeInspector.CreateTypeFactory(r.Type);
                 type = typeFactory.CreateType(namedType);
                 _typeCache[typeId] = type;
                 return true;
@@ -98,7 +98,7 @@ internal sealed class TypeReferenceResolver
                 type = CreateType(namedType, r.Type);
                 return true;
 
-            case DependantFactoryTypeReference reference:
+            case DependantFactoryTypeReference:
                 type = namedType;
                 return true;
 
@@ -108,7 +108,7 @@ internal sealed class TypeReferenceResolver
     }
 
     public bool TryGetDirectiveType(
-        IDirectiveReference typeRef,
+        TypeReference typeRef,
         [NotNullWhen(true)] out DirectiveType? directiveType)
     {
         if (typeRef is null)
@@ -116,13 +116,13 @@ internal sealed class TypeReferenceResolver
             throw new ArgumentNullException(nameof(typeRef));
         }
 
-        if (!_typeLookup.TryNormalizeReference(typeRef, out ITypeReference? namedTypeRef))
+        if (!_typeLookup.TryNormalizeReference(typeRef, out var namedTypeRef))
         {
             directiveType = null;
             return false;
         }
 
-        if (_typeRegistry.TryGetType(namedTypeRef, out RegisteredType? registeredType) &&
+        if (_typeRegistry.TryGetType(namedTypeRef, out var registeredType) &&
             registeredType.Type is DirectiveType d)
         {
             directiveType = d;
@@ -150,12 +150,12 @@ internal sealed class TypeReferenceResolver
         return namedType;
     }
 
-    private TypeId CreateId(ITypeReference typeRef, ITypeReference namedTypeRef)
+    private TypeId CreateId(TypeReference typeRef, TypeReference namedTypeRef)
     {
         switch (typeRef)
         {
             case ExtendedTypeReference r:
-                ITypeInfo typeInfo = _typeInspector.CreateTypeInfo(r.Type);
+                var typeInfo = _typeInspector.CreateTypeInfo(r.Type);
                 return new TypeId(namedTypeRef, CreateFlags(typeInfo));
 
             case SyntaxTypeReference r:
@@ -195,7 +195,7 @@ internal sealed class TypeReferenceResolver
     private static int CreateFlags(ITypeNode type)
     {
         var flags = 1;
-        ITypeNode current = type;
+        var current = type;
 
         while (current is not NamedTypeNode)
         {
@@ -221,13 +221,13 @@ internal sealed class TypeReferenceResolver
 
     private readonly struct TypeId : IEquatable<TypeId>
     {
-        public TypeId(ITypeReference typeRef, int flags)
+        public TypeId(TypeReference typeRef, int flags)
         {
             TypeRef = typeRef;
             Flags = flags;
         }
 
-        public ITypeReference TypeRef { get; }
+        public TypeReference TypeRef { get; }
 
         public int Flags { get; }
 
@@ -247,13 +247,9 @@ internal sealed class TypeReferenceResolver
         }
 
         public static bool operator ==(TypeId left, TypeId right)
-        {
-            return left.Equals(right);
-        }
+            => left.Equals(right);
 
         public static bool operator !=(TypeId left, TypeId right)
-        {
-            return !left.Equals(right);
-        }
+            => !left.Equals(right);
     }
 }

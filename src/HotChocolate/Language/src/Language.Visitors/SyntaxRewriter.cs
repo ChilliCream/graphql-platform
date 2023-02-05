@@ -15,20 +15,20 @@ public static class SyntaxRewriter
     public static ISyntaxRewriter<TContext> Create<TContext>(
         RewriteSyntaxNode<TContext>? rewrite = null,
         Func<ISyntaxNode, TContext, TContext>? enter = null,
-        Action<ISyntaxNode, TContext>? leave = null)
+        Action<ISyntaxNode?, TContext>? leave = null)
         where TContext : ISyntaxVisitorContext
         => new DelegateSyntaxRewriter<TContext>(rewrite, enter, leave);
 
     public static ISyntaxRewriter<NavigatorContext> CreateWithNavigator(
         RewriteSyntaxNode<NavigatorContext>? rewrite = null,
         Func<ISyntaxNode, NavigatorContext, NavigatorContext>? enter = null,
-        Action<ISyntaxNode, NavigatorContext>? leave = null)
+        Action<ISyntaxNode?, NavigatorContext>? leave = null)
         => CreateWithNavigator<NavigatorContext>(rewrite, enter, leave);
 
     public static ISyntaxRewriter<TContext> CreateWithNavigator<TContext>(
         RewriteSyntaxNode<TContext>? rewrite = null,
         Func<ISyntaxNode, TContext, TContext>? enter = null,
-        Action<ISyntaxNode, TContext>? leave = null)
+        Action<ISyntaxNode?, TContext>? leave = null)
         where TContext : INavigatorContext
     {
 
@@ -44,7 +44,7 @@ public static class SyntaxRewriter
                 return context;
             };
 
-        Action<ISyntaxNode, TContext> leaveFunc = leave is not null
+        Action<ISyntaxNode?, TContext> leaveFunc = leave is not null
             ? (node, context) =>
             {
                 context.Navigator.Pop();

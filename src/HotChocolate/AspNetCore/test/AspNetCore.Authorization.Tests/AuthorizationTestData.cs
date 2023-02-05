@@ -1,6 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,18 +8,17 @@ namespace HotChocolate.AspNetCore.Authorization;
 public class AuthorizationTestData : IEnumerable<object[]>
 {
     private readonly string SchemaCode = @"
-            type Query {
-                default: String @authorize
-                age: String @authorize(policy: ""HasAgeDefined"")
-                roles: String @authorize(roles: [""a""])
-                roles_ab: String @authorize(roles: [""a"" ""b""])
-                piped: String
-                    @authorize(policy: ""a"")
-                    @authorize(policy: ""b"")
-                afterResolver: String
-                    @authorize(policy: ""a"" apply: AFTER_RESOLVER)
-            }
-        ";
+        type Query {
+            default: String @authorize
+            age: String @authorize(policy: ""HasAgeDefined"")
+            roles: String @authorize(roles: [""a""])
+            roles_ab: String @authorize(roles: [""a"" ""b""])
+            piped: String
+                @authorize(policy: ""a"")
+                @authorize(policy: ""b"")
+            afterResolver: String
+                @authorize(policy: ""a"" apply: AFTER_RESOLVER)
+        }";
 
     private readonly FieldMiddleware _schemaMiddleware = next => context =>
     {

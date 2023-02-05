@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Data.Neo4J.Paging;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;

@@ -16,7 +16,7 @@ public class FilterOperationFieldDescriptor
         string? scope)
         : base(context)
     {
-        IFilterConvention? convention = context.GetFilterConvention(scope);
+        var convention = context.GetFilterConvention(scope);
         Definition.Id = operationId;
         Definition.Name = convention.GetOperationName(operationId);
         Definition.Description = convention.GetOperationDescription(operationId);
@@ -44,9 +44,9 @@ public class FilterOperationFieldDescriptor
         return this;
     }
 
-    public IFilterOperationFieldDescriptor Name(NameString value)
+    public IFilterOperationFieldDescriptor Name(string value)
     {
-        Definition.Name = value.EnsureNotEmpty(nameof(value));
+        Definition.Name = value;
         return this;
     }
 
@@ -59,12 +59,6 @@ public class FilterOperationFieldDescriptor
     public new IFilterOperationFieldDescriptor Description(string value)
     {
         base.Description(value);
-        return this;
-    }
-
-    public IFilterOperationFieldDescriptor AllowOperation(int operation)
-    {
-        Definition.AllowedOperations.Add(operation);
         return this;
     }
 
@@ -130,7 +124,7 @@ public class FilterOperationFieldDescriptor
     }
 
     public new IFilterOperationFieldDescriptor Directive(
-        NameString name,
+        string name,
         params ArgumentNode[] arguments)
     {
         base.Directive(name, arguments);

@@ -6,16 +6,15 @@
     <RootNamespace>StrawberryShake.Razor</RootNamespace>
     <Nullable>enable</Nullable>
     <Description>Provides razor components for using StrawberryShake.</Description>
-    <TargetFrameworks Condition="'$(IsMacOsArm)' != 'true'">net6.0; net5.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(IsMacOsArm)' == 'true'">net6.0</TargetFrameworks>
+    <TargetFrameworks>net6.0</TargetFrameworks>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <SupportedPlatform Include="browser" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="5.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.0" />
     <PackageReference Include="System.Reactive" Version="5.0.0" />
   </ItemGroup>
 
@@ -23,8 +22,4 @@
     <ProjectReference Include="..\Core\StrawberryShake.Core.csproj" />
   </ItemGroup>
 
-  <PropertyGroup>
-    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
-  </PropertyGroup>
-  
 </Project>

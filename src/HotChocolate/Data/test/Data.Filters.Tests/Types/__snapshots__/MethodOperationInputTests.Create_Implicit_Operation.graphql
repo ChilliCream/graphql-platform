@@ -1,0 +1,21 @@
+schema {
+  query: Query
+}
+
+type Bar {
+  stringOperation: String!
+}
+
+type Foo {
+  simpleMethod: Boolean!
+  complexMethod: Bar!
+}
+
+type Query {
+  foos(where: FooFilterInput): [Foo!]!
+}
+
+input FooFilterInput {
+  and: [FooFilterInput!]
+  or: [FooFilterInput!]
+}

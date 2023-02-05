@@ -1,0 +1,17 @@
+schema {
+  query: Query
+}
+
+type Query {
+  foo: String
+}
+
+"Test"
+input FooSortInput {
+  bar: SortEnumType
+}
+
+enum SortEnumType {
+  ASC
+  DESC
+}

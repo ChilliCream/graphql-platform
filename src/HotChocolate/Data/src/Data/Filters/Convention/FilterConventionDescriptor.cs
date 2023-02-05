@@ -6,11 +6,9 @@ using static HotChocolate.Data.DataResources;
 
 namespace HotChocolate.Data.Filters;
 
-public class FilterConventionDescriptor
-    : IFilterConventionDescriptor
+public class FilterConventionDescriptor : IFilterConventionDescriptor
 {
-    private readonly Dictionary<int, FilterOperationConventionDescriptor> _operations =
-        new Dictionary<int, FilterOperationConventionDescriptor>();
+    private readonly Dictionary<int, FilterOperationConventionDescriptor> _operations = new();
 
     protected FilterConventionDescriptor(IDescriptorContext context, string? scope)
     {
@@ -25,7 +23,7 @@ public class FilterConventionDescriptor
     public FilterConventionDefinition CreateDefinition()
     {
         // collect all operation configurations and add them to the convention definition.
-        foreach (FilterOperationConventionDescriptor operation in _operations.Values)
+        foreach (var operation in _operations.Values)
         {
             Definition.Operations.Add(operation.CreateDefinition());
         }
@@ -38,7 +36,7 @@ public class FilterConventionDescriptor
     {
         if (_operations.TryGetValue(
             operationId,
-            out FilterOperationConventionDescriptor? descriptor))
+            out var descriptor))
         {
             return descriptor;
         }
@@ -106,12 +104,12 @@ public class FilterConventionDescriptor
             });
 
     protected IFilterConventionDescriptor Configure(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         ConfigureFilterInputType configure)
     {
         if (!Definition.Configurations.TryGetValue(
             typeReference,
-            out List<ConfigureFilterInputType>? configurations))
+            out var configurations))
         {
             configurations = new List<ConfigureFilterInputType>();
             Definition.Configurations.Add(typeReference, configurations);
@@ -155,7 +153,7 @@ public class FilterConventionDescriptor
     }
 
     /// <inheritdoc />
-    public IFilterConventionDescriptor ArgumentName(NameString argumentName)
+    public IFilterConventionDescriptor ArgumentName(string argumentName)
     {
         Definition.ArgumentName = argumentName;
         return this;

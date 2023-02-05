@@ -29,7 +29,7 @@ public class TimeSpanType
     }
 
     public TimeSpanType(
-        NameString name,
+        string name,
         string? description = default,
         TimeSpanFormat format = TimeSpanFormat.Iso8601,
         BindingBehavior bind = BindingBehavior.Explicit)
@@ -41,7 +41,7 @@ public class TimeSpanType
 
     protected override TimeSpan ParseLiteral(StringValueNode valueSyntax)
     {
-        if (TryDeserializeFromString(valueSyntax.Value, _format, out TimeSpan? value) &&
+        if (TryDeserializeFromString(valueSyntax.Value, _format, out var value) &&
             value != null)
         {
             return value.Value;
@@ -67,7 +67,7 @@ public class TimeSpanType
         }
 
         if (resultValue is string s &&
-            TryDeserializeFromString(s, _format, out TimeSpan? timeSpan))
+            TryDeserializeFromString(s, _format, out var timeSpan))
         {
             return ParseValue(timeSpan);
         }
@@ -115,7 +115,7 @@ public class TimeSpanType
         }
 
         if (resultValue is string s &&
-            TryDeserializeFromString(s, _format, out TimeSpan? timeSpan))
+            TryDeserializeFromString(s, _format, out var timeSpan))
         {
             runtimeValue = timeSpan;
             return true;
@@ -156,7 +156,7 @@ public class TimeSpanType
 
     private static bool TryDeserializeDotNet(string serialized, out TimeSpan? value)
     {
-        if (TimeSpan.TryParse(serialized, out TimeSpan timeSpan))
+        if (TimeSpan.TryParse(serialized, out var timeSpan))
         {
             value = timeSpan;
             return true;

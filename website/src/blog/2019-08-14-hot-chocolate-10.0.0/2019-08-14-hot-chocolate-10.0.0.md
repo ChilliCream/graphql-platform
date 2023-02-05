@@ -122,10 +122,10 @@ Also, we are working on sorting which should be included in the first preview of
 
 If you want to give input or follow our work, you can head over to these four issues that will be coming with version 11.
 
-- [Object Filters #921](https://github.com/ChilliCream/hotchocolate/issues/921)
-- [IEnumerable Filters #922](https://github.com/ChilliCream/hotchocolate/issues/922)
-- [Sorting #923](https://github.com/ChilliCream/hotchocolate/issues/923)
-- [Aggregations #924](https://github.com/ChilliCream/hotchocolate/issues/924)
+- [Object Filters #921](https://github.com/ChilliCream/graphql-platform/issues/921)
+- [IEnumerable Filters #922](https://github.com/ChilliCream/graphql-platform/issues/922)
+- [Sorting #923](https://github.com/ChilliCream/graphql-platform/issues/923)
+- [Aggregations #924](https://github.com/ChilliCream/graphql-platform/issues/924)
 
 > If you want to check out more about filters head over to our [documentation](https://hotchocolate.io/docs/filters).
 
@@ -156,7 +156,7 @@ That\`s all you have to do to connect the query engine with `Redis`.
 
 **So why should we want to use `Redis` anyway.**
 
-The thing with in-memory subscriptions is that they will only work reliable if you have one instance of Hot Chocolate. When you have deployed multiple instance of _Hot Chcocolate_ or if you are scaling on demand with a massive amount of subscribers then you want to make sure that your pub/sub system scales and that mutations executed on one server raise an event on another one.
+The thing with in-memory subscriptions is that they will only work reliable if you have one instance of Hot Chocolate. When you have deployed multiple instance of _Hot Chocolate_ or if you are scaling on demand with a massive amount of subscribers then you want to make sure that your pub/sub system scales and that mutations executed on one server raise an event on another one.
 
 But there is more, sometimes you want to raise an event without triggering a mutation, maybe there was an event somewhere in your infrastructure that you want to relay as a GraphQL subscription, this can also be done through an external pub/sub system like Redis.
 
@@ -259,7 +259,7 @@ Third, we also wanted to support Apollo batching where Apollo collects all the q
 
 ## Persisted Queries
 
-With version 10 we now support persisted queries. With persisted queries you can add well-knonw queries to a second-level cache. All queries stored in there are considered valid.
+With version 10 we now support persisted queries. With persisted queries you can add well-known queries to a second-level cache. All queries stored in there are considered valid.
 
 **So, what is this for?**
 
@@ -346,7 +346,7 @@ The second thing we already started work on is a client API for .NET Core. We ar
 
 ## Banana Cakepop
 
-**Oh, didn`t you forget something?**
+**Oh, didn't you forget something?**
 
 Yes, yes originally, we had planned to release _Banana Cakepop_ alongside this version. We ran into some performance issues with the tree we originally selected when using large schemas with more than 1000 types.
 
@@ -363,6 +363,3 @@ Also, we will add more subscription provider like Kafka and EventHub.
 Furthermore, we will rework our `Utf8GraphQLReader` to use `ReadOnlySequence<byte>` instead of `ReadOnlySpan<byte>` in order to make this even better work with the Pipeline API. Apart from that we will optimize the syntax tree to be able to work with raw bytes instead of strings. At the moment scalar like String, Int, Float and Enum are parsed as string representation like with the original node parser. The scalar type parses then the string into the native type. The same goes for the new UTF-8 request parser. This is unnecessary with the `Utf8Parser` and `Utf8Formater`. We will change the AST to instead have the raw bytes. The current `Value` property will still be there but only for compatibility with tools that use the current version of the AST. The new scalar types will have access to a `ReadOnlySpan<byte>` and can decide how to efficiently parse literals.
 
 If you want to get into contact with us head over to our slack channel and join our community.
-
-[hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/hotchocolate

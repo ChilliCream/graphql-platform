@@ -1,26 +1,31 @@
 using System;
-using HotChocolate.Properties;
 
 namespace HotChocolate;
 
-[AttributeUsage(AttributeTargets.Parameter)]
+/// <summary>
+/// Marks a method as a DataLoader which will trigger the Hot Chocolate
+/// types source generator to generate necessary code around this method.
+/// </summary>
+[AttributeUsage(AttributeTargets.Method)]
 public sealed class DataLoaderAttribute : Attribute
 {
-    public DataLoaderAttribute()
+    public DataLoaderAttribute(string? name = null)
     {
+        Name = name;
     }
 
-    public DataLoaderAttribute(string key)
-    {
-        if (string.IsNullOrEmpty(key))
-        {
-            throw new ArgumentException(
-                AbstractionResources.DataLoader_KeyMustNotBeNullOrEmpty,
-                nameof(key));
-        }
+    /// <summary>
+    /// Gets the name override for the DataLoader or <c>null</c>.
+    /// </summary>
+    public string? Name { get; }
 
-        Key = key;
-    }
+    /// <summary>
+    /// Specifies how services by default are handled.
+    /// </summary>
+    public DataLoaderServiceScope ServiceScope { get; set; }
 
-    public string? Key { get; }
+    /// <summary>
+    /// Specifies if the DataLoader is generated as public or private class.
+    /// </summary>
+    public DataLoaderAccessModifier AccessModifier { get; set; }
 }

@@ -23,7 +23,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
             // arrange
             using var cts = new CancellationTokenSource(20_000);
 
-            using IWebHost host = TestServerHelper.CreateServer(
+            using var host = TestServerHelper.CreateServer(
                 _ => { },
                 out var port);
             var serviceCollection = new ServiceCollection();
@@ -35,7 +35,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
                 c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
             serviceCollection.AddStarWarsUnionListClient();
             IServiceProvider services = serviceCollection.BuildServiceProvider();
-            StarWarsUnionListClient client = services.GetRequiredService<StarWarsUnionListClient>();
+            var client = services.GetRequiredService<StarWarsUnionListClient>();
 
             // act
             var result = await client.SearchHero.ExecuteAsync(cts.Token);

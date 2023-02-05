@@ -1,0 +1,23 @@
+schema {
+  query: Query
+}
+
+type FooComp {
+  bar: Short!
+}
+
+type Query {
+  root(order: [FooCompSortInput!]): [FooComp]
+}
+
+input FooCompSortInput {
+  bar: SortEnumType
+}
+
+enum SortEnumType {
+  ASC
+  DESC
+}
+
+"The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."
+scalar Short

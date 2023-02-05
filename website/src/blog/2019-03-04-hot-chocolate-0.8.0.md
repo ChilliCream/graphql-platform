@@ -105,4 +105,4 @@ We will really start hammering out the details on version 9 in the next three we
 If you have ideas or suggestions pleas head over to our slack channel and join the discussion.
 
 [hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/hotchocolate
+[hot chocolate source code]: https://github.com/ChilliCream/graphql-platform

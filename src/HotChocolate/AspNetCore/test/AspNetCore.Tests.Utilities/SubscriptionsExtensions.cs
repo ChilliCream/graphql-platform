@@ -1,7 +1,4 @@
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Types;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities;
@@ -9,7 +6,9 @@ namespace HotChocolate.AspNetCore.Tests.Utilities;
 [ExtendObjectType(OperationTypeNames.Subscription)]
 public class SubscriptionsExtensions
 {
+#pragma warning disable CS0618
     [SubscribeAndResolve]
+#pragma warning restore CS0618
     public async IAsyncEnumerable<string> OnNext(
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
@@ -19,8 +18,9 @@ public class SubscriptionsExtensions
             await Task.Delay(50, cancellationToken);
         }
     }
-
+#pragma warning disable CS0618
     [SubscribeAndResolve]
+#pragma warning restore CS0618
     public async IAsyncEnumerable<string> OnException(
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {

@@ -1,0 +1,2 @@
+The schema building directive `@mutation` can only be applied on object fields.
+code: HC0070

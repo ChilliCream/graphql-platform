@@ -3,6 +3,7 @@ using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Validation.Rules;
 
@@ -60,14 +61,14 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         FieldNode node,
         IDocumentValidatorContext context)
     {
-        if (IntrospectionFields.TypeName.Equals(node.Name.Value))
+        if (IntrospectionFields.TypeName.EqualsOrdinal(node.Name.Value))
         {
             return Skip;
         }
 
-        if (context.Types.TryPeek(out IType? type) &&
+        if (context.Types.TryPeek(out var type) &&
             type.NamedType() is IComplexOutputType ot &&
-            ot.Fields.TryGetField(node.Name.Value, out IOutputField? of))
+            ot.Fields.TryGetField(node.Name.Value, out var of))
         {
             context.OutputFields.Push(of);
             context.Types.Push(of.Type);
@@ -92,7 +93,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         IDocumentValidatorContext context)
     {
         if (context.Schema.TryGetType<INamedType>(
-            node.Type.NamedType().Name.Value, out INamedType? variableType))
+            node.Type.NamedType().Name.Value, out var variableType))
         {
             context.Types.Push(variableType);
             return base.Enter(node, context);
@@ -114,7 +115,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         DirectiveNode node,
         IDocumentValidatorContext context)
     {
-        if (context.Schema.TryGetDirectiveType(node.Name.Value, out DirectiveType? d))
+        if (context.Schema.TryGetDirectiveType(node.Name.Value, out var d))
         {
             context.Directives.Push(d);
             return Continue;
@@ -136,9 +137,9 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         ArgumentNode node,
         IDocumentValidatorContext context)
     {
-        if (context.Directives.TryPeek(out DirectiveType? directive))
+        if (context.Directives.TryPeek(out var directive))
         {
-            if (directive.Arguments.TryGetField(node.Name.Value, out Argument? argument))
+            if (directive.Arguments.TryGetField(node.Name.Value, out var argument))
             {
                 context.InputFields.Push(argument);
                 context.Types.Push(argument.Type);
@@ -148,9 +149,9 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             return Skip;
         }
 
-        if (context.OutputFields.TryPeek(out IOutputField? field))
+        if (context.OutputFields.TryPeek(out var field))
         {
-            if (field.Arguments.TryGetField(node.Name.Value, out IInputField? argument))
+            if (field.Arguments.TryGetField(node.Name.Value, out var argument))
             {
                 context.InputFields.Push(argument);
                 context.Types.Push(argument.Type);
@@ -181,14 +182,14 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
 
         for (var i = 0; i < node.Fields.Count; i++)
         {
-            ObjectFieldNode field = node.Fields[i];
+            var field = node.Fields[i];
             if (!context.Names.Add(field.Name.Value))
             {
                 context.ReportError(context.InputFieldAmbiguous(field));
             }
         }
 
-        INamedType namedType = context.Types.Peek().NamedType();
+        var namedType = context.Types.Peek().NamedType();
 
         if (namedType.IsLeafType())
         {
@@ -197,7 +198,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
 
         if (namedType is InputObjectType inputObjectType)
         {
-            if (inputObjectType.Directives.Contains(WellKnownDirectives.OneOf))
+            if (inputObjectType.Directives.ContainsDirective(WellKnownDirectives.OneOf))
             {
                 if (node.Fields.Count == 0 || node.Fields.Count > 1)
                 {
@@ -208,11 +209,11 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
                 }
                 else
                 {
-                    ObjectFieldNode value = node.Fields[0];
+                    var value = node.Fields[0];
 
                     if (inputObjectType.Fields.TryGetField(
                         value.Name.Value,
-                        out InputField? field))
+                        out var field))
                     {
                         if (value.Value.IsNull())
                         {
@@ -222,7 +223,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
                                     inputObjectType));
                         }
                         else if (value.Value.Kind is SyntaxKind.Variable &&
-                            !IsInstanceOfType(context, new NonNullType(field.Type), value.Value))
+                            !TryIsInstanceOfType(context, new NonNullType(field.Type), value.Value))
                         {
                             context.ReportError(
                                 context.OneOfVariablesMustBeNonNull(
@@ -263,9 +264,9 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         ObjectFieldNode node,
         IDocumentValidatorContext context)
     {
-        if (context.Types.TryPeek(out IType? type) &&
+        if (context.Types.TryPeek(out var type) &&
             type.NamedType() is InputObjectType it &&
-            it.Fields.TryGetField(node.Name.Value, out InputField? field))
+            it.Fields.TryGetField(node.Name.Value, out var field))
         {
             if (field.Type.IsNonNullType() &&
                 node.Value.IsNull())
@@ -298,7 +299,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         ListValueNode node,
         IDocumentValidatorContext context)
     {
-        if (context.Types.TryPeek(out IType? type))
+        if (context.Types.TryPeek(out var type))
         {
             if (type.NamedType().IsLeafType())
             {
@@ -328,16 +329,16 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         IValueNode valueNode,
         IDocumentValidatorContext context)
     {
-        if (context.Types.TryPeek(out IType? currentType) &&
+        if (context.Types.TryPeek(out var currentType) &&
             currentType is IInputType locationType)
         {
-            if (valueNode.IsNull() || IsInstanceOfType(context, locationType, valueNode))
+            if (valueNode.IsNull() || TryIsInstanceOfType(context, locationType, valueNode))
             {
                 return Skip;
             }
 
-            if (TryPeekLastDefiningSyntaxNode(context, out ISyntaxNode? node) &&
-                TryCreateValueError(context, locationType, valueNode, node, out IError? error))
+            if (TryPeekLastDefiningSyntaxNode(context, out var node) &&
+                TryCreateValueError(context, locationType, valueNode, node, out var error))
             {
                 context.ReportError(error);
                 return Skip;
@@ -347,7 +348,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         return Skip;
     }
 
-    private bool TryCreateValueError(
+    private static bool TryCreateValueError(
         IDocumentValidatorContext context,
         IInputType locationType,
         IValueNode valueNode,
@@ -357,7 +358,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         error = node.Kind switch
         {
             SyntaxKind.ObjectField =>
-                context.InputFields.TryPeek(out IInputField? field)
+                context.InputFields.TryPeek(out var field)
                     ? context.FieldValueIsNotCompatible(field, locationType, valueNode)
                     : null,
             SyntaxKind.VariableDefinition =>
@@ -389,19 +390,36 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         return false;
     }
 
+    private bool TryIsInstanceOfType(
+        IDocumentValidatorContext context,
+        IInputType inputType,
+        IValueNode value)
+    {
+        try
+        {
+            return IsInstanceOfType(context, inputType, value);
+        }
+        // in the case a scalar IsInstanceOfType check is not done well an throws we will
+        // catch this here and make sure that the validation fails correctly.
+        catch
+        {
+            return false;
+        }
+    }
+
     private bool IsInstanceOfType(
         IDocumentValidatorContext context,
         IInputType inputType,
         IValueNode value)
     {
         if (value is VariableNode v
-            && context.Variables.TryGetValue(v.Name.Value, out VariableDefinitionNode? t)
+            && context.Variables.TryGetValue(v.Name.Value, out var t)
             && t.Type is { } typeNode)
         {
             return IsTypeCompatible(inputType, typeNode);
         }
 
-        IInputType internalType = inputType;
+        var internalType = inputType;
 
         if (internalType.Kind == TypeKind.NonNull)
         {
@@ -487,7 +505,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         if (left is INamedType leftNamedType
             && right is NamedTypeNode rightNamedType)
         {
-            return leftNamedType.Name.Equals(rightNamedType.Name.Value);
+            return leftNamedType.Name.EqualsOrdinal(rightNamedType.Name.Value);
         }
 
         return false;

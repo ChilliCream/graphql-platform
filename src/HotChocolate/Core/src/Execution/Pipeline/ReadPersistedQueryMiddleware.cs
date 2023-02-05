@@ -45,7 +45,7 @@ internal sealed class ReadPersistedQueryMiddleware
 
         if (queryId is not null)
         {
-            QueryDocument? queryDocument =
+            var queryDocument =
                 await _persistedQueryStore.TryReadQueryAsync(
                     queryId, context.RequestAborted)
                     .ConfigureAwait(false);

@@ -1,5 +1,8 @@
 #nullable enable
 
+using System;
+using static System.StringComparison;
+
 namespace HotChocolate;
 
 /// <summary>
@@ -11,7 +14,7 @@ public sealed class NamePathSegment : Path
     /// <summary>
     ///  Gets the name representing a field on a result map.
     /// </summary>
-    public NameString Name { get; internal set; }
+    public string Name { get; internal set; } = default!;
 
     /// <inheritdoc />
     public override string Print()
@@ -31,8 +34,8 @@ public sealed class NamePathSegment : Path
         }
 
         if (other is NamePathSegment name &&
-            Depth.Equals(name.Depth) &&
-            Name.Equals(name.Name))
+            Length.Equals(name.Length) &&
+            string.Equals(Name, name.Name, Ordinal))
         {
             if (ReferenceEquals(Parent, other.Parent))
             {
@@ -47,17 +50,11 @@ public sealed class NamePathSegment : Path
 
     /// <inheritdoc />
     public override Path Clone()
-        => new NamePathSegment { Depth = Depth, Name = Name, Parent = Parent.Clone() };
+        => new NamePathSegment { Length = Length, Name = Name, Parent = Parent.Clone() };
 
     /// <inheritdoc />
     public override int GetHashCode()
-    {
-        unchecked
-        {
-            var hash = (Parent?.GetHashCode() ?? 0) * 3;
-            hash ^= Depth.GetHashCode() * 7;
-            hash ^= Name.GetHashCode() * 11;
-            return hash;
-        }
-    }
+        // ReSharper disable NonReadonlyMemberInGetHashCode
+        => HashCode.Combine(Parent, Length, Name);
+        // ReSharper restore NonReadonlyMemberInGetHashCode
 }

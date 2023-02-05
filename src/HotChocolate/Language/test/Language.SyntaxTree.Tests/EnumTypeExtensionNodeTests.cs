@@ -63,7 +63,7 @@ public class EnumTypeExtensionNodeTests
 
         // act
         EnumTypeExtensionNode Action()
-            => new(location, null, directives, values);
+            => new(location, null!, directives, values);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -80,7 +80,7 @@ public class EnumTypeExtensionNodeTests
 
         // act
         EnumTypeExtensionNode Action()
-            => new(location, name, null, values);
+            => new(location, name, null!, values);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -99,7 +99,7 @@ public class EnumTypeExtensionNodeTests
             location,
             name,
             directives,
-            null);
+            null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(a);

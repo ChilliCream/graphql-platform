@@ -21,7 +21,7 @@ public class NegativeFloatType : FloatType
     /// Initializes a new instance of <see cref="NegativeFloatType"/>
     /// </summary>
     public NegativeFloatType(
-        NameString name,
+        string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, description, double.MinValue, 0, bind)

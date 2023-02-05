@@ -1,36 +1,32 @@
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
-using HotChocolate.Internal;
-using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types.Descriptors;
 
 #nullable enable
 
 namespace HotChocolate.Types;
 
-[AttributeUsage(
-    AttributeTargets.Property | AttributeTargets.Method,
-    Inherited = true,
-    AllowMultiple = false)]
+[Obsolete("Use the SubscribeAttribute.")]
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Method)]
 public sealed class SubscribeAndResolveAttribute
     : ObjectFieldDescriptorAttribute
 {
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member)
     {
         descriptor.Extend().OnBeforeCreate(d =>
         {
-            ITypeReference typeReference =
+            var typeReference =
                 context.TypeInspector.GetReturnTypeRef(member, TypeContext.Output);
 
             if (typeReference is ExtendedTypeReference typeRef &&
-                context.TypeInspector.TryCreateTypeInfo(typeRef.Type, out ITypeInfo? typeInfo) &&
+                context.TypeInspector.TryCreateTypeInfo(typeRef.Type, out var typeInfo) &&
                 !typeInfo.IsSchemaType)
             {
-                IExtendedType? rewritten = typeRef.Type.IsArrayOrList
+                var rewritten = typeRef.Type.IsArrayOrList
                     ? typeRef.Type.ElementType
                     : null;
 

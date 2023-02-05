@@ -45,7 +45,7 @@ public class XmlDocumentationProvider : IDocumentationProvider
 
     public string? GetDescription(ParameterInfo parameter)
     {
-        XElement? element = GetParameterElement(parameter);
+        var element = GetParameterElement(parameter);
 
         if (element is null)
         {
@@ -65,7 +65,7 @@ public class XmlDocumentationProvider : IDocumentationProvider
 
     private string? GetDescriptionInternal(MemberInfo member)
     {
-        XElement? element = GetMemberElement(member);
+        var element = GetMemberElement(member);
 
         if (element is null)
         {
@@ -85,7 +85,7 @@ public class XmlDocumentationProvider : IDocumentationProvider
         XElement? returns,
         IEnumerable<XElement> errors)
     {
-        StringBuilder description = _stringBuilderPool.Get();
+        var description = _stringBuilderPool.Get();
 
         try
         {
@@ -121,9 +121,9 @@ public class XmlDocumentationProvider : IDocumentationProvider
         bool needsNewLine)
     {
         var errorCount = 0;
-        foreach (XElement error in errors)
+        foreach (var error in errors)
         {
-            XAttribute? code = error.Attribute(_code);
+            var code = error.Attribute(_code);
             if (code is { }
                 && !string.IsNullOrEmpty(error.Value)
                 && !string.IsNullOrEmpty(code.Value))
@@ -155,7 +155,7 @@ public class XmlDocumentationProvider : IDocumentationProvider
             return;
         }
 
-        foreach (XNode? node in element.Nodes())
+        foreach (var node in element.Nodes())
         {
             var currentElement = node as XElement;
             if (currentElement is null)
@@ -170,7 +170,7 @@ public class XmlDocumentationProvider : IDocumentationProvider
                 continue;
             }
 
-            XAttribute? attribute = currentElement.Attribute(_langword);
+            var attribute = currentElement.Attribute(_langword);
             if (attribute != null)
             {
                 description.Append(attribute.Value);
@@ -219,10 +219,10 @@ public class XmlDocumentationProvider : IDocumentationProvider
         {
             if (_fileResolver.TryGetXmlDocument(
                 member.Module.Assembly,
-                out XDocument? document))
+                out var document))
             {
-                MemberName name = GetMemberElementName(member);
-                XElement? element = document.XPathSelectElements(name.Path)
+                var name = GetMemberElementName(member);
+                var element = document.XPathSelectElements(name.Path)
                     .FirstOrDefault();
 
                 ReplaceInheritdocElements(member, element);
@@ -244,11 +244,11 @@ public class XmlDocumentationProvider : IDocumentationProvider
         {
             if (_fileResolver.TryGetXmlDocument(
                 parameter.Member.Module.Assembly,
-                out XDocument? document))
+                out var document))
             {
-                MemberName name = GetMemberElementName(parameter.Member);
-                IEnumerable<XElement> result = document.XPathSelectElements(name.Path);
-                XElement? element = result.FirstOrDefault();
+                var name = GetMemberElementName(parameter.Member);
+                var result = document.XPathSelectElements(name.Path);
+                var element = result.FirstOrDefault();
 
                 if (element is null)
                 {
@@ -288,24 +288,24 @@ public class XmlDocumentationProvider : IDocumentationProvider
             return;
         }
 
-        List<XNode> children = element.Nodes().ToList();
-        foreach (XElement? child in children.OfType<XElement>())
+        var children = element.Nodes().ToList();
+        foreach (var child in children.OfType<XElement>())
         {
             if (string.Equals(child.Name.LocalName, _inheritdoc,
                 StringComparison.OrdinalIgnoreCase))
             {
-                Type? baseType =
+                var baseType =
                     member.DeclaringType?.GetTypeInfo().BaseType;
-                MemberInfo? baseMember =
+                var baseMember =
                     baseType?.GetTypeInfo().DeclaredMembers
                         .SingleOrDefault(m => m.Name == member.Name);
 
                 if (baseMember != null)
                 {
-                    XElement? baseDoc = GetMemberElement(baseMember);
+                    var baseDoc = GetMemberElement(baseMember);
                     if (baseDoc != null)
                     {
-                        object[] nodes =
+                        var nodes =
                             baseDoc.Nodes().OfType<object>().ToArray();
                         child.ReplaceWith(nodes);
                     }
@@ -328,15 +328,15 @@ public class XmlDocumentationProvider : IDocumentationProvider
     {
         if (member.DeclaringType is { })
         {
-            foreach (Type baseInterface in member.DeclaringType
+            foreach (var baseInterface in member.DeclaringType
                 .GetTypeInfo().ImplementedInterfaces)
             {
-                MemberInfo? baseMember = baseInterface.GetTypeInfo()
+                var baseMember = baseInterface.GetTypeInfo()
                     .DeclaredMembers.SingleOrDefault(m =>
                         m.Name.EqualsOrdinal(member.Name));
                 if (baseMember != null)
                 {
-                    XElement? baseDoc = GetMemberElement(baseMember);
+                    var baseDoc = GetMemberElement(baseMember);
                     if (baseDoc != null)
                     {
                         child.ReplaceWith(
@@ -357,7 +357,7 @@ public class XmlDocumentationProvider : IDocumentationProvider
         documentation =
             "\n" + documentation.Replace("\r", string.Empty).Trim('\n');
 
-        string whitespace =
+        var whitespace =
             Regex.Match(documentation, "(\\n[ \\t]*)").Value;
 
         documentation = documentation.Replace(whitespace, "\n");

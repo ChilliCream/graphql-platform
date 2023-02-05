@@ -12,12 +12,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Execution" />
     <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
+    <InternalsVisibleTo Include="HotChocolate.Authorization" />
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore" />
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore.Authorization" />
     <InternalsVisibleTo Include="HotChocolate.Validation" />
     <InternalsVisibleTo Include="HotChocolate.Types.CursorPagination" />
     <InternalsVisibleTo Include="HotChocolate.Types.OffsetPagination" />
     <InternalsVisibleTo Include="HotChocolate.ApolloFederation" />
     <InternalsVisibleTo Include="HotChocolate.Data" />
+    <InternalsVisibleTo Include="HotChocolate.Caching" />
+    <InternalsVisibleTo Include="StrawberryShake.CodeGeneration" />
 
     <!--Legacy Support-->
     <InternalsVisibleTo Include="HotChocolate.Types.Filters" />
@@ -32,20 +38,20 @@
     <InternalsVisibleTo Include="HotChocolate.Data.Filters.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Data.Sorting.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Data.Projections.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Caching.Tests" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="3.1.4" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.4" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.7.0" />
-    <PackageReference Include="System.Text.Json" Version="4.7.0" />
+    <PackageReference Include="System.Text.Json" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Utilities\src\Utilities\HotChocolate.Utilities.csproj" />
     <ProjectReference Include="..\..\..\Utilities\src\Utilities.Introspection\HotChocolate.Utilities.Introspection.csproj" />
     <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
-    <ProjectReference Include="..\Subscriptions\HotChocolate.Subscriptions.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -53,6 +59,48 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>TypeResources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Types\ObjectType.Initialization.cs">
+      <DependentUpon>ObjectType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Utilities\DefaultTypeConverter.Setup.cs">
+      <DependentUpon>DefaultTypeConverter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaBuilder.Create.cs">
+      <DependentUpon>SchemaBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaBuilder.Lazy.cs">
+      <DependentUpon>SchemaBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaBuilder.Setup.cs">
+      <DependentUpon>SchemaBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaErrorBuilder.Error.cs">
+      <DependentUpon>SchemaErrorBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\EnumType.Initialization.cs">
+      <DependentUpon>EnumType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Scalars\ScalarType.Initialization.cs">
+      <DependentUpon>ScalarType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Schema.Initialization.cs">
+      <DependentUpon>Schema.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\InputObjectType.Initialization.cs">
+      <DependentUpon>InputObjectType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\DirectiveType.Initialization.cs">
+      <DependentUpon>DirectiveType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Configuration\RegisteredType.CompletionContext.cs">
+      <DependentUpon>RegisteredType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Configuration\RegisteredType.DiscoveryContext.cs">
+      <DependentUpon>RegisteredType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\StaticObjectTypeExtension.cs">
+      <DependentUpon>ObjectTypeExtension.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 

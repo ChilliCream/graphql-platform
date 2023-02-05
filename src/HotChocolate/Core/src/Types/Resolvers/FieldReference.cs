@@ -8,12 +8,12 @@ public sealed class FieldReference
     : FieldReferenceBase
     , IEquatable<FieldReference>
 {
-    public FieldReference(NameString typeName, NameString fieldName)
+    public FieldReference(string typeName, string fieldName)
         : base(typeName, fieldName)
     {
     }
 
-    public FieldReference WithTypeName(NameString typeName)
+    public FieldReference WithTypeName(string typeName)
     {
         if (string.Equals(TypeName, typeName, StringComparison.Ordinal))
         {
@@ -23,7 +23,7 @@ public sealed class FieldReference
         return new FieldReference(typeName, FieldName);
     }
 
-    public FieldReference WithFieldName(NameString fieldName)
+    public FieldReference WithFieldName(string fieldName)
     {
         if (string.Equals(FieldName, fieldName, StringComparison.Ordinal))
         {

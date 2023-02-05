@@ -134,7 +134,7 @@ In this case, we still can opt out of the serial execution strategy by using the
 
 Serial executable resolvers will be put into a sequence shape of the query plan, which guarantees that they are executed one after the other. You can inspect the query plan by providing the `graphql-query-plan` header with a value of `1`.
 
-We will get the following execution plan if we head over to https://workshop.chillicream.com and run the following query with the query plan header.
+We will get the following execution plan if we head over to <https://workshop.chillicream.com> and run the following query with the query plan header.
 
 ```graphql
 {
@@ -323,7 +323,7 @@ public async ValueTask<IReadOnlyCollection<ITypeSystemMember>> CreateTypesAsync(
 }
 ```
 
-A complete example of a dynamic schema with hot-reload can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/TypeModules), and I will also follow up this post with a detailed blog post on dynamic schemas that goes more into the details.
+A complete example of a dynamic schema with hot-reload can be found [here](https://github.com/ChilliCream/graphql-platform-examples/tree/master/misc/TypeModules), and I will also follow up this post with a detailed blog post on dynamic schemas that goes more into the details.
 
 ## Type Interceptors
 
@@ -545,7 +545,7 @@ type Person {
 
 But for the time being, schema-first got a big update with this release, and we will continue to make it better with every new release.
 
-The schema-first demo can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/SchemaFirst).
+The schema-first demo can be found [here](https://github.com/ChilliCream/graphql-platform-examples/tree/master/misc/SchemaFirst).
 
 # DataLoader
 
@@ -581,7 +581,7 @@ services.AddGraphQLServer()
 
 # Stream and Defer
 
-With Hot Chocolate 11, we introduced the `@defer` directive, which allows you to defer parts of your query to get the most important data first, and deprioritize the execution of more expensive parts of your query.
+With Hot Chocolate 11, we introduced the `@defer` directive, which allows you to defer parts of your query to get the most important data first, and de-prioritize the execution of more expensive parts of your query.
 
 With Hot Chocolate 12, we are now introducing the `@stream` directive, which allows you to take advantage of async enumerators and define how much data of a stream you want to get immediately and what shall be deferred to a later point in time.
 
@@ -813,7 +813,7 @@ Beginning this week, we will start working on the new version, which we hope to 
 
 But there are also other topics Hot Chocolate 13 will tackle like support for AzureFunctions, more transport protocols like graphql-ws and Azure Web PubSub and many more things.
 
-If you want to have a look at the high-level roadmap, you can check it out [here](https://github.com/ChilliCream/hotchocolate/projects/28).
+If you want to have a look at the high-level roadmap, you can check it out [here](https://github.com/ChilliCream/graphql-platform/projects/28).
 
 There are also dot releases planned for Hot Chocolate 12, with 12.1 already scheduled for the end of October.
 

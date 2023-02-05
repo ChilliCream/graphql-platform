@@ -1,24 +1,23 @@
 using System.Linq;
 using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.ApolloFederation.Directives;
 
-public class RequiresDirectiveTests
-    : FederationTypesTestBase
+public class RequiresDirectiveTests : FederationTypesTestBase
 {
     [Fact]
     public void AddRequiresDirective_EnsureAvailableInSchema()
     {
         // arrange
-        ISchema schema = CreateSchema(b => b.AddDirectiveType<RequiresDirectiveType>());
+        var schema = CreateSchema(b => b.AddDirectiveType<RequiresDirectiveType>());
 
         // act
-        DirectiveType? directive =
+        var directive =
             schema.DirectiveTypes.FirstOrDefault(
-                t => t.Name.Equals(WellKnownTypeNames.Requires));
+                t => t.Name.EqualsOrdinal(WellKnownTypeNames.Requires));
 
         // assert
         Assert.NotNull(directive);
@@ -26,10 +25,7 @@ public class RequiresDirectiveTests
         Assert.Equal(WellKnownTypeNames.Requires, directive!.Name);
         Assert.Single(directive.Arguments);
         AssertDirectiveHasFieldsArgument(directive);
-        Assert.Collection(
-            directive.Locations,
-            t => Assert.Equal(DirectiveLocation.FieldDefinition, t));
-
+        Assert.Equal(DirectiveLocation.FieldDefinition, directive.Locations);
     }
 
     [Fact]
@@ -38,7 +34,7 @@ public class RequiresDirectiveTests
         // arrange
         Snapshot.FullName();
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddDocumentFromString(
                 @"type Review @key(fields: ""id"") {
                         id: Int!
@@ -59,22 +55,22 @@ public class RequiresDirectiveTests
             .Create();
 
         // act
-        ObjectType testType = schema.GetType<ObjectType>("Review");
+        var testType = schema.GetType<ObjectType>("Review");
 
         // assert
         Assert.Collection(
-            testType.Fields.Single(field => field.Name.Value == "product").Directives,
+            testType.Fields.Single(field => field.Name == "product").Directives,
             providesDirective =>
             {
                 Assert.Equal(
                     WellKnownTypeNames.Requires,
-                    providesDirective.Name);
+                    providesDirective.Type.Name);
                 Assert.Equal(
                     "fields",
-                    providesDirective.ToNode().Arguments[0].Name.ToString());
+                    providesDirective.AsSyntaxNode().Arguments[0].Name.ToString());
                 Assert.Equal(
                     "\"id\"",
-                    providesDirective.ToNode().Arguments[0].Value.ToString());
+                    providesDirective.AsSyntaxNode().Arguments[0].Value.ToString());
             });
 
         schema.ToString().MatchSnapshot();
@@ -108,7 +104,7 @@ public class RequiresDirectiveTests
                 o.Field("someField").Argument("a", a => a.Type<IntType>()).Type(reviewType);
             });
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddQueryType(queryType)
             .AddType<FieldSetType>()
             .AddDirectiveType<KeyDirectiveType>()
@@ -117,18 +113,16 @@ public class RequiresDirectiveTests
             .Create();
 
         // act
-        ObjectType testType = schema.GetType<ObjectType>("Review");
+        var testType = schema.GetType<ObjectType>("Review");
 
         // assert
-        Assert.Collection(testType.Fields.Single(field => field.Name.Value == "product").Directives,
+        Assert.Collection(testType.Fields.Single(field => field.Name == "product").Directives,
             providesDirective =>
             {
-                Assert.Equal(
-                    WellKnownTypeNames.Requires,
-                    providesDirective.Name
-                );
-                Assert.Equal("fields", providesDirective.ToNode().Arguments[0].Name.ToString());
-                Assert.Equal("\"id\"", providesDirective.ToNode().Arguments[0].Value.ToString());
+                var directiveNode = providesDirective.AsSyntaxNode();
+                Assert.Equal(WellKnownTypeNames.Requires, providesDirective.Type.Name);
+                Assert.Equal("fields", directiveNode.Arguments[0].Name.ToString());
+                Assert.Equal("\"id\"", directiveNode.Arguments[0].Value.ToString());
             }
         );
         schema.ToString().MatchSnapshot();
@@ -140,24 +134,22 @@ public class RequiresDirectiveTests
         // arrange
         Snapshot.FullName();
 
-        ISchema schema = SchemaBuilder.New()
+        var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddQueryType<Query>()
             .Create();
 
         // act
-        ObjectType testType = schema.GetType<ObjectType>("Review");
+        var testType = schema.GetType<ObjectType>("Review");
 
         // assert
-        Assert.Collection(testType.Fields.Single(field => field.Name.Value == "product").Directives,
+        Assert.Collection(testType.Fields.Single(field => field.Name == "product").Directives,
             providesDirective =>
             {
-                Assert.Equal(
-                    WellKnownTypeNames.Requires,
-                    providesDirective.Name
-                );
-                Assert.Equal("fields", providesDirective.ToNode().Arguments[0].Name.ToString());
-                Assert.Equal("\"id\"", providesDirective.ToNode().Arguments[0].Value.ToString());
+                var directiveNode = providesDirective.AsSyntaxNode();
+                Assert.Equal(WellKnownTypeNames.Requires, providesDirective.Type.Name);
+                Assert.Equal("fields", directiveNode.Arguments[0].Name.ToString());
+                Assert.Equal("\"id\"", directiveNode.Arguments[0].Value.ToString());
             }
         );
         schema.ToString().MatchSnapshot();
