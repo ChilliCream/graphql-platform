@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -15,9 +10,9 @@ public class PublishSchemaDefinitionDescriptor : IPublishSchemaDefinitionDescrip
 {
     private readonly IRequestExecutorBuilder _builder;
     private readonly string _key = Guid.NewGuid().ToString();
-    private readonly List<DirectiveNode> _schemaDirectives = new List<DirectiveNode>();
+    private readonly List<DirectiveNode> _schemaDirectives = new();
     private Func<IServiceProvider,  ISchemaDefinitionPublisher>? _publisherFactory;
-    private string _name;
+    private string? _name;
     private RemoteSchemaDefinition? _schemaDefinition;
 
     public PublishSchemaDefinitionDescriptor(IRequestExecutorBuilder builder)
